@@ -6,7 +6,7 @@ The first phase is to create something to test, so I am developing a cruise agen
 
 This repository holds examples of using the following technologies:
 
-Node.js - I have used Nodejs with webdriverIO to test applications, not develop them.  I wrote a compiler in Nodejs in 2017 that converted JSON workflows into executable webdriverIO frameworks automatically
+Node.js - I have used Nodejs with webdriverIO to test applications, not develop them.  I wrote a compiler in Nodejs in 2017 that converted JSON workflows into executable webdriverIO frameworks automatically.  That code belongs to my former employer, and so I do not have a copy of it, but I could always write it again if I see a need for it elsewhere.
 
 Express - First time I've used express
 
