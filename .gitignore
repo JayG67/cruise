@@ -1,0 +1,13 @@
+#Dependencies
+node_modules/
+
+#Logs
+logs/
+
+#Environment variables
+# .env   Keeping this in version control to make a pull easier to use OOTB.
+# .gitignore. Keeping this in version control so comments are visible to users.
+
+#Build output
+dist/
+build/
