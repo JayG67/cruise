@@ -6,4 +6,12 @@ The first phase is to create something to test, so I am developing a cruise agen
 
 This repository holds examples of using the following technologies:
 
-Node.js, Express, Postgres, Drizzle, Docker
+Node.js - I have used Nodejs with webdriverIO to test applications, not develop them.  I wrote a compiler in Nodejs in 2017 that converted JSON workflows into executable webdriverIO frameworks automatically
+
+Express - First time I've used express
+
+Postgres - I've used relational database technologies extensively in the past, but never Postgres, or database operations in Node.
+
+Drizzle - First time I've used Drizzle
+
+Docker - I have used docker professionally, but I'm not an expert.  I learn to do what I need to do with it and apply it.  Taking a   Docker course is on my todo list.
