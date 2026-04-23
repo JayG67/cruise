@@ -6,3 +6,5 @@ const cruiseLineTable = pgTable('cruise_lines', {
   country: varchar({ length: 255 }),
   website: varchar({ length: 255 })
 })
+
+module.exports = cruiseLineTable

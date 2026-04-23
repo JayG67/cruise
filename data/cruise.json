@@ -1,0 +1,54 @@
+{
+  "cruiseLines": [
+    {
+      "name": "Royal Caribbean International",
+      "country": "United States",
+      "website": "https://www.royalcaribbean.com",
+      "ships": [
+        { "name": "Icon of the Seas" },
+        { "name": "Utopia of the Seas" },
+        { "name": "Wonder of the Seas" }
+      ]
+    },
+    {
+      "name": "Carnival Cruise Line",
+      "country": "United States",
+      "website": "https://www.carnival.com",
+      "ships": [
+        { "name": "Mardi Gras" },
+        { "name": "Carnival Celebration" },
+        { "name": "Carnival Jubilee" }
+      ]
+    },
+    {
+      "name": "MSC Cruises",
+      "country": "Switzerland",
+      "website": "https://www.msccruises.com",
+      "ships": [
+        { "name": "MSC World Europa" },
+        { "name": "MSC Seashore" },
+        { "name": "MSC Meraviglia" }
+      ]
+    },
+    {
+      "name": "Norwegian Cruise Line",
+      "country": "United States",
+      "website": "https://www.ncl.com",
+      "ships": [
+        { "name": "Norwegian Prima" },
+        { "name": "Norwegian Viva" },
+        { "name": "Norwegian Encore" }
+      ]
+    },
+    {
+      "name": "Disney Cruise Line",
+      "country": "United States",
+      "website": "https://disneycruise.disney.go.com",
+      "ships": [
+        { "name": "Disney Wish" },
+        { "name": "Disney Dream" },
+        { "name": "Disney Fantasy" }
+      ]
+    }
+  ]
+}
