@@ -1,5 +1,5 @@
-const cruiseLineTable = require('.cruiseLine.model')
-const shipTable = require('.ship.model')
+const cruiseLineTable = require('./cruiseline.model')
+const shipTable = require('./ship.model')
 
 module.exports = {
   cruiseLineTable,
