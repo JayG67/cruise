@@ -10,8 +10,10 @@ Node.js - I have used Nodejs with webdriverIO to test applications, not develop 
 
 Express - First time I've used express
 
-Postgres - I've used relational database technologies extensively in the past, but never Postgres, or database operations in Node.
+Postgres - I've used relational database technologies extensively in the past, but never Postgres, or database operations/SQL in Node.
 
 Drizzle - First time I've used Drizzle
 
 Docker - I have used docker professionally, but I'm not an expert.  I learn to do what I need to do with it and apply it.  Taking a   Docker course is on my todo list.
+
+Jest -  I have managed engineers who use Jest, but this is the first time I have used it.  The framework feels familiar and easy to use compared to the tools I've used in the past.

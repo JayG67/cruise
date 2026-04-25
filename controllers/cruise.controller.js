@@ -1,4 +1,3 @@
-// I had to get cruise control in there somewhere.
 const cruiseLineTable = require('../models/cruiseline.model')
 const shipTable = require('../models/ship.model')
 const db = require('../db')
@@ -17,7 +16,7 @@ exports.getCruiseLineById = async (req, res) => {
   if (!id) {
     return res.status(400).json({ message: 'Cruise line ID is required' })
   }
-  if (!db.select().from(cruiseLineTable).where(eq(cruiseLineTable.id, id)).get()) {
+  if (await !db.select().from(cruiseLineTable).where(eq(cruiseLineTable.id, id)).get()) {
     return res.status(404).json({ message: 'Cruise line not found' })
   }
   const cruiseLine = await db.select().from(cruiseLineTable).where(eq(cruiseLineTable.id, id)).get()
@@ -42,7 +41,7 @@ exports.insertCruiseLine = async (req, res) => {
   if (!name || name === '') {
     return res.status(400).json({ message: 'Cruise line name is required' })
   }
-  if (db.select().from(cruiseLineTable).where(eq(cruiseLineTable.name, name)).get()) {
+  if (await db.select().from(cruiseLineTable).where(eq(cruiseLineTable.name, name)).get()) {
     return res.status(400).json({ message: 'Cruise line with the same name already exists' })
   }
   const id = await db.insert(cruiseLineTable).values({ name, country, website }).returning({ id: cruiseLineTable.id }).get()
@@ -57,10 +56,10 @@ exports.insertShip = async (req, res) => {
   if (!cruiseLineId) {
     return res.status(400).json({ message: 'Cruise line ID is required' })
   }
-  if (db.select().from(shipTable).where(eq(shipTable.name, name)).get()) {
+  if (await db.select().from(shipTable).where(eq(shipTable.name, name)).get()) {
     return res.status(400).json({ message: 'Ship with the same name already exists' })
   }
-  if (!db.select().from(cruiseLineTable).where(eq(cruiseLineTable.id, cruiseLineId)).get()) {
+  if (await !db.select().from(cruiseLineTable).where(eq(cruiseLineTable.id, cruiseLineId)).get()) {
     return res.status(400).json({ message: 'Invalid cruise line ID' })
   }
   const id = await db.insert(shipTable).values({ name, cruiseLineId }).returning({ id: shipTable.id }).get()
@@ -73,7 +72,7 @@ exports.updateCruiseLine = async (req, res) => {
   if (!id) {
     return res.status(400).json({ message: 'Cruise line ID is required' })
   }
-  if (!db.select().from(cruiseLineTable).where(eq(cruiseLineTable.id, id)).get()) {
+  if (await !db.select().from(cruiseLineTable).where(eq(cruiseLineTable.id, id)).get()) {
     return res.status(404).json({ message: 'Cruise line not found' })
   }
   await db.update(cruiseLineTable).set({ name, country, website }).where(eq(cruiseLineTable.id, id)).run()
@@ -86,7 +85,7 @@ exports.updateShip = async (req, res) => {
   if (!id) {
     return res.status(400).json({ message: 'Ship ID is required' })
   }
-  if (!db.select().from(shipTable).where(eq(shipTable.id, id)).get()) {
+  if (await !db.select().from(shipTable).where(eq(shipTable.id, id)).get()) {
     return res.status(404).json({ message: 'Ship not found' })
   }
   if (cruiseLineId && !db.select().from(cruiseLineTable).where(eq(cruiseLineTable.id, cruiseLineId)).get()) {
@@ -98,7 +97,7 @@ exports.updateShip = async (req, res) => {
 
 exports.deleteCruiseLine = async (req, res) => {
   const { id } = req.params
-  if (!db.select().from(cruiseLineTable).where(eq(cruiseLineTable.id, id)).get()) {
+  if (await !db.select().from(cruiseLineTable).where(eq(cruiseLineTable.id, id)).get()) {
     return res.status(404).json({ message: 'Cruise line not found' })
   }
   await db.delete(shipTable).where(eq(shipTable.cruiseLineId, id)).run()
@@ -108,7 +107,7 @@ exports.deleteCruiseLine = async (req, res) => {
 
 exports.deleteShip = async (req, res) => {
   const { id } = req.params
-  if (!db.select().from(shipTable).where(eq(shipTable.id, id)).get()) {
+  if (await !db.select().from(shipTable).where(eq(shipTable.id, id)).get()) {
     return res.status(404).json({ message: 'Ship not found' })
   }
   await db.delete(shipTable).where(eq(shipTable.id, id)).run()
