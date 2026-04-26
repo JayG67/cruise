@@ -1,17 +1,19 @@
 const cruiseController = require('../../controllers/cruise.controller')
 const db = require('../../db')
+const mockResponse = require('./helpers/mockResponse')
+const {
+  mockSelectGet,
+  mockSelectAll,
+  mockSelectWhereAll,
+  mockInsertGet,
+  mockUpdateRun,
+  mockDeleteRun
+} = require('./helpers/drizzleMocks')
 
 jest.mock('../../db')
 jest.mock('drizzle-orm', () => ({
   eq: jest.fn()
 }))
-
-const mockResponse = () => {
-  const res = {}
-  res.status = jest.fn().mockReturnValue(res)
-  res.json = jest.fn().mockReturnValue(res)
-  return res
-}
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -31,18 +33,13 @@ describe('Cruise Controller getCruiseLines', () => {
       { id: '2', name: 'MSC', country: 'Italy' }
     ]
 
-    const allMock = jest.fn().mockResolvedValue(fakeCruiseLines)
-    const fromMock = jest.fn().mockReturnValue({ all: allMock })
-
-    db.select.mockReturnValue({
-      from: fromMock
-    })
+    const { allMock, fromMock } = mockSelectAll(db, fakeCruiseLines)
 
     await cruiseController.getCruiseLines(req, res)
 
-    expect(db.select).toHaveBeenCalled()
-    expect(fromMock).toHaveBeenCalled()
-    expect(allMock).toHaveBeenCalled()
+    expect(db.select).toHaveBeenCalledTimes(1)
+    expect(fromMock).toHaveBeenCalledTimes(1)
+    expect(allMock).toHaveBeenCalledTimes(1)
 
     expect(res.status).toHaveBeenCalledWith(200)
     expect(res.json).toHaveBeenCalledWith(fakeCruiseLines)
@@ -52,23 +49,22 @@ describe('Cruise Controller getCruiseLines', () => {
     const req = {}
     const res = mockResponse()
 
-    const fakeCruiseLines = []
-
-    const noDataMock = jest.fn().mockResolvedValue(fakeCruiseLines)
-    const fromMock = jest.fn().mockReturnValue({ all: noDataMock })
-
-    db.select.mockReturnValue({
-      from: fromMock
-    })
+    const { allMock, fromMock } = mockSelectAll(db, [])
 
     await cruiseController.getCruiseLines(req, res)
 
+    expect(db.select).toHaveBeenCalledTimes(1)
+    expect(fromMock).toHaveBeenCalledTimes(1)
+    expect(allMock).toHaveBeenCalledTimes(1)
+
     expect(res.status).toHaveBeenCalledWith(404)
-    expect(res.json).toHaveBeenCalledWith({"message": "No cruise lines found"})
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'No cruise lines found'
+    })
   })
 })
 
-describe('Cruise Controller getCruiseLinesById', () => {
+describe('Cruise Controller getCruiseLineById', () => {
   it('should have a getCruiseLineById function', () => {
     expect(typeof cruiseController.getCruiseLineById).toBe('function')
   })
@@ -85,13 +81,7 @@ describe('Cruise Controller getCruiseLinesById', () => {
       country: 'USA'
     }
 
-    const getMock = jest.fn().mockResolvedValue(fakeCruiseLine)
-    const whereMock = jest.fn().mockReturnValue({ get: getMock })
-    const fromMock = jest.fn().mockReturnValue({ where: whereMock })
-
-    db.select.mockReturnValue({
-      from: fromMock
-    })
+    const { getMock, whereMock, fromMock } = mockSelectGet(db, fakeCruiseLine)
 
     await cruiseController.getCruiseLineById(req, res)
 
@@ -114,6 +104,7 @@ describe('Cruise Controller getCruiseLinesById', () => {
     expect(res.json).toHaveBeenCalledWith({
       message: 'Cruise line ID is required'
     })
+
     expect(db.select).not.toHaveBeenCalled()
   })
 
@@ -123,15 +114,11 @@ describe('Cruise Controller getCruiseLinesById', () => {
     }
     const res = mockResponse()
 
-    const getMock = jest.fn().mockResolvedValue(null)
-    const whereMock = jest.fn().mockReturnValue({ get: getMock })
-    const fromMock = jest.fn().mockReturnValue({ where: whereMock })
-
-    db.select.mockReturnValue({
-      from: fromMock
-    })
+    mockSelectGet(db, null)
 
     await cruiseController.getCruiseLineById(req, res)
+
+    expect(db.select).toHaveBeenCalledTimes(1)
 
     expect(res.status).toHaveBeenCalledWith(404)
     expect(res.json).toHaveBeenCalledWith({
@@ -156,13 +143,7 @@ describe('Cruise Controller getShipsByCruiseLine', () => {
       { id: 'ship-2', name: 'Wonder of the Seas', cruiseLineId: '1' }
     ]
 
-    const allMock = jest.fn().mockResolvedValue(fakeShips)
-    const whereMock = jest.fn().mockReturnValue({ all: allMock })
-    const fromMock = jest.fn().mockReturnValue({ where: whereMock })
-
-    db.select.mockReturnValue({
-      from: fromMock
-    })
+    const { allMock, whereMock, fromMock } = mockSelectWhereAll(db, fakeShips)
 
     await cruiseController.getShipsByCruiseLine(req, res)
 
@@ -181,13 +162,7 @@ describe('Cruise Controller getShipsByCruiseLine', () => {
     }
     const res = mockResponse()
 
-    const allMock = jest.fn().mockResolvedValue([])
-    const whereMock = jest.fn().mockReturnValue({ all: allMock })
-    const fromMock = jest.fn().mockReturnValue({ where: whereMock })
-
-    db.select.mockReturnValue({
-      from: fromMock
-    })
+    const { allMock, whereMock, fromMock } = mockSelectWhereAll(db, [])
 
     await cruiseController.getShipsByCruiseLine(req, res)
 
@@ -208,15 +183,14 @@ describe('Cruise Controller getShipsByCruiseLine', () => {
     }
     const res = mockResponse()
 
-    const allMock = jest.fn().mockResolvedValue(null)
-    const whereMock = jest.fn().mockReturnValue({ all: allMock })
-    const fromMock = jest.fn().mockReturnValue({ where: whereMock })
-
-    db.select.mockReturnValue({
-      from: fromMock
-    })
+    const { allMock, whereMock, fromMock } = mockSelectWhereAll(db, null)
 
     await cruiseController.getShipsByCruiseLine(req, res)
+
+    expect(db.select).toHaveBeenCalledTimes(1)
+    expect(fromMock).toHaveBeenCalledTimes(1)
+    expect(whereMock).toHaveBeenCalledTimes(1)
+    expect(allMock).toHaveBeenCalledTimes(1)
 
     expect(res.status).toHaveBeenCalledWith(404)
     expect(res.json).toHaveBeenCalledWith({
@@ -240,30 +214,17 @@ describe('Cruise Controller insertCruiseLine', () => {
     }
     const res = mockResponse()
 
-    const getExistingMock = jest.fn().mockResolvedValue(null)
-    const whereMock = jest.fn().mockReturnValue({ get: getExistingMock })
-    const fromMock = jest.fn().mockReturnValue({ where: whereMock })
-
-    db.select.mockReturnValue({
-      from: fromMock
-    })
+    const { getMock, whereMock, fromMock } = mockSelectGet(db, null)
 
     const fakeId = { id: '1' }
-
-    const insertGetMock = jest.fn().mockResolvedValue(fakeId)
-    const returningMock = jest.fn().mockReturnValue({ get: insertGetMock })
-    const valuesMock = jest.fn().mockReturnValue({ returning: returningMock })
-
-    db.insert.mockReturnValue({
-      values: valuesMock
-    })
+    const { getMock: insertGetMock, returningMock, valuesMock } = mockInsertGet(db, fakeId)
 
     await cruiseController.insertCruiseLine(req, res)
 
     expect(db.select).toHaveBeenCalledTimes(1)
     expect(fromMock).toHaveBeenCalledTimes(1)
     expect(whereMock).toHaveBeenCalledTimes(1)
-    expect(getExistingMock).toHaveBeenCalledTimes(1)
+    expect(getMock).toHaveBeenCalledTimes(1)
 
     expect(db.insert).toHaveBeenCalledTimes(1)
     expect(valuesMock).toHaveBeenCalledWith({
@@ -337,18 +298,12 @@ describe('Cruise Controller insertCruiseLine', () => {
       name: 'Royal Caribbean'
     }
 
-    const getExistingMock = jest.fn().mockResolvedValue(existingCruiseLine)
-    const whereMock = jest.fn().mockReturnValue({ get: getExistingMock })
-    const fromMock = jest.fn().mockReturnValue({ where: whereMock })
-
-    db.select.mockReturnValue({
-      from: fromMock
-    })
+    const { getMock } = mockSelectGet(db, existingCruiseLine)
 
     await cruiseController.insertCruiseLine(req, res)
 
     expect(db.select).toHaveBeenCalledTimes(1)
-    expect(getExistingMock).toHaveBeenCalledTimes(1)
+    expect(getMock).toHaveBeenCalledTimes(1)
 
     expect(res.status).toHaveBeenCalledWith(400)
     expect(res.json).toHaveBeenCalledWith({
@@ -373,27 +328,11 @@ describe('Cruise Controller insertShip', () => {
     }
     const res = mockResponse()
 
-    const getShipMock = jest.fn().mockResolvedValue(null)
-    const whereShipMock = jest.fn().mockReturnValue({ get: getShipMock })
-    const fromShipMock = jest.fn().mockReturnValue({ where: whereShipMock })
-
-    const getCruiseLineMock = jest.fn().mockResolvedValue({ id: '1' })
-    const whereCruiseLineMock = jest.fn().mockReturnValue({ get: getCruiseLineMock })
-    const fromCruiseLineMock = jest.fn().mockReturnValue({ where: whereCruiseLineMock })
-
-    db.select
-      .mockReturnValueOnce({ from: fromShipMock })
-      .mockReturnValueOnce({ from: fromCruiseLineMock })
+    const { getMock: getShipMock } = mockSelectGet(db, null)
+    const { getMock: getCruiseLineMock } = mockSelectGet(db, { id: '1' })
 
     const fakeId = { id: '1' }
-
-    const insertGetMock = jest.fn().mockResolvedValue(fakeId)
-    const returningMock = jest.fn().mockReturnValue({ get: insertGetMock })
-    const valuesMock = jest.fn().mockReturnValue({ returning: returningMock })
-
-    db.insert.mockReturnValue({
-      values: valuesMock
-    })
+    const { valuesMock } = mockInsertGet(db, fakeId)
 
     await cruiseController.insertShip(req, res)
 
@@ -466,13 +405,7 @@ describe('Cruise Controller insertShip', () => {
       name: 'Icon of the Seas'
     }
 
-    const getShipMock = jest.fn().mockResolvedValue(existingShip)
-    const whereShipMock = jest.fn().mockReturnValue({ get: getShipMock })
-    const fromShipMock = jest.fn().mockReturnValue({ where: whereShipMock })
-
-    db.select.mockReturnValueOnce({
-      from: fromShipMock
-    })
+    const { getMock: getShipMock } = mockSelectGet(db, existingShip)
 
     await cruiseController.insertShip(req, res)
 
@@ -496,17 +429,8 @@ describe('Cruise Controller insertShip', () => {
     }
     const res = mockResponse()
 
-    const getShipMock = jest.fn().mockResolvedValue(null)
-    const whereShipMock = jest.fn().mockReturnValue({ get: getShipMock })
-    const fromShipMock = jest.fn().mockReturnValue({ where: whereShipMock })
-
-    const getCruiseLineMock = jest.fn().mockResolvedValue(null)
-    const whereCruiseLineMock = jest.fn().mockReturnValue({ get: getCruiseLineMock })
-    const fromCruiseLineMock = jest.fn().mockReturnValue({ where: whereCruiseLineMock })
-
-    db.select
-      .mockReturnValueOnce({ from: fromShipMock })
-      .mockReturnValueOnce({ from: fromCruiseLineMock })
+    const { getMock: getShipMock } = mockSelectGet(db, null)
+    const { getMock: getCruiseLineMock } = mockSelectGet(db, null)
 
     await cruiseController.insertShip(req, res)
 
@@ -539,26 +463,12 @@ describe('Cruise Controller updateCruiseLine', () => {
     }
     const res = mockResponse()
 
-    const existingCruiseLine = {
+    const { getMock } = mockSelectGet(db, {
       id: '1',
       name: 'Royal Caribbean'
-    }
-
-    const getMock = jest.fn().mockResolvedValue(existingCruiseLine)
-    const whereSelectMock = jest.fn().mockReturnValue({ get: getMock })
-    const fromMock = jest.fn().mockReturnValue({ where: whereSelectMock })
-
-    db.select.mockReturnValue({
-      from: fromMock
     })
 
-    const runMock = jest.fn().mockResolvedValue()
-    const whereUpdateMock = jest.fn().mockReturnValue({ run: runMock })
-    const setMock = jest.fn().mockReturnValue({ where: whereUpdateMock })
-
-    db.update.mockReturnValue({
-      set: setMock
-    })
+    const { setMock, runMock } = mockUpdateRun(db)
 
     await cruiseController.updateCruiseLine(req, res)
 
@@ -612,13 +522,7 @@ describe('Cruise Controller updateCruiseLine', () => {
     }
     const res = mockResponse()
 
-    const getMock = jest.fn().mockResolvedValue(null)
-    const whereSelectMock = jest.fn().mockReturnValue({ get: getMock })
-    const fromMock = jest.fn().mockReturnValue({ where: whereSelectMock })
-
-    db.select.mockReturnValue({
-      from: fromMock
-    })
+    const { getMock } = mockSelectGet(db, null)
 
     await cruiseController.updateCruiseLine(req, res)
 
@@ -649,25 +553,9 @@ describe('Cruise Controller updateShip', () => {
     }
     const res = mockResponse()
 
-    const getShipMock = jest.fn().mockResolvedValue({ id: 'ship-1' })
-    const whereShipMock = jest.fn().mockReturnValue({ get: getShipMock })
-    const fromShipMock = jest.fn().mockReturnValue({ where: whereShipMock })
-
-    const getCruiseLineMock = jest.fn().mockResolvedValue({ id: 'line-1' })
-    const whereCruiseLineMock = jest.fn().mockReturnValue({ get: getCruiseLineMock })
-    const fromCruiseLineMock = jest.fn().mockReturnValue({ where: whereCruiseLineMock })
-
-    db.select
-      .mockReturnValueOnce({ from: fromShipMock })
-      .mockReturnValueOnce({ from: fromCruiseLineMock })
-
-    const runMock = jest.fn().mockResolvedValue()
-    const whereUpdateMock = jest.fn().mockReturnValue({ run: runMock })
-    const setMock = jest.fn().mockReturnValue({ where: whereUpdateMock })
-
-    db.update.mockReturnValue({
-      set: setMock
-    })
+    const { getMock: getShipMock } = mockSelectGet(db, { id: 'ship-1' })
+    const { getMock: getCruiseLineMock } = mockSelectGet(db, { id: 'line-1' })
+    const { setMock, runMock } = mockUpdateRun(db)
 
     await cruiseController.updateShip(req, res)
 
@@ -697,21 +585,8 @@ describe('Cruise Controller updateShip', () => {
     }
     const res = mockResponse()
 
-    const getShipMock = jest.fn().mockResolvedValue({ id: 'ship-1' })
-    const whereShipMock = jest.fn().mockReturnValue({ get: getShipMock })
-    const fromShipMock = jest.fn().mockReturnValue({ where: whereShipMock })
-
-    db.select.mockReturnValueOnce({
-      from: fromShipMock
-    })
-
-    const runMock = jest.fn().mockResolvedValue()
-    const whereUpdateMock = jest.fn().mockReturnValue({ run: runMock })
-    const setMock = jest.fn().mockReturnValue({ where: whereUpdateMock })
-
-    db.update.mockReturnValue({
-      set: setMock
-    })
+    const { getMock: getShipMock } = mockSelectGet(db, { id: 'ship-1' })
+    const { setMock } = mockUpdateRun(db)
 
     await cruiseController.updateShip(req, res)
 
@@ -761,13 +636,7 @@ describe('Cruise Controller updateShip', () => {
     }
     const res = mockResponse()
 
-    const getShipMock = jest.fn().mockResolvedValue(null)
-    const whereShipMock = jest.fn().mockReturnValue({ get: getShipMock })
-    const fromShipMock = jest.fn().mockReturnValue({ where: whereShipMock })
-
-    db.select.mockReturnValueOnce({
-      from: fromShipMock
-    })
+    const { getMock: getShipMock } = mockSelectGet(db, null)
 
     await cruiseController.updateShip(req, res)
 
@@ -792,17 +661,8 @@ describe('Cruise Controller updateShip', () => {
     }
     const res = mockResponse()
 
-    const getShipMock = jest.fn().mockResolvedValue({ id: 'ship-1' })
-    const whereShipMock = jest.fn().mockReturnValue({ get: getShipMock })
-    const fromShipMock = jest.fn().mockReturnValue({ where: whereShipMock })
-
-    const getCruiseLineMock = jest.fn().mockResolvedValue(null)
-    const whereCruiseLineMock = jest.fn().mockReturnValue({ get: getCruiseLineMock })
-    const fromCruiseLineMock = jest.fn().mockReturnValue({ where: whereCruiseLineMock })
-
-    db.select
-      .mockReturnValueOnce({ from: fromShipMock })
-      .mockReturnValueOnce({ from: fromCruiseLineMock })
+    const { getMock: getShipMock } = mockSelectGet(db, { id: 'ship-1' })
+    const { getMock: getCruiseLineMock } = mockSelectGet(db, null)
 
     await cruiseController.updateShip(req, res)
 
@@ -830,25 +690,13 @@ describe('Cruise Controller deleteCruiseLine', () => {
     }
     const res = mockResponse()
 
-    const existingCruiseLine = { id: 'line-1', name: 'Royal Caribbean' }
-
-    const getMock = jest.fn().mockResolvedValue(existingCruiseLine)
-    const whereSelectMock = jest.fn().mockReturnValue({ get: getMock })
-    const fromMock = jest.fn().mockReturnValue({ where: whereSelectMock })
-
-    db.select.mockReturnValue({
-      from: fromMock
+    const { getMock } = mockSelectGet(db, {
+      id: 'line-1',
+      name: 'Royal Caribbean'
     })
 
-    const runShipsMock = jest.fn().mockResolvedValue()
-    const whereDeleteShipsMock = jest.fn().mockReturnValue({ run: runShipsMock })
-
-    const runCruiseLineMock = jest.fn().mockResolvedValue()
-    const whereDeleteCruiseLineMock = jest.fn().mockReturnValue({ run: runCruiseLineMock })
-
-    db.delete
-      .mockReturnValueOnce({ where: whereDeleteShipsMock })       // delete ships
-      .mockReturnValueOnce({ where: whereDeleteCruiseLineMock })  // delete cruise line
+    const { runMock: runShipsMock } = mockDeleteRun(db)
+    const { runMock: runCruiseLineMock } = mockDeleteRun(db)
 
     await cruiseController.deleteCruiseLine(req, res)
 
@@ -888,13 +736,7 @@ describe('Cruise Controller deleteCruiseLine', () => {
     }
     const res = mockResponse()
 
-    const getMock = jest.fn().mockResolvedValue(null)
-    const whereSelectMock = jest.fn().mockReturnValue({ get: getMock })
-    const fromMock = jest.fn().mockReturnValue({ where: whereSelectMock })
-
-    db.select.mockReturnValue({
-      from: fromMock
-    })
+    const { getMock } = mockSelectGet(db, null)
 
     await cruiseController.deleteCruiseLine(req, res)
 
@@ -914,28 +756,15 @@ describe('Cruise Controller deleteShip', () => {
   it('should have a deleteShip function', () => {
     expect(typeof cruiseController.deleteShip).toBe('function')
   })
+
   it('should delete a ship successfully', async () => {
     const req = {
       params: { id: 'ship-1' }
     }
     const res = mockResponse()
 
-    // Ship exists
-    const getMock = jest.fn().mockResolvedValue({ id: 'ship-1' })
-    const whereSelectMock = jest.fn().mockReturnValue({ get: getMock })
-    const fromMock = jest.fn().mockReturnValue({ where: whereSelectMock })
-
-    db.select.mockReturnValue({
-      from: fromMock
-    })
-
-    // Delete mock
-    const runMock = jest.fn().mockResolvedValue()
-    const whereDeleteMock = jest.fn().mockReturnValue({ run: runMock })
-
-    db.delete.mockReturnValue({
-      where: whereDeleteMock
-    })
+    const { getMock } = mockSelectGet(db, { id: 'ship-1' })
+    const { runMock } = mockDeleteRun(db)
 
     await cruiseController.deleteShip(req, res)
 
@@ -974,14 +803,7 @@ describe('Cruise Controller deleteShip', () => {
     }
     const res = mockResponse()
 
-    // Ship does NOT exist
-    const getMock = jest.fn().mockResolvedValue(null)
-    const whereSelectMock = jest.fn().mockReturnValue({ get: getMock })
-    const fromMock = jest.fn().mockReturnValue({ where: whereSelectMock })
-
-    db.select.mockReturnValue({
-      from: fromMock
-    })
+    const { getMock } = mockSelectGet(db, null)
 
     await cruiseController.deleteShip(req, res)
 

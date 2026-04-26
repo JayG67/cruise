@@ -16,4 +16,4 @@ Drizzle - First time I've used Drizzle
 
 Docker - I have used docker professionally, but I'm not an expert.  I learn to do what I need to do with it and apply it.  Taking a   Docker course is on my todo list.
 
-Jest -  I have managed engineers who use Jest, but this is the first time I have used it.  The framework feels familiar and easy to use compared to the tools I've used in the past.
+Jest -  I have managed engineers who use Jest, but this is the first time I have used it.  The framework feels familiar and easy to use compared to the tools I've used in the past.  At first I wrote it manually while taking a Udemy course on Jest, but then used my paid ChatGPT account to get it done quicker.  The most time consuming part, besides taking the class, was reviewing all the code to ensure it is doing what I want it to.
