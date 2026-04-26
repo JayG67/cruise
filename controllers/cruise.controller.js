@@ -5,7 +5,7 @@ const { eq } = require('drizzle-orm')
 
 exports.getCruiseLines = async (req, res) => {
   const cruiseLines = await db.select().from(cruiseLineTable).all()
-  if (!cruiseLines) {
+  if (!cruiseLines || cruiseLines.length === 0) {
     return res.status(404).json({ message: 'No cruise lines found' })
   }
   return res.status(200).json(cruiseLines)
@@ -13,14 +13,18 @@ exports.getCruiseLines = async (req, res) => {
 
 exports.getCruiseLineById = async (req, res) => {
   const { id } = req.params
+
   if (!id) {
     return res.status(400).json({ message: 'Cruise line ID is required' })
   }
-  if (await !db.select().from(cruiseLineTable).where(eq(cruiseLineTable.id, id)).get()) {
-    return res.status(404).json({ message: 'Cruise line not found' })
-  }
-  const cruiseLine = await db.select().from(cruiseLineTable).where(eq(cruiseLineTable.id, id)).get()
-  if (!cruiseLine) {
+
+  const cruiseLine = await db
+    .select()
+    .from(cruiseLineTable)
+    .where(eq(cruiseLineTable.id, id))
+    .get()
+
+  if (!cruiseLine || cruiseLine.length === 0) {
     return res.status(404).json({ message: 'Cruise line not found' })
   }
 
@@ -30,7 +34,7 @@ exports.getCruiseLineById = async (req, res) => {
 exports.getShipsByCruiseLine = async (req, res) => {
   const { cruiseLineId } = req.params
   const ships = await db.select().from(shipTable).where(eq(shipTable.cruiseLineId, cruiseLineId)).all()
-  if (!ships) {
+  if (!ships || ships.length === 0) {
     return res.status(404).json({ message: 'No ships found for the specified cruise line' })
   }
   return res.status(200).json(ships)
