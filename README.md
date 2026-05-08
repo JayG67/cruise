@@ -1,5 +1,7 @@
 # 🚢 Cruise Explorer API & Frontend
 
+![CI](https://github.com/JayG67/cruise/actions/workflows/ci.yml/badge.svg)
+
 A full-stack cruise data application built with **Node.js, Express, PostgreSQL (Drizzle ORM), and Vanilla JavaScript**.
 
 This project demonstrates backend API design, database integration, automated data seeding, and a lightweight frontend UI that consumes real endpoints.
