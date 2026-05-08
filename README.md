@@ -271,7 +271,7 @@ This project emphasizes:
 
 **Jay Gallagher**
 
-Senior Software Quality Engineer transitioning into full-stack development.
+Principle Software Quality Engineer showcasing flexability to learn front and backend development.
 
 This project reflects:
 
