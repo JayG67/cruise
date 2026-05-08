@@ -1,78 +1,83 @@
-const mockSelectGet = (db, value) => {
-  const getMock = jest.fn().mockResolvedValue(value)
-  const whereMock = jest.fn().mockReturnValue({ get: getMock })
-  const fromMock = jest.fn().mockReturnValue({ where: whereMock })
+function mockSelect(db, result) {
+  const fromMock = jest.fn().mockResolvedValue(result)
 
-  db.select.mockReturnValueOnce({
+  db.select = jest.fn().mockReturnValue({
     from: fromMock
   })
 
-  return { getMock, whereMock, fromMock }
+  return { fromMock }
 }
 
-const mockSelectAll = (db, value) => {
-  const allMock = jest.fn().mockResolvedValue(value)
-  const fromMock = jest.fn().mockReturnValue({ all: allMock })
-
-  db.select.mockReturnValueOnce({
-    from: fromMock
+function mockSelectWhereLimit(db, result) {
+  const limitMock = jest.fn().mockResolvedValue(result)
+  const whereMock = jest.fn().mockReturnValue({
+    limit: limitMock
   })
-
-  return { allMock, fromMock }
-}
-
-const mockSelectWhereAll = (db, value) => {
-  const allMock = jest.fn().mockResolvedValue(value)
-  const whereMock = jest.fn().mockReturnValue({ all: allMock })
-  const fromMock = jest.fn().mockReturnValue({ where: whereMock })
-
-  db.select.mockReturnValueOnce({
-    from: fromMock
-  })
-
-  return { allMock, whereMock, fromMock }
-}
-
-const mockInsertGet = (db, value) => {
-  const getMock = jest.fn().mockResolvedValue(value)
-  const returningMock = jest.fn().mockReturnValue({ get: getMock })
-  const valuesMock = jest.fn().mockReturnValue({ returning: returningMock })
-
-  db.insert.mockReturnValueOnce({
-    values: valuesMock
-  })
-
-  return { getMock, returningMock, valuesMock }
-}
-
-const mockUpdateRun = (db) => {
-  const runMock = jest.fn().mockResolvedValue()
-  const whereMock = jest.fn().mockReturnValue({ run: runMock })
-  const setMock = jest.fn().mockReturnValue({ where: whereMock })
-
-  db.update.mockReturnValueOnce({
-    set: setMock
-  })
-
-  return { runMock, whereMock, setMock }
-}
-
-const mockDeleteRun = (db) => {
-  const runMock = jest.fn().mockResolvedValue()
-  const whereMock = jest.fn().mockReturnValue({ run: runMock })
-
-  db.delete.mockReturnValueOnce({
+  const fromMock = jest.fn().mockReturnValue({
     where: whereMock
   })
 
-  return { runMock, whereMock }
+  db.select = jest.fn().mockReturnValue({
+    from: fromMock
+  })
+
+  return { fromMock, whereMock, limitMock }
+}
+
+function mockSelectWhere(db, result) {
+  const whereMock = jest.fn().mockResolvedValue(result)
+  const fromMock = jest.fn().mockReturnValue({
+    where: whereMock
+  })
+
+  db.select = jest.fn().mockReturnValue({
+    from: fromMock
+  })
+
+  return { fromMock, whereMock }
+}
+
+function mockInsertReturning(db, result) {
+  const returningMock = jest.fn().mockResolvedValue(result)
+  const valuesMock = jest.fn().mockReturnValue({
+    returning: returningMock
+  })
+
+  db.insert = jest.fn().mockReturnValue({
+    values: valuesMock
+  })
+
+  return { valuesMock, returningMock }
+}
+
+function mockUpdateWhere(db) {
+  const whereMock = jest.fn().mockResolvedValue()
+  const setMock = jest.fn().mockReturnValue({
+    where: whereMock
+  })
+
+  db.update = jest.fn().mockReturnValue({
+    set: setMock
+  })
+
+  return { setMock, whereMock }
+}
+
+function mockDeleteWhere(db) {
+  const whereMock = jest.fn().mockResolvedValue()
+
+  db.delete = jest.fn().mockReturnValue({
+    where: whereMock
+  })
+
+  return { whereMock }
 }
 
 module.exports = {
-  mockSelectGet,
-  mockSelectAll,
-  mockSelectWhereAll,
-  mockInsertGet,
-  mockUpdateRun,
-  mockDeleteRun
+  mockSelect,
+  mockSelectWhere,
+  mockSelectWhereLimit,
+  mockInsertReturning,
+  mockUpdateWhere,
+  mockDeleteWhere
 }
