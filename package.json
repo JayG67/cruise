@@ -9,7 +9,9 @@
   "scripts": {
     "unitTests": "jest",
     "unitTestsWatch": "jest --watchAll",
-    "start": "docker compose up -d && node --watch index.js"  },
+    "integrationTests": "jest tests/integration",
+    "start": "docker compose up -d && node --watch index.js"
+  },
   "dependencies": {
     "@types/express": "^5.0.6",
     "@types/node": "^25.6.0",
@@ -23,6 +25,7 @@
     "@types/pg": "^8.20.0",
     "drizzle-kit": "^0.31.10",
     "jest": "^30.3.0",
+    "supertest": "^7.2.2",
     "trx": "^1.5.0"
   }
 }
