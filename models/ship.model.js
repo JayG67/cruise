@@ -1,4 +1,5 @@
-const { pgTable, uuid, varchar } = require ('drizzle-orm/pg-core')
+const { pgTable, uuid, varchar } = require('drizzle-orm/pg-core')
+const cruiseLineTable = require('./cruiseline.model')
 
 const shipTable = pgTable('ships', {
   id: uuid().primaryKey().defaultRandom(),

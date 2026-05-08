@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cruise Explorer</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="hero" id="home">
+    <nav class="nav-bar">
+      <a class="brand" href="#home">Cruise Explorer</a>
+      <div class="nav-links">
+        <a href="#stacks">Stacks</a>
+        <a href="#cruise-lines">Cruise Lines</a>
+        <a href="#about">About</a>
+      </div>
+    </nav>
+
+    <section class="hero-content">
+      <p class="eyebrow">Portfolio Full-Stack Demo</p>
+      <h1>Explore cruise data through multiple technology stacks.</h1>
+      <p class="hero-copy">
+        A front-end showcase backed by a Node, Express, PostgreSQL, and Drizzle API.
+      </p>
+
+      <div class="hero-actions" id="stacks">
+        <button onclick="selectStack('vanilla')">HTML / CSS / JS</button>
+        <button class="stack-button" data-stack="node">Node / Express API</button>
+        <button class="stack-button" data-stack="react">React Coming Soon</button>
+      </div>
+
+      <article class="stack-card" id="stack-card">
+        <h2>HTML / CSS / JavaScript</h2>
+        <p>
+          This version uses plain browser technologies to fetch cruise line data,
+          filter results, and render UI without a front-end framework.
+        </p>
+      </article>
+    </section>
+  </header>
+
+  <main>
+    <section class="section" id="cruise-lines">
+      <div class="section-heading">
+        <p class="eyebrow">Live API Data</p>
+        <h2>Cruise Lines</h2>
+        <p>Search your API results and select a cruise line to view related ships.</p>
+      </div>
+
+      <div class="toolbar">
+        <input id="search-input" type="search" placeholder="Search cruise lines..." />
+        <button id="reload-button">Reload Data</button>
+      </div>
+
+      <div id="status-message" class="status-message">Loading cruise lines...</div>
+      <div id="cruise-grid" class="card-grid"></div>
+    </section>
+
+    <section class="section ships-section" id="ships-panel" hidden>
+      <div class="section-heading">
+        <p class="eyebrow">Selected Fleet</p>
+        <h2 id="ships-title">Ships</h2>
+      </div>
+      <div id="ships-grid" class="card-grid compact"></div>
+    </section>
+
+    <section class="section about-section" id="about">
+      <div class="about-card">
+        <p class="eyebrow">Why this project matters</p>
+        <h2>Built to demonstrate both development and QA thinking.</h2>
+        <p>
+          This project can grow into a portfolio-grade app with API testing,
+          integration tests, validation, Docker setup, CI/CD, and multiple front-end implementations.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
