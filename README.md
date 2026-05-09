@@ -311,14 +311,98 @@ This project emphasizes:
 
 ---
 
-## 📈 Future Enhancements
+## 📈 Testing Roadmap & Future Enhancements
 
-* React frontend version
-* Pagination and filtering
-* Authentication layer
-* API validation (Zod/Joi)
-* Coverage reporting dashboard (optional external tooling)
-* Advanced CI/CD (deployment pipeline)
+This project will continue to expand with a strong emphasis on **enterprise-level testing strategies and tooling**, reflecting real-world Software Quality Engineering practices.
+
+### 🧪 API & Integration Testing
+
+- Expand Supertest coverage across all endpoints (POST, PUT, DELETE)
+- Add request/response validation using **Joi or Zod**
+- Introduce contract testing with **Pact** to validate API consistency
+
+---
+
+### 🧱 End-to-End Testing
+
+- Implement full UI + API workflows using:
+  - **Cypress** (primary choice)
+  - **Playwright** (cross-browser validation)
+
+- Validate real user journeys:
+  - Cruise browsing
+  - Ship lookup
+  - API-driven UI interactions
+
+---
+
+### ⚙️ Test Automation & Frameworks
+
+- Expand structured test architecture:
+  - Test data builders
+  - Reusable fixtures
+  - Environment-aware test configs
+
+- Introduce:
+  - **Mocha/Chai** (alternative test framework exposure)
+  - Advanced Jest patterns (mocking, spies, test isolation)
+
+---
+
+### 🗄️ Database Testing
+
+- Implement isolated test databases
+- Add data integrity validation tests
+- Introduce transactional test rollback strategies
+
+---
+
+### 📊 Performance & Load Testing
+
+- Add performance testing using:
+  - **k6**
+  - **Artillery**
+
+- Measure:
+  - API response times
+  - Throughput under load
+  - Database performance impact
+
+---
+
+### 🔐 Security Testing
+
+- Add automated security checks:
+  - Input validation testing
+  - Injection vulnerability checks
+
+- Integrate tools such as:
+  - **OWASP ZAP**
+  - Dependency vulnerability scanning
+
+---
+
+### 🔁 CI/CD Enhancements
+
+- Enforce stricter quality gates:
+  - Coverage thresholds per PR
+  - Test failure blocking merges
+
+- Add:
+  - Parallel test execution
+  - Test result reporting artifacts
+
+---
+
+### 🧠 Observability & Reliability Testing
+
+- Add logging validation tests
+- Introduce health monitoring checks
+- Simulate failure scenarios (resilience testing)
+
+---
+
+This roadmap reflects a focus on **quality-first engineering**, where testing is treated as a core system design concern rather than an afterthought.
 
 ---
 
