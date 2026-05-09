@@ -4,7 +4,7 @@
 
 A full-stack cruise data application built with **Node.js, Express, PostgreSQL (Drizzle ORM), and Vanilla JavaScript**.
 
-This project demonstrates backend API design, database integration, automated data seeding, and a lightweight frontend UI that consumes real endpoints.
+This project demonstrates backend API design, database integration, automated data seeding, a lightweight frontend UI, and a **fully tested CI-driven workflow**.
 
 ---
 
@@ -16,6 +16,8 @@ Cruise Explorer is designed as a **portfolio-ready application** showcasing:
 * Database modeling and relationships
 * Automated database initialization & seeding
 * Frontend integration with live API data
+* Unit and integration testing strategies
+* CI pipeline with automated validation
 * Clean project structure aligned with production patterns
 
 ---
@@ -53,6 +55,14 @@ PostgreSQL (Docker)
 ### Testing
 
 * Jest (unit testing)
+* Supertest (integration testing)
+
+### CI/CD
+
+* GitHub Actions
+
+  * Unit test job
+  * Integration test job (PostgreSQL service)
 
 ---
 
@@ -66,6 +76,7 @@ PostgreSQL (Docker)
 * ✅ Frontend dashboard consuming live API data
 * ✅ Logging middleware
 * ✅ Dockerized PostgreSQL environment
+* ✅ Full CI pipeline with automated test execution
 
 ---
 
@@ -82,8 +93,10 @@ cruise/
 ├── db/                 # Database connection
 ├── data/               # Seed JSON data
 ├── public/             # Frontend (HTML/CSS/JS)
+├── tests/              # Unit + integration tests
+├── app.js              # Express app (exported for testing)
+├── index.js            # Server startup
 ├── docker-compose.yml  # PostgreSQL container
-├── index.js            # App entry point
 ```
 
 ---
@@ -179,45 +192,53 @@ The frontend is served from:
 
 ## 🧪 Testing
 
-### Current
+### Unit Tests
 
-* Jest-based unit tests
-* Controller and model-level validation
+```bash
+npm run unitTests
+```
+
+* Controller-level validation
+* Mocked database interactions
 
 ---
 
-## 🧪 Testing Roadmap
+### Integration Tests
 
-While the project currently includes foundational unit testing, expanding the testing strategy is a key focus area.
+```bash
+npm run integrationTests
+```
 
-Planned enhancements include:
+* Supertest-based API validation
+* Real database interaction (PostgreSQL)
+* End-to-end request/response testing
 
-### Integration Testing
+---
 
-* API endpoint validation using tools like Supertest
-* End-to-end request/response verification
+### Run All Tests
 
-### Database Testing
+```bash
+npm test
+```
 
-* Test isolation strategies
-* Seeded test data environments
-* Validation of relational data integrity
+---
 
-### Contract Testing
+## ⚙️ Continuous Integration
 
-* Ensuring API responses remain consistent as the application evolves
+This project uses **GitHub Actions** to automatically validate all changes.
 
-### Frontend Testing
+Pipeline includes:
 
-* DOM interaction testing for Vanilla JS components
-* UI behavior validation
+* **Unit Tests Job**
 
-### Test Automation Strategy
+  * Fast validation of business logic
 
-* Structured test suites aligned with real-world QA practices
-* Increased coverage across services, controllers, and data layers
+* **Integration Tests Job**
 
-This expanded testing approach reflects a strong emphasis on **quality, reliability, and maintainability**, leveraging extensive experience in Software Quality Assurance.
+  * Runs against PostgreSQL service
+  * Verifies real API behavior
+
+All pull requests must pass CI before merging.
 
 ---
 
@@ -253,7 +274,8 @@ This project emphasizes:
 
 * Separation of concerns (routes → controllers → services)
 * Idempotent data seeding
-* Minimal frontend with real API interaction
+* Testable architecture (app/server separation)
+* CI-driven development workflow
 * Production-style project organization
 
 ---
@@ -264,8 +286,8 @@ This project emphasizes:
 * Pagination and filtering
 * Authentication layer
 * API validation (Zod/Joi)
-* Integration tests (Supertest)
-* CI/CD pipeline
+* Test coverage reporting
+* Advanced CI/CD (deployment pipeline)
 
 ---
 
@@ -273,19 +295,25 @@ This project emphasizes:
 
 **Jay Gallagher**
 
-Principle Software Quality Engineer showcasing flexability to learn front and backend development.
+Principal Software Quality Engineer capable of full-stack development.  I didn't want to use someone elses app to show my testing experience so I learned how to create my own app to use for testing.
 
 This project reflects:
 
 * 30+ years in SQA
-* Strong focus on testability and structure
-* Practical, production-minded engineering
+* Strong focus on testability and automation
+* Real-world engineering practices (CI, integration testing, DB-backed APIs)
+* Practical, production-minded system design
 
 ---
 
 ## 📌 Purpose
 
-This repository serves as a **portfolio project** demonstrating real-world backend and frontend integration, not just isolated code samples.
+This repository serves as a **portfolio project** demonstrating:
+
+* Full-stack development capability
+* API + database integration
+* Automated testing strategy
+* CI/CD workflow implementation
 
 ---
 
