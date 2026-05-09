@@ -9,7 +9,27 @@ on:
       - main
 
 jobs:
-  build-and-test:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run unitTests
+
+  integration-tests:
+    name: Integration Tests
     runs-on: ubuntu-latest
 
     services:
@@ -43,5 +63,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run unit tests
-        run: npm run unitTests
+      - name: Wait for Postgres to be healthy
+        run: |
+          POSTGRES_CONTAINER=$(docker ps -q --filter "ancestor=postgres:17.4")
+
+          echo "Postgres container: $POSTGRES_CONTAINER"
+
+          until [ "$(docker inspect -f '{{.State.Health.Status}}' $POSTGRES_CONTAINER)" = "healthy" ]; do
+            echo "Waiting for postgres..."
+            sleep 1
+          done
+
+          echo "Postgres is ready"
+
+      - name: Run integration tests
+        run: npm run integrationTests

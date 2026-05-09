@@ -5,8 +5,34 @@
       "country": "United States",
       "website": "https://www.royalcaribbean.com",
       "ships": [
+        { "name": "Adventure of the Seas" },
+        { "name": "Allure of the Seas" },
+        { "name": "Anthem of the Seas" },
+        { "name": "Brilliance of the Seas" },
+        { "name": "Enchantment of the Seas" },
+        { "name": "Explorer of the Seas" },
+        { "name": "Freedom of the Seas" },
+        { "name": "Grandeur of the Seas" },
+        { "name": "Harmony of the Seas" },
         { "name": "Icon of the Seas" },
+        { "name": "Independence of the Seas" },
+        { "name": "Jewel of the Seas" },
+        { "name": "Liberty of the Seas" },
+        { "name": "Mariner of the Seas" },
+        { "name": "Navigator of the Seas" },
+        { "name": "Oasis of the Seas" },
+        { "name": "Odyssey of the Seas" },
+        { "name": "Ovation of the Seas" },
+        { "name": "Quantum of the Seas" },
+        { "name": "Radiance of the Seas" },
+        { "name": "Rhapsody of the Seas" },
+        { "name": "Serenade of the Seas" },
+        { "name": "Spectrum of the Seas" },
+        { "name": "Star of the Seas" },
+        { "name": "Symphony of the Seas" },
         { "name": "Utopia of the Seas" },
+        { "name": "Vision of the Seas" },
+        { "name": "Voyager of the Seas" },
         { "name": "Wonder of the Seas" }
       ]
     },
@@ -15,9 +41,35 @@
       "country": "United States",
       "website": "https://www.carnival.com",
       "ships": [
-        { "name": "Mardi Gras" },
+        { "name": "Carnival Adventure" },
+        { "name": "Carnival Breeze" },
         { "name": "Carnival Celebration" },
-        { "name": "Carnival Jubilee" }
+        { "name": "Carnival Conquest" },
+        { "name": "Carnival Dream" },
+        { "name": "Carnival Elation" },
+        { "name": "Carnival Encounter" },
+        { "name": "Carnival Firenze" },
+        { "name": "Carnival Freedom" },
+        { "name": "Carnival Glory" },
+        { "name": "Carnival Horizon" },
+        { "name": "Carnival Jubilee" },
+        { "name": "Carnival Legend" },
+        { "name": "Carnival Liberty" },
+        { "name": "Carnival Luminosa" },
+        { "name": "Carnival Magic" },
+        { "name": "Carnival Mardi Gras" },
+        { "name": "Carnival Miracle" },
+        { "name": "Carnival Panorama" },
+        { "name": "Carnival Paradise" },
+        { "name": "Carnival Pride" },
+        { "name": "Carnival Radiance" },
+        { "name": "Carnival Spirit" },
+        { "name": "Carnival Splendor" },
+        { "name": "Carnival Sunrise" },
+        { "name": "Carnival Sunshine" },
+        { "name": "Carnival Valor" },
+        { "name": "Carnival Venezia" },
+        { "name": "Carnival Vista" }
       ]
     },
     {
@@ -25,9 +77,29 @@
       "country": "Switzerland",
       "website": "https://www.msccruises.com",
       "ships": [
-        { "name": "MSC World Europa" },
+        { "name": "MSC Armonia" },
+        { "name": "MSC Bellissima" },
+        { "name": "MSC Divina" },
+        { "name": "MSC Euribia" },
+        { "name": "MSC Fantasia" },
+        { "name": "MSC Grandiosa" },
+        { "name": "MSC Lirica" },
+        { "name": "MSC Magnifica" },
+        { "name": "MSC Meraviglia" },
+        { "name": "MSC Musica" },
+        { "name": "MSC Opera" },
+        { "name": "MSC Orchestra" },
+        { "name": "MSC Poesia" },
+        { "name": "MSC Preziosa" },
+        { "name": "MSC Seascape" },
         { "name": "MSC Seashore" },
-        { "name": "MSC Meraviglia" }
+        { "name": "MSC Seaside" },
+        { "name": "MSC Seaview" },
+        { "name": "MSC Sinfonia" },
+        { "name": "MSC Splendida" },
+        { "name": "MSC Virtuosa" },
+        { "name": "MSC World America" },
+        { "name": "MSC World Europa" }
       ]
     },
     {
@@ -35,9 +107,26 @@
       "country": "United States",
       "website": "https://www.ncl.com",
       "ships": [
+        { "name": "Norwegian Aqua" },
+        { "name": "Norwegian Bliss" },
+        { "name": "Norwegian Breakaway" },
+        { "name": "Norwegian Dawn" },
+        { "name": "Norwegian Encore" },
+        { "name": "Norwegian Epic" },
+        { "name": "Norwegian Escape" },
+        { "name": "Norwegian Gem" },
+        { "name": "Norwegian Getaway" },
+        { "name": "Norwegian Jade" },
+        { "name": "Norwegian Jewel" },
+        { "name": "Norwegian Joy" },
+        { "name": "Norwegian Pearl" },
         { "name": "Norwegian Prima" },
+        { "name": "Norwegian Sky" },
+        { "name": "Norwegian Spirit" },
+        { "name": "Norwegian Star" },
+        { "name": "Norwegian Sun" },
         { "name": "Norwegian Viva" },
-        { "name": "Norwegian Encore" }
+        { "name": "Pride of America" }
       ]
     },
     {
@@ -45,9 +134,69 @@
       "country": "United States",
       "website": "https://disneycruise.disney.go.com",
       "ships": [
-        { "name": "Disney Wish" },
+        { "name": "Disney Adventure" },
         { "name": "Disney Dream" },
-        { "name": "Disney Fantasy" }
+        { "name": "Disney Fantasy" },
+        { "name": "Disney Magic" },
+        { "name": "Disney Treasure" },
+        { "name": "Disney Wish" },
+        { "name": "Disney Wonder" }
+      ]
+    },
+    {
+      "name": "Margaritaville at Sea",
+      "country": "United States",
+      "website": "https://margaritavilleatsea.com",
+      "ships": [
+        { "name": "Margaritaville at Sea Paradise" },
+        { "name": "Margaritaville at Sea Islander" },
+        { "name": "Margaritaville at Sea Beachcomber" }
+      ]
+    },
+    {
+      "name": "Celebrity Cruises",
+      "country": "United States",
+      "website": "https://www.celebritycruises.com",
+      "ships": [
+        { "name": "Celebrity Ascent" },
+        { "name": "Celebrity Apex" },
+        { "name": "Celebrity Beyond" },
+        { "name": "Celebrity Constellation" },
+        { "name": "Celebrity Eclipse" },
+        { "name": "Celebrity Edge" },
+        { "name": "Celebrity Equinox" },
+        { "name": "Celebrity Flora" },
+        { "name": "Celebrity Infinity" },
+        { "name": "Celebrity Millennium" },
+        { "name": "Celebrity Reflection" },
+        { "name": "Celebrity Silhouette" },
+        { "name": "Celebrity Solstice" },
+        { "name": "Celebrity Summit" },
+        { "name": "Celebrity Xcel" }
+      ]
+    },
+    {
+      "name": "Princess Cruises",
+      "country": "United States",
+      "website": "https://www.princess.com",
+      "ships": [
+        { "name": "Caribbean Princess" },
+        { "name": "Coral Princess" },
+        { "name": "Crown Princess" },
+        { "name": "Diamond Princess" },
+        { "name": "Discovery Princess" },
+        { "name": "Emerald Princess" },
+        { "name": "Enchanted Princess" },
+        { "name": "Grand Princess" },
+        { "name": "Island Princess" },
+        { "name": "Majestic Princess" },
+        { "name": "Regal Princess" },
+        { "name": "Royal Princess" },
+        { "name": "Ruby Princess" },
+        { "name": "Sapphire Princess" },
+        { "name": "Sky Princess" },
+        { "name": "Star Princess" },
+        { "name": "Sun Princess" }
       ]
     }
   ]
