@@ -7,9 +7,10 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "unitTests": "jest",
-    "unitTestsWatch": "jest --watchAll",
-    "integrationTests": "jest tests/integration",
+    "unitTests": "jest tests/unit",
+    "integrationTests": "jest tests/integration --runInBand",
+    "test": "jest --runInBand",
+    "unitTestsWatch": "jest tests/unit --watchAll",
     "start": "docker compose up -d && node --watch index.js"
   },
   "dependencies": {

@@ -1,15 +1,29 @@
-function selectStack(stack) {
-  switch(stack) {
-    case 'vanilla':
-      window.location.href = 'public/vanilla.html'
-      break
-    case 'react':
-      window.location.href = '/react'
-      break
-    case 'fullstack':
-      window.location.href = '/dashboard.html'
-      break
-    default:
-      alert('Coming soon!')
-  }
-}
+require('dotenv/config')
+
+const path = require('path')
+const express = require('express')
+
+const cruiseRouter = require('./routes/cruise.routes')
+const { serverLogger } = require('./middleware/loggers')
+
+const app = express()
+
+app.use(express.static(path.join(__dirname, 'public')))
+app.use(express.json())
+app.use(serverLogger)
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' })
+})
+
+app.use('/cruise', cruiseRouter)
+
+app.use((err, req, res, next) => {
+  console.error(err)
+  res.status(500).json({
+    message: 'Internal server error',
+    error: err.message
+  })
+})
+
+module.exports = app
