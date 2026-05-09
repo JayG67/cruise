@@ -2,6 +2,8 @@
 
 ![CI](https://github.com/JayG67/cruise/actions/workflows/ci.yml/badge.svg)
 
+![Coverage](https://img.shields.io/badge/coverage-enforced-green)
+
 A full-stack cruise data application built with **Node.js, Express, PostgreSQL (Drizzle ORM), and Vanilla JavaScript**.
 
 This project demonstrates backend API design, database integration, automated data seeding, a lightweight frontend UI, and a **fully tested CI-driven workflow**.
@@ -62,7 +64,7 @@ PostgreSQL (Docker)
 * GitHub Actions
 
   * Unit test job
-  * Integration test job (PostgreSQL service)
+  * Integration test + coverage job (PostgreSQL service)
 
 ---
 
@@ -215,6 +217,29 @@ npm run integrationTests
 
 ---
 
+### Code Coverage
+
+```bash
+npm run coverage
+```
+
+The project uses **Jest coverage reporting** to measure:
+
+* Statement coverage
+* Branch coverage
+* Function coverage
+* Line coverage
+
+Coverage reports are generated locally in:
+
+```
+/coverage
+```
+
+Coverage thresholds are enforced to ensure code quality does not regress over time.
+
+---
+
 ### Run All Tests
 
 ```bash
@@ -233,10 +258,11 @@ Pipeline includes:
 
   * Fast validation of business logic
 
-* **Integration Tests Job**
+* **Integration Tests + Coverage Job**
 
   * Runs against PostgreSQL service
-  * Verifies real API behavior
+  * Executes full test suite
+  * Generates and enforces code coverage
 
 All pull requests must pass CI before merging.
 
@@ -276,6 +302,7 @@ This project emphasizes:
 * Idempotent data seeding
 * Testable architecture (app/server separation)
 * CI-driven development workflow
+* Enforced code coverage thresholds for quality control
 * Production-style project organization
 
 ---
@@ -286,7 +313,7 @@ This project emphasizes:
 * Pagination and filtering
 * Authentication layer
 * API validation (Zod/Joi)
-* Test coverage reporting
+* Coverage reporting dashboard (optional external tooling)
 * Advanced CI/CD (deployment pipeline)
 
 ---
@@ -295,7 +322,8 @@ This project emphasizes:
 
 **Jay Gallagher**
 
-Principal Software Quality Engineer capable of full-stack development.  I didn't want to use someone elses app to show my testing experience so I learned how to create my own app to use for testing.
+Principal Software Quality Engineer capable of full-stack development.
+Built this application to demonstrate testing, automation, and full-system validation without relying on external sample apps.
 
 This project reflects:
 
