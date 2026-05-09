@@ -11,7 +11,7 @@
     "start:ci": "node index.js",
     "unitTests": "jest tests/unit",
     "integrationTests": "jest tests/integration --runInBand",
-    "test": "jest --runInBand",
+    "test": "npm run unitTests && npm run integrationTests && npm run uiTests",
     "coverage": "jest --coverage --runInBand",
     "unitTestsWatch": "jest tests/unit --watchAll",
     "cypress:open": "cypress open",
