@@ -105,6 +105,10 @@ cruise/
 
 ## ▶️ Getting Started
 
+No environment configuration is required for local development.
+
+Default values are built into the application. An optional `.env` file can be used to override settings if needed.
+
 ### 1. Install dependencies
 
 ```bash
