@@ -78,3 +78,54 @@ jobs:
 
       - name: Run all tests with coverage
         run: npm run coverage
+
+  ui-tests:
+    name: Cypress UI Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17.4
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: cruise
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d cruise"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DATABASE_URL: postgres://postgres:password@localhost:5432/cruise
+      PORT: 8000
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Wait for Postgres to be healthy
+        run: |
+          POSTGRES_CONTAINER=$(docker ps -q --filter "ancestor=postgres:17.4")
+
+          echo "Postgres container: $POSTGRES_CONTAINER"
+
+          until [ "$(docker inspect -f '{{.State.Health.Status}}' $POSTGRES_CONTAINER)" = "healthy" ]; do
+            echo "Waiting for postgres..."
+            sleep 1
+          done
+
+          echo "Postgres is ready"
+
+      - name: Run Cypress UI tests
+        run: npm run uiTests

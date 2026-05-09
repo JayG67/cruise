@@ -7,12 +7,15 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
+    "start": "docker compose up -d && node --watch index.js",
     "unitTests": "jest tests/unit",
     "integrationTests": "jest tests/integration --runInBand",
     "test": "jest --runInBand",
     "coverage": "jest --coverage --runInBand",
     "unitTestsWatch": "jest tests/unit --watchAll",
-    "start": "docker compose up -d && node --watch index.js"
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
+    "uiTests": "start-server-and-test start http://localhost:8000 cypress:run"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
@@ -25,8 +28,10 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^25.6.2",
     "@types/pg": "^8.20.0",
+    "cypress": "^15.14.2",
     "drizzle-kit": "^0.31.10",
     "jest": "^30.3.0",
+    "start-server-and-test": "^3.0.2",
     "supertest": "^7.2.2",
     "trx": "^1.5.0"
   }
