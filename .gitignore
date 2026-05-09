@@ -15,3 +15,7 @@ logs/
 dist/
 build/
 coverage/
+
+#Test Output
+cypress/screenshots/
+cypress/videos/
