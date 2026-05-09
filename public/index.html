@@ -50,7 +50,21 @@
 
       <div class="toolbar">
         <input id="search-input" type="search" placeholder="Search cruise lines..." />
-        <button id="reload-button">Reload Data</button>
+        <section class="test-panel" id="testPanel">
+          <div class="test-panel-header">
+            <p class="eyebrow">SQA Test Control Panel</p>
+            <h2>Manual validation tools for API-driven UI behavior</h2>
+          </div>
+
+          <div class="test-actions">
+            <button id="healthCheckBtn">Check API Health</button>
+            <button id="reloadDataBtn">Verify Cruise Data</button>
+            <button id="uiSmokeTestBtn">Run UI Smoke Check</button>
+            <button id="clearTestOutputBtn" class="secondary">Clear Output</button>
+          </div>
+
+          <pre id="testOutput" class="test-output">Test output will appear here...</pre>
+        </section>
       </div>
 
       <div id="status-message" class="status-message">Loading cruise lines...</div>

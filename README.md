@@ -424,12 +424,19 @@ This project reflects:
 
 ## 📌 Purpose
 
-This repository serves as a **portfolio project** demonstrating:
+This repository serves as a **portfolio project focused on demonstrating advanced Software Quality Engineering practices within a full-stack application**.
 
-* Full-stack development capability
-* API + database integration
-* Automated testing strategy
-* CI/CD workflow implementation
+The primary goal is to showcase:
+
+- End-to-end testing strategies across API, database, and UI layers  
+- Automated validation through unit, integration, and future end-to-end testing  
+- CI-driven quality gates, including enforced code coverage  
+- Real-world test architecture and maintainable automation patterns  
+- A QA-first approach to system design, not just feature development  
+
+Rather than relying on pre-built applications, this project was intentionally designed and developed to provide a **controlled environment for implementing and demonstrating modern testing tools, frameworks, and methodologies**.
+
+It reflects the mindset of a **Principal Software Quality Engineer**, where quality, reliability, and testability are foundational to the system—not afterthoughts.
 
 ---
 
