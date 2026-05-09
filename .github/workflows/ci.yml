@@ -76,5 +76,5 @@ jobs:
 
           echo "Postgres is ready"
 
-      - name: Run integration tests
-        run: npm run integrationTests
+      - name: Run all tests with coverage
+        run: npm run coverage

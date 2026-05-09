@@ -11,3 +11,4 @@ logs/
 #Build output
 dist/
 build/
+coverage/

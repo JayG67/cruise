@@ -10,6 +10,7 @@
     "unitTests": "jest tests/unit",
     "integrationTests": "jest tests/integration --runInBand",
     "test": "jest --runInBand",
+    "coverage": "jest --coverage --runInBand",
     "unitTestsWatch": "jest tests/unit --watchAll",
     "start": "docker compose up -d && node --watch index.js"
   },

@@ -1,10 +1,7 @@
 const express = require('express')
 const controller = require('../controllers/cruise.controller')
-const dataLoadController = require('../controllers/dataLoad.controller')
 
 const router = express.Router()
-
-router.post('/load-data', dataLoadController.loadCruiseLines)
 
 router.get('/', controller.getCruiseLines)
 router.get('/cruise-line/:id', controller.getCruiseLineById)
