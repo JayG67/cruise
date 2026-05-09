@@ -128,4 +128,4 @@ jobs:
           echo "Postgres is ready"
 
       - name: Run Cypress UI tests
-        run: npm run uiTests
+        run: npm run uiTests:ci

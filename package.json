@@ -8,6 +8,7 @@
   "main": "index.js",
   "scripts": {
     "start": "docker compose up -d && node --watch index.js",
+    "start:ci": "node index.js",
     "unitTests": "jest tests/unit",
     "integrationTests": "jest tests/integration --runInBand",
     "test": "jest --runInBand",
@@ -15,8 +16,9 @@
     "unitTestsWatch": "jest tests/unit --watchAll",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
-    "uiTests": "start-server-and-test start http://localhost:8000 cypress:run"
-  },
+    "uiTests": "start-server-and-test start http://localhost:8000 cypress:run",
+    "uiTests:ci": "start-server-and-test start:ci http://localhost:8000 cypress:run"
+ },
   "dependencies": {
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
