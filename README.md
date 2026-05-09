@@ -58,6 +58,7 @@ PostgreSQL (Docker)
 
 * Jest (unit testing)
 * Supertest (integration testing)
+* Cypress (end-to-end UI testing)
 
 ### CI/CD
 
@@ -79,6 +80,7 @@ PostgreSQL (Docker)
 * ✅ Logging middleware
 * ✅ Dockerized PostgreSQL environment
 * ✅ Full CI pipeline with automated test execution
+* ✅ End-to-end UI testing with Cypress
 
 ---
 
@@ -221,6 +223,30 @@ npm run integrationTests
 
 ---
 
+### UI Tests (Cypress)
+
+```bash
+npm run uiTests
+```
+
+* Browser-based testing using Cypress
+* Validates real user interactions with the UI
+* Confirms API-driven UI rendering
+
+---
+
+### Run All Tests
+
+```bash
+npm test
+```
+
+* Unit tests
+* Integration tests
+* Cypress UI tests
+
+---
+
 ### Code Coverage
 
 ```bash
@@ -259,14 +285,15 @@ This project uses **GitHub Actions** to automatically validate all changes.
 Pipeline includes:
 
 * **Unit Tests Job**
+  - Fast validation of business logic  
 
-  * Fast validation of business logic
+* **Integration Tests Job**
+  - Runs against PostgreSQL service  
+  - Verifies real API behavior  
 
-* **Integration Tests + Coverage Job**
-
-  * Runs against PostgreSQL service
-  * Executes full test suite
-  * Generates and enforces code coverage
+* **Cypress UI Tests Job**
+  - Runs browser-based end-to-end tests  
+  - Validates UI and API integration  
 
 All pull requests must pass CI before merging.
 
@@ -429,7 +456,7 @@ This repository serves as a **portfolio project focused on demonstrating advance
 The primary goal is to showcase:
 
 - End-to-end testing strategies across API, database, and UI layers  
-- Automated validation through unit, integration, and future end-to-end testing  
+- Automated validation through unit, integration, and end-to-end UI validation using Cypress  
 - CI-driven quality gates, including enforced code coverage  
 - Real-world test architecture and maintainable automation patterns  
 - A QA-first approach to system design, not just feature development  
