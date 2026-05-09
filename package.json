@@ -14,7 +14,8 @@
     "test": "npm run unitTests && npm run integrationTests && npm run uiTests",
     "coverage": "jest --coverage --runInBand",
     "unitTestsWatch": "jest tests/unit --watchAll",
-    "cypress:open": "cypress open",
+    "uiTests:open": "start-server-and-test start http://localhost:8000 \"npm run cypress:open\"",
+    "cypress:open": "cypress open --browser chrome",
     "cypress:run": "cypress run",
     "uiTests": "start-server-and-test start http://localhost:8000 cypress:run",
     "uiTests:ci": "start-server-and-test start:ci http://localhost:8000 cypress:run"
