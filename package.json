@@ -10,7 +10,7 @@
     "start": "docker compose up -d && node --watch index.js",
     "start:ci": "node index.js",
     "unitTests": "jest tests/unit",
-    "integrationTests": "jest tests/integration --runInBand",
+    "integrationTests": "jest --config jest.integration.config.js --runInBand",
     "test": "npm run unitTests && npm run integrationTests && npm run uiTests",
     "coverage": "jest --coverage --runInBand",
     "unitTestsWatch": "jest tests/unit --watchAll",

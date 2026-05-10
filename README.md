@@ -100,8 +100,14 @@ cruise/
 ├── db/                 # Database connection
 ├── data/               # Seed JSON data
 ├── public/             # Frontend (HTML/CSS/JS)
-├── tests/              # Unit + integration tests
-├── cypress/            # Cypress UI test framework
+├── tests/
+│   ├── unit/           # Jest unit tests
+│   ├── integration/    # Supertest integration tests
+│   │   └── helpers/    # Shared integration test utilities
+├── cypress/
+│   ├── e2e/            # Cypress end-to-end UI tests
+│   ├── screenshots/    # Cypress failure screenshots
+│   └── videos/         # Cypress run recordings
 ├── app.js              # Express app (exported for testing)
 ├── index.js            # Server startup
 ├── docker-compose.yml  # PostgreSQL container
@@ -166,6 +172,30 @@ Returns a specific cruise line.
 
 ---
 
+```text
+POST /cruise/cruise-line
+```
+
+Creates a cruise line.
+
+---
+
+```text
+PATCH /cruise/cruise-line/:id
+```
+
+Updates a cruise line.
+
+---
+
+```text
+DELETE /cruise/cruise-line/:id
+```
+
+Deletes a cruise line and related ships.
+
+---
+
 ### Ships
 
 ```text
@@ -173,6 +203,30 @@ GET /cruise/ships/:cruiseLineId
 ```
 
 Returns ships for a cruise line.
+
+---
+
+```text
+POST /cruise/ship
+```
+
+Creates a ship.
+
+---
+
+```text
+PATCH /cruise/ship/:id
+```
+
+Updates a ship.
+
+---
+
+```text
+DELETE /cruise/ship/:id
+```
+
+Deletes a ship.
 
 ---
 
@@ -225,8 +279,13 @@ npm run integrationTests
 ```
 
 * Supertest-based API validation
-* Real database interaction (PostgreSQL)
-* End-to-end request/response testing
+* Real PostgreSQL-backed integration testing
+* Full CRUD endpoint validation
+* Relationship integrity testing
+* Error response validation
+* Cascade delete verification
+* Shared integration test factories/helpers
+* End-to-end request/response verification
 
 ---
 
@@ -258,6 +317,10 @@ The Cypress suite currently validates:
 * Search state restoration
 * Input persistence during filtering
 * API-driven test data validation
+* Ship lookup workflows
+* Cruise line to ship relationship validation
+* Dynamic ship rendering from API data
+* Multi-step UI interaction flows
 
 ---
 
@@ -295,6 +358,46 @@ Coverage reports are generated locally in:
 ```
 
 Coverage thresholds are enforced to ensure code quality does not regress over time.
+
+---
+
+## 🏗️ Test Architecture
+
+The project follows a layered testing strategy aligned with enterprise Software Quality Engineering practices.
+
+### Unit Tests
+
+Focused validation of isolated controller logic using mocked dependencies.
+
+### Integration Tests
+
+Supertest-based validation against real PostgreSQL-backed API endpoints.
+
+Integration coverage includes:
+
+* CRUD endpoint validation
+* Relationship integrity verification
+* Error handling validation
+* Cascade delete behavior
+* API response contract verification
+
+Reusable integration helpers are used to:
+
+* Create isolated test data
+* Prevent cross-test contamination
+* Simplify cleanup and teardown
+
+### End-to-End UI Tests
+
+Cypress-based browser automation validates:
+
+* Real UI interactions
+* Live API rendering
+* Dynamic API-driven workflows
+* Search and filtering behavior
+* Multi-step user flows
+
+UI tests intentionally avoid hardcoded data and instead dynamically source validation data from the API layer.
 
 ---
 
@@ -356,6 +459,9 @@ This project emphasizes:
 * Separation of concerns (routes → controllers → services)
 * Idempotent data seeding
 * Testable architecture (app/server separation)
+* Layered testing strategy (unit → integration → end-to-end UI)
+* API-driven integration and UI validation
+* Reusable integration test factories and cleanup helpers
 * CI-driven development workflow
 * Enforced code coverage thresholds for quality control
 * API-driven UI testing using dynamic Cypress test data
@@ -369,9 +475,9 @@ This project will continue to expand with a strong emphasis on **enterprise-leve
 
 ### 🧪 API & Integration Testing
 
-* Expand Supertest coverage across all endpoints (POST, PUT, DELETE)
-* Add request/response validation using **Joi or Zod**
-* Introduce contract testing with **Pact** to validate API consistency
+* Expand integration testing into advanced transactional scenarios
+* Add schema-based API contract validation
+* Add negative-path and fault-injection testing
 
 ---
 
@@ -492,6 +598,7 @@ This repository serves as a **portfolio project focused on demonstrating advance
 The primary goal is to showcase:
 
 * End-to-end testing strategies across API, database, and UI layers
+* Enterprise-style layered test architecture using Jest, Supertest, and Cypress
 * Automated validation through unit, integration, and end-to-end UI validation using Cypress
 * API-driven UI testing using dynamically sourced test data
 * CI-driven quality gates, including enforced code coverage
@@ -500,10 +607,4 @@ The primary goal is to showcase:
 
 Rather than relying on pre-built applications, this project was intentionally designed and developed to provide a **controlled environment for implementing and demonstrating modern testing tools, frameworks, and methodologies**.
 
-It reflects the mindset of a **Principal Software Quality Engineer**, where quality, reliability, and testability are foundational to the system—not afterthoughts.
-
----
-
-## 📄 License
-
-MIT
+It reflects the mindset of a **Principal Software Quality Engineer**, where quality, reli
