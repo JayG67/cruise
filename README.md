@@ -18,7 +18,7 @@ Cruise Explorer is designed as a **portfolio-ready application** showcasing:
 * Database modeling and relationships
 * Automated database initialization & seeding
 * Frontend integration with live API data
-* Unit and integration testing strategies
+* Unit, integration, and UI testing strategies
 * CI pipeline with automated validation
 * Clean project structure aligned with production patterns
 
@@ -26,7 +26,7 @@ Cruise Explorer is designed as a **portfolio-ready application** showcasing:
 
 ## 🧱 Architecture
 
-```
+```text
 Frontend (Vanilla JS)
         ↓
 Express API (Routes → Controllers → Services)
@@ -66,6 +66,7 @@ PostgreSQL (Docker)
 
   * Unit test job
   * Integration test + coverage job (PostgreSQL service)
+  * Cypress UI testing with API-driven validation
 
 ---
 
@@ -81,12 +82,14 @@ PostgreSQL (Docker)
 * ✅ Dockerized PostgreSQL environment
 * ✅ Full CI pipeline with automated test execution
 * ✅ End-to-end UI testing with Cypress
+* ✅ API-driven UI test validation
+* ✅ Enforced code coverage thresholds
 
 ---
 
 ## 📂 Project Structure
 
-```
+```text
 cruise/
 │
 ├── controllers/        # API controllers
@@ -98,6 +101,7 @@ cruise/
 ├── data/               # Seed JSON data
 ├── public/             # Frontend (HTML/CSS/JS)
 ├── tests/              # Unit + integration tests
+├── cypress/            # Cypress UI test framework
 ├── app.js              # Express app (exported for testing)
 ├── index.js            # Server startup
 ├── docker-compose.yml  # PostgreSQL container
@@ -136,7 +140,7 @@ This will:
 
 ### 3. Open the app
 
-```
+```text
 http://localhost:8000
 ```
 
@@ -146,35 +150,35 @@ http://localhost:8000
 
 ### Cruise Lines
 
-```
+```text
 GET /cruise
 ```
 
-Returns all cruise lines
+Returns all cruise lines.
 
 ---
 
-```
+```text
 GET /cruise/cruise-line/:id
 ```
 
-Returns a specific cruise line
+Returns a specific cruise line.
 
 ---
 
 ### Ships
 
-```
+```text
 GET /cruise/ships/:cruiseLineId
 ```
 
-Returns ships for a cruise line
+Returns ships for a cruise line.
 
 ---
 
 ### Health Check
 
-```
+```text
 GET /health
 ```
 
@@ -184,17 +188,20 @@ GET /health
 
 The frontend is served from:
 
-```
+```text
 /public
 ```
 
-### Features:
+### Features
 
 * Cruise-themed landing page
 * Stack selection UI
 * Cruise line listing
 * Ship lookup per cruise line
 * API-driven content rendering
+* SQA Test Control Panel
+* Real-time search filtering
+* Dynamic result counts
 
 ---
 
@@ -229,9 +236,28 @@ npm run integrationTests
 npm run uiTests
 ```
 
-* Browser-based testing using Cypress
+* Browser-based end-to-end testing using Cypress
 * Validates real user interactions with the UI
 * Confirms API-driven UI rendering
+* Uses dynamic API-backed test data instead of hardcoded values
+* Validates search behavior, filtering logic, result counts, and UI state changes
+
+---
+
+#### Current Cypress Coverage
+
+The Cypress suite currently validates:
+
+* Homepage rendering
+* API health checks through the UI
+* Cruise line rendering from live API data
+* Dynamic search filtering
+* Case-insensitive search behavior
+* Empty-result handling
+* Result count updates
+* Search state restoration
+* Input persistence during filtering
+* API-driven test data validation
 
 ---
 
@@ -240,6 +266,8 @@ npm run uiTests
 ```bash
 npm test
 ```
+
+Runs:
 
 * Unit tests
 * Integration tests
@@ -262,19 +290,11 @@ The project uses **Jest coverage reporting** to measure:
 
 Coverage reports are generated locally in:
 
-```
+```text
 /coverage
 ```
 
 Coverage thresholds are enforced to ensure code quality does not regress over time.
-
----
-
-### Run All Tests
-
-```bash
-npm test
-```
 
 ---
 
@@ -285,15 +305,19 @@ This project uses **GitHub Actions** to automatically validate all changes.
 Pipeline includes:
 
 * **Unit Tests Job**
-  - Fast validation of business logic  
+
+  * Fast validation of business logic
 
 * **Integration Tests Job**
-  - Runs against PostgreSQL service  
-  - Verifies real API behavior  
+
+  * Runs against PostgreSQL service
+  * Verifies real API behavior
 
 * **Cypress UI Tests Job**
-  - Runs browser-based end-to-end tests  
-  - Validates UI and API integration  
+
+  * Runs browser-based end-to-end tests
+  * Validates UI and API integration
+  * Validates API-driven UI behavior
 
 All pull requests must pass CI before merging.
 
@@ -303,7 +327,7 @@ All pull requests must pass CI before merging.
 
 Data is automatically loaded from:
 
-```
+```text
 /data/cruise.json
 ```
 
@@ -334,6 +358,7 @@ This project emphasizes:
 * Testable architecture (app/server separation)
 * CI-driven development workflow
 * Enforced code coverage thresholds for quality control
+* API-driven UI testing using dynamic Cypress test data
 * Production-style project organization
 
 ---
@@ -344,88 +369,98 @@ This project will continue to expand with a strong emphasis on **enterprise-leve
 
 ### 🧪 API & Integration Testing
 
-- Expand Supertest coverage across all endpoints (POST, PUT, DELETE)
-- Add request/response validation using **Joi or Zod**
-- Introduce contract testing with **Pact** to validate API consistency
+* Expand Supertest coverage across all endpoints (POST, PUT, DELETE)
+* Add request/response validation using **Joi or Zod**
+* Introduce contract testing with **Pact** to validate API consistency
 
 ---
 
 ### 🧱 End-to-End Testing
 
-- Implement full UI + API workflows using:
-  - **Cypress** (primary choice)
-  - **Playwright** (cross-browser validation)
+* Implement full UI + API workflows using:
 
-- Validate real user journeys:
-  - Cruise browsing
-  - Ship lookup
-  - API-driven UI interactions
+  * **Cypress** (primary choice)
+  * **Playwright** (cross-browser validation)
+
+* Validate real user journeys:
+
+  * Cruise browsing
+  * Ship lookup
+  * API-driven UI interactions
 
 ---
 
 ### ⚙️ Test Automation & Frameworks
 
-- Expand structured test architecture:
-  - Test data builders
-  - Reusable fixtures
-  - Environment-aware test configs
+* Expand structured test architecture:
 
-- Introduce:
-  - **Mocha/Chai** (alternative test framework exposure)
-  - Advanced Jest patterns (mocking, spies, test isolation)
+  * Test data builders
+  * Reusable fixtures
+  * Environment-aware test configs
+
+* Introduce:
+
+  * **Mocha/Chai** (alternative test framework exposure)
+  * Advanced Jest patterns (mocking, spies, test isolation)
 
 ---
 
 ### 🗄️ Database Testing
 
-- Implement isolated test databases
-- Add data integrity validation tests
-- Introduce transactional test rollback strategies
+* Implement isolated test databases
+* Add data integrity validation tests
+* Introduce transactional test rollback strategies
 
 ---
 
 ### 📊 Performance & Load Testing
 
-- Add performance testing using:
-  - **k6**
-  - **Artillery**
+* Add performance testing using:
 
-- Measure:
-  - API response times
-  - Throughput under load
-  - Database performance impact
+  * **k6**
+  * **Artillery**
+
+* Measure:
+
+  * API response times
+  * Throughput under load
+  * Database performance impact
 
 ---
 
 ### 🔐 Security Testing
 
-- Add automated security checks:
-  - Input validation testing
-  - Injection vulnerability checks
+* Add automated security checks:
 
-- Integrate tools such as:
-  - **OWASP ZAP**
-  - Dependency vulnerability scanning
+  * Input validation testing
+  * Injection vulnerability checks
+
+* Integrate tools such as:
+
+  * **OWASP ZAP**
+  * Dependency vulnerability scanning
 
 ---
 
 ### 🔁 CI/CD Enhancements
 
-- Enforce stricter quality gates:
-  - Coverage thresholds per PR
-  - Test failure blocking merges
+* Enforce stricter quality gates:
 
-- Add:
-  - Parallel test execution
-  - Test result reporting artifacts
+  * Coverage thresholds per PR
+  * Test failure blocking merges
+
+* Add:
+
+  * Parallel test execution
+  * Test result reporting artifacts
 
 ---
 
 ### 🧠 Observability & Reliability Testing
 
-- Add logging validation tests
-- Introduce health monitoring checks
-- Simulate failure scenarios (resilience testing)
+* Add logging validation tests
+* Introduce health monitoring checks
+* Simulate failure scenarios (resilience testing)
 
 ---
 
@@ -438,6 +473,7 @@ This roadmap reflects a focus on **quality-first engineering**, where testing is
 **Jay Gallagher**
 
 Principal Software Quality Engineer capable of full-stack development.
+
 Built this application to demonstrate testing, automation, and full-system validation without relying on external sample apps.
 
 This project reflects:
@@ -455,11 +491,12 @@ This repository serves as a **portfolio project focused on demonstrating advance
 
 The primary goal is to showcase:
 
-- End-to-end testing strategies across API, database, and UI layers  
-- Automated validation through unit, integration, and end-to-end UI validation using Cypress  
-- CI-driven quality gates, including enforced code coverage  
-- Real-world test architecture and maintainable automation patterns  
-- A QA-first approach to system design, not just feature development  
+* End-to-end testing strategies across API, database, and UI layers
+* Automated validation through unit, integration, and end-to-end UI validation using Cypress
+* API-driven UI testing using dynamically sourced test data
+* CI-driven quality gates, including enforced code coverage
+* Real-world test architecture and maintainable automation patterns
+* A QA-first approach to system design, not just feature development
 
 Rather than relying on pre-built applications, this project was intentionally designed and developed to provide a **controlled environment for implementing and demonstrating modern testing tools, frameworks, and methodologies**.
 

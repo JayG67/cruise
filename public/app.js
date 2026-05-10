@@ -22,10 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (searchInput) {
     searchInput.addEventListener('input', () => {
-      const searchTerm = searchInput.value.toLowerCase()
-      const filteredLines = cruiseLines.filter(line =>
+     const searchTerm = searchInput.value.trim().toLowerCase()
+     const filteredLines = cruiseLines.filter(line =>
         line.name.toLowerCase().includes(searchTerm) ||
-        (line.country || '').toLowerCase().includes(searchTerm)
+        (line.country && line.country.toLowerCase().includes(searchTerm))
       )
       renderCruiseLines(filteredLines)
     })
