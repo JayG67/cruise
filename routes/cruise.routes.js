@@ -1,19 +1,59 @@
 const express = require('express')
-const controller = require('../controllers/cruise.controller')
+
+const cruiseController = require('../controllers/cruise.controller')
+const validate = require('../middleware/validate.middleware')
+
+const {
+  cruiseLineSchema,
+  shipSchema
+} = require('../validation/cruise.validation')
 
 const router = express.Router()
 
-router.get('/', controller.getCruiseLines)
-router.get('/cruise-line/:id', controller.getCruiseLineById)
-router.get('/ships/:cruiseLineId', controller.getShipsByCruiseLine)
+router.get('/', cruiseController.getCruiseLines)
 
-router.post('/cruise-line', controller.insertCruiseLine)
-router.post('/ship', controller.insertShip)
+router.get(
+  '/cruise-line/:id',
+  cruiseController.getCruiseLineById
+)
 
-router.patch('/cruise-line/:id', controller.updateCruiseLine)
-router.patch('/ship/:id', controller.updateShip)
+router.get(
+  '/ships/:cruiseLineId',
+  cruiseController.getShipsByCruiseLine
+)
 
-router.delete('/cruise-line/:id', controller.deleteCruiseLine)
-router.delete('/ship/:id', controller.deleteShip)
+router.post(
+  '/cruise-line',
+  validate(cruiseLineSchema),
+  cruiseController.insertCruiseLine
+)
+
+router.post(
+  '/ship',
+  validate(shipSchema),
+  cruiseController.insertShip
+)
+
+router.patch(
+  '/cruise-line/:id',
+  validate(cruiseLineSchema),
+  cruiseController.updateCruiseLine
+)
+
+router.patch(
+  '/ship/:id',
+  validate(shipSchema),
+  cruiseController.updateShip
+)
+
+router.delete(
+  '/cruise-line/:id',
+  cruiseController.deleteCruiseLine
+)
+
+router.delete(
+  '/ship/:id',
+  cruiseController.deleteShip
+)
 
 module.exports = router

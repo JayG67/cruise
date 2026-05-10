@@ -115,7 +115,16 @@ describe('Cruise line API integration tests', () => {
       })
 
     expect(res.statusCode).toBe(400)
-    expect(res.body).toEqual({ message: 'Cruise line name is required' })
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        message: 'Validation failed',
+        errors: expect.arrayContaining([
+          expect.objectContaining({
+            field: 'name'
+          })
+        ])
+      })
+    )
   })
 
   it('POST /cruise/cruise-line should reject a duplicate cruise line name', async () => {
@@ -133,6 +142,71 @@ describe('Cruise line API integration tests', () => {
     expect(res.body).toEqual({
       message: 'Cruise line with the same name already exists'
     })
+  })
+
+  it('POST /cruise/cruise-line should reject a blank cruise line name', async () => {
+    const res = await request(app)
+      .post('/cruise/cruise-line')
+      .send({
+        name: '   ',
+        country: 'United States',
+        website: 'https://example.com'
+      })
+
+    expect(res.statusCode).toBe(400)
+
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        message: 'Validation failed'
+      })
+    )
+
+    expect(res.body.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          field: 'name'
+        })
+      ])
+    )
+  })
+
+  it('POST /cruise/cruise-line should reject an invalid website URL', async () => {
+    const res = await request(app)
+      .post('/cruise/cruise-line')
+      .send({
+        name: uniqueName('Invalid Website Cruise Line'),
+        country: 'United States',
+        website: 'not-a-real-url'
+      })
+
+    expect(res.statusCode).toBe(400)
+
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        message: 'Validation failed'
+      })
+    )
+
+    expect(res.body.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          field: 'website'
+        })
+      ])
+    )
+  })
+
+  it('POST /cruise/cruise-line should reject unexpected fields', async () => {
+    const res = await request(app)
+      .post('/cruise/cruise-line')
+      .send({
+        name: uniqueName('Unexpected Field Cruise Line'),
+        country: 'United States',
+        website: 'https://example.com',
+        hackerField: 'not allowed'
+      })
+
+    expect(res.statusCode).toBe(400)
   })
 
   it('PATCH /cruise/cruise-line/:id should update a cruise line', async () => {
@@ -215,4 +289,5 @@ describe('Cruise line API integration tests', () => {
     expect(res.statusCode).toBe(404)
     expect(res.body).toEqual({ message: 'Cruise line not found' })
   })
+
 })

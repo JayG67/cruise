@@ -66,10 +66,6 @@ exports.insertCruiseLine = async (req, res, next) => {
   try {
     const { name, country, website } = req.body
 
-    if (!name || name === '') {
-      return res.status(400).json({ message: 'Cruise line name is required' })
-    }
-
     const existingRows = await db
       .select()
       .from(cruiseLineTable)
@@ -85,7 +81,10 @@ exports.insertCruiseLine = async (req, res, next) => {
       .values({ name, country, website })
       .returning({ id: cruiseLineTable.id })
 
-    return res.status(201).json({ message: 'Cruise line created successfully', id: insertedRows[0].id })
+    return res.status(201).json({
+      message: 'Cruise line created successfully',
+      id: insertedRows[0].id
+    })
   } catch (err) {
     next(err)
   }
@@ -94,14 +93,6 @@ exports.insertCruiseLine = async (req, res, next) => {
 exports.insertShip = async (req, res, next) => {
   try {
     const { name, cruiseLineId } = req.body
-
-    if (!name || name === '') {
-      return res.status(400).json({ message: 'Ship name is required' })
-    }
-
-    if (!cruiseLineId || cruiseLineId.length === 0) {
-      return res.status(400).json({ message: 'Cruise line ID is required' })
-    }
 
     const existingShipRows = await db
       .select()
@@ -128,7 +119,10 @@ exports.insertShip = async (req, res, next) => {
       .values({ name, cruiseLineId })
       .returning({ id: shipTable.id })
 
-    return res.status(201).json({ message: 'Ship created successfully', id: insertedRows[0].id })
+    return res.status(201).json({
+      message: 'Ship created successfully',
+      id: insertedRows[0].id
+    })
   } catch (err) {
     next(err)
   }
@@ -151,6 +145,16 @@ exports.updateCruiseLine = async (req, res, next) => {
 
     if (!existingRows[0]) {
       return res.status(404).json({ message: 'Cruise line not found' })
+    }
+
+    const duplicateNameRows = await db
+      .select()
+      .from(cruiseLineTable)
+      .where(eq(cruiseLineTable.name, name))
+      .limit(1)
+
+    if (duplicateNameRows[0] && duplicateNameRows[0].id !== id) {
+      return res.status(400).json({ message: 'Cruise line with the same name already exists' })
     }
 
     await db
@@ -183,16 +187,24 @@ exports.updateShip = async (req, res, next) => {
       return res.status(404).json({ message: 'Ship not found' })
     }
 
-    if (cruiseLineId) {
-      const existingCruiseLineRows = await db
-        .select()
-        .from(cruiseLineTable)
-        .where(eq(cruiseLineTable.id, cruiseLineId))
-        .limit(1)
+    const duplicateShipRows = await db
+      .select()
+      .from(shipTable)
+      .where(eq(shipTable.name, name))
+      .limit(1)
 
-      if (!existingCruiseLineRows[0]) {
-        return res.status(400).json({ message: 'Invalid cruise line ID' })
-      }
+    if (duplicateShipRows[0] && duplicateShipRows[0].id !== id) {
+      return res.status(400).json({ message: 'Ship with the same name already exists' })
+    }
+
+    const existingCruiseLineRows = await db
+      .select()
+      .from(cruiseLineTable)
+      .where(eq(cruiseLineTable.id, cruiseLineId))
+      .limit(1)
+
+    if (!existingCruiseLineRows[0]) {
+      return res.status(400).json({ message: 'Invalid cruise line ID' })
     }
 
     await db

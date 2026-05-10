@@ -186,18 +186,6 @@ describe('Cruise Controller insertCruiseLine', () => {
     })
   })
 
-  it('should return 400 if cruise line name is missing', async () => {
-    const req = { body: { country: 'USA', website: 'https://www.royalcaribbean.com' } }
-    const res = mockResponse()
-
-    await cruiseController.insertCruiseLine(req, res, mockNext)
-
-    expect(res.status).toHaveBeenCalledWith(400)
-    expect(res.json).toHaveBeenCalledWith({ message: 'Cruise line name is required' })
-    expect(db.select).not.toHaveBeenCalled()
-    expect(db.insert).not.toHaveBeenCalled()
-  })
-
   it('should return 400 if cruise line already exists', async () => {
     const req = {
       body: {
@@ -253,30 +241,6 @@ describe('Cruise Controller insertShip', () => {
     })
   })
 
-  it('should return 400 if ship name is missing', async () => {
-    const req = { body: { cruiseLineId: '1' } }
-    const res = mockResponse()
-
-    await cruiseController.insertShip(req, res, mockNext)
-
-    expect(res.status).toHaveBeenCalledWith(400)
-    expect(res.json).toHaveBeenCalledWith({ message: 'Ship name is required' })
-    expect(db.select).not.toHaveBeenCalled()
-    expect(db.insert).not.toHaveBeenCalled()
-  })
-
-  it('should return 400 if cruiseLineId is missing', async () => {
-    const req = { body: { name: 'Icon of the Seas' } }
-    const res = mockResponse()
-
-    await cruiseController.insertShip(req, res, mockNext)
-
-    expect(res.status).toHaveBeenCalledWith(400)
-    expect(res.json).toHaveBeenCalledWith({ message: 'Cruise line ID is required' })
-    expect(db.select).not.toHaveBeenCalled()
-    expect(db.insert).not.toHaveBeenCalled()
-  })
-
   it('should return 400 if ship already exists', async () => {
     const req = { body: { name: 'Icon of the Seas', cruiseLineId: '1' } }
     const res = mockResponse()
@@ -323,12 +287,19 @@ describe('Cruise Controller updateCruiseLine', () => {
     }
     const res = mockResponse()
 
-    mockSelectWhereLimit(db, [{ id: '1', name: 'Royal Caribbean' }])
-    const { setMock, whereMock } = mockUpdateWhere(db)
+    const limitMock = jest.fn()
+      .mockResolvedValueOnce([{ id: '1', name: 'Royal Caribbean' }])
+      .mockResolvedValueOnce([])
 
+    const whereSelectMock = jest.fn().mockReturnValue({ limit: limitMock })
+    const fromMock = jest.fn().mockReturnValue({ where: whereSelectMock })
+
+    db.select = jest.fn().mockReturnValue({ from: fromMock })
+
+    const { setMock, whereMock } = mockUpdateWhere(db)
     await cruiseController.updateCruiseLine(req, res, mockNext)
 
-    expect(db.select).toHaveBeenCalledTimes(1)
+    expect(db.select).toHaveBeenCalledTimes(2)
     expect(db.update).toHaveBeenCalledTimes(1)
     expect(setMock).toHaveBeenCalledWith({
       name: 'Royal Caribbean Updated',
@@ -376,38 +347,26 @@ describe('Cruise Controller updateShip', () => {
     const req = { params: { id: 'ship-1' }, body: { name: 'Icon Updated', cruiseLineId: 'line-1' } }
     const res = mockResponse()
 
-    mockSelectWhereLimit(db, [{ id: 'ship-1' }])
-    mockSelectWhereLimit(db, [{ id: 'line-1' }])
-    const { setMock, whereMock } = mockUpdateWhere(db)
+    const limitMock = jest.fn()
+      .mockResolvedValueOnce([{ id: 'ship-1' }])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ id: 'line-1' }])
 
+    const whereSelectMock = jest.fn().mockReturnValue({ limit: limitMock })
+    const fromMock = jest.fn().mockReturnValue({ where: whereSelectMock })
+
+    db.select = jest.fn().mockReturnValue({ from: fromMock })
+
+    const { setMock, whereMock } = mockUpdateWhere(db)
     await cruiseController.updateShip(req, res, mockNext)
 
-    expect(db.select).toHaveBeenCalledTimes(2)
+    expect(db.select).toHaveBeenCalledTimes(3)
     expect(db.update).toHaveBeenCalledTimes(1)
     expect(setMock).toHaveBeenCalledWith({
       name: 'Icon Updated',
       cruiseLineId: 'line-1'
     })
     expect(whereMock).toHaveBeenCalledTimes(1)
-    expect(res.status).toHaveBeenCalledWith(200)
-    expect(res.json).toHaveBeenCalledWith({ message: 'Ship updated successfully' })
-  })
-
-  it('should update a ship without changing cruiseLineId', async () => {
-    const req = { params: { id: 'ship-1' }, body: { name: 'Icon Updated' } }
-    const res = mockResponse()
-
-    mockSelectWhereLimit(db, [{ id: 'ship-1' }])
-    const { setMock } = mockUpdateWhere(db)
-
-    await cruiseController.updateShip(req, res, mockNext)
-
-    expect(db.select).toHaveBeenCalledTimes(1)
-    expect(db.update).toHaveBeenCalledTimes(1)
-    expect(setMock).toHaveBeenCalledWith({
-      name: 'Icon Updated',
-      cruiseLineId: undefined
-    })
     expect(res.status).toHaveBeenCalledWith(200)
     expect(res.json).toHaveBeenCalledWith({ message: 'Ship updated successfully' })
   })
@@ -422,15 +381,15 @@ describe('Cruise Controller updateShip', () => {
     const limitMock = jest.fn()
       .mockResolvedValueOnce([{ id: 'ship-1' }])
       .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
 
-    const whereMock = jest.fn().mockReturnValue({ limit: limitMock })
-    const fromMock = jest.fn().mockReturnValue({ where: whereMock })
+    const whereSelectMock = jest.fn().mockReturnValue({ limit: limitMock })
+    const fromMock = jest.fn().mockReturnValue({ where: whereSelectMock })
 
     db.select = jest.fn().mockReturnValue({ from: fromMock })
-
     await cruiseController.updateShip(req, res, mockNext)
 
-    expect(db.select).toHaveBeenCalledTimes(2)
+    expect(db.select).toHaveBeenCalledTimes(3)
     expect(res.status).toHaveBeenCalledWith(400)
     expect(res.json).toHaveBeenCalledWith({ message: 'Invalid cruise line ID' })
     expect(db.update).not.toHaveBeenCalled()

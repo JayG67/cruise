@@ -107,7 +107,16 @@ describe('Ship API integration tests', () => {
       })
 
     expect(res.statusCode).toBe(400)
-    expect(res.body).toEqual({ message: 'Ship name is required' })
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        message: 'Validation failed',
+        errors: expect.arrayContaining([
+          expect.objectContaining({
+            field: 'name'
+          })
+        ])
+      })
+    )  
   })
 
   it('POST /cruise/ship should reject a missing cruiseLineId', async () => {
@@ -118,7 +127,16 @@ describe('Ship API integration tests', () => {
       })
 
     expect(res.statusCode).toBe(400)
-    expect(res.body).toEqual({ message: 'Cruise line ID is required' })
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        message: 'Validation failed',
+        errors: expect.arrayContaining([
+          expect.objectContaining({
+            field: 'cruiseLineId'
+          })
+        ])
+      })
+    )
   })
 
   it('POST /cruise/ship should reject an invalid cruiseLineId', async () => {
@@ -130,7 +148,28 @@ describe('Ship API integration tests', () => {
       })
 
     expect(res.statusCode).toBe(400)
-    expect(res.body).toEqual({ message: 'Invalid cruise line ID' })
+    expect(res.body).toEqual({ message: 'Invalid cruise line ID' })  
+  })
+
+  it('POST /cruise/ship should reject invalid cruiseLineId UUID format', async () => {
+    const res = await request(app)
+      .post('/cruise/ship')
+      .send({
+        name: uniqueName('Invalid UUID Ship'),
+        cruiseLineId: 'not-a-uuid'
+      })
+
+    expect(res.statusCode).toBe(400)
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        message: 'Validation failed',
+        errors: expect.arrayContaining([
+          expect.objectContaining({
+            field: 'cruiseLineId'
+          })
+        ])
+      })
+    )
   })
 
   it('POST /cruise/ship should reject a duplicate ship name', async () => {
@@ -148,6 +187,50 @@ describe('Ship API integration tests', () => {
     expect(res.body).toEqual({
       message: 'Ship with the same name already exists'
     })
+  })
+
+  it('POST /cruise/ship should reject a blank ship name', async () => {
+    const cruiseLine = await createCruiseLine()
+
+    const res = await request(app)
+      .post('/cruise/ship')
+      .send({
+        name: '   ',
+        cruiseLineId: cruiseLine.id
+      })
+
+    expect(res.statusCode).toBe(400)
+
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        message: 'Validation failed'
+      })
+    )
+  })
+
+  it('POST /cruise/ship should reject an invalid UUID format', async () => {
+    const res = await request(app)
+      .post('/cruise/ship')
+      .send({
+        name: uniqueName('Invalid UUID Ship'),
+        cruiseLineId: 'not-a-uuid'
+      })
+
+    expect(res.statusCode).toBe(400)
+
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        message: 'Validation failed'
+      })
+    )
+
+    expect(res.body.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          field: 'cruiseLineId'
+        })
+      ])
+    )
   })
 
   it('PATCH /cruise/ship/:id should update a ship name', async () => {
@@ -231,10 +314,13 @@ describe('Ship API integration tests', () => {
   })
 
   it('PATCH /cruise/ship/:id should return 404 for a missing ship', async () => {
+    const cruiseLine = await createCruiseLine()
+
     const res = await request(app)
       .patch(`/cruise/ship/${randomUUID()}`)
       .send({
-        name: uniqueName('Missing Ship Update')
+        name: uniqueName('Missing Ship Update'),
+        cruiseLineId: cruiseLine.id
       })
 
     expect(res.statusCode).toBe(404)
