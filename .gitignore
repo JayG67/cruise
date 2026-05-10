@@ -6,6 +6,8 @@ node_modules/
 
 #Logs
 logs/
+.DS_Store
+cypress/.DS_Store
 
 #Environment variables
 # .env   Keeping this in version control to make a pull easier to use OOTB.
