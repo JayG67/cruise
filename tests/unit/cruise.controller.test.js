@@ -511,3 +511,309 @@ describe('Cruise Controller deleteShip', () => {
     expect(db.delete).not.toHaveBeenCalled()
   })
 })
+
+describe('Cruise Controller duplicate update validation', () => {
+  it('should reject updating a cruise line to a name used by another cruise line', async () => {
+    const req = {
+      params: { id: 'line-1' },
+      body: {
+        name: 'Duplicate Cruise Line',
+        country: 'USA',
+        website: 'https://example.com'
+      }
+    }
+    const res = mockResponse()
+
+    const limitMock = jest.fn()
+      .mockResolvedValueOnce([{ id: 'line-1', name: 'Original Cruise Line' }])
+      .mockResolvedValueOnce([{ id: 'line-2', name: 'Duplicate Cruise Line' }])
+
+    const whereSelectMock = jest.fn().mockReturnValue({ limit: limitMock })
+    const fromMock = jest.fn().mockReturnValue({ where: whereSelectMock })
+
+    db.select = jest.fn().mockReturnValue({ from: fromMock })
+
+    await cruiseController.updateCruiseLine(req, res, mockNext)
+
+    expect(db.select).toHaveBeenCalledTimes(2)
+    expect(res.status).toHaveBeenCalledWith(400)
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'Cruise line with the same name already exists'
+    })
+    expect(db.update).not.toHaveBeenCalled()
+  })
+
+  it('should reject updating a ship to a name used by another ship', async () => {
+    const req = {
+      params: { id: 'ship-1' },
+      body: {
+        name: 'Duplicate Ship',
+        cruiseLineId: 'line-1'
+      }
+    }
+    const res = mockResponse()
+
+    const limitMock = jest.fn()
+      .mockResolvedValueOnce([{ id: 'ship-1', name: 'Original Ship' }])
+      .mockResolvedValueOnce([{ id: 'ship-2', name: 'Duplicate Ship' }])
+
+    const whereSelectMock = jest.fn().mockReturnValue({ limit: limitMock })
+    const fromMock = jest.fn().mockReturnValue({ where: whereSelectMock })
+
+    db.select = jest.fn().mockReturnValue({ from: fromMock })
+
+    await cruiseController.updateShip(req, res, mockNext)
+
+    expect(db.select).toHaveBeenCalledTimes(2)
+    expect(res.status).toHaveBeenCalledWith(400)
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'Ship with the same name already exists'
+    })
+    expect(db.update).not.toHaveBeenCalled()
+  })
+})
+
+describe('Cruise Controller database error handling', () => {
+  function mockSelectFromError(error) {
+    const fromMock = jest.fn().mockRejectedValue(error)
+
+    db.select = jest.fn().mockReturnValue({
+      from: fromMock
+    })
+
+    return { fromMock }
+  }
+
+  function mockSelectWhereError(error) {
+    const whereMock = jest.fn().mockRejectedValue(error)
+    const fromMock = jest.fn().mockReturnValue({
+      where: whereMock
+    })
+
+    db.select = jest.fn().mockReturnValue({
+      from: fromMock
+    })
+
+    return { fromMock, whereMock }
+  }
+
+  function mockSelectWhereLimitError(error) {
+    const limitMock = jest.fn().mockRejectedValue(error)
+    const whereMock = jest.fn().mockReturnValue({
+      limit: limitMock
+    })
+    const fromMock = jest.fn().mockReturnValue({
+      where: whereMock
+    })
+
+    db.select = jest.fn().mockReturnValue({
+      from: fromMock
+    })
+
+    return { fromMock, whereMock, limitMock }
+  }
+
+  it('should forward getCruiseLines database errors to next', async () => {
+    const req = {}
+    const res = mockResponse()
+    const error = new Error('Database select failed')
+
+    mockSelectFromError(error)
+
+    await cruiseController.getCruiseLines(req, res, mockNext)
+
+    expect(mockNext).toHaveBeenCalledWith(error)
+    expect(res.status).not.toHaveBeenCalled()
+  })
+
+  it('should forward getCruiseLineById database errors to next', async () => {
+    const req = { params: { id: 'line-1' } }
+    const res = mockResponse()
+    const error = new Error('Database lookup failed')
+
+    mockSelectWhereLimitError(error)
+
+    await cruiseController.getCruiseLineById(req, res, mockNext)
+
+    expect(mockNext).toHaveBeenCalledWith(error)
+    expect(res.status).not.toHaveBeenCalled()
+  })
+
+  it('should forward getShipsByCruiseLine database errors to next', async () => {
+    const req = { params: { cruiseLineId: 'line-1' } }
+    const res = mockResponse()
+    const error = new Error('Ship lookup failed')
+
+    mockSelectWhereError(error)
+
+    await cruiseController.getShipsByCruiseLine(req, res, mockNext)
+
+    expect(mockNext).toHaveBeenCalledWith(error)
+    expect(res.status).not.toHaveBeenCalled()
+  })
+
+  it('should forward insertCruiseLine insert errors to next', async () => {
+    const req = {
+      body: {
+        name: 'New Cruise Line',
+        country: 'USA',
+        website: 'https://example.com'
+      }
+    }
+    const res = mockResponse()
+    const error = new Error('Insert failed')
+
+    mockSelectWhereLimit(db, [])
+
+    const returningMock = jest.fn().mockRejectedValue(error)
+    const valuesMock = jest.fn().mockReturnValue({ returning: returningMock })
+
+    db.insert = jest.fn().mockReturnValue({
+      values: valuesMock
+    })
+
+    await cruiseController.insertCruiseLine(req, res, mockNext)
+
+    expect(mockNext).toHaveBeenCalledWith(error)
+    expect(res.status).not.toHaveBeenCalled()
+  })
+
+  it('should forward insertShip insert errors to next', async () => {
+    const req = {
+      body: {
+        name: 'New Ship',
+        cruiseLineId: 'line-1'
+      }
+    }
+    const res = mockResponse()
+    const error = new Error('Ship insert failed')
+
+    const limitMock = jest.fn()
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ id: 'line-1' }])
+
+    const whereSelectMock = jest.fn().mockReturnValue({ limit: limitMock })
+    const fromMock = jest.fn().mockReturnValue({ where: whereSelectMock })
+
+    db.select = jest.fn().mockReturnValue({ from: fromMock })
+
+    const returningMock = jest.fn().mockRejectedValue(error)
+    const valuesMock = jest.fn().mockReturnValue({ returning: returningMock })
+
+    db.insert = jest.fn().mockReturnValue({
+      values: valuesMock
+    })
+
+    await cruiseController.insertShip(req, res, mockNext)
+
+    expect(mockNext).toHaveBeenCalledWith(error)
+    expect(res.status).not.toHaveBeenCalled()
+  })
+
+  it('should forward updateCruiseLine update errors to next', async () => {
+    const req = {
+      params: { id: 'line-1' },
+      body: {
+        name: 'Updated Cruise Line',
+        country: 'USA',
+        website: 'https://example.com'
+      }
+    }
+    const res = mockResponse()
+    const error = new Error('Update failed')
+
+    const limitMock = jest.fn()
+      .mockResolvedValueOnce([{ id: 'line-1', name: 'Original Cruise Line' }])
+      .mockResolvedValueOnce([])
+
+    const whereSelectMock = jest.fn().mockReturnValue({ limit: limitMock })
+    const fromMock = jest.fn().mockReturnValue({ where: whereSelectMock })
+
+    db.select = jest.fn().mockReturnValue({ from: fromMock })
+
+    const whereUpdateMock = jest.fn().mockRejectedValue(error)
+    const setMock = jest.fn().mockReturnValue({ where: whereUpdateMock })
+
+    db.update = jest.fn().mockReturnValue({
+      set: setMock
+    })
+
+    await cruiseController.updateCruiseLine(req, res, mockNext)
+
+    expect(mockNext).toHaveBeenCalledWith(error)
+    expect(res.status).not.toHaveBeenCalled()
+  })
+
+  it('should forward updateShip update errors to next', async () => {
+    const req = {
+      params: { id: 'ship-1' },
+      body: {
+        name: 'Updated Ship',
+        cruiseLineId: 'line-1'
+      }
+    }
+    const res = mockResponse()
+    const error = new Error('Ship update failed')
+
+    const limitMock = jest.fn()
+      .mockResolvedValueOnce([{ id: 'ship-1', name: 'Original Ship' }])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ id: 'line-1' }])
+
+    const whereSelectMock = jest.fn().mockReturnValue({ limit: limitMock })
+    const fromMock = jest.fn().mockReturnValue({ where: whereSelectMock })
+
+    db.select = jest.fn().mockReturnValue({ from: fromMock })
+
+    const whereUpdateMock = jest.fn().mockRejectedValue(error)
+    const setMock = jest.fn().mockReturnValue({ where: whereUpdateMock })
+
+    db.update = jest.fn().mockReturnValue({
+      set: setMock
+    })
+
+    await cruiseController.updateShip(req, res, mockNext)
+
+    expect(mockNext).toHaveBeenCalledWith(error)
+    expect(res.status).not.toHaveBeenCalled()
+  })
+
+  it('should forward deleteCruiseLine delete errors to next', async () => {
+    const req = { params: { id: 'line-1' } }
+    const res = mockResponse()
+    const error = new Error('Delete failed')
+
+    mockSelectWhereLimit(db, [{ id: 'line-1' }])
+
+    const whereDeleteMock = jest.fn().mockRejectedValue(error)
+
+    db.delete = jest.fn().mockReturnValue({
+      where: whereDeleteMock
+    })
+
+    await cruiseController.deleteCruiseLine(req, res, mockNext)
+
+    expect(mockNext).toHaveBeenCalledWith(error)
+    expect(res.status).not.toHaveBeenCalled()
+  })
+
+  it('should forward deleteShip delete errors to next', async () => {
+    const req = { params: { id: 'ship-1' } }
+    const res = mockResponse()
+    const error = new Error('Ship delete failed')
+
+    mockSelectWhereLimit(db, [{ id: 'ship-1' }])
+
+    const whereDeleteMock = jest.fn().mockRejectedValue(error)
+
+    db.delete = jest.fn().mockReturnValue({
+      where: whereDeleteMock
+    })
+
+    await cruiseController.deleteShip(req, res, mockNext)
+
+    expect(mockNext).toHaveBeenCalledWith(error)
+    expect(res.status).not.toHaveBeenCalled()
+  })
+})
+
