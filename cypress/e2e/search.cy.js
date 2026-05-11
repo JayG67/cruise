@@ -1,131 +1,221 @@
-describe('Cruise Explorer search UI tests', () => {
-  let cruiseLines = []
+const cruiseLines = [
+  {
+    id: '11111111-1111-1111-1111-111111111111',
+    name: 'Royal Caribbean International',
+    country: 'United States',
+    website: 'https://www.royalcaribbean.com'
+  },
+  {
+    id: '22222222-2222-2222-2222-222222222222',
+    name: 'Carnival Cruise Line',
+    country: 'United States',
+    website: 'https://www.carnival.com'
+  },
+  {
+    id: '33333333-3333-3333-3333-333333333333',
+    name: 'MSC Cruises',
+    country: 'Switzerland',
+    website: 'https://www.msccruises.com'
+  },
+  {
+    id: '44444444-4444-4444-4444-444444444444',
+    name: 'Disney Cruise Line',
+    country: 'United States',
+    website: 'https://disneycruise.disney.go.com'
+  },
+  {
+    id: '55555555-5555-5555-5555-555555555555',
+    name: 'Margaritaville at Sea',
+    country: 'United States',
+    website: 'https://margaritavilleatsea.com'
+  },
+  {
+    id: '66666666-6666-6666-6666-666666666666',
+    name: 'AIDA Cruises',
+    country: 'Germany',
+    website: 'https://www.aida.de'
+  },
+  {
+    id: '77777777-7777-7777-7777-777777777777',
+    name: 'No Country Cruise Line',
+    country: null,
+    website: null
+  },
+  {
+    id: '88888888-8888-8888-8888-888888888888',
+    name: 'Test & Demo Cruises',
+    country: 'Curaçao',
+    website: null
+  }
+]
 
+function visitSearchPage(cruiseLineList = cruiseLines) {
+  cy.intercept('GET', '/cruise', {
+    statusCode: 200,
+    body: cruiseLineList
+  }).as('getCruiseLines')
+
+  cy.visit('/')
+  cy.wait('@getCruiseLines')
+  cy.get('#cruise-grid .data-card').should('have.length', cruiseLineList.length)
+}
+
+function visibleCruiseCards() {
+  return cy.get('#cruise-grid .data-card')
+}
+
+describe('Cruise Explorer search UI', () => {
   beforeEach(() => {
-    cy.request('/cruise').then((res) => {
-      expect(res.status).to.eq(200)
-      expect(res.body.length).to.be.greaterThan(0)
-
-      cruiseLines = res.body
-    })
-
-    cy.visit('/')
-
-    cy.get('#cruise-grid .data-card', { timeout: 10000 })
-      .should('have.length.greaterThan', 0)
+    visitSearchPage()
   })
 
-  it('filters cruise lines by full cruise line name using API data', () => {
-    const cruiseLineName = cruiseLines[0].name
-
-    cy.get('#search-input').type(cruiseLineName)
-
-    cy.get('#status-message')
-      .should('contain.text', 'Showing')
-      .and('contain.text', 'of')
-
-    cy.get('#cruise-grid')
-      .should('contain.text', cruiseLineName)
+  it('starts with an empty search input and all cruise lines visible', () => {
+    cy.get('#search-input').should('have.value', '')
+    visibleCruiseCards().should('have.length', cruiseLines.length)
+    cy.get('#status-message').should('contain.text', `Showing ${cruiseLines.length} of ${cruiseLines.length}`)
   })
 
-  it('filters cruise lines by partial cruise line name using API data', () => {
-    const cruiseLineName = cruiseLines[0].name
-    const partialName = cruiseLineName.slice(0, 4)
+  it('filters cruise lines by exact full cruise line name', () => {
+    cy.get('#search-input').type('MSC Cruises')
 
-    cy.get('#search-input').type(partialName)
+    visibleCruiseCards().should('have.length', 1)
+    cy.get('#cruise-grid').should('contain.text', 'MSC Cruises')
+    cy.get('#cruise-grid').should('not.contain.text', 'Carnival Cruise Line')
+    cy.get('#status-message').should('contain.text', `Showing 1 of ${cruiseLines.length}`)
+  })
 
-    cy.get('#cruise-grid')
-      .should('contain.text', cruiseLineName)
+  it('filters cruise lines by partial cruise line name', () => {
+    cy.get('#search-input').type('Royal')
+
+    visibleCruiseCards().should('have.length', 1)
+    cy.get('#cruise-grid').should('contain.text', 'Royal Caribbean International')
   })
 
   it('filters cruise lines case-insensitively', () => {
-    const cruiseLineName = cruiseLines[0].name
-    const lowerCaseSearch = cruiseLineName.slice(0, 4).toLowerCase()
+    cy.get('#search-input').type('mSc cRuIsEs')
 
-    cy.get('#search-input').type(lowerCaseSearch)
-
-    cy.get('#cruise-grid')
-      .should('contain.text', cruiseLineName)
+    visibleCruiseCards().should('have.length', 1)
+    cy.get('#cruise-grid').should('contain.text', 'MSC Cruises')
   })
 
-  it('filters cruise lines by country using API data', () => {
-    const cruiseLineWithCountry = cruiseLines.find(line => line.country)
+  it('filters cruise lines by country', () => {
+    cy.get('#search-input').type('Germany')
 
-    expect(cruiseLineWithCountry).to.exist
-
-    const country = cruiseLineWithCountry.country
-
-    cy.get('#search-input').type(country)
-
-    cy.get('#status-message')
-      .should('contain.text', 'Showing')
-
-    cy.get('#cruise-grid .data-card')
-      .should('have.length.greaterThan', 0)
-
-    cy.get('#cruise-grid')
-      .should('contain.text', country)
+    visibleCruiseCards().should('have.length', 1)
+    cy.get('#cruise-grid').should('contain.text', 'AIDA Cruises')
+    cy.get('#cruise-grid').should('contain.text', 'Germany')
   })
 
-  it('trims leading and trailing spaces in search input', () => {
-    const cruiseLineName = cruiseLines[0].name
-    const partialName = cruiseLineName.slice(0, 4)
+  it('filters country values case-insensitively', () => {
+    cy.get('#search-input').type('switzerland')
 
-    cy.get('#search-input').type(`   ${partialName}   `)
-
-    cy.get('#cruise-grid')
-      .should('contain.text', cruiseLineName)
+    visibleCruiseCards().should('have.length', 1)
+    cy.get('#cruise-grid').should('contain.text', 'MSC Cruises')
   })
 
-  it('updates the result count after filtering', () => {
-    const cruiseLineName = cruiseLines[0].name
-    const partialName = cruiseLineName.slice(0, 4)
+  it('trims leading and trailing spaces before filtering', () => {
+    cy.get('#search-input').type('   Carnival   ')
 
-    cy.get('#search-input').type(partialName)
-
-    cy.get('#cruise-grid .data-card')
-      .its('length')
-      .then((shownCount) => {
-        cy.get('#status-message')
-          .should('contain.text', `Showing ${shownCount} of ${cruiseLines.length}`)
-      })
+    visibleCruiseCards().should('have.length', 1)
+    cy.get('#cruise-grid').should('contain.text', 'Carnival Cruise Line')
   })
 
-  it('shows an empty message when no cruise lines match', () => {
+  it('updates the visible result count after filtering to multiple matches', () => {
+    cy.get('#search-input').type('United States')
+
+    visibleCruiseCards().should('have.length', 4)
+    cy.get('#status-message').should('contain.text', `Showing 4 of ${cruiseLines.length}`)
+  })
+
+  it('shows an empty state when no cruise lines match', () => {
     cy.get('#search-input').type('ZZZ_NO_MATCH_TEST')
 
-    cy.get('#status-message')
-      .should('contain.text', 'Showing 0')
-
-    cy.get('#cruise-grid')
-      .should('contain.text', 'No cruise lines match your search.')
+    cy.get('#status-message').should('contain.text', `Showing 0 of ${cruiseLines.length}`)
+    cy.get('#cruise-grid .data-card').should('not.exist')
+    cy.get('#cruise-grid').should('contain.text', 'No cruise lines match your search.')
   })
 
-  it('restores cruise lines when search is cleared', () => {
-    const cruiseLineName = cruiseLines[0].name
-    const searchTerm = cruiseLineName.split(' ')[0]
-
-    cy.get('#cruise-grid .data-card')
-      .should('have.length', cruiseLines.length)
-
-    cy.get('#search-input').type(searchTerm)
-
-    cy.get('#cruise-grid .data-card')
-      .should('have.length.lessThan', cruiseLines.length)
+  it('restores all cruise lines when search is cleared', () => {
+    cy.get('#search-input').type('Margaritaville')
+    visibleCruiseCards().should('have.length', 1)
 
     cy.get('#search-input').clear()
 
-    cy.get('#cruise-grid .data-card')
-      .should('have.length', cruiseLines.length)
+    visibleCruiseCards().should('have.length', cruiseLines.length)
+    cy.get('#status-message').should('contain.text', `Showing ${cruiseLines.length} of ${cruiseLines.length}`)
   })
 
-  it('keeps the search input value visible while filtering', () => {
-    const cruiseLineName = cruiseLines[0].name
-    const searchTerm = cruiseLineName.split(' ')[0]
+  it('keeps the typed search value visible while filtering', () => {
+    cy.get('#search-input').type('Disney')
+    cy.get('#search-input').should('have.value', 'Disney')
+    cy.get('#cruise-grid').should('contain.text', 'Disney Cruise Line')
+  })
 
-    cy.get('#search-input').type(searchTerm)
+  it('does not match against website values', () => {
+    cy.get('#search-input').type('royalcaribbean.com')
 
-    cy.get('#search-input')
-      .should('have.value', searchTerm)
+    cy.get('#cruise-grid .data-card').should('not.exist')
+    cy.get('#cruise-grid').should('contain.text', 'No cruise lines match your search.')
+  })
+
+  it('handles cruise lines with missing country values without throwing an error', () => {
+    cy.get('#search-input').type('No Country')
+
+    visibleCruiseCards().should('have.length', 1)
+    cy.get('#cruise-grid').should('contain.text', 'No Country Cruise Line')
+    cy.get('#cruise-grid').should('contain.text', 'Country: Not listed')
+  })
+
+  it('handles special characters in the search term', () => {
+    cy.get('#search-input').type('Test & Demo')
+
+    visibleCruiseCards().should('have.length', 1)
+    cy.get('#cruise-grid').should('contain.text', 'Test & Demo Cruises')
+  })
+
+  it('handles accented country characters in the search term', () => {
+    cy.get('#search-input').type('Curaçao')
+
+    visibleCruiseCards().should('have.length', 1)
+    cy.get('#cruise-grid').should('contain.text', 'Test & Demo Cruises')
+  })
+
+  it('updates results as the user changes the search value', () => {
+    cy.get('#search-input').type('MSC')
+    visibleCruiseCards().should('have.length', 1)
+    cy.get('#cruise-grid').should('contain.text', 'MSC Cruises')
+
+    cy.get('#search-input').clear().type('Disney')
+    visibleCruiseCards().should('have.length', 1)
+    cy.get('#cruise-grid').should('contain.text', 'Disney Cruise Line')
+    cy.get('#cruise-grid').should('not.contain.text', 'MSC Cruises')
+  })
+
+  it('does not make another cruise API request when filtering locally', () => {
+    cy.get('@getCruiseLines.all').should('have.length', 1)
+
+    cy.get('#search-input').type('Carnival')
+    cy.get('#search-input').clear().type('MSC')
+    cy.get('#search-input').clear()
+
+    cy.get('@getCruiseLines.all').should('have.length', 1)
+  })
+
+  it('preserves card actions after filtering', () => {
+    cy.get('#search-input').type('Royal')
+
+    cy.contains('#cruise-grid .data-card', 'Royal Caribbean International').within(() => {
+      cy.contains('button', 'View Ships').should('be.visible')
+      cy.contains('a', 'Visit website').should('be.visible')
+    })
+  })
+
+  it('supports a single-record cruise list', () => {
+    visitSearchPage([cruiseLines[0]])
+
+    cy.get('#status-message').should('contain.text', 'Showing 1 of 1 cruise line.')
+    cy.get('#search-input').type('ZZZ')
+    cy.get('#status-message').should('contain.text', 'Showing 0 of 1 cruise line.')
+    cy.get('#cruise-grid').should('contain.text', 'No cruise lines match your search.')
   })
 })

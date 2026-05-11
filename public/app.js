@@ -5,12 +5,14 @@ const reloadDataBtn = document.getElementById('reloadDataBtn')
 const uiSmokeTestBtn = document.getElementById('uiSmokeTestBtn')
 const clearTestOutputBtn = document.getElementById('clearTestOutputBtn')
 
-
 let cruiseLines = []
 
 document.addEventListener('DOMContentLoaded', () => {
   const reloadButton = document.getElementById('reload-button')
   const searchInput = document.getElementById('search-input')
+  const createCruiseLineForm = document.getElementById('create-cruise-line-form')
+  const addShipInputBtn = document.getElementById('add-ship-input-btn')
+  const resetCruiseLineFormBtn = document.getElementById('reset-cruise-line-form-btn')
 
   if (document.getElementById('cruise-grid')) {
     loadCruiseLines()
@@ -22,13 +24,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (searchInput) {
     searchInput.addEventListener('input', () => {
-     const searchTerm = searchInput.value.trim().toLowerCase()
-     const filteredLines = cruiseLines.filter(line =>
+      const searchTerm = searchInput.value.trim().toLowerCase()
+      const filteredLines = cruiseLines.filter(line =>
         line.name.toLowerCase().includes(searchTerm) ||
         (line.country && line.country.toLowerCase().includes(searchTerm))
       )
       renderCruiseLines(filteredLines)
     })
+  }
+
+  if (createCruiseLineForm) {
+    createCruiseLineForm.addEventListener('submit', createCruiseLine)
+  }
+
+  if (addShipInputBtn) {
+    addShipInputBtn.addEventListener('click', () => addShipInputRow())
+  }
+
+  if (resetCruiseLineFormBtn) {
+    resetCruiseLineFormBtn.addEventListener('click', resetCreateCruiseLineForm)
   }
 })
 
@@ -70,12 +84,177 @@ async function loadCruiseLines() {
     renderCruiseLines(cruiseLines)
 
     updateCruiseLineStatus(cruiseLines.length, cruiseLines.length)
-
   } catch (err) {
     console.error(err)
     if (statusMessage) {
       statusMessage.textContent = 'Could not load cruise lines. Check that the server is running and the database has data.'
     }
+  }
+}
+
+async function createCruiseLine(event) {
+  event.preventDefault()
+
+  const form = event.currentTarget
+  const submitButton = document.getElementById('create-cruise-line-btn')
+  const formData = new FormData(form)
+  const name = getTrimmedFormValue(formData, 'name')
+  const country = getTrimmedFormValue(formData, 'country')
+  const website = getTrimmedFormValue(formData, 'website')
+  const shipNames = getShipNamesFromForm(form)
+
+  if (!name) {
+    setCreateCruiseLineMessage('Cruise line name is required.', 'error')
+    return
+  }
+
+  const cruiseLinePayload = { name }
+
+  if (country) cruiseLinePayload.country = country
+  if (website) cruiseLinePayload.website = website
+
+  setCreateCruiseLineLoading(true)
+  setCreateCruiseLineMessage('Creating cruise line...', '')
+
+  try {
+    const cruiseLineResponse = await fetch(`${API_BASE}/cruise-line`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(cruiseLinePayload)
+    })
+
+    const cruiseLineResult = await parseJsonResponse(cruiseLineResponse)
+
+    if (!cruiseLineResponse.ok) {
+      throw new Error(cruiseLineResult.message || `Create failed with status ${cruiseLineResponse.status}`)
+    }
+
+    const cruiseLineId = cruiseLineResult.id
+
+    if (!cruiseLineId) {
+      throw new Error('Cruise line was created, but the API did not return a cruise line ID.')
+    }
+
+    const createdShipCount = await createShipsForCruiseLine(shipNames, cruiseLineId)
+
+    resetCreateCruiseLineForm()
+    await loadCruiseLines()
+
+    setCreateCruiseLineMessage(
+      `Created ${name}${createdShipCount ? ` with ${createdShipCount} ship${createdShipCount === 1 ? '' : 's'}` : ''}.`,
+      'success'
+    )
+  } catch (err) {
+    console.error(err)
+    setCreateCruiseLineMessage(err.message || 'Could not create the cruise line.', 'error')
+  } finally {
+    setCreateCruiseLineLoading(false)
+  }
+}
+
+async function createShipsForCruiseLine(shipNames, cruiseLineId) {
+  let createdShipCount = 0
+
+  for (const shipName of shipNames) {
+    const shipResponse = await fetch(`${API_BASE}/ship`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: shipName,
+        cruiseLineId
+      })
+    })
+
+    const shipResult = await parseJsonResponse(shipResponse)
+
+    if (!shipResponse.ok) {
+      throw new Error(shipResult.message || `Cruise line was created, but ship "${shipName}" could not be created.`)
+    }
+
+    createdShipCount += 1
+  }
+
+  return createdShipCount
+}
+
+function getTrimmedFormValue(formData, fieldName) {
+  return String(formData.get(fieldName) || '').trim()
+}
+
+function getShipNamesFromForm(form) {
+  const shipInputs = form.querySelectorAll('input[name="shipName"]')
+  const shipNames = Array.from(shipInputs)
+    .map(input => input.value.trim())
+    .filter(Boolean)
+
+  return Array.from(new Set(shipNames))
+}
+
+function addShipInputRow(value = '') {
+  const shipInputList = document.getElementById('new-ship-inputs')
+
+  if (!shipInputList) return
+
+  const row = document.createElement('div')
+  row.className = 'ship-input-row'
+
+  row.innerHTML = `
+    <label>
+      Ship name
+      <input name="shipName" type="text" placeholder="Example: Rotterdam" maxlength="255" value="${escapeHtml(value)}" />
+    </label>
+    <button class="remove-ship-row-btn" type="button">Remove</button>
+  `
+
+  row.querySelector('.remove-ship-row-btn').addEventListener('click', () => row.remove())
+  shipInputList.appendChild(row)
+}
+
+function resetCreateCruiseLineForm() {
+  const form = document.getElementById('create-cruise-line-form')
+  const shipInputList = document.getElementById('new-ship-inputs')
+
+  if (form) form.reset()
+
+  if (shipInputList) {
+    shipInputList.innerHTML = `
+      <label>
+        Ship name
+        <input name="shipName" type="text" placeholder="Example: Rotterdam" maxlength="255" />
+      </label>
+    `
+  }
+
+  setCreateCruiseLineMessage('', '')
+}
+
+function setCreateCruiseLineLoading(isLoading) {
+  const submitButton = document.getElementById('create-cruise-line-btn')
+
+  if (submitButton) {
+    submitButton.disabled = isLoading
+    submitButton.textContent = isLoading ? 'Creating...' : 'Create Cruise Line'
+  }
+}
+
+function setCreateCruiseLineMessage(message, type) {
+  const messageElement = document.getElementById('create-cruise-line-message')
+
+  if (!messageElement) return
+
+  messageElement.textContent = message
+  messageElement.className = `form-message ${type}`.trim()
+}
+
+async function parseJsonResponse(response) {
+  try {
+    return await response.json()
+  } catch (err) {
+    return {}
   }
 }
 
@@ -107,9 +286,9 @@ function renderCruiseLines(lines) {
     card.className = 'data-card'
 
     card.innerHTML = `
-      <h3>${line.name}</h3>
-      <p><strong>Country:</strong> ${line.country || 'Not listed'}</p>
-      ${line.website ? `<p><a href="${line.website}" target="_blank" rel="noopener">Visit website</a></p>` : ''}
+      <h3>${escapeHtml(line.name)}</h3>
+      <p><strong>Country:</strong> ${escapeHtml(line.country || 'Not listed')}</p>
+      ${line.website ? `<p><a href="${escapeHtml(line.website)}" target="_blank" rel="noopener">Visit website</a></p>` : ''}
       <button onclick="loadShips('${line.id}', '${escapeSingleQuotes(line.name)}')">View Ships</button>
     `
 
@@ -151,13 +330,22 @@ function renderShips(ships) {
   ships.forEach(ship => {
     const card = document.createElement('article')
     card.className = 'data-card'
-    card.innerHTML = `<h3>${ship.name}</h3>`
+    card.innerHTML = `<h3>${escapeHtml(ship.name)}</h3>`
     grid.appendChild(card)
   })
 }
 
 function escapeSingleQuotes(value) {
   return String(value).replace(/'/g, '\\&#39;')
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 
 if (healthCheckBtn) {

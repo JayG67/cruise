@@ -48,6 +48,76 @@
         <p>Search your API results and select a cruise line to view related ships.</p>
       </div>
 
+      <section class="crud-panel" aria-labelledby="add-cruise-line-heading">
+        <div class="crud-panel-header">
+          <div>
+            <p class="eyebrow">Create Data</p>
+            <h3 id="add-cruise-line-heading">Add a Cruise Line</h3>
+            <p>Create a cruise line and add starter ships in one focused workflow.</p>
+          </div>
+          <span class="crud-badge">New CRUD Feature</span>
+        </div>
+
+        <form id="create-cruise-line-form" class="crud-form">
+          <div class="crud-layout">
+            <div class="form-card primary-form-card">
+              <div class="form-card-heading">
+                <span class="step-pill">1</span>
+                <div>
+                  <h4>Cruise Line Details</h4>
+                  <p>Name is required. Country and website are optional.</p>
+                </div>
+              </div>
+
+              <div class="form-grid">
+                <label>
+                  <span>Cruise line name <strong aria-hidden="true">*</strong></span>
+                  <input id="new-cruise-line-name" name="name" type="text" placeholder="Holland America Line" required maxlength="255" />
+                </label>
+
+                <label>
+                  <span>Country</span>
+                  <input id="new-cruise-line-country" name="country" type="text" placeholder="United States" maxlength="255" />
+                </label>
+
+                <label class="full-width-field">
+                  <span>Website</span>
+                  <input id="new-cruise-line-website" name="website" type="url" placeholder="https://www.hollandamerica.com" maxlength="255" />
+                </label>
+              </div>
+            </div>
+
+            <div class="form-card ships-create-panel">
+              <div class="ships-create-header">
+                <div class="form-card-heading">
+                  <span class="step-pill">2</span>
+                  <div>
+                    <h4>Starter Ships</h4>
+                    <p>Add ships now, or leave this blank and add ships later.</p>
+                  </div>
+                </div>
+                <button id="add-ship-input-btn" class="secondary dark" type="button">+ Add Ship</button>
+              </div>
+
+              <div id="new-ship-inputs" class="ship-input-list">
+                <label>
+                  <span>Ship name</span>
+                  <input name="shipName" type="text" placeholder="Rotterdam" maxlength="255" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-footer">
+            <p id="create-cruise-line-message" class="form-message" aria-live="polite"></p>
+            <div class="form-actions">
+              <button id="reset-cruise-line-form-btn" class="secondary dark" type="button">Reset</button>
+              <button id="create-cruise-line-btn" type="submit">Create Cruise Line</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
       <div class="toolbar">
         <input id="search-input" type="search" placeholder="Search cruise lines..." />
         <section class="test-panel" id="testPanel">

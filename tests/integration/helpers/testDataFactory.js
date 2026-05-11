@@ -74,6 +74,12 @@ function removeTrackedShip(shipId) {
   }
 }
 
+function trackCruiseLine(cruiseLineId) {
+  if (cruiseLineId && !createdCruiseLineIds.includes(cruiseLineId)) {
+    createdCruiseLineIds.push(cruiseLineId)
+  }
+}
+
 function removeTrackedCruiseLine(cruiseLineId) {
   const index = createdCruiseLineIds.indexOf(cruiseLineId)
 
@@ -87,6 +93,7 @@ module.exports = {
   createCruiseLine,
   createShip,
   cleanupTestData,
+  trackCruiseLine,
   removeTrackedShip,
   removeTrackedCruiseLine
 }

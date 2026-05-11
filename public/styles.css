@@ -340,3 +340,264 @@ button.small {
   overflow-x: auto;
   white-space: pre-wrap;
 }
+/* Create Cruise Line form */
+.crud-panel {
+  position: relative;
+  overflow: hidden;
+  margin: 34px 0 36px;
+  padding: clamp(22px, 3vw, 34px);
+  border: 1px solid #d9e5ec;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top right, rgba(18, 164, 182, 0.16), transparent 34%),
+    linear-gradient(135deg, #ffffff 0%, #f8fcff 100%);
+  box-shadow: 0 20px 50px rgba(7, 24, 39, 0.1);
+}
+
+.crud-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 5px;
+  background: linear-gradient(90deg, var(--blue), var(--teal));
+}
+
+.crud-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.crud-panel-header h3 {
+  margin: 0 0 8px;
+  color: var(--navy);
+  font-size: clamp(1.65rem, 3vw, 2.2rem);
+  line-height: 1.05;
+}
+
+.crud-panel-header p:last-child {
+  max-width: 600px;
+  margin: 0;
+  color: #526575;
+  line-height: 1.5;
+}
+
+.crud-badge {
+  flex: 0 0 auto;
+  border: 1px solid rgba(18, 164, 182, 0.28);
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: #0b6f7d;
+  background: rgba(18, 164, 182, 0.1);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.crud-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.form-card {
+  min-height: 100%;
+  padding: 20px;
+  border: 1px solid #e0e9ef;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 12px 28px rgba(7, 24, 39, 0.06);
+}
+
+.primary-form-card {
+  background: #ffffff;
+}
+
+.form-card-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.form-card-heading h4 {
+  margin: 0 0 4px;
+  color: var(--navy);
+  font-size: 1.05rem;
+}
+
+.form-card-heading p {
+  margin: 0;
+  color: #526575;
+  font-size: 0.94rem;
+  line-height: 1.45;
+}
+
+.step-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border-radius: 50%;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--blue), var(--teal));
+  font-weight: 900;
+}
+
+.crud-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--navy);
+  font-weight: 800;
+}
+
+.crud-form label span {
+  font-size: 0.92rem;
+}
+
+.crud-form label strong {
+  color: #b91c1c;
+}
+
+.crud-form input {
+  width: 100%;
+  margin: 0;
+  border: 1px solid #ccdae3;
+  border-radius: 14px;
+  padding: 13px 14px;
+  color: var(--navy);
+  background: #ffffff;
+  font: inherit;
+  outline: none;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.crud-form input::placeholder {
+  color: #8292a0;
+}
+
+.crud-form input:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 4px rgba(18, 164, 182, 0.14);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.full-width-field {
+  grid-column: 1 / -1;
+}
+
+.ships-create-panel {
+  background: #f7fbfd;
+}
+
+.ships-create-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.ships-create-header .form-card-heading {
+  margin-bottom: 0;
+}
+
+.ship-input-list {
+  display: grid;
+  gap: 12px;
+}
+
+.ship-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid #e0e9ef;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+button.dark,
+button.remove-ship-row-btn {
+  color: var(--navy);
+  background: #e8f0f5;
+  border: 1px solid #d3e0e8;
+  box-shadow: none;
+}
+
+button.remove-ship-row-btn {
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
+}
+
+.form-message {
+  min-height: 22px;
+  margin: 0;
+  color: #526575;
+  font-weight: 800;
+}
+
+.form-message.success {
+  color: #166534;
+}
+
+.form-message.error {
+  color: #b91c1c;
+}
+
+@media (max-width: 900px) {
+  .crud-layout,
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .crud-panel-header,
+  .ships-create-header,
+  .form-footer,
+  .ship-input-row {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    justify-content: stretch;
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
+}

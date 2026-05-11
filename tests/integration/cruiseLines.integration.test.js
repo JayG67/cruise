@@ -9,6 +9,7 @@ const {
   uniqueName,
   createCruiseLine,
   cleanupTestData,
+  trackCruiseLine,
   removeTrackedCruiseLine
 } = require('./helpers/testDataFactory')
 
@@ -91,6 +92,7 @@ describe('Cruise line API integration tests', () => {
     })
 
     const createdId = res.body.id
+    trackCruiseLine(createdId)
 
     const getRes = await request(app)
       .get(`/cruise/cruise-line/${createdId}`)
