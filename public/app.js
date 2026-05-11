@@ -205,9 +205,9 @@ function addShipInputRow(value = '') {
   row.innerHTML = `
     <label>
       Ship name
-      <input name="shipName" type="text" placeholder="Example: Rotterdam" maxlength="255" value="${escapeHtml(value)}" />
+      <input name="shipName" data-cy="create-cruise-line-ship-name-input" type="text" placeholder="Example: Rotterdam" maxlength="255" value="${escapeHtml(value)}" />
     </label>
-    <button class="remove-ship-row-btn" type="button">Remove</button>
+    <button class="remove-ship-row-btn" data-cy="remove-ship-input-button" type="button">Remove</button>
   `
 
   row.querySelector('.remove-ship-row-btn').addEventListener('click', () => row.remove())
@@ -224,7 +224,7 @@ function resetCreateCruiseLineForm() {
     shipInputList.innerHTML = `
       <label>
         Ship name
-        <input name="shipName" type="text" placeholder="Example: Rotterdam" maxlength="255" />
+        <input name="shipName" data-cy="create-cruise-line-ship-name-input" type="text" placeholder="Example: Rotterdam" maxlength="255" />
       </label>
     `
   }
@@ -277,19 +277,20 @@ function renderCruiseLines(lines) {
   grid.innerHTML = ''
 
   if (!lines.length) {
-    grid.innerHTML = '<p class="empty-message">No cruise lines match your search.</p>'
+    grid.innerHTML = '<p class="empty-message" data-cy="cruise-empty-message">No cruise lines match your search.</p>'
     return
   }
 
   lines.forEach(line => {
     const card = document.createElement('article')
     card.className = 'data-card'
+    card.setAttribute('data-cy', 'cruise-card')
 
     card.innerHTML = `
       <h3>${escapeHtml(line.name)}</h3>
       <p><strong>Country:</strong> ${escapeHtml(line.country || 'Not listed')}</p>
-      ${line.website ? `<p><a href="${escapeHtml(line.website)}" target="_blank" rel="noopener">Visit website</a></p>` : ''}
-      <button onclick="loadShips('${line.id}', '${escapeSingleQuotes(line.name)}')">View Ships</button>
+      ${line.website ? `<p><a href="${escapeHtml(line.website)}" target="_blank" rel="noopener" data-cy="cruise-website-link">Visit website</a></p>` : ''}
+      <button data-cy="view-ships-button" onclick="loadShips('${line.id}', '${escapeSingleQuotes(line.name)}')">View Ships</button>
     `
 
     grid.appendChild(card)
@@ -304,7 +305,7 @@ async function loadShips(cruiseLineId, cruiseLineName) {
   try {
     if (panel) panel.hidden = false
     if (title) title.textContent = `${cruiseLineName} Ships`
-    if (grid) grid.innerHTML = '<p>Loading ships...</p>'
+    if (grid) grid.innerHTML = '<p data-cy="ships-loading-message">Loading ships...</p>'
 
     const res = await fetch(`${API_BASE}/ships/${cruiseLineId}`)
 
@@ -316,7 +317,7 @@ async function loadShips(cruiseLineId, cruiseLineName) {
     renderShips(ships)
   } catch (err) {
     console.error(err)
-    if (grid) grid.innerHTML = '<p>No ships found for this cruise line yet.</p>'
+    if (grid) grid.innerHTML = '<p data-cy="ships-empty-message">No ships found for this cruise line yet.</p>'
   }
 }
 
@@ -330,6 +331,7 @@ function renderShips(ships) {
   ships.forEach(ship => {
     const card = document.createElement('article')
     card.className = 'data-card'
+    card.setAttribute('data-cy', 'ship-card')
     card.innerHTML = `<h3>${escapeHtml(ship.name)}</h3>`
     grid.appendChild(card)
   })

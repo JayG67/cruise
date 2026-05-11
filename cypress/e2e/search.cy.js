@@ -1,3 +1,5 @@
+import { selectors } from '../support/selectors'
+
 const cruiseLines = [
   {
     id: '11111111-1111-1111-1111-111111111111',
@@ -57,11 +59,11 @@ function visitSearchPage(cruiseLineList = cruiseLines) {
 
   cy.visit('/')
   cy.wait('@getCruiseLines')
-  cy.get('#cruise-grid .data-card').should('have.length', cruiseLineList.length)
+  cy.get(selectors.cruiseLines.card).should('have.length', cruiseLineList.length)
 }
 
 function visibleCruiseCards() {
-  return cy.get('#cruise-grid .data-card')
+  return cy.get(selectors.cruiseLines.card)
 }
 
 describe('Cruise Explorer search UI', () => {
@@ -70,152 +72,152 @@ describe('Cruise Explorer search UI', () => {
   })
 
   it('starts with an empty search input and all cruise lines visible', () => {
-    cy.get('#search-input').should('have.value', '')
+    cy.get(selectors.cruiseLines.searchInput).should('have.value', '')
     visibleCruiseCards().should('have.length', cruiseLines.length)
-    cy.get('#status-message').should('contain.text', `Showing ${cruiseLines.length} of ${cruiseLines.length}`)
+    cy.get(selectors.cruiseLines.statusMessage).should('contain.text', `Showing ${cruiseLines.length} of ${cruiseLines.length}`)
   })
 
   it('filters cruise lines by exact full cruise line name', () => {
-    cy.get('#search-input').type('MSC Cruises')
+    cy.get(selectors.cruiseLines.searchInput).type('MSC Cruises')
 
     visibleCruiseCards().should('have.length', 1)
-    cy.get('#cruise-grid').should('contain.text', 'MSC Cruises')
-    cy.get('#cruise-grid').should('not.contain.text', 'Carnival Cruise Line')
-    cy.get('#status-message').should('contain.text', `Showing 1 of ${cruiseLines.length}`)
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'MSC Cruises')
+    cy.get(selectors.cruiseLines.grid).should('not.contain.text', 'Carnival Cruise Line')
+    cy.get(selectors.cruiseLines.statusMessage).should('contain.text', `Showing 1 of ${cruiseLines.length}`)
   })
 
   it('filters cruise lines by partial cruise line name', () => {
-    cy.get('#search-input').type('Royal')
+    cy.get(selectors.cruiseLines.searchInput).type('Royal')
 
     visibleCruiseCards().should('have.length', 1)
-    cy.get('#cruise-grid').should('contain.text', 'Royal Caribbean International')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'Royal Caribbean International')
   })
 
   it('filters cruise lines case-insensitively', () => {
-    cy.get('#search-input').type('mSc cRuIsEs')
+    cy.get(selectors.cruiseLines.searchInput).type('mSc cRuIsEs')
 
     visibleCruiseCards().should('have.length', 1)
-    cy.get('#cruise-grid').should('contain.text', 'MSC Cruises')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'MSC Cruises')
   })
 
   it('filters cruise lines by country', () => {
-    cy.get('#search-input').type('Germany')
+    cy.get(selectors.cruiseLines.searchInput).type('Germany')
 
     visibleCruiseCards().should('have.length', 1)
-    cy.get('#cruise-grid').should('contain.text', 'AIDA Cruises')
-    cy.get('#cruise-grid').should('contain.text', 'Germany')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'AIDA Cruises')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'Germany')
   })
 
   it('filters country values case-insensitively', () => {
-    cy.get('#search-input').type('switzerland')
+    cy.get(selectors.cruiseLines.searchInput).type('switzerland')
 
     visibleCruiseCards().should('have.length', 1)
-    cy.get('#cruise-grid').should('contain.text', 'MSC Cruises')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'MSC Cruises')
   })
 
   it('trims leading and trailing spaces before filtering', () => {
-    cy.get('#search-input').type('   Carnival   ')
+    cy.get(selectors.cruiseLines.searchInput).type('   Carnival   ')
 
     visibleCruiseCards().should('have.length', 1)
-    cy.get('#cruise-grid').should('contain.text', 'Carnival Cruise Line')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'Carnival Cruise Line')
   })
 
   it('updates the visible result count after filtering to multiple matches', () => {
-    cy.get('#search-input').type('United States')
+    cy.get(selectors.cruiseLines.searchInput).type('United States')
 
     visibleCruiseCards().should('have.length', 4)
-    cy.get('#status-message').should('contain.text', `Showing 4 of ${cruiseLines.length}`)
+    cy.get(selectors.cruiseLines.statusMessage).should('contain.text', `Showing 4 of ${cruiseLines.length}`)
   })
 
   it('shows an empty state when no cruise lines match', () => {
-    cy.get('#search-input').type('ZZZ_NO_MATCH_TEST')
+    cy.get(selectors.cruiseLines.searchInput).type('ZZZ_NO_MATCH_TEST')
 
-    cy.get('#status-message').should('contain.text', `Showing 0 of ${cruiseLines.length}`)
-    cy.get('#cruise-grid .data-card').should('not.exist')
-    cy.get('#cruise-grid').should('contain.text', 'No cruise lines match your search.')
+    cy.get(selectors.cruiseLines.statusMessage).should('contain.text', `Showing 0 of ${cruiseLines.length}`)
+    cy.get(selectors.cruiseLines.card).should('not.exist')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'No cruise lines match your search.')
   })
 
   it('restores all cruise lines when search is cleared', () => {
-    cy.get('#search-input').type('Margaritaville')
+    cy.get(selectors.cruiseLines.searchInput).type('Margaritaville')
     visibleCruiseCards().should('have.length', 1)
 
-    cy.get('#search-input').clear()
+    cy.get(selectors.cruiseLines.searchInput).clear()
 
     visibleCruiseCards().should('have.length', cruiseLines.length)
-    cy.get('#status-message').should('contain.text', `Showing ${cruiseLines.length} of ${cruiseLines.length}`)
+    cy.get(selectors.cruiseLines.statusMessage).should('contain.text', `Showing ${cruiseLines.length} of ${cruiseLines.length}`)
   })
 
   it('keeps the typed search value visible while filtering', () => {
-    cy.get('#search-input').type('Disney')
-    cy.get('#search-input').should('have.value', 'Disney')
-    cy.get('#cruise-grid').should('contain.text', 'Disney Cruise Line')
+    cy.get(selectors.cruiseLines.searchInput).type('Disney')
+    cy.get(selectors.cruiseLines.searchInput).should('have.value', 'Disney')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'Disney Cruise Line')
   })
 
   it('does not match against website values', () => {
-    cy.get('#search-input').type('royalcaribbean.com')
+    cy.get(selectors.cruiseLines.searchInput).type('royalcaribbean.com')
 
-    cy.get('#cruise-grid .data-card').should('not.exist')
-    cy.get('#cruise-grid').should('contain.text', 'No cruise lines match your search.')
+    cy.get(selectors.cruiseLines.card).should('not.exist')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'No cruise lines match your search.')
   })
 
   it('handles cruise lines with missing country values without throwing an error', () => {
-    cy.get('#search-input').type('No Country')
+    cy.get(selectors.cruiseLines.searchInput).type('No Country')
 
     visibleCruiseCards().should('have.length', 1)
-    cy.get('#cruise-grid').should('contain.text', 'No Country Cruise Line')
-    cy.get('#cruise-grid').should('contain.text', 'Country: Not listed')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'No Country Cruise Line')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'Country: Not listed')
   })
 
   it('handles special characters in the search term', () => {
-    cy.get('#search-input').type('Test & Demo')
+    cy.get(selectors.cruiseLines.searchInput).type('Test & Demo')
 
     visibleCruiseCards().should('have.length', 1)
-    cy.get('#cruise-grid').should('contain.text', 'Test & Demo Cruises')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'Test & Demo Cruises')
   })
 
   it('handles accented country characters in the search term', () => {
-    cy.get('#search-input').type('Curaçao')
+    cy.get(selectors.cruiseLines.searchInput).type('Curaçao')
 
     visibleCruiseCards().should('have.length', 1)
-    cy.get('#cruise-grid').should('contain.text', 'Test & Demo Cruises')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'Test & Demo Cruises')
   })
 
   it('updates results as the user changes the search value', () => {
-    cy.get('#search-input').type('MSC')
+    cy.get(selectors.cruiseLines.searchInput).type('MSC')
     visibleCruiseCards().should('have.length', 1)
-    cy.get('#cruise-grid').should('contain.text', 'MSC Cruises')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'MSC Cruises')
 
-    cy.get('#search-input').clear().type('Disney')
+    cy.get(selectors.cruiseLines.searchInput).clear().type('Disney')
     visibleCruiseCards().should('have.length', 1)
-    cy.get('#cruise-grid').should('contain.text', 'Disney Cruise Line')
-    cy.get('#cruise-grid').should('not.contain.text', 'MSC Cruises')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'Disney Cruise Line')
+    cy.get(selectors.cruiseLines.grid).should('not.contain.text', 'MSC Cruises')
   })
 
   it('does not make another cruise API request when filtering locally', () => {
     cy.get('@getCruiseLines.all').should('have.length', 1)
 
-    cy.get('#search-input').type('Carnival')
-    cy.get('#search-input').clear().type('MSC')
-    cy.get('#search-input').clear()
+    cy.get(selectors.cruiseLines.searchInput).type('Carnival')
+    cy.get(selectors.cruiseLines.searchInput).clear().type('MSC')
+    cy.get(selectors.cruiseLines.searchInput).clear()
 
     cy.get('@getCruiseLines.all').should('have.length', 1)
   })
 
   it('preserves card actions after filtering', () => {
-    cy.get('#search-input').type('Royal')
+    cy.get(selectors.cruiseLines.searchInput).type('Royal')
 
-    cy.contains('#cruise-grid .data-card', 'Royal Caribbean International').within(() => {
-      cy.contains('button', 'View Ships').should('be.visible')
-      cy.contains('a', 'Visit website').should('be.visible')
+    cy.contains(selectors.cruiseLines.card, 'Royal Caribbean International').within(() => {
+      cy.get(selectors.cruiseLines.viewShipsButton).should('be.visible')
+      cy.get(selectors.cruiseLines.websiteLink).should('be.visible')
     })
   })
 
   it('supports a single-record cruise list', () => {
     visitSearchPage([cruiseLines[0]])
 
-    cy.get('#status-message').should('contain.text', 'Showing 1 of 1 cruise line.')
-    cy.get('#search-input').type('ZZZ')
-    cy.get('#status-message').should('contain.text', 'Showing 0 of 1 cruise line.')
-    cy.get('#cruise-grid').should('contain.text', 'No cruise lines match your search.')
+    cy.get(selectors.cruiseLines.statusMessage).should('contain.text', 'Showing 1 of 1 cruise line.')
+    cy.get(selectors.cruiseLines.searchInput).type('ZZZ')
+    cy.get(selectors.cruiseLines.statusMessage).should('contain.text', 'Showing 0 of 1 cruise line.')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'No cruise lines match your search.')
   })
 })

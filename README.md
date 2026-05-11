@@ -112,6 +112,8 @@ PostgreSQL (Docker)
 * ✅ Expanded Cypress positive, negative, and edge-case coverage
 * ✅ CI-driven quality enforcement
 * ✅ Enforced test coverage thresholds
+* ✅ Centralized Cypress selector management
+* ✅ Stable UI automation using data-cy attributes
 
 ---
 
@@ -172,6 +174,7 @@ cruise/
 ├── cypress/
 │   ├── e2e/            # Cypress UI tests
 │   ├── screenshots/    # Failure screenshots
+│   ├── support/        # Shared selectors/helpers
 │   └── videos/         # Cypress recordings
 ├── app.js              # Express app export for testing
 ├── index.js            # Server startup
@@ -487,6 +490,7 @@ The Cypress suite validates:
 * Create cruise line failure handling
 * Edge cases for search, ships, homepage, and create workflow behavior
 
+
 The Cypress implementation uses a combination of:
 
 ```text
@@ -501,6 +505,102 @@ controlled mocked API responses
 
 This allows tests to validate real application behavior while also preventing UI tests from polluting the database with persistent test records.
 
+# 🧩 Cypress Selector Architecture
+
+The Cypress automation framework now uses a:
+
+```text
+centralized selector architecture
+```
+
+to improve maintainability and reduce brittle UI test dependencies.
+
+Rather than hardcoding selectors throughout multiple Cypress test files, shared selectors are now maintained in:
+
+```text
+cypress/support/selectors.js
+```
+
+This provides:
+
+* Single-source selector management
+* Easier UI refactoring support
+* Reduced maintenance overhead
+* Improved test readability
+* Cleaner automation architecture
+* More scalable frontend test design
+
+---
+
+## Stable UI Automation Using `data-cy`
+
+The frontend now includes dedicated:
+
+```text
+data-cy
+```
+
+attributes for Cypress automation targeting.
+
+Example:
+
+```html
+<input data-cy="create-cruise-line-name" />
+```
+
+instead of relying on:
+
+* Styling classes
+* Layout structure
+* Fragile DOM traversal
+* Presentation-oriented selectors
+
+This reflects modern enterprise UI automation practices where test selectors are intentionally separated from styling concerns.
+
+---
+
+## Benefits of the Selector Architecture
+
+This approach improves:
+
+* UI test stability
+* Refactor safety
+* Automation maintainability
+* Team scalability
+* Test readability
+* Long-term regression reliability
+
+If a UI identifier changes, selectors only need to be updated in one centralized location instead of throughout all Cypress test suites.
+
+---
+
+## Example Usage
+
+Instead of:
+
+```js
+cy.get('#create-cruise-line-name')
+```
+
+tests now use shared selectors:
+
+```js
+cy.get(selectors.createCruiseLine.nameInput)
+```
+
+This creates a cleaner separation between:
+
+```text
+automation logic
+```
+
+and:
+
+```text
+UI implementation details
+```
+
+which mirrors enterprise automation engineering practices used in large-scale QA organizations.
 ---
 
 # ✅ Expanded Cypress Coverage

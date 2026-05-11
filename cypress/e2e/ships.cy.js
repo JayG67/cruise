@@ -1,3 +1,5 @@
+import { selectors } from '../support/selectors'
+
 const cruiseLines = [
   {
     id: '11111111-1111-1111-1111-111111111111',
@@ -49,7 +51,7 @@ function visitShipsPage() {
 
   cy.visit('/')
   cy.wait('@getCruiseLines')
-  cy.get('#cruise-grid .data-card').should('have.length', cruiseLines.length)
+  cy.get(selectors.cruiseLines.card).should('have.length', cruiseLines.length)
 }
 
 function mockShipsFor(cruiseLine, response = shipMap[cruiseLine.id]) {
@@ -60,8 +62,8 @@ function mockShipsFor(cruiseLine, response = shipMap[cruiseLine.id]) {
 }
 
 function clickViewShips(cruiseLineName) {
-  cy.contains('#cruise-grid .data-card', cruiseLineName)
-    .contains('button', 'View Ships')
+  cy.contains(selectors.cruiseLines.card, cruiseLineName)
+    .find(selectors.cruiseLines.viewShipsButton)
     .click()
 }
 
@@ -71,9 +73,9 @@ describe('Cruise Explorer ship lookup UI', () => {
   })
 
   it('keeps the ships panel hidden before a cruise line is selected', () => {
-    cy.get('#ships-panel').should('not.be.visible')
-    cy.get('#ships-title').should('have.text', 'Ships')
-    cy.get('#ships-grid').should('be.empty')
+    cy.get(selectors.ships.panel).should('not.be.visible')
+    cy.get(selectors.ships.title).should('have.text', 'Ships')
+    cy.get(selectors.ships.grid).should('be.empty')
   })
 
   it('requests ships for the selected cruise line id', () => {
@@ -95,12 +97,12 @@ describe('Cruise Explorer ship lookup UI', () => {
     clickViewShips(cruiseLine.name)
     cy.wait(`@getShips-${cruiseLine.id}`)
 
-    cy.get('#ships-panel').should('be.visible')
-    cy.get('#ships-title').should('contain.text', `${cruiseLine.name} Ships`)
-    cy.get('#ships-grid .data-card').should('have.length', ships.length)
+    cy.get(selectors.ships.panel).should('be.visible')
+    cy.get(selectors.ships.title).should('contain.text', `${cruiseLine.name} Ships`)
+    cy.get(selectors.ships.card).should('have.length', ships.length)
 
     ships.forEach((ship) => {
-      cy.get('#ships-grid').should('contain.text', ship.name)
+      cy.get(selectors.ships.grid).should('contain.text', ship.name)
     })
   })
 
@@ -117,12 +119,12 @@ describe('Cruise Explorer ship lookup UI', () => {
 
     clickViewShips(cruiseLine.name)
 
-    cy.get('#ships-panel').should('be.visible')
-    cy.get('#ships-grid').should('contain.text', 'Loading ships...')
+    cy.get(selectors.ships.panel).should('be.visible')
+    cy.get(selectors.ships.grid).should('contain.text', 'Loading ships...')
 
     cy.wait('@slowShips')
-    cy.get('#ships-grid').should('not.contain.text', 'Loading ships...')
-    cy.get('#ships-grid .data-card').should('have.length', shipMap[cruiseLine.id].length)
+    cy.get(selectors.ships.grid).should('not.contain.text', 'Loading ships...')
+    cy.get(selectors.ships.card).should('have.length', shipMap[cruiseLine.id].length)
   })
 
   it('renders each ship as its own card', () => {
@@ -133,9 +135,9 @@ describe('Cruise Explorer ship lookup UI', () => {
     clickViewShips(cruiseLine.name)
     cy.wait(`@getShips-${cruiseLine.id}`)
 
-    cy.get('#ships-grid .data-card').should('have.length', ships.length)
+    cy.get(selectors.ships.card).should('have.length', ships.length)
     ships.forEach((ship) => {
-      cy.contains('#ships-grid .data-card', ship.name).should('be.visible')
+      cy.contains(selectors.ships.card, ship.name).should('be.visible')
     })
   })
 
@@ -148,14 +150,14 @@ describe('Cruise Explorer ship lookup UI', () => {
 
     clickViewShips(firstCruiseLine.name)
     cy.wait(`@getShips-${firstCruiseLine.id}`)
-    cy.get('#ships-title').should('contain.text', `${firstCruiseLine.name} Ships`)
-    cy.get('#ships-grid').should('contain.text', 'Icon of the Seas')
+    cy.get(selectors.ships.title).should('contain.text', `${firstCruiseLine.name} Ships`)
+    cy.get(selectors.ships.grid).should('contain.text', 'Icon of the Seas')
 
     clickViewShips(secondCruiseLine.name)
     cy.wait(`@getShips-${secondCruiseLine.id}`)
-    cy.get('#ships-title').should('contain.text', `${secondCruiseLine.name} Ships`)
-    cy.get('#ships-grid').should('contain.text', 'Mardi Gras')
-    cy.get('#ships-grid').should('not.contain.text', 'Icon of the Seas')
+    cy.get(selectors.ships.title).should('contain.text', `${secondCruiseLine.name} Ships`)
+    cy.get(selectors.ships.grid).should('contain.text', 'Mardi Gras')
+    cy.get(selectors.ships.grid).should('not.contain.text', 'Icon of the Seas')
   })
 
   it('keeps cruise line results visible after loading ships', () => {
@@ -165,36 +167,36 @@ describe('Cruise Explorer ship lookup UI', () => {
     clickViewShips(cruiseLine.name)
     cy.wait(`@getShips-${cruiseLine.id}`)
 
-    cy.get('#ships-panel').should('be.visible')
-    cy.get('#cruise-grid .data-card').should('have.length', cruiseLines.length)
+    cy.get(selectors.ships.panel).should('be.visible')
+    cy.get(selectors.cruiseLines.card).should('have.length', cruiseLines.length)
   })
 
   it('loads ships after filtering to a cruise line', () => {
     const cruiseLine = cruiseLines[1]
     mockShipsFor(cruiseLine)
 
-    cy.get('#search-input').type('Carnival')
-    cy.get('#cruise-grid .data-card').should('have.length', 1)
+    cy.get(selectors.cruiseLines.searchInput).type('Carnival')
+    cy.get(selectors.cruiseLines.card).should('have.length', 1)
 
     clickViewShips(cruiseLine.name)
     cy.wait(`@getShips-${cruiseLine.id}`)
 
-    cy.get('#ships-title').should('contain.text', `${cruiseLine.name} Ships`)
-    cy.get('#ships-grid').should('contain.text', 'Mardi Gras')
+    cy.get(selectors.ships.title).should('contain.text', `${cruiseLine.name} Ships`)
+    cy.get(selectors.ships.grid).should('contain.text', 'Mardi Gras')
   })
 
   it('loads ships correctly after a case-insensitive cruise line search', () => {
     const cruiseLine = cruiseLines[0]
     mockShipsFor(cruiseLine)
 
-    cy.get('#search-input').type('royal')
-    cy.get('#cruise-grid .data-card').should('have.length', 1)
+    cy.get(selectors.cruiseLines.searchInput).type('royal')
+    cy.get(selectors.cruiseLines.card).should('have.length', 1)
 
     clickViewShips(cruiseLine.name)
     cy.wait(`@getShips-${cruiseLine.id}`)
 
-    cy.get('#ships-title').should('contain.text', `${cruiseLine.name} Ships`)
-    cy.get('#ships-grid .data-card').should('have.length', shipMap[cruiseLine.id].length)
+    cy.get(selectors.ships.title).should('contain.text', `${cruiseLine.name} Ships`)
+    cy.get(selectors.ships.card).should('have.length', shipMap[cruiseLine.id].length)
   })
 
   it('does not clear ships when search input is changed after ships are loaded', () => {
@@ -203,13 +205,13 @@ describe('Cruise Explorer ship lookup UI', () => {
 
     clickViewShips(cruiseLine.name)
     cy.wait(`@getShips-${cruiseLine.id}`)
-    cy.get('#ships-grid .data-card').should('have.length', shipMap[cruiseLine.id].length)
+    cy.get(selectors.ships.card).should('have.length', shipMap[cruiseLine.id].length)
 
-    cy.get('#search-input').type('ZZZ_NO_MATCH_TEST')
+    cy.get(selectors.cruiseLines.searchInput).type('ZZZ_NO_MATCH_TEST')
 
-    cy.get('#ships-panel').should('be.visible')
-    cy.get('#ships-title').should('contain.text', `${cruiseLine.name} Ships`)
-    cy.get('#ships-grid .data-card').should('have.length', shipMap[cruiseLine.id].length)
+    cy.get(selectors.ships.panel).should('be.visible')
+    cy.get(selectors.ships.title).should('contain.text', `${cruiseLine.name} Ships`)
+    cy.get(selectors.ships.card).should('have.length', shipMap[cruiseLine.id].length)
   })
 
   it('shows an empty ships grid when the selected cruise line has no ships', () => {
@@ -219,10 +221,10 @@ describe('Cruise Explorer ship lookup UI', () => {
     clickViewShips(cruiseLine.name)
     cy.wait(`@getShips-${cruiseLine.id}`)
 
-    cy.get('#ships-panel').should('be.visible')
-    cy.get('#ships-title').should('contain.text', `${cruiseLine.name} Ships`)
-    cy.get('#ships-grid .data-card').should('not.exist')
-    cy.get('#ships-grid').should('be.empty')
+    cy.get(selectors.ships.panel).should('be.visible')
+    cy.get(selectors.ships.title).should('contain.text', `${cruiseLine.name} Ships`)
+    cy.get(selectors.ships.card).should('not.exist')
+    cy.get(selectors.ships.grid).should('be.empty')
   })
 
   it('shows a fallback message when the ship API returns an error', () => {
@@ -236,10 +238,10 @@ describe('Cruise Explorer ship lookup UI', () => {
     clickViewShips(cruiseLine.name)
     cy.wait('@shipApiFailure')
 
-    cy.get('#ships-panel').should('be.visible')
-    cy.get('#ships-title').should('contain.text', `${cruiseLine.name} Ships`)
-    cy.get('#ships-grid').should('contain.text', 'No ships found for this cruise line yet.')
-    cy.get('#ships-grid .data-card').should('not.exist')
+    cy.get(selectors.ships.panel).should('be.visible')
+    cy.get(selectors.ships.title).should('contain.text', `${cruiseLine.name} Ships`)
+    cy.get(selectors.ships.grid).should('contain.text', 'No ships found for this cruise line yet.')
+    cy.get(selectors.ships.card).should('not.exist')
   })
 
   it('shows a fallback message when the ship API returns invalid JSON', () => {
@@ -254,8 +256,8 @@ describe('Cruise Explorer ship lookup UI', () => {
     clickViewShips(cruiseLine.name)
     cy.wait('@invalidShipsJson')
 
-    cy.get('#ships-grid').should('contain.text', 'No ships found for this cruise line yet.')
-    cy.get('#ships-grid .data-card').should('not.exist')
+    cy.get(selectors.ships.grid).should('contain.text', 'No ships found for this cruise line yet.')
+    cy.get(selectors.ships.card).should('not.exist')
   })
 
   it('escapes ship names before rendering them as HTML', () => {
@@ -265,8 +267,8 @@ describe('Cruise Explorer ship lookup UI', () => {
     clickViewShips(cruiseLine.name)
     cy.wait(`@getShips-${cruiseLine.id}`)
 
-    cy.get('#ships-grid img').should('not.exist')
-    cy.get('#ships-grid').should('contain.text', '<img src=x onerror=alert(1)> Ship')
+    cy.get(`${selectors.ships.grid} img`).should('not.exist')
+    cy.get(selectors.ships.grid).should('contain.text', '<img src=x onerror=alert(1)> Ship')
   })
 
   it('keeps the most recently selected cruise line title after a previous ship request fails', () => {
@@ -281,13 +283,13 @@ describe('Cruise Explorer ship lookup UI', () => {
 
     clickViewShips(firstCruiseLine.name)
     cy.wait('@firstShipFailure')
-    cy.get('#ships-grid').should('contain.text', 'No ships found for this cruise line yet.')
+    cy.get(selectors.ships.grid).should('contain.text', 'No ships found for this cruise line yet.')
 
     clickViewShips(secondCruiseLine.name)
     cy.wait(`@getShips-${secondCruiseLine.id}`)
-    cy.get('#ships-title').should('contain.text', `${secondCruiseLine.name} Ships`)
-    cy.get('#ships-grid').should('contain.text', 'Mardi Gras')
-    cy.get('#ships-grid').should('not.contain.text', 'No ships found')
+    cy.get(selectors.ships.title).should('contain.text', `${secondCruiseLine.name} Ships`)
+    cy.get(selectors.ships.grid).should('contain.text', 'Mardi Gras')
+    cy.get(selectors.ships.grid).should('not.contain.text', 'No ships found')
   })
 
   it('does not request ships when no cruise lines match the current search', () => {
@@ -296,9 +298,9 @@ describe('Cruise Explorer ship lookup UI', () => {
       body: []
     }).as('anyShipLookup')
 
-    cy.get('#search-input').type('ZZZ_NO_MATCH_TEST')
-    cy.get('#cruise-grid').should('contain.text', 'No cruise lines match your search.')
-    cy.get('#cruise-grid button').should('not.exist')
+    cy.get(selectors.cruiseLines.searchInput).type('ZZZ_NO_MATCH_TEST')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'No cruise lines match your search.')
+    cy.get(`${selectors.cruiseLines.grid} button`).should('not.exist')
     cy.get('@anyShipLookup.all').should('have.length', 0)
   })
 })

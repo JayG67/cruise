@@ -1,3 +1,5 @@
+import { selectors } from '../support/selectors'
+
 const initialCruiseLines = [
   {
     id: '11111111-1111-1111-1111-111111111111',
@@ -22,13 +24,13 @@ function visitWithMockedCruiseLines(cruiseLineList = [...initialCruiseLines]) {
 }
 
 function fillCruiseLineForm({ name, country, website, ships = [] }) {
-  if (name !== undefined) cy.get('#new-cruise-line-name').clear().type(name)
-  if (country !== undefined) cy.get('#new-cruise-line-country').clear().type(country)
-  if (website !== undefined) cy.get('#new-cruise-line-website').clear().type(website)
+  if (name !== undefined) cy.get(selectors.createCruiseLine.nameInput).clear().type(name)
+  if (country !== undefined) cy.get(selectors.createCruiseLine.countryInput).clear().type(country)
+  if (website !== undefined) cy.get(selectors.createCruiseLine.websiteInput).clear().type(website)
 
   ships.forEach((shipName, index) => {
-    if (index > 0) cy.get('#add-ship-input-btn').click()
-    cy.get('input[name="shipName"]').eq(index).clear().type(shipName)
+    if (index > 0) cy.get(selectors.createCruiseLine.addShipButton).click()
+    cy.get(selectors.createCruiseLine.shipNameInput).eq(index).clear().type(shipName)
   })
 }
 
@@ -39,13 +41,13 @@ describe('Create Cruise Line UI', () => {
 
   it('renders the create cruise line form with the expected fields and controls', () => {
     cy.contains('Add a Cruise Line').should('be.visible')
-    cy.get('#new-cruise-line-name').should('be.visible')
-    cy.get('#new-cruise-line-country').should('be.visible')
-    cy.get('#new-cruise-line-website').should('be.visible')
-    cy.get('input[name="shipName"]').should('have.length', 1)
-    cy.get('#add-ship-input-btn').should('be.visible')
-    cy.get('#create-cruise-line-btn').should('be.visible')
-    cy.get('#reset-cruise-line-form-btn').should('be.visible')
+    cy.get(selectors.createCruiseLine.nameInput).should('be.visible')
+    cy.get(selectors.createCruiseLine.countryInput).should('be.visible')
+    cy.get(selectors.createCruiseLine.websiteInput).should('be.visible')
+    cy.get(selectors.createCruiseLine.shipNameInput).should('have.length', 1)
+    cy.get(selectors.createCruiseLine.addShipButton).should('be.visible')
+    cy.get(selectors.createCruiseLine.submitButton).should('be.visible')
+    cy.get(selectors.createCruiseLine.resetButton).should('be.visible')
   })
 
   it('creates a cruise line with no ships and refreshes the cruise line list', () => {
@@ -91,13 +93,13 @@ describe('Create Cruise Line UI', () => {
       website: 'https://www.virginvoyages.com'
     })
 
-    cy.get('#create-cruise-line-form').submit()
+    cy.get(selectors.createCruiseLine.form).submit()
 
     cy.wait('@createCruiseLine')
     cy.wait('@getCruiseLinesLive')
 
-    cy.contains('#create-cruise-line-message', 'Created Virgin Voyages.').should('be.visible')
-    cy.contains('#cruise-grid .data-card', 'Virgin Voyages').should('be.visible')
+    cy.contains(selectors.createCruiseLine.message, 'Created Virgin Voyages.').should('be.visible')
+    cy.contains(selectors.cruiseLines.card, 'Virgin Voyages').should('be.visible')
     cy.get('@createShip.all').should('have.length', 0)
   })
 
@@ -156,7 +158,7 @@ describe('Create Cruise Line UI', () => {
       ships: ['Rotterdam', 'Nieuw Amsterdam']
     })
 
-    cy.get('#create-cruise-line-form').submit()
+    cy.get(selectors.createCruiseLine.form).submit()
 
     cy.wait('@createCruiseLine')
     cy.wait('@createShip')
@@ -164,8 +166,8 @@ describe('Create Cruise Line UI', () => {
     cy.wait('@getCruiseLinesLive')
 
     cy.wrap(createdShips).should('deep.equal', ['Rotterdam', 'Nieuw Amsterdam'])
-    cy.contains('#create-cruise-line-message', 'Created Holland America Line with 2 ships.').should('be.visible')
-    cy.contains('#cruise-grid .data-card', 'Holland America Line').should('be.visible')
+    cy.contains(selectors.createCruiseLine.message, 'Created Holland America Line with 2 ships.').should('be.visible')
+    cy.contains(selectors.cruiseLines.card, 'Holland America Line').should('be.visible')
   })
 
   it('trims whitespace before sending cruise line and ship data to the API', () => {
@@ -194,12 +196,12 @@ describe('Create Cruise Line UI', () => {
       req.reply({ statusCode: 201, body: { message: 'Ship created successfully', id: 'ship-1' } })
     }).as('createShip')
 
-    cy.get('#new-cruise-line-name').type('   Azamara   ')
-    cy.get('#new-cruise-line-country').type('   United States   ')
-    cy.get('#new-cruise-line-website').type('   https://www.azamara.com   ')
-    cy.get('input[name="shipName"]').first().type('   Azamara Quest   ')
+    cy.get(selectors.createCruiseLine.nameInput).type('   Azamara   ')
+    cy.get(selectors.createCruiseLine.countryInput).type('   United States   ')
+    cy.get(selectors.createCruiseLine.websiteInput).type('   https://www.azamara.com   ')
+    cy.get(selectors.createCruiseLine.shipNameInput).first().type('   Azamara Quest   ')
 
-    cy.get('#create-cruise-line-form').submit()
+    cy.get(selectors.createCruiseLine.form).submit()
 
     cy.wait('@createCruiseLine')
     cy.wait('@createShip')
@@ -220,8 +222,8 @@ describe('Create Cruise Line UI', () => {
       })
     }).as('createCruiseLine')
 
-    cy.get('#new-cruise-line-name').type('Small Ship Cruises')
-    cy.get('#create-cruise-line-form').submit()
+    cy.get(selectors.createCruiseLine.nameInput).type('Small Ship Cruises')
+    cy.get(selectors.createCruiseLine.form).submit()
 
     cy.wait('@createCruiseLine')
   })
@@ -244,11 +246,11 @@ describe('Create Cruise Line UI', () => {
       req.reply({ statusCode: 201, body: { message: 'Ship created successfully', id: `ship-${createdShips.length}` } })
     }).as('createShip')
 
-    cy.get('#new-cruise-line-name').type('Test Cruise Line')
-    cy.get('#add-ship-input-btn').click()
-    cy.get('input[name="shipName"]').last().type('Only Real Ship')
+    cy.get(selectors.createCruiseLine.nameInput).type('Test Cruise Line')
+    cy.get(selectors.createCruiseLine.addShipButton).click()
+    cy.get(selectors.createCruiseLine.shipNameInput).last().type('Only Real Ship')
 
-    cy.get('#create-cruise-line-form').submit()
+    cy.get(selectors.createCruiseLine.form).submit()
 
     cy.wait('@createCruiseLine')
     cy.wait('@createShip')
@@ -280,7 +282,7 @@ describe('Create Cruise Line UI', () => {
       ships: ['Same Ship', 'Same Ship']
     })
 
-    cy.get('#create-cruise-line-form').submit()
+    cy.get(selectors.createCruiseLine.form).submit()
 
     cy.wait('@createCruiseLine')
     cy.wait('@createShip')
@@ -307,13 +309,13 @@ describe('Create Cruise Line UI', () => {
       req.reply({ statusCode: 201, body: { message: 'Ship created successfully', id: `ship-${createdShips.length}` } })
     }).as('createShip')
 
-    cy.get('#new-cruise-line-name').type('Remove Ship Row Test Line')
-    cy.get('input[name="shipName"]').first().type('Ship That Stays')
-    cy.get('#add-ship-input-btn').click()
-    cy.get('input[name="shipName"]').last().type('Ship That Gets Removed')
-    cy.contains('.remove-ship-row-btn', 'Remove').click()
+    cy.get(selectors.createCruiseLine.nameInput).type('Remove Ship Row Test Line')
+    cy.get(selectors.createCruiseLine.shipNameInput).first().type('Ship That Stays')
+    cy.get(selectors.createCruiseLine.addShipButton).click()
+    cy.get(selectors.createCruiseLine.shipNameInput).last().type('Ship That Gets Removed')
+    cy.contains(selectors.createCruiseLine.removeShipButton, 'Remove').click()
 
-    cy.get('#create-cruise-line-form').submit()
+    cy.get(selectors.createCruiseLine.form).submit()
 
     cy.wait('@createCruiseLine')
     cy.wait('@createShip')
@@ -323,30 +325,30 @@ describe('Create Cruise Line UI', () => {
   })
 
   it('resets the form fields, ship rows, and message area', () => {
-    cy.get('#new-cruise-line-name').type('Reset Test Line')
-    cy.get('#new-cruise-line-country').type('United States')
-    cy.get('#new-cruise-line-website').type('https://example.com')
-    cy.get('input[name="shipName"]').first().type('Reset Test Ship')
-    cy.get('#add-ship-input-btn').click()
-    cy.get('input[name="shipName"]').last().type('Second Reset Test Ship')
+    cy.get(selectors.createCruiseLine.nameInput).type('Reset Test Line')
+    cy.get(selectors.createCruiseLine.countryInput).type('United States')
+    cy.get(selectors.createCruiseLine.websiteInput).type('https://example.com')
+    cy.get(selectors.createCruiseLine.shipNameInput).first().type('Reset Test Ship')
+    cy.get(selectors.createCruiseLine.addShipButton).click()
+    cy.get(selectors.createCruiseLine.shipNameInput).last().type('Second Reset Test Ship')
 
-    cy.get('#reset-cruise-line-form-btn').click()
+    cy.get(selectors.createCruiseLine.resetButton).click()
 
-    cy.get('#new-cruise-line-name').should('have.value', '')
-    cy.get('#new-cruise-line-country').should('have.value', '')
-    cy.get('#new-cruise-line-website').should('have.value', '')
-    cy.get('input[name="shipName"]').should('have.length', 1)
-    cy.get('input[name="shipName"]').first().should('have.value', '')
-    cy.get('#create-cruise-line-message').should('have.text', '')
+    cy.get(selectors.createCruiseLine.nameInput).should('have.value', '')
+    cy.get(selectors.createCruiseLine.countryInput).should('have.value', '')
+    cy.get(selectors.createCruiseLine.websiteInput).should('have.value', '')
+    cy.get(selectors.createCruiseLine.shipNameInput).should('have.length', 1)
+    cy.get(selectors.createCruiseLine.shipNameInput).first().should('have.value', '')
+    cy.get(selectors.createCruiseLine.message).should('have.text', '')
   })
 
   it('shows a useful validation message when the cruise line name is missing', () => {
-    cy.get('#new-cruise-line-name').invoke('removeAttr', 'required')
-    cy.get('#new-cruise-line-country').type('United States')
+    cy.get(selectors.createCruiseLine.nameInput).invoke('removeAttr', 'required')
+    cy.get(selectors.createCruiseLine.countryInput).type('United States')
 
-    cy.get('#create-cruise-line-form').submit()
+    cy.get(selectors.createCruiseLine.form).submit()
 
-    cy.contains('#create-cruise-line-message', 'Cruise line name is required.').should('be.visible')
+    cy.contains(selectors.createCruiseLine.message, 'Cruise line name is required.').should('be.visible')
   })
 
   it('does not call the create API when the cruise line name is blank spaces', () => {
@@ -354,11 +356,11 @@ describe('Create Cruise Line UI', () => {
       throw new Error(`Create API should not be called for a blank name. Received ${JSON.stringify(req.body)}`)
     }).as('createCruiseLine')
 
-    cy.get('#new-cruise-line-name').invoke('removeAttr', 'required')
-    cy.get('#new-cruise-line-name').type('    ')
-    cy.get('#create-cruise-line-form').submit()
+    cy.get(selectors.createCruiseLine.nameInput).invoke('removeAttr', 'required')
+    cy.get(selectors.createCruiseLine.nameInput).type('    ')
+    cy.get(selectors.createCruiseLine.form).submit()
 
-    cy.contains('#create-cruise-line-message', 'Cruise line name is required.').should('be.visible')
+    cy.contains(selectors.createCruiseLine.message, 'Cruise line name is required.').should('be.visible')
     cy.get('@createCruiseLine.all').should('have.length', 0)
   })
 
@@ -370,13 +372,13 @@ describe('Create Cruise Line UI', () => {
       }
     }).as('createCruiseLine')
 
-    cy.get('#new-cruise-line-name').type('Royal Caribbean International')
-    cy.get('#create-cruise-line-form').submit()
+    cy.get(selectors.createCruiseLine.nameInput).type('Royal Caribbean International')
+    cy.get(selectors.createCruiseLine.form).submit()
 
     cy.wait('@createCruiseLine')
 
-    cy.contains('#create-cruise-line-message', 'Cruise line name already exists.').should('be.visible')
-    cy.get('#create-cruise-line-message').should('have.class', 'error')
+    cy.contains(selectors.createCruiseLine.message, 'Cruise line name already exists.').should('be.visible')
+    cy.get(selectors.createCruiseLine.message).should('have.class', 'error')
   })
 
   it('shows a fallback error when the create API returns an error without a message', () => {
@@ -385,12 +387,12 @@ describe('Create Cruise Line UI', () => {
       body: {}
     }).as('createCruiseLine')
 
-    cy.get('#new-cruise-line-name').type('Server Error Test Line')
-    cy.get('#create-cruise-line-form').submit()
+    cy.get(selectors.createCruiseLine.nameInput).type('Server Error Test Line')
+    cy.get(selectors.createCruiseLine.form).submit()
 
     cy.wait('@createCruiseLine')
 
-    cy.contains('#create-cruise-line-message', 'Create failed with status 500').should('be.visible')
+    cy.contains(selectors.createCruiseLine.message, 'Create failed with status 500').should('be.visible')
   })
 
   it('shows an error when the create API does not return a cruise line id', () => {
@@ -401,12 +403,12 @@ describe('Create Cruise Line UI', () => {
       }
     }).as('createCruiseLine')
 
-    cy.get('#new-cruise-line-name').type('Missing ID Test Line')
-    cy.get('#create-cruise-line-form').submit()
+    cy.get(selectors.createCruiseLine.nameInput).type('Missing ID Test Line')
+    cy.get(selectors.createCruiseLine.form).submit()
 
     cy.wait('@createCruiseLine')
 
-    cy.contains('#create-cruise-line-message', 'Cruise line was created, but the API did not return a cruise line ID.').should('be.visible')
+    cy.contains(selectors.createCruiseLine.message, 'Cruise line was created, but the API did not return a cruise line ID.').should('be.visible')
   })
 
   it('shows an error when cruise line creation succeeds but ship creation fails', () => {
@@ -425,15 +427,15 @@ describe('Create Cruise Line UI', () => {
       }
     }).as('createShip')
 
-    cy.get('#new-cruise-line-name').type('Partial Failure Test Line')
-    cy.get('input[name="shipName"]').first().type('Bad Ship')
-    cy.get('#create-cruise-line-form').submit()
+    cy.get(selectors.createCruiseLine.nameInput).type('Partial Failure Test Line')
+    cy.get(selectors.createCruiseLine.shipNameInput).first().type('Bad Ship')
+    cy.get(selectors.createCruiseLine.form).submit()
 
     cy.wait('@createCruiseLine')
     cy.wait('@createShip')
 
-    cy.contains('#create-cruise-line-message', 'Ship name is required.').should('be.visible')
-    cy.get('#create-cruise-line-message').should('have.class', 'error')
+    cy.contains(selectors.createCruiseLine.message, 'Ship name is required.').should('be.visible')
+    cy.get(selectors.createCruiseLine.message).should('have.class', 'error')
   })
 
   it('disables the submit button and shows a loading label while the create request is in progress', () => {
@@ -448,18 +450,18 @@ describe('Create Cruise Line UI', () => {
       })
     }).as('createCruiseLine')
 
-    cy.get('#new-cruise-line-name').type('Loading State Test Line')
-    cy.get('#create-cruise-line-form').submit()
+    cy.get(selectors.createCruiseLine.nameInput).type('Loading State Test Line')
+    cy.get(selectors.createCruiseLine.form).submit()
 
-    cy.get('#create-cruise-line-btn')
+    cy.get(selectors.createCruiseLine.submitButton)
       .should('be.disabled')
       .and('contain.text', 'Creating...')
 
-    cy.contains('#create-cruise-line-message', 'Creating cruise line...').should('be.visible')
+    cy.contains(selectors.createCruiseLine.message, 'Creating cruise line...').should('be.visible')
 
     cy.wait('@createCruiseLine')
 
-    cy.get('#create-cruise-line-btn')
+    cy.get(selectors.createCruiseLine.submitButton)
       .should('not.be.disabled')
       .and('contain.text', 'Create Cruise Line')
   })
@@ -494,21 +496,21 @@ describe('Create Cruise Line UI', () => {
       ]
     }).as('getCruiseLinesAfterCreate')
 
-    cy.get('#new-cruise-line-name').type('Clear Form Test Line')
-    cy.get('#new-cruise-line-country').type('United States')
-    cy.get('#new-cruise-line-website').type('https://example.com')
-    cy.get('input[name="shipName"]').first().type('Clear Form Ship')
+    cy.get(selectors.createCruiseLine.nameInput).type('Clear Form Test Line')
+    cy.get(selectors.createCruiseLine.countryInput).type('United States')
+    cy.get(selectors.createCruiseLine.websiteInput).type('https://example.com')
+    cy.get(selectors.createCruiseLine.shipNameInput).first().type('Clear Form Ship')
 
-    cy.get('#create-cruise-line-form').submit()
+    cy.get(selectors.createCruiseLine.form).submit()
 
     cy.wait('@createCruiseLine')
     cy.wait('@createShip')
     cy.wait('@getCruiseLinesAfterCreate')
 
-    cy.get('#new-cruise-line-name').should('have.value', '')
-    cy.get('#new-cruise-line-country').should('have.value', '')
-    cy.get('#new-cruise-line-website').should('have.value', '')
-    cy.get('input[name="shipName"]').should('have.length', 1)
-    cy.get('input[name="shipName"]').first().should('have.value', '')
+    cy.get(selectors.createCruiseLine.nameInput).should('have.value', '')
+    cy.get(selectors.createCruiseLine.countryInput).should('have.value', '')
+    cy.get(selectors.createCruiseLine.websiteInput).should('have.value', '')
+    cy.get(selectors.createCruiseLine.shipNameInput).should('have.length', 1)
+    cy.get(selectors.createCruiseLine.shipNameInput).first().should('have.value', '')
   })
 })

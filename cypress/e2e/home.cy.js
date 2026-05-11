@@ -1,3 +1,5 @@
+import { selectors } from '../support/selectors'
+
 const cruiseLines = [
   {
     id: '11111111-1111-1111-1111-111111111111',
@@ -44,47 +46,47 @@ describe('Cruise Explorer home page', () => {
   })
 
   it('renders the primary navigation links', () => {
-    cy.get('.nav-bar').within(() => {
-      cy.contains('a', 'Cruise Explorer').should('have.attr', 'href', '#home')
-      cy.contains('a', 'Stacks').should('have.attr', 'href', '#stacks')
-      cy.contains('a', 'Cruise Lines').should('have.attr', 'href', '#cruise-lines')
-      cy.contains('a', 'About').should('have.attr', 'href', '#about')
+    cy.get(selectors.navigation.primaryNav).within(() => {
+      cy.get(selectors.navigation.brandLink).should('have.attr', 'href', '#home')
+      cy.get(selectors.navigation.stacksLink).should('have.attr', 'href', '#stacks')
+      cy.get(selectors.navigation.cruiseLinesLink).should('have.attr', 'href', '#cruise-lines')
+      cy.get(selectors.navigation.aboutLink).should('have.attr', 'href', '#about')
     })
   })
 
   it('renders stack selection controls without requiring API interaction', () => {
-    cy.contains('button', 'HTML / CSS / JS').should('be.visible')
-    cy.contains('button', 'Node / Express API').should('be.visible')
-    cy.contains('button', 'React Coming Soon').should('be.visible')
-    cy.get('#stack-card').should('contain.text', 'HTML / CSS / JavaScript')
+    cy.get(selectors.hero.vanillaButton).should('be.visible')
+    cy.get(selectors.hero.nodeButton).should('be.visible')
+    cy.get(selectors.hero.reactButton).should('be.visible')
+    cy.get(selectors.hero.stackCard).should('contain.text', 'HTML / CSS / JavaScript')
   })
 
   it('displays cruise lines returned by the API', () => {
-    cy.get('#cruise-grid .data-card').should('have.length', cruiseLines.length)
-    cy.get('#status-message').should('contain.text', `Showing ${cruiseLines.length} of ${cruiseLines.length}`)
+    cy.get(selectors.cruiseLines.card).should('have.length', cruiseLines.length)
+    cy.get(selectors.cruiseLines.statusMessage).should('contain.text', `Showing ${cruiseLines.length} of ${cruiseLines.length}`)
 
     cruiseLines.forEach((line) => {
-      cy.get('#cruise-grid').should('contain.text', line.name)
+      cy.get(selectors.cruiseLines.grid).should('contain.text', line.name)
     })
   })
 
   it('renders each cruise line card with expected fields and actions', () => {
-    cy.contains('#cruise-grid .data-card', 'Royal Caribbean International').within(() => {
+    cy.contains(selectors.cruiseLines.card, 'Royal Caribbean International').within(() => {
       cy.contains('Country:').should('be.visible')
       cy.contains('United States').should('be.visible')
-      cy.contains('a', 'Visit website')
+      cy.get(selectors.cruiseLines.websiteLink)
         .should('have.attr', 'href', 'https://www.royalcaribbean.com')
         .and('have.attr', 'target', '_blank')
         .and('have.attr', 'rel', 'noopener')
-      cy.contains('button', 'View Ships').should('be.visible')
+      cy.get(selectors.cruiseLines.viewShipsButton).should('be.visible')
     })
   })
 
   it('shows fallback text when optional cruise line fields are missing', () => {
-    cy.contains('#cruise-grid .data-card', 'No Country Cruise Line').within(() => {
+    cy.contains(selectors.cruiseLines.card, 'No Country Cruise Line').within(() => {
       cy.contains('Country: Not listed').should('be.visible')
       cy.contains('Visit website').should('not.exist')
-      cy.contains('button', 'View Ships').should('be.visible')
+      cy.get(selectors.cruiseLines.viewShipsButton).should('be.visible')
     })
   })
 
@@ -100,10 +102,10 @@ describe('Cruise Explorer home page', () => {
 
     visitHomeWithCruiseLines(unsafeCruiseLines)
 
-    cy.get('#cruise-grid img').should('not.exist')
-    cy.get('#cruise-grid script').should('not.exist')
-    cy.get('#cruise-grid').should('contain.text', '<img src=x onerror=alert(1)> Cruise')
-    cy.get('#cruise-grid').should('contain.text', '<script>alert(1)</script>')
+    cy.get(`${selectors.cruiseLines.grid} img`).should('not.exist')
+    cy.get(`${selectors.cruiseLines.grid} script`).should('not.exist')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', '<img src=x onerror=alert(1)> Cruise')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', '<script>alert(1)</script>')
   })
 
   it('shows a loading state while cruise lines are being requested', () => {
@@ -116,10 +118,10 @@ describe('Cruise Explorer home page', () => {
     }).as('slowGetCruiseLines')
 
     cy.visit('/')
-    cy.get('#status-message').should('contain.text', 'Loading cruise lines...')
-    cy.get('#cruise-grid').should('be.empty')
+    cy.get(selectors.cruiseLines.statusMessage).should('contain.text', 'Loading cruise lines...')
+    cy.get(selectors.cruiseLines.grid).should('be.empty')
     cy.wait('@slowGetCruiseLines')
-    cy.get('#status-message').should('contain.text', `Showing ${cruiseLines.length} of ${cruiseLines.length}`)
+    cy.get(selectors.cruiseLines.statusMessage).should('contain.text', `Showing ${cruiseLines.length} of ${cruiseLines.length}`)
   })
 
   it('shows a useful message when the cruise line API fails', () => {
@@ -131,10 +133,10 @@ describe('Cruise Explorer home page', () => {
     cy.visit('/')
     cy.wait('@getCruiseLinesFailure')
 
-    cy.get('#status-message')
+    cy.get(selectors.cruiseLines.statusMessage)
       .should('contain.text', 'Could not load cruise lines')
       .and('contain.text', 'Check that the server is running')
-    cy.get('#cruise-grid .data-card').should('not.exist')
+    cy.get(selectors.cruiseLines.card).should('not.exist')
   })
 
   it('shows a useful message when the cruise line API returns invalid JSON', () => {
@@ -147,8 +149,8 @@ describe('Cruise Explorer home page', () => {
     cy.visit('/')
     cy.wait('@getInvalidJson')
 
-    cy.get('#status-message').should('contain.text', 'Could not load cruise lines')
-    cy.get('#cruise-grid .data-card').should('not.exist')
+    cy.get(selectors.cruiseLines.statusMessage).should('contain.text', 'Could not load cruise lines')
+    cy.get(selectors.cruiseLines.card).should('not.exist')
   })
 })
 
@@ -160,11 +162,11 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
   it('displays the manual validation panel and controls', () => {
     cy.contains('SQA Test Control Panel').should('be.visible')
     cy.contains('Manual validation tools for API-driven UI behavior').should('be.visible')
-    cy.get('#healthCheckBtn').should('contain.text', 'Check API Health')
-    cy.get('#reloadDataBtn').should('contain.text', 'Verify Cruise Data')
-    cy.get('#uiSmokeTestBtn').should('contain.text', 'Run UI Smoke Check')
-    cy.get('#clearTestOutputBtn').should('contain.text', 'Clear Output')
-    cy.get('#testOutput').should('contain.text', 'Test output will appear here')
+    cy.get(selectors.testPanel.healthCheckButton).should('contain.text', 'Check API Health')
+    cy.get(selectors.testPanel.reloadDataButton).should('contain.text', 'Verify Cruise Data')
+    cy.get(selectors.testPanel.uiSmokeTestButton).should('contain.text', 'Run UI Smoke Check')
+    cy.get(selectors.testPanel.clearOutputButton).should('contain.text', 'Clear Output')
+    cy.get(selectors.testPanel.output).should('contain.text', 'Test output will appear here')
   })
 
   it('runs a successful API health check from the UI', () => {
@@ -173,10 +175,10 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
       body: { status: 'ok' }
     }).as('healthCheck')
 
-    cy.get('#healthCheckBtn').click()
+    cy.get(selectors.testPanel.healthCheckButton).click()
     cy.wait('@healthCheck')
 
-    cy.get('#testOutput')
+    cy.get(selectors.testPanel.output)
       .should('contain.text', 'API Health Check Result')
       .and('contain.text', '"passed": true')
       .and('contain.text', '"statusCode": 200')
@@ -188,10 +190,10 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
       body: { status: 'down' }
     }).as('healthCheckFailure')
 
-    cy.get('#healthCheckBtn').click()
+    cy.get(selectors.testPanel.healthCheckButton).click()
     cy.wait('@healthCheckFailure')
 
-    cy.get('#testOutput')
+    cy.get(selectors.testPanel.output)
       .should('contain.text', 'API Health Check Result')
       .and('contain.text', '"passed": false')
       .and('contain.text', '"statusCode": 503')
@@ -220,15 +222,15 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
     cy.visit('/')
     cy.wait('@getCruiseLinesForVerification')
 
-    cy.get('#reloadDataBtn').click()
+    cy.get(selectors.testPanel.reloadDataButton).click()
     cy.wait('@getCruiseLinesForVerification')
     cy.wait('@getCruiseLinesForVerification')
 
-    cy.get('#testOutput')
+    cy.get(selectors.testPanel.output)
       .should('contain.text', 'Cruise Data Verification Result')
       .and('contain.text', '"passed": true')
       .and('contain.text', `"recordCount": ${updatedCruiseLines.length}`)
-    cy.get('#cruise-grid').should('contain.text', 'Updated Test Cruise Line')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'Updated Test Cruise Line')
   })
 
   it('reports cruise data verification failure when the API returns a non-array response', () => {
@@ -237,10 +239,10 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
       body: { message: 'Unexpected response shape' }
     }).as('badCruiseData')
 
-    cy.get('#reloadDataBtn').click()
+    cy.get(selectors.testPanel.reloadDataButton).click()
     cy.wait('@badCruiseData')
 
-    cy.get('#testOutput')
+    cy.get(selectors.testPanel.output)
       .should('contain.text', 'Cruise Data Verification Result')
       .and('contain.text', '"passed": false')
       .and('contain.text', '"recordCount": 0')
@@ -254,12 +256,12 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
       body: [{ id: 'ship-1', name: 'Icon of the Seas', cruiseLineId: cruiseLines[0].id }]
     }).as('smokeShips')
 
-    cy.get('#uiSmokeTestBtn').click()
+    cy.get(selectors.testPanel.uiSmokeTestButton).click()
     cy.wait('@smokeHealth')
     cy.wait('@smokeCruiseLines')
     cy.wait('@smokeShips')
 
-    cy.get('#testOutput')
+    cy.get(selectors.testPanel.output)
       .should('contain.text', 'UI Smoke Check Result')
       .and('contain.text', '"passed": true')
       .and('contain.text', 'GET /health')
@@ -271,11 +273,11 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
     cy.intercept('GET', '/health', { statusCode: 200, body: { status: 'ok' } }).as('smokeHealthFailureCase')
     cy.intercept('GET', '/cruise', { statusCode: 500, body: { message: 'Server error' } }).as('smokeCruiseFailureCase')
 
-    cy.get('#uiSmokeTestBtn').click()
+    cy.get(selectors.testPanel.uiSmokeTestButton).click()
     cy.wait('@smokeHealthFailureCase')
     cy.wait('@smokeCruiseFailureCase')
 
-    cy.get('#testOutput')
+    cy.get(selectors.testPanel.output)
       .should('contain.text', 'UI Smoke Check Result')
       .and('contain.text', '"passed": false')
       .and('contain.text', 'GET /cruise')
@@ -285,11 +287,11 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
   it('clears manual test output', () => {
     cy.intercept('GET', '/health', { statusCode: 200, body: { status: 'ok' } }).as('healthBeforeClear')
 
-    cy.get('#healthCheckBtn').click()
+    cy.get(selectors.testPanel.healthCheckButton).click()
     cy.wait('@healthBeforeClear')
-    cy.get('#testOutput').should('contain.text', 'API Health Check Result')
+    cy.get(selectors.testPanel.output).should('contain.text', 'API Health Check Result')
 
-    cy.get('#clearTestOutputBtn').click()
-    cy.get('#testOutput').should('have.text', 'Test output will appear here...')
+    cy.get(selectors.testPanel.clearOutputButton).click()
+    cy.get(selectors.testPanel.output).should('have.text', 'Test output will appear here...')
   })
 })
