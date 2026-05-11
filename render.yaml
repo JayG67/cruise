@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: cruise-explorer
+    runtime: node
+    plan: starter
+    region: virginia
+    branch: main
+    buildCommand: npm install
+    startCommand: npm run start:prod
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cruise-db
+          property: connectionString
+
+databases:
+  - name: cruise-db
+    plan: starter
+    region: virginia
