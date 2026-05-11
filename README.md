@@ -6,7 +6,7 @@
 
 A full-stack cruise data application built with **Node.js, Express, PostgreSQL (Drizzle ORM), Zod, Cypress, Jest, and Supertest**.
 
-This project evolved into an **enterprise-style Software Quality Engineering showcase**, demonstrating layered testing architecture, API contract validation, CI enforcement, integration testing, and API-driven UI automation.
+This repository evolved into an **enterprise-style Software Quality Engineering showcase**, demonstrating layered testing architecture, API contract validation, CI enforcement, integration testing, validation middleware, negative-path testing, and API-driven UI automation.
 
 ---
 
@@ -14,15 +14,15 @@ This project evolved into an **enterprise-style Software Quality Engineering sho
 
 This repository serves as a **portfolio project focused on demonstrating advanced Software Quality Engineering practices within a full-stack application**.
 
-The primary goal is to showcase:
+The primary goals are to demonstrate:
 
 * Enterprise-style layered testing architecture
 * API contract validation and negative-path testing
 * Unit, integration, and end-to-end UI testing
 * API-driven Cypress testing using live application data
+* Validation middleware and schema enforcement
 * CI-driven quality gates and automated validation
 * Real-world test architecture and maintainable automation patterns
-* Validation middleware and schema enforcement
 * Practical full-stack engineering with quality-first design
 
 Rather than relying on sample applications, this project was intentionally designed and developed as a controlled environment for implementing modern QA engineering practices, tooling, and automation strategies.
@@ -33,7 +33,7 @@ This repository reflects the mindset of a:
 Principal Software Quality Engineer
 ```
 
-where reliability, validation, automation, observability, and testability are foundational concerns—not afterthoughts.
+where reliability, validation, automation, observability, maintainability, and testability are treated as foundational architectural concerns.
 
 ---
 
@@ -100,6 +100,9 @@ PostgreSQL (Docker)
 * ✅ Integration testing against live PostgreSQL
 * ✅ API-driven Cypress UI testing
 * ✅ Reusable integration test helpers/factories
+* ✅ Validation middleware unit testing
+* ✅ Zod schema unit testing
+* ✅ Controller business-rule unit testing
 * ✅ CI-driven quality enforcement
 * ✅ Enforced test coverage thresholds
 
@@ -121,6 +124,8 @@ cruise/
 ├── public/             # Frontend UI
 ├── tests/
 │   ├── unit/           # Jest unit tests
+│   │   ├── middleware/ # Validation middleware tests
+│   │   └── validation/ # Zod schema validation tests
 │   ├── integration/    # Supertest integration tests
 │   │   └── helpers/    # Integration factories/helpers
 ├── cypress/
@@ -285,7 +290,7 @@ The frontend is served from:
 
 # 🧪 Testing Strategy
 
-This project follows a:
+This repository follows a:
 
 ```text
 Layered enterprise-style testing architecture
@@ -297,6 +302,15 @@ with validation at the:
 * Integration/API level
 * End-to-end browser level
 
+The repository intentionally separates:
+
+* Schema validation concerns
+* Controller business-rule concerns
+* Integration workflow concerns
+* Browser/UI validation concerns
+
+for stronger maintainability and clearer testing boundaries.
+
 ---
 
 # 🧪 Unit Tests
@@ -307,16 +321,56 @@ Run:
 npm run unitTests
 ```
 
-Unit tests validate:
+The unit test architecture validates:
 
-* Controller business logic
-* Database interaction behavior
-* Error handling
-* CRUD flow orchestration
-* Duplicate validation logic
-* Relationship validation logic
+## Controller Business Rules
+
+* Duplicate-name validation
+* Relationship validation
+* CRUD orchestration behavior
+* Cascade delete behavior
+* Error forwarding to Express middleware
+* Database interaction patterns
 
 using mocked dependencies.
+
+---
+
+## Validation Middleware Testing
+
+Dedicated middleware unit tests validate:
+
+* Successful request validation
+* Validation failure handling
+* Standardized validation error responses
+* Proper Express middleware flow behavior
+
+---
+
+## Zod Schema Unit Testing
+
+Dedicated schema tests validate:
+
+* UUID validation
+* URL validation
+* Blank-string rejection
+* Strict payload enforcement
+* Required field enforcement
+* Invalid payload rejection
+
+This separates:
+
+```text
+validation testing
+```
+
+from:
+
+```text
+controller business-rule testing
+```
+
+which more closely reflects enterprise testing architecture.
 
 ---
 
@@ -464,7 +518,9 @@ The CI pipeline includes:
 
 ## Unit Test Job
 
-* Fast business logic validation
+* Controller business-rule validation
+* Validation middleware testing
+* Zod schema testing
 
 ## Integration Test Job
 
@@ -647,3 +703,4 @@ This project was built to demonstrate:
 # 📄 License
 
 MIT
+
