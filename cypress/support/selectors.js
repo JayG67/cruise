@@ -10,10 +10,10 @@ export const selectors = {
   hero: {
     actions: '[data-cy="hero-actions"]',
     vanillaButton: '[data-cy="stack-vanilla-button"]',
-    nodeButton: '[data-cy="stack-node-button"]',
-    reactButton: '[data-cy="stack-react-button"]',
+    testingButton: '[data-cy="stack-testing-button"]',
+    deploymentButton: '[data-cy="stack-deployment-button"]',
     stackCard: '[data-cy="stack-card"]'
-  },
+  },  
   createCruiseLine: {
     panel: '[data-cy="create-cruise-line-panel"]',
     form: '[data-cy="create-cruise-line-form"]',

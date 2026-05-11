@@ -54,13 +54,28 @@ describe('Cruise Explorer home page', () => {
     })
   })
 
-  it('renders stack selection controls without requiring API interaction', () => {
-    cy.get(selectors.hero.vanillaButton).should('be.visible')
-    cy.get(selectors.hero.nodeButton).should('be.visible')
-    cy.get(selectors.hero.reactButton).should('be.visible')
-    cy.get(selectors.hero.stackCard).should('contain.text', 'HTML / CSS / JavaScript')
-  })
+  it('renders portfolio feature controls without requiring API interaction', () => {
+    cy.visit('/')
 
+    cy.get(selectors.hero.actions).should('be.visible')
+
+    cy.get(selectors.hero.vanillaButton)
+      .should('be.visible')
+      .and('contain', 'Cruise Explorer Dashboard')
+
+    cy.get(selectors.hero.testingButton)
+      .should('be.visible')
+      .and('contain', 'SQA Automation Focus')
+
+    cy.get(selectors.hero.deploymentButton)
+      .should('be.visible')
+      .and('contain', 'CI / CD Deployment')
+
+    cy.get(selectors.hero.stackCard)
+      .should('be.visible')
+      .and('contain', 'Cruise Explorer Dashboard')
+  })
+  
   it('displays cruise lines returned by the API', () => {
     cy.get(selectors.cruiseLines.card).should('have.length', cruiseLines.length)
     cy.get(selectors.cruiseLines.statusMessage).should('contain.text', `Showing ${cruiseLines.length} of ${cruiseLines.length}`)

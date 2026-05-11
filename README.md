@@ -4,9 +4,10 @@
 
 ![Coverage](https://img.shields.io/badge/coverage-enforced-green)
 
-## 🚀 Live Demo
+[![Live Demo](https://img.shields.io/badge/live-demo-brightgreen)](https://cruise-explorer.onrender.com/)
 
-https://cruise-explorer.onrender.com/
+[![Render Deployment](https://img.shields.io/badge/render-deployed-blue)](https://cruise-explorer.onrender.com/)
+
 
 A full-stack cruise data application built with **Node.js, Express, PostgreSQL (Drizzle ORM), Zod, Cypress, Jest, and Supertest**.
 
