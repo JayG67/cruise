@@ -4,6 +4,10 @@
 
 ![Coverage](https://img.shields.io/badge/coverage-enforced-green)
 
+## 🚀 Live Demo
+
+https://cruise-explorer.onrender.com/
+
 A full-stack cruise data application built with **Node.js, Express, PostgreSQL (Drizzle ORM), Zod, Cypress, Jest, and Supertest**.
 
 This repository has evolved into an **enterprise-style Software Quality Engineering showcase**, demonstrating layered testing architecture, API contract validation, CI enforcement, integration testing, validation middleware, negative-path testing, UI automation, frontend/API integration, and incremental full-stack CRUD development.
@@ -779,6 +783,47 @@ The CI pipeline includes:
 * Frontend/API integration validation
 
 All pull requests must pass CI validation before merge.
+
+---
+
+# 🚀 Continuous Deployment
+
+This application is deployed using:
+
+* Render Web Services
+* Managed PostgreSQL
+* GitHub-based automatic deployments
+
+Live Production Demo:
+
+```text
+https://cruise-explorer.onrender.com/
+```
+
+Deployment workflow:
+
+```text
+GitHub Push
+    ↓
+GitHub Actions Test Pipeline
+    ↓
+Render Automatic Deployment
+    ↓
+Live Production Demo
+```
+
+This architecture demonstrates a production-style continuous deployment workflow where application updates are automatically deployed after code changes are pushed to GitHub and pass testing.
+
+The deployed environment includes:
+
+* Node.js/Express backend hosting
+* Managed PostgreSQL database hosting
+* Environment-variable-based configuration
+* Automatic application redeployment
+* Persistent production hosting
+* Predictable startup reseeding behavior for consistent demo data
+
+This mirrors modern deployment workflows commonly used in enterprise full-stack applications.
 
 ---
 
