@@ -283,23 +283,63 @@ async function openUpdateCruiseLineForm(cruiseLineId) {
     setUpdateCruiseLineMessage(`Editing ${cruiseLine.name}.`, '')
   } catch (err) {
     console.error(err)
-    if (shipInputList) shipInputList.innerHTML = ''
-    setUpdateCruiseLineMessage(err.message || 'Could not load ships for update.', 'error')
+
+    if (shipInputList) {
+      shipInputList.innerHTML = `
+        <div class="empty-message compact-message update-ship-load-error" data-cy="update-ships-load-error">
+          <p>${escapeHtml(err.message || 'Could not load ships for update.')}</p>
+          <p>You can still update cruise line details. Reopen the update workflow to try loading ships again.</p>
+        </div>
+      `
+    }
+
+    setUpdateCruiseLineMessage('Ships could not be loaded for this update workflow.', 'error')
   }
 }
 
 async function fetchShipsForCruiseLine(cruiseLineId) {
-  const res = await fetch(`${API_BASE}/ships/${cruiseLineId}`)
+  const encodedCruiseLineId = encodeURIComponent(cruiseLineId)
+  const shipUrl = `${API_BASE}/ships/${encodedCruiseLineId}`
+
+  let res
+
+  try {
+    res = await fetch(shipUrl, {
+      headers: {
+        Accept: 'application/json'
+      }
+    })
+  } catch (err) {
+    console.error('Ship request failed before the API responded:', err)
+    throw new Error('Could not reach the ships API. Please try loading the update form again.')
+  }
 
   if (res.status === 404) {
     return []
   }
 
   if (!res.ok) {
-    throw new Error(`Ship request failed with status ${res.status}`)
+    let message = `Ship request failed with status ${res.status}`
+
+    try {
+      const errorBody = await res.json()
+      if (errorBody && errorBody.message) {
+        message = errorBody.message
+      }
+    } catch (err) {
+      // Keep the default message when the API response is not JSON.
+    }
+
+    throw new Error(message)
   }
 
-  return res.json()
+  const ships = await res.json()
+
+  if (!Array.isArray(ships)) {
+    throw new Error('The ships API returned an unexpected response.')
+  }
+
+  return ships
 }
 
 function renderUpdateShipInputs(ships) {
@@ -337,7 +377,7 @@ function addUpdateShipInputRow(value = '', shipId = '') {
     </label>
     ${shipId ? `
       <div class="ship-row-actions">
-        <button class="delete-ship-btn danger" data-cy="delete-update-ship-button" type="button">Delete Ship</button>
+        <button class="delete-ship-btn danger subtle-danger" data-cy="delete-update-ship-button" type="button">Delete Ship</button>
       </div>
     ` : '<button class="remove-ship-row-btn" data-cy="remove-update-ship-input-button" type="button">Remove</button>'}
   `

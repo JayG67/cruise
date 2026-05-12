@@ -39,7 +39,7 @@ describe('Cruise Explorer home page', () => {
   it('loads the main portfolio homepage sections', () => {
     cy.contains('Cruise Explorer').should('be.visible')
     cy.contains('Cruise Operations Dashboard').should('be.visible')
-    cy.contains('Manage cruise line and fleet data from a deployed full-stack application').should('be.visible')
+    cy.contains('Manage cruise line and fleet operations').should('be.visible')
     cy.contains('Cruise Lines').should('be.visible')
     cy.contains('Add a Cruise Line').should('be.visible')
     cy.contains('Why this project matters').should('be.visible')
@@ -59,27 +59,26 @@ describe('Cruise Explorer home page', () => {
     cy.visit('/')
 
     cy.get(selectors.hero.dashboard).should('be.visible')
+    cy.contains('Manage cruise line and fleet operations').should('be.visible')
+    cy.contains('production-style full-stack platform').should('be.visible')
 
     cy.get(selectors.hero.ctaRow).within(() => {
-      cy.get(selectors.hero.viewCruiseLinesLink)
-        .should('be.visible')
-        .and('have.attr', 'href', '#cruise-line-results')
-        .and('contain', 'View Cruise Lines')
-
       cy.get(selectors.hero.addCruiseLineLink)
         .should('be.visible')
         .and('have.attr', 'href', '#add-cruise-line-heading')
         .and('contain', 'Add Cruise Line')
+
+      cy.get(selectors.hero.viewCruiseLinesLink)
+        .should('be.visible')
+        .and('have.attr', 'href', '#cruise-line-results')
+        .and('contain', 'Explore Fleet')
     })
 
-    cy.get(selectors.hero.summaryCard)
-      .should('be.visible')
-      .and('contain', 'Portfolio-ready delivery pipeline')
-
-    cy.get(selectors.hero.liveDemoSummary).should('contain', 'Live')
-    cy.get(selectors.hero.databaseSummary).should('contain', 'PostgreSQL')
-    cy.get(selectors.hero.testingSummary).should('contain', 'CI/CD')
-    cy.get(selectors.hero.crudSummary).should('contain', 'CRUD')
+    cy.get(selectors.hero.statusPills).should('be.visible')
+    cy.get(selectors.hero.liveStatus).should('contain', 'Live Deployment')
+    cy.get(selectors.hero.databaseStatus).should('contain', 'PostgreSQL')
+    cy.get(selectors.hero.cicdStatus).should('contain', 'CI/CD Enabled')
+    cy.get(selectors.hero.crudStatus).should('contain', 'Full CRUD')
   })
   
   it('displays cruise lines returned by the API', () => {
@@ -186,8 +185,6 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
     cy.get(selectors.testPanel.healthCheckButton).should('contain.text', 'Check API Health')
     cy.get(selectors.testPanel.reloadDataButton).should('contain.text', 'Verify Cruise Data')
     cy.get(selectors.testPanel.uiSmokeTestButton).should('contain.text', 'Run UI Smoke Check')
-    cy.get(selectors.testPanel.resetDemoDataButton).should('contain.text', 'Reset Demo Data')
-    cy.get(selectors.testPanel.resetDemoDataNote).should('contain.text', 'restore the original seed dataset')
     cy.get(selectors.testPanel.clearOutputButton).should('contain.text', 'Clear Output')
     cy.get(selectors.testPanel.output).should('contain.text', 'Test output will appear here')
   })
@@ -377,7 +374,7 @@ describe('Cruise Explorer home page additional regression coverage', () => {
     cy.get(selectors.hero.viewCruiseLinesLink)
       .should('be.visible')
       .and('have.attr', 'href', '#cruise-line-results')
-      .and('contain.text', 'View Cruise Lines')
+      .and('contain.text', 'Explore Fleet')
   })
 
   it('renders an empty-state message when the API returns no cruise lines', () => {

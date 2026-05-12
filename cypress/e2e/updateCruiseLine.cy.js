@@ -137,7 +137,11 @@ describe('Update Cruise Line UI', () => {
 
     cy.get(selectors.updateCruiseLine.panel).should('be.visible')
     cy.get(selectors.updateCruiseLine.message)
-      .should('contain.text', 'Ship request failed with status 500')
+      .should('contain.text', 'Ships could not be loaded for this update workflow.')
+    cy.get('[data-cy="update-ships-load-error"]')
+      .should('be.visible')
+      .and('contain.text', 'Ship service unavailable')
+      .and('contain.text', 'You can still update cruise line details')
     cy.get(selectors.updateCruiseLine.existingShipRow).should('not.exist')
     cy.get(selectors.updateCruiseLine.newShipRow).should('not.exist')
   })

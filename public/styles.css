@@ -41,19 +41,24 @@ input {
   min-height: 100vh;
   color: var(--white);
   background:
-    linear-gradient(rgba(7, 24, 39, 0.52), rgba(7, 24, 39, 0.72)),
-    url('/images/cruise-background.png') center / cover no-repeat;
+    linear-gradient(90deg, rgba(7, 24, 39, 0.86) 0%, rgba(7, 24, 39, 0.66) 42%, rgba(7, 24, 39, 0.28) 72%, rgba(7, 24, 39, 0.14) 100%),
+    url('/images/cruise-background.png') center right / cover no-repeat;
   display: flex;
   flex-direction: column;
 }
 
 .nav-bar {
   width: min(1120px, calc(100% - 32px));
-  margin: 0 auto;
-  padding: 24px 0;
+  margin: 16px auto 0;
+  padding: 14px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(7, 24, 39, 0.42);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.16);
 }
 
 .brand {
@@ -94,28 +99,32 @@ p {
 }
 
 h1 {
-  max-width: 780px;
+  max-width: 720px;
   margin-bottom: 18px;
-  font-size: clamp(2.55rem, 6vw, 5.2rem);
-  line-height: 0.98;
+  font-size: clamp(3rem, 7vw, 5.4rem);
+  line-height: 0.95;
+  letter-spacing: -0.055em;
 }
 
 .hero-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
-  gap: clamp(28px, 5vw, 56px);
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
 }
 
-.hero-copy-block {
+.refined-hero-layout {
   max-width: 780px;
 }
 
+.hero-copy-block {
+  max-width: 760px;
+}
+
 .hero-copy {
-  max-width: 680px;
-  color: var(--muted);
-  font-size: 1.2rem;
-  line-height: 1.6;
+  max-width: 660px;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 1.08rem;
+  line-height: 1.65;
 }
 
 .hero-cta-row,
@@ -164,6 +173,28 @@ button.secondary:hover,
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.hero-status-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.hero-status-pills span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
 }
 
 .dashboard-summary-card,
@@ -427,14 +458,6 @@ button.small {
   background: #4b5563;
   color: white;
 }
-
-.demo-reset-note {
-  margin: -6px 0 16px;
-  color: #d8e3ea;
-  font-size: 0.92rem;
-  line-height: 1.5;
-}
-
 
 .test-output {
   min-height: 140px;
@@ -810,4 +833,223 @@ button.delete-ship-btn {
   button.subtle-danger {
     width: 100%;
   }
+}
+
+
+@media (max-width: 760px) {
+  .hero {
+    background:
+      linear-gradient(rgba(7, 24, 39, 0.78), rgba(7, 24, 39, 0.82)),
+      url('/images/cruise-background.png') center right / cover no-repeat;
+  }
+
+  .nav-bar {
+    border-radius: 22px;
+  }
+
+  .hero-content {
+    padding: 64px 0;
+  }
+
+  .hero-status-pills {
+    gap: 8px;
+  }
+}
+
+/* Dashboard-first page organization polish */
+.fleet-section {
+  padding-top: 72px;
+  padding-bottom: 38px;
+}
+
+.dashboard-heading {
+  margin-bottom: 22px;
+}
+
+.fleet-toolbar {
+  display: flex;
+  margin: 0 0 22px;
+}
+
+.fleet-toolbar input {
+  width: 100%;
+  margin: 0;
+  border: 1px solid #ccdae3;
+  border-radius: 999px;
+  padding: 13px 18px;
+  outline: none;
+  background: #ffffff;
+}
+
+.fleet-toolbar input:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 4px rgba(18, 164, 182, 0.14);
+}
+
+.create-workflow-section {
+  padding-top: 38px;
+  padding-bottom: 34px;
+}
+
+.compact-section-heading {
+  margin-bottom: 18px;
+}
+
+.ships-section {
+  padding-top: 34px;
+  padding-bottom: 34px;
+}
+
+.sqa-section {
+  padding-top: 46px;
+  padding-bottom: 84px;
+}
+
+.sqa-section .test-panel {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.test-panel-copy {
+  max-width: 760px;
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.5;
+}
+
+.update-panel {
+  margin-top: 32px;
+}
+
+.create-workflow-section .crud-panel {
+  margin-top: 0;
+}
+
+@media (max-width: 720px) {
+  .fleet-section,
+  .create-workflow-section,
+  .ships-section,
+  .sqa-section {
+    padding-top: 42px;
+    padding-bottom: 42px;
+  }
+}
+
+.update-ship-load-error {
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  background: rgba(254, 242, 242, 0.9);
+  color: #7f1d1d;
+  padding: 1rem;
+  border-radius: 14px;
+}
+
+.update-ship-load-error p {
+  margin: 0 0 0.35rem;
+}
+
+.update-ship-load-error p:last-child {
+  margin-bottom: 0;
+  color: #991b1b;
+}
+
+
+/* Subtle destructive actions used for card and ship delete buttons */
+button.danger.subtle,
+.button-link.danger.subtle,
+.delete-ship-button.danger.subtle,
+.ship-delete-button.danger.subtle {
+  background: #ffffff;
+  color: #b91c1c;
+  border: 1px solid rgba(220, 38, 38, 0.28);
+  box-shadow: none;
+}
+
+button.danger.subtle:hover,
+.button-link.danger.subtle:hover,
+.delete-ship-button.danger.subtle:hover,
+.ship-delete-button.danger.subtle:hover {
+  background: rgba(254, 242, 242, 0.95);
+  border-color: rgba(220, 38, 38, 0.45);
+  color: #991b1b;
+  transform: translateY(-1px);
+}
+
+.update-ship-row .delete-ship-button,
+.update-ship-row .ship-delete-button,
+.ship-edit-row .delete-ship-button,
+.ship-edit-row .ship-delete-button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+button[data-cy="update-delete-ship-button"] {
+  background: #ffffff;
+  color: #b91c1c;
+  border: 1px solid rgba(220, 38, 38, 0.28);
+  box-shadow: none;
+}
+
+button[data-cy="update-delete-ship-button"]:hover {
+  background: rgba(254, 242, 242, 0.95);
+  border-color: rgba(220, 38, 38, 0.45);
+  color: #991b1b;
+}
+
+
+/* Ship delete buttons use the same subtle destructive treatment as cruise line delete. */
+button.delete-ship-btn.danger.subtle-danger,
+button[data-cy="delete-update-ship-button"] {
+  align-self: center;
+  background: #ffffff;
+  color: #b91c1c;
+  border: 1px solid rgba(220, 38, 38, 0.28);
+  box-shadow: none;
+  border-radius: 999px;
+  padding: 7px 12px;
+}
+
+button.delete-ship-btn.danger.subtle-danger:hover,
+button[data-cy="delete-update-ship-button"]:hover {
+  background: rgba(254, 242, 242, 0.95);
+  border-color: rgba(220, 38, 38, 0.45);
+  color: #991b1b;
+  box-shadow: none;
+}
+
+.update-ship-input-row {
+  align-items: center;
+}
+
+.update-ship-input-row .ship-row-actions {
+  align-items: center;
+  height: 100%;
+}
+
+
+/* Ship delete buttons use the same subtle destructive style as cruise line delete actions. */
+button[data-cy="update-delete-ship-button"] {
+  align-self: center;
+  background: #ffffff;
+  color: #b91c1c;
+  border: 1px solid rgba(220, 38, 38, 0.28);
+  box-shadow: none;
+}
+
+button[data-cy="update-delete-ship-button"]:hover {
+  background: rgba(254, 242, 242, 0.95);
+  border-color: rgba(220, 38, 38, 0.45);
+  color: #991b1b;
+}
+
+.update-ship-row,
+.ship-edit-row,
+.existing-ship-row {
+  align-items: center;
+}
+
+.update-ship-row button[data-cy="update-delete-ship-button"],
+.ship-edit-row button[data-cy="update-delete-ship-button"],
+.existing-ship-row button[data-cy="update-delete-ship-button"] {
+  margin-top: 1.45rem;
+  white-space: nowrap;
 }

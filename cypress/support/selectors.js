@@ -13,11 +13,11 @@ export const selectors = {
     ctaRow: '[data-cy="hero-cta-row"]',
     viewCruiseLinesLink: '[data-cy="hero-view-cruise-lines-link"]',
     addCruiseLineLink: '[data-cy="hero-add-cruise-line-link"]',
-    summaryCard: '[data-cy="dashboard-summary-card"]',
-    liveDemoSummary: '[data-cy="summary-item-live-demo"]',
-    databaseSummary: '[data-cy="summary-item-database"]',
-    testingSummary: '[data-cy="summary-item-testing"]',
-    crudSummary: '[data-cy="summary-item-crud"]'
+    statusPills: '[data-cy="hero-status-pills"]',
+    liveStatus: '[data-cy="hero-status-live"]',
+    databaseStatus: '[data-cy="hero-status-database"]',
+    cicdStatus: '[data-cy="hero-status-cicd"]',
+    crudStatus: '[data-cy="hero-status-crud"]'
   },  
   createCruiseLine: {
     panel: '[data-cy="create-cruise-line-panel"]',
