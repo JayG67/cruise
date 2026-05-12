@@ -854,3 +854,161 @@ describe('Update Cruise Line UI additional regression coverage', () => {
     cy.wrap(createdShipNames).should('deep.equal', ['Oceania Ship One', 'Oceania Ship Two'])
   })
 })
+
+describe('Update Cruise Line UI ship delete coverage', () => {
+  beforeEach(() => {
+    visitHome()
+  })
+
+  it('renders delete ship buttons only for existing ships in the update form', () => {
+    mockRoyalShips()
+
+    openRoyalUpdateForm()
+
+    cy.get(selectors.updateCruiseLine.existingShipRow).should('have.length', 2)
+    cy.get(selectors.updateCruiseLine.deleteShipButton).should('have.length', 2)
+    cy.get(selectors.updateCruiseLine.newShipRow)
+      .find(selectors.updateCruiseLine.deleteShipButton)
+      .should('not.exist')
+    cy.get(selectors.updateCruiseLine.newShipRow)
+      .find(selectors.updateCruiseLine.removeShipButton)
+      .should('exist')
+  })
+
+  it('does not delete a ship when the user cancels confirmation', () => {
+    mockRoyalShips()
+
+    cy.intercept('DELETE', `/cruise/ship/${iconShipId}`, {
+      statusCode: 200,
+      body: { message: 'Should not delete' }
+    }).as('deleteShip')
+
+    cy.on('window:confirm', () => false)
+
+    openRoyalUpdateForm()
+    cy.get(selectors.updateCruiseLine.deleteShipButton).first().click()
+
+    cy.get('@deleteShip.all').should('have.length', 0)
+    cy.get(selectors.updateCruiseLine.existingShipRow).should('have.length', 2)
+    cy.get(selectors.updateCruiseLine.message).should('contain.text', 'Editing Royal Caribbean International.')
+  })
+
+  it('deletes an existing ship from the update form after confirmation', () => {
+    mockRoyalShips()
+
+    cy.intercept('DELETE', `/cruise/ship/${iconShipId}`, {
+      statusCode: 200,
+      body: { message: 'Ship deleted successfully' }
+    }).as('deleteShip')
+
+    cy.on('window:confirm', (message) => {
+      expect(message).to.equal('Delete Icon of the Seas?')
+      return true
+    })
+
+    openRoyalUpdateForm()
+    cy.get(selectors.updateCruiseLine.deleteShipButton).first().click()
+
+    cy.wait('@deleteShip')
+    cy.get(selectors.updateCruiseLine.existingShipRow).should('have.length', 1)
+    cy.get(selectors.updateCruiseLine.shipNameInput).first().should('have.value', 'Utopia of the Seas')
+    cy.get(selectors.updateCruiseLine.message).should('contain.text', 'Icon of the Seas was deleted successfully.')
+  })
+
+  it('shows the API error message when deleting a ship fails', () => {
+    mockRoyalShips()
+
+    cy.intercept('DELETE', `/cruise/ship/${iconShipId}`, {
+      statusCode: 500,
+      body: { message: 'Ship delete failed' }
+    }).as('deleteShipFailure')
+
+    cy.on('window:confirm', () => true)
+
+    openRoyalUpdateForm()
+    cy.get(selectors.updateCruiseLine.deleteShipButton).first().click()
+
+    cy.wait('@deleteShipFailure')
+    cy.get(selectors.updateCruiseLine.existingShipRow).should('have.length', 2)
+    cy.get(selectors.updateCruiseLine.message).should('contain.text', 'Ship delete failed')
+  })
+
+  it('shows a fallback error when deleting a ship fails without a response message', () => {
+    mockRoyalShips()
+
+    cy.intercept('DELETE', `/cruise/ship/${iconShipId}`, {
+      statusCode: 500,
+      body: {}
+    }).as('deleteShipFailure')
+
+    cy.on('window:confirm', () => true)
+
+    openRoyalUpdateForm()
+    cy.get(selectors.updateCruiseLine.deleteShipButton).first().click()
+
+    cy.wait('@deleteShipFailure')
+    cy.get(selectors.updateCruiseLine.existingShipRow).should('have.length', 2)
+    cy.get(selectors.updateCruiseLine.message).should('contain.text', 'Delete ship failed with status 500')
+  })
+
+  it('refreshes the selected ships panel when a visible ship is deleted from the update form', () => {
+    let shipLoadCount = 0
+
+    cy.intercept('GET', `/cruise/ships/${royalCruiseLineId}`, (req) => {
+      shipLoadCount += 1
+
+      req.reply({
+        statusCode: 200,
+        body: shipLoadCount < 3 ? royalShips : [royalShips[1]]
+      })
+    }).as('getRoyalShips')
+
+    cy.intercept('DELETE', `/cruise/ship/${iconShipId}`, {
+      statusCode: 200,
+      body: { message: 'Ship deleted successfully' }
+    }).as('deleteShip')
+
+    cy.on('window:confirm', () => true)
+
+    cy.contains(selectors.cruiseLines.card, 'Royal Caribbean International')
+      .find(selectors.cruiseLines.viewShipsButton)
+      .click()
+    cy.wait('@getRoyalShips')
+    cy.get(selectors.ships.panel).should('be.visible')
+    cy.get(selectors.ships.card).should('contain.text', 'Icon of the Seas')
+
+    cy.contains(selectors.cruiseLines.card, 'Royal Caribbean International')
+      .find(selectors.cruiseLines.updateButton)
+      .click()
+    cy.wait('@getRoyalShips')
+
+    cy.get(selectors.updateCruiseLine.deleteShipButton).first().click()
+    cy.wait('@deleteShip')
+    cy.wait('@getRoyalShips')
+
+    cy.get(selectors.ships.card).should('not.contain.text', 'Icon of the Seas')
+    cy.get(selectors.ships.card).should('contain.text', 'Utopia of the Seas')
+  })
+
+  it('shows the no-ships message when the final existing ship is deleted', () => {
+    mockRoyalShips([royalShips[0]])
+
+    cy.intercept('DELETE', `/cruise/ship/${iconShipId}`, {
+      statusCode: 200,
+      body: { message: 'Ship deleted successfully' }
+    }).as('deleteShip')
+
+    cy.on('window:confirm', () => true)
+
+    openRoyalUpdateForm()
+    cy.get(selectors.updateCruiseLine.existingShipRow).should('have.length', 1)
+    cy.get(selectors.updateCruiseLine.deleteShipButton).click()
+
+    cy.wait('@deleteShip')
+    cy.get(selectors.updateCruiseLine.existingShipRow).should('not.exist')
+    cy.get(selectors.updateCruiseLine.noShipsMessage)
+      .should('be.visible')
+      .and('contain.text', 'No ships exist for this cruise line yet')
+    cy.get(selectors.updateCruiseLine.newShipRow).should('have.length', 1)
+  })
+})

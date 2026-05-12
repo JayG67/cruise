@@ -331,14 +331,23 @@ function addUpdateShipInputRow(value = '', shipId = '') {
 
   row.innerHTML = `
     <label>
-      <span>${shipId ? 'Existing ship name' : 'New ship name'}</span>
+      <span>${shipId ? 'Ship name' : 'New ship name'}</span>
       <input name="updateShipName" data-cy="update-cruise-line-ship-name-input" type="text" placeholder="Example: Rotterdam" maxlength="255" value="${escapeHtml(value)}" data-ship-id="${escapeHtml(shipId)}" />
     </label>
-    ${shipId ? '<span class="ship-row-note">Existing</span>' : '<button class="remove-ship-row-btn" data-cy="remove-update-ship-input-button" type="button">Remove</button>'}
+    ${shipId ? `
+      <div class="ship-row-actions">
+        <button class="delete-ship-btn danger" data-cy="delete-update-ship-button" type="button">Delete Ship</button>
+      </div>
+    ` : '<button class="remove-ship-row-btn" data-cy="remove-update-ship-input-button" type="button">Remove</button>'}
   `
 
   const removeButton = row.querySelector('.remove-ship-row-btn')
   if (removeButton) removeButton.addEventListener('click', () => row.remove())
+
+  const deleteShipButton = row.querySelector('.delete-ship-btn')
+  if (deleteShipButton) {
+    deleteShipButton.addEventListener('click', () => deleteShipFromUpdateForm(shipId, value, row))
+  }
 
   shipInputList.appendChild(row)
 }
@@ -365,7 +374,7 @@ async function updateCruiseLine(event) {
   }
 
   if (shipChanges.existingShips.some(ship => !ship.name)) {
-    setUpdateCruiseLineMessage('Existing ship names cannot be blank. Ship delete will be added in a later step.', 'error')
+    setUpdateCruiseLineMessage('Existing ship names cannot be blank. Use Delete Ship to remove a ship.', 'error')
     return
   }
 
@@ -432,6 +441,55 @@ function getUpdateShipChanges(form) {
   }
 }
 
+async function deleteShipFromUpdateForm(shipId, shipName, row) {
+  const cruiseLineId = document.getElementById('update-cruise-line-id')?.value
+  const confirmed = window.confirm(`Delete ${shipName}?`)
+
+  if (!confirmed) return
+
+  try {
+    setUpdateCruiseLineMessage(`Deleting ${shipName}...`, '')
+
+    const response = await fetch(`${API_BASE}/ship/${shipId}`, {
+      method: 'DELETE'
+    })
+
+    const result = await parseJsonResponse(response)
+
+    if (!response.ok) {
+      throw new Error(result.message || `Delete ship failed with status ${response.status}`)
+    }
+
+    row.remove()
+    showNoExistingShipsMessageIfNeeded()
+
+    if (selectedCruiseLineForShips === cruiseLineId && selectedCruiseLineNameForShips) {
+      await loadShips(cruiseLineId, selectedCruiseLineNameForShips)
+    }
+
+    setUpdateCruiseLineMessage(`${shipName} was deleted successfully.`, 'success')
+  } catch (err) {
+    console.error(err)
+    setUpdateCruiseLineMessage(err.message || `Could not delete ${shipName}.`, 'error')
+  }
+}
+
+function showNoExistingShipsMessageIfNeeded() {
+  const shipInputList = document.getElementById('update-ship-inputs')
+
+  if (!shipInputList) return
+  if (shipInputList.querySelector('[data-cy="existing-update-ship-row"]')) return
+  if (shipInputList.querySelector('[data-cy="update-no-ships-message"]')) return
+
+  const message = document.createElement('p')
+  message.className = 'empty-message compact-message'
+  message.setAttribute('data-cy', 'update-no-ships-message')
+  message.textContent = 'No ships exist for this cruise line yet. Add one below if needed.'
+
+  const firstNewShipRow = shipInputList.querySelector('[data-cy="new-update-ship-row"]')
+  shipInputList.insertBefore(message, firstNewShipRow)
+}
+
 async function updateExistingShips(existingShips, cruiseLineId) {
   let updatedShipCount = 0
 
@@ -488,6 +546,55 @@ function setUpdateCruiseLineMessage(message, type) {
   messageElement.className = `form-message ${type}`.trim()
 }
 
+async function deleteCruiseLine(cruiseLineId, cruiseLineName) {
+  const confirmed = window.confirm(`Delete ${cruiseLineName}? This will also delete all related ships.`)
+
+  if (!confirmed) return
+
+  const statusMessage = document.getElementById('status-message')
+
+  try {
+    if (statusMessage) statusMessage.textContent = `Deleting ${cruiseLineName}...`
+
+    const response = await fetch(`${API_BASE}/cruise-line/${cruiseLineId}`, {
+      method: 'DELETE'
+    })
+
+    const result = await parseJsonResponse(response)
+
+    if (!response.ok) {
+      throw new Error(result.message || `Delete failed with status ${response.status}`)
+    }
+
+    if (selectedCruiseLineForShips === cruiseLineId) {
+      selectedCruiseLineForShips = null
+      selectedCruiseLineNameForShips = ''
+
+      const shipsPanel = document.getElementById('ships-panel')
+      const shipsGrid = document.getElementById('ships-grid')
+
+      if (shipsPanel) shipsPanel.hidden = true
+      if (shipsGrid) shipsGrid.innerHTML = ''
+    }
+
+    const activeUpdateId = document.getElementById('update-cruise-line-id')?.value
+    if (activeUpdateId === cruiseLineId) {
+      hideUpdateCruiseLinePanel()
+    }
+
+    await loadCruiseLines()
+
+    if (statusMessage) {
+      statusMessage.textContent = `${cruiseLineName} was deleted successfully.`
+    }
+  } catch (err) {
+    console.error(err)
+    if (statusMessage) {
+      statusMessage.textContent = err.message || `Could not delete ${cruiseLineName}.`
+    }
+  }
+}
+
 async function parseJsonResponse(response) {
   try {
     return await response.json()
@@ -525,17 +632,23 @@ function renderCruiseLines(lines) {
     card.setAttribute('data-cy', 'cruise-card')
 
     card.innerHTML = `
-      <h3>${escapeHtml(line.name)}</h3>
-      <p><strong>Country:</strong> ${escapeHtml(line.country || 'Not listed')}</p>
-      ${line.website ? `<p><a href="${escapeHtml(line.website)}" target="_blank" rel="noopener" data-cy="cruise-website-link">Visit website</a></p>` : ''}
+      <div class="card-content">
+        <h3>${escapeHtml(line.name)}</h3>
+        <p class="card-meta"><strong>Country:</strong> ${escapeHtml(line.country || 'Not listed')}</p>
+        ${line.website ? `<p class="card-website"><a href="${escapeHtml(line.website)}" target="_blank" rel="noopener" data-cy="cruise-website-link">Visit website</a></p>` : ''}
+      </div>
       <div class="card-actions">
-        <button data-cy="view-ships-button" type="button">View Ships</button>
-        <button data-cy="update-cruise-line-button" type="button">Update</button>
+        <div class="card-primary-actions">
+          <button data-cy="view-ships-button" type="button">View Ships</button>
+          <button data-cy="update-cruise-line-button" type="button">Update</button>
+        </div>
+        <button class="danger subtle-danger" data-cy="delete-cruise-line-button" type="button">Delete</button>
       </div>
     `
 
     card.querySelector('[data-cy="view-ships-button"]').addEventListener('click', () => loadShips(line.id, line.name))
     card.querySelector('[data-cy="update-cruise-line-button"]').addEventListener('click', () => openUpdateCruiseLineForm(line.id))
+    card.querySelector('[data-cy="delete-cruise-line-button"]').addEventListener('click', () => deleteCruiseLine(line.id, line.name))
 
     grid.appendChild(card)
   })

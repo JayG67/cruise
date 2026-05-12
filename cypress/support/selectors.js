@@ -42,7 +42,8 @@ export const selectors = {
     emptyMessage: '[data-cy="cruise-empty-message"]',
     websiteLink: '[data-cy="cruise-website-link"]',
     viewShipsButton: '[data-cy="view-ships-button"]',
-    updateButton: '[data-cy="update-cruise-line-button"]'
+    updateButton: '[data-cy="update-cruise-line-button"]',
+    deleteButton: '[data-cy="delete-cruise-line-button"]'
   },
 
   updateCruiseLine: {
@@ -60,6 +61,7 @@ export const selectors = {
     loadingMessage: '[data-cy="update-ships-loading-message"]',
     addShipButton: '[data-cy="add-update-ship-input-button"]',
     removeShipButton: '[data-cy="remove-update-ship-input-button"]',
+    deleteShipButton: '[data-cy="delete-update-ship-button"]',
     submitButton: '[data-cy="update-cruise-line-submit-button"]',
     cancelButton: '[data-cy="update-cruise-line-cancel-button"]',
     message: '[data-cy="update-cruise-line-message"]'

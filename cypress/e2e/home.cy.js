@@ -343,12 +343,13 @@ describe('Cruise Explorer home page additional regression coverage', () => {
     cy.wait('@additionalGetCruiseLines')
   }
 
-  it('renders one update action and one view ships action for every cruise line card', () => {
+  it('renders one view ships, update, and delete action for every cruise line card', () => {
     visitAdditionalHome()
 
     cy.get(selectors.cruiseLines.card).should('have.length', additionalCruiseLines.length)
     cy.get(selectors.cruiseLines.updateButton).should('have.length', additionalCruiseLines.length)
     cy.get(selectors.cruiseLines.viewShipsButton).should('have.length', additionalCruiseLines.length)
+    cy.get(selectors.cruiseLines.deleteButton).should('have.length', additionalCruiseLines.length)
   })
 
   it('does not render a website link when the website field is an empty string', () => {
