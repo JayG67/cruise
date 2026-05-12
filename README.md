@@ -6,12 +6,9 @@
 
 [![Live Demo](https://img.shields.io/badge/live-demo-brightgreen)](https://cruise-explorer.onrender.com/)
 
-[![Render Deployment](https://img.shields.io/badge/render-deployed-blue)](https://cruise-explorer.onrender.com/)
+A full-stack cruise data application built with **Node.js, Express, PostgreSQL (Drizzle ORM), Zod, Cypress, Jest, Supertest, GitHub Actions, Render, and Docker**.
 
-
-A full-stack cruise data application built with **Node.js, Express, PostgreSQL (Drizzle ORM), Zod, Cypress, Jest, and Supertest**.
-
-This repository has evolved into an **enterprise-style Software Quality Engineering showcase**, demonstrating layered testing architecture, API contract validation, CI enforcement, integration testing, validation middleware, negative-path testing, UI automation, frontend/API integration, and incremental full-stack CRUD development.
+This repository has evolved into an **enterprise-style Software Quality Engineering showcase**, demonstrating layered testing architecture, API contract validation, CI/CD enforcement, integration testing, validation middleware, negative-path testing, frontend/API integration, CRUD workflows, and maintainable automation design.
 
 ---
 
@@ -24,12 +21,14 @@ The primary goals are to demonstrate:
 * Enterprise-style layered testing architecture
 * API contract validation and negative-path testing
 * Unit, integration, and end-to-end UI testing
-* API-driven Cypress testing using controlled mocked responses and live application behavior where appropriate
+* API-driven Cypress testing using mocked and live application behavior
 * Validation middleware and schema enforcement
 * CI-driven quality gates and automated validation
 * Real-world test architecture and maintainable automation patterns
 * Practical full-stack engineering with quality-first design
-* Incremental UI feature delivery with test coverage added alongside functionality
+* Incremental feature delivery with parallel automated regression coverage
+* Production-style deployment workflows
+* Infrastructure-as-code concepts using Render blueprints
 
 Rather than relying on sample applications, this project was intentionally designed and developed as a controlled environment for implementing modern QA engineering practices, tooling, automation strategies, and portfolio-quality engineering workflows.
 
@@ -39,7 +38,15 @@ This repository reflects the mindset of a:
 Principal Software Quality Engineer
 ```
 
-where reliability, validation, automation, observability, maintainability, and testability are treated as foundational architectural concerns.
+where reliability, validation, automation, observability, maintainability, deployment strategy, and testability are treated as foundational architectural concerns.
+
+---
+
+# 🚀 Live Demo
+
+```text
+https://cruise-explorer.onrender.com/
+```
 
 ---
 
@@ -53,7 +60,7 @@ Express API
         ↓
 Drizzle ORM
         ↓
-PostgreSQL (Docker)
+PostgreSQL
 ```
 
 ---
@@ -82,6 +89,14 @@ PostgreSQL (Docker)
 * Cypress (end-to-end UI testing)
 * GitHub Actions (CI automation)
 
+## Deployment & Infrastructure
+
+* Render Web Services
+* Managed PostgreSQL
+* Continuous Deployment
+* GitHub-based deployment automation
+* Infrastructure-as-code via `render.yaml`
+
 ---
 
 # 🚀 Features
@@ -93,6 +108,8 @@ PostgreSQL (Docker)
 * ✅ Automatic seed data loading from JSON
 * ✅ Database reset/reseed behavior on application startup
 * ✅ Frontend dashboard consuming API data
+* ✅ Professional dashboard-style UI
+* ✅ Live deployment with continuous deployment workflows
 * ✅ Built-in SQA Test Control Panel
 * ✅ Real-time cruise line search filtering
 * ✅ Dynamic result counts
@@ -100,8 +117,12 @@ PostgreSQL (Docker)
 * ✅ Full CRUD API support
 * ✅ Create cruise line from the UI
 * ✅ Create ships during the new cruise line workflow
+* ✅ Update cruise lines from the UI
+* ✅ Update existing ships during cruise line updates
+* ✅ Add new ships during cruise line updates
+* ✅ Dynamic update workflow panels
 * ✅ Form validation and user feedback in the UI
-* ✅ Loading and reset states in the create workflow
+* ✅ Loading and reset states in CRUD workflows
 * ✅ Zod-based API contract validation
 * ✅ Strict request payload validation
 * ✅ UUID validation
@@ -115,10 +136,12 @@ PostgreSQL (Docker)
 * ✅ Zod schema unit testing
 * ✅ Controller business-rule unit testing
 * ✅ Expanded Cypress positive, negative, and edge-case coverage
-* ✅ CI-driven quality enforcement
-* ✅ Enforced test coverage thresholds
 * ✅ Centralized Cypress selector management
 * ✅ Stable UI automation using data-cy attributes
+* ✅ CI-driven quality enforcement
+* ✅ Enforced test coverage thresholds
+* ✅ Continuous deployment through Render
+* ✅ CI-gated deployment workflows
 
 ---
 
@@ -130,8 +153,8 @@ The frontend is being expanded incrementally so each workflow can be designed, r
 
 | Entity | Create | Read | Update | Delete |
 |---|---|---|---|---|
-| Cruise Lines | ✅ UI + API | ✅ UI + API | ✅ API | ✅ API |
-| Ships | ✅ UI during cruise line creation + API | ✅ UI + API | ✅ API | ✅ API |
+| Cruise Lines | ✅ UI + API | ✅ UI + API | ✅ UI + API | ✅ API |
+| Ships | ✅ UI during cruise line creation + API | ✅ UI + API | ✅ UI during cruise line updates + API | ✅ API |
 
 ## Current Frontend CRUD Behavior
 
@@ -142,17 +165,25 @@ The UI currently supports:
 * Viewing ships for a selected cruise line
 * Creating a new cruise line
 * Adding one or more ships while creating a cruise line
+* Updating cruise line information
+* Updating existing ships during cruise line updates
+* Adding new ships during cruise line updates
 * Resetting the create form
+* Cancelling update workflows
+* Dynamic update form rendering
 * Handling create-workflow validation errors
+* Handling update-workflow validation errors
 * Handling create-workflow API failures
+* Handling update-workflow API failures
+* Automatic UI refresh after successful updates
+* Automatic update-panel dismissal after successful saves
 
 Planned future UI work includes:
 
-* Editing cruise lines from the UI
 * Deleting cruise lines from the UI
-* Editing ships from the UI
 * Deleting ships from the UI
-* Managing ships after a cruise line already exists
+* Managing ship removal during update workflows
+* Editing ships independently from cruise line updates
 
 ---
 
@@ -181,6 +212,8 @@ cruise/
 │   ├── screenshots/    # Failure screenshots
 │   ├── support/        # Shared selectors/helpers
 │   └── videos/         # Cypress recordings
+├── .github/workflows/  # GitHub Actions CI workflows
+├── render.yaml         # Render infrastructure blueprint
 ├── app.js              # Express app export for testing
 ├── index.js            # Server startup
 ├── docker-compose.yml  # PostgreSQL container
@@ -188,15 +221,35 @@ cruise/
 
 ---
 
-# ▶️ Getting Started
+# 🧩 Cypress Selector Architecture
 
-No environment configuration is required for standard local development.
+The Cypress automation suite uses:
 
-Default values are built into the application.
+```text
+centralized selector management
+```
 
-An optional `.env` file can be used to override settings if desired.
+through shared selector definitions stored in:
+
+```text
+cypress/support/selectors.js
+```
+
+This allows UI selectors to be maintained in a single location instead of being hardcoded across all test files.
+
+Benefits include:
+
+* Easier maintenance when UI identifiers change
+* Improved automation readability
+* Reduced selector duplication
+* Cleaner regression updates
+* More maintainable enterprise-style test architecture
+
+This mirrors enterprise automation engineering practices used in large-scale QA organizations.
 
 ---
+
+# ▶️ Getting Started
 
 ## 1. Install dependencies
 
@@ -328,17 +381,21 @@ The frontend is served from:
 
 ## Frontend Features
 
-* Cruise-themed landing page
+* Professional dashboard-style landing page
 * Live cruise line rendering
 * Ship lookup by cruise line
 * Real-time search filtering
 * Dynamic search result counts
 * API-driven UI rendering
-* Create cruise line form
-* Add one or more ships during cruise line creation
+* Create cruise line workflow
+* Update cruise line workflow
+* Dynamic ship editing during updates
+* Add new ships during update workflows
 * Optional country and website fields
 * Form reset behavior
-* Loading state during create requests
+* Dynamic update-panel rendering
+* Automatic update-panel dismissal after successful updates
+* Loading states during CRUD requests
 * Success and error messaging
 * SQA Test Control Panel
 * API health validation from the UI
@@ -368,8 +425,6 @@ The repository intentionally separates:
 * Controller business-rule concerns
 * Integration workflow concerns
 * Browser/UI validation concerns
-* Frontend API interaction concerns
-* Mocked UI failure scenarios
 
 for stronger maintainability and clearer testing boundaries.
 
@@ -420,20 +475,6 @@ Dedicated schema tests validate:
 * Required field enforcement
 * Invalid payload rejection
 
-This separates:
-
-```text
-validation testing
-```
-
-from:
-
-```text
-controller business-rule testing
-```
-
-which more closely reflects enterprise testing architecture.
-
 ---
 
 # 🔗 Integration Tests
@@ -479,186 +520,28 @@ npm run uiTests
 The Cypress suite validates:
 
 * Homepage rendering
+* Dashboard workflow rendering
 * Cruise line rendering
-* Ship lookup workflows
-* Search/filter functionality
-* Empty-state handling
-* Result count validation
-* UI state restoration
-* API health validation
-* SQA Test Control Panel workflows
-* Cruise line → ship relationship flows
-* API-driven UI assertions
-* Dynamic data validation from API responses
-* Create cruise line workflow behavior
-* Create cruise line validation behavior
-* Create cruise line failure handling
-* Edge cases for search, ships, homepage, and create workflow behavior
-
-
-The Cypress implementation uses a combination of:
-
-```text
-live API-driven validation
-```
-
-and:
-
-```text
-controlled mocked API responses
-```
-
-This allows tests to validate real application behavior while also preventing UI tests from polluting the database with persistent test records.
-
-# 🧩 Cypress Selector Architecture
-
-The Cypress automation framework now uses a:
-
-```text
-centralized selector architecture
-```
-
-to improve maintainability and reduce brittle UI test dependencies.
-
-Rather than hardcoding selectors throughout multiple Cypress test files, shared selectors are now maintained in:
-
-```text
-cypress/support/selectors.js
-```
-
-This provides:
-
-* Single-source selector management
-* Easier UI refactoring support
-* Reduced maintenance overhead
-* Improved test readability
-* Cleaner automation architecture
-* More scalable frontend test design
-
----
-
-## Stable UI Automation Using `data-cy`
-
-The frontend now includes dedicated:
-
-```text
-data-cy
-```
-
-attributes for Cypress automation targeting.
-
-Example:
-
-```html
-<input data-cy="create-cruise-line-name" />
-```
-
-instead of relying on:
-
-* Styling classes
-* Layout structure
-* Fragile DOM traversal
-* Presentation-oriented selectors
-
-This reflects modern enterprise UI automation practices where test selectors are intentionally separated from styling concerns.
-
----
-
-## Benefits of the Selector Architecture
-
-This approach improves:
-
-* UI test stability
-* Refactor safety
-* Automation maintainability
-* Team scalability
-* Test readability
-* Long-term regression reliability
-
-If a UI identifier changes, selectors only need to be updated in one centralized location instead of throughout all Cypress test suites.
-
----
-
-## Example Usage
-
-Instead of:
-
-```js
-cy.get('#create-cruise-line-name')
-```
-
-tests now use shared selectors:
-
-```js
-cy.get(selectors.createCruiseLine.nameInput)
-```
-
-This creates a cleaner separation between:
-
-```text
-automation logic
-```
-
-and:
-
-```text
-UI implementation details
-```
-
-which mirrors enterprise automation engineering practices used in large-scale QA organizations.
----
-
-# ✅ Expanded Cypress Coverage
-
-## Home Page / SQA Control Panel Coverage
-
-The home Cypress suite validates:
-
-* Page rendering
-* Manual validation panel rendering
-* SQA control availability
-* API health check success
-* API health check failure
-* Cruise data verification success
-* Cruise data verification failure
-* UI smoke check success
-* UI smoke check failure
-* Manual test output clearing
-* Non-array API response handling
-* Failed dependency reporting
-
----
-
-## Search Coverage
-
-The search Cypress suite validates:
-
 * Cruise line search filtering
-* Case-insensitive search behavior
-* Partial-match search behavior
-* Whitespace handling
-* Empty search behavior
-* No-result behavior
-* Dynamic result count behavior
-* Search state restoration
-* API-backed rendering behavior
-* Edge cases for unusual search input
-
----
-
-## Ship Coverage
-
-The ship Cypress suite validates:
-
 * Ship rendering by selected cruise line
 * Cruise line selection behavior
-* Empty ship list behavior
-* Missing ship data behavior
-* Invalid ship API response behavior
+* Empty-state behavior
+* Invalid API response behavior
 * Ship API failure behavior
 * Cruise line switching behavior
 * UI messaging when no ships exist
 * Relationship behavior between cruise lines and ships
+* SQA test panel workflows
+* Health-check workflows
+* UI smoke test workflows
+* Create workflow validation
+* Update workflow validation
+* CRUD loading-state behavior
+* CRUD success/failure messaging
+* API request payload validation
+* Mocked failure-path behavior
+* Edge-case UI validation
+* Deterministic frontend behavior through cy.intercept
 
 ---
 
@@ -684,6 +567,32 @@ The create cruise line Cypress suite validates:
 * Ship creation failure after cruise line creation
 * Submit button loading/disabled state
 * Form clearing after successful create
+* Mocked API behavior to avoid persistent database pollution
+
+---
+
+## Update Cruise Line Coverage
+
+The update cruise line Cypress suite validates:
+
+* Update form rendering
+* Existing cruise line data prepopulation
+* Existing ship prepopulation
+* Cruise line detail updates
+* Existing ship name updates
+* New ship creation during update workflows
+* Dynamic ship input rendering
+* Validation failures during updates
+* Blank cruise line name validation
+* Update API failure handling
+* Ship-update failure handling
+* New-ship creation failure handling
+* Cancel update behavior
+* Update-form dismissal after successful save
+* Loading-state behavior during updates
+* UI refresh behavior after updates
+* Edge-case update workflows
+* Request payload validation
 * Mocked API behavior to avoid persistent database pollution
 
 ---
@@ -795,12 +704,6 @@ This application is deployed using:
 * Managed PostgreSQL
 * GitHub-based automatic deployments
 
-Live Production Demo:
-
-```text
-https://cruise-explorer.onrender.com/
-```
-
 Deployment workflow:
 
 ```text
@@ -813,7 +716,7 @@ Render Automatic Deployment
 Live Production Demo
 ```
 
-This architecture demonstrates a production-style continuous deployment workflow where application updates are automatically deployed after code changes are pushed to GitHub and pass testing.
+This architecture demonstrates a production-style continuous deployment workflow where application updates are automatically deployed after code changes are pushed to GitHub.
 
 The deployed environment includes:
 
@@ -823,8 +726,7 @@ The deployed environment includes:
 * Automatic application redeployment
 * Persistent production hosting
 * Predictable startup reseeding behavior for consistent demo data
-
-This mirrors modern deployment workflows commonly used in enterprise full-stack applications.
+* Infrastructure-as-code configuration via render.yaml
 
 ---
 
@@ -885,6 +787,7 @@ This repository emphasizes:
 * Mocked UI failure-path validation
 * Reusable testing architecture
 * CI-driven quality enforcement
+* CD-driven deployment validation
 * Negative-path testing strategy
 * Edge-case testing strategy
 * Enterprise-style validation patterns
@@ -892,6 +795,7 @@ This repository emphasizes:
 * Maintainable automation architecture
 * Incremental feature delivery
 * Quality-first frontend and backend development
+* Infrastructure-aware engineering workflows
 
 ---
 
@@ -901,11 +805,9 @@ This repository will continue evolving into a broader quality engineering platfo
 
 ## Frontend CRUD Expansion
 
-* Add edit cruise line workflow to the UI
 * Add delete cruise line workflow to the UI
-* Add ship management for existing cruise lines
-* Add edit ship workflow to the UI
-* Add delete ship workflow to the UI
+* Add ship removal during update workflows
+* Add standalone ship management workflows
 * Continue expanding Cypress coverage with each new CRUD slice
 
 ---
@@ -992,7 +894,7 @@ This roadmap reflects a:
 quality-first engineering philosophy
 ```
 
-where testing, validation, and reliability are treated as core system architecture concerns.
+where testing, validation, deployment reliability, and maintainability are treated as core system architecture concerns.
 
 ---
 
@@ -1017,9 +919,11 @@ This project was built to demonstrate:
 * Maintainable automation design
 * Production-minded engineering patterns
 * Incremental feature delivery with strong automated regression coverage
+* Professional deployment and infrastructure workflows
 
 ---
 
 # 📄 License
 
 ISC
+
