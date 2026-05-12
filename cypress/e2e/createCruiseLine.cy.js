@@ -41,6 +41,7 @@ describe('Create Cruise Line UI', () => {
 
   it('renders the create cruise line form with the expected fields and controls', () => {
     cy.contains('Add a Cruise Line').should('be.visible')
+    cy.contains('CREATE WORKFLOW').should('be.visible')
     cy.get(selectors.createCruiseLine.nameInput).should('be.visible')
     cy.get(selectors.createCruiseLine.countryInput).should('be.visible')
     cy.get(selectors.createCruiseLine.websiteInput).should('be.visible')
@@ -512,5 +513,132 @@ describe('Create Cruise Line UI', () => {
     cy.get(selectors.createCruiseLine.websiteInput).should('have.value', '')
     cy.get(selectors.createCruiseLine.shipNameInput).should('have.length', 1)
     cy.get(selectors.createCruiseLine.shipNameInput).first().should('have.value', '')
+  })
+})
+
+describe('Create Cruise Line UI additional regression coverage', () => {
+  const additionalInitialLines = [
+    {
+      id: 'dddddddd-0000-4000-8000-000000000001',
+      name: 'Existing Cruise Line',
+      country: 'United States',
+      website: 'https://example.com'
+    }
+  ]
+
+  function visitAdditionalCreatePage(lines = additionalInitialLines) {
+    cy.intercept('GET', '/cruise', {
+      statusCode: 200,
+      body: lines
+    }).as('additionalCreateGetCruiseLines')
+
+    cy.visit('/')
+    cy.wait('@additionalCreateGetCruiseLines')
+  }
+
+  beforeEach(() => {
+    visitAdditionalCreatePage()
+  })
+
+  it('creates a single ship and uses singular success wording', () => {
+    cy.intercept('POST', '/cruise/cruise-line', {
+      statusCode: 201,
+      body: { id: 'dddddddd-0000-4000-8000-000000000002' }
+    }).as('additionalCreateCruiseLine')
+
+    cy.intercept('POST', '/cruise/ship', (req) => {
+      expect(req.body).to.deep.equal({
+        name: 'Single Test Ship',
+        cruiseLineId: 'dddddddd-0000-4000-8000-000000000002'
+      })
+      req.reply({ statusCode: 201, body: { id: 'ship-single' } })
+    }).as('additionalCreateShip')
+
+    cy.get(selectors.createCruiseLine.nameInput).type('Single Ship Line')
+    cy.get(selectors.createCruiseLine.shipNameInput).first().type('Single Test Ship')
+    cy.get(selectors.createCruiseLine.form).submit()
+
+    cy.wait('@additionalCreateCruiseLine')
+    cy.wait('@additionalCreateShip')
+    cy.get(selectors.createCruiseLine.message).should('contain.text', 'Created Single Ship Line with 1 ship.')
+  })
+
+  it('omits blank optional fields even when they contain spaces', () => {
+    cy.intercept('POST', '/cruise/cruise-line', (req) => {
+      expect(req.body).to.deep.equal({ name: 'Whitespace Optional Fields Line' })
+      req.reply({ statusCode: 201, body: { id: 'dddddddd-0000-4000-8000-000000000003' } })
+    }).as('additionalCreateCruiseLine')
+
+    cy.get(selectors.createCruiseLine.nameInput).type('Whitespace Optional Fields Line')
+    cy.get(selectors.createCruiseLine.countryInput).type('   ')
+    cy.get(selectors.createCruiseLine.websiteInput).type('   ')
+    cy.get(selectors.createCruiseLine.form).submit()
+
+    cy.wait('@additionalCreateCruiseLine')
+  })
+
+  it('deduplicates ship names after trimming whitespace', () => {
+    cy.intercept('POST', '/cruise/cruise-line', {
+      statusCode: 201,
+      body: { id: 'dddddddd-0000-4000-8000-000000000004' }
+    }).as('additionalCreateCruiseLine')
+
+    cy.intercept('POST', '/cruise/ship', {
+      statusCode: 201,
+      body: { id: 'ship-dedupe' }
+    }).as('additionalCreateShip')
+
+    cy.get(selectors.createCruiseLine.nameInput).type('Dedupe Ship Line')
+    cy.get(selectors.createCruiseLine.shipNameInput).first().type('Duplicate Ship')
+    cy.get(selectors.createCruiseLine.addShipButton).click()
+    cy.get(selectors.createCruiseLine.shipNameInput).last().type('   Duplicate Ship   ')
+    cy.get(selectors.createCruiseLine.form).submit()
+
+    cy.wait('@additionalCreateCruiseLine')
+    cy.wait('@additionalCreateShip')
+    cy.get('@additionalCreateShip.all').should('have.length', 1)
+  })
+
+  it('clears a previous validation message when the form is reset', () => {
+    cy.get(selectors.createCruiseLine.nameInput).then(($input) => {
+      $input.val('')
+    })
+    cy.get(selectors.createCruiseLine.form).then(($form) => {
+      $form[0].dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    })
+
+    cy.get(selectors.createCruiseLine.message).should('contain.text', 'Cruise line name is required.')
+    cy.get(selectors.createCruiseLine.resetButton).click()
+    cy.get(selectors.createCruiseLine.message).should('have.text', '')
+  })
+
+  it('keeps the form filled when cruise line creation fails', () => {
+    cy.intercept('POST', '/cruise/cruise-line', {
+      statusCode: 409,
+      body: { message: 'Cruise line already exists' }
+    }).as('additionalCreateConflict')
+
+    cy.get(selectors.createCruiseLine.nameInput).type('Duplicate Cruise Line')
+    cy.get(selectors.createCruiseLine.countryInput).type('United States')
+    cy.get(selectors.createCruiseLine.form).submit()
+
+    cy.wait('@additionalCreateConflict')
+    cy.get(selectors.createCruiseLine.message).should('contain.text', 'Cruise line already exists')
+    cy.get(selectors.createCruiseLine.nameInput).should('have.value', 'Duplicate Cruise Line')
+    cy.get(selectors.createCruiseLine.countryInput).should('have.value', 'United States')
+  })
+
+  it('removes only the selected dynamic ship row', () => {
+    cy.get(selectors.createCruiseLine.shipNameInput).first().type('Ship A')
+    cy.get(selectors.createCruiseLine.addShipButton).click()
+    cy.get(selectors.createCruiseLine.shipNameInput).last().type('Ship B')
+    cy.get(selectors.createCruiseLine.addShipButton).click()
+    cy.get(selectors.createCruiseLine.shipNameInput).last().type('Ship C')
+
+    cy.get(selectors.createCruiseLine.removeShipButton).first().click()
+
+    cy.get(selectors.createCruiseLine.shipNameInput).should('have.length', 2)
+    cy.get(selectors.createCruiseLine.shipNameInput).eq(0).should('have.value', 'Ship A')
+    cy.get(selectors.createCruiseLine.shipNameInput).eq(1).should('have.value', 'Ship C')
   })
 })

@@ -316,3 +316,99 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
     cy.get(selectors.testPanel.output).should('have.text', 'Test output will appear here...')
   })
 })
+
+describe('Cruise Explorer home page additional regression coverage', () => {
+  const additionalCruiseLines = [
+    {
+      id: 'aaaaaaaa-0000-4000-8000-000000000001',
+      name: 'Celebrity Cruises',
+      country: 'United States',
+      website: 'https://www.celebritycruises.com'
+    },
+    {
+      id: 'aaaaaaaa-0000-4000-8000-000000000002',
+      name: 'Princess Cruises',
+      country: 'United States',
+      website: ''
+    }
+  ]
+
+  function visitAdditionalHome(body = additionalCruiseLines) {
+    cy.intercept('GET', '/cruise', {
+      statusCode: 200,
+      body
+    }).as('additionalGetCruiseLines')
+
+    cy.visit('/')
+    cy.wait('@additionalGetCruiseLines')
+  }
+
+  it('renders one update action and one view ships action for every cruise line card', () => {
+    visitAdditionalHome()
+
+    cy.get(selectors.cruiseLines.card).should('have.length', additionalCruiseLines.length)
+    cy.get(selectors.cruiseLines.updateButton).should('have.length', additionalCruiseLines.length)
+    cy.get(selectors.cruiseLines.viewShipsButton).should('have.length', additionalCruiseLines.length)
+  })
+
+  it('does not render a website link when the website field is an empty string', () => {
+    visitAdditionalHome()
+
+    cy.contains(selectors.cruiseLines.card, 'Princess Cruises').within(() => {
+      cy.get(selectors.cruiseLines.websiteLink).should('not.exist')
+    })
+  })
+
+  it('keeps the add cruise line hero link targeted to the create form', () => {
+    visitAdditionalHome()
+
+    cy.get(selectors.hero.addCruiseLineLink)
+      .should('be.visible')
+      .and('have.attr', 'href', '#add-cruise-line-heading')
+      .and('contain.text', 'Add Cruise Line')
+  })
+
+  it('keeps the view cruise lines hero link targeted to the actual results area', () => {
+    visitAdditionalHome()
+
+    cy.get(selectors.hero.viewCruiseLinesLink)
+      .should('be.visible')
+      .and('have.attr', 'href', '#cruise-line-results')
+      .and('contain.text', 'View Cruise Lines')
+  })
+
+  it('renders an empty-state message when the API returns no cruise lines', () => {
+    visitAdditionalHome([])
+
+    cy.get(selectors.cruiseLines.statusMessage).should('contain.text', 'Showing 0 of 0 cruise lines.')
+    cy.get(selectors.cruiseLines.emptyMessage)
+      .should('be.visible')
+      .and('contain.text', 'No cruise lines match your search.')
+  })
+
+  it('does not render stale cards after a failed reload from the SQA panel', () => {
+    let requestCount = 0
+
+    cy.intercept('GET', '/cruise', (req) => {
+      requestCount += 1
+      req.reply(
+        requestCount === 1
+          ? { statusCode: 200, body: additionalCruiseLines }
+          : { statusCode: 500, body: { message: 'Reload failed' } }
+      )
+    }).as('additionalReloadCruiseLines')
+
+    cy.visit('/')
+    cy.wait('@additionalReloadCruiseLines')
+    cy.get(selectors.cruiseLines.card).should('have.length', 2)
+
+    cy.get(selectors.testPanel.reloadDataButton).click()
+    cy.wait('@additionalReloadCruiseLines')
+
+    cy.get(selectors.testPanel.output)
+      .should('contain', 'Cruise Data Verification Result')
+      .and('contain', '"passed": false')
+      .and('contain', '"statusCode": 500')
+      .and('contain', 'Reload failed')
+  })
+})

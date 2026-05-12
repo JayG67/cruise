@@ -304,3 +304,122 @@ describe('Cruise Explorer ship lookup UI', () => {
     cy.get('@anyShipLookup.all').should('have.length', 0)
   })
 })
+
+describe('Cruise Explorer ships additional regression coverage', () => {
+  const additionalLineId = 'cccccccc-0000-4000-8000-000000000001'
+  const secondLineId = 'cccccccc-0000-4000-8000-000000000002'
+  const additionalLines = [
+    {
+      id: additionalLineId,
+      name: 'Norwegian Cruise Line',
+      country: 'United States',
+      website: 'https://www.ncl.com'
+    },
+    {
+      id: secondLineId,
+      name: 'Disney Cruise Line',
+      country: 'United States',
+      website: 'https://disneycruise.disney.go.com'
+    }
+  ]
+
+  function visitAdditionalShipsPage() {
+    cy.intercept('GET', '/cruise', {
+      statusCode: 200,
+      body: additionalLines
+    }).as('additionalShipsGetCruiseLines')
+
+    cy.visit('/')
+    cy.wait('@additionalShipsGetCruiseLines')
+  }
+
+  beforeEach(() => {
+    visitAdditionalShipsPage()
+  })
+
+  it('shows the loading message while ships are being requested', () => {
+    cy.intercept('GET', `/cruise/ships/${additionalLineId}`, (req) => {
+      req.reply({
+        delay: 500,
+        statusCode: 200,
+        body: [{ id: 'ship-1', name: 'Norwegian Prima', cruiseLineId: additionalLineId }]
+      })
+    }).as('additionalSlowShips')
+
+    cy.contains(selectors.cruiseLines.card, 'Norwegian Cruise Line')
+      .find(selectors.cruiseLines.viewShipsButton)
+      .click()
+
+    cy.get(selectors.ships.panel).should('be.visible')
+    cy.get(selectors.ships.loadingMessage).should('contain.text', 'Loading ships...')
+    cy.wait('@additionalSlowShips')
+    cy.get(selectors.ships.card).should('contain.text', 'Norwegian Prima')
+  })
+
+  it('renders no ship cards when the ship API returns an empty array', () => {
+    cy.intercept('GET', `/cruise/ships/${additionalLineId}`, {
+      statusCode: 200,
+      body: []
+    }).as('additionalEmptyShips')
+
+    cy.contains(selectors.cruiseLines.card, 'Norwegian Cruise Line')
+      .find(selectors.cruiseLines.viewShipsButton)
+      .click()
+
+    cy.wait('@additionalEmptyShips')
+    cy.get(selectors.ships.panel).should('be.visible')
+    cy.get(selectors.ships.card).should('not.exist')
+  })
+
+  it('escapes ship names before rendering them as HTML', () => {
+    cy.intercept('GET', `/cruise/ships/${additionalLineId}`, {
+      statusCode: 200,
+      body: [
+        {
+          id: 'ship-unsafe',
+          name: '<img src=x onerror=alert(1)> Ship',
+          cruiseLineId: additionalLineId
+        }
+      ]
+    }).as('additionalUnsafeShips')
+
+    cy.contains(selectors.cruiseLines.card, 'Norwegian Cruise Line')
+      .find(selectors.cruiseLines.viewShipsButton)
+      .click()
+
+    cy.wait('@additionalUnsafeShips')
+    cy.get(`${selectors.ships.grid} img`).should('not.exist')
+    cy.get(selectors.ships.grid).should('contain.text', '<img src=x onerror=alert(1)> Ship')
+  })
+
+  it('keeps the ships panel visible and updates the title when switching lines', () => {
+    cy.intercept('GET', `/cruise/ships/${additionalLineId}`, {
+      statusCode: 200,
+      body: [{ id: 'ship-1', name: 'Norwegian Prima', cruiseLineId: additionalLineId }]
+    }).as('additionalNclShips')
+
+    cy.intercept('GET', `/cruise/ships/${secondLineId}`, {
+      statusCode: 200,
+      body: [{ id: 'ship-2', name: 'Disney Wish', cruiseLineId: secondLineId }]
+    }).as('additionalDisneyShips')
+
+    cy.contains(selectors.cruiseLines.card, 'Norwegian Cruise Line')
+      .find(selectors.cruiseLines.viewShipsButton)
+      .click()
+    cy.wait('@additionalNclShips')
+    cy.get(selectors.ships.title).should('contain.text', 'Norwegian Cruise Line Ships')
+
+    cy.contains(selectors.cruiseLines.card, 'Disney Cruise Line')
+      .find(selectors.cruiseLines.viewShipsButton)
+      .click()
+    cy.wait('@additionalDisneyShips')
+    cy.get(selectors.ships.title).should('contain.text', 'Disney Cruise Line Ships')
+    cy.get(selectors.ships.grid).should('contain.text', 'Disney Wish')
+    cy.get(selectors.ships.grid).should('not.contain.text', 'Norwegian Prima')
+  })
+
+  it('does not open the ships panel before a view ships action is selected', () => {
+    cy.get(selectors.ships.panel).should('not.be.visible')
+    cy.get(selectors.ships.card).should('not.exist')
+  })
+})

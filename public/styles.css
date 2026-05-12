@@ -668,3 +668,55 @@ button:disabled {
     width: 100%;
   }
 }
+
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.card-actions button {
+  flex: 1 1 140px;
+}
+
+.update-panel {
+  margin-top: 28px;
+  border-color: rgba(11, 111, 164, 0.22);
+}
+
+.update-panel[hidden] {
+  display: none;
+}
+
+.update-ship-input-row .ship-row-note {
+  align-self: end;
+  display: inline-flex;
+  justify-content: center;
+  min-width: 88px;
+  border: 1px solid #d3e0e8;
+  border-radius: 999px;
+  padding: 12px 14px;
+  color: #526575;
+  background: #edf5f9;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.compact-message {
+  margin: 0;
+  padding: 12px 14px;
+}
+
+@media (max-width: 700px) {
+  .card-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .update-ship-input-row .ship-row-note {
+    width: 100%;
+  }
+}

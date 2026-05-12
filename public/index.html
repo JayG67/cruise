@@ -76,7 +76,7 @@
             <h3 id="add-cruise-line-heading">Add a Cruise Line</h3>
             <p>Create a cruise line and add starter ships in one focused workflow.</p>
           </div>
-          <span class="crud-badge">New CRUD Feature</span>
+          <span class="crud-badge">CREATE WORKFLOW</span>
         </div>
 
         <form id="create-cruise-line-form" class="crud-form" data-cy="create-cruise-line-form">
@@ -134,6 +134,73 @@
             <div class="form-actions">
               <button id="reset-cruise-line-form-btn" class="secondary dark" type="button" data-cy="create-cruise-line-reset-button">Reset</button>
               <button id="create-cruise-line-btn" type="submit" data-cy="create-cruise-line-submit-button">Create Cruise Line</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section class="crud-panel update-panel" id="update-cruise-line-panel" aria-labelledby="update-cruise-line-heading" data-cy="update-cruise-line-panel" hidden>
+        <div class="crud-panel-header">
+          <div>
+            <p class="eyebrow">Update Data</p>
+            <h3 id="update-cruise-line-heading">Update Cruise Line</h3>
+            <p>Edit cruise line details, update existing ship names, and add new ships in one workflow.</p>
+          </div>
+          <span class="crud-badge">UPDATE WORKFLOW</span>
+        </div>
+
+        <form id="update-cruise-line-form" class="crud-form" data-cy="update-cruise-line-form">
+          <input id="update-cruise-line-id" name="id" type="hidden" data-cy="update-cruise-line-id-input" />
+
+          <div class="crud-layout">
+            <div class="form-card primary-form-card">
+              <div class="form-card-heading">
+                <span class="step-pill">1</span>
+                <div>
+                  <h4>Cruise Line Details</h4>
+                  <p>Update the cruise line name, country, or website.</p>
+                </div>
+              </div>
+
+              <div class="form-grid">
+                <label>
+                  <span>Cruise line name <strong aria-hidden="true">*</strong></span>
+                  <input id="update-cruise-line-name" name="name" data-cy="update-cruise-line-name-input" type="text" required maxlength="255" />
+                </label>
+
+                <label>
+                  <span>Country</span>
+                  <input id="update-cruise-line-country" name="country" data-cy="update-cruise-line-country-input" type="text" maxlength="255" />
+                </label>
+
+                <label class="full-width-field">
+                  <span>Website</span>
+                  <input id="update-cruise-line-website" name="website" data-cy="update-cruise-line-website-input" type="url" maxlength="255" />
+                </label>
+              </div>
+            </div>
+
+            <div class="form-card ships-create-panel">
+              <div class="ships-create-header">
+                <div class="form-card-heading">
+                  <span class="step-pill">2</span>
+                  <div>
+                    <h4>Ships</h4>
+                    <p>Rename ships only when needed or add new ships. Ship deletion will be added later.</p>
+                  </div>
+                </div>
+                <button id="add-update-ship-input-btn" class="secondary dark" type="button" data-cy="add-update-ship-input-button">+ Add Ship</button>
+              </div>
+
+              <div id="update-ship-inputs" class="ship-input-list" data-cy="update-cruise-line-ship-inputs"></div>
+            </div>
+          </div>
+
+          <div class="form-footer">
+            <p id="update-cruise-line-message" class="form-message" aria-live="polite" data-cy="update-cruise-line-message"></p>
+            <div class="form-actions">
+              <button id="cancel-update-cruise-line-btn" class="secondary dark" type="button" data-cy="update-cruise-line-cancel-button">Cancel</button>
+              <button id="update-cruise-line-btn" type="submit" data-cy="update-cruise-line-submit-button">Save Updates</button>
             </div>
           </div>
         </form>

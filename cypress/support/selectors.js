@@ -41,7 +41,28 @@ export const selectors = {
     card: '[data-cy="cruise-card"]',
     emptyMessage: '[data-cy="cruise-empty-message"]',
     websiteLink: '[data-cy="cruise-website-link"]',
-    viewShipsButton: '[data-cy="view-ships-button"]'
+    viewShipsButton: '[data-cy="view-ships-button"]',
+    updateButton: '[data-cy="update-cruise-line-button"]'
+  },
+
+  updateCruiseLine: {
+    panel: '[data-cy="update-cruise-line-panel"]',
+    form: '[data-cy="update-cruise-line-form"]',
+    idInput: '[data-cy="update-cruise-line-id-input"]',
+    nameInput: '[data-cy="update-cruise-line-name-input"]',
+    countryInput: '[data-cy="update-cruise-line-country-input"]',
+    websiteInput: '[data-cy="update-cruise-line-website-input"]',
+    shipInputsContainer: '[data-cy="update-cruise-line-ship-inputs"]',
+    shipNameInput: '[data-cy="update-cruise-line-ship-name-input"]',
+    existingShipRow: '[data-cy="existing-update-ship-row"]',
+    newShipRow: '[data-cy="new-update-ship-row"]',
+    noShipsMessage: '[data-cy="update-no-ships-message"]',
+    loadingMessage: '[data-cy="update-ships-loading-message"]',
+    addShipButton: '[data-cy="add-update-ship-input-button"]',
+    removeShipButton: '[data-cy="remove-update-ship-input-button"]',
+    submitButton: '[data-cy="update-cruise-line-submit-button"]',
+    cancelButton: '[data-cy="update-cruise-line-cancel-button"]',
+    message: '[data-cy="update-cruise-line-message"]'
   },
   ships: {
     panel: '[data-cy="ships-panel"]',

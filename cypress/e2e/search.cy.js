@@ -221,3 +221,95 @@ describe('Cruise Explorer search UI', () => {
     cy.get(selectors.cruiseLines.grid).should('contain.text', 'No cruise lines match your search.')
   })
 })
+
+describe('Cruise Explorer search additional regression coverage', () => {
+  const additionalSearchLines = [
+    {
+      id: 'bbbbbbbb-0000-4000-8000-000000000001',
+      name: 'Royal Caribbean International',
+      country: 'United States',
+      website: 'https://www.royalcaribbean.com'
+    },
+    {
+      id: 'bbbbbbbb-0000-4000-8000-000000000002',
+      name: 'MSC Cruises',
+      country: 'Switzerland',
+      website: 'https://www.msccruises.com'
+    },
+    {
+      id: 'bbbbbbbb-0000-4000-8000-000000000003',
+      name: 'Princess Cruises',
+      country: 'United States',
+      website: 'https://www.princess.com'
+    },
+    {
+      id: 'bbbbbbbb-0000-4000-8000-000000000004',
+      name: 'Cunard Line',
+      country: 'United Kingdom',
+      website: 'https://www.cunard.com'
+    }
+  ]
+
+  function visitAdditionalSearchPage() {
+    cy.intercept('GET', '/cruise', {
+      statusCode: 200,
+      body: additionalSearchLines
+    }).as('additionalSearchGetCruiseLines')
+
+    cy.visit('/')
+    cy.wait('@additionalSearchGetCruiseLines')
+  }
+
+  beforeEach(() => {
+    visitAdditionalSearchPage()
+  })
+
+  it('filters cruise lines by country', () => {
+    cy.get(selectors.cruiseLines.searchInput).type('United States')
+
+    cy.get(selectors.cruiseLines.card).should('have.length', 2)
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'Royal Caribbean International')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'Princess Cruises')
+    cy.get(selectors.cruiseLines.grid).should('not.contain.text', 'MSC Cruises')
+  })
+
+  it('trims leading and trailing whitespace in search terms', () => {
+    cy.get(selectors.cruiseLines.searchInput).type('   msc   ')
+
+    cy.get(selectors.cruiseLines.card).should('have.length', 1)
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'MSC Cruises')
+  })
+
+  it('does not match website text when filtering cruise lines', () => {
+    cy.get(selectors.cruiseLines.searchInput).type('princess.com')
+
+    cy.get(selectors.cruiseLines.card).should('not.exist')
+    cy.get(selectors.cruiseLines.emptyMessage).should('be.visible')
+  })
+
+  it('handles punctuation-heavy search input safely', () => {
+    cy.get(selectors.cruiseLines.searchInput).type('@@@###***')
+
+    cy.get(selectors.cruiseLines.card).should('not.exist')
+    cy.get(selectors.cruiseLines.grid).should('contain.text', 'No cruise lines match your search.')
+  })
+
+  it('restores all cards after search is cleared from a no-results state', () => {
+    cy.get(selectors.cruiseLines.searchInput).type('No Matching Cruise Line')
+    cy.get(selectors.cruiseLines.card).should('not.exist')
+
+    cy.get(selectors.cruiseLines.searchInput).clear()
+
+    cy.get(selectors.cruiseLines.card).should('have.length', additionalSearchLines.length)
+    cy.get(selectors.cruiseLines.statusMessage).should('contain.text', `Showing ${additionalSearchLines.length} of ${additionalSearchLines.length}`)
+  })
+
+  it('keeps update buttons available after filtering by country', () => {
+    cy.get(selectors.cruiseLines.searchInput).type('United Kingdom')
+
+    cy.contains(selectors.cruiseLines.card, 'Cunard Line').within(() => {
+      cy.get(selectors.cruiseLines.updateButton).should('be.visible')
+      cy.get(selectors.cruiseLines.viewShipsButton).should('be.visible')
+    })
+  })
+})
