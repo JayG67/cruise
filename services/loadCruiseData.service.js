@@ -6,6 +6,9 @@ const cruiseLineTable = require('../models/cruiseline.model')
 const shipTable = require('../models/ship.model')
 
 async function loadCruiseData() {
+  let cruiseLineCount = 0
+  let shipCount = 0
+
   const filePath = path.join(__dirname, '..', 'data', 'cruise.json')
   const fileContents = fs.readFileSync(filePath, 'utf-8')
   const cruiseData = JSON.parse(fileContents)
@@ -25,17 +28,25 @@ async function loadCruiseData() {
         .returning({ id: cruiseLineTable.id })
 
       const cruiseLineId = insertedCruiseLines[0].id
+      cruiseLineCount += 1
 
       for (const ship of cruiseLine.ships || []) {
         await tx.insert(shipTable).values({
           name: ship.name,
           cruiseLineId
         })
+        shipCount += 1
       }
     }
   })
 
   console.log('Cruise seed data reset from data/cruise.json')
+
+  return {
+    cruiseLineCount,
+    shipCount,
+    source: 'data/cruise.json'
+  }
 }
 
 module.exports = loadCruiseData

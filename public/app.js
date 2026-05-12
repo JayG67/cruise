@@ -3,6 +3,7 @@ const testOutput = document.getElementById('testOutput')
 const healthCheckBtn = document.getElementById('healthCheckBtn')
 const reloadDataBtn = document.getElementById('reloadDataBtn')
 const uiSmokeTestBtn = document.getElementById('uiSmokeTestBtn')
+const resetDemoDataBtn = document.getElementById('resetDemoDataBtn')
 const clearTestOutputBtn = document.getElementById('clearTestOutputBtn')
 
 let cruiseLines = []
@@ -806,6 +807,66 @@ if (uiSmokeTestBtn) {
       })
     }
   })
+}
+
+
+if (resetDemoDataBtn) {
+  resetDemoDataBtn.addEventListener('click', resetDemoData)
+}
+
+async function resetDemoData() {
+  const confirmed = window.confirm('This will restore the demo database to the original seed data. Continue?')
+
+  if (!confirmed) {
+    writeTestOutput('Demo Data Reset Cancelled', {
+      passed: false,
+      cancelled: true
+    })
+    return
+  }
+
+  try {
+    writeTestOutput('Demo Data Reset Started', {
+      passed: false,
+      message: 'Resetting demo data...'
+    })
+
+    const response = await fetch('/admin/reset-demo-data', {
+      method: 'POST'
+    })
+
+    const result = await parseJsonResponse(response)
+
+    if (!response.ok) {
+      throw new Error(result.message || `Demo data reset failed with status ${response.status}`)
+    }
+
+    selectedCruiseLineForShips = null
+    selectedCruiseLineNameForShips = ''
+
+    const shipsPanel = document.getElementById('ships-panel')
+    const shipsGrid = document.getElementById('ships-grid')
+    const searchInput = document.getElementById('search-input')
+
+    if (shipsPanel) shipsPanel.hidden = true
+    if (shipsGrid) shipsGrid.innerHTML = ''
+    if (searchInput) searchInput.value = ''
+
+    hideUpdateCruiseLinePanel()
+    await loadCruiseLines()
+
+    writeTestOutput('Demo Data Reset Result', {
+      statusCode: response.status,
+      passed: true,
+      response: result
+    })
+  } catch (err) {
+    console.error(err)
+    writeTestOutput('Demo Data Reset Failed', {
+      passed: false,
+      error: err.message || 'Could not reset demo data.'
+    })
+  }
 }
 
 if (clearTestOutputBtn) {

@@ -428,6 +428,14 @@ button.small {
   color: white;
 }
 
+.demo-reset-note {
+  margin: -6px 0 16px;
+  color: #d8e3ea;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+
 .test-output {
   min-height: 140px;
   padding: 18px;

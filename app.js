@@ -4,6 +4,7 @@ const path = require('path')
 const express = require('express')
 
 const cruiseRouter = require('./routes/cruise.routes')
+const adminRouter = require('./routes/admin.routes')
 const { serverLogger } = require('./middleware/loggers')
 
 const app = express()
@@ -17,6 +18,7 @@ app.get('/health', (req, res) => {
 })
 
 app.use('/cruise', cruiseRouter)
+app.use('/admin', adminRouter)
 
 app.use((err, req, res, next) => {
   console.error(err)

@@ -220,8 +220,13 @@
             <button id="healthCheckBtn" data-cy="health-check-button">Check API Health</button>
             <button id="reloadDataBtn" data-cy="reload-data-button">Verify Cruise Data</button>
             <button id="uiSmokeTestBtn" data-cy="ui-smoke-test-button">Run UI Smoke Check</button>
+            <button id="resetDemoDataBtn" class="danger subtle-danger" data-cy="reset-demo-data-button" type="button">Reset Demo Data</button>
             <button id="clearTestOutputBtn" class="secondary" data-cy="clear-test-output-button">Clear Output</button>
           </div>
+
+          <p class="demo-reset-note" data-cy="reset-demo-data-note">
+            This public demo allows CRUD changes. Use Reset Demo Data to restore the original seed dataset.
+          </p>
 
           <pre id="testOutput" class="test-output" data-cy="test-output">Test output will appear here...</pre>
         </section>

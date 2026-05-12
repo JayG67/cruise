@@ -79,6 +79,8 @@ export const selectors = {
     healthCheckButton: '[data-cy="health-check-button"]',
     reloadDataButton: '[data-cy="reload-data-button"]',
     uiSmokeTestButton: '[data-cy="ui-smoke-test-button"]',
+    resetDemoDataButton: '[data-cy="reset-demo-data-button"]',
+    resetDemoDataNote: '[data-cy="reset-demo-data-note"]',
     clearOutputButton: '[data-cy="clear-test-output-button"]',
     output: '[data-cy="test-output"]'
   }

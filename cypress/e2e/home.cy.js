@@ -186,6 +186,8 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
     cy.get(selectors.testPanel.healthCheckButton).should('contain.text', 'Check API Health')
     cy.get(selectors.testPanel.reloadDataButton).should('contain.text', 'Verify Cruise Data')
     cy.get(selectors.testPanel.uiSmokeTestButton).should('contain.text', 'Run UI Smoke Check')
+    cy.get(selectors.testPanel.resetDemoDataButton).should('contain.text', 'Reset Demo Data')
+    cy.get(selectors.testPanel.resetDemoDataNote).should('contain.text', 'restore the original seed dataset')
     cy.get(selectors.testPanel.clearOutputButton).should('contain.text', 'Clear Output')
     cy.get(selectors.testPanel.output).should('contain.text', 'Test output will appear here')
   })
