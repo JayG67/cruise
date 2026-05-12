@@ -52,20 +52,6 @@ function writeTestOutput(title, data) {
   testOutput.textContent = `${title}\n\n${JSON.stringify(data, null, 2)}`
 }
 
-function selectStack(stack) {
-  if (stack === 'vanilla') {
-    window.location.href = '/index.html#cruise-lines'
-    return
-  }
-
-  if (stack === 'node') {
-    window.location.href = '/cruise'
-    return
-  }
-
-  alert('Coming soon!')
-}
-
 async function loadCruiseLines() {
   const statusMessage = document.getElementById('status-message')
   const grid = document.getElementById('cruise-grid')

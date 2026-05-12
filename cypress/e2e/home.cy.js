@@ -38,8 +38,8 @@ describe('Cruise Explorer home page', () => {
 
   it('loads the main portfolio homepage sections', () => {
     cy.contains('Cruise Explorer').should('be.visible')
-    cy.contains('Portfolio Full-Stack Demo').should('be.visible')
-    cy.contains('Explore cruise data through multiple technology stacks.').should('be.visible')
+    cy.contains('Cruise Operations Dashboard').should('be.visible')
+    cy.contains('Manage cruise line and fleet data from a deployed full-stack application.').should('be.visible')
     cy.contains('Cruise Lines').should('be.visible')
     cy.contains('Add a Cruise Line').should('be.visible')
     cy.contains('Why this project matters').should('be.visible')
@@ -48,32 +48,38 @@ describe('Cruise Explorer home page', () => {
   it('renders the primary navigation links', () => {
     cy.get(selectors.navigation.primaryNav).within(() => {
       cy.get(selectors.navigation.brandLink).should('have.attr', 'href', '#home')
-      cy.get(selectors.navigation.stacksLink).should('have.attr', 'href', '#stacks')
+      cy.get(selectors.navigation.dashboardLink).should('have.attr', 'href', '#dashboard')
+      cy.get(selectors.navigation.sqaControlsLink).should('have.attr', 'href', '#testPanel')
       cy.get(selectors.navigation.cruiseLinesLink).should('have.attr', 'href', '#cruise-lines')
       cy.get(selectors.navigation.aboutLink).should('have.attr', 'href', '#about')
     })
   })
 
-  it('renders portfolio feature controls without requiring API interaction', () => {
+  it('renders professional dashboard hero content without requiring API interaction', () => {
     cy.visit('/')
 
-    cy.get(selectors.hero.actions).should('be.visible')
+    cy.get(selectors.hero.dashboard).should('be.visible')
 
-    cy.get(selectors.hero.vanillaButton)
-      .should('be.visible')
-      .and('contain', 'Cruise Explorer Dashboard')
+    cy.get(selectors.hero.ctaRow).within(() => {
+      cy.get(selectors.hero.viewCruiseLinesLink)
+        .should('be.visible')
+        .and('have.attr', 'href', '#cruise-line-results')
+        .and('contain', 'View Cruise Lines')
 
-    cy.get(selectors.hero.testingButton)
-      .should('be.visible')
-      .and('contain', 'SQA Automation Focus')
+      cy.get(selectors.hero.addCruiseLineLink)
+        .should('be.visible')
+        .and('have.attr', 'href', '#add-cruise-line-heading')
+        .and('contain', 'Add Cruise Line')
+    })
 
-    cy.get(selectors.hero.deploymentButton)
+    cy.get(selectors.hero.summaryCard)
       .should('be.visible')
-      .and('contain', 'CI / CD Deployment')
+      .and('contain', 'Portfolio-ready delivery pipeline')
 
-    cy.get(selectors.hero.stackCard)
-      .should('be.visible')
-      .and('contain', 'Cruise Explorer Dashboard')
+    cy.get(selectors.hero.liveDemoSummary).should('contain', 'Live')
+    cy.get(selectors.hero.databaseSummary).should('contain', 'PostgreSQL')
+    cy.get(selectors.hero.testingSummary).should('contain', 'CI/CD')
+    cy.get(selectors.hero.crudSummary).should('contain', 'CRUD')
   })
   
   it('displays cruise lines returned by the API', () => {

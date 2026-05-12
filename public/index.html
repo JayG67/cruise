@@ -11,33 +11,53 @@
     <nav class="nav-bar" data-cy="primary-navigation">
       <a class="brand" href="#home" data-cy="brand-link">Cruise Explorer</a>
       <div class="nav-links">
-        <a href="#stacks" data-cy="nav-stacks-link">Stacks</a>
+        <a href="#dashboard" data-cy="nav-dashboard-link">Dashboard</a>
         <a href="#cruise-lines" data-cy="nav-cruise-lines-link">Cruise Lines</a>
+        <a href="#testPanel" data-cy="nav-sqa-controls-link">SQA Controls</a>
         <a href="#about" data-cy="nav-about-link">About</a>
       </div>
     </nav>
 
-    <section class="hero-content">
-      <p class="eyebrow">Portfolio Full-Stack Demo</p>
-      <h1>Explore cruise data through multiple technology stacks.</h1>
-      <p class="hero-copy">
-        A front-end showcase backed by a Node, Express, PostgreSQL, and Drizzle API.
-      </p>
+    <section class="hero-content" id="dashboard" data-cy="dashboard-hero">
+      <div class="hero-layout">
+        <div class="hero-copy-block">
+          <p class="eyebrow">Cruise Operations Dashboard</p>
+          <h1>Manage cruise line and fleet data from a deployed full-stack application</h1>
+          <p class="hero-copy">
+            Cruise Explorer provides a production-style dashboard for viewing, searching,
+            creating, and validating cruise data backed by a Node, Express, PostgreSQL,
+            and Drizzle API.
+          </p>
 
-      <div class="hero-actions" id="stacks" data-cy="hero-actions">
-        <button onclick="selectStack('vanilla')" data-cy="stack-vanilla-button">Cruise Explorer Dashboard</button>
-        <button class="stack-button" data-stack="testing" data-cy="stack-testing-button">SQA Automation Focus</button>
-        <button class="stack-button" data-stack="deployment" data-cy="stack-deployment-button">CI / CD Deployment</button>
+          <div class="hero-cta-row" data-cy="hero-cta-row">
+            <a class="button-link primary" href="#add-cruise-line-heading" data-cy="hero-add-cruise-line-link">Add Cruise Line</a>
+            <a class="button-link primary" href="#cruise-line-results" data-cy="hero-view-cruise-lines-link">View Cruise Lines</a>
+          </div>
+        </div>
+
+        <aside class="dashboard-summary-card" aria-label="Application summary" data-cy="dashboard-summary-card">
+          <p class="eyebrow">Live App Capabilities</p>
+          <h2>Portfolio-ready delivery pipeline</h2>
+          <div class="summary-grid">
+            <div class="summary-item" data-cy="summary-item-live-demo">
+              <strong>Live</strong>
+              <span>Render deployment</span>
+            </div>
+            <div class="summary-item" data-cy="summary-item-database">
+              <strong>PostgreSQL</strong>
+              <span>Managed database</span>
+            </div>
+            <div class="summary-item" data-cy="summary-item-testing">
+              <strong>CI/CD</strong>
+              <span>Gated deploy workflow</span>
+            </div>
+            <div class="summary-item" data-cy="summary-item-crud">
+              <strong>CRUD</strong>
+              <span>Create workflow online</span>
+            </div>
+          </div>
+        </aside>
       </div>
-
-      <article class="stack-card" id="stack-card" data-cy="stack-card">
-        <h2>Cruise Explorer Dashboard</h2>
-        <p>
-          A deployed full-stack portfolio application demonstrating API integration,
-          PostgreSQL persistence, automated testing, CI/CD workflows, and
-          enterprise-style Software Quality Engineering practices.
-        </p>
-      </article>    
     </section>
   </header>
 
@@ -118,6 +138,8 @@
           </div>
         </form>
       </section>
+
+      <div id="cruise-line-results" class="scroll-anchor" data-cy="cruise-line-results-anchor"></div>
 
       <div class="toolbar">
         <input id="search-input" type="search" placeholder="Search cruise lines..." data-cy="cruise-search-input" />

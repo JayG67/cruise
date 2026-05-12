@@ -3,16 +3,21 @@ export const selectors = {
     home: '[data-cy="home-section"]',
     primaryNav: '[data-cy="primary-navigation"]',
     brandLink: '[data-cy="brand-link"]',
-    stacksLink: '[data-cy="nav-stacks-link"]',
+    dashboardLink: '[data-cy="nav-dashboard-link"]',
+    sqaControlsLink: '[data-cy="nav-sqa-controls-link"]',
     cruiseLinesLink: '[data-cy="nav-cruise-lines-link"]',
     aboutLink: '[data-cy="nav-about-link"]'
   },
   hero: {
-    actions: '[data-cy="hero-actions"]',
-    vanillaButton: '[data-cy="stack-vanilla-button"]',
-    testingButton: '[data-cy="stack-testing-button"]',
-    deploymentButton: '[data-cy="stack-deployment-button"]',
-    stackCard: '[data-cy="stack-card"]'
+    dashboard: '[data-cy="dashboard-hero"]',
+    ctaRow: '[data-cy="hero-cta-row"]',
+    viewCruiseLinesLink: '[data-cy="hero-view-cruise-lines-link"]',
+    addCruiseLineLink: '[data-cy="hero-add-cruise-line-link"]',
+    summaryCard: '[data-cy="dashboard-summary-card"]',
+    liveDemoSummary: '[data-cy="summary-item-live-demo"]',
+    databaseSummary: '[data-cy="summary-item-database"]',
+    testingSummary: '[data-cy="summary-item-testing"]',
+    crudSummary: '[data-cy="summary-item-crud"]'
   },  
   createCruiseLine: {
     panel: '[data-cy="create-cruise-line-panel"]',
