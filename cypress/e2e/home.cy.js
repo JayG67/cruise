@@ -39,7 +39,7 @@ describe('Cruise Explorer home page', () => {
   it('loads the main portfolio homepage sections', () => {
     cy.contains('Cruise Explorer').should('be.visible')
     cy.contains('Cruise Operations Dashboard').should('be.visible')
-    cy.contains('Manage cruise line and fleet data from a deployed full-stack application.').should('be.visible')
+    cy.contains('Manage cruise line and fleet data from a deployed full-stack application').should('be.visible')
     cy.contains('Cruise Lines').should('be.visible')
     cy.contains('Add a Cruise Line').should('be.visible')
     cy.contains('Why this project matters').should('be.visible')
