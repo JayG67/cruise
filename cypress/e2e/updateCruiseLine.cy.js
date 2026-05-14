@@ -1,90 +1,23 @@
 import { selectors } from '../support/selectors'
-
-const royalCruiseLineId = '11111111-1111-1111-1111-111111111111'
-const mscCruiseLineId = '22222222-2222-2222-2222-222222222222'
-const iconShipId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
-const utopiaShipId = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'
-
-const cruiseLines = [
-  {
-    id: royalCruiseLineId,
-    name: 'Royal Caribbean International',
-    country: 'United States',
-    website: 'https://www.royalcaribbean.com'
-  },
-  {
-    id: mscCruiseLineId,
-    name: 'MSC Cruises',
-    country: 'Switzerland',
-    website: 'https://www.msccruises.com'
-  }
-]
-
-const royalShips = [
-  {
-    id: iconShipId,
-    name: 'Icon of the Seas',
-    cruiseLineId: royalCruiseLineId
-  },
-  {
-    id: utopiaShipId,
-    name: 'Utopia of the Seas',
-    cruiseLineId: royalCruiseLineId
-  }
-]
-
-const mscShips = [
-  {
-    id: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
-    name: 'MSC Seaside',
-    cruiseLineId: mscCruiseLineId
-  }
-]
-
-function mockCruiseLines(body = cruiseLines) {
-  cy.intercept('GET', '/cruise', {
-    statusCode: 200,
-    body
-  }).as('getCruiseLines')
-}
-
-function visitHome(body = cruiseLines) {
-  mockCruiseLines(body)
-  cy.visit('/')
-  cy.wait('@getCruiseLines')
-}
-
-function mockRoyalShips(body = royalShips) {
-  cy.intercept('GET', `/cruise/ships/${royalCruiseLineId}`, {
-    statusCode: 200,
-    body
-  }).as('getRoyalShips')
-}
-
-function mockMscShips(body = mscShips) {
-  cy.intercept('GET', `/cruise/ships/${mscCruiseLineId}`, {
-    statusCode: 200,
-    body
-  }).as('getMscShips')
-}
-
-function openRoyalUpdateForm() {
-  cy.contains(selectors.cruiseLines.card, 'Royal Caribbean International')
-    .find(selectors.cruiseLines.updateButton)
-    .click()
-
-  cy.wait('@getRoyalShips')
-  cy.get(selectors.updateCruiseLine.panel).should('be.visible')
-}
-
-function openMscUpdateForm() {
-  cy.contains(selectors.cruiseLines.card, 'MSC Cruises')
-    .find(selectors.cruiseLines.updateButton)
-    .click()
-
-  cy.wait('@getMscShips')
-  cy.get(selectors.updateCruiseLine.panel).should('be.visible')
-}
+import {
+  royalCruiseLineId,
+  mscCruiseLineId,
+  iconShipId,
+  utopiaShipId,
+  updateCruiseLines as cruiseLines,
+  royalShips,
+  mscShips
+} from '../support/testData'
+import {
+  mockCruiseLines,
+  visitHome,
+  mockRoyalShips,
+  mockMscShips
+} from '../support/apiMocks'
+import {
+  openRoyalUpdateForm,
+  openMscUpdateForm
+} from '../support/workflows'
 
 describe('Update Cruise Line UI', () => {
   beforeEach(() => {

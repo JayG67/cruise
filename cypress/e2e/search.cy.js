@@ -1,70 +1,7 @@
 import { selectors } from '../support/selectors'
-
-const cruiseLines = [
-  {
-    id: '11111111-1111-1111-1111-111111111111',
-    name: 'Royal Caribbean International',
-    country: 'United States',
-    website: 'https://www.royalcaribbean.com'
-  },
-  {
-    id: '22222222-2222-2222-2222-222222222222',
-    name: 'Carnival Cruise Line',
-    country: 'United States',
-    website: 'https://www.carnival.com'
-  },
-  {
-    id: '33333333-3333-3333-3333-333333333333',
-    name: 'MSC Cruises',
-    country: 'Switzerland',
-    website: 'https://www.msccruises.com'
-  },
-  {
-    id: '44444444-4444-4444-4444-444444444444',
-    name: 'Disney Cruise Line',
-    country: 'United States',
-    website: 'https://disneycruise.disney.go.com'
-  },
-  {
-    id: '55555555-5555-5555-5555-555555555555',
-    name: 'Margaritaville at Sea',
-    country: 'United States',
-    website: 'https://margaritavilleatsea.com'
-  },
-  {
-    id: '66666666-6666-6666-6666-666666666666',
-    name: 'AIDA Cruises',
-    country: 'Germany',
-    website: 'https://www.aida.de'
-  },
-  {
-    id: '77777777-7777-7777-7777-777777777777',
-    name: 'No Country Cruise Line',
-    country: null,
-    website: null
-  },
-  {
-    id: '88888888-8888-8888-8888-888888888888',
-    name: 'Test & Demo Cruises',
-    country: 'Curaçao',
-    website: null
-  }
-]
-
-function visitSearchPage(cruiseLineList = cruiseLines) {
-  cy.intercept('GET', '/cruise', {
-    statusCode: 200,
-    body: cruiseLineList
-  }).as('getCruiseLines')
-
-  cy.visit('/')
-  cy.wait('@getCruiseLines')
-  cy.get(selectors.cruiseLines.card).should('have.length', cruiseLineList.length)
-}
-
-function visibleCruiseCards() {
-  return cy.get(selectors.cruiseLines.card)
-}
+import { searchCruiseLines as cruiseLines } from '../support/testData'
+import { visitSearchPage } from '../support/apiMocks'
+import { visibleCruiseCards } from '../support/assertions'
 
 describe('Cruise Explorer search UI', () => {
   beforeEach(() => {

@@ -3,9 +3,11 @@ require('dotenv/config')
 const { drizzle } = require('drizzle-orm/node-postgres')
 const { Pool } = require('pg')
 
+const defaultLocalDatabaseUrl = 'postgres://postgres:password@127.0.0.1:5433/cruise'
+
 const connectionString =
   process.env.DATABASE_URL ||
-  'postgres://postgres:password@localhost:5432/cruise'
+  defaultLocalDatabaseUrl
 
 const pool = new Pool({
   connectionString
@@ -15,3 +17,4 @@ const db = drizzle(pool)
 
 module.exports = db
 module.exports.pool = pool
+module.exports.connectionString = connectionString

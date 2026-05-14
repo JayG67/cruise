@@ -1,132 +1,25 @@
 import { selectors } from '../support/selectors'
-
-const royalCruiseLineId = '11111111-1111-1111-1111-111111111111'
-const mscCruiseLineId = '22222222-2222-2222-2222-222222222222'
-const norwegianCruiseLineId = '33333333-3333-3333-3333-333333333333'
-const disneyCruiseLineId = '44444444-4444-4444-4444-444444444444'
-
-const cruiseLines = [
-  {
-    id: royalCruiseLineId,
-    name: 'Royal Caribbean International',
-    country: 'United States',
-    website: 'https://www.royalcaribbean.com'
-  },
-  {
-    id: mscCruiseLineId,
-    name: 'MSC Cruises',
-    country: 'Switzerland',
-    website: 'https://www.msccruises.com'
-  },
-  {
-    id: norwegianCruiseLineId,
-    name: 'Norwegian Cruise Line',
-    country: 'United States',
-    website: 'https://www.ncl.com'
-  }
-]
-
-const afterRoyalDelete = [
-  {
-    id: mscCruiseLineId,
-    name: 'MSC Cruises',
-    country: 'Switzerland',
-    website: 'https://www.msccruises.com'
-  },
-  {
-    id: norwegianCruiseLineId,
-    name: 'Norwegian Cruise Line',
-    country: 'United States',
-    website: 'https://www.ncl.com'
-  }
-]
-
-const afterMscDelete = [
-  {
-    id: royalCruiseLineId,
-    name: 'Royal Caribbean International',
-    country: 'United States',
-    website: 'https://www.royalcaribbean.com'
-  },
-  {
-    id: norwegianCruiseLineId,
-    name: 'Norwegian Cruise Line',
-    country: 'United States',
-    website: 'https://www.ncl.com'
-  }
-]
-
-const royalShips = [
-  {
-    id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-    name: 'Icon of the Seas',
-    cruiseLineId: royalCruiseLineId
-  },
-  {
-    id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
-    name: 'Utopia of the Seas',
-    cruiseLineId: royalCruiseLineId
-  }
-]
-
-const mscShips = [
-  {
-    id: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
-    name: 'MSC Seaside',
-    cruiseLineId: mscCruiseLineId
-  }
-]
-
-function visitWithCruiseLines(body = cruiseLines) {
-  cy.intercept('GET', '/cruise', {
-    statusCode: 200,
-    body
-  }).as('getCruiseLines')
-
-  cy.visit('/')
-  cy.wait('@getCruiseLines')
-}
-
-function visitWithCruiseLineReload(initialBody, reloadedBody) {
-  let getCruiseRequestCount = 0
-
-  cy.intercept('GET', '/cruise', (req) => {
-    getCruiseRequestCount += 1
-    req.reply({
-      statusCode: 200,
-      body: getCruiseRequestCount === 1 ? initialBody : reloadedBody
-    })
-  }).as('getCruiseLines')
-
-  cy.visit('/')
-  cy.wait('@getCruiseLines')
-}
-
-function stubConfirm(confirmed = true) {
-  cy.window().then((win) => {
-    cy.stub(win, 'confirm').returns(confirmed).as('confirmDialog')
-  })
-}
-
-function clickDeleteForCruiseLine(cruiseLineName) {
-  cy.contains(selectors.cruiseLines.card, cruiseLineName)
-    .find(selectors.cruiseLines.deleteButton)
-    .click()
-}
-
-function clickRoyalDelete() {
-  clickDeleteForCruiseLine('Royal Caribbean International')
-}
-
-function stubSuccessfulRoyalDelete() {
-  cy.intercept('DELETE', `/cruise/cruise-line/${royalCruiseLineId}`, (req) => {
-    expect(req.method).to.equal('DELETE')
-    req.reply({
-      statusCode: 200,
-      body: { message: 'Cruise line deleted successfully' }
-    })
-  }).as('deleteRoyalCruiseLine')
-}
+import {
+  royalCruiseLineId,
+  mscCruiseLineId,
+  norwegianCruiseLineId,
+  disneyCruiseLineId,
+  deleteCruiseLines as cruiseLines,
+  afterRoyalDelete,
+  afterMscDelete,
+  royalShips,
+  mscShips
+} from '../support/testData'
+import {
+  visitWithCruiseLines,
+  visitWithCruiseLineReload,
+  stubSuccessfulRoyalDelete
+} from '../support/apiMocks'
+import {
+  stubConfirm,
+  clickDeleteForCruiseLine,
+  clickRoyalDelete
+} from '../support/workflows'
 
 describe('Delete Cruise Line UI', () => {
   it('renders a delete action for every cruise line card', () => {

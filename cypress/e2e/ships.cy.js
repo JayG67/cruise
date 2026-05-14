@@ -1,71 +1,13 @@
 import { selectors } from '../support/selectors'
-
-const cruiseLines = [
-  {
-    id: '11111111-1111-1111-1111-111111111111',
-    name: 'Royal Caribbean International',
-    country: 'United States',
-    website: 'https://www.royalcaribbean.com'
-  },
-  {
-    id: '22222222-2222-2222-2222-222222222222',
-    name: 'Carnival Cruise Line',
-    country: 'United States',
-    website: 'https://www.carnival.com'
-  },
-  {
-    id: '33333333-3333-3333-3333-333333333333',
-    name: 'Empty Fleet Line',
-    country: 'United States',
-    website: null
-  },
-  {
-    id: '44444444-4444-4444-4444-444444444444',
-    name: 'Unsafe Demo Line',
-    country: 'Test Country',
-    website: null
-  }
-]
-
-const shipMap = {
-  [cruiseLines[0].id]: [
-    { id: 'ship-1', name: 'Icon of the Seas', cruiseLineId: cruiseLines[0].id },
-    { id: 'ship-2', name: 'Wonder of the Seas', cruiseLineId: cruiseLines[0].id }
-  ],
-  [cruiseLines[1].id]: [
-    { id: 'ship-3', name: 'Mardi Gras', cruiseLineId: cruiseLines[1].id },
-    { id: 'ship-4', name: 'Carnival Celebration', cruiseLineId: cruiseLines[1].id },
-    { id: 'ship-5', name: 'Carnival Jubilee', cruiseLineId: cruiseLines[1].id }
-  ],
-  [cruiseLines[2].id]: [],
-  [cruiseLines[3].id]: [
-    { id: 'ship-6', name: '<img src=x onerror=alert(1)> Ship', cruiseLineId: cruiseLines[3].id }
-  ]
-}
-
-function visitShipsPage() {
-  cy.intercept('GET', '/cruise', {
-    statusCode: 200,
-    body: cruiseLines
-  }).as('getCruiseLines')
-
-  cy.visit('/')
-  cy.wait('@getCruiseLines')
-  cy.get(selectors.cruiseLines.card).should('have.length', cruiseLines.length)
-}
-
-function mockShipsFor(cruiseLine, response = shipMap[cruiseLine.id]) {
-  cy.intercept('GET', `/cruise/ships/${cruiseLine.id}`, {
-    statusCode: 200,
-    body: response
-  }).as(`getShips-${cruiseLine.id}`)
-}
-
-function clickViewShips(cruiseLineName) {
-  cy.contains(selectors.cruiseLines.card, cruiseLineName)
-    .find(selectors.cruiseLines.viewShipsButton)
-    .click()
-}
+import {
+  shipsCruiseLines as cruiseLines,
+  shipMap
+} from '../support/testData'
+import {
+  visitShipsPage,
+  mockShipsFor
+} from '../support/apiMocks'
+import { clickViewShips } from '../support/workflows'
 
 describe('Cruise Explorer ship lookup UI', () => {
   beforeEach(() => {

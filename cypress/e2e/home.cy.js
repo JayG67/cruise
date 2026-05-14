@@ -1,35 +1,6 @@
 import { selectors } from '../support/selectors'
-
-const cruiseLines = [
-  {
-    id: '11111111-1111-1111-1111-111111111111',
-    name: 'Royal Caribbean International',
-    country: 'United States',
-    website: 'https://www.royalcaribbean.com'
-  },
-  {
-    id: '22222222-2222-2222-2222-222222222222',
-    name: 'MSC Cruises',
-    country: 'Switzerland',
-    website: 'https://www.msccruises.com'
-  },
-  {
-    id: '33333333-3333-3333-3333-333333333333',
-    name: 'No Country Cruise Line',
-    country: null,
-    website: null
-  }
-]
-
-function visitHomeWithCruiseLines(cruiseLineList = cruiseLines) {
-  cy.intercept('GET', '/cruise', {
-    statusCode: 200,
-    body: cruiseLineList
-  }).as('getCruiseLines')
-
-  cy.visit('/')
-  cy.wait('@getCruiseLines')
-}
+import { homeCruiseLines as cruiseLines } from '../support/testData'
+import { visitHomeWithCruiseLines } from '../support/apiMocks'
 
 describe('Cruise Explorer home page', () => {
   beforeEach(() => {

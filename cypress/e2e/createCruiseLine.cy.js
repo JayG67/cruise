@@ -1,38 +1,7 @@
 import { selectors } from '../support/selectors'
-
-const initialCruiseLines = [
-  {
-    id: '11111111-1111-1111-1111-111111111111',
-    name: 'Royal Caribbean International',
-    country: 'United States',
-    website: 'https://www.royalcaribbean.com'
-  }
-]
-
-function visitWithMockedCruiseLines(cruiseLineList = [...initialCruiseLines]) {
-  cy.intercept('GET', '/cruise', req => {
-    req.reply({
-      statusCode: 200,
-      body: cruiseLineList
-    })
-  }).as('getCruiseLines')
-
-  cy.visit('/')
-  cy.wait('@getCruiseLines')
-
-  return cy.wrap(cruiseLineList, { log: false })
-}
-
-function fillCruiseLineForm({ name, country, website, ships = [] }) {
-  if (name !== undefined) cy.get(selectors.createCruiseLine.nameInput).clear().type(name)
-  if (country !== undefined) cy.get(selectors.createCruiseLine.countryInput).clear().type(country)
-  if (website !== undefined) cy.get(selectors.createCruiseLine.websiteInput).clear().type(website)
-
-  ships.forEach((shipName, index) => {
-    if (index > 0) cy.get(selectors.createCruiseLine.addShipButton).click()
-    cy.get(selectors.createCruiseLine.shipNameInput).eq(index).clear().type(shipName)
-  })
-}
+import { initialCruiseLines } from '../support/testData'
+import { visitWithMockedCruiseLines } from '../support/apiMocks'
+import { fillCruiseLineForm } from '../support/forms'
 
 describe('Create Cruise Line UI', () => {
   beforeEach(() => {

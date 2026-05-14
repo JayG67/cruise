@@ -1,44 +1,9 @@
 import { selectors } from '../support/selectors'
-
-const dirtyCruiseLines = [
-  {
-    id: '11111111-1111-1111-1111-111111111111',
-    name: 'Dirty Demo Cruise Line',
-    country: 'United States',
-    website: 'https://example.com'
-  },
-  {
-    id: '22222222-2222-2222-2222-222222222222',
-    name: 'Temporary Test Line',
-    country: 'Canada',
-    website: null
-  }
-]
-
-const seedCruiseLines = [
-  {
-    id: '33333333-3333-3333-3333-333333333333',
-    name: 'Royal Caribbean International',
-    country: 'United States',
-    website: 'https://www.royalcaribbean.com'
-  },
-  {
-    id: '44444444-4444-4444-4444-444444444444',
-    name: 'Carnival Cruise Line',
-    country: 'United States',
-    website: 'https://www.carnival.com'
-  }
-]
-
-function visitWithDirtyData() {
-  cy.intercept('GET', '/cruise', {
-    statusCode: 200,
-    body: dirtyCruiseLines
-  }).as('getDirtyCruiseLines')
-
-  cy.visit('/')
-  cy.wait('@getDirtyCruiseLines')
-}
+import {
+  dirtyCruiseLines,
+  seedCruiseLines
+} from '../support/testData'
+import { visitWithDirtyData } from '../support/apiMocks'
 
 describe('Reset Demo Data UI', () => {
   it('renders a reset demo data control with explanatory copy', () => {
