@@ -13,6 +13,7 @@
     "unitTests": "jest tests/unit",
     "integrationTests": "jest --config jest.integration.config.js --runInBand",
     "test": "npm run unitTests && npm run integrationTests && npm run uiTests",
+    "test:all": "npm run test && npm run perf:smoke:local",
     "coverage": "jest --coverage --runInBand",
     "unitTestsWatch": "jest tests/unit --watchAll",
     "uiTests:open": "start-server-and-test start http://localhost:8000 \"npm run cypress:open\"",
@@ -23,7 +24,10 @@
     "db:verify:test": "node scripts/verify-test-db-connection.js",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
-    "db:reset": "docker compose down -v && docker compose up -d"
+    "db:reset": "docker compose down -v && docker compose up -d",
+    "perf:smoke": "k6 run performance/cruise-api-smoke.js",
+    "perf:smoke:local": "start-server-and-test start http://localhost:8000 perf:smoke",
+    "perf:smoke:ci": "start-server-and-test start:ci http://localhost:8000 perf:smoke"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

@@ -1,4 +1,4 @@
-# 🚢 Cruise Explorer
+d# 🚢 Cruise Explorer
 
 <div align="center">
 
@@ -8,6 +8,7 @@
 [![Coverage](https://img.shields.io/badge/coverage-enforced-green)](https://github.com/JayG67/cruise)
 [![Live Demo](https://img.shields.io/badge/live-demo-brightgreen)](https://cruise-explorer.onrender.com/)
 [![Deployment](https://img.shields.io/badge/render-deployed-blue)](https://cruise-explorer.onrender.com/)
+[![Performance](https://img.shields.io/badge/k6-performance%20smoke-purple)](./performance/cruise-api-smoke.js)
 
 ## 🌐 Live Production Application
 
@@ -17,12 +18,58 @@
 
 ---
 
+# ⚡ Quick Start
+
+## Run The Full Application Locally
+
+```bash
+npm install
+npm start
+```
+
+Application:
+
+```text
+http://localhost:8000
+```
+
+---
+
+## Run Standard Validation
+
+```bash
+npm test
+```
+
+Runs:
+
+* Unit tests
+* Integration tests
+* Cypress UI tests
+
+---
+
+## Run Full Pre-Push Validation
+
+```bash
+npm run test:all
+```
+
+Runs:
+
+* Unit tests
+* Integration tests
+* Cypress UI tests
+* k6 performance smoke tests
+
+---
+
 # 📌 What This Repository Demonstrates
 
 This repository is intentionally designed as a:
 
 ```text
-Senior / Principal Software Quality Engineering Portfolio Project
+Senior-Level Software Quality Engineering Portfolio Project
 ```
 
 It demonstrates:
@@ -37,6 +84,7 @@ It demonstrates:
 * Maintainable automation design
 * Quality-first system architecture
 * Production-style deployment workflows
+* Performance smoke testing with k6
 * Incremental feature delivery with expanding regression coverage
 
 Unlike a tutorial or sample project, this application evolved incrementally through:
@@ -66,6 +114,7 @@ how an experienced SQA engineer approaches system quality end-to-end
 * Continuous deployment enabled
 * CI-gated deployments
 * Infrastructure-as-code using `render.yaml`
+* Dockerized local PostgreSQL infrastructure
 
 ---
 
@@ -93,6 +142,28 @@ how an experienced SQA engineer approaches system quality end-to-end
 * CRUD workflow testing
 * UI failure-path validation
 * Deterministic frontend validation
+
+---
+
+## ✅ Performance Smoke Testing
+
+* k6 API performance smoke coverage
+* CI-safe response-time thresholds
+* Success-rate and JSON-response checks
+* Core API workflow coverage for health, cruise lines, and ship lookup
+* Environment-driven `BASE_URL` support for local, CI, and deployed targets
+
+The performance test is intentionally lightweight. It is designed to catch obvious response-time or availability regressions without creating a brittle or expensive load-testing process.
+
+```bash
+npm run perf:smoke
+```
+
+Run against the live deployment:
+
+```bash
+BASE_URL=https://cruise-explorer.onrender.com npm run perf:smoke
+```
 
 ---
 
@@ -139,6 +210,17 @@ Live Production Application
 ---
 
 # 🖥️ Application Preview
+
+> 📸 Future enhancement:
+>
+> This repository will continue expanding with:
+>
+> * application screenshots
+> * CI pipeline screenshots
+> * Cypress execution screenshots
+> * k6 performance output examples
+> * architecture diagrams
+> * animated workflow demonstrations
 
 The application currently includes:
 
@@ -192,6 +274,7 @@ PostgreSQL
 * Jest
 * Supertest
 * Cypress
+* k6
 * GitHub Actions
 
 ## Deployment & Infrastructure
@@ -406,6 +489,40 @@ for:
 
 ---
 
+## k6 Performance Smoke Tests
+
+Run:
+
+```bash
+npm run perf:smoke
+```
+
+Or run complete validation:
+
+```bash
+npm run test:all
+```
+
+Validates:
+
+* API responsiveness
+* health endpoint availability
+* cruise endpoint stability
+* ship lookup performance
+* JSON contract responses
+* response-time thresholds
+* CI-safe performance validation
+
+Thresholds:
+
+```js
+http_req_failed: ['rate<0.01']
+http_req_duration: ['p(95)<500']
+checks: ['rate>0.99']
+```
+
+---
+
 # 🧩 Cypress Selector Architecture
 
 The Cypress suite uses:
@@ -444,10 +561,26 @@ for:
 * unit test execution
 * integration test execution
 * Cypress execution
+* k6 performance smoke validation
 * coverage enforcement
 * automated validation
 
 All deployments are protected by CI validation.
+
+---
+
+## ✅ Layered Validation Workflow
+
+This repository intentionally separates testing into distinct quality layers.
+
+| Validation Layer | Purpose |
+|---|---|
+| Unit Tests | Business-rule and validation isolation |
+| Integration Tests | PostgreSQL-backed API validation |
+| Cypress UI Tests | Full browser workflow validation |
+| k6 Performance Smoke Tests | API responsiveness and availability validation |
+
+This layered architecture mirrors real-world enterprise quality engineering practices where different validation layers protect against different classes of defects.
 
 ---
 
@@ -490,6 +623,7 @@ cruise/
 ├── db/
 ├── data/
 ├── public/
+├── performance/
 ├── tests/
 │   ├── unit/
 │   └── integration/
@@ -513,6 +647,14 @@ cruise/
 
 ```bash
 npm install
+```
+
+---
+
+## Install k6 (macOS)
+
+```bash
+brew install k6
 ```
 
 ---
@@ -625,6 +767,7 @@ This repository emphasizes:
 * deployment reliability
 * CI/CD discipline
 * infrastructure-aware development
+* deterministic test architecture
 * quality-first system design
 
 ---
@@ -645,7 +788,7 @@ This repository emphasizes:
 * Accessibility testing
 * Visual regression testing
 * Cross-browser Playwright coverage
-* Performance testing
+* Advanced load and stress testing
 * Security scanning
 
 ---
@@ -670,13 +813,4 @@ This project was intentionally built to demonstrate:
 * enterprise QA engineering practices
 * modern automation architecture
 * maintainable test design
-* full-stack engineering capability
-* CI/CD deployment workflows
-* production-minded system design
-
----
-
-# 📄 License
-
-ISC
-
+* full-stack engineering cap
