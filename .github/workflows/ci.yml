@@ -164,6 +164,7 @@ jobs:
 
       - name: Run k6 performance smoke test
         run: npm run perf:smoke:ci
+
   lighthouse-mobile-audit:
     name: Lighthouse Mobile Quality Gate
     runs-on: ubuntu-latest
@@ -208,7 +209,7 @@ jobs:
         run: npm run db:verify:test
 
       - name: Run Lighthouse mobile quality gate
-        run: npm run lighthouse:ci:local
+        run: npm run lighthouse:ci:ci
 
       - name: Upload Lighthouse reports
         if: always()

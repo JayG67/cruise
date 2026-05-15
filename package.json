@@ -13,7 +13,7 @@
     "unitTests": "jest tests/unit",
     "integrationTests": "jest --config jest.integration.config.js --runInBand",
     "test": "npm run unitTests && npm run integrationTests && npm run uiTests",
-    "test:all": "npm run test && npm run perf:smoke:local && npm run lighthouse:mobile:local",
+    "test:all": "npm run test && npm run perf:smoke:local && npm run lighthouse:ci:local",
     "coverage": "jest --coverage --runInBand",
     "unitTestsWatch": "jest tests/unit --watchAll",
     "uiTests:open": "start-server-and-test start http://localhost:8000 \"npm run cypress:open\"",
@@ -28,8 +28,12 @@
     "perf:smoke": "k6 run performance/cruise-api-smoke.js",
     "perf:smoke:local": "start-server-and-test start http://localhost:8000 perf:smoke",
     "perf:smoke:ci": "start-server-and-test start:ci http://localhost:8000 perf:smoke",
-    "lighthouse:mobile": "lighthouse http://localhost:8000 --form-factor=mobile --screenEmulation.mobile=true --only-categories=performance,accessibility,best-practices,seo --chrome-flags=\"--headless\" --output html --output json --output-path ./lighthouse-report",
-    "lighthouse:mobile:local": "start-server-and-test start http://localhost:8000 lighthouse:mobile"  },
+    "lighthouse:mobile": "lighthouse http://localhost:8000 --form-factor=mobile --screenEmulation.mobile=true --only-categories=performance,accessibility,best-practices,seo --chrome-flags=\"--headless\" --output html --output json --output-path ./lighthouse-report --quiet --no-enable-error-reporting",
+    "lighthouse:mobile:local": "start-server-and-test start http://localhost:8000 lighthouse:mobile",
+    "lighthouse:ci": "lhci autorun",
+    "lighthouse:ci:local": "start-server-and-test start http://localhost:8000 lighthouse:ci",
+    "lighthouse:ci:ci": "start-server-and-test start:ci http://localhost:8000 lighthouse:ci"
+  },
   "dependencies": {
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
