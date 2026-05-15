@@ -7,18 +7,18 @@
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <header class="hero" id="home" data-cy="home-section">
-    <nav class="nav-bar" data-cy="primary-navigation">
-      <a class="brand" href="#home" data-cy="brand-link">Cruise Explorer</a>
+  <header class="hero" id="home" data-cy="home-section" data-testid="home-section">
+    <nav class="nav-bar" data-cy="primary-navigation" data-testid="primary-navigation">
+      <a class="brand" href="#home" data-cy="brand-link" data-testid="brand-link">Cruise Explorer</a>
       <div class="nav-links">
-        <a href="#dashboard" data-cy="nav-dashboard-link">Dashboard</a>
-        <a href="#cruise-lines" data-cy="nav-cruise-lines-link">Cruise Lines</a>
-        <a href="#testPanel" data-cy="nav-sqa-controls-link">SQA Controls</a>
-        <a href="#about" data-cy="nav-about-link">About</a>
+        <a href="#dashboard" data-cy="nav-dashboard-link" data-testid="nav-dashboard-link">Dashboard</a>
+        <a href="#cruise-lines" data-cy="nav-cruise-lines-link" data-testid="nav-cruise-lines-link">Cruise Lines</a>
+        <a href="#testPanel" data-cy="nav-sqa-controls-link" data-testid="nav-sqa-controls-link">SQA Controls</a>
+        <a href="#about" data-cy="nav-about-link" data-testid="nav-about-link">About</a>
       </div>
     </nav>
 
-    <section class="hero-content" id="dashboard" data-cy="dashboard-hero">
+    <section class="hero-content" id="dashboard" data-cy="dashboard-hero" data-testid="dashboard-hero">
       <div class="hero-layout refined-hero-layout">
         <div class="hero-copy-block">
           <p class="eyebrow">Cruise Operations Dashboard</p>
@@ -29,16 +29,16 @@
             CI/CD deployment, and enterprise-grade automated testing.
           </p>
 
-          <div class="hero-cta-row" data-cy="hero-cta-row">
-            <a class="button-link primary" href="#add-cruise-line-heading" data-cy="hero-add-cruise-line-link">Add Cruise Line</a>
-            <a class="button-link primary" href="#cruise-line-results" data-cy="hero-view-cruise-lines-link">Explore Fleet</a>
+          <div class="hero-cta-row" data-cy="hero-cta-row" data-testid="hero-cta-row">
+            <a class="button-link primary" href="#add-cruise-line-heading" data-cy="hero-add-cruise-line-link" data-testid="hero-add-cruise-line-link">Add Cruise Line</a>
+            <a class="button-link primary" href="#cruise-line-results" data-cy="hero-view-cruise-lines-link" data-testid="hero-view-cruise-lines-link">Explore Fleet</a>
           </div>
 
-          <div class="hero-status-pills" aria-label="Application capabilities" data-cy="hero-status-pills">
-            <span data-cy="hero-status-live">Live Deployment</span>
-            <span data-cy="hero-status-database">PostgreSQL</span>
-            <span data-cy="hero-status-cicd">CI/CD Enabled</span>
-            <span data-cy="hero-status-crud">Full CRUD</span>
+          <div class="hero-status-pills" aria-label="Application capabilities" data-cy="hero-status-pills" data-testid="hero-status-pills">
+            <span data-cy="hero-status-live" data-testid="hero-status-live">Live Deployment</span>
+            <span data-cy="hero-status-database" data-testid="hero-status-database">PostgreSQL</span>
+            <span data-cy="hero-status-cicd" data-testid="hero-status-cicd">CI/CD Enabled</span>
+            <span data-cy="hero-status-crud" data-testid="hero-status-crud">Full CRUD</span>
           </div>
         </div>
       </div>
@@ -46,23 +46,23 @@
   </header>
 
   <main>
-    <section class="section fleet-section" id="cruise-lines" data-cy="cruise-lines-section">
+    <section class="section fleet-section" id="cruise-lines" data-cy="cruise-lines-section" data-testid="cruise-lines-section">
       <div class="section-heading dashboard-heading">
         <p class="eyebrow">Fleet Dashboard</p>
         <h2>Cruise Line Directory</h2>
         <p>Search, review, and manage the cruise lines currently available in the live application dataset.</p>
       </div>
 
-      <div id="cruise-line-results" class="scroll-anchor" data-cy="cruise-line-results-anchor"></div>
+      <div id="cruise-line-results" class="scroll-anchor" data-cy="cruise-line-results-anchor" data-testid="cruise-line-results-anchor"></div>
 
       <div class="fleet-toolbar">
-        <input id="search-input" type="search" placeholder="Search cruise lines..." data-cy="cruise-search-input" />
+        <input id="search-input" type="search" placeholder="Search cruise lines..." data-cy="cruise-search-input" data-testid="cruise-search-input" />
       </div>
 
-      <div id="status-message" class="status-message" data-cy="cruise-status-message">Loading cruise lines...</div>
-      <div id="cruise-grid" class="card-grid" data-cy="cruise-grid"></div>
+      <div id="status-message" class="status-message" data-cy="cruise-status-message" data-testid="cruise-status-message">Loading cruise lines...</div>
+      <div id="cruise-grid" class="card-grid" data-cy="cruise-grid" data-testid="cruise-grid"></div>
 
-      <section class="crud-panel update-panel" id="update-cruise-line-panel" aria-labelledby="update-cruise-line-heading" data-cy="update-cruise-line-panel" hidden>
+      <section class="crud-panel update-panel" id="update-cruise-line-panel" aria-labelledby="update-cruise-line-heading" data-cy="update-cruise-line-panel" data-testid="update-cruise-line-panel" hidden>
         <div class="crud-panel-header">
           <div>
             <p class="eyebrow">Update Workflow</p>
@@ -72,8 +72,8 @@
           <span class="crud-badge">UPDATE WORKFLOW</span>
         </div>
 
-        <form id="update-cruise-line-form" class="crud-form" data-cy="update-cruise-line-form">
-          <input id="update-cruise-line-id" name="id" type="hidden" data-cy="update-cruise-line-id-input" />
+        <form id="update-cruise-line-form" class="crud-form" data-cy="update-cruise-line-form" data-testid="update-cruise-line-form">
+          <input id="update-cruise-line-id" name="id" type="hidden" data-cy="update-cruise-line-id-input" data-testid="update-cruise-line-id-input" />
 
           <div class="crud-layout">
             <div class="form-card primary-form-card">
@@ -88,17 +88,17 @@
               <div class="form-grid">
                 <label>
                   <span>Cruise line name <strong aria-hidden="true">*</strong></span>
-                  <input id="update-cruise-line-name" name="name" data-cy="update-cruise-line-name-input" type="text" required maxlength="255" />
+                  <input id="update-cruise-line-name" name="name" data-cy="update-cruise-line-name-input" data-testid="update-cruise-line-name-input" type="text" required maxlength="255" />
                 </label>
 
                 <label>
                   <span>Country</span>
-                  <input id="update-cruise-line-country" name="country" data-cy="update-cruise-line-country-input" type="text" maxlength="255" />
+                  <input id="update-cruise-line-country" name="country" data-cy="update-cruise-line-country-input" data-testid="update-cruise-line-country-input" type="text" maxlength="255" />
                 </label>
 
                 <label class="full-width-field">
                   <span>Website</span>
-                  <input id="update-cruise-line-website" name="website" data-cy="update-cruise-line-website-input" type="url" maxlength="255" />
+                  <input id="update-cruise-line-website" name="website" data-cy="update-cruise-line-website-input" data-testid="update-cruise-line-website-input" type="url" maxlength="255" />
                 </label>
               </div>
             </div>
@@ -112,32 +112,32 @@
                     <p>Rename existing ships, add new ships, or delete ships from this cruise line.</p>
                   </div>
                 </div>
-                <button id="add-update-ship-input-btn" class="secondary dark" type="button" data-cy="add-update-ship-input-button">+ Add Ship</button>
+                <button id="add-update-ship-input-btn" class="secondary dark" type="button" data-cy="add-update-ship-input-button" data-testid="add-update-ship-input-button">+ Add Ship</button>
               </div>
 
-              <div id="update-ship-inputs" class="ship-input-list" data-cy="update-cruise-line-ship-inputs"></div>
+              <div id="update-ship-inputs" class="ship-input-list" data-cy="update-cruise-line-ship-inputs" data-testid="update-cruise-line-ship-inputs"></div>
             </div>
           </div>
 
           <div class="form-footer">
-            <p id="update-cruise-line-message" class="form-message" aria-live="polite" data-cy="update-cruise-line-message"></p>
+            <p id="update-cruise-line-message" class="form-message" aria-live="polite" data-cy="update-cruise-line-message" data-testid="update-cruise-line-message"></p>
             <div class="form-actions">
-              <button id="cancel-update-cruise-line-btn" class="secondary dark" type="button" data-cy="update-cruise-line-cancel-button">Cancel</button>
-              <button id="update-cruise-line-btn" type="submit" data-cy="update-cruise-line-submit-button">Save Updates</button>
+              <button id="cancel-update-cruise-line-btn" class="secondary dark" type="button" data-cy="update-cruise-line-cancel-button" data-testid="update-cruise-line-cancel-button">Cancel</button>
+              <button id="update-cruise-line-btn" type="submit" data-cy="update-cruise-line-submit-button" data-testid="update-cruise-line-submit-button">Save Updates</button>
             </div>
           </div>
         </form>
       </section>
     </section>
 
-    <section class="section create-workflow-section" id="create-workflow" data-cy="create-workflow-section">
+    <section class="section create-workflow-section" id="create-workflow" data-cy="create-workflow-section" data-testid="create-workflow-section">
       <div class="section-heading compact-section-heading">
         <p class="eyebrow">Create Workflow</p>
         <h2>Add New Cruise Data</h2>
         <p>Create a new cruise line and optionally add starter ships in a single workflow.</p>
       </div>
 
-      <section class="crud-panel" aria-labelledby="add-cruise-line-heading" data-cy="create-cruise-line-panel">
+      <section class="crud-panel" aria-labelledby="add-cruise-line-heading" data-cy="create-cruise-line-panel" data-testid="create-cruise-line-panel">
         <div class="crud-panel-header">
           <div>
             <p class="eyebrow">Create Workflow</p>
@@ -147,7 +147,7 @@
           <span class="crud-badge">CREATE WORKFLOW</span>
         </div>
 
-        <form id="create-cruise-line-form" class="crud-form" data-cy="create-cruise-line-form">
+        <form id="create-cruise-line-form" class="crud-form" data-cy="create-cruise-line-form" data-testid="create-cruise-line-form">
           <div class="crud-layout">
             <div class="form-card primary-form-card">
               <div class="form-card-heading">
@@ -161,17 +161,17 @@
               <div class="form-grid">
                 <label>
                   <span>Cruise line name <strong aria-hidden="true">*</strong></span>
-                  <input id="new-cruise-line-name" name="name" data-cy="create-cruise-line-name-input" type="text" placeholder="Holland America Line" required maxlength="255" />
+                  <input id="new-cruise-line-name" name="name" data-cy="create-cruise-line-name-input" data-testid="create-cruise-line-name-input" type="text" placeholder="Holland America Line" required maxlength="255" />
                 </label>
 
                 <label>
                   <span>Country</span>
-                  <input id="new-cruise-line-country" name="country" data-cy="create-cruise-line-country-input" type="text" placeholder="United States" maxlength="255" />
+                  <input id="new-cruise-line-country" name="country" data-cy="create-cruise-line-country-input" data-testid="create-cruise-line-country-input" type="text" placeholder="United States" maxlength="255" />
                 </label>
 
                 <label class="full-width-field">
                   <span>Website</span>
-                  <input id="new-cruise-line-website" name="website" data-cy="create-cruise-line-website-input" type="url" placeholder="https://www.hollandamerica.com" maxlength="255" />
+                  <input id="new-cruise-line-website" name="website" data-cy="create-cruise-line-website-input" data-testid="create-cruise-line-website-input" type="url" placeholder="https://www.hollandamerica.com" maxlength="255" />
                 </label>
               </div>
             </div>
@@ -185,39 +185,39 @@
                     <p>Add ships now, or leave this blank and add ships later.</p>
                   </div>
                 </div>
-                <button id="add-ship-input-btn" class="secondary dark" type="button" data-cy="add-ship-input-button">+ Add Ship</button>
+                <button id="add-ship-input-btn" class="secondary dark" type="button" data-cy="add-ship-input-button" data-testid="add-ship-input-button">+ Add Ship</button>
               </div>
 
-              <div id="new-ship-inputs" class="ship-input-list" data-cy="create-cruise-line-ship-inputs">
+              <div id="new-ship-inputs" class="ship-input-list" data-cy="create-cruise-line-ship-inputs" data-testid="create-cruise-line-ship-inputs">
                 <label>
                   <span>Ship name</span>
-                  <input name="shipName" data-cy="create-cruise-line-ship-name-input" type="text" placeholder="Rotterdam" maxlength="255" />
+                  <input name="shipName" data-cy="create-cruise-line-ship-name-input" data-testid="create-cruise-line-ship-name-input" type="text" placeholder="Rotterdam" maxlength="255" />
                 </label>
               </div>
             </div>
           </div>
 
           <div class="form-footer">
-            <p id="create-cruise-line-message" class="form-message" aria-live="polite" data-cy="create-cruise-line-message"></p>
+            <p id="create-cruise-line-message" class="form-message" aria-live="polite" data-cy="create-cruise-line-message" data-testid="create-cruise-line-message"></p>
             <div class="form-actions">
-              <button id="reset-cruise-line-form-btn" class="secondary dark" type="button" data-cy="create-cruise-line-reset-button">Reset</button>
-              <button id="create-cruise-line-btn" type="submit" data-cy="create-cruise-line-submit-button">Create Cruise Line</button>
+              <button id="reset-cruise-line-form-btn" class="secondary dark" type="button" data-cy="create-cruise-line-reset-button" data-testid="create-cruise-line-reset-button">Reset</button>
+              <button id="create-cruise-line-btn" type="submit" data-cy="create-cruise-line-submit-button" data-testid="create-cruise-line-submit-button">Create Cruise Line</button>
             </div>
           </div>
         </form>
       </section>
     </section>
 
-    <section class="section ships-section" id="ships-panel" hidden data-cy="ships-panel">
+    <section class="section ships-section" id="ships-panel" hidden data-cy="ships-panel" data-testid="ships-panel">
       <div class="section-heading compact-section-heading">
         <p class="eyebrow">Selected Fleet</p>
-        <h2 id="ships-title" data-cy="ships-title">Ships</h2>
+        <h2 id="ships-title" data-cy="ships-title" data-testid="ships-title">Ships</h2>
       </div>
-      <div id="ships-grid" class="card-grid compact" data-cy="ships-grid"></div>
+      <div id="ships-grid" class="card-grid compact" data-cy="ships-grid" data-testid="ships-grid"></div>
     </section>
 
-    <section class="section sqa-section" id="sqa-controls" data-cy="sqa-controls-section">
-      <section class="test-panel quality-console" id="testPanel" data-cy="sqa-test-panel">
+    <section class="section sqa-section" id="sqa-controls" data-cy="sqa-controls-section" data-testid="sqa-controls-section">
+      <section class="test-panel quality-console" id="testPanel" data-cy="sqa-test-panel" data-testid="sqa-test-panel">
         <div class="quality-console-header">
           <div class="quality-console-copy">
             <p class="eyebrow">SQA Test Control Panel</p>
@@ -229,126 +229,126 @@
             </p>
           </div>
 
-          <div class="quality-console-status" data-cy="sqa-console-status-card">
-            <span class="status-dot ready" data-cy="sqa-console-status-dot"></span>
+          <div class="quality-console-status" data-cy="sqa-console-status-card" data-testid="sqa-console-status-card">
+            <span class="status-dot ready" data-cy="sqa-console-status-dot" data-testid="sqa-console-status-dot"></span>
             <div>
               <span class="status-label">Console Status</span>
-              <strong data-cy="sqa-console-status-text">Ready for validation</strong>
+              <strong data-cy="sqa-console-status-text" data-testid="sqa-console-status-text">Ready for validation</strong>
             </div>
           </div>
         </div>
 
-        <div class="quality-action-grid" data-cy="sqa-action-grid">
-          <article class="quality-action-card" data-cy="sqa-action-card">
+        <div class="quality-action-grid" data-cy="sqa-action-grid" data-testid="sqa-action-grid">
+          <article class="quality-action-card" data-cy="sqa-action-card" data-testid="sqa-action-card">
             <div>
               <h3>Health Check</h3>
               <p>Ping the application health endpoint and verify API availability.</p>
             </div>
-            <button id="healthCheckBtn" data-cy="health-check-button">Check API Health</button>
+            <button id="healthCheckBtn" data-cy="health-check-button" data-testid="health-check-button">Check API Health</button>
           </article>
 
-          <article class="quality-action-card" data-cy="sqa-action-card">
+          <article class="quality-action-card" data-cy="sqa-action-card" data-testid="sqa-action-card">
             <div>
               <h3>Data Verification</h3>
               <p>Validate cruise-line payload shape and refresh the visible grid.</p>
             </div>
-            <button id="reloadDataBtn" data-cy="reload-data-button">Verify Cruise Data</button>
+            <button id="reloadDataBtn" data-cy="reload-data-button" data-testid="reload-data-button">Verify Cruise Data</button>
           </article>
 
-          <article class="quality-action-card" data-cy="sqa-action-card">
+          <article class="quality-action-card" data-cy="sqa-action-card" data-testid="sqa-action-card">
             <div>
               <h3>UI Smoke Check</h3>
               <p>Run a focused browser-level check across the core read workflows.</p>
             </div>
-            <button id="uiSmokeTestBtn" data-cy="ui-smoke-test-button">Run UI Smoke Check</button>
+            <button id="uiSmokeTestBtn" data-cy="ui-smoke-test-button" data-testid="ui-smoke-test-button">Run UI Smoke Check</button>
           </article>
 
-          <article class="quality-action-card" data-cy="sqa-action-card">
+          <article class="quality-action-card" data-cy="sqa-action-card" data-testid="sqa-action-card">
             <div>
               <h3>API Contract Check</h3>
               <p>Validate cruise-line and ship response fields against expected contracts.</p>
             </div>
-            <button id="apiContractCheckBtn" data-cy="api-contract-check-button" type="button">Check API Contract</button>
+            <button id="apiContractCheckBtn" data-cy="api-contract-check-button" data-testid="api-contract-check-button" type="button">Check API Contract</button>
           </article>
 
-          <article class="quality-action-card" data-cy="sqa-action-card">
+          <article class="quality-action-card" data-cy="sqa-action-card" data-testid="sqa-action-card">
             <div>
               <h3>Safe CRUD Workflow</h3>
               <p>Create, update, validate, and delete temporary demo records.</p>
             </div>
-            <button id="crudWorkflowCheckBtn" data-cy="crud-workflow-check-button" type="button">Run CRUD Workflow Check</button>
+            <button id="crudWorkflowCheckBtn" data-cy="crud-workflow-check-button" data-testid="crud-workflow-check-button" type="button">Run CRUD Workflow Check</button>
           </article>
 
-          <article class="quality-action-card" data-cy="sqa-action-card">
+          <article class="quality-action-card" data-cy="sqa-action-card" data-testid="sqa-action-card">
             <div>
               <h3>Performance Smoke Check</h3>
               <p>Measure client-side response times for health, cruise, and ship endpoints.</p>
             </div>
-            <button id="performanceSmokeCheckBtn" data-cy="performance-smoke-check-button" type="button">Run Performance Check</button>
+            <button id="performanceSmokeCheckBtn" data-cy="performance-smoke-check-button" data-testid="performance-smoke-check-button" type="button">Run Performance Check</button>
           </article>
 
-          <article class="quality-action-card" data-cy="sqa-action-card">
+          <article class="quality-action-card" data-cy="sqa-action-card" data-testid="sqa-action-card">
             <div>
               <h3>Seed Integrity Check</h3>
               <p>Confirm the demo dataset contains cruise lines and at least one ship lookup.</p>
             </div>
-            <button id="seedIntegrityCheckBtn" data-cy="seed-integrity-check-button" type="button">Check Seed Integrity</button>
+            <button id="seedIntegrityCheckBtn" data-cy="seed-integrity-check-button" data-testid="seed-integrity-check-button" type="button">Check Seed Integrity</button>
           </article>
 
-          <article class="quality-action-card" data-cy="sqa-action-card">
+          <article class="quality-action-card" data-cy="sqa-action-card" data-testid="sqa-action-card">
             <div>
               <h3>Rendering Consistency</h3>
               <p>Compare rendered cruise cards against the in-memory API dataset.</p>
             </div>
-            <button id="renderingConsistencyCheckBtn" data-cy="rendering-consistency-check-button" type="button">Check Rendering</button>
+            <button id="renderingConsistencyCheckBtn" data-cy="rendering-consistency-check-button" data-testid="rendering-consistency-check-button" type="button">Check Rendering</button>
           </article>
 
-          <article class="quality-action-card" data-cy="sqa-action-card">
+          <article class="quality-action-card" data-cy="sqa-action-card" data-testid="sqa-action-card">
             <div>
               <h3>Deployment Diagnostics</h3>
               <p>Report runtime URL, timestamp, health status, and visible data count.</p>
             </div>
-            <button id="deploymentDiagnosticsBtn" data-cy="deployment-diagnostics-button" type="button">Run Deployment Check</button>
+            <button id="deploymentDiagnosticsBtn" data-cy="deployment-diagnostics-button" data-testid="deployment-diagnostics-button" type="button">Run Deployment Check</button>
           </article>
 
-          <article class="quality-action-card destructive-action-card" data-cy="sqa-action-card">
+          <article class="quality-action-card destructive-action-card" data-cy="sqa-action-card" data-testid="sqa-action-card">
             <div>
               <h3>Demo Data Recovery</h3>
               <p>Reset public demo data after CRUD exploration or recruiter testing.</p>
             </div>
-            <button id="resetDemoDataBtn" class="danger subtle-danger" data-cy="reset-demo-data-button" type="button">Reset Demo Data</button>
+            <button id="resetDemoDataBtn" class="danger subtle-danger" data-cy="reset-demo-data-button" data-testid="reset-demo-data-button" type="button">Reset Demo Data</button>
           </article>
         </div>
 
-        <div class="quality-output-panel" data-cy="sqa-output-panel">
+        <div class="quality-output-panel" data-cy="sqa-output-panel" data-testid="sqa-output-panel">
           <div class="quality-output-header">
             <div>
               <p class="eyebrow">Validation Output</p>
               <h3>Latest manual validation result</h3>
             </div>
             <div class="quality-output-actions">
-              <span class="last-run-pill" data-cy="sqa-last-run-label">No manual run yet</span>
-              <button id="clearTestOutputBtn" class="secondary" data-cy="clear-test-output-button">Clear Output</button>
+              <span class="last-run-pill" data-cy="sqa-last-run-label" data-testid="sqa-last-run-label">No manual run yet</span>
+              <button id="clearTestOutputBtn" class="secondary" data-cy="clear-test-output-button" data-testid="clear-test-output-button">Clear Output</button>
             </div>
           </div>
 
-          <p class="demo-reset-note" data-cy="reset-demo-data-note">
+          <p class="demo-reset-note" data-cy="reset-demo-data-note" data-testid="reset-demo-data-note">
             This public demo allows CRUD changes. Use Reset Demo Data to restore the original seed dataset.
           </p>
 
-          <div class="quality-report-links" data-cy="quality-report-links">
-            <a href="https://jayg67.github.io/cruise/" target="_blank" rel="noopener noreferrer" data-cy="latest-quality-dashboard-link">
+          <div class="quality-report-links" data-cy="quality-report-links" data-testid="quality-report-links">
+            <a href="https://jayg67.github.io/cruise/" target="_blank" rel="noopener noreferrer" data-cy="latest-quality-dashboard-link" data-testid="latest-quality-dashboard-link">
               View Quality Dashboard
             </a>
-            <a href="https://jayg67.github.io/cruise/lighthouse/" target="_blank" rel="noopener noreferrer" data-cy="latest-lighthouse-report-link">
+            <a href="https://jayg67.github.io/cruise/lighthouse/" target="_blank" rel="noopener noreferrer" data-cy="latest-lighthouse-report-link" data-testid="latest-lighthouse-report-link">
               View Latest Lighthouse Mobile Report
             </a>
-            <a href="https://jayg67.github.io/cruise/coverage/" target="_blank" rel="noopener noreferrer" data-cy="latest-coverage-report-link">
+            <a href="https://jayg67.github.io/cruise/coverage/" target="_blank" rel="noopener noreferrer" data-cy="latest-coverage-report-link" data-testid="latest-coverage-report-link">
               View Latest Jest Coverage Report
             </a>
           </div>
 
-          <pre id="testOutput" class="test-output" data-cy="test-output">Test output will appear here...</pre>
+          <pre id="testOutput" class="test-output" data-cy="test-output" data-testid="test-output">Test output will appear here...</pre>
         </div>
       </section>
     </section>

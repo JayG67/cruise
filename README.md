@@ -12,6 +12,7 @@
 [![Lighthouse Report](https://img.shields.io/badge/lighthouse-report-orange)](https://jayg67.github.io/cruise/lighthouse/)
 [![Deployment](https://img.shields.io/badge/render-deployed-blue)](https://cruise-explorer.onrender.com/)
 [![Performance](https://img.shields.io/badge/k6-performance%20smoke-purple)](./performance/cruise-api-smoke.js)
+[![Playwright Mobile](https://img.shields.io/badge/playwright-mobile%20testing-45ba4b)](./playwright/mobile/mobile.spec.js)
 
 ## 🌐 Live Production Application
 
@@ -130,6 +131,7 @@ Runs:
 * Jest coverage
 * Integration tests
 * Cypress UI tests
+* Playwright mobile tests
 * k6 performance smoke tests
 * Lighthouse mobile audits
 
@@ -195,6 +197,24 @@ This same report is linked from:
 ```bash
 npm run uiTests
 ```
+
+---
+
+## Run Playwright Mobile Tests
+
+```bash
+npm run playwright:mobile:local
+```
+
+Validates:
+
+* mobile Chrome rendering
+* mobile Safari rendering
+* tablet rendering
+* responsive navigation
+* mobile SQA quality links
+* cruise-card action visibility
+* no horizontal page overflow
 
 ---
 
@@ -470,6 +490,7 @@ PostgreSQL
 * Cypress
 * k6
 * Lighthouse
+* Playwright
 * GitHub Actions
 
 ## Deployment & Infrastructure

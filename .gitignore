@@ -26,3 +26,5 @@ lhci-report/
 github-pages/
 lighthouse-report.report.html
 lighthouse-report.report.json
+playwright-report/
+test-results/
