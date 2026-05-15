@@ -150,13 +150,40 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
     visitHomeWithCruiseLines()
   })
 
-  it('displays the manual validation panel and controls', () => {
+  it('displays the polished SQA quality console and controls', () => {
     cy.contains('SQA Test Control Panel').should('be.visible')
     cy.contains('Manual validation tools for API-driven UI behavior').should('be.visible')
+    cy.contains('quality operations console').should('be.visible')
+
+    cy.get(selectors.testPanel.statusCard).should('be.visible')
+    cy.get(selectors.testPanel.statusText).should('contain.text', 'Ready for validation')
+    cy.get(selectors.testPanel.lastRunLabel).should('contain.text', 'No manual run yet')
+
+    cy.get(selectors.testPanel.actionGrid).should('be.visible')
+    cy.get(selectors.testPanel.actionCard).should('have.length', 10)
+    cy.get(selectors.testPanel.panel).should('not.contain.text', 'Response Time')
+    cy.get(selectors.testPanel.panel).should('contain.text', 'Health Check')
+    cy.get(selectors.testPanel.panel).should('contain.text', 'Data Verification')
+    cy.get(selectors.testPanel.panel).should('contain.text', 'UI Smoke Check')
+    cy.get(selectors.testPanel.panel).should('contain.text', 'API Contract Check')
+    cy.get(selectors.testPanel.panel).should('contain.text', 'Safe CRUD Workflow')
+    cy.get(selectors.testPanel.panel).should('contain.text', 'Performance Smoke Check')
+    cy.get(selectors.testPanel.panel).should('contain.text', 'Seed Integrity Check')
+    cy.get(selectors.testPanel.panel).should('contain.text', 'Rendering Consistency')
+    cy.get(selectors.testPanel.panel).should('contain.text', 'Deployment Diagnostics')
+    cy.get(selectors.testPanel.panel).should('contain.text', 'Demo Data Recovery')
     cy.get(selectors.testPanel.healthCheckButton).should('contain.text', 'Check API Health')
     cy.get(selectors.testPanel.reloadDataButton).should('contain.text', 'Verify Cruise Data')
     cy.get(selectors.testPanel.uiSmokeTestButton).should('contain.text', 'Run UI Smoke Check')
+    cy.get(selectors.testPanel.apiContractCheckButton).should('contain.text', 'Check API Contract')
+    cy.get(selectors.testPanel.crudWorkflowCheckButton).should('contain.text', 'Run CRUD Workflow Check')
+    cy.get(selectors.testPanel.performanceSmokeCheckButton).should('contain.text', 'Run Performance Check')
+    cy.get(selectors.testPanel.seedIntegrityCheckButton).should('contain.text', 'Check Seed Integrity')
+    cy.get(selectors.testPanel.renderingConsistencyCheckButton).should('contain.text', 'Check Rendering')
+    cy.get(selectors.testPanel.deploymentDiagnosticsButton).should('contain.text', 'Run Deployment Check')
+    cy.get(selectors.testPanel.resetDemoDataButton).should('contain.text', 'Reset Demo Data')
     cy.get(selectors.testPanel.clearOutputButton).should('contain.text', 'Clear Output')
+    cy.get(selectors.testPanel.outputPanel).should('be.visible')
     cy.get(selectors.testPanel.output).should('contain.text', 'Test output will appear here')
   })
 
@@ -173,6 +200,8 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
       .should('contain.text', 'API Health Check Result')
       .and('contain.text', '"passed": true')
       .and('contain.text', '"statusCode": 200')
+    cy.get(selectors.testPanel.statusText).should('contain.text', 'Validation passed')
+    cy.get(selectors.testPanel.lastRunLabel).should('contain.text', 'Last run: API Health Check Result')
   })
 
   it('reports a failed API health check when the server returns an error', () => {
@@ -188,6 +217,8 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
       .should('contain.text', 'API Health Check Result')
       .and('contain.text', '"passed": false')
       .and('contain.text', '"statusCode": 503')
+    cy.get(selectors.testPanel.statusText).should('contain.text', 'Validation needs attention')
+    cy.get(selectors.testPanel.lastRunLabel).should('contain.text', 'Last run: API Health Check Result')
   })
 
   it('verifies cruise data and reloads the grid', () => {
@@ -275,6 +306,229 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
       .and('contain.text', '"statusCode": 500')
   })
 
+  it('shows running state while manual health validation is in progress', () => {
+    cy.intercept('GET', '/health', (req) => {
+      req.reply({
+        delay: 500,
+        statusCode: 200,
+        body: { status: 'ok' }
+      })
+    }).as('slowHealthCheck')
+
+    cy.get(selectors.testPanel.healthCheckButton).click()
+    cy.get(selectors.testPanel.healthCheckButton)
+      .should('be.disabled')
+      .and('contain.text', 'Checking...')
+    cy.get(selectors.testPanel.statusText).should('contain.text', 'Running health check')
+
+    cy.wait('@slowHealthCheck')
+    cy.get(selectors.testPanel.healthCheckButton)
+      .should('not.be.disabled')
+      .and('contain.text', 'Check API Health')
+  })
+
+  it('updates console status and last-run metadata after data verification', () => {
+    cy.intercept('GET', '/cruise', {
+      statusCode: 200,
+      body: cruiseLines
+    }).as('sqaCruiseData')
+
+    cy.get(selectors.testPanel.reloadDataButton).click()
+    cy.wait('@sqaCruiseData')
+    cy.wait('@sqaCruiseData')
+
+    cy.get(selectors.testPanel.statusText).should('contain.text', 'Validation passed')
+    cy.get(selectors.testPanel.lastRunLabel).should('contain.text', 'Last run: Cruise Data Verification Result')
+  })
+
+  it('runs an API contract check for cruise lines and ships', () => {
+    cy.intercept('GET', '/cruise', {
+      statusCode: 200,
+      body: cruiseLines
+    }).as('contractCruiseLines')
+
+    cy.intercept('GET', `/cruise/ships/${cruiseLines[0].id}`, {
+      statusCode: 200,
+      body: [{ id: 'ship-1', name: 'Icon of the Seas', cruiseLineId: cruiseLines[0].id }]
+    }).as('contractShips')
+
+    cy.get(selectors.testPanel.apiContractCheckButton).click()
+    cy.wait('@contractCruiseLines')
+    cy.wait('@contractShips')
+
+    cy.get(selectors.testPanel.output)
+      .should('contain.text', 'API Contract Check Result')
+      .and('contain.text', '"passed": true')
+      .and('contain.text', '"requiredFields"')
+      .and('contain.text', '"contractPassed": true')
+    cy.get(selectors.testPanel.lastRunLabel).should('contain.text', 'Last run: API Contract Check Result')
+  })
+
+  it('reports an API contract failure when cruise data is malformed', () => {
+    cy.intercept('GET', '/cruise', {
+      statusCode: 200,
+      body: [{ id: 'bad-record-without-name' }]
+    }).as('badContractCruiseLines')
+
+    cy.intercept('GET', '/cruise/ships/bad-record-without-name', {
+      statusCode: 200,
+      body: []
+    }).as('badContractShips')
+
+    cy.get(selectors.testPanel.apiContractCheckButton).click()
+    cy.wait('@badContractCruiseLines')
+    cy.wait('@badContractShips')
+
+    cy.get(selectors.testPanel.output)
+      .should('contain.text', 'API Contract Check Result')
+      .and('contain.text', '"passed": false')
+      .and('contain.text', '"contractPassed": false')
+    cy.get(selectors.testPanel.statusText).should('contain.text', 'Validation needs attention')
+  })
+
+  it('runs a safe CRUD workflow check and cleans up the temporary record', () => {
+    const temporaryCruiseLine = {
+      id: '99999999-9999-4999-8999-999999999999',
+      name: 'SQA Temporary Cruise Line',
+      country: 'SQA',
+      website: 'https://example.com/sqa-temp'
+    }
+
+    const temporaryShip = {
+      id: '88888888-8888-4888-8888-888888888888',
+      name: 'SQA Temporary Ship',
+      cruiseLineId: temporaryCruiseLine.id
+    }
+
+    cy.intercept('POST', '/cruise/cruise-line', {
+      statusCode: 201,
+      body: temporaryCruiseLine
+    }).as('sqaCreateCruiseLine')
+
+    cy.intercept('PATCH', `/cruise/cruise-line/${temporaryCruiseLine.id}`, {
+      statusCode: 200,
+      body: { ...temporaryCruiseLine, name: 'SQA Temporary Cruise Line Updated' }
+    }).as('sqaUpdateCruiseLine')
+
+    cy.intercept('POST', '/cruise/ship', {
+      statusCode: 201,
+      body: temporaryShip
+    }).as('sqaCreateShip')
+
+    cy.intercept('PATCH', `/cruise/ship/${temporaryShip.id}`, {
+      statusCode: 200,
+      body: { ...temporaryShip, name: 'SQA Temporary Ship Updated' }
+    }).as('sqaUpdateShip')
+
+    cy.intercept('GET', `/cruise/ships/${temporaryCruiseLine.id}`, {
+      statusCode: 200,
+      body: [temporaryShip]
+    }).as('sqaVerifyShips')
+
+    cy.intercept('DELETE', `/cruise/cruise-line/${temporaryCruiseLine.id}`, {
+      statusCode: 200,
+      body: { message: 'Temporary cruise line deleted' }
+    }).as('sqaDeleteCruiseLine')
+
+    cy.intercept('GET', '/cruise', {
+      statusCode: 200,
+      body: cruiseLines
+    }).as('sqaReloadAfterCrud')
+
+    cy.get(selectors.testPanel.crudWorkflowCheckButton).click()
+
+    cy.wait('@sqaCreateCruiseLine')
+    cy.wait('@sqaUpdateCruiseLine')
+    cy.wait('@sqaCreateShip')
+    cy.wait('@sqaUpdateShip')
+    cy.wait('@sqaVerifyShips')
+    cy.wait('@sqaDeleteCruiseLine')
+    cy.wait('@sqaReloadAfterCrud')
+
+    cy.get(selectors.testPanel.output)
+      .should('contain.text', 'Safe CRUD Workflow Check Result')
+      .and('contain.text', '"passed": true')
+      .and('contain.text', '"temporaryRecordCleanedUp": true')
+      .and('contain.text', 'delete temporary cruise line')
+  })
+
+  it('runs a performance smoke check with endpoint timing thresholds', () => {
+    cy.intercept('GET', '/health', {
+      statusCode: 200,
+      body: { status: 'ok' }
+    }).as('performanceHealth')
+
+    cy.intercept('GET', '/cruise', {
+      statusCode: 200,
+      body: cruiseLines
+    }).as('performanceCruiseLines')
+
+    cy.intercept('GET', `/cruise/ships/${cruiseLines[0].id}`, {
+      statusCode: 200,
+      body: [{ id: 'ship-1', name: 'Icon of the Seas', cruiseLineId: cruiseLines[0].id }]
+    }).as('performanceShips')
+
+    cy.get(selectors.testPanel.performanceSmokeCheckButton).click()
+    cy.wait('@performanceHealth')
+    cy.wait('@performanceCruiseLines')
+    cy.wait('@performanceShips')
+
+    cy.get(selectors.testPanel.output)
+      .should('contain.text', 'Performance Smoke Check Result')
+      .and('contain.text', '"passed": true')
+      .and('contain.text', '"durationMs"')
+      .and('contain.text', '"thresholdMs"')
+  })
+
+  it('runs a seed data integrity check', () => {
+    cy.intercept('GET', '/cruise', {
+      statusCode: 200,
+      body: cruiseLines
+    }).as('seedCruiseLines')
+
+    cy.intercept('GET', `/cruise/ships/${cruiseLines[0].id}`, {
+      statusCode: 200,
+      body: [{ id: 'ship-1', name: 'Icon of the Seas', cruiseLineId: cruiseLines[0].id }]
+    }).as('seedShips')
+
+    cy.get(selectors.testPanel.seedIntegrityCheckButton).click()
+    cy.wait('@seedCruiseLines')
+    cy.wait('@seedShips')
+
+    cy.get(selectors.testPanel.output)
+      .should('contain.text', 'Seed Data Integrity Check Result')
+      .and('contain.text', '"passed": true')
+      .and('contain.text', '"cruiseLineCount"')
+      .and('contain.text', '"shipCount"')
+  })
+
+  it('checks frontend rendering consistency against the loaded API data', () => {
+    cy.get(selectors.testPanel.renderingConsistencyCheckButton).click()
+
+    cy.get(selectors.testPanel.output)
+      .should('contain.text', 'Rendering Consistency Check Result')
+      .and('contain.text', '"passed": true')
+      .and('contain.text', `"apiRecordCount": ${cruiseLines.length}`)
+      .and('contain.text', `"renderedCardCount": ${cruiseLines.length}`)
+  })
+
+  it('runs deployment diagnostics with runtime and health metadata', () => {
+    cy.intercept('GET', '/health', {
+      statusCode: 200,
+      body: { status: 'ok' }
+    }).as('deploymentHealth')
+
+    cy.get(selectors.testPanel.deploymentDiagnosticsButton).click()
+    cy.wait('@deploymentHealth')
+
+    cy.get(selectors.testPanel.output)
+      .should('contain.text', 'Deployment Diagnostics Result')
+      .and('contain.text', '"passed": true')
+      .and('contain.text', '"origin"')
+      .and('contain.text', '"timestamp"')
+      .and('contain.text', '"visibleCruiseLineCount"')
+  })
+
   it('clears manual test output', () => {
     cy.intercept('GET', '/health', { statusCode: 200, body: { status: 'ok' } }).as('healthBeforeClear')
 
@@ -284,6 +538,8 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
 
     cy.get(selectors.testPanel.clearOutputButton).click()
     cy.get(selectors.testPanel.output).should('have.text', 'Test output will appear here...')
+    cy.get(selectors.testPanel.statusText).should('contain.text', 'Ready for validation')
+    cy.get(selectors.testPanel.lastRunLabel).should('contain.text', 'No manual run yet')
   })
 })
 

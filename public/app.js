@@ -3,6 +3,12 @@ const testOutput = document.getElementById('testOutput')
 const healthCheckBtn = document.getElementById('healthCheckBtn')
 const reloadDataBtn = document.getElementById('reloadDataBtn')
 const uiSmokeTestBtn = document.getElementById('uiSmokeTestBtn')
+const apiContractCheckBtn = document.getElementById('apiContractCheckBtn')
+const crudWorkflowCheckBtn = document.getElementById('crudWorkflowCheckBtn')
+const performanceSmokeCheckBtn = document.getElementById('performanceSmokeCheckBtn')
+const seedIntegrityCheckBtn = document.getElementById('seedIntegrityCheckBtn')
+const renderingConsistencyCheckBtn = document.getElementById('renderingConsistencyCheckBtn')
+const deploymentDiagnosticsBtn = document.getElementById('deploymentDiagnosticsBtn')
 const resetDemoDataBtn = document.getElementById('resetDemoDataBtn')
 const clearTestOutputBtn = document.getElementById('clearTestOutputBtn')
 
@@ -68,6 +74,40 @@ function writeTestOutput(title, data) {
   if (!testOutput) return
 
   testOutput.textContent = `${title}\n\n${JSON.stringify(data, null, 2)}`
+
+  const passed = data && data.passed === true
+  const failed = data && data.passed === false
+  updateSqaConsoleStatus(
+    passed ? 'pass' : failed ? 'fail' : 'running',
+    passed ? 'Validation passed' : failed ? 'Validation needs attention' : 'Validation running'
+  )
+  updateSqaLastRun(title)
+}
+
+function updateSqaConsoleStatus(status, label) {
+  const statusText = document.querySelector('[data-cy="sqa-console-status-text"]')
+  const statusDot = document.querySelector('[data-cy="sqa-console-status-dot"]')
+
+  if (statusText) statusText.textContent = label
+
+  if (statusDot) {
+    statusDot.className = `status-dot ${status}`.trim()
+  }
+}
+
+function updateSqaLastRun(title) {
+  const lastRunLabel = document.querySelector('[data-cy="sqa-last-run-label"]')
+
+  if (lastRunLabel) {
+    lastRunLabel.textContent = `Last run: ${title}`
+  }
+}
+
+function setSqaButtonLoading(button, isLoading, loadingLabel, defaultLabel) {
+  if (!button) return
+
+  button.disabled = isLoading
+  button.textContent = isLoading ? loadingLabel : defaultLabel
 }
 
 async function loadCruiseLines() {
@@ -644,6 +684,393 @@ async function parseJsonResponse(response) {
   }
 }
 
+function validateCruiseLineContract(line) {
+  return Boolean(
+    line &&
+    typeof line.id === 'string' &&
+    typeof line.name === 'string' &&
+    (line.country === null || line.country === undefined || typeof line.country === 'string') &&
+    (line.website === null || line.website === undefined || typeof line.website === 'string')
+  )
+}
+
+function validateShipContract(ship) {
+  return Boolean(
+    ship &&
+    typeof ship.id === 'string' &&
+    typeof ship.name === 'string' &&
+    typeof ship.cruiseLineId === 'string'
+  )
+}
+
+async function timedFetch(url, options = {}) {
+  const startedAt = performance.now()
+  const response = await fetch(url, options)
+  const durationMs = Math.round(performance.now() - startedAt)
+
+  return {
+    response,
+    durationMs
+  }
+}
+
+async function runSqaAction(button, labels, statusText, action) {
+  setSqaButtonLoading(button, true, labels.loading, labels.default)
+  updateSqaConsoleStatus('running', statusText)
+
+  try {
+    await action()
+  } catch (err) {
+    writeTestOutput(labels.failureTitle, {
+      passed: false,
+      error: err.message || 'Manual validation failed.'
+    })
+  } finally {
+    setSqaButtonLoading(button, false, labels.loading, labels.default)
+  }
+}
+
+async function runApiContractCheck() {
+  await runSqaAction(
+    apiContractCheckBtn,
+    {
+      loading: 'Checking...',
+      default: 'Check API Contract',
+      failureTitle: 'API Contract Check Failed'
+    },
+    'Checking API contracts',
+    async () => {
+      const cruiseResponse = await fetch(API_BASE)
+      const cruiseData = await parseJsonResponse(cruiseResponse)
+      const cruiseLineContractsPass = Array.isArray(cruiseData) && cruiseData.every(validateCruiseLineContract)
+
+      const firstCruiseLine = Array.isArray(cruiseData) && cruiseData.length > 0 ? cruiseData[0] : null
+      let shipResponseStatus = null
+      let shipContractsPass = false
+      let shipRecordCount = 0
+
+      if (firstCruiseLine) {
+        const shipResponse = await fetch(`${API_BASE}/ships/${firstCruiseLine.id}`)
+        const shipData = await parseJsonResponse(shipResponse)
+
+        shipResponseStatus = shipResponse.status
+        shipRecordCount = Array.isArray(shipData) ? shipData.length : 0
+        shipContractsPass = shipResponse.ok && Array.isArray(shipData) && shipData.every(validateShipContract)
+      }
+
+      writeTestOutput('API Contract Check Result', {
+        passed: cruiseResponse.ok && cruiseLineContractsPass && Boolean(firstCruiseLine) && shipContractsPass,
+        cruiseLineEndpoint: {
+          statusCode: cruiseResponse.status,
+          recordCount: Array.isArray(cruiseData) ? cruiseData.length : 0,
+          requiredFields: ['id', 'name', 'country', 'website'],
+          contractPassed: cruiseLineContractsPass
+        },
+        shipEndpoint: {
+          statusCode: shipResponseStatus,
+          recordCount: shipRecordCount,
+          requiredFields: ['id', 'name', 'cruiseLineId'],
+          contractPassed: shipContractsPass
+        }
+      })
+    }
+  )
+}
+
+async function runSafeCrudWorkflowCheck() {
+  await runSqaAction(
+    crudWorkflowCheckBtn,
+    {
+      loading: 'Running...',
+      default: 'Run CRUD Workflow Check',
+      failureTitle: 'Safe CRUD Workflow Check Failed'
+    },
+    'Running safe CRUD workflow',
+    async () => {
+      const timestamp = Date.now()
+      const temporaryCruiseLineName = `SQA Temporary Cruise Line ${timestamp}`
+      const updatedCruiseLineName = `${temporaryCruiseLineName} Updated`
+      let createdCruiseLine = null
+      let createdShip = null
+      const workflowSteps = []
+
+      try {
+        const createCruiseResponse = await fetch(`${API_BASE}/cruise-line`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: temporaryCruiseLineName,
+            country: 'SQA',
+            website: 'https://example.com/sqa-temp'
+          })
+        })
+        createdCruiseLine = await parseJsonResponse(createCruiseResponse)
+        workflowSteps.push({ step: 'create cruise line', passed: createCruiseResponse.ok, statusCode: createCruiseResponse.status })
+
+        if (!createCruiseResponse.ok || !createdCruiseLine.id) {
+          throw new Error(createdCruiseLine.message || 'Temporary cruise line could not be created.')
+        }
+
+        const updateCruiseResponse = await fetch(`${API_BASE}/cruise-line/${createdCruiseLine.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: updatedCruiseLineName,
+            country: 'SQA',
+            website: 'https://example.com/sqa-temp-updated'
+          })
+        })
+        const updatedCruiseLine = await parseJsonResponse(updateCruiseResponse)
+        workflowSteps.push({ step: 'update cruise line', passed: updateCruiseResponse.ok, statusCode: updateCruiseResponse.status })
+
+        if (!updateCruiseResponse.ok) {
+          throw new Error(updatedCruiseLine.message || 'Temporary cruise line could not be updated.')
+        }
+
+        const createShipResponse = await fetch(`${API_BASE}/ship`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: `SQA Temporary Ship ${timestamp}`,
+            cruiseLineId: createdCruiseLine.id
+          })
+        })
+        createdShip = await parseJsonResponse(createShipResponse)
+        workflowSteps.push({ step: 'create ship', passed: createShipResponse.ok, statusCode: createShipResponse.status })
+
+        if (!createShipResponse.ok || !createdShip.id) {
+          throw new Error(createdShip.message || 'Temporary ship could not be created.')
+        }
+
+        const updateShipResponse = await fetch(`${API_BASE}/ship/${createdShip.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: `SQA Temporary Ship ${timestamp} Updated`,
+            cruiseLineId: createdCruiseLine.id
+          })
+        })
+        const updatedShip = await parseJsonResponse(updateShipResponse)
+        workflowSteps.push({ step: 'update ship', passed: updateShipResponse.ok, statusCode: updateShipResponse.status })
+
+        if (!updateShipResponse.ok) {
+          throw new Error(updatedShip.message || 'Temporary ship could not be updated.')
+        }
+
+        const shipsResponse = await fetch(`${API_BASE}/ships/${createdCruiseLine.id}`)
+        const shipsData = await parseJsonResponse(shipsResponse)
+        workflowSteps.push({
+          step: 'verify temporary ship lookup',
+          passed: shipsResponse.ok && Array.isArray(shipsData) && shipsData.some(ship => ship.id === createdShip.id),
+          statusCode: shipsResponse.status
+        })
+
+        if (!shipsResponse.ok || !Array.isArray(shipsData) || !shipsData.some(ship => ship.id === createdShip.id)) {
+          throw new Error('Temporary ship lookup did not return the created ship.')
+        }
+
+        const deleteCruiseResponse = await fetch(`${API_BASE}/cruise-line/${createdCruiseLine.id}`, {
+          method: 'DELETE'
+        })
+        const deleteCruiseResult = await parseJsonResponse(deleteCruiseResponse)
+        workflowSteps.push({ step: 'delete temporary cruise line', passed: deleteCruiseResponse.ok, statusCode: deleteCruiseResponse.status })
+
+        if (!deleteCruiseResponse.ok) {
+          throw new Error(deleteCruiseResult.message || 'Temporary cruise line cleanup failed.')
+        }
+
+        await loadCruiseLines()
+
+        writeTestOutput('Safe CRUD Workflow Check Result', {
+          passed: workflowSteps.every(step => step.passed),
+          temporaryRecordCleanedUp: true,
+          steps: workflowSteps
+        })
+      } catch (err) {
+        if (createdCruiseLine && createdCruiseLine.id) {
+          await fetch(`${API_BASE}/cruise-line/${createdCruiseLine.id}`, { method: 'DELETE' }).catch(() => {})
+          await loadCruiseLines().catch(() => {})
+        }
+
+        writeTestOutput('Safe CRUD Workflow Check Failed', {
+          passed: false,
+          temporaryRecordCleanedUp: Boolean(createdCruiseLine && createdCruiseLine.id),
+          error: err.message,
+          steps: workflowSteps
+        })
+      }
+    }
+  )
+}
+
+async function runPerformanceSmokeCheck() {
+  await runSqaAction(
+    performanceSmokeCheckBtn,
+    {
+      loading: 'Measuring...',
+      default: 'Run Performance Check',
+      failureTitle: 'Performance Smoke Check Failed'
+    },
+    'Measuring API response times',
+    async () => {
+      const thresholds = {
+        healthMs: 500,
+        cruiseMs: 750,
+        shipsMs: 750
+      }
+
+      const health = await timedFetch('/health')
+      const healthData = await parseJsonResponse(health.response)
+
+      const cruise = await timedFetch(API_BASE)
+      const cruiseData = await parseJsonResponse(cruise.response)
+      const firstCruiseLine = Array.isArray(cruiseData) && cruiseData.length > 0 ? cruiseData[0] : null
+
+      let ships = {
+        response: null,
+        durationMs: null
+      }
+      let shipsData = []
+
+      if (firstCruiseLine) {
+        ships = await timedFetch(`${API_BASE}/ships/${firstCruiseLine.id}`)
+        shipsData = await parseJsonResponse(ships.response)
+      }
+
+      const results = [
+        {
+          endpoint: 'GET /health',
+          statusCode: health.response.status,
+          durationMs: health.durationMs,
+          thresholdMs: thresholds.healthMs,
+          passed: health.response.ok && health.durationMs < thresholds.healthMs && healthData.status === 'ok'
+        },
+        {
+          endpoint: 'GET /cruise',
+          statusCode: cruise.response.status,
+          durationMs: cruise.durationMs,
+          thresholdMs: thresholds.cruiseMs,
+          passed: cruise.response.ok && cruise.durationMs < thresholds.cruiseMs && Array.isArray(cruiseData)
+        },
+        {
+          endpoint: 'GET /cruise/ships/:cruiseLineId',
+          statusCode: ships.response ? ships.response.status : null,
+          durationMs: ships.durationMs,
+          thresholdMs: thresholds.shipsMs,
+          passed: Boolean(ships.response && ships.response.ok && ships.durationMs < thresholds.shipsMs && Array.isArray(shipsData))
+        }
+      ]
+
+      writeTestOutput('Performance Smoke Check Result', {
+        passed: results.every(result => result.passed),
+        thresholds,
+        results
+      })
+    }
+  )
+}
+
+async function runSeedIntegrityCheck() {
+  await runSqaAction(
+    seedIntegrityCheckBtn,
+    {
+      loading: 'Checking...',
+      default: 'Check Seed Integrity',
+      failureTitle: 'Seed Data Integrity Check Failed'
+    },
+    'Checking seed data integrity',
+    async () => {
+      const cruiseResponse = await fetch(API_BASE)
+      const cruiseData = await parseJsonResponse(cruiseResponse)
+      const firstCruiseLine = Array.isArray(cruiseData) && cruiseData.length > 0 ? cruiseData[0] : null
+
+      let shipResponseStatus = null
+      let shipCount = 0
+      let shipCheckPassed = false
+
+      if (firstCruiseLine) {
+        const shipResponse = await fetch(`${API_BASE}/ships/${firstCruiseLine.id}`)
+        const shipData = await parseJsonResponse(shipResponse)
+
+        shipResponseStatus = shipResponse.status
+        shipCount = Array.isArray(shipData) ? shipData.length : 0
+        shipCheckPassed = shipResponse.ok && Array.isArray(shipData)
+      }
+
+      writeTestOutput('Seed Data Integrity Check Result', {
+        passed: cruiseResponse.ok && Array.isArray(cruiseData) && cruiseData.length > 0 && shipCheckPassed,
+        cruiseLineCount: Array.isArray(cruiseData) ? cruiseData.length : 0,
+        firstCruiseLineName: firstCruiseLine ? firstCruiseLine.name : null,
+        firstCruiseLineShipLookup: {
+          statusCode: shipResponseStatus,
+          shipCount,
+          passed: shipCheckPassed
+        }
+      })
+    }
+  )
+}
+
+async function runRenderingConsistencyCheck() {
+  await runSqaAction(
+    renderingConsistencyCheckBtn,
+    {
+      loading: 'Checking...',
+      default: 'Check Rendering',
+      failureTitle: 'Rendering Consistency Check Failed'
+    },
+    'Checking frontend rendering',
+    async () => {
+      const visibleCards = Array.from(document.querySelectorAll('[data-cy="cruise-card"]'))
+      const renderedNames = visibleCards.map(card => card.querySelector('h3')?.textContent).filter(Boolean)
+      const expectedVisibleNames = cruiseLines.map(line => line.name)
+
+      const missingNames = expectedVisibleNames.filter(name => !renderedNames.includes(name))
+      const unexpectedNames = renderedNames.filter(name => !expectedVisibleNames.includes(name))
+
+      writeTestOutput('Rendering Consistency Check Result', {
+        passed: visibleCards.length === cruiseLines.length && missingNames.length === 0 && unexpectedNames.length === 0,
+        apiRecordCount: cruiseLines.length,
+        renderedCardCount: visibleCards.length,
+        missingNames,
+        unexpectedNames
+      })
+    }
+  )
+}
+
+async function runDeploymentDiagnosticsCheck() {
+  await runSqaAction(
+    deploymentDiagnosticsBtn,
+    {
+      loading: 'Checking...',
+      default: 'Run Deployment Check',
+      failureTitle: 'Deployment Diagnostics Check Failed'
+    },
+    'Running deployment diagnostics',
+    async () => {
+      const health = await timedFetch('/health')
+      const healthData = await parseJsonResponse(health.response)
+
+      writeTestOutput('Deployment Diagnostics Result', {
+        passed: health.response.ok && healthData.status === 'ok',
+        runtime: {
+          origin: window.location.origin,
+          path: window.location.pathname,
+          userAgent: navigator.userAgent,
+          timestamp: new Date().toISOString()
+        },
+        api: {
+          healthStatusCode: health.response.status,
+          healthDurationMs: health.durationMs,
+          healthResponse: healthData,
+          visibleCruiseLineCount: document.querySelectorAll('[data-cy="cruise-card"]').length
+        }
+      })
+    }
+  )
+}
+
 function updateCruiseLineStatus(shownCount, totalCount) {
   const statusMessage = document.getElementById('status-message')
 
@@ -753,6 +1180,9 @@ function escapeHtml(value) {
 
 if (healthCheckBtn) {
   healthCheckBtn.addEventListener('click', async () => {
+    setSqaButtonLoading(healthCheckBtn, true, 'Checking...', 'Check API Health')
+    updateSqaConsoleStatus('running', 'Running health check')
+
     try {
       const res = await fetch('/health')
       const data = await res.json()
@@ -767,12 +1197,17 @@ if (healthCheckBtn) {
         passed: false,
         error: err.message
       })
+    } finally {
+      setSqaButtonLoading(healthCheckBtn, false, 'Checking...', 'Check API Health')
     }
   })
 }
 
 if (reloadDataBtn) {
   reloadDataBtn.addEventListener('click', async () => {
+    setSqaButtonLoading(reloadDataBtn, true, 'Verifying...', 'Verify Cruise Data')
+    updateSqaConsoleStatus('running', 'Verifying cruise data')
+
     try {
       const res = await fetch('/cruise')
       const data = await res.json()
@@ -792,6 +1227,8 @@ if (reloadDataBtn) {
         passed: false,
         error: err.message
       })
+    } finally {
+      setSqaButtonLoading(reloadDataBtn, false, 'Verifying...', 'Verify Cruise Data')
     }
   })
 }
@@ -799,6 +1236,9 @@ if (reloadDataBtn) {
 if (uiSmokeTestBtn) {
   uiSmokeTestBtn.addEventListener('click', async () => {
     const results = []
+
+    setSqaButtonLoading(uiSmokeTestBtn, true, 'Running...', 'Run UI Smoke Check')
+    updateSqaConsoleStatus('running', 'Running UI smoke check')
 
     try {
       const healthRes = await fetch('/health')
@@ -845,10 +1285,36 @@ if (uiSmokeTestBtn) {
         error: err.message,
         results
       })
+    } finally {
+      setSqaButtonLoading(uiSmokeTestBtn, false, 'Running...', 'Run UI Smoke Check')
     }
   })
 }
 
+
+if (apiContractCheckBtn) {
+  apiContractCheckBtn.addEventListener('click', runApiContractCheck)
+}
+
+if (crudWorkflowCheckBtn) {
+  crudWorkflowCheckBtn.addEventListener('click', runSafeCrudWorkflowCheck)
+}
+
+if (performanceSmokeCheckBtn) {
+  performanceSmokeCheckBtn.addEventListener('click', runPerformanceSmokeCheck)
+}
+
+if (seedIntegrityCheckBtn) {
+  seedIntegrityCheckBtn.addEventListener('click', runSeedIntegrityCheck)
+}
+
+if (renderingConsistencyCheckBtn) {
+  renderingConsistencyCheckBtn.addEventListener('click', runRenderingConsistencyCheck)
+}
+
+if (deploymentDiagnosticsBtn) {
+  deploymentDiagnosticsBtn.addEventListener('click', runDeploymentDiagnosticsCheck)
+}
 
 if (resetDemoDataBtn) {
   resetDemoDataBtn.addEventListener('click', resetDemoData)
@@ -864,6 +1330,9 @@ async function resetDemoData() {
     })
     return
   }
+
+  setSqaButtonLoading(resetDemoDataBtn, true, 'Resetting...', 'Reset Demo Data')
+  updateSqaConsoleStatus('running', 'Resetting demo data')
 
   try {
     writeTestOutput('Demo Data Reset Started', {
@@ -906,11 +1375,16 @@ async function resetDemoData() {
       passed: false,
       error: err.message || 'Could not reset demo data.'
     })
+  } finally {
+    setSqaButtonLoading(resetDemoDataBtn, false, 'Resetting...', 'Reset Demo Data')
   }
 }
 
 if (clearTestOutputBtn) {
   clearTestOutputBtn.addEventListener('click', () => {
     testOutput.textContent = 'Test output will appear here...'
+    updateSqaConsoleStatus('ready', 'Ready for validation')
+    const lastRunLabel = document.querySelector('[data-cy="sqa-last-run-label"]')
+    if (lastRunLabel) lastRunLabel.textContent = 'No manual run yet'
   })
 }

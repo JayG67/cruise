@@ -217,26 +217,127 @@
     </section>
 
     <section class="section sqa-section" id="sqa-controls" data-cy="sqa-controls-section">
-      <section class="test-panel" id="testPanel" data-cy="sqa-test-panel">
-        <div class="test-panel-header">
-          <p class="eyebrow">SQA Test Control Panel</p>
-          <h2>Manual validation tools for API-driven UI behavior</h2>
-          <p class="test-panel-copy">Advanced validation controls for exercising health checks, data reloads, smoke checks, and demo reset behavior.</p>
+      <section class="test-panel quality-console" id="testPanel" data-cy="sqa-test-panel">
+        <div class="quality-console-header">
+          <div class="quality-console-copy">
+            <p class="eyebrow">SQA Test Control Panel</p>
+            <h2>Manual validation tools for API-driven UI behavior</h2>
+            <p class="test-panel-copy">
+              A portfolio-facing quality operations console for exercising API health,
+              data contracts, CRUD workflow safety, response timing, rendering consistency,
+              seed integrity, deployment diagnostics, and public demo reset behavior.
+            </p>
+          </div>
+
+          <div class="quality-console-status" data-cy="sqa-console-status-card">
+            <span class="status-dot ready" data-cy="sqa-console-status-dot"></span>
+            <div>
+              <span class="status-label">Console Status</span>
+              <strong data-cy="sqa-console-status-text">Ready for validation</strong>
+            </div>
+          </div>
         </div>
 
-        <div class="test-actions">
-          <button id="healthCheckBtn" data-cy="health-check-button">Check API Health</button>
-          <button id="reloadDataBtn" data-cy="reload-data-button">Verify Cruise Data</button>
-          <button id="uiSmokeTestBtn" data-cy="ui-smoke-test-button">Run UI Smoke Check</button>
-          <button id="resetDemoDataBtn" class="danger subtle-danger" data-cy="reset-demo-data-button" type="button">Reset Demo Data</button>
-          <button id="clearTestOutputBtn" class="secondary" data-cy="clear-test-output-button">Clear Output</button>
+        <div class="quality-action-grid" data-cy="sqa-action-grid">
+          <article class="quality-action-card" data-cy="sqa-action-card">
+            <div>
+              <h3>Health Check</h3>
+              <p>Ping the application health endpoint and verify API availability.</p>
+            </div>
+            <button id="healthCheckBtn" data-cy="health-check-button">Check API Health</button>
+          </article>
+
+          <article class="quality-action-card" data-cy="sqa-action-card">
+            <div>
+              <h3>Data Verification</h3>
+              <p>Validate cruise-line payload shape and refresh the visible grid.</p>
+            </div>
+            <button id="reloadDataBtn" data-cy="reload-data-button">Verify Cruise Data</button>
+          </article>
+
+          <article class="quality-action-card" data-cy="sqa-action-card">
+            <div>
+              <h3>UI Smoke Check</h3>
+              <p>Run a focused browser-level check across the core read workflows.</p>
+            </div>
+            <button id="uiSmokeTestBtn" data-cy="ui-smoke-test-button">Run UI Smoke Check</button>
+          </article>
+
+          <article class="quality-action-card" data-cy="sqa-action-card">
+            <div>
+              <h3>API Contract Check</h3>
+              <p>Validate cruise-line and ship response fields against expected contracts.</p>
+            </div>
+            <button id="apiContractCheckBtn" data-cy="api-contract-check-button" type="button">Check API Contract</button>
+          </article>
+
+          <article class="quality-action-card" data-cy="sqa-action-card">
+            <div>
+              <h3>Safe CRUD Workflow</h3>
+              <p>Create, update, validate, and delete temporary demo records.</p>
+            </div>
+            <button id="crudWorkflowCheckBtn" data-cy="crud-workflow-check-button" type="button">Run CRUD Workflow Check</button>
+          </article>
+
+          <article class="quality-action-card" data-cy="sqa-action-card">
+            <div>
+              <h3>Performance Smoke Check</h3>
+              <p>Measure client-side response times for health, cruise, and ship endpoints.</p>
+            </div>
+            <button id="performanceSmokeCheckBtn" data-cy="performance-smoke-check-button" type="button">Run Performance Check</button>
+          </article>
+
+          <article class="quality-action-card" data-cy="sqa-action-card">
+            <div>
+              <h3>Seed Integrity Check</h3>
+              <p>Confirm the demo dataset contains cruise lines and at least one ship lookup.</p>
+            </div>
+            <button id="seedIntegrityCheckBtn" data-cy="seed-integrity-check-button" type="button">Check Seed Integrity</button>
+          </article>
+
+          <article class="quality-action-card" data-cy="sqa-action-card">
+            <div>
+              <h3>Rendering Consistency</h3>
+              <p>Compare rendered cruise cards against the in-memory API dataset.</p>
+            </div>
+            <button id="renderingConsistencyCheckBtn" data-cy="rendering-consistency-check-button" type="button">Check Rendering</button>
+          </article>
+
+          <article class="quality-action-card" data-cy="sqa-action-card">
+            <div>
+              <h3>Deployment Diagnostics</h3>
+              <p>Report runtime URL, timestamp, health status, and visible data count.</p>
+            </div>
+            <button id="deploymentDiagnosticsBtn" data-cy="deployment-diagnostics-button" type="button">Run Deployment Check</button>
+          </article>
+
+          <article class="quality-action-card destructive-action-card" data-cy="sqa-action-card">
+            <div>
+              <h3>Demo Data Recovery</h3>
+              <p>Reset public demo data after CRUD exploration or recruiter testing.</p>
+            </div>
+            <button id="resetDemoDataBtn" class="danger subtle-danger" data-cy="reset-demo-data-button" type="button">Reset Demo Data</button>
+          </article>
         </div>
 
-        <p class="demo-reset-note" data-cy="reset-demo-data-note">
-          This public demo allows CRUD changes. Use Reset Demo Data to restore the original seed dataset.
-        </p>
+        <div class="quality-output-panel" data-cy="sqa-output-panel">
+          <div class="quality-output-header">
+            <div>
+              <p class="eyebrow">Validation Output</p>
+              <h3>Latest manual validation result</h3>
+            </div>
+            <div class="quality-output-actions">
+              <span class="last-run-pill" data-cy="sqa-last-run-label">No manual run yet</span>
+              <button id="clearTestOutputBtn" class="secondary" data-cy="clear-test-output-button">Clear Output</button>
+            </div>
+          </div>
 
-        <pre id="testOutput" class="test-output" data-cy="test-output">Test output will appear here...</pre>
+          <p class="demo-reset-note" data-cy="reset-demo-data-note">
+            This public demo allows CRUD changes. Use Reset Demo Data to restore the original seed dataset.
+          </p>
+
+          <pre id="testOutput" class="test-output" data-cy="test-output">Test output will appear here...</pre>
+        </div>
       </section>
     </section>
 
