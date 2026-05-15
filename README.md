@@ -7,14 +7,20 @@
 [![CI](https://github.com/JayG67/cruise/actions/workflows/ci.yml/badge.svg)](https://github.com/JayG67/cruise/actions)
 [![Coverage](https://img.shields.io/badge/coverage-enforced-green)](https://github.com/JayG67/cruise)
 [![Live Demo](https://img.shields.io/badge/live-demo-brightgreen)](https://cruise-explorer.onrender.com/)
+[![Quality Dashboard](https://img.shields.io/badge/quality-dashboard-success)](https://jayg67.github.io/cruise/)
+[![Lighthouse Report](https://img.shields.io/badge/lighthouse-report-orange)](https://jayg67.github.io/cruise/lighthouse/)
 [![Deployment](https://img.shields.io/badge/render-deployed-blue)](https://cruise-explorer.onrender.com/)
 [![Performance](https://img.shields.io/badge/k6-performance%20smoke-purple)](./performance/cruise-api-smoke.js)
-[![Lighthouse](https://img.shields.io/badge/lighthouse-mobile%20audit-orange)](https://jayg67.github.io/cruise/lighthouse/)
-[![Quality Dashboard](https://img.shields.io/badge/quality-dashboard-success)](https://jayg67.github.io/cruise/)
 
 ## 🌐 Live Production Application
 
 # 👉 [Launch Cruise Explorer](https://cruise-explorer.onrender.com/)
+
+## 📊 Live Quality & Validation Visibility
+
+# 👉 [Open Executive Quality Dashboard](https://jayg67.github.io/cruise/)
+
+# 👉 [Open Latest Lighthouse Mobile Audit](https://jayg67.github.io/cruise/lighthouse/)
 
 </div>
 
