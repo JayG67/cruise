@@ -15,6 +15,7 @@ permissions:
 
 env:
   LIGHTHOUSE_REPORT_URL: https://jayg67.github.io/cruise/lighthouse/
+  COVERAGE_REPORT_URL: https://jayg67.github.io/cruise/coverage/
   QUALITY_DASHBOARD_URL: https://jayg67.github.io/cruise/
   LIVE_APP_URL: https://cruise-explorer.onrender.com/
 
@@ -38,6 +39,41 @@ jobs:
 
       - name: Run unit tests
         run: npm run unitTests
+
+  coverage-report:
+    name: Jest Coverage Report
+    runs-on: ubuntu-latest
+    needs:
+      - unit-tests
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Jest coverage
+        run: npm run coverage:ci
+
+      - name: Prepare coverage report for GitHub Pages
+        run: npm run coverage:prepare-pages
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: jest-coverage-report
+          path: |
+            coverage
+            github-pages/coverage
+          if-no-files-found: error
+
 
   integration-tests:
     name: Integration Tests
@@ -182,6 +218,7 @@ jobs:
     needs:
       - integration-tests
       - ui-tests
+      - coverage-report
 
     services:
       postgres:
@@ -219,6 +256,17 @@ jobs:
       - name: Verify test database connection
         run: npm run db:verify:test
 
+      - name: Download coverage report for GitHub Pages
+        uses: actions/download-artifact@v4
+        with:
+          name: jest-coverage-report
+          path: coverage-artifact
+
+      - name: Restore coverage report into GitHub Pages staging
+        run: |
+          mkdir -p github-pages
+          cp -R coverage-artifact/github-pages/coverage github-pages/coverage
+
       - name: Run Lighthouse mobile quality gate
         run: npm run lighthouse:ci:ci
 
@@ -239,6 +287,8 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "[Open latest Lighthouse report]($LIGHTHOUSE_REPORT_URL)" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "[Open latest Jest coverage report]($COVERAGE_REPORT_URL)" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "These links update after the GitHub Pages deployment completes." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload Lighthouse reports
@@ -249,6 +299,7 @@ jobs:
           path: |
             lhci-report
             github-pages/lighthouse
+            github-pages/coverage
             .lighthouseci
             lighthouse-report.report.html
             lighthouse-report.report.json

@@ -99,6 +99,7 @@ export const selectors = {
     clearOutputButton: '[data-cy="clear-test-output-button"]',
     output: '[data-cy="test-output"]',
     latestLighthouseReportLink: '[data-cy="latest-lighthouse-report-link"]',
-    latestQualityDashboardLink: '[data-cy="latest-quality-dashboard-link"]'
+    latestQualityDashboardLink: '[data-cy="latest-quality-dashboard-link"]',
+    latestCoverageReportLink: '[data-cy="latest-coverage-report-link"]'
   }
 }

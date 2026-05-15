@@ -4,6 +4,7 @@ const path = require('path')
 const pagesRoot = path.resolve(process.cwd(), 'github-pages')
 const dashboardPath = path.join(pagesRoot, 'index.html')
 const lighthouseJsonPath = path.join(pagesRoot, 'lighthouse', 'lighthouse-result.json')
+const coverageSummaryPath = path.join(pagesRoot, 'coverage', 'coverage-summary.json')
 
 const repository = process.env.GITHUB_REPOSITORY || 'JayG67/cruise'
 const serverUrl = process.env.GITHUB_SERVER_URL || 'https://github.com'
@@ -15,6 +16,7 @@ const refName = process.env.GITHUB_REF_NAME || 'main'
 const liveAppUrl = process.env.LIVE_APP_URL || 'https://cruise-explorer.onrender.com/'
 const qualityDashboardUrl = process.env.QUALITY_DASHBOARD_URL || 'https://jayg67.github.io/cruise/'
 const lighthouseReportUrl = process.env.LIGHTHOUSE_REPORT_URL || 'https://jayg67.github.io/cruise/lighthouse/'
+const coverageReportUrl = process.env.COVERAGE_REPORT_URL || 'https://jayg67.github.io/cruise/coverage/'
 const actionsUrl = `${serverUrl}/${repository}/actions`
 const workflowRunUrl = runId ? `${actionsUrl}/runs/${runId}` : actionsUrl
 const commitUrl = sha ? `${serverUrl}/${repository}/commit/${sha}` : `${serverUrl}/${repository}`
@@ -72,6 +74,56 @@ function readLighthouseSummary() {
   }
 }
 
+function readCoverageSummary() {
+  if (!fs.existsSync(coverageSummaryPath)) {
+    return {
+      statements: null,
+      branches: null,
+      functions: null,
+      lines: null
+    }
+  }
+
+  try {
+    const report = JSON.parse(fs.readFileSync(coverageSummaryPath, 'utf8'))
+    const total = report.total || {}
+
+    return {
+      statements: total.statements?.pct ?? null,
+      branches: total.branches?.pct ?? null,
+      functions: total.functions?.pct ?? null,
+      lines: total.lines?.pct ?? null
+    }
+  } catch (err) {
+    return {
+      statements: null,
+      branches: null,
+      functions: null,
+      lines: null
+    }
+  }
+}
+
+function coverageScoreClass(score) {
+  if (typeof score !== 'number') return 'pending'
+  if (score >= 80) return 'pass'
+  if (score >= 60) return 'warn'
+  return 'fail'
+}
+
+function coverageScoreCard(title, score, href) {
+  const klass = coverageScoreClass(score)
+  const value = typeof score === 'number' ? `${score}%` : 'Pending'
+
+  return `
+    <a class="score-card ${klass}" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">
+      <span>${escapeHtml(title)}</span>
+      <strong>${escapeHtml(value)}</strong>
+      <small>Jest coverage</small>
+    </a>
+  `
+}
+
 function statusCard(title, status, detail, href) {
   const normalized = status.toLowerCase()
   const content = `
@@ -105,6 +157,7 @@ function scoreCard(title, score, threshold, href) {
 ensureDirectory(pagesRoot)
 
 const lighthouse = readLighthouseSummary()
+const coverage = readCoverageSummary()
 const generatedAt = new Date().toISOString()
 const shortSha = sha ? sha.slice(0, 7) : 'local'
 
@@ -409,6 +462,7 @@ const html = `<!DOCTYPE html>
       <div class="hero-actions">
         <a class="button-link" href="${escapeHtml(liveAppUrl)}" target="_blank" rel="noopener noreferrer">Open Live App</a>
         <a class="button-link secondary" href="${escapeHtml(lighthouseReportUrl)}" target="_blank" rel="noopener noreferrer">Open Lighthouse Report</a>
+        <a class="button-link secondary" href="${escapeHtml(coverageReportUrl)}" target="_blank" rel="noopener noreferrer">Open Coverage Report</a>
         <a class="button-link secondary" href="${escapeHtml(workflowRunUrl)}" target="_blank" rel="noopener noreferrer">Open GitHub Actions Run</a>
       </div>
     </header>
@@ -442,6 +496,7 @@ const html = `<!DOCTYPE html>
         ${statusCard('Cypress UI Tests', 'PASS', 'Browser workflow regression suite completed successfully.', workflowRunUrl)}
         ${statusCard('k6 Performance Smoke', 'PASS', 'API response-time and success-rate smoke checks completed successfully.', workflowRunUrl)}
         ${statusCard('Lighthouse Mobile Gate', 'PASS', 'Mobile quality gate completed and generated a public report.', lighthouseReportUrl)}
+        ${statusCard('Jest Coverage', 'PASS', 'Coverage report generated and published to GitHub Pages.', coverageReportUrl)}
         ${statusCard('GitHub Pages Report', 'PASS', 'Latest quality dashboard and Lighthouse report published to GitHub Pages.', qualityDashboardUrl)}
         ${statusCard('Live Application', 'PASS', 'Production deployment is available on Render.', liveAppUrl)}
         ${statusCard('Demo Recovery Controls', 'PASS', 'SQA dashboard includes reset and operational validation tooling.', liveAppUrl)}
@@ -459,6 +514,16 @@ const html = `<!DOCTYPE html>
     </section>
 
     <section>
+      <h2>Jest Coverage Summary</h2>
+      <div class="score-grid">
+        ${coverageScoreCard('Statements', coverage.statements, coverageReportUrl)}
+        ${coverageScoreCard('Branches', coverage.branches, coverageReportUrl)}
+        ${coverageScoreCard('Functions', coverage.functions, coverageReportUrl)}
+        ${coverageScoreCard('Lines', coverage.lines, coverageReportUrl)}
+      </div>
+    </section>
+
+    <section>
       <h2>Expandable Evidence</h2>
 
       <details open>
@@ -468,6 +533,7 @@ const html = `<!DOCTYPE html>
             <li>Live app: <a href="${escapeHtml(liveAppUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(liveAppUrl)}</a></li>
             <li>Quality dashboard: <a href="${escapeHtml(qualityDashboardUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(qualityDashboardUrl)}</a></li>
             <li>Latest Lighthouse report: <a href="${escapeHtml(lighthouseReportUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(lighthouseReportUrl)}</a></li>
+            <li>Latest coverage report: <a href="${escapeHtml(coverageReportUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(coverageReportUrl)}</a></li>
             <li>Workflow run: <a href="${escapeHtml(workflowRunUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(workflowRunUrl)}</a></li>
           </ul>
         </div>
@@ -478,6 +544,7 @@ const html = `<!DOCTYPE html>
         <div class="details-body">
           <ul>
             <li><strong>Unit:</strong> controller logic, validation middleware, schema validation, business rules.</li>
+            <li><strong>Coverage:</strong> Jest coverage summary and HTML coverage report published to GitHub Pages.</li>
             <li><strong>Integration:</strong> PostgreSQL-backed API workflows and relationship integrity.</li>
             <li><strong>Cypress:</strong> CRUD workflows, SQA control panel, browser behavior, API failure paths.</li>
             <li><strong>k6:</strong> API performance smoke validation and response-time thresholds.</li>
@@ -499,6 +566,8 @@ const html = `<!DOCTYPE html>
           <ul>
             <li>Lighthouse HTML report is published at <code>/lighthouse/</code>.</li>
             <li>Lighthouse JSON summary is published as <code>/lighthouse/lighthouse-result.json</code>.</li>
+            <li>Jest HTML coverage is published at <code>/coverage/</code>.</li>
+            <li>Jest coverage summary JSON is published as <code>/coverage/coverage-summary.json</code>.</li>
             <li>Workflow artifacts are attached to the GitHub Actions run.</li>
             <li>This dashboard is regenerated by GitHub Actions on the main branch.</li>
           </ul>

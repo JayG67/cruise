@@ -6,6 +6,7 @@
 
 [![CI](https://github.com/JayG67/cruise/actions/workflows/ci.yml/badge.svg)](https://github.com/JayG67/cruise/actions)
 [![Coverage](https://img.shields.io/badge/coverage-enforced-green)](https://github.com/JayG67/cruise)
+[![Coverage Report](https://img.shields.io/badge/coverage-report-brightgreen)](https://jayg67.github.io/cruise/coverage/)
 [![Live Demo](https://img.shields.io/badge/live-demo-brightgreen)](https://cruise-explorer.onrender.com/)
 [![Quality Dashboard](https://img.shields.io/badge/quality-dashboard-success)](https://jayg67.github.io/cruise/)
 [![Lighthouse Report](https://img.shields.io/badge/lighthouse-report-orange)](https://jayg67.github.io/cruise/lighthouse/)
@@ -21,6 +22,8 @@
 # 👉 [Open Executive Quality Dashboard](https://jayg67.github.io/cruise/)
 
 # 👉 [Open Latest Lighthouse Mobile Audit](https://jayg67.github.io/cruise/lighthouse/)
+
+# 👉 [Open Latest Jest Coverage Report](https://jayg67.github.io/cruise/coverage/)
 
 </div>
 
@@ -109,6 +112,7 @@ npm test
 Runs:
 
 * Unit tests
+* Jest coverage
 * Integration tests
 * Cypress UI tests
 
@@ -123,6 +127,7 @@ npm run test:all
 Runs:
 
 * Unit tests
+* Jest coverage
 * Integration tests
 * Cypress UI tests
 * k6 performance smoke tests
@@ -149,6 +154,22 @@ It provides an executive-friendly summary of:
 * unit, integration, Cypress, k6, and Lighthouse quality gates
 * Lighthouse mobile scores
 * links to workflow runs and detailed reports
+
+## Latest Published Coverage Report
+
+The latest CI-generated Jest coverage report is published through GitHub Pages:
+
+```text
+https://jayg67.github.io/cruise/coverage/
+```
+
+Coverage is run as part of:
+
+* `npm test`
+* `npm run test:all`
+* GitHub Actions CI
+
+The Quality Dashboard also displays coverage summary percentages for statements, branches, functions, and lines.
 
 ## Latest Published Lighthouse Report
 
