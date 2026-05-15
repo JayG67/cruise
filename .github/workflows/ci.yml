@@ -164,3 +164,9 @@ jobs:
 
       - name: Run k6 performance smoke test
         run: npm run perf:smoke:ci
+  lighthouse-mobile-audit:
+    name: Lighthouse Mobile Quality Gate
+    runs-on: ubuntu-latest
+    needs:
+      - integration-tests
+      - ui-tests
