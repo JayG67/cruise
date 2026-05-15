@@ -1,4 +1,4 @@
-d# 🚢 Cruise Explorer
+# 🚢 Cruise Explorer
 
 <div align="center">
 
@@ -62,6 +62,8 @@ Runs:
 * Cypress UI tests
 * k6 performance smoke tests
 
+This is the same command intended for final local validation before pushing into CI/CD.
+
 ---
 
 # 📌 What This Repository Demonstrates
@@ -86,6 +88,10 @@ It demonstrates:
 * Production-style deployment workflows
 * Performance smoke testing with k6
 * Incremental feature delivery with expanding regression coverage
+* Public-demo operational safety controls
+* Browser-driven validation tooling
+* Deterministic test isolation
+* Centralized Cypress selector architecture
 
 Unlike a tutorial or sample project, this application evolved incrementally through:
 
@@ -96,6 +102,8 @@ Unlike a tutorial or sample project, this application evolved incrementally thro
 * growing automated regression coverage
 * real-world negative-path testing
 * continuous integration and deployment enforcement
+* performance validation
+* operational tooling improvements
 
 The result is a portfolio repository designed to show:
 
@@ -115,6 +123,8 @@ how an experienced SQA engineer approaches system quality end-to-end
 * CI-gated deployments
 * Infrastructure-as-code using `render.yaml`
 * Dockerized local PostgreSQL infrastructure
+* Environment-safe configuration strategy
+* Production and local parity workflows
 
 ---
 
@@ -126,6 +136,8 @@ how an experienced SQA engineer approaches system quality end-to-end
 * Validation middleware testing
 * Zod schema testing
 * Controller business-rule testing
+* Service-layer validation
+* Negative-path validation
 
 ### Integration Testing
 
@@ -133,6 +145,8 @@ how an experienced SQA engineer approaches system quality end-to-end
 * PostgreSQL-backed integration workflows
 * Full CRUD API validation
 * Relationship integrity testing
+* Seed reset validation
+* Contract validation
 
 ### End-to-End UI Testing
 
@@ -142,6 +156,43 @@ how an experienced SQA engineer approaches system quality end-to-end
 * CRUD workflow testing
 * UI failure-path validation
 * Deterministic frontend validation
+* SQA operations console testing
+* Operational workflow validation
+
+---
+
+## ✅ Interactive SQA Operations Console
+
+The application includes a fully interactive:
+
+```text
+SQA Test Control Panel
+```
+
+built directly into the deployed application.
+
+The console provides browser-driven operational validation tools including:
+
+* API health validation
+* Cruise-data contract verification
+* UI smoke testing
+* CRUD workflow safety validation
+* Performance smoke checks
+* Seed-data integrity validation
+* Rendering consistency checks
+* Deployment diagnostics
+* Public demo data recovery
+
+The console intentionally demonstrates:
+
+* operational quality tooling
+* runtime diagnostics
+* frontend observability
+* manual QA tooling design
+* production-safe validation workflows
+* recruiter-friendly deployment transparency
+
+All SQA console workflows include Cypress regression coverage.
 
 ---
 
@@ -190,6 +241,8 @@ Including:
 * Ship deletion workflows
 * UI refresh synchronization
 * Form validation and failure handling
+* Search synchronization
+* State cleanup after destructive operations
 
 ---
 
@@ -211,29 +264,29 @@ Live Production Application
 
 # 🖥️ Application Preview
 
-> 📸 Future enhancement:
->
-> This repository will continue expanding with:
->
-> * application screenshots
-> * CI pipeline screenshots
-> * Cypress execution screenshots
-> * k6 performance output examples
-> * architecture diagrams
-> * animated workflow demonstrations
+The deployed application currently includes:
 
-The application currently includes:
-
-* Professional dashboard-style UI
+* Dashboard-style responsive UI
 * Cruise line management
 * Ship management by cruise line
 * Dynamic search/filtering
 * Live API-driven rendering
 * CRUD workflow panels
 * SQA validation dashboard
-* Health-check workflows
+* Performance validation tooling
+* Deployment diagnostics
 * Automated data reseeding behavior
 * Full deployment pipeline integration
+* Operational testing utilities
+
+Future enhancements may include:
+
+* CI screenshots
+* Cypress execution screenshots
+* k6 performance output examples
+* architecture diagrams
+* animated workflow demonstrations
+* visual regression testing
 
 ---
 
@@ -304,6 +357,7 @@ PostgreSQL
 * Live ship lookup
 * Dashboard-style responsive UI
 * API-driven frontend rendering
+* Operational validation tooling
 
 ---
 
@@ -351,6 +405,7 @@ Cypress coverage includes:
 * Partial failure validation
 * Edge-case testing
 * Request payload validation
+* UI synchronization validation
 
 ---
 
@@ -372,6 +427,33 @@ Cypress coverage includes:
 * Selected-item state cleanup
 * Search-filtered deletion
 * Failure-path validation
+
+---
+
+## SQA Control Panel
+
+The SQA control panel includes:
+
+| Validation Tool | Purpose |
+|---|---|
+| API Health Check | Verify application availability |
+| Cruise Data Verification | Validate cruise payload responses |
+| UI Smoke Check | Validate primary UI workflows |
+| API Contract Check | Validate runtime API schema shape |
+| Safe CRUD Workflow Check | Create/update/delete temporary records |
+| Performance Smoke Check | Validate response-time thresholds |
+| Seed Integrity Check | Verify predictable seed-state behavior |
+| Rendering Consistency Check | Validate rendered UI against API data |
+| Deployment Diagnostics | Show runtime and deployment metadata |
+| Demo Data Recovery | Restore production demo data |
+
+This operational tooling was intentionally designed to demonstrate:
+
+* quality observability
+* operational diagnostics
+* production-safe validation
+* recruiter-friendly deployment transparency
+* browser-driven QA tooling
 
 ---
 
@@ -401,6 +483,8 @@ The project separates:
 * controller business rules
 * integration workflows
 * browser workflows
+* operational tooling validation
+* performance validation
 
 into distinct testing layers.
 
@@ -444,6 +528,7 @@ Validates:
 * API contract integrity
 * Cascade delete behavior
 * Negative-path workflows
+* Demo reset behavior
 
 ---
 
@@ -472,6 +557,8 @@ Validates:
 * Create workflows
 * Ship delete workflows
 * UI synchronization after CRUD actions
+* SQA control panel workflows
+* Operational validation tooling
 
 The Cypress suite heavily uses:
 
@@ -545,6 +632,7 @@ Benefits:
 * reduced duplication
 * scalable automation design
 * enterprise-style test architecture
+* easier UI refactoring
 
 ---
 
@@ -562,8 +650,8 @@ for:
 * integration test execution
 * Cypress execution
 * k6 performance smoke validation
-* coverage enforcement
 * automated validation
+* deployment gating
 
 All deployments are protected by CI validation.
 
@@ -578,6 +666,7 @@ This repository intentionally separates testing into distinct quality layers.
 | Unit Tests | Business-rule and validation isolation |
 | Integration Tests | PostgreSQL-backed API validation |
 | Cypress UI Tests | Full browser workflow validation |
+| SQA Operations Console | Runtime operational validation tooling |
 | k6 Performance Smoke Tests | API responsiveness and availability validation |
 
 This layered architecture mirrors real-world enterprise quality engineering practices where different validation layers protect against different classes of defects.
@@ -733,6 +822,15 @@ This is useful for:
 * repeatable testing
 * consistent UI behavior
 * deterministic automation
+* recruiter-safe production exploration
+
+The production application also includes:
+
+```text
+Reset Demo Data
+```
+
+inside the SQA control panel so public demo users can safely restore the dataset after CRUD experimentation.
 
 ---
 
@@ -752,6 +850,14 @@ npm start
 
 for local development.
 
+Additional helper commands:
+
+```bash
+npm run db:up
+npm run db:down
+npm run db:reset
+```
+
 ---
 
 # 🧠 Engineering Focus
@@ -769,6 +875,9 @@ This repository emphasizes:
 * infrastructure-aware development
 * deterministic test architecture
 * quality-first system design
+* operational tooling
+* runtime diagnostics
+* maintainable selector architecture
 
 ---
 
@@ -780,6 +889,7 @@ This repository emphasizes:
 * Additional dashboard analytics
 * Better mobile responsiveness
 * Advanced ship management workflows
+* Accessibility improvements
 
 ---
 
@@ -790,6 +900,7 @@ This repository emphasizes:
 * Cross-browser Playwright coverage
 * Advanced load and stress testing
 * Security scanning
+* Lighthouse scoring automation
 
 ---
 
@@ -799,6 +910,7 @@ This repository emphasizes:
 * Test artifact publishing
 * Parallelized CI execution
 * Advanced deployment gating
+* Observability dashboards
 
 ---
 
@@ -813,4 +925,8 @@ This project was intentionally built to demonstrate:
 * enterprise QA engineering practices
 * modern automation architecture
 * maintainable test design
-* full-stack engineering cap
+* full-stack engineering
+* operational validation tooling
+* deployment-safe engineering workflows
+* quality-first software delivery
+
