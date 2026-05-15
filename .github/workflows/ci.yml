@@ -8,6 +8,14 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+env:
+  LIGHTHOUSE_REPORT_URL: https://jayg67.github.io/cruise/lighthouse/
+
 jobs:
   unit-tests:
     name: Unit Tests
@@ -165,6 +173,7 @@ jobs:
       - name: Run k6 performance smoke test
         run: npm run perf:smoke:ci
 
+
   lighthouse-mobile-audit:
     name: Lighthouse Mobile Quality Gate
     runs-on: ubuntu-latest
@@ -211,6 +220,19 @@ jobs:
       - name: Run Lighthouse mobile quality gate
         run: npm run lighthouse:ci:ci
 
+      - name: Prepare Lighthouse report for GitHub Pages
+        if: always()
+        run: npm run lighthouse:prepare-pages
+
+      - name: Add Lighthouse report link to job summary
+        if: always()
+        run: |
+          echo "## Lighthouse Mobile Quality Report" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "[Open latest Lighthouse report]($LIGHTHOUSE_REPORT_URL)" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "This link updates after the GitHub Pages deployment completes." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload Lighthouse reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -218,7 +240,31 @@ jobs:
           name: lighthouse-mobile-reports
           path: |
             lhci-report
+            github-pages/lighthouse
             .lighthouseci
             lighthouse-report.report.html
             lighthouse-report.report.json
           if-no-files-found: ignore
+
+      - name: Upload GitHub Pages artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: github-pages
+
+  deploy-lighthouse-report:
+    name: Publish Lighthouse Report to GitHub Pages
+    runs-on: ubuntu-latest
+    needs:
+      - lighthouse-mobile-audit
+    if: github.ref == 'refs/heads/main'
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}lighthouse/
+
+    steps:
+      - name: Deploy latest Lighthouse report
+        id: deployment
+        uses: actions/deploy-pages@v4
+

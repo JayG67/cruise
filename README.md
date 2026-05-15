@@ -9,7 +9,7 @@
 [![Live Demo](https://img.shields.io/badge/live-demo-brightgreen)](https://cruise-explorer.onrender.com/)
 [![Deployment](https://img.shields.io/badge/render-deployed-blue)](https://cruise-explorer.onrender.com/)
 [![Performance](https://img.shields.io/badge/k6-performance%20smoke-purple)](./performance/cruise-api-smoke.js)
-[![Lighthouse](https://img.shields.io/badge/lighthouse-mobile%20audit-orange)](https://developer.chrome.com/docs/lighthouse/overview)
+[![Lighthouse](https://img.shields.io/badge/lighthouse-mobile%20audit-orange)](https://jayg67.github.io/cruise/lighthouse/)
 
 ## 🌐 Live Production Application
 
@@ -122,6 +122,24 @@ Runs:
 * Lighthouse mobile audits
 
 This is the same validation flow intended before pushing into CI/CD or production deployment.
+
+---
+
+
+## Latest Published Lighthouse Report
+
+The latest CI-generated Lighthouse mobile report is published through GitHub Pages:
+
+```text
+https://jayg67.github.io/cruise/lighthouse/
+```
+
+This same report is linked from:
+
+* the GitHub Actions job summary
+* the GitHub Actions artifact list
+* the deployed application's SQA control panel
+
 
 ---
 

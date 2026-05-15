@@ -1612,3 +1612,30 @@ button[data-cy="update-delete-ship-button"]:hover {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
+
+
+.quality-report-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: -4px 0 14px;
+}
+
+.quality-report-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 7px 12px;
+  border: 1px solid #b8e0ea;
+  border-radius: 999px;
+  color: #075f77;
+  background: #effcff;
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.quality-report-links a:hover {
+  color: #043b4b;
+  background: #dff7fc;
+}

@@ -21,3 +21,8 @@ coverage/
 #Test Output
 cypress/screenshots/
 cypress/videos/
+lhci-report/
+.lighthouseci/
+github-pages/
+lighthouse-report.report.html
+lighthouse-report.report.json

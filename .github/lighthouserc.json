@@ -5,6 +5,7 @@
         "http://localhost:8000"
       ],
       "numberOfRuns": 1,
+      "chromeFlags": "--headless --no-sandbox --disable-dev-shm-usage",
       "settings": {
         "formFactor": "mobile",
         "screenEmulation": {
@@ -19,8 +20,7 @@
           "accessibility",
           "best-practices",
           "seo"
-        ],
-        "chromeFlags": "--headless --no-sandbox --disable-dev-shm-usage"
+        ]
       }
     },
     "assert": {
