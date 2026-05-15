@@ -33,7 +33,8 @@
     "lighthouse:ci": "lhci autorun",
     "lighthouse:ci:local": "start-server-and-test start http://localhost:8000 lighthouse:ci",
     "lighthouse:ci:ci": "start-server-and-test start:ci http://localhost:8000 lighthouse:ci",
-    "lighthouse:prepare-pages": "node scripts/prepare-lighthouse-pages.js"
+    "lighthouse:prepare-pages": "node scripts/prepare-lighthouse-pages.js",
+    "quality:prepare-dashboard": "node scripts/prepare-quality-dashboard.js"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

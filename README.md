@@ -10,6 +10,7 @@
 [![Deployment](https://img.shields.io/badge/render-deployed-blue)](https://cruise-explorer.onrender.com/)
 [![Performance](https://img.shields.io/badge/k6-performance%20smoke-purple)](./performance/cruise-api-smoke.js)
 [![Lighthouse](https://img.shields.io/badge/lighthouse-mobile%20audit-orange)](https://jayg67.github.io/cruise/lighthouse/)
+[![Quality Dashboard](https://img.shields.io/badge/quality-dashboard-success)](https://jayg67.github.io/cruise/)
 
 ## 🌐 Live Production Application
 
@@ -125,6 +126,23 @@ This is the same validation flow intended before pushing into CI/CD or productio
 
 ---
 
+
+
+## Latest Published Quality Dashboard
+
+The latest CI-generated quality dashboard is published through GitHub Pages:
+
+```text
+https://jayg67.github.io/cruise/
+```
+
+It provides an executive-friendly summary of:
+
+* live deployment status
+* CI validation results
+* unit, integration, Cypress, k6, and Lighthouse quality gates
+* Lighthouse mobile scores
+* links to workflow runs and detailed reports
 
 ## Latest Published Lighthouse Report
 

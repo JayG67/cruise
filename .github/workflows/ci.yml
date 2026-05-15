@@ -15,6 +15,8 @@ permissions:
 
 env:
   LIGHTHOUSE_REPORT_URL: https://jayg67.github.io/cruise/lighthouse/
+  QUALITY_DASHBOARD_URL: https://jayg67.github.io/cruise/
+  LIVE_APP_URL: https://cruise-explorer.onrender.com/
 
 jobs:
   unit-tests:
@@ -224,14 +226,20 @@ jobs:
         if: always()
         run: npm run lighthouse:prepare-pages
 
+      - name: Prepare Quality Dashboard for GitHub Pages
+        if: always()
+        run: npm run quality:prepare-dashboard
+
       - name: Add Lighthouse report link to job summary
         if: always()
         run: |
           echo "## Lighthouse Mobile Quality Report" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "[Open Quality Dashboard]($QUALITY_DASHBOARD_URL)" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "[Open latest Lighthouse report]($LIGHTHOUSE_REPORT_URL)" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "This link updates after the GitHub Pages deployment completes." >> "$GITHUB_STEP_SUMMARY"
+          echo "These links update after the GitHub Pages deployment completes." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload Lighthouse reports
         if: always()
@@ -253,7 +261,7 @@ jobs:
           path: github-pages
 
   deploy-lighthouse-report:
-    name: Publish Lighthouse Report to GitHub Pages
+    name: Publish Quality Dashboard to GitHub Pages
     runs-on: ubuntu-latest
     needs:
       - lighthouse-mobile-audit

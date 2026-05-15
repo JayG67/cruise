@@ -98,6 +98,7 @@ export const selectors = {
     resetDemoDataNote: '[data-cy="reset-demo-data-note"]',
     clearOutputButton: '[data-cy="clear-test-output-button"]',
     output: '[data-cy="test-output"]',
-    latestLighthouseReportLink: '[data-cy="latest-lighthouse-report-link"]'
+    latestLighthouseReportLink: '[data-cy="latest-lighthouse-report-link"]',
+    latestQualityDashboardLink: '[data-cy="latest-quality-dashboard-link"]'
   }
 }
