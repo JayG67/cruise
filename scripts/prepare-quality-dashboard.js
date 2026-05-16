@@ -494,7 +494,7 @@ const html = `<!DOCTYPE html>
         ${statusCard('Unit Tests', 'PASS', 'Jest unit validation completed successfully.', workflowRunUrl)}
         ${statusCard('Integration Tests', 'PASS', 'PostgreSQL-backed API integration validation completed successfully.', workflowRunUrl)}
         ${statusCard('Cypress UI Tests', 'PASS', 'Browser workflow regression suite completed successfully.', workflowRunUrl)}
-        ${statusCard('Playwright Mobile Tests', 'PASS', 'Mobile Chrome, Mobile Safari, and tablet viewport validation completed successfully.', workflowRunUrl)}
+        ${statusCard('Playwright Mobile Tests', 'PASS', 'Mobile Chrome, Mobile Safari, tablet rendering, mobile workflows, SQA controls, and responsive behavior completed successfully.', workflowRunUrl)}
         ${statusCard('k6 Performance Smoke', 'PASS', 'API response-time and success-rate smoke checks completed successfully.', workflowRunUrl)}
         ${statusCard('Lighthouse Mobile Gate', 'PASS', 'Mobile quality gate completed and generated a public report.', lighthouseReportUrl)}
         ${statusCard('Jest Coverage', 'PASS', 'Coverage report generated and published to GitHub Pages.', coverageReportUrl)}
@@ -548,7 +548,7 @@ const html = `<!DOCTYPE html>
             <li><strong>Coverage:</strong> Jest coverage summary and HTML coverage report published to GitHub Pages.</li>
             <li><strong>Integration:</strong> PostgreSQL-backed API workflows and relationship integrity.</li>
             <li><strong>Cypress:</strong> CRUD workflows, SQA control panel, browser behavior, API failure paths.</li>
-            <li><strong>Playwright Mobile:</strong> mobile Chrome, mobile Safari, tablet rendering, mobile navigation, and horizontal-overflow validation.</li>
+            <li><strong>Playwright Mobile:</strong> mobile Chrome, mobile Safari, tablet rendering, navigation, search, ship panel, update workflow, create workflow, SQA controls, and horizontal-overflow validation.</li>
             <li><strong>k6:</strong> API performance smoke validation and response-time thresholds.</li>
             <li><strong>Lighthouse:</strong> mobile performance, accessibility, SEO, and best practices.</li>
           </ul>

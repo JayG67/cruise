@@ -1639,3 +1639,36 @@ button[data-cy="update-delete-ship-button"]:hover {
   color: #043b4b;
   background: #dff7fc;
 }
+
+
+/* Final mobile navigation touch-target override.
+   Keep this at the end of the file so it wins the cascade. */
+.nav-bar a,
+.nav-links a,
+.brand {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 0.9rem;
+  line-height: 1.2;
+  box-sizing: border-box;
+}
+
+.nav-links {
+  align-items: center;
+}
+
+@media (max-width: 720px) {
+  .nav-bar,
+  .nav-links {
+    align-items: stretch;
+  }
+
+  .nav-bar a,
+  .nav-links a,
+  .brand {
+    width: 100%;
+    min-height: 44px;
+  }
+}
