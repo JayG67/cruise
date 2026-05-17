@@ -22,6 +22,16 @@ router.get(
   cruiseController.getShipsByCruiseLine
 )
 
+router.get(
+  '/ship/:shipId/sailings',
+  cruiseController.getSailingsByShip
+)
+
+router.get(
+  '/sailings/:sailingId/itinerary',
+  cruiseController.getItineraryBySailing
+)
+
 router.post(
   '/cruise-line',
   validate(cruiseLineSchema),

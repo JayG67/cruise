@@ -1,7 +1,10 @@
 const cruiseLineTable = require('../models/cruiseline.model')
 const shipTable = require('../models/ship.model')
+const sailingTable = require('../models/sailing.model')
+const itineraryDayTable = require('../models/itineraryDay.model')
+const activityScheduleTable = require('../models/activitySchedule.model')
 const db = require('../db')
-const { eq } = require('drizzle-orm')
+const { eq, asc } = require('drizzle-orm')
 
 exports.getCruiseLines = async (req, res, next) => {
   try {
@@ -57,6 +60,62 @@ exports.getShipsByCruiseLine = async (req, res, next) => {
     }
 
     return res.status(200).json(ships)
+  } catch (err) {
+    next(err)
+  }
+}
+
+
+exports.getSailingsByShip = async (req, res, next) => {
+  try {
+    const { shipId } = req.params
+
+    const sailings = await db
+      .select()
+      .from(sailingTable)
+      .where(eq(sailingTable.shipId, shipId))
+      .orderBy(asc(sailingTable.departureDate))
+
+    if (!sailings || sailings.length === 0) {
+      return res.status(404).json({ message: 'No sailings found for the specified ship' })
+    }
+
+    return res.status(200).json(sailings)
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.getItineraryBySailing = async (req, res, next) => {
+  try {
+    const { sailingId } = req.params
+
+    const itineraryDays = await db
+      .select()
+      .from(itineraryDayTable)
+      .where(eq(itineraryDayTable.sailingId, sailingId))
+      .orderBy(asc(itineraryDayTable.day))
+
+    if (!itineraryDays || itineraryDays.length === 0) {
+      return res.status(404).json({ message: 'No itinerary found for the specified sailing' })
+    }
+
+    const itinerary = []
+
+    for (const itineraryDay of itineraryDays) {
+      const activitySchedule = await db
+        .select()
+        .from(activityScheduleTable)
+        .where(eq(activityScheduleTable.itineraryDayId, itineraryDay.id))
+        .orderBy(asc(activityScheduleTable.time))
+
+      itinerary.push({
+        ...itineraryDay,
+        activitySchedule
+      })
+    }
+
+    return res.status(200).json(itinerary)
   } catch (err) {
     next(err)
   }

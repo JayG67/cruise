@@ -100,6 +100,40 @@ test.describe('Cruise Explorer mobile quality checks', () => {
     await expectNoHorizontalOverflow(page)
   })
 
+  test('shows sailings and itinerary details from the mobile ship panel', async ({ page }) => {
+    const firstCard = await getFirstCruiseCard(page)
+
+    await firstCard.getByTestId('view-ships-button').click()
+
+    const firstShipCard = page.getByTestId('ship-card').first()
+    await expect(firstShipCard).toBeVisible()
+    await expect(firstShipCard).toContainText('Current Port:')
+    await expect(firstShipCard).not.toContainText('Ship ID:')
+
+    await firstShipCard.getByTestId('view-sailings-button').click()
+
+    await expect(page.getByTestId('sailings-panel')).toBeVisible()
+    await expect(page.getByTestId('sailing-card').first()).toBeVisible()
+    await expect(page.getByTestId('sailing-card').first()).toContainText('Departure Port:')
+    await expect(page.getByTestId('sailing-card').first()).toContainText('Arrival Port:')
+    await expect(page.getByTestId('view-itinerary-button').first()).toBeVisible()
+
+    await page.getByTestId('view-itinerary-button').first().click()
+
+    await expect(page.getByTestId('itinerary-panel')).toBeVisible()
+
+    const itineraryDay = page.getByTestId('itinerary-day').first()
+
+    await expect(itineraryDay).toBeVisible()
+
+    await itineraryDay.click()
+
+    await expect(page.getByTestId('itinerary-port').first()).toBeVisible()
+    await expect(page.getByTestId('itinerary-activity').first()).toBeVisible()
+
+    await expectNoHorizontalOverflow(page)
+  })
+
   test('opens the update workflow from a cruise card without breaking mobile layout', async ({ page }) => {
     const firstCard = await getFirstCruiseCard(page)
 

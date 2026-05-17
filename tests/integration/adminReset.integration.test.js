@@ -1,3 +1,5 @@
+jest.setTimeout(30000)
+
 const request = require('supertest')
 
 const app = require('../../app')
@@ -29,6 +31,9 @@ describe('Admin reset demo data integration tests', () => {
     expect(resetRes.body.message).toBe('Demo data reset successfully')
     expect(resetRes.body.cruiseLineCount).toBeGreaterThan(0)
     expect(resetRes.body.shipCount).toBeGreaterThan(0)
+    expect(resetRes.body.sailingCount).toBeGreaterThan(0)
+    expect(resetRes.body.itineraryDayCount).toBeGreaterThan(0)
+    expect(resetRes.body.activityCount).toBeGreaterThan(0)
 
     const cruiseRes = await request(app).get('/cruise')
 
@@ -45,8 +50,14 @@ describe('Admin reset demo data integration tests', () => {
     expect(res.body).toHaveProperty('message')
     expect(res.body).toHaveProperty('cruiseLineCount')
     expect(res.body).toHaveProperty('shipCount')
+    expect(res.body).toHaveProperty('sailingCount')
+    expect(res.body).toHaveProperty('itineraryDayCount')
+    expect(res.body).toHaveProperty('activityCount')
     expect(res.body).toHaveProperty('source', 'data/cruise.json')
     expect(typeof res.body.cruiseLineCount).toBe('number')
     expect(typeof res.body.shipCount).toBe('number')
+    expect(typeof res.body.sailingCount).toBe('number')
+    expect(typeof res.body.itineraryDayCount).toBe('number')
+    expect(typeof res.body.activityCount).toBe('number')
   })
 })

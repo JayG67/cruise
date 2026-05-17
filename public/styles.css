@@ -1672,3 +1672,77 @@ button[data-cy="update-delete-ship-button"]:hover {
     min-height: 44px;
   }
 }
+
+
+.sailings-section,
+.itinerary-section {
+  padding-top: 34px;
+  padding-bottom: 34px;
+}
+
+.sailing-card h3 {
+  color: var(--navy);
+}
+
+.itinerary-list {
+  display: grid;
+  gap: 14px;
+}
+
+.itinerary-day {
+  border: 1px solid #dceaf1;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(7, 24, 39, 0.06);
+  overflow: hidden;
+}
+
+.itinerary-day summary {
+  cursor: pointer;
+  padding: 16px 18px;
+  color: var(--navy);
+  font-weight: 900;
+  list-style-position: inside;
+}
+
+.itinerary-day[open] summary {
+  border-bottom: 1px solid #dceaf1;
+  background: #f8fcff;
+}
+
+.activity-schedule {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 16px 18px 18px;
+  list-style: none;
+}
+
+.activity-schedule li {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  color: #526575;
+  line-height: 1.45;
+}
+
+.activity-time {
+  color: var(--blue);
+  font-weight: 900;
+}
+
+@media (max-width: 560px) {
+  .activity-schedule li {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+
+.itinerary-port {
+  margin: 0;
+  padding: 12px 18px 0;
+  color: #526575;
+  font-size: 0.95rem;
+}

@@ -4,6 +4,7 @@ const cruiseLineTable = require('./cruiseline.model')
 const shipTable = pgTable('ships', {
   id: uuid().primaryKey().defaultRandom(),
   name: varchar({ length: 255 }).notNull(),
+  currentPort: varchar({ length: 255 }),
   cruiseLineId: uuid().references(() => cruiseLineTable.id).notNull()
 })
 

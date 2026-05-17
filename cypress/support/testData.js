@@ -148,11 +148,13 @@ export const royalShips = [
   {
     id: iconShipId,
     name: 'Icon of the Seas',
+    currentPort: 'Miami, Florida',
     cruiseLineId: royalCruiseLineId
   },
   {
     id: utopiaShipId,
     name: 'Utopia of the Seas',
+    currentPort: 'Miami, Florida',
     cruiseLineId: royalCruiseLineId
   }
 ]
@@ -161,6 +163,7 @@ export const mscShips = [
   {
     id: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
     name: 'MSC Seaside',
+    currentPort: 'Barcelona, Spain',
     cruiseLineId: mscCruiseLineId
   }
 ]

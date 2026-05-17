@@ -72,7 +72,31 @@ export const selectors = {
     grid: '[data-cy="ships-grid"]',
     card: '[data-cy="ship-card"]',
     emptyMessage: '[data-cy="ships-empty-message"]',
-    loadingMessage: '[data-cy="ships-loading-message"]'
+    loadingMessage: '[data-cy="ships-loading-message"]',
+    viewSailingsButton: '[data-cy="view-sailings-button"]'
+  },
+  sailings: {
+    panel: '[data-cy="sailings-panel"]',
+    title: '[data-cy="sailings-title"]',
+    summary: '[data-cy="sailings-summary"]',
+    grid: '[data-cy="sailings-grid"]',
+    card: '[data-cy="sailing-card"]',
+    loadingMessage: '[data-cy="sailings-loading-message"]',
+    emptyMessage: '[data-cy="sailings-empty-message"]',
+    viewItineraryButton: '[data-cy="view-itinerary-button"]'
+  },
+  itinerary: {
+    panel: '[data-cy="itinerary-panel"]',
+    title: '[data-cy="itinerary-title"]',
+    summary: '[data-cy="itinerary-summary"]',
+    grid: '[data-cy="itinerary-grid"]',
+    day: '[data-cy="itinerary-day"]',
+    daySummary: '[data-cy="itinerary-day-summary"]',
+    itineraryPort: '[data-cy="itinerary-port"]',
+    activitySchedule: '[data-cy="activity-schedule"]',
+    activity: '[data-cy="itinerary-activity"]',
+    loadingMessage: '[data-cy="itinerary-loading-message"]',
+    emptyMessage: '[data-cy="itinerary-empty-message"]'
   },
   testPanel: {
     panel: '[data-cy="sqa-test-panel"]',
