@@ -136,3 +136,17 @@ export function stubSuccessfulRoyalDelete() {
     })
   }).as('deleteRoyalCruiseLine')
 }
+
+export function mockSailingsForShip(shipId, response, alias = `getSailings-${shipId}`) {
+  cy.intercept('GET', `/cruise/ship/${shipId}/sailings`, {
+    statusCode: 200,
+    body: response
+  }).as(alias)
+}
+
+export function mockItineraryForSailing(sailingId, response, alias = `getItinerary-${sailingId}`) {
+  cy.intercept('GET', `/cruise/sailings/${sailingId}/itinerary`, {
+    statusCode: 200,
+    body: response
+  }).as(alias)
+}

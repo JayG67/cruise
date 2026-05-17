@@ -18,3 +18,12 @@ const db = drizzle(pool)
 module.exports = db
 module.exports.pool = pool
 module.exports.connectionString = connectionString
+
+
+module.exports.closePool = async function closePool() {
+  if (pool.ended) {
+    return
+  }
+
+  await pool.end()
+}

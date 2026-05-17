@@ -275,13 +275,46 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
     cy.intercept('GET', '/cruise', { statusCode: 200, body: cruiseLines }).as('smokeCruiseLines')
     cy.intercept('GET', `/cruise/ships/${cruiseLines[0].id}`, {
       statusCode: 200,
-      body: [{ id: 'ship-1', name: 'Icon of the Seas', cruiseLineId: cruiseLines[0].id }]
+      body: [{ id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', name: 'Icon of the Seas', currentPort: 'Miami, Florida', cruiseLineId: cruiseLines[0].id }]
     }).as('smokeShips')
+
+    cy.intercept('GET', `/cruise/ship/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/sailings`, {
+      statusCode: 200,
+      body: [{
+        id: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+        shipId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+        departureDate: '2026-07-05',
+        port: 'Miami, Florida',
+        departurePort: 'Miami, Florida',
+        arrivalPort: 'Miami, Florida',
+        days: 3,
+        isRepositioning: false
+      }]
+    }).as('smokeSailings')
+
+    cy.intercept('GET', `/cruise/sailings/cccccccc-cccc-cccc-cccc-cccccccccccc/itinerary`, {
+      statusCode: 200,
+      body: [{
+        id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1',
+        sailingId: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+        day: 1,
+        title: 'Embarkation Day',
+        port: 'Miami, Florida',
+        activitySchedule: [{
+          id: 'ffffffff-ffff-ffff-ffff-fffffffffff1',
+          itineraryDayId: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1',
+          time: '12:00 PM',
+          activity: 'Guest boarding and welcome lunch'
+        }]
+      }]
+    }).as('smokeItinerary')
 
     cy.get(selectors.testPanel.uiSmokeTestButton).click()
     cy.wait('@smokeHealth')
     cy.wait('@smokeCruiseLines')
     cy.wait('@smokeShips')
+    cy.wait('@smokeSailings')
+    cy.wait('@smokeItinerary')
 
     cy.get(selectors.testPanel.output)
       .should('contain.text', 'UI Smoke Check Result')
@@ -289,6 +322,8 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
       .and('contain.text', 'GET /health')
       .and('contain.text', 'GET /cruise')
       .and('contain.text', 'GET /cruise/ships/:cruiseLineId')
+      .and('contain.text', 'GET /cruise/ship/:shipId/sailings')
+      .and('contain.text', 'GET /cruise/sailings/:sailingId/itinerary')
   })
 
   it('reports a failing UI smoke check when one dependency fails', () => {
@@ -349,18 +384,53 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
 
     cy.intercept('GET', `/cruise/ships/${cruiseLines[0].id}`, {
       statusCode: 200,
-      body: [{ id: 'ship-1', name: 'Icon of the Seas', cruiseLineId: cruiseLines[0].id }]
+      body: [{ id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', name: 'Icon of the Seas', currentPort: 'Miami, Florida', cruiseLineId: cruiseLines[0].id }]
     }).as('contractShips')
+
+    cy.intercept('GET', `/cruise/ship/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/sailings`, {
+      statusCode: 200,
+      body: [{
+        id: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+        shipId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+        departureDate: '2026-07-05',
+        port: 'Miami, Florida',
+        departurePort: 'Miami, Florida',
+        arrivalPort: 'Miami, Florida',
+        days: 3,
+        isRepositioning: false
+      }]
+    }).as('contractSailings')
+
+    cy.intercept('GET', `/cruise/sailings/cccccccc-cccc-cccc-cccc-cccccccccccc/itinerary`, {
+      statusCode: 200,
+      body: [{
+        id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1',
+        sailingId: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+        day: 1,
+        title: 'Embarkation Day',
+        port: 'Miami, Florida',
+        activitySchedule: [{
+          id: 'ffffffff-ffff-ffff-ffff-fffffffffff1',
+          itineraryDayId: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1',
+          time: '12:00 PM',
+          activity: 'Guest boarding and welcome lunch'
+        }]
+      }]
+    }).as('contractItinerary')
 
     cy.get(selectors.testPanel.apiContractCheckButton).click()
     cy.wait('@contractCruiseLines')
     cy.wait('@contractShips')
+    cy.wait('@contractSailings')
+    cy.wait('@contractItinerary')
 
     cy.get(selectors.testPanel.output)
       .should('contain.text', 'API Contract Check Result')
       .and('contain.text', '"passed": true')
       .and('contain.text', '"requiredFields"')
       .and('contain.text', '"contractPassed": true')
+      .and('contain.text', 'sailingEndpoint')
+      .and('contain.text', 'itineraryEndpoint')
     cy.get(selectors.testPanel.lastRunLabel).should('contain.text', 'Last run: API Contract Check Result')
   })
 
@@ -465,7 +535,7 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
 
     cy.intercept('GET', `/cruise/ships/${cruiseLines[0].id}`, {
       statusCode: 200,
-      body: [{ id: 'ship-1', name: 'Icon of the Seas', cruiseLineId: cruiseLines[0].id }]
+      body: [{ id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', name: 'Icon of the Seas', currentPort: 'Miami, Florida', cruiseLineId: cruiseLines[0].id }]
     }).as('performanceShips')
 
     cy.get(selectors.testPanel.performanceSmokeCheckButton).click()
@@ -488,18 +558,45 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
 
     cy.intercept('GET', `/cruise/ships/${cruiseLines[0].id}`, {
       statusCode: 200,
-      body: [{ id: 'ship-1', name: 'Icon of the Seas', cruiseLineId: cruiseLines[0].id }]
+      body: [{ id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', name: 'Icon of the Seas', currentPort: 'Miami, Florida', cruiseLineId: cruiseLines[0].id }]
     }).as('seedShips')
+
+    cy.intercept('GET', `/cruise/ship/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/sailings`, {
+      statusCode: 200,
+      body: [{
+        id: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+        shipId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+        departureDate: '2026-07-05',
+        port: 'Miami, Florida',
+        departurePort: 'Miami, Florida',
+        arrivalPort: 'Miami, Florida',
+        days: 3,
+        isRepositioning: false
+      }]
+    }).as('seedSailings')
+
+    cy.intercept('GET', `/cruise/sailings/cccccccc-cccc-cccc-cccc-cccccccccccc/itinerary`, {
+      statusCode: 200,
+      body: [
+        { id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1', sailingId: 'cccccccc-cccc-cccc-cccc-cccccccccccc', day: 1, title: 'Embarkation Day', port: 'Miami, Florida', activitySchedule: [{ id: 'ffffffff-ffff-ffff-ffff-fffffffffff1', itineraryDayId: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1', time: '12:00 PM', activity: 'Guest boarding and welcome lunch' }] },
+        { id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee2', sailingId: 'cccccccc-cccc-cccc-cccc-cccccccccccc', day: 2, title: 'Day at Sea', port: 'At Sea', activitySchedule: [{ id: 'ffffffff-ffff-ffff-ffff-fffffffffff2', itineraryDayId: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee2', time: '9:00 AM', activity: 'Morning fitness class' }] },
+        { id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee3', sailingId: 'cccccccc-cccc-cccc-cccc-cccccccccccc', day: 3, title: 'Return to Port', port: 'Miami, Florida', activitySchedule: [{ id: 'ffffffff-ffff-ffff-ffff-fffffffffff3', itineraryDayId: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee3', time: '7:00 AM', activity: 'Farewell breakfast' }] }
+      ]
+    }).as('seedItinerary')
 
     cy.get(selectors.testPanel.seedIntegrityCheckButton).click()
     cy.wait('@seedCruiseLines')
     cy.wait('@seedShips')
+    cy.wait('@seedSailings')
+    cy.wait('@seedItinerary')
 
     cy.get(selectors.testPanel.output)
       .should('contain.text', 'Seed Data Integrity Check Result')
       .and('contain.text', '"passed": true')
       .and('contain.text', '"cruiseLineCount"')
       .and('contain.text', '"shipCount"')
+      .and('contain.text', '"sailingCount"')
+      .and('contain.text', '"itineraryDayCount"')
   })
 
   it('checks frontend rendering consistency against the loaded API data', () => {

@@ -30,6 +30,86 @@
 
 ---
 
+## Product Direction and Testing Roadmap
+
+Cruise Explorer is evolving into a multi-cruise-line platform with admin, passenger group, and individual passenger experiences.
+
+The current development sequence is tracked here:
+
+```text
+docs/product-testing-roadmap.md
+```
+
+Current roadmap step:
+
+```text
+Step 1 — Stabilize testing around the expanded cruise data model
+```
+
+The expanded seed-data integrity checks live in:
+
+```text
+tests/unit/data/cruiseSeedData.test.js
+```
+
+---
+
+
+## Sailings and Itinerary UI
+
+The feature branch now surfaces the expanded sailing data in the application UI:
+
+* ship cards show the ship name and current working port without exposing internal IDs
+* ship cards include a `View Sailings` action
+* sailing cards show departure date, departure port, arrival port, sailing type, and sailing length
+* each sailing includes a `View Itinerary` action
+* itinerary details render as collapsible day-by-day schedule sections with the visited port or `At Sea` status
+* each itinerary day shows its onboard activity schedule
+
+Additional UI automation coverage was added for:
+
+* Cypress desktop workflow coverage for ship → sailing → itinerary rendering
+* Cypress fallback handling when sailings cannot be loaded
+* Playwright mobile validation for ship → sailing → itinerary navigation
+* SQA API contract and seed integrity checks that now include sailings and itinerary data
+
+## Sailings and Itinerary Data Foundation
+
+The seed dataset now supports richer cruise-planning data beneath each ship:
+
+```text
+cruiseLines[]
+  ships[]
+    currentPort
+    sailings[]
+      departureDate
+      port
+      departurePort
+      arrivalPort
+      days
+      isRepositioning
+      itinerary[]
+        day
+        title
+        port
+        activitySchedule[]
+          time
+          activity
+```
+
+Each seeded ship includes five future sailings starting in July 2026. One sailing per ship is a longer repositioning sailing with a different arrival port. Each sailing includes one itinerary object per cruise day, each itinerary day identifies the port or sea-day status, and each itinerary day includes a ship activity schedule.
+
+Read-only API endpoints added for this data foundation:
+
+```bash
+GET /cruise/ship/:shipId/sailings
+GET /cruise/sailings/:sailingId/itinerary
+```
+
+This feature is intended to be developed on a separate branch because it expands the data model, seed loader, API layer, and future UI workflows.
+
+---
+
 # 📌 What This Repository Demonstrates
 
 This repository is intentionally designed as a:

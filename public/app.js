@@ -15,6 +15,8 @@ const clearTestOutputBtn = document.getElementById('clearTestOutputBtn')
 let cruiseLines = []
 let selectedCruiseLineForShips = null
 let selectedCruiseLineNameForShips = ''
+let selectedShipForSailings = null
+let selectedShipNameForSailings = ''
 
 document.addEventListener('DOMContentLoaded', () => {
   const reloadButton = document.getElementById('reload-button')
@@ -699,7 +701,41 @@ function validateShipContract(ship) {
     ship &&
     typeof ship.id === 'string' &&
     typeof ship.name === 'string' &&
-    typeof ship.cruiseLineId === 'string'
+    typeof ship.cruiseLineId === 'string' &&
+    (ship.currentPort === null || ship.currentPort === undefined || typeof ship.currentPort === 'string')
+  )
+}
+
+function validateSailingContract(sailing) {
+  return Boolean(
+    sailing &&
+    typeof sailing.id === 'string' &&
+    typeof sailing.shipId === 'string' &&
+    typeof sailing.departureDate === 'string' &&
+    typeof sailing.port === 'string' &&
+    (sailing.departurePort === null || sailing.departurePort === undefined || typeof sailing.departurePort === 'string') &&
+    (sailing.arrivalPort === null || sailing.arrivalPort === undefined || typeof sailing.arrivalPort === 'string') &&
+    typeof sailing.days === 'number' &&
+    (sailing.isRepositioning === null || sailing.isRepositioning === undefined || typeof sailing.isRepositioning === 'boolean')
+  )
+}
+
+function validateItineraryDayContract(day) {
+  return Boolean(
+    day &&
+    typeof day.id === 'string' &&
+    typeof day.sailingId === 'string' &&
+    typeof day.day === 'number' &&
+    typeof day.title === 'string' &&
+    (day.port === null || day.port === undefined || typeof day.port === 'string') &&
+    Array.isArray(day.activitySchedule) &&
+    day.activitySchedule.every(activity =>
+      activity &&
+      typeof activity.id === 'string' &&
+      typeof activity.itineraryDayId === 'string' &&
+      typeof activity.time === 'string' &&
+      typeof activity.activity === 'string'
+    )
   )
 }
 
@@ -748,6 +784,12 @@ async function runApiContractCheck() {
       let shipResponseStatus = null
       let shipContractsPass = false
       let shipRecordCount = 0
+      let sailingResponseStatus = null
+      let sailingContractsPass = false
+      let sailingRecordCount = 0
+      let itineraryResponseStatus = null
+      let itineraryContractsPass = false
+      let itineraryRecordCount = 0
 
       if (firstCruiseLine) {
         const shipResponse = await fetch(`${API_BASE}/ships/${firstCruiseLine.id}`)
@@ -756,10 +798,32 @@ async function runApiContractCheck() {
         shipResponseStatus = shipResponse.status
         shipRecordCount = Array.isArray(shipData) ? shipData.length : 0
         shipContractsPass = shipResponse.ok && Array.isArray(shipData) && shipData.every(validateShipContract)
+
+        const firstShip = Array.isArray(shipData) && shipData.length > 0 ? shipData[0] : null
+
+        if (firstShip) {
+          const sailingResponse = await fetch(`${API_BASE}/ship/${firstShip.id}/sailings`)
+          const sailingData = await parseJsonResponse(sailingResponse)
+
+          sailingResponseStatus = sailingResponse.status
+          sailingRecordCount = Array.isArray(sailingData) ? sailingData.length : 0
+          sailingContractsPass = sailingResponse.ok && Array.isArray(sailingData) && sailingData.every(validateSailingContract)
+
+          const firstSailing = Array.isArray(sailingData) && sailingData.length > 0 ? sailingData[0] : null
+
+          if (firstSailing) {
+            const itineraryResponse = await fetch(`${API_BASE}/sailings/${firstSailing.id}/itinerary`)
+            const itineraryData = await parseJsonResponse(itineraryResponse)
+
+            itineraryResponseStatus = itineraryResponse.status
+            itineraryRecordCount = Array.isArray(itineraryData) ? itineraryData.length : 0
+            itineraryContractsPass = itineraryResponse.ok && Array.isArray(itineraryData) && itineraryData.every(validateItineraryDayContract)
+          }
+        }
       }
 
       writeTestOutput('API Contract Check Result', {
-        passed: cruiseResponse.ok && cruiseLineContractsPass && Boolean(firstCruiseLine) && shipContractsPass,
+        passed: cruiseResponse.ok && cruiseLineContractsPass && Boolean(firstCruiseLine) && shipContractsPass && sailingContractsPass && itineraryContractsPass,
         cruiseLineEndpoint: {
           statusCode: cruiseResponse.status,
           recordCount: Array.isArray(cruiseData) ? cruiseData.length : 0,
@@ -769,8 +833,20 @@ async function runApiContractCheck() {
         shipEndpoint: {
           statusCode: shipResponseStatus,
           recordCount: shipRecordCount,
-          requiredFields: ['id', 'name', 'cruiseLineId'],
+          requiredFields: ['id', 'name', 'currentPort', 'cruiseLineId'],
           contractPassed: shipContractsPass
+        },
+        sailingEndpoint: {
+          statusCode: sailingResponseStatus,
+          recordCount: sailingRecordCount,
+          requiredFields: ['id', 'shipId', 'departureDate', 'departurePort', 'arrivalPort', 'days', 'isRepositioning'],
+          contractPassed: sailingContractsPass
+        },
+        itineraryEndpoint: {
+          statusCode: itineraryResponseStatus,
+          recordCount: itineraryRecordCount,
+          requiredFields: ['id', 'sailingId', 'day', 'title', 'port', 'activitySchedule'],
+          contractPassed: itineraryContractsPass
         }
       })
     }
@@ -987,6 +1063,12 @@ async function runSeedIntegrityCheck() {
       let shipResponseStatus = null
       let shipCount = 0
       let shipCheckPassed = false
+      let sailingResponseStatus = null
+      let sailingCount = 0
+      let sailingCheckPassed = false
+      let itineraryResponseStatus = null
+      let itineraryDayCount = 0
+      let itineraryCheckPassed = false
 
       if (firstCruiseLine) {
         const shipResponse = await fetch(`${API_BASE}/ships/${firstCruiseLine.id}`)
@@ -995,16 +1077,48 @@ async function runSeedIntegrityCheck() {
         shipResponseStatus = shipResponse.status
         shipCount = Array.isArray(shipData) ? shipData.length : 0
         shipCheckPassed = shipResponse.ok && Array.isArray(shipData)
+
+        const firstShip = Array.isArray(shipData) && shipData.length > 0 ? shipData[0] : null
+
+        if (firstShip) {
+          const sailingResponse = await fetch(`${API_BASE}/ship/${firstShip.id}/sailings`)
+          const sailingData = await parseJsonResponse(sailingResponse)
+
+          sailingResponseStatus = sailingResponse.status
+          sailingCount = Array.isArray(sailingData) ? sailingData.length : 0
+          sailingCheckPassed = sailingResponse.ok && Array.isArray(sailingData) && sailingData.length === 5
+
+          const firstSailing = Array.isArray(sailingData) && sailingData.length > 0 ? sailingData[0] : null
+
+          if (firstSailing) {
+            const itineraryResponse = await fetch(`${API_BASE}/sailings/${firstSailing.id}/itinerary`)
+            const itineraryData = await parseJsonResponse(itineraryResponse)
+
+            itineraryResponseStatus = itineraryResponse.status
+            itineraryDayCount = Array.isArray(itineraryData) ? itineraryData.length : 0
+            itineraryCheckPassed = itineraryResponse.ok && Array.isArray(itineraryData) && itineraryData.length === firstSailing.days
+          }
+        }
       }
 
       writeTestOutput('Seed Data Integrity Check Result', {
-        passed: cruiseResponse.ok && Array.isArray(cruiseData) && cruiseData.length > 0 && shipCheckPassed,
+        passed: cruiseResponse.ok && Array.isArray(cruiseData) && cruiseData.length > 0 && shipCheckPassed && sailingCheckPassed && itineraryCheckPassed,
         cruiseLineCount: Array.isArray(cruiseData) ? cruiseData.length : 0,
         firstCruiseLineName: firstCruiseLine ? firstCruiseLine.name : null,
         firstCruiseLineShipLookup: {
           statusCode: shipResponseStatus,
           shipCount,
           passed: shipCheckPassed
+        },
+        firstShipSailingLookup: {
+          statusCode: sailingResponseStatus,
+          sailingCount,
+          passed: sailingCheckPassed
+        },
+        firstSailingItineraryLookup: {
+          statusCode: itineraryResponseStatus,
+          itineraryDayCount,
+          passed: itineraryCheckPassed
         }
       })
     }
@@ -1161,10 +1275,181 @@ function renderShips(ships) {
     const card = document.createElement('article')
     card.className = 'data-card'
     card.setAttribute('data-cy', 'ship-card')
-    card.innerHTML = `<h3>${escapeHtml(ship.name)}</h3>`
+    card.setAttribute('data-testid', 'ship-card')
+
+    card.innerHTML = `
+      <div class="card-content">
+        <h3>${escapeHtml(ship.name)}</h3>
+        <p class="card-meta"><strong>Current Port:</strong> ${escapeHtml(ship.currentPort || 'Port not listed')}</p>
+      </div>
+      <div class="card-actions">
+        <button data-cy="view-sailings-button" data-testid="view-sailings-button" type="button">View Sailings</button>
+      </div>
+    `
+
+    card.querySelector('[data-cy="view-sailings-button"]').addEventListener('click', () => loadSailings(ship.id, ship.name))
+
     grid.appendChild(card)
   })
 }
+
+async function loadSailings(shipId, shipName) {
+  const panel = document.getElementById('sailings-panel')
+  const title = document.getElementById('sailings-title')
+  const grid = document.getElementById('sailings-grid')
+  const itineraryPanel = document.getElementById('itinerary-panel')
+
+  try {
+    selectedShipForSailings = shipId
+    selectedShipNameForSailings = shipName
+
+    if (panel) panel.hidden = false
+    if (itineraryPanel) itineraryPanel.hidden = true
+    if (title) title.textContent = `${shipName} Sailings`
+    if (grid) grid.innerHTML = '<p data-cy="sailings-loading-message" data-testid="sailings-loading-message">Loading sailings...</p>'
+
+    const res = await fetch(`${API_BASE}/ship/${shipId}/sailings`)
+
+    if (!res.ok) {
+      throw new Error(`Sailing request failed with status ${res.status}`)
+    }
+
+    const sailings = await res.json()
+    renderSailings(sailings)
+  } catch (err) {
+    console.error(err)
+    if (grid) grid.innerHTML = '<p data-cy="sailings-empty-message" data-testid="sailings-empty-message">No sailings found for this ship yet.</p>'
+  }
+}
+
+function renderSailings(sailings) {
+  const grid = document.getElementById('sailings-grid')
+
+  if (!grid) return
+
+  grid.innerHTML = ''
+
+  sailings.forEach(sailing => {
+    const card = document.createElement('article')
+    card.className = 'data-card sailing-card'
+    card.setAttribute('data-cy', 'sailing-card')
+    card.setAttribute('data-testid', 'sailing-card')
+
+    const sailingType = sailing.isRepositioning ? 'Repositioning Sailing' : 'Round-Trip / Regional Sailing'
+
+    card.innerHTML = `
+      <div class="card-content">
+        <h3>${escapeHtml(formatSailingDate(sailing.departureDate))}</h3>
+        <p class="card-meta"><strong>Type:</strong> ${escapeHtml(sailingType)}</p>
+        <p class="card-meta"><strong>Departure Port:</strong> ${escapeHtml(sailing.departurePort || sailing.port)}</p>
+        <p class="card-meta"><strong>Arrival Port:</strong> ${escapeHtml(sailing.arrivalPort || sailing.port)}</p>
+        <p class="card-meta"><strong>Length:</strong> ${escapeHtml(String(sailing.days))} days</p>
+      </div>
+      <div class="card-actions">
+        <button data-cy="view-itinerary-button" data-testid="view-itinerary-button" type="button">View Itinerary</button>
+      </div>
+    `
+
+    card.querySelector('[data-cy="view-itinerary-button"]').addEventListener('click', () => loadItinerary(sailing.id, sailing))
+
+    grid.appendChild(card)
+  })
+}
+
+async function loadItinerary(sailingId, sailing) {
+  const panel = document.getElementById('itinerary-panel')
+  const title = document.getElementById('itinerary-title')
+  const grid = document.getElementById('itinerary-grid')
+
+  try {
+    if (panel) panel.hidden = false
+    if (title) {
+      title.textContent = `${selectedShipNameForSailings || 'Ship'} Itinerary - ${formatSailingDate(sailing.departureDate)}`
+    }
+    if (grid) grid.innerHTML = '<p data-cy="itinerary-loading-message" data-testid="itinerary-loading-message">Loading itinerary...</p>'
+
+    const res = await fetch(`${API_BASE}/sailings/${sailingId}/itinerary`)
+
+    if (!res.ok) {
+      throw new Error(`Itinerary request failed with status ${res.status}`)
+    }
+
+    const itinerary = await res.json()
+    renderItinerary(itinerary)
+  } catch (err) {
+    console.error(err)
+    if (grid) grid.innerHTML = '<p data-cy="itinerary-empty-message" data-testid="itinerary-empty-message">No itinerary found for this sailing yet.</p>'
+  }
+}
+
+function renderItinerary(itinerary) {
+  const grid = document.getElementById('itinerary-grid')
+
+  if (!grid) return
+
+  grid.innerHTML = ''
+
+  itinerary.forEach(day => {
+    const details = document.createElement('details')
+    details.className = 'itinerary-day'
+    details.setAttribute('data-cy', 'itinerary-day')
+    details.setAttribute('data-testid', 'itinerary-day')
+
+    const activityItems = (day.activitySchedule || [])
+      .map(activity => `
+        <li data-cy="itinerary-activity" data-testid="itinerary-activity">
+          <span class="activity-time">${escapeHtml(activity.time)}</span>
+          <span>${escapeHtml(activity.activity)}</span>
+        </li>
+      `)
+      .join('')
+
+    details.innerHTML = `
+      <summary data-cy="itinerary-day-summary" data-testid="itinerary-day-summary">
+        Day ${escapeHtml(String(day.day))} — ${escapeHtml(day.title)}
+      </summary>
+      <p class="itinerary-port" data-cy="itinerary-port" data-testid="itinerary-port">
+        <strong>Port:</strong> ${escapeHtml(day.port || 'At Sea')}
+      </p>
+      <ul class="activity-schedule" data-cy="activity-schedule" data-testid="activity-schedule">
+        ${activityItems}
+      </ul>
+    `
+
+    grid.appendChild(details)
+  })
+}
+
+
+function hideSailingAndItineraryPanels() {
+  const sailingsPanel = document.getElementById('sailings-panel')
+  const itineraryPanel = document.getElementById('itinerary-panel')
+  const sailingsGrid = document.getElementById('sailings-grid')
+  const itineraryGrid = document.getElementById('itinerary-grid')
+
+  if (sailingsPanel) sailingsPanel.hidden = true
+  if (itineraryPanel) itineraryPanel.hidden = true
+  if (sailingsGrid) sailingsGrid.innerHTML = ''
+  if (itineraryGrid) itineraryGrid.innerHTML = ''
+
+  selectedShipForSailings = null
+  selectedShipNameForSailings = ''
+}
+
+function formatSailingDate(value) {
+  if (!value) return 'Date unavailable'
+
+  const [year, month, day] = value.split('-').map(Number)
+
+  if (!year || !month || !day) return value
+
+  return new Date(year, month - 1, day).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  })
+}
+
 
 function escapeSingleQuotes(value) {
   return String(value).replace(/'/g, '\\&#39;')
@@ -1272,6 +1557,34 @@ if (uiSmokeTestBtn) {
           statusCode: shipsRes.status,
           recordCount: Array.isArray(shipsData) ? shipsData.length : 0
         })
+
+        const firstShip = Array.isArray(shipsData) && shipsData.length > 0 ? shipsData[0] : null
+
+        if (firstShip) {
+          const sailingsRes = await fetch(`/cruise/ship/${firstShip.id}/sailings`)
+          const sailingsData = await sailingsRes.json()
+
+          results.push({
+            test: 'GET /cruise/ship/:shipId/sailings',
+            passed: sailingsRes.ok && Array.isArray(sailingsData) && sailingsData.length > 0,
+            statusCode: sailingsRes.status,
+            recordCount: Array.isArray(sailingsData) ? sailingsData.length : 0
+          })
+
+          const firstSailing = Array.isArray(sailingsData) && sailingsData.length > 0 ? sailingsData[0] : null
+
+          if (firstSailing) {
+            const itineraryRes = await fetch(`/cruise/sailings/${firstSailing.id}/itinerary`)
+            const itineraryData = await itineraryRes.json()
+
+            results.push({
+              test: 'GET /cruise/sailings/:sailingId/itinerary',
+              passed: itineraryRes.ok && Array.isArray(itineraryData) && itineraryData.length === firstSailing.days,
+              statusCode: itineraryRes.status,
+              recordCount: Array.isArray(itineraryData) ? itineraryData.length : 0
+            })
+          }
+        }
       }
 
       const passed = results.every(result => result.passed)
@@ -1362,6 +1675,7 @@ async function resetDemoData() {
     if (shipsGrid) shipsGrid.innerHTML = ''
     if (searchInput) searchInput.value = ''
 
+    hideSailingAndItineraryPanels()
     hideUpdateCruiseLinePanel()
     await loadCruiseLines()
 
