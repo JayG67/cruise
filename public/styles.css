@@ -1746,3 +1746,42 @@ button[data-cy="update-delete-ship-button"]:hover {
   color: #526575;
   font-size: 0.95rem;
 }
+
+
+/* Mobile Lighthouse performance pass.
+   Keep the visual design, but reduce expensive mobile paint/compositing work in CI-sized viewports. */
+@media (max-width: 720px) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .nav-bar,
+  .hero-status-pills span,
+  .dashboard-summary-card,
+  .about-card {
+    backdrop-filter: none;
+  }
+
+  .nav-bar,
+  button,
+  .button-link,
+  .data-card,
+  .crud-panel,
+  .form-card,
+  .quality-console,
+  .quality-action-card,
+  .quality-output-panel,
+  .itinerary-day {
+    box-shadow: none;
+  }
+
+  button,
+  .button-link {
+    transition: none;
+  }
+
+  button:hover,
+  .button-link:hover {
+    transform: none;
+  }
+}
