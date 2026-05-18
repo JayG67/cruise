@@ -336,3 +336,280 @@ exports.deleteShip = async (req, res, next) => {
     next(err)
   }
 }
+
+async function findOne(table, column, id) {
+  const rows = await db
+    .select()
+    .from(table)
+    .where(eq(column, id))
+    .limit(1)
+
+  return rows[0]
+}
+
+async function deleteActivitiesForItineraryDay(itineraryDayId) {
+  await db
+    .delete(activityScheduleTable)
+    .where(eq(activityScheduleTable.itineraryDayId, itineraryDayId))
+}
+
+async function deleteItineraryDaysForSailing(sailingId) {
+  const itineraryDays = await db
+    .select()
+    .from(itineraryDayTable)
+    .where(eq(itineraryDayTable.sailingId, sailingId))
+
+  for (const itineraryDay of itineraryDays) {
+    await deleteActivitiesForItineraryDay(itineraryDay.id)
+  }
+
+  await db
+    .delete(itineraryDayTable)
+    .where(eq(itineraryDayTable.sailingId, sailingId))
+}
+
+exports.insertSailing = async (req, res, next) => {
+  try {
+    const { shipId } = req.params
+    const { departureDate, departurePort, arrivalPort, days, isRepositioning } = req.body
+
+    const existingShip = await findOne(shipTable, shipTable.id, shipId)
+
+    if (!existingShip) {
+      return res.status(404).json({ message: 'Ship not found' })
+    }
+
+    const insertedRows = await db
+      .insert(sailingTable)
+      .values({
+        shipId,
+        departureDate,
+        port: departurePort,
+        departurePort,
+        arrivalPort,
+        days,
+        isRepositioning: Boolean(isRepositioning)
+      })
+      .returning({ id: sailingTable.id })
+
+    return res.status(201).json({
+      message: 'Sailing created successfully',
+      id: insertedRows[0].id
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.updateSailing = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const { departureDate, departurePort, arrivalPort, days, isRepositioning } = req.body
+
+    const existingSailing = await findOne(sailingTable, sailingTable.id, id)
+
+    if (!existingSailing) {
+      return res.status(404).json({ message: 'Sailing not found' })
+    }
+
+    await db
+      .update(sailingTable)
+      .set({
+        departureDate,
+        port: departurePort,
+        departurePort,
+        arrivalPort,
+        days,
+        isRepositioning: Boolean(isRepositioning)
+      })
+      .where(eq(sailingTable.id, id))
+
+    return res.status(200).json({ message: 'Sailing updated successfully' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.deleteSailing = async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    const existingSailing = await findOne(sailingTable, sailingTable.id, id)
+
+    if (!existingSailing) {
+      return res.status(404).json({ message: 'Sailing not found' })
+    }
+
+    await deleteItineraryDaysForSailing(id)
+
+    await db
+      .delete(sailingTable)
+      .where(eq(sailingTable.id, id))
+
+    return res.status(200).json({ message: 'Sailing deleted successfully' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.insertItineraryDay = async (req, res, next) => {
+  try {
+    const { sailingId } = req.params
+    const { day, title, port, activitySchedule } = req.body
+
+    const existingSailing = await findOne(sailingTable, sailingTable.id, sailingId)
+
+    if (!existingSailing) {
+      return res.status(404).json({ message: 'Sailing not found' })
+    }
+
+    const insertedRows = await db
+      .insert(itineraryDayTable)
+      .values({
+        sailingId,
+        day,
+        title,
+        port
+      })
+      .returning({ id: itineraryDayTable.id })
+
+    const itineraryDayId = insertedRows[0].id
+
+    for (const activity of activitySchedule || []) {
+      await db.insert(activityScheduleTable).values({
+        itineraryDayId,
+        time: activity.time,
+        activity: activity.activity
+      })
+    }
+
+    return res.status(201).json({
+      message: 'Itinerary day created successfully',
+      id: itineraryDayId
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.updateItineraryDay = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const { day, title, port } = req.body
+
+    const existingItineraryDay = await findOne(itineraryDayTable, itineraryDayTable.id, id)
+
+    if (!existingItineraryDay) {
+      return res.status(404).json({ message: 'Itinerary day not found' })
+    }
+
+    await db
+      .update(itineraryDayTable)
+      .set({
+        day,
+        title,
+        port
+      })
+      .where(eq(itineraryDayTable.id, id))
+
+    return res.status(200).json({ message: 'Itinerary day updated successfully' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.deleteItineraryDay = async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    const existingItineraryDay = await findOne(itineraryDayTable, itineraryDayTable.id, id)
+
+    if (!existingItineraryDay) {
+      return res.status(404).json({ message: 'Itinerary day not found' })
+    }
+
+    await deleteActivitiesForItineraryDay(id)
+
+    await db
+      .delete(itineraryDayTable)
+      .where(eq(itineraryDayTable.id, id))
+
+    return res.status(200).json({ message: 'Itinerary day deleted successfully' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.insertActivitySchedule = async (req, res, next) => {
+  try {
+    const { itineraryDayId } = req.params
+    const { time, activity } = req.body
+
+    const existingItineraryDay = await findOne(itineraryDayTable, itineraryDayTable.id, itineraryDayId)
+
+    if (!existingItineraryDay) {
+      return res.status(404).json({ message: 'Itinerary day not found' })
+    }
+
+    const insertedRows = await db
+      .insert(activityScheduleTable)
+      .values({
+        itineraryDayId,
+        time,
+        activity
+      })
+      .returning({ id: activityScheduleTable.id })
+
+    return res.status(201).json({
+      message: 'Activity created successfully',
+      id: insertedRows[0].id
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.updateActivitySchedule = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const { time, activity } = req.body
+
+    const existingActivity = await findOne(activityScheduleTable, activityScheduleTable.id, id)
+
+    if (!existingActivity) {
+      return res.status(404).json({ message: 'Activity not found' })
+    }
+
+    await db
+      .update(activityScheduleTable)
+      .set({
+        time,
+        activity
+      })
+      .where(eq(activityScheduleTable.id, id))
+
+    return res.status(200).json({ message: 'Activity updated successfully' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.deleteActivitySchedule = async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    const existingActivity = await findOne(activityScheduleTable, activityScheduleTable.id, id)
+
+    if (!existingActivity) {
+      return res.status(404).json({ message: 'Activity not found' })
+    }
+
+    await db
+      .delete(activityScheduleTable)
+      .where(eq(activityScheduleTable.id, id))
+
+    return res.status(200).json({ message: 'Activity deleted successfully' })
+  } catch (err) {
+    next(err)
+  }
+}

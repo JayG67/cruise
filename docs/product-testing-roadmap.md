@@ -33,6 +33,8 @@ tests/unit/data/cruiseSeedData.test.js
 
 ## 2. Complete Admin CRUD for the Expanded Cruise Model
 
+Status: in progress — initial CUD support has been added for sailings, itinerary days, and activity schedules.
+
 Admin users should eventually manage all cruise data:
 
 - cruise lines

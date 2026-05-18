@@ -83,7 +83,16 @@ export const selectors = {
     card: '[data-cy="sailing-card"]',
     loadingMessage: '[data-cy="sailings-loading-message"]',
     emptyMessage: '[data-cy="sailings-empty-message"]',
-    viewItineraryButton: '[data-cy="view-itinerary-button"]'
+    viewItineraryButton: '[data-cy="view-itinerary-button"]',
+    createForm: '[data-cy="create-sailing-form"]',
+    departureDateInput: '[data-cy="create-sailing-departure-date-input"]',
+    departurePortInput: '[data-cy="create-sailing-departure-port-input"]',
+    arrivalPortInput: '[data-cy="create-sailing-arrival-port-input"]',
+    daysInput: '[data-cy="create-sailing-days-input"]',
+    repositioningInput: '[data-cy="create-sailing-repositioning-input"]',
+    createSubmitButton: '[data-cy="create-sailing-submit-button"]',
+    updateButton: '[data-cy="update-sailing-button"]',
+    deleteButton: '[data-cy="delete-sailing-button"]'
   },
   itinerary: {
     panel: '[data-cy="itinerary-panel"]',
@@ -96,7 +105,22 @@ export const selectors = {
     activitySchedule: '[data-cy="activity-schedule"]',
     activity: '[data-cy="itinerary-activity"]',
     loadingMessage: '[data-cy="itinerary-loading-message"]',
-    emptyMessage: '[data-cy="itinerary-empty-message"]'
+    emptyMessage: '[data-cy="itinerary-empty-message"]',
+    createDayForm: '[data-cy="create-itinerary-day-form"]',
+    createDayNumberInput: '[data-cy="create-itinerary-day-number-input"]',
+    createDayTitleInput: '[data-cy="create-itinerary-day-title-input"]',
+    createDayPortInput: '[data-cy="create-itinerary-day-port-input"]',
+    createDayActivityTimeInput: '[data-cy="create-itinerary-activity-time-input"]',
+    createDayActivityTextInput: '[data-cy="create-itinerary-activity-text-input"]',
+    createDaySubmitButton: '[data-cy="create-itinerary-day-submit-button"]',
+    updateDayButton: '[data-cy="update-itinerary-day-button"]',
+    deleteDayButton: '[data-cy="delete-itinerary-day-button"]',
+    createActivityForm: '[data-cy="create-activity-form"]',
+    createActivityTimeInput: '[data-cy="create-activity-time-input"]',
+    createActivityTextInput: '[data-cy="create-activity-text-input"]',
+    createActivitySubmitButton: '[data-cy="create-activity-submit-button"]',
+    updateActivityButton: '[data-cy="update-activity-button"]',
+    deleteActivityButton: '[data-cy="delete-activity-button"]'
   },
   testPanel: {
     panel: '[data-cy="sqa-test-panel"]',

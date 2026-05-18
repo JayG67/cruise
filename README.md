@@ -55,6 +55,38 @@ tests/unit/data/cruiseSeedData.test.js
 ---
 
 
+
+## Admin CUD for Sailings and Itinerary
+
+The current roadmap step expands the administrative workflow beyond cruise lines and ships.
+
+Admin users can now manage:
+
+```text
+ship -> sailings
+sailing -> itinerary days
+itinerary day -> activity schedules
+```
+
+New API capabilities:
+
+```bash
+POST   /cruise/ship/:shipId/sailings
+PATCH  /cruise/sailings/:id
+DELETE /cruise/sailings/:id
+
+POST   /cruise/sailings/:sailingId/itinerary
+PATCH  /cruise/itinerary-days/:id
+DELETE /cruise/itinerary-days/:id
+
+POST   /cruise/itinerary-days/:itineraryDayId/activities
+PATCH  /cruise/activities/:id
+DELETE /cruise/activities/:id
+```
+
+Testing coverage was expanded at the integration and Cypress layers to validate create, update, and delete workflows for sailings, itinerary days, and scheduled activities.
+
+
 ## Sailings and Itinerary UI
 
 The feature branch now surfaces the expanded sailing data in the application UI:

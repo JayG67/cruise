@@ -2,10 +2,10 @@
   {
     "url": "http://localhost:8000/",
     "isRepresentativeRun": true,
-    "htmlPath": "/Users/jaygallagher/projects/cruise/lhci-report/localhost--2026_05_17_17_00_58.report.html",
-    "jsonPath": "/Users/jaygallagher/projects/cruise/lhci-report/localhost--2026_05_17_17_00_58.report.json",
+    "htmlPath": "/Users/jaygallagher/projects/cruise/lhci-report/localhost--2026_05_18_01_34_17.report.html",
+    "jsonPath": "/Users/jaygallagher/projects/cruise/lhci-report/localhost--2026_05_18_01_34_17.report.json",
     "summary": {
-      "performance": 0.75,
+      "performance": 0.74,
       "accessibility": 1,
       "best-practices": 0.96,
       "seo": 0.9

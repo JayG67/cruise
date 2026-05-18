@@ -5,7 +5,10 @@ const validate = require('../middleware/validate.middleware')
 
 const {
   cruiseLineSchema,
-  shipSchema
+  shipSchema,
+  sailingSchema,
+  itineraryDaySchema,
+  activityScheduleSchema
 } = require('../validation/cruise.validation')
 
 const router = express.Router()
@@ -64,6 +67,58 @@ router.delete(
 router.delete(
   '/ship/:id',
   cruiseController.deleteShip
+)
+
+
+router.post(
+  '/ship/:shipId/sailings',
+  validate(sailingSchema),
+  cruiseController.insertSailing
+)
+
+router.patch(
+  '/sailings/:id',
+  validate(sailingSchema),
+  cruiseController.updateSailing
+)
+
+router.delete(
+  '/sailings/:id',
+  cruiseController.deleteSailing
+)
+
+router.post(
+  '/sailings/:sailingId/itinerary',
+  validate(itineraryDaySchema),
+  cruiseController.insertItineraryDay
+)
+
+router.patch(
+  '/itinerary-days/:id',
+  validate(itineraryDaySchema),
+  cruiseController.updateItineraryDay
+)
+
+router.delete(
+  '/itinerary-days/:id',
+  cruiseController.deleteItineraryDay
+)
+
+router.post(
+  '/itinerary-days/:itineraryDayId/activities',
+  validate(activityScheduleSchema),
+  cruiseController.insertActivitySchedule
+)
+
+router.patch(
+  '/activities/:id',
+  validate(activityScheduleSchema),
+  cruiseController.updateActivitySchedule
+)
+
+router.delete(
+  '/activities/:id',
+  cruiseController.deleteActivitySchedule
 )
 
 module.exports = router
