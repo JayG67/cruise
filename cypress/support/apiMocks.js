@@ -150,3 +150,67 @@ export function mockItineraryForSailing(sailingId, response, alias = `getItinera
     body: response
   }).as(alias)
 }
+
+
+export function mockCreateSailing(shipId, response, alias = `createSailing-${shipId}`) {
+  cy.intercept('POST', `/cruise/ship/${shipId}/sailings`, {
+    statusCode: 201,
+    body: response
+  }).as(alias)
+}
+
+export function mockUpdateSailing(sailingId, response, alias = `updateSailing-${sailingId}`) {
+  cy.intercept('PATCH', `/cruise/sailings/${sailingId}`, {
+    statusCode: 200,
+    body: response
+  }).as(alias)
+}
+
+export function mockDeleteSailing(sailingId, response, alias = `deleteSailing-${sailingId}`) {
+  cy.intercept('DELETE', `/cruise/sailings/${sailingId}`, {
+    statusCode: 200,
+    body: response
+  }).as(alias)
+}
+
+export function mockCreateItineraryDay(sailingId, response, alias = `createItineraryDay-${sailingId}`) {
+  cy.intercept('POST', `/cruise/sailings/${sailingId}/itinerary`, {
+    statusCode: 201,
+    body: response
+  }).as(alias)
+}
+
+export function mockUpdateItineraryDay(itineraryDayId, response, alias = `updateItineraryDay-${itineraryDayId}`) {
+  cy.intercept('PATCH', `/cruise/itinerary-days/${itineraryDayId}`, {
+    statusCode: 200,
+    body: response
+  }).as(alias)
+}
+
+export function mockDeleteItineraryDay(itineraryDayId, response, alias = `deleteItineraryDay-${itineraryDayId}`) {
+  cy.intercept('DELETE', `/cruise/itinerary-days/${itineraryDayId}`, {
+    statusCode: 200,
+    body: response
+  }).as(alias)
+}
+
+export function mockCreateActivity(itineraryDayId, response, alias = `createActivity-${itineraryDayId}`) {
+  cy.intercept('POST', `/cruise/itinerary-days/${itineraryDayId}/activities`, {
+    statusCode: 201,
+    body: response
+  }).as(alias)
+}
+
+export function mockUpdateActivity(activityId, response, alias = `updateActivity-${activityId}`) {
+  cy.intercept('PATCH', `/cruise/activities/${activityId}`, {
+    statusCode: 200,
+    body: response
+  }).as(alias)
+}
+
+export function mockDeleteActivity(activityId, response, alias = `deleteActivity-${activityId}`) {
+  cy.intercept('DELETE', `/cruise/activities/${activityId}`, {
+    statusCode: 200,
+    body: response
+  }).as(alias)
+}

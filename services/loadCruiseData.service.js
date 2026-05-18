@@ -97,7 +97,9 @@ async function loadCruiseData() {
     }
   })
 
-  console.log('Cruise seed data reset from data/cruise.json')
+  if (process.env.NODE_ENV !== 'test') {
+    console.log('Cruise seed data reset from data/cruise.json')
+  }
 
   return {
     cruiseLineCount,

@@ -17,6 +17,7 @@ let selectedCruiseLineForShips = null
 let selectedCruiseLineNameForShips = ''
 let selectedShipForSailings = null
 let selectedShipNameForSailings = ''
+let selectedSailingForItinerary = null
 
 document.addEventListener('DOMContentLoaded', () => {
   const reloadButton = document.getElementById('reload-button')
@@ -1322,12 +1323,15 @@ async function loadSailings(shipId, shipName) {
   }
 }
 
+
 function renderSailings(sailings) {
   const grid = document.getElementById('sailings-grid')
 
   if (!grid) return
 
   grid.innerHTML = ''
+
+  renderSailingCreateForm(grid)
 
   sailings.forEach(sailing => {
     const card = document.createElement('article')
@@ -1345,15 +1349,177 @@ function renderSailings(sailings) {
         <p class="card-meta"><strong>Arrival Port:</strong> ${escapeHtml(sailing.arrivalPort || sailing.port)}</p>
         <p class="card-meta"><strong>Length:</strong> ${escapeHtml(String(sailing.days))} days</p>
       </div>
-      <div class="card-actions">
+      <div class="card-actions stacked-card-actions">
         <button data-cy="view-itinerary-button" data-testid="view-itinerary-button" type="button">View Itinerary</button>
+        <button class="secondary" data-cy="update-sailing-button" data-testid="update-sailing-button" type="button">Update Sailing</button>
+        <button class="danger subtle-danger" data-cy="delete-sailing-button" data-testid="delete-sailing-button" type="button">Delete Sailing</button>
       </div>
     `
 
     card.querySelector('[data-cy="view-itinerary-button"]').addEventListener('click', () => loadItinerary(sailing.id, sailing))
+    card.querySelector('[data-cy="update-sailing-button"]').addEventListener('click', () => updateSailingWithPrompts(sailing))
+    card.querySelector('[data-cy="delete-sailing-button"]').addEventListener('click', () => deleteSailing(sailing))
 
     grid.appendChild(card)
   })
+}
+
+function renderSailingCreateForm(grid) {
+  const form = document.createElement('form')
+  form.className = 'inline-admin-form sailing-admin-form'
+  form.setAttribute('data-cy', 'create-sailing-form')
+  form.setAttribute('data-testid', 'create-sailing-form')
+
+  form.innerHTML = `
+    <h3>Add Sailing</h3>
+    <div class="inline-admin-grid">
+      <label>
+        <span>Departure date</span>
+        <input name="departureDate" type="date" value="2026-10-01" data-cy="create-sailing-departure-date-input" data-testid="create-sailing-departure-date-input" required />
+      </label>
+      <label>
+        <span>Departure port</span>
+        <input name="departurePort" type="text" value="${escapeHtml(selectedShipNameForSailings ? '' : '')}" placeholder="Miami, Florida" data-cy="create-sailing-departure-port-input" data-testid="create-sailing-departure-port-input" required maxlength="255" />
+      </label>
+      <label>
+        <span>Arrival port</span>
+        <input name="arrivalPort" type="text" placeholder="Miami, Florida" data-cy="create-sailing-arrival-port-input" data-testid="create-sailing-arrival-port-input" required maxlength="255" />
+      </label>
+      <label>
+        <span>Days</span>
+        <input name="days" type="number" min="1" max="30" value="3" data-cy="create-sailing-days-input" data-testid="create-sailing-days-input" required />
+      </label>
+      <label class="checkbox-field">
+        <input name="isRepositioning" type="checkbox" data-cy="create-sailing-repositioning-input" data-testid="create-sailing-repositioning-input" />
+        <span>Repositioning sailing</span>
+      </label>
+    </div>
+    <p class="form-message" data-cy="create-sailing-message" data-testid="create-sailing-message"></p>
+    <button type="submit" data-cy="create-sailing-submit-button" data-testid="create-sailing-submit-button">Create Sailing</button>
+  `
+
+  form.addEventListener('submit', createSailing)
+
+  grid.appendChild(form)
+}
+
+function getSailingPayloadFromForm(form) {
+  const formData = new FormData(form)
+  const departurePort = getTrimmedFormValue(formData, 'departurePort')
+  const arrivalPort = getTrimmedFormValue(formData, 'arrivalPort')
+
+  return {
+    departureDate: getTrimmedFormValue(formData, 'departureDate'),
+    port: departurePort,
+    departurePort,
+    arrivalPort,
+    days: Number(formData.get('days')),
+    isRepositioning: Boolean(formData.get('isRepositioning'))
+  }
+}
+
+async function createSailing(event) {
+  event.preventDefault()
+
+  if (!selectedShipForSailings) return
+
+  const form = event.currentTarget
+  const message = form.querySelector('[data-cy="create-sailing-message"]')
+  const payload = getSailingPayloadFromForm(form)
+
+  try {
+    if (message) message.textContent = 'Creating sailing...'
+
+    const res = await fetch(`${API_BASE}/ship/${selectedShipForSailings}/sailings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+
+    const result = await parseJsonResponse(res)
+
+    if (!res.ok) {
+      throw new Error(result.message || `Create sailing failed with status ${res.status}`)
+    }
+
+    form.reset()
+    if (message) message.textContent = result.message || 'Sailing created successfully.'
+    await loadSailings(selectedShipForSailings, selectedShipNameForSailings)
+  } catch (err) {
+    console.error(err)
+    if (message) message.textContent = err.message || 'Could not create sailing.'
+  }
+}
+
+async function updateSailingWithPrompts(sailing) {
+  const departureDate = window.prompt('Departure date (YYYY-MM-DD)', sailing.departureDate)
+  if (departureDate === null) return
+
+  const departurePort = window.prompt('Departure port', sailing.departurePort || sailing.port)
+  if (departurePort === null) return
+
+  const arrivalPort = window.prompt('Arrival port', sailing.arrivalPort || sailing.port)
+  if (arrivalPort === null) return
+
+  const daysValue = window.prompt('Days', String(sailing.days))
+  if (daysValue === null) return
+
+  const repositioningValue = window.prompt('Is this a repositioning sailing? true or false', String(Boolean(sailing.isRepositioning)))
+  if (repositioningValue === null) return
+
+  const payload = {
+    departureDate: departureDate.trim(),
+    port: departurePort.trim(),
+    departurePort: departurePort.trim(),
+    arrivalPort: arrivalPort.trim(),
+    days: Number(daysValue),
+    isRepositioning: repositioningValue.trim().toLowerCase() === 'true'
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/sailings/${sailing.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+
+    const result = await parseJsonResponse(res)
+
+    if (!res.ok) {
+      throw new Error(result.message || `Update sailing failed with status ${res.status}`)
+    }
+
+    await loadSailings(selectedShipForSailings, selectedShipNameForSailings)
+  } catch (err) {
+    console.error(err)
+    window.alert(err.message || 'Could not update sailing.')
+  }
+}
+
+async function deleteSailing(sailing) {
+  const confirmed = window.confirm(`Delete sailing departing ${sailing.departureDate}?`)
+
+  if (!confirmed) return
+
+  try {
+    const res = await fetch(`${API_BASE}/sailings/${sailing.id}`, {
+      method: 'DELETE'
+    })
+
+    const result = await parseJsonResponse(res)
+
+    if (!res.ok) {
+      throw new Error(result.message || `Delete sailing failed with status ${res.status}`)
+    }
+
+    const itineraryPanel = document.getElementById('itinerary-panel')
+    if (itineraryPanel) itineraryPanel.hidden = true
+
+    await loadSailings(selectedShipForSailings, selectedShipNameForSailings)
+  } catch (err) {
+    console.error(err)
+    window.alert(err.message || 'Could not delete sailing.')
+  }
 }
 
 async function loadItinerary(sailingId, sailing) {
@@ -1362,6 +1528,8 @@ async function loadItinerary(sailingId, sailing) {
   const grid = document.getElementById('itinerary-grid')
 
   try {
+    selectedSailingForItinerary = sailing
+
     if (panel) panel.hidden = false
     if (title) {
       title.textContent = `${selectedShipNameForSailings || 'Ship'} Itinerary - ${formatSailingDate(sailing.departureDate)}`
@@ -1389,6 +1557,8 @@ function renderItinerary(itinerary) {
 
   grid.innerHTML = ''
 
+  renderItineraryCreateForm(grid)
+
   itinerary.forEach(day => {
     const details = document.createElement('details')
     details.className = 'itinerary-day'
@@ -1400,6 +1570,10 @@ function renderItinerary(itinerary) {
         <li data-cy="itinerary-activity" data-testid="itinerary-activity">
           <span class="activity-time">${escapeHtml(activity.time)}</span>
           <span>${escapeHtml(activity.activity)}</span>
+          <span class="activity-actions">
+            <button class="secondary" data-activity-id="${escapeHtml(activity.id)}" data-activity-time="${escapeHtml(activity.time)}" data-activity-text="${escapeHtml(activity.activity)}" data-cy="update-activity-button" data-testid="update-activity-button" type="button">Update</button>
+            <button class="danger subtle-danger" data-activity-id="${escapeHtml(activity.id)}" data-cy="delete-activity-button" data-testid="delete-activity-button" type="button">Delete</button>
+          </span>
         </li>
       `)
       .join('')
@@ -1411,13 +1585,277 @@ function renderItinerary(itinerary) {
       <p class="itinerary-port" data-cy="itinerary-port" data-testid="itinerary-port">
         <strong>Port:</strong> ${escapeHtml(day.port || 'At Sea')}
       </p>
+      <div class="itinerary-admin-actions">
+        <button class="secondary" data-cy="update-itinerary-day-button" data-testid="update-itinerary-day-button" type="button">Update Day</button>
+        <button class="danger subtle-danger" data-cy="delete-itinerary-day-button" data-testid="delete-itinerary-day-button" type="button">Delete Day</button>
+      </div>
       <ul class="activity-schedule" data-cy="activity-schedule" data-testid="activity-schedule">
         ${activityItems}
       </ul>
+      <form class="inline-admin-form activity-admin-form" data-cy="create-activity-form" data-testid="create-activity-form">
+        <h4>Add Activity</h4>
+        <div class="inline-admin-grid">
+          <label>
+            <span>Time</span>
+            <input name="time" type="text" placeholder="2:00 PM" data-cy="create-activity-time-input" data-testid="create-activity-time-input" required maxlength="20" />
+          </label>
+          <label>
+            <span>Activity</span>
+            <input name="activity" type="text" placeholder="Poolside games" data-cy="create-activity-text-input" data-testid="create-activity-text-input" required maxlength="255" />
+          </label>
+        </div>
+        <button type="submit" data-cy="create-activity-submit-button" data-testid="create-activity-submit-button">Add Activity</button>
+      </form>
     `
+
+    details.querySelector('[data-cy="update-itinerary-day-button"]').addEventListener('click', () => updateItineraryDayWithPrompts(day))
+    details.querySelector('[data-cy="delete-itinerary-day-button"]').addEventListener('click', () => deleteItineraryDay(day))
+    details.querySelector('[data-cy="create-activity-form"]').addEventListener('submit', event => createActivity(event, day.id))
+
+    details.querySelectorAll('[data-cy="update-activity-button"]').forEach(button => {
+      button.addEventListener('click', () => updateActivityWithPrompts({
+        id: button.dataset.activityId,
+        time: button.dataset.activityTime,
+        activity: button.dataset.activityText
+      }))
+    })
+
+    details.querySelectorAll('[data-cy="delete-activity-button"]').forEach(button => {
+      button.addEventListener('click', () => deleteActivity(button.dataset.activityId))
+    })
 
     grid.appendChild(details)
   })
+}
+
+function renderItineraryCreateForm(grid) {
+  const form = document.createElement('form')
+  form.className = 'inline-admin-form itinerary-admin-form'
+  form.setAttribute('data-cy', 'create-itinerary-day-form')
+  form.setAttribute('data-testid', 'create-itinerary-day-form')
+
+  const nextDay = selectedSailingForItinerary ? Number(selectedSailingForItinerary.days || 1) : 1
+
+  form.innerHTML = `
+    <h3>Add Itinerary Day</h3>
+    <div class="inline-admin-grid">
+      <label>
+        <span>Day</span>
+        <input name="day" type="number" min="1" max="30" value="${escapeHtml(String(nextDay))}" data-cy="create-itinerary-day-number-input" data-testid="create-itinerary-day-number-input" required />
+      </label>
+      <label>
+        <span>Title</span>
+        <input name="title" type="text" placeholder="Port Day — Nassau, Bahamas" data-cy="create-itinerary-day-title-input" data-testid="create-itinerary-day-title-input" required maxlength="255" />
+      </label>
+      <label>
+        <span>Port</span>
+        <input name="port" type="text" placeholder="At Sea" data-cy="create-itinerary-day-port-input" data-testid="create-itinerary-day-port-input" required maxlength="255" />
+      </label>
+      <label>
+        <span>Activity time</span>
+        <input name="activityTime" type="text" placeholder="9:00 AM" data-cy="create-itinerary-activity-time-input" data-testid="create-itinerary-activity-time-input" maxlength="20" />
+      </label>
+      <label>
+        <span>Activity</span>
+        <input name="activity" type="text" placeholder="Morning briefing" data-cy="create-itinerary-activity-text-input" data-testid="create-itinerary-activity-text-input" maxlength="255" />
+      </label>
+    </div>
+    <p class="form-message" data-cy="create-itinerary-day-message" data-testid="create-itinerary-day-message"></p>
+    <button type="submit" data-cy="create-itinerary-day-submit-button" data-testid="create-itinerary-day-submit-button">Create Itinerary Day</button>
+  `
+
+  form.addEventListener('submit', createItineraryDay)
+
+  grid.appendChild(form)
+}
+
+async function createItineraryDay(event) {
+  event.preventDefault()
+
+  if (!selectedSailingForItinerary) return
+
+  const form = event.currentTarget
+  const formData = new FormData(form)
+  const activityTime = getTrimmedFormValue(formData, 'activityTime')
+  const activityText = getTrimmedFormValue(formData, 'activity')
+  const message = form.querySelector('[data-cy="create-itinerary-day-message"]')
+
+  const payload = {
+    day: Number(formData.get('day')),
+    title: getTrimmedFormValue(formData, 'title'),
+    port: getTrimmedFormValue(formData, 'port'),
+    activitySchedule: activityTime && activityText ? [{
+      time: activityTime,
+      activity: activityText
+    }] : []
+  }
+
+  try {
+    if (message) message.textContent = 'Creating itinerary day...'
+
+    const res = await fetch(`${API_BASE}/sailings/${selectedSailingForItinerary.id}/itinerary`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+
+    const result = await parseJsonResponse(res)
+
+    if (!res.ok) {
+      throw new Error(result.message || `Create itinerary day failed with status ${res.status}`)
+    }
+
+    form.reset()
+    await loadItinerary(selectedSailingForItinerary.id, selectedSailingForItinerary)
+  } catch (err) {
+    console.error(err)
+    if (message) message.textContent = err.message || 'Could not create itinerary day.'
+  }
+}
+
+async function updateItineraryDayWithPrompts(day) {
+  const dayValue = window.prompt('Day number', String(day.day))
+  if (dayValue === null) return
+
+  const title = window.prompt('Title', day.title)
+  if (title === null) return
+
+  const port = window.prompt('Port or At Sea', day.port || 'At Sea')
+  if (port === null) return
+
+  const payload = {
+    day: Number(dayValue),
+    title: title.trim(),
+    port: port.trim(),
+    activitySchedule: []
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/itinerary-days/${day.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+
+    const result = await parseJsonResponse(res)
+
+    if (!res.ok) {
+      throw new Error(result.message || `Update itinerary day failed with status ${res.status}`)
+    }
+
+    await loadItinerary(selectedSailingForItinerary.id, selectedSailingForItinerary)
+  } catch (err) {
+    console.error(err)
+    window.alert(err.message || 'Could not update itinerary day.')
+  }
+}
+
+async function deleteItineraryDay(day) {
+  const confirmed = window.confirm(`Delete itinerary day ${day.day}?`)
+
+  if (!confirmed) return
+
+  try {
+    const res = await fetch(`${API_BASE}/itinerary-days/${day.id}`, {
+      method: 'DELETE'
+    })
+
+    const result = await parseJsonResponse(res)
+
+    if (!res.ok) {
+      throw new Error(result.message || `Delete itinerary day failed with status ${res.status}`)
+    }
+
+    await loadItinerary(selectedSailingForItinerary.id, selectedSailingForItinerary)
+  } catch (err) {
+    console.error(err)
+    window.alert(err.message || 'Could not delete itinerary day.')
+  }
+}
+
+async function createActivity(event, itineraryDayId) {
+  event.preventDefault()
+
+  const form = event.currentTarget
+  const formData = new FormData(form)
+
+  const payload = {
+    time: getTrimmedFormValue(formData, 'time'),
+    activity: getTrimmedFormValue(formData, 'activity')
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/itinerary-days/${itineraryDayId}/activities`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+
+    const result = await parseJsonResponse(res)
+
+    if (!res.ok) {
+      throw new Error(result.message || `Create activity failed with status ${res.status}`)
+    }
+
+    form.reset()
+    await loadItinerary(selectedSailingForItinerary.id, selectedSailingForItinerary)
+  } catch (err) {
+    console.error(err)
+    window.alert(err.message || 'Could not create activity.')
+  }
+}
+
+async function updateActivityWithPrompts(activity) {
+  const time = window.prompt('Activity time', activity.time)
+  if (time === null) return
+
+  const activityText = window.prompt('Activity description', activity.activity)
+  if (activityText === null) return
+
+  try {
+    const res = await fetch(`${API_BASE}/activities/${activity.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        time: time.trim(),
+        activity: activityText.trim()
+      })
+    })
+
+    const result = await parseJsonResponse(res)
+
+    if (!res.ok) {
+      throw new Error(result.message || `Update activity failed with status ${res.status}`)
+    }
+
+    await loadItinerary(selectedSailingForItinerary.id, selectedSailingForItinerary)
+  } catch (err) {
+    console.error(err)
+    window.alert(err.message || 'Could not update activity.')
+  }
+}
+
+async function deleteActivity(activityId) {
+  const confirmed = window.confirm('Delete this activity?')
+
+  if (!confirmed) return
+
+  try {
+    const res = await fetch(`${API_BASE}/activities/${activityId}`, {
+      method: 'DELETE'
+    })
+
+    const result = await parseJsonResponse(res)
+
+    if (!res.ok) {
+      throw new Error(result.message || `Delete activity failed with status ${res.status}`)
+    }
+
+    await loadItinerary(selectedSailingForItinerary.id, selectedSailingForItinerary)
+  } catch (err) {
+    console.error(err)
+    window.alert(err.message || 'Could not delete activity.')
+  }
 }
 
 
@@ -1434,6 +1872,7 @@ function hideSailingAndItineraryPanels() {
 
   selectedShipForSailings = null
   selectedShipNameForSailings = ''
+  selectedSailingForItinerary = null
 }
 
 function formatSailingDate(value) {
