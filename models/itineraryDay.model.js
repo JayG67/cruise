@@ -6,7 +6,7 @@ const itineraryDayTable = pgTable('itinerary_days', {
   sailingId: uuid().references(() => sailingTable.id).notNull(),
   day: integer().notNull(),
   title: varchar({ length: 255 }).notNull(),
-  port: varchar({ length: 255 })
+  port: varchar({ length: 255 }).notNull()
 })
 
 module.exports = itineraryDayTable

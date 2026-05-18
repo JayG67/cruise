@@ -4,12 +4,12 @@ const shipTable = require('./ship.model')
 const sailingTable = pgTable('sailings', {
   id: uuid().primaryKey().defaultRandom(),
   shipId: uuid().references(() => shipTable.id).notNull(),
-  departureDate: varchar({ length: 10 }).notNull(),
+  departureDate: varchar({ length: 20 }).notNull(),
   port: varchar({ length: 255 }).notNull(),
-  departurePort: varchar({ length: 255 }),
-  arrivalPort: varchar({ length: 255 }),
+  departurePort: varchar({ length: 255 }).notNull(),
+  arrivalPort: varchar({ length: 255 }).notNull(),
   days: integer().notNull(),
-  isRepositioning: boolean().default(false)
+  isRepositioning: boolean().notNull().default(false)
 })
 
 module.exports = sailingTable

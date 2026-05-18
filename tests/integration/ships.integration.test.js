@@ -67,6 +67,7 @@ describe('Ship API integration tests', () => {
 
     const payload = {
       name: uniqueName('Created Ship'),
+      currentPort: 'Miami, Florida',
       cruiseLineId: cruiseLine.id
     }
 
@@ -103,6 +104,7 @@ describe('Ship API integration tests', () => {
     const res = await request(app)
       .post('/cruise/ship')
       .send({
+        currentPort: 'Miami, Florida',
         cruiseLineId: cruiseLine.id
       })
 
@@ -144,6 +146,7 @@ describe('Ship API integration tests', () => {
       .post('/cruise/ship')
       .send({
         name: uniqueName('Invalid Cruise Line Ship'),
+        currentPort: 'Miami, Florida',
         cruiseLineId: randomUUID()
       })
 
@@ -156,6 +159,7 @@ describe('Ship API integration tests', () => {
       .post('/cruise/ship')
       .send({
         name: uniqueName('Invalid UUID Ship'),
+        currentPort: 'Miami, Florida',
         cruiseLineId: 'not-a-uuid'
       })
 
@@ -180,6 +184,7 @@ describe('Ship API integration tests', () => {
       .post('/cruise/ship')
       .send({
         name: ship.name,
+        currentPort: 'Miami, Florida',
         cruiseLineId: cruiseLine.id
       })
 
@@ -196,6 +201,7 @@ describe('Ship API integration tests', () => {
       .post('/cruise/ship')
       .send({
         name: '   ',
+        currentPort: 'Miami, Florida',
         cruiseLineId: cruiseLine.id
       })
 
@@ -213,6 +219,7 @@ describe('Ship API integration tests', () => {
       .post('/cruise/ship')
       .send({
         name: uniqueName('Invalid UUID Ship'),
+        currentPort: 'Miami, Florida',
         cruiseLineId: 'not-a-uuid'
       })
 
@@ -243,6 +250,7 @@ describe('Ship API integration tests', () => {
       .patch(`/cruise/ship/${ship.id}`)
       .send({
         name: updatedName,
+        currentPort: ship.currentPort,
         cruiseLineId: cruiseLine.id
       })
 
@@ -275,6 +283,7 @@ describe('Ship API integration tests', () => {
       .patch(`/cruise/ship/${ship.id}`)
       .send({
         name: ship.name,
+        currentPort: ship.currentPort,
         cruiseLineId: newCruiseLine.id
       })
 
@@ -306,6 +315,7 @@ describe('Ship API integration tests', () => {
       .patch(`/cruise/ship/${ship.id}`)
       .send({
         name: ship.name,
+        currentPort: ship.currentPort,
         cruiseLineId: randomUUID()
       })
 
@@ -320,6 +330,7 @@ describe('Ship API integration tests', () => {
       .patch(`/cruise/ship/${randomUUID()}`)
       .send({
         name: uniqueName('Missing Ship Update'),
+        currentPort: 'Nowhere',
         cruiseLineId: cruiseLine.id
       })
 

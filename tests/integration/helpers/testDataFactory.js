@@ -34,6 +34,7 @@ async function createCruiseLine(overrides = {}) {
 async function createShip(cruiseLineId, overrides = {}) {
   const payload = {
     name: uniqueName('Integration Ship'),
+    currentPort: 'Miami, Florida',
     cruiseLineId,
     ...overrides
   }

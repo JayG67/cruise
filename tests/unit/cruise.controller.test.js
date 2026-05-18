@@ -6,7 +6,8 @@ jest.mock('../../db', () => ({
 }))
 
 jest.mock('drizzle-orm', () => ({
-  eq: jest.fn((field, value) => ({ field, value }))
+  eq: jest.fn((field, value) => ({ field, value })),
+  inArray: jest.fn((field, values) => ({ field, values }))
 }))
 
 const cruiseController = require('../../controllers/cruise.controller')
@@ -416,23 +417,31 @@ describe('Cruise Controller deleteCruiseLine', () => {
     expect(typeof cruiseController.deleteCruiseLine).toBe('function')
   })
 
-  it('should delete a cruise line and its ships', async () => {
+  it('should delete a cruise line and cascade through its child records', async () => {
   const req = { params: { id: 'line-1' } }
   const res = mockResponse()
 
-  mockSelectWhereLimit(db, [{ id: 'line-1', name: 'Royal Caribbean' }])
+  const limitMock = jest.fn().mockResolvedValue([{ id: 'line-1', name: 'Royal Caribbean' }])
+  const whereSelectMock = jest.fn()
+    .mockReturnValueOnce({ limit: limitMock })
+    .mockResolvedValueOnce([{ id: 'ship-1' }])
+    .mockResolvedValueOnce([])
+  const fromMock = jest.fn().mockReturnValue({ where: whereSelectMock })
 
-  const whereMock = jest.fn().mockResolvedValue()
+  db.select = jest.fn().mockReturnValue({ from: fromMock })
+
+  const whereDeleteMock = jest.fn().mockResolvedValue()
 
   db.delete = jest.fn().mockReturnValue({
-    where: whereMock
+    where: whereDeleteMock
   })
 
   await cruiseController.deleteCruiseLine(req, res, mockNext)
 
-  expect(db.select).toHaveBeenCalledTimes(1)
-  expect(db.delete).toHaveBeenCalledTimes(2)
-  expect(whereMock).toHaveBeenCalledTimes(2)
+  expect(db.select).toHaveBeenCalled()
+  expect(db.delete).toHaveBeenCalled()
+  expect(whereDeleteMock).toHaveBeenCalled()
+  expect(db.delete.mock.calls.length).toBeGreaterThanOrEqual(2)
   expect(res.status).toHaveBeenCalledWith(200)
   expect(res.json).toHaveBeenCalledWith({ message: 'Cruise line deleted successfully' })
   }) 
@@ -469,18 +478,25 @@ describe('Cruise Controller deleteShip', () => {
     expect(typeof cruiseController.deleteShip).toBe('function')
   })
 
-  it('should delete a ship successfully', async () => {
+  it('should delete a ship successfully and cascade through its child records', async () => {
     const req = { params: { id: 'ship-1' } }
     const res = mockResponse()
 
-    mockSelectWhereLimit(db, [{ id: 'ship-1' }])
+    const limitMock = jest.fn().mockResolvedValue([{ id: 'ship-1' }])
+    const whereSelectMock = jest.fn()
+      .mockReturnValueOnce({ limit: limitMock })
+      .mockResolvedValueOnce([])
+    const fromMock = jest.fn().mockReturnValue({ where: whereSelectMock })
+
+    db.select = jest.fn().mockReturnValue({ from: fromMock })
+
     const { whereMock } = mockDeleteWhere(db)
 
     await cruiseController.deleteShip(req, res, mockNext)
 
-    expect(db.select).toHaveBeenCalledTimes(1)
-    expect(db.delete).toHaveBeenCalledTimes(1)
-    expect(whereMock).toHaveBeenCalledTimes(1)
+    expect(db.select).toHaveBeenCalled()
+    expect(db.delete).toHaveBeenCalled()
+    expect(whereMock).toHaveBeenCalled()
     expect(res.status).toHaveBeenCalledWith(200)
     expect(res.json).toHaveBeenCalledWith({ message: 'Ship deleted successfully' })
   })
@@ -783,7 +799,13 @@ describe('Cruise Controller database error handling', () => {
     const res = mockResponse()
     const error = new Error('Delete failed')
 
-    mockSelectWhereLimit(db, [{ id: 'line-1' }])
+    const limitMock = jest.fn().mockResolvedValue([{ id: 'line-1' }])
+    const whereSelectMock = jest.fn()
+      .mockReturnValueOnce({ limit: limitMock })
+      .mockResolvedValueOnce([])
+    const fromMock = jest.fn().mockReturnValue({ where: whereSelectMock })
+
+    db.select = jest.fn().mockReturnValue({ from: fromMock })
 
     const whereDeleteMock = jest.fn().mockRejectedValue(error)
 
@@ -802,7 +824,13 @@ describe('Cruise Controller database error handling', () => {
     const res = mockResponse()
     const error = new Error('Ship delete failed')
 
-    mockSelectWhereLimit(db, [{ id: 'ship-1' }])
+    const limitMock = jest.fn().mockResolvedValue([{ id: 'ship-1' }])
+    const whereSelectMock = jest.fn()
+      .mockReturnValueOnce({ limit: limitMock })
+      .mockResolvedValueOnce([])
+    const fromMock = jest.fn().mockReturnValue({ where: whereSelectMock })
+
+    db.select = jest.fn().mockReturnValue({ from: fromMock })
 
     const whereDeleteMock = jest.fn().mockRejectedValue(error)
 

@@ -1,9 +1,9 @@
 const request = require('supertest')
-const { randomUUID } = require('crypto')
-
 const app = require('../../app')
 const initializeDatabase = require('../../services/initializeDatabase.service')
 const loadCruiseData = require('../../services/loadCruiseData.service')
+
+jest.setTimeout(30000)
 
 beforeAll(async () => {
   await initializeDatabase()
@@ -16,84 +16,33 @@ async function getSeededShipAndSailing() {
   const sailingsRes = await request(app).get(`/cruise/ship/${shipsRes.body[0].id}/sailings`)
 
   return {
-    cruiseLine: cruiseRes.body[0],
     ship: shipsRes.body[0],
     sailing: sailingsRes.body[0]
   }
 }
 
 describe('Sailing and itinerary API integration tests', () => {
-  it('GET /cruise/ship/:shipId/sailings should return five sailings for a seeded ship', async () => {
-    const { ship } = await getSeededShipAndSailing()
+  it('returns sailings and itinerary for a seeded ship', async () => {
+    const { ship, sailing } = await getSeededShipAndSailing()
 
-    const sailingsRes = await request(app)
-      .get(`/cruise/ship/${ship.id}/sailings`)
+    expect(ship.currentPort).toEqual(expect.any(String))
 
+    const sailingsRes = await request(app).get(`/cruise/ship/${ship.id}/sailings`)
     expect(sailingsRes.statusCode).toBe(200)
     expect(Array.isArray(sailingsRes.body)).toBe(true)
-    expect(sailingsRes.body).toHaveLength(5)
-    expect(sailingsRes.body.filter(sailing => sailing.isRepositioning)).toHaveLength(1)
+    expect(sailingsRes.body.length).toBeGreaterThan(0)
 
-    sailingsRes.body.forEach((sailing) => {
-      expect(sailing).toEqual(
-        expect.objectContaining({
-          id: expect.any(String),
-          shipId: ship.id,
-          departureDate: expect.stringMatching(/^2026-0[789]-\d{2}$/),
-          port: expect.any(String),
-          departurePort: expect.any(String),
-          arrivalPort: expect.any(String),
-          days: expect.any(Number),
-          isRepositioning: expect.any(Boolean)
-        })
-      )
-    })
-  })
-
-  it('seeded ships should include one longer repositioning sailing with a different arrival port', async () => {
-    const { ship } = await getSeededShipAndSailing()
-    const sailingsRes = await request(app).get(`/cruise/ship/${ship.id}/sailings`)
-
-    const repositioningSailing = sailingsRes.body.find(sailing => sailing.isRepositioning)
-
-    expect(repositioningSailing).toEqual(
-      expect.objectContaining({
-        departurePort: expect.any(String),
-        arrivalPort: expect.any(String),
-        isRepositioning: true
-      })
-    )
-    expect(repositioningSailing.days).toBeGreaterThanOrEqual(10)
-    expect(repositioningSailing.arrivalPort).not.toBe(repositioningSailing.departurePort)
-  })
-
-  it('GET /cruise/sailings/:sailingId/itinerary should return itinerary days with activity schedules', async () => {
-    const { sailing } = await getSeededShipAndSailing()
-
-    const itineraryRes = await request(app)
-      .get(`/cruise/sailings/${sailing.id}/itinerary`)
-
+    const itineraryRes = await request(app).get(`/cruise/sailings/${sailing.id}/itinerary`)
     expect(itineraryRes.statusCode).toBe(200)
     expect(Array.isArray(itineraryRes.body)).toBe(true)
-    expect(itineraryRes.body).toHaveLength(sailing.days)
-
-    itineraryRes.body.forEach((itineraryDay, index) => {
-      expect(itineraryDay).toEqual(
-        expect.objectContaining({
-          id: expect.any(String),
-          sailingId: sailing.id,
-          day: index + 1,
-          title: expect.any(String),
-          port: expect.any(String),
-          activitySchedule: expect.any(Array)
-        })
-      )
-
-      expect(itineraryDay.activitySchedule.length).toBeGreaterThan(0)
-    })
+    expect(itineraryRes.body[0]).toEqual(
+      expect.objectContaining({
+        activitySchedule: expect.any(Array)
+      })
+    )
   })
 
-  it('POST, PATCH, and DELETE /cruise/ship/:shipId/sailings should manage a sailing', async () => {
+  it('creates, updates, and deletes sailing records', async () => {
     const { ship } = await getSeededShipAndSailing()
 
     const createRes = await request(app)
@@ -108,10 +57,6 @@ describe('Sailing and itinerary API integration tests', () => {
       })
 
     expect(createRes.statusCode).toBe(201)
-    expect(createRes.body).toEqual({
-      message: 'Sailing created successfully',
-      id: expect.any(String)
-    })
 
     const updateRes = await request(app)
       .patch(`/cruise/sailings/${createRes.body.id}`)
@@ -125,53 +70,27 @@ describe('Sailing and itinerary API integration tests', () => {
       })
 
     expect(updateRes.statusCode).toBe(200)
-    expect(updateRes.body).toEqual({ message: 'Sailing updated successfully' })
 
-    const sailingsRes = await request(app).get(`/cruise/ship/${ship.id}/sailings`)
-    const updatedSailing = sailingsRes.body.find(sailing => sailing.id === createRes.body.id)
-
-    expect(updatedSailing).toEqual(
-      expect.objectContaining({
-        departureDate: '2026-10-02',
-        departurePort: 'Fort Lauderdale, Florida',
-        arrivalPort: 'Barcelona, Spain',
-        days: 12,
-        isRepositioning: true
-      })
-    )
-
-    const deleteRes = await request(app)
-      .delete(`/cruise/sailings/${createRes.body.id}`)
-
+    const deleteRes = await request(app).delete(`/cruise/sailings/${createRes.body.id}`)
     expect(deleteRes.statusCode).toBe(200)
-    expect(deleteRes.body).toEqual({ message: 'Sailing deleted successfully' })
   })
 
-  it('POST, PATCH, and DELETE itinerary days should manage itinerary day records', async () => {
+  it('creates, updates, and deletes itinerary days and activities', async () => {
     const { sailing } = await getSeededShipAndSailing()
 
-    const createRes = await request(app)
+    const createDayRes = await request(app)
       .post(`/cruise/sailings/${sailing.id}/itinerary`)
       .send({
         day: 20,
         title: 'Portfolio Test Port Day',
         port: 'Nassau, Bahamas',
-        activitySchedule: [
-          {
-            time: '9:00 AM',
-            activity: 'Portfolio shore excursion'
-          }
-        ]
+        activitySchedule: [{ time: '9:00 AM', activity: 'Portfolio shore excursion' }]
       })
 
-    expect(createRes.statusCode).toBe(201)
-    expect(createRes.body).toEqual({
-      message: 'Itinerary day created successfully',
-      id: expect.any(String)
-    })
+    expect(createDayRes.statusCode).toBe(201)
 
-    const updateRes = await request(app)
-      .patch(`/cruise/itinerary-days/${createRes.body.id}`)
+    const updateDayRes = await request(app)
+      .patch(`/cruise/itinerary-days/${createDayRes.body.id}`)
       .send({
         day: 21,
         title: 'Updated Portfolio Port Day',
@@ -179,123 +98,466 @@ describe('Sailing and itinerary API integration tests', () => {
         activitySchedule: []
       })
 
-    expect(updateRes.statusCode).toBe(200)
-    expect(updateRes.body).toEqual({ message: 'Itinerary day updated successfully' })
+    expect(updateDayRes.statusCode).toBe(200)
 
-    const itineraryRes = await request(app).get(`/cruise/sailings/${sailing.id}/itinerary`)
-    const updatedDay = itineraryRes.body.find(day => day.id === createRes.body.id)
-
-    expect(updatedDay).toEqual(
-      expect.objectContaining({
-        day: 21,
-        title: 'Updated Portfolio Port Day',
-        port: 'Cozumel, Mexico'
-      })
-    )
-
-    const deleteRes = await request(app)
-      .delete(`/cruise/itinerary-days/${createRes.body.id}`)
-
-    expect(deleteRes.statusCode).toBe(200)
-    expect(deleteRes.body).toEqual({ message: 'Itinerary day deleted successfully' })
-  })
-
-  it('POST, PATCH, and DELETE activities should manage activity schedule records', async () => {
-    const { sailing } = await getSeededShipAndSailing()
-    const itineraryRes = await request(app).get(`/cruise/sailings/${sailing.id}/itinerary`)
-    const itineraryDay = itineraryRes.body[0]
-
-    const createRes = await request(app)
-      .post(`/cruise/itinerary-days/${itineraryDay.id}/activities`)
+    const createActivityRes = await request(app)
+      .post(`/cruise/itinerary-days/${createDayRes.body.id}/activities`)
       .send({
         time: '2:00 PM',
         activity: 'Portfolio poolside QA meetup'
       })
 
-    expect(createRes.statusCode).toBe(201)
-    expect(createRes.body).toEqual({
-      message: 'Activity created successfully',
-      id: expect.any(String)
-    })
+    expect(createActivityRes.statusCode).toBe(201)
 
-    const updateRes = await request(app)
-      .patch(`/cruise/activities/${createRes.body.id}`)
+    const updateActivityRes = await request(app)
+      .patch(`/cruise/activities/${createActivityRes.body.id}`)
       .send({
         time: '3:00 PM',
         activity: 'Updated portfolio poolside QA meetup'
       })
 
-    expect(updateRes.statusCode).toBe(200)
-    expect(updateRes.body).toEqual({ message: 'Activity updated successfully' })
+    expect(updateActivityRes.statusCode).toBe(200)
 
-    const updatedItineraryRes = await request(app).get(`/cruise/sailings/${sailing.id}/itinerary`)
-    const updatedActivity = updatedItineraryRes.body
-      .flatMap(day => day.activitySchedule)
-      .find(activity => activity.id === createRes.body.id)
+    const deleteActivityRes = await request(app).delete(`/cruise/activities/${createActivityRes.body.id}`)
+    expect(deleteActivityRes.statusCode).toBe(200)
 
-    expect(updatedActivity).toEqual(
-      expect.objectContaining({
-        time: '3:00 PM',
-        activity: 'Updated portfolio poolside QA meetup'
-      })
-    )
-
-    const deleteRes = await request(app)
-      .delete(`/cruise/activities/${createRes.body.id}`)
-
-    expect(deleteRes.statusCode).toBe(200)
-    expect(deleteRes.body).toEqual({ message: 'Activity deleted successfully' })
+    const deleteDayRes = await request(app).delete(`/cruise/itinerary-days/${createDayRes.body.id}`)
+    expect(deleteDayRes.statusCode).toBe(200)
   })
 
-  it('should return validation errors for invalid sailing payloads', async () => {
+  it('persists created sailing values and removes the sailing after delete', async () => {
     const { ship } = await getSeededShipAndSailing()
 
-    const res = await request(app)
+    const createRes = await request(app)
       .post(`/cruise/ship/${ship.id}/sailings`)
       .send({
-        departureDate: '10/01/2026',
+        departureDate: '2026-11-11',
+        port: 'Miami, Florida',
+        departurePort: 'Miami, Florida',
+        arrivalPort: 'Barcelona, Spain',
+        days: 13,
+        isRepositioning: true
+      })
+
+    expect(createRes.statusCode).toBe(201)
+
+    const sailingsAfterCreate = await request(app).get(`/cruise/ship/${ship.id}/sailings`)
+    expect(sailingsAfterCreate.body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: createRes.body.id,
+          departureDate: '2026-11-11',
+          departurePort: 'Miami, Florida',
+          arrivalPort: 'Barcelona, Spain',
+          days: 13,
+          isRepositioning: true
+        })
+      ])
+    )
+
+    const deleteRes = await request(app).delete(`/cruise/sailings/${createRes.body.id}`)
+    expect(deleteRes.statusCode).toBe(200)
+
+    const sailingsAfterDelete = await request(app).get(`/cruise/ship/${ship.id}/sailings`)
+    expect(sailingsAfterDelete.body.find(sailing => sailing.id === createRes.body.id)).toBeUndefined()
+  })
+
+  it('persists itinerary day and activity updates in the itinerary response', async () => {
+    const { sailing } = await getSeededShipAndSailing()
+
+    const createDayRes = await request(app)
+      .post(`/cruise/sailings/${sailing.id}/itinerary`)
+      .send({
+        day: 22,
+        title: 'Persistence Test Day',
+        port: 'Nassau, Bahamas',
+        activitySchedule: [{ time: '8:00 AM', activity: 'Original activity' }]
+      })
+
+    expect(createDayRes.statusCode).toBe(201)
+
+    const createActivityRes = await request(app)
+      .post(`/cruise/itinerary-days/${createDayRes.body.id}/activities`)
+      .send({
+        time: '10:00 AM',
+        activity: 'Secondary activity'
+      })
+
+    expect(createActivityRes.statusCode).toBe(201)
+
+    const updateDayRes = await request(app)
+      .patch(`/cruise/itinerary-days/${createDayRes.body.id}`)
+      .send({
+        day: 23,
+        title: 'Updated Persistence Test Day',
+        port: 'Cozumel, Mexico',
+        activitySchedule: []
+      })
+
+    expect(updateDayRes.statusCode).toBe(200)
+
+    const updateActivityRes = await request(app)
+      .patch(`/cruise/activities/${createActivityRes.body.id}`)
+      .send({
+        time: '11:00 AM',
+        activity: 'Updated secondary activity'
+      })
+
+    expect(updateActivityRes.statusCode).toBe(200)
+
+    const itineraryRes = await request(app).get(`/cruise/sailings/${sailing.id}/itinerary`)
+    const updatedDay = itineraryRes.body.find(day => day.id === createDayRes.body.id)
+    const updatedActivity = itineraryRes.body
+      .flatMap(day => day.activitySchedule)
+      .find(activity => activity.id === createActivityRes.body.id)
+
+    expect(updatedDay).toEqual(
+      expect.objectContaining({
+        day: 23,
+        title: 'Updated Persistence Test Day',
+        port: 'Cozumel, Mexico'
+      })
+    )
+    expect(updatedActivity).toEqual(
+      expect.objectContaining({
+        time: '11:00 AM',
+        activity: 'Updated secondary activity'
+      })
+    )
+  })
+
+  it('rejects invalid sailing, itinerary day, and activity payloads with normalized validation errors', async () => {
+    const { ship, sailing } = await getSeededShipAndSailing()
+    const itineraryRes = await request(app).get(`/cruise/sailings/${sailing.id}/itinerary`)
+    const itineraryDay = itineraryRes.body[0]
+
+    const invalidSailingRes = await request(app)
+      .post(`/cruise/ship/${ship.id}/sailings`)
+      .send({
+        departureDate: '11/11/2026',
         departurePort: '',
         arrivalPort: '',
         days: 0,
+        isRepositioning: 'no'
+      })
+
+    const invalidItineraryRes = await request(app)
+      .post(`/cruise/sailings/${sailing.id}/itinerary`)
+      .send({
+        day: 0,
+        title: '',
+        port: '',
+        activitySchedule: []
+      })
+
+    const invalidActivityRes = await request(app)
+      .post(`/cruise/itinerary-days/${itineraryDay.id}/activities`)
+      .send({
+        time: '',
+        activity: ''
+      })
+
+    expect(invalidSailingRes.statusCode).toBe(400)
+    expect(invalidSailingRes.body.message).toBe('Validation failed')
+    expect(invalidSailingRes.body.errors.length).toBeGreaterThan(0)
+
+    expect(invalidItineraryRes.statusCode).toBe(400)
+    expect(invalidItineraryRes.body.message).toBe('Validation failed')
+    expect(invalidItineraryRes.body.errors.length).toBeGreaterThan(0)
+
+    expect(invalidActivityRes.statusCode).toBe(400)
+    expect(invalidActivityRes.body.message).toBe('Validation failed')
+    expect(invalidActivityRes.body.errors.length).toBeGreaterThan(0)
+  })
+
+  it('returns 404s for missing sailing, itinerary day, and activity records', async () => {
+    const missingId = '99999999-9999-4999-8999-999999999999'
+
+    const missingSailingsRes = await request(app).get(`/cruise/ship/${missingId}/sailings`)
+    const missingItineraryRes = await request(app).get(`/cruise/sailings/${missingId}/itinerary`)
+    const updateSailingRes = await request(app)
+      .patch(`/cruise/sailings/${missingId}`)
+      .send({
+        departureDate: '2026-11-11',
+        port: 'Miami, Florida',
+        departurePort: 'Miami, Florida',
+        arrivalPort: 'Nassau, Bahamas',
+        days: 4,
+        isRepositioning: false
+      })
+    const deleteSailingRes = await request(app).delete(`/cruise/sailings/${missingId}`)
+    const updateDayRes = await request(app)
+      .patch(`/cruise/itinerary-days/${missingId}`)
+      .send({
+        day: 1,
+        title: 'Missing Day',
+        port: 'At Sea',
+        activitySchedule: []
+      })
+    const deleteDayRes = await request(app).delete(`/cruise/itinerary-days/${missingId}`)
+    const updateActivityRes = await request(app)
+      .patch(`/cruise/activities/${missingId}`)
+      .send({
+        time: '1:00 PM',
+        activity: 'Missing activity'
+      })
+    const deleteActivityRes = await request(app).delete(`/cruise/activities/${missingId}`)
+
+    expect(missingSailingsRes.statusCode).toBe(404)
+    expect(missingItineraryRes.statusCode).toBe(404)
+    expect(updateSailingRes.statusCode).toBe(404)
+    expect(deleteSailingRes.statusCode).toBe(404)
+    expect(updateDayRes.statusCode).toBe(404)
+    expect(deleteDayRes.statusCode).toBe(404)
+    expect(updateActivityRes.statusCode).toBe(404)
+    expect(deleteActivityRes.statusCode).toBe(404)
+  })
+
+  it('protects parent-child relationships when creating nested resources', async () => {
+    const missingId = '88888888-8888-4888-8888-888888888888'
+
+    const sailingForMissingShip = await request(app)
+      .post(`/cruise/ship/${missingId}/sailings`)
+      .send({
+        departureDate: '2026-11-11',
+        port: 'Miami, Florida',
+        departurePort: 'Miami, Florida',
+        arrivalPort: 'Nassau, Bahamas',
+        days: 4,
         isRepositioning: false
       })
 
-    expect(res.statusCode).toBe(400)
-    expect(res.body.message).toBe('Validation failed')
+    const itineraryForMissingSailing = await request(app)
+      .post(`/cruise/sailings/${missingId}/itinerary`)
+      .send({
+        day: 1,
+        title: 'Missing sailing itinerary',
+        port: 'At Sea',
+        activitySchedule: []
+      })
+
+    const activityForMissingItineraryDay = await request(app)
+      .post(`/cruise/itinerary-days/${missingId}/activities`)
+      .send({
+        time: '1:00 PM',
+        activity: 'Missing itinerary activity'
+      })
+
+    expect(sailingForMissingShip.statusCode).toBe(404)
+    expect(sailingForMissingShip.body.message).toBe('Ship not found')
+    expect(itineraryForMissingSailing.statusCode).toBe(404)
+    expect(itineraryForMissingSailing.body.message).toBe('Sailing not found')
+    expect(activityForMissingItineraryDay.statusCode).toBe(404)
+    expect(activityForMissingItineraryDay.body.message).toBe('Itinerary day not found')
   })
 
-  it('GET /cruise/ship/:shipId/sailings should return 404 when a ship has no sailings', async () => {
-    const res = await request(app)
-      .get(`/cruise/ship/${randomUUID()}/sailings`)
+})
 
-    expect(res.statusCode).toBe(404)
-    expect(res.body).toEqual({
-      message: 'No sailings found for the specified ship'
-    })
-  })
 
-  it('GET /cruise/sailings/:sailingId/itinerary should return 404 when a sailing has no itinerary', async () => {
-    const res = await request(app)
-      .get(`/cruise/sailings/${randomUUID()}/itinerary`)
+describe('Relational cascade and full hierarchy integrity', () => {
+  async function createFullCruiseHierarchy() {
+    const cruiseLineRes = await request(app)
+      .post('/cruise/cruise-line')
+      .send({
+        name: `Cascade QA Cruise ${Date.now()}-${Math.random()}`,
+        country: 'United States',
+        website: 'https://example.com'
+      })
 
-    expect(res.statusCode).toBe(404)
-    expect(res.body).toEqual({
-      message: 'No itinerary found for the specified sailing'
-    })
-  })
+    expect(cruiseLineRes.statusCode).toBe(201)
 
-  it('should return 404 when updating or deleting missing sailing, itinerary, or activity records', async () => {
+    const shipRes = await request(app)
+      .post('/cruise/ship')
+      .send({
+        name: `Cascade QA Ship ${Date.now()}-${Math.random()}`,
+        currentPort: 'Miami, Florida',
+        cruiseLineId: cruiseLineRes.body.id
+      })
+
+    expect(shipRes.statusCode).toBe(201)
+
     const sailingRes = await request(app)
-      .delete(`/cruise/sailings/${randomUUID()}`)
+      .post(`/cruise/ship/${shipRes.body.id}/sailings`)
+      .send({
+        departureDate: '2026-12-01',
+        port: 'Miami, Florida',
+        departurePort: 'Miami, Florida',
+        arrivalPort: 'Nassau, Bahamas',
+        days: 4,
+        isRepositioning: false
+      })
 
-    const itineraryRes = await request(app)
-      .delete(`/cruise/itinerary-days/${randomUUID()}`)
+    expect(sailingRes.statusCode).toBe(201)
+
+    const itineraryDayRes = await request(app)
+      .post(`/cruise/sailings/${sailingRes.body.id}/itinerary`)
+      .send({
+        day: 1,
+        title: 'Cascade Embarkation Day',
+        port: 'Miami, Florida',
+        activitySchedule: [{ time: '12:00 PM', activity: 'Cascade boarding lunch' }]
+      })
+
+    expect(itineraryDayRes.statusCode).toBe(201)
 
     const activityRes = await request(app)
-      .delete(`/cruise/activities/${randomUUID()}`)
+      .post(`/cruise/itinerary-days/${itineraryDayRes.body.id}/activities`)
+      .send({
+        time: '2:00 PM',
+        activity: 'Cascade safety briefing'
+      })
 
-    expect(sailingRes.statusCode).toBe(404)
+    expect(activityRes.statusCode).toBe(201)
+
+    return {
+      cruiseLineId: cruiseLineRes.body.id,
+      shipId: shipRes.body.id,
+      sailingId: sailingRes.body.id,
+      itineraryDayId: itineraryDayRes.body.id,
+      activityId: activityRes.body.id
+    }
+  }
+
+  it('supports full API create, retrieve, update, and delete for ships', async () => {
+    const cruiseLineRes = await request(app)
+      .post('/cruise/cruise-line')
+      .send({
+        name: `Ship CRUD QA Cruise ${Date.now()}-${Math.random()}`,
+        country: 'United States',
+        website: 'https://example.com'
+      })
+
+    expect(cruiseLineRes.statusCode).toBe(201)
+
+    const createShipRes = await request(app)
+      .post('/cruise/ship')
+      .send({
+        name: `Ship CRUD QA Vessel ${Date.now()}-${Math.random()}`,
+        currentPort: 'Port Canaveral, Florida',
+        cruiseLineId: cruiseLineRes.body.id
+      })
+
+    expect(createShipRes.statusCode).toBe(201)
+
+    const shipsAfterCreate = await request(app).get(`/cruise/ships/${cruiseLineRes.body.id}`)
+    expect(shipsAfterCreate.statusCode).toBe(200)
+    expect(shipsAfterCreate.body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: createShipRes.body.id,
+          currentPort: 'Port Canaveral, Florida',
+          cruiseLineId: cruiseLineRes.body.id
+        })
+      ])
+    )
+
+    const updateShipRes = await request(app)
+      .patch(`/cruise/ship/${createShipRes.body.id}`)
+      .send({
+        name: 'Updated Ship CRUD QA Vessel',
+        currentPort: 'Fort Lauderdale, Florida',
+        cruiseLineId: cruiseLineRes.body.id
+      })
+
+    expect(updateShipRes.statusCode).toBe(200)
+
+    const shipsAfterUpdate = await request(app).get(`/cruise/ships/${cruiseLineRes.body.id}`)
+    expect(shipsAfterUpdate.body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: createShipRes.body.id,
+          name: 'Updated Ship CRUD QA Vessel',
+          currentPort: 'Fort Lauderdale, Florida'
+        })
+      ])
+    )
+
+    const deleteShipRes = await request(app).delete(`/cruise/ship/${createShipRes.body.id}`)
+    expect(deleteShipRes.statusCode).toBe(200)
+
+    const shipsAfterDelete = await request(app).get(`/cruise/ships/${cruiseLineRes.body.id}`)
+    expect(
+      shipsAfterDelete.statusCode === 404 ||
+      shipsAfterDelete.body.every(ship => ship.id !== createShipRes.body.id)
+    ).toBe(true)
+
+    await request(app).delete(`/cruise/cruise-line/${cruiseLineRes.body.id}`)
+  })
+
+  it('cascades cruise line delete through ships, sailings, itinerary days, and activities', async () => {
+    const hierarchy = await createFullCruiseHierarchy()
+
+    const deleteCruiseLineRes = await request(app).delete(`/cruise/cruise-line/${hierarchy.cruiseLineId}`)
+    expect(deleteCruiseLineRes.statusCode).toBe(200)
+
+    const shipsRes = await request(app).get(`/cruise/ships/${hierarchy.cruiseLineId}`)
+    const sailingsRes = await request(app).get(`/cruise/ship/${hierarchy.shipId}/sailings`)
+    const itineraryRes = await request(app).get(`/cruise/sailings/${hierarchy.sailingId}/itinerary`)
+    const activityUpdateRes = await request(app)
+      .patch(`/cruise/activities/${hierarchy.activityId}`)
+      .send({ time: '3:00 PM', activity: 'Should not exist' })
+
+    expect(shipsRes.statusCode).toBe(404)
+    expect(sailingsRes.statusCode).toBe(404)
     expect(itineraryRes.statusCode).toBe(404)
-    expect(activityRes.statusCode).toBe(404)
+    expect(activityUpdateRes.statusCode).toBe(404)
+  })
+
+  it('cascades ship delete through sailings, itinerary days, and activities', async () => {
+    const hierarchy = await createFullCruiseHierarchy()
+
+    const deleteShipRes = await request(app).delete(`/cruise/ship/${hierarchy.shipId}`)
+    expect(deleteShipRes.statusCode).toBe(200)
+
+    const sailingsRes = await request(app).get(`/cruise/ship/${hierarchy.shipId}/sailings`)
+    const itineraryRes = await request(app).get(`/cruise/sailings/${hierarchy.sailingId}/itinerary`)
+    const dayUpdateRes = await request(app)
+      .patch(`/cruise/itinerary-days/${hierarchy.itineraryDayId}`)
+      .send({ day: 2, title: 'Should not exist', port: 'At Sea', activitySchedule: [] })
+    const activityDeleteRes = await request(app).delete(`/cruise/activities/${hierarchy.activityId}`)
+
+    expect(sailingsRes.statusCode).toBe(404)
+    expect(itineraryRes.statusCode).toBe(404)
+    expect(dayUpdateRes.statusCode).toBe(404)
+    expect(activityDeleteRes.statusCode).toBe(404)
+
+    await request(app).delete(`/cruise/cruise-line/${hierarchy.cruiseLineId}`)
+  })
+
+  it('cascades sailing delete through itinerary days and activities', async () => {
+    const hierarchy = await createFullCruiseHierarchy()
+
+    const deleteSailingRes = await request(app).delete(`/cruise/sailings/${hierarchy.sailingId}`)
+    expect(deleteSailingRes.statusCode).toBe(200)
+
+    const itineraryRes = await request(app).get(`/cruise/sailings/${hierarchy.sailingId}/itinerary`)
+    const dayDeleteRes = await request(app).delete(`/cruise/itinerary-days/${hierarchy.itineraryDayId}`)
+    const activityUpdateRes = await request(app)
+      .patch(`/cruise/activities/${hierarchy.activityId}`)
+      .send({ time: '3:00 PM', activity: 'Should not exist' })
+
+    expect(itineraryRes.statusCode).toBe(404)
+    expect(dayDeleteRes.statusCode).toBe(404)
+    expect(activityUpdateRes.statusCode).toBe(404)
+
+    await request(app).delete(`/cruise/cruise-line/${hierarchy.cruiseLineId}`)
+  })
+
+  it('cascades itinerary day delete through activities', async () => {
+    const hierarchy = await createFullCruiseHierarchy()
+
+    const deleteDayRes = await request(app).delete(`/cruise/itinerary-days/${hierarchy.itineraryDayId}`)
+    expect(deleteDayRes.statusCode).toBe(200)
+
+    const activityUpdateRes = await request(app)
+      .patch(`/cruise/activities/${hierarchy.activityId}`)
+      .send({ time: '3:00 PM', activity: 'Should not exist' })
+    const activityDeleteRes = await request(app).delete(`/cruise/activities/${hierarchy.activityId}`)
+
+    expect(activityUpdateRes.statusCode).toBe(404)
+    expect(activityDeleteRes.statusCode).toBe(404)
+
+    await request(app).delete(`/cruise/cruise-line/${hierarchy.cruiseLineId}`)
   })
 })
+

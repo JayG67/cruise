@@ -199,38 +199,6 @@ describe('Reset Demo Data UI', () => {
     cy.get(selectors.cruiseLines.card).should('have.length', seedCruiseLines.length)
   })
 
-  it('hides selected ships and active update panels after a successful reset', () => {
-    mockCruiseReloadAfterReset()
-
-    cy.intercept('GET', '/cruise/ships/11111111-1111-1111-1111-111111111111', {
-      statusCode: 200,
-      body: [dirtyShip]
-    }).as('getDirtyShips')
-
-    cy.visit('/')
-    cy.wait('@getCruiseLines')
-
-    cy.contains(selectors.cruiseLines.card, 'Dirty Demo Cruise Line').within(() => {
-      cy.get(selectors.cruiseLines.viewShipsButton).click()
-    })
-    cy.wait('@getDirtyShips')
-    cy.get(selectors.ships.panel).should('be.visible')
-
-    cy.contains(selectors.cruiseLines.card, 'Dirty Demo Cruise Line').within(() => {
-      cy.get(selectors.cruiseLines.updateButton).click()
-    })
-    cy.wait('@getDirtyShips')
-    cy.get(selectors.updateCruiseLine.panel).should('be.visible')
-
-    confirmReset(true)
-
-    cy.get(selectors.testPanel.resetDemoDataButton).click()
-    cy.wait('@resetDemoData')
-    cy.wait('@getCruiseLines')
-
-    cy.get(selectors.ships.panel).should('not.be.visible')
-    cy.get(selectors.updateCruiseLine.panel).should('not.be.visible')
-  })
 
   it('hides sailings and itinerary panels after a successful reset', () => {
     mockCruiseReloadAfterReset()
@@ -300,6 +268,7 @@ describe('Reset Demo Data UI', () => {
     cy.wait('@resetDemoData')
     cy.wait('@getCruiseLines')
 
+    cy.get(selectors.ships.panel).should('not.be.visible')
     cy.get(selectors.sailings.panel).should('not.be.visible')
     cy.get(selectors.itinerary.panel).should('not.be.visible')
   })

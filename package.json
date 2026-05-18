@@ -13,7 +13,7 @@
     "unitTests": "jest tests/unit",
     "integrationTests": "jest --config jest.integration.config.js --runInBand --detectOpenHandles",
     "test": "npm run unitTests && npm run coverage && npm run integrationTests && npm run uiTests",
-    "test:all": "npm run test && npm run playwright:mobile:local && npm run perf:smoke:local && npm run lighthouse:ci:local",
+    "test:all": "npm run test && npm run playwright:mobile:local && npm run playwright:responsive:local && npm run perf:smoke:local && npm run lighthouse:ci:local",
     "coverage": "jest --coverage --runInBand",
     "unitTestsWatch": "jest tests/unit --watchAll",
     "uiTests:open": "start-server-and-test start http://localhost:8000 \"npm run cypress:open\"",
@@ -39,7 +39,10 @@
     "coverage:prepare-pages": "node scripts/prepare-coverage-pages.js",
     "playwright:mobile": "playwright test --config=playwright.mobile.config.js",
     "playwright:mobile:local": "start-server-and-test start http://localhost:8000 playwright:mobile",
-    "playwright:mobile:ci": "start-server-and-test start:ci http://localhost:8000 playwright:mobile"
+    "playwright:mobile:ci": "start-server-and-test start:ci http://localhost:8000 playwright:mobile",
+    "playwright:responsive": "playwright test --config=playwright.responsive.config.js",
+    "playwright:responsive:local": "start-server-and-test start http://localhost:8000 playwright:responsive",
+    "playwright:responsive:ci": "start-server-and-test start:ci http://localhost:8000 playwright:responsive"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

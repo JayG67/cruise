@@ -105,12 +105,14 @@ describe('Cruise validation schemas', () => {
     it('should accept a valid ship payload', () => {
       const result = shipSchema.safeParse({
         name: 'Icon of the Seas',
+        currentPort: 'Miami, Florida',
         cruiseLineId: '550e8400-e29b-41d4-a716-446655440000'
       })
 
       expect(result.success).toBe(true)
       expect(result.data).toEqual({
         name: 'Icon of the Seas',
+        currentPort: 'Miami, Florida',
         cruiseLineId: '550e8400-e29b-41d4-a716-446655440000'
       })
     })
@@ -118,11 +120,13 @@ describe('Cruise validation schemas', () => {
     it('should trim the ship name', () => {
       const result = shipSchema.safeParse({
         name: '  Icon of the Seas  ',
+        currentPort: '  Miami, Florida  ',
         cruiseLineId: '550e8400-e29b-41d4-a716-446655440000'
       })
 
       expect(result.success).toBe(true)
       expect(result.data.name).toBe('Icon of the Seas')
+      expect(result.data.currentPort).toBe('Miami, Florida')
     })
 
     it('should reject a blank ship name', () => {
@@ -137,6 +141,23 @@ describe('Cruise validation schemas', () => {
           expect.objectContaining({
             path: ['name'],
             message: 'Ship name is required'
+          })
+        ])
+      )
+    })
+
+
+    it('should reject a missing currentPort', () => {
+      const result = shipSchema.safeParse({
+        name: 'Icon of the Seas',
+        cruiseLineId: '550e8400-e29b-41d4-a716-446655440000'
+      })
+
+      expect(result.success).toBe(false)
+      expect(result.error.issues).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            path: ['currentPort']
           })
         ])
       )

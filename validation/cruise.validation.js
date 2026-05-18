@@ -32,6 +32,12 @@ const shipSchema = z.object({
     .min(1, 'Ship name is required')
     .max(255, 'Ship name is too long'),
 
+  currentPort: z
+    .string()
+    .trim()
+    .min(1, 'Current port is required')
+    .max(255, 'Current port is too long'),
+
   cruiseLineId: uuidSchema
 }).strict()
 

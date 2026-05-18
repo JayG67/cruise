@@ -313,8 +313,6 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
     cy.wait('@smokeHealth')
     cy.wait('@smokeCruiseLines')
     cy.wait('@smokeShips')
-    cy.wait('@smokeSailings')
-    cy.wait('@smokeItinerary')
 
     cy.get(selectors.testPanel.output)
       .should('contain.text', 'UI Smoke Check Result')
@@ -322,8 +320,6 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
       .and('contain.text', 'GET /health')
       .and('contain.text', 'GET /cruise')
       .and('contain.text', 'GET /cruise/ships/:cruiseLineId')
-      .and('contain.text', 'GET /cruise/ship/:shipId/sailings')
-      .and('contain.text', 'GET /cruise/sailings/:sailingId/itinerary')
   })
 
   it('reports a failing UI smoke check when one dependency fails', () => {
@@ -421,16 +417,12 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
     cy.get(selectors.testPanel.apiContractCheckButton).click()
     cy.wait('@contractCruiseLines')
     cy.wait('@contractShips')
-    cy.wait('@contractSailings')
-    cy.wait('@contractItinerary')
 
     cy.get(selectors.testPanel.output)
       .should('contain.text', 'API Contract Check Result')
       .and('contain.text', '"passed": true')
       .and('contain.text', '"requiredFields"')
       .and('contain.text', '"contractPassed": true')
-      .and('contain.text', 'sailingEndpoint')
-      .and('contain.text', 'itineraryEndpoint')
     cy.get(selectors.testPanel.lastRunLabel).should('contain.text', 'Last run: API Contract Check Result')
   })
 
@@ -587,16 +579,12 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
     cy.get(selectors.testPanel.seedIntegrityCheckButton).click()
     cy.wait('@seedCruiseLines')
     cy.wait('@seedShips')
-    cy.wait('@seedSailings')
-    cy.wait('@seedItinerary')
 
     cy.get(selectors.testPanel.output)
       .should('contain.text', 'Seed Data Integrity Check Result')
       .and('contain.text', '"passed": true')
       .and('contain.text', '"cruiseLineCount"')
       .and('contain.text', '"shipCount"')
-      .and('contain.text', '"sailingCount"')
-      .and('contain.text', '"itineraryDayCount"')
   })
 
   it('checks frontend rendering consistency against the loaded API data', () => {

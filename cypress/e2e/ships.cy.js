@@ -5,7 +5,13 @@ import {
 } from '../support/testData'
 import {
   visitShipsPage,
-  mockShipsFor
+  mockShipsFor,
+  mockShipsForCruiseLine,
+  mockSailingsForShip,
+  mockItineraryForSailing,
+  mockCreateShip,
+  mockUpdateShip,
+  mockDeleteShip
 } from '../support/apiMocks'
 import { clickViewShips } from '../support/workflows'
 
@@ -156,7 +162,7 @@ describe('Cruise Explorer ship lookup UI', () => {
     cy.get(selectors.ships.card).should('have.length', shipMap[cruiseLine.id].length)
   })
 
-  it('shows an empty ships grid when the selected cruise line has no ships', () => {
+  it('shows an empty ships state when the selected cruise line has no ships', () => {
     const cruiseLine = cruiseLines[2]
     mockShipsFor(cruiseLine, [])
 
@@ -166,7 +172,10 @@ describe('Cruise Explorer ship lookup UI', () => {
     cy.get(selectors.ships.panel).should('be.visible')
     cy.get(selectors.ships.title).should('contain.text', `${cruiseLine.name} Ships`)
     cy.get(selectors.ships.card).should('not.exist')
-    cy.get(selectors.ships.grid).should('be.empty')
+    cy.get(selectors.ships.createForm).should('be.visible')
+    cy.get(selectors.ships.emptyMessage)
+      .should('be.visible')
+      .and('contain.text', 'No ships found')
   })
 
   it('shows a fallback message when the ship API returns an error', () => {
@@ -365,3 +374,258 @@ describe('Cruise Explorer ships additional regression coverage', () => {
     cy.get(selectors.ships.card).should('not.exist')
   })
 })
+
+
+describe('Cruise Explorer ship direct CRUD UI and cascade behavior', () => {
+  const cruiseLine = cruiseLines[0]
+  const ship = shipMap[cruiseLine.id][0]
+  const sailingId = 'cccccccc-cccc-cccc-cccc-cccccccccccc'
+  const itineraryDayId = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1'
+  const activityId = 'ffffffff-ffff-ffff-ffff-fffffffffff1'
+
+  const sailings = [
+    {
+      id: sailingId,
+      shipId: ship.id,
+      departureDate: '2026-07-05',
+      port: 'Miami, Florida',
+      departurePort: 'Miami, Florida',
+      arrivalPort: 'Nassau, Bahamas',
+      days: 4,
+      isRepositioning: false
+    }
+  ]
+
+  const itinerary = [
+    {
+      id: itineraryDayId,
+      sailingId,
+      day: 1,
+      title: 'Embarkation Day — Miami, Florida',
+      port: 'Miami, Florida',
+      activitySchedule: [
+        {
+          id: activityId,
+          itineraryDayId,
+          time: '12:00 PM',
+          activity: 'Guest boarding and welcome lunch'
+        }
+      ]
+    }
+  ]
+
+  beforeEach(() => {
+    visitShipsPage()
+    mockShipsFor(cruiseLine)
+    clickViewShips(cruiseLine.name)
+    cy.wait(`@getShips-${cruiseLine.id}`)
+  })
+
+  it('renders direct create, update, delete, and sailing controls for ships', () => {
+    cy.get(selectors.ships.createForm).should('be.visible')
+    cy.get(selectors.ships.createNameInput).should('be.visible')
+    cy.get(selectors.ships.createCurrentPortInput).should('be.visible')
+    cy.get(selectors.ships.createSubmitButton).should('be.visible')
+
+    cy.get(selectors.ships.card).first().within(() => {
+      cy.get(selectors.ships.viewSailingsButton).should('be.visible')
+      cy.get(selectors.ships.updateButton).should('be.visible')
+      cy.get(selectors.ships.deleteButton).should('be.visible')
+    })
+  })
+
+  it('creates a ship from the selected fleet panel and refreshes ships', () => {
+    const reloadedShips = [
+      ...shipMap[cruiseLine.id],
+      {
+        id: 'abababab-abab-abab-abab-abababababab',
+        name: 'New Portfolio Ship',
+        currentPort: 'Tampa, Florida',
+        cruiseLineId: cruiseLine.id
+      }
+    ]
+
+    mockCreateShip({ message: 'Ship created successfully', id: 'abababab-abab-abab-abab-abababababab' })
+    mockShipsForCruiseLine(cruiseLine.id, reloadedShips, `reloadShips-${cruiseLine.id}`)
+
+    cy.get(selectors.ships.createNameInput).type('New Portfolio Ship')
+    cy.get(selectors.ships.createCurrentPortInput).type('Tampa, Florida')
+    cy.get(selectors.ships.createSubmitButton).click()
+
+    cy.wait('@createShip').its('request.body').should('deep.include', {
+      name: 'New Portfolio Ship',
+      currentPort: 'Tampa, Florida',
+      cruiseLineId: cruiseLine.id
+    })
+    cy.wait(`@reloadShips-${cruiseLine.id}`)
+    cy.get(selectors.ships.grid).should('contain.text', 'New Portfolio Ship')
+  })
+
+  it('trims direct ship create values before sending them to the API', () => {
+    mockCreateShip({ message: 'Ship created successfully', id: 'bcbcbcbc-bcbc-bcbc-bcbc-bcbcbcbcbcbc' })
+    mockShipsForCruiseLine(cruiseLine.id, shipMap[cruiseLine.id], `reloadShips-${cruiseLine.id}`)
+
+    cy.get(selectors.ships.createNameInput).type('  Trimmed Ship  ')
+    cy.get(selectors.ships.createCurrentPortInput).type('  Miami, Florida  ')
+    cy.get(selectors.ships.createSubmitButton).click()
+
+    cy.wait('@createShip').its('request.body').should('deep.include', {
+      name: 'Trimmed Ship',
+      currentPort: 'Miami, Florida',
+      cruiseLineId: cruiseLine.id
+    })
+  })
+
+  it('shows direct ship create API failures without refreshing the fleet', () => {
+    cy.intercept('POST', '/cruise/ship', {
+      statusCode: 400,
+      body: { message: 'Ship with the same name already exists' }
+    }).as('createShipFailure')
+
+    cy.get(selectors.ships.createNameInput).type(ship.name)
+    cy.get(selectors.ships.createCurrentPortInput).type('Miami, Florida')
+    cy.get(selectors.ships.createSubmitButton).click()
+
+    cy.wait('@createShipFailure')
+    cy.get(selectors.ships.createMessage).should('contain.text', 'Ship with the same name already exists')
+    cy.get(`@getShips-${cruiseLine.id}.all`).should('have.length', 1)
+  })
+
+  it('updates a ship directly from the ship card and refreshes the fleet', () => {
+    const reloadedShips = [
+      {
+        ...ship,
+        name: 'Updated Portfolio Ship',
+        currentPort: 'Fort Lauderdale, Florida'
+      }
+    ]
+
+    mockUpdateShip(ship.id, { message: 'Ship updated successfully' })
+    mockShipsForCruiseLine(cruiseLine.id, reloadedShips, `reloadShips-${cruiseLine.id}`)
+
+    cy.window().then(win => {
+      cy.stub(win, 'prompt')
+        .onCall(0).returns('Updated Portfolio Ship')
+        .onCall(1).returns('Fort Lauderdale, Florida')
+    })
+
+    cy.get(selectors.ships.updateButton).first().click({ force: true })
+
+    cy.wait(`@updateShip-${ship.id}`).its('request.body').should('deep.include', {
+      name: 'Updated Portfolio Ship',
+      currentPort: 'Fort Lauderdale, Florida',
+      cruiseLineId: cruiseLine.id
+    })
+    cy.wait(`@reloadShips-${cruiseLine.id}`)
+    cy.get(selectors.ships.grid).should('contain.text', 'Updated Portfolio Ship')
+  })
+
+  it('does not update a ship when the current port prompt is cancelled', () => {
+    mockUpdateShip(ship.id, { message: 'Should not update' })
+
+    cy.window().then(win => {
+      cy.stub(win, 'prompt')
+        .onCall(0).returns('Updated Portfolio Ship')
+        .onCall(1).returns(null)
+    })
+
+    cy.get(selectors.ships.updateButton).first().click({ force: true })
+
+    cy.get(`@updateShip-${ship.id}.all`).should('have.length', 0)
+  })
+
+  it('surfaces direct ship update API failures to the admin user', () => {
+    cy.intercept('PATCH', `/cruise/ship/${ship.id}`, {
+      statusCode: 500,
+      body: { message: 'Ship update failed' }
+    }).as(`updateShipFailure-${ship.id}`)
+
+    cy.window().then(win => {
+      cy.stub(win, 'prompt')
+        .onCall(0).returns('Updated Portfolio Ship')
+        .onCall(1).returns('Fort Lauderdale, Florida')
+      cy.stub(win, 'alert').as('alert')
+    })
+
+    cy.get(selectors.ships.updateButton).first().click({ force: true })
+
+    cy.wait(`@updateShipFailure-${ship.id}`)
+    cy.get('@alert').should('have.been.calledWith', 'Ship update failed')
+  })
+
+  it('deletes a ship directly and refreshes the fleet', () => {
+    const remainingShips = shipMap[cruiseLine.id].filter(record => record.id !== ship.id)
+
+    mockDeleteShip(ship.id, { message: 'Ship deleted successfully' })
+    mockShipsForCruiseLine(cruiseLine.id, remainingShips, `reloadShips-${cruiseLine.id}`)
+
+    cy.window().then(win => {
+      cy.stub(win, 'confirm').as('confirmDeleteShip').returns(true)
+    })
+
+    cy.get(selectors.ships.deleteButton).first().click({ force: true })
+
+    cy.get('@confirmDeleteShip').should(
+      'have.been.calledWith',
+      `Delete ${ship.name}? This will also delete related sailings, itinerary days, and activities.`
+    )
+    cy.wait(`@deleteShip-${ship.id}`)
+    cy.wait(`@reloadShips-${cruiseLine.id}`)
+  })
+
+  it('does not delete a ship when confirmation is cancelled', () => {
+    mockDeleteShip(ship.id, { message: 'Should not delete' })
+
+    cy.window().then(win => {
+      cy.stub(win, 'confirm').returns(false)
+    })
+
+    cy.get(selectors.ships.deleteButton).first().click({ force: true })
+
+    cy.get(`@deleteShip-${ship.id}.all`).should('have.length', 0)
+  })
+
+  it('surfaces direct ship delete API failures to the admin user', () => {
+    cy.intercept('DELETE', `/cruise/ship/${ship.id}`, {
+      statusCode: 500,
+      body: { message: 'Ship delete failed' }
+    }).as(`deleteShipFailure-${ship.id}`)
+
+    cy.window().then(win => {
+      cy.stub(win, 'confirm').returns(true)
+      cy.stub(win, 'alert').as('alert')
+    })
+
+    cy.get(selectors.ships.deleteButton).first().click({ force: true })
+
+    cy.wait(`@deleteShipFailure-${ship.id}`)
+    cy.get('@alert').should('have.been.calledWith', 'Ship delete failed')
+  })
+
+  it('hides stale sailings and itinerary panels after deleting the selected ship', () => {
+    mockSailingsForShip(ship.id, sailings)
+    mockItineraryForSailing(sailingId, itinerary)
+    mockDeleteShip(ship.id, { message: 'Ship deleted successfully' })
+    mockShipsForCruiseLine(cruiseLine.id, [], `reloadShips-${cruiseLine.id}`)
+
+    cy.get(selectors.ships.viewSailingsButton).first().click()
+    cy.wait(`@getSailings-${ship.id}`)
+    cy.get(selectors.sailings.viewItineraryButton).first().click()
+    cy.wait(`@getItinerary-${sailingId}`)
+
+    cy.get(selectors.sailings.panel).should('be.visible')
+    cy.get(selectors.itinerary.panel).should('be.visible')
+
+    cy.window().then(win => {
+      cy.stub(win, 'confirm').returns(true)
+    })
+
+    cy.get(selectors.ships.deleteButton).first().click({ force: true })
+
+    cy.wait(`@deleteShip-${ship.id}`)
+    cy.wait(`@reloadShips-${cruiseLine.id}`)
+    cy.get(selectors.sailings.panel).should('not.be.visible')
+    cy.get(selectors.itinerary.panel).should('not.be.visible')
+  })
+})
+

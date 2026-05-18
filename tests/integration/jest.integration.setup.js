@@ -1,14 +1,7 @@
-const db = require('../../db')
-
 jest.setTimeout(30000)
 
-afterAll(async () => {
-  if (typeof db.closePool === 'function') {
-    await db.closePool()
-    return
-  }
+const db = require('../../db')
 
-  if (db.pool && !db.pool.ended) {
-    await db.pool.end()
-  }
+afterAll(async () => {
+  await db.pool.end()
 })

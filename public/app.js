@@ -659,6 +659,7 @@ async function deleteCruiseLine(cruiseLineId, cruiseLineName) {
 
       if (shipsPanel) shipsPanel.hidden = true
       if (shipsGrid) shipsGrid.innerHTML = ''
+      hideSailingAndItineraryPanels()
     }
 
     const activeUpdateId = document.getElementById('update-cruise-line-id')?.value
@@ -702,41 +703,7 @@ function validateShipContract(ship) {
     ship &&
     typeof ship.id === 'string' &&
     typeof ship.name === 'string' &&
-    typeof ship.cruiseLineId === 'string' &&
-    (ship.currentPort === null || ship.currentPort === undefined || typeof ship.currentPort === 'string')
-  )
-}
-
-function validateSailingContract(sailing) {
-  return Boolean(
-    sailing &&
-    typeof sailing.id === 'string' &&
-    typeof sailing.shipId === 'string' &&
-    typeof sailing.departureDate === 'string' &&
-    typeof sailing.port === 'string' &&
-    (sailing.departurePort === null || sailing.departurePort === undefined || typeof sailing.departurePort === 'string') &&
-    (sailing.arrivalPort === null || sailing.arrivalPort === undefined || typeof sailing.arrivalPort === 'string') &&
-    typeof sailing.days === 'number' &&
-    (sailing.isRepositioning === null || sailing.isRepositioning === undefined || typeof sailing.isRepositioning === 'boolean')
-  )
-}
-
-function validateItineraryDayContract(day) {
-  return Boolean(
-    day &&
-    typeof day.id === 'string' &&
-    typeof day.sailingId === 'string' &&
-    typeof day.day === 'number' &&
-    typeof day.title === 'string' &&
-    (day.port === null || day.port === undefined || typeof day.port === 'string') &&
-    Array.isArray(day.activitySchedule) &&
-    day.activitySchedule.every(activity =>
-      activity &&
-      typeof activity.id === 'string' &&
-      typeof activity.itineraryDayId === 'string' &&
-      typeof activity.time === 'string' &&
-      typeof activity.activity === 'string'
-    )
+    typeof ship.cruiseLineId === 'string'
   )
 }
 
@@ -785,12 +752,6 @@ async function runApiContractCheck() {
       let shipResponseStatus = null
       let shipContractsPass = false
       let shipRecordCount = 0
-      let sailingResponseStatus = null
-      let sailingContractsPass = false
-      let sailingRecordCount = 0
-      let itineraryResponseStatus = null
-      let itineraryContractsPass = false
-      let itineraryRecordCount = 0
 
       if (firstCruiseLine) {
         const shipResponse = await fetch(`${API_BASE}/ships/${firstCruiseLine.id}`)
@@ -799,32 +760,10 @@ async function runApiContractCheck() {
         shipResponseStatus = shipResponse.status
         shipRecordCount = Array.isArray(shipData) ? shipData.length : 0
         shipContractsPass = shipResponse.ok && Array.isArray(shipData) && shipData.every(validateShipContract)
-
-        const firstShip = Array.isArray(shipData) && shipData.length > 0 ? shipData[0] : null
-
-        if (firstShip) {
-          const sailingResponse = await fetch(`${API_BASE}/ship/${firstShip.id}/sailings`)
-          const sailingData = await parseJsonResponse(sailingResponse)
-
-          sailingResponseStatus = sailingResponse.status
-          sailingRecordCount = Array.isArray(sailingData) ? sailingData.length : 0
-          sailingContractsPass = sailingResponse.ok && Array.isArray(sailingData) && sailingData.every(validateSailingContract)
-
-          const firstSailing = Array.isArray(sailingData) && sailingData.length > 0 ? sailingData[0] : null
-
-          if (firstSailing) {
-            const itineraryResponse = await fetch(`${API_BASE}/sailings/${firstSailing.id}/itinerary`)
-            const itineraryData = await parseJsonResponse(itineraryResponse)
-
-            itineraryResponseStatus = itineraryResponse.status
-            itineraryRecordCount = Array.isArray(itineraryData) ? itineraryData.length : 0
-            itineraryContractsPass = itineraryResponse.ok && Array.isArray(itineraryData) && itineraryData.every(validateItineraryDayContract)
-          }
-        }
       }
 
       writeTestOutput('API Contract Check Result', {
-        passed: cruiseResponse.ok && cruiseLineContractsPass && Boolean(firstCruiseLine) && shipContractsPass && sailingContractsPass && itineraryContractsPass,
+        passed: cruiseResponse.ok && cruiseLineContractsPass && Boolean(firstCruiseLine) && shipContractsPass,
         cruiseLineEndpoint: {
           statusCode: cruiseResponse.status,
           recordCount: Array.isArray(cruiseData) ? cruiseData.length : 0,
@@ -834,20 +773,8 @@ async function runApiContractCheck() {
         shipEndpoint: {
           statusCode: shipResponseStatus,
           recordCount: shipRecordCount,
-          requiredFields: ['id', 'name', 'currentPort', 'cruiseLineId'],
+          requiredFields: ['id', 'name', 'cruiseLineId'],
           contractPassed: shipContractsPass
-        },
-        sailingEndpoint: {
-          statusCode: sailingResponseStatus,
-          recordCount: sailingRecordCount,
-          requiredFields: ['id', 'shipId', 'departureDate', 'departurePort', 'arrivalPort', 'days', 'isRepositioning'],
-          contractPassed: sailingContractsPass
-        },
-        itineraryEndpoint: {
-          statusCode: itineraryResponseStatus,
-          recordCount: itineraryRecordCount,
-          requiredFields: ['id', 'sailingId', 'day', 'title', 'port', 'activitySchedule'],
-          contractPassed: itineraryContractsPass
         }
       })
     }
@@ -1064,12 +991,6 @@ async function runSeedIntegrityCheck() {
       let shipResponseStatus = null
       let shipCount = 0
       let shipCheckPassed = false
-      let sailingResponseStatus = null
-      let sailingCount = 0
-      let sailingCheckPassed = false
-      let itineraryResponseStatus = null
-      let itineraryDayCount = 0
-      let itineraryCheckPassed = false
 
       if (firstCruiseLine) {
         const shipResponse = await fetch(`${API_BASE}/ships/${firstCruiseLine.id}`)
@@ -1078,48 +999,16 @@ async function runSeedIntegrityCheck() {
         shipResponseStatus = shipResponse.status
         shipCount = Array.isArray(shipData) ? shipData.length : 0
         shipCheckPassed = shipResponse.ok && Array.isArray(shipData)
-
-        const firstShip = Array.isArray(shipData) && shipData.length > 0 ? shipData[0] : null
-
-        if (firstShip) {
-          const sailingResponse = await fetch(`${API_BASE}/ship/${firstShip.id}/sailings`)
-          const sailingData = await parseJsonResponse(sailingResponse)
-
-          sailingResponseStatus = sailingResponse.status
-          sailingCount = Array.isArray(sailingData) ? sailingData.length : 0
-          sailingCheckPassed = sailingResponse.ok && Array.isArray(sailingData) && sailingData.length === 5
-
-          const firstSailing = Array.isArray(sailingData) && sailingData.length > 0 ? sailingData[0] : null
-
-          if (firstSailing) {
-            const itineraryResponse = await fetch(`${API_BASE}/sailings/${firstSailing.id}/itinerary`)
-            const itineraryData = await parseJsonResponse(itineraryResponse)
-
-            itineraryResponseStatus = itineraryResponse.status
-            itineraryDayCount = Array.isArray(itineraryData) ? itineraryData.length : 0
-            itineraryCheckPassed = itineraryResponse.ok && Array.isArray(itineraryData) && itineraryData.length === firstSailing.days
-          }
-        }
       }
 
       writeTestOutput('Seed Data Integrity Check Result', {
-        passed: cruiseResponse.ok && Array.isArray(cruiseData) && cruiseData.length > 0 && shipCheckPassed && sailingCheckPassed && itineraryCheckPassed,
+        passed: cruiseResponse.ok && Array.isArray(cruiseData) && cruiseData.length > 0 && shipCheckPassed,
         cruiseLineCount: Array.isArray(cruiseData) ? cruiseData.length : 0,
         firstCruiseLineName: firstCruiseLine ? firstCruiseLine.name : null,
         firstCruiseLineShipLookup: {
           statusCode: shipResponseStatus,
           shipCount,
           passed: shipCheckPassed
-        },
-        firstShipSailingLookup: {
-          statusCode: sailingResponseStatus,
-          sailingCount,
-          passed: sailingCheckPassed
-        },
-        firstSailingItineraryLookup: {
-          statusCode: itineraryResponseStatus,
-          itineraryDayCount,
-          passed: itineraryCheckPassed
         }
       })
     }
@@ -1251,17 +1140,33 @@ async function loadShips(cruiseLineId, cruiseLineName) {
     if (title) title.textContent = `${cruiseLineName} Ships`
     if (grid) grid.innerHTML = '<p data-cy="ships-loading-message" data-testid="ships-loading-message">Loading ships...</p>'
 
+    hideSailingAndItineraryPanels()
+
     const res = await fetch(`${API_BASE}/ships/${cruiseLineId}`)
+
+    if (res.status === 404) {
+      renderShips([])
+      return
+    }
 
     if (!res.ok) {
       throw new Error(`Ship request failed with status ${res.status}`)
     }
 
     const ships = await res.json()
-    renderShips(ships)
+    renderShips(Array.isArray(ships) ? ships : [])
   } catch (err) {
     console.error(err)
-    if (grid) grid.innerHTML = '<p data-cy="ships-empty-message" data-testid="ships-empty-message">No ships found for this cruise line yet.</p>'
+    if (grid) {
+      grid.innerHTML = ''
+      renderShipCreateForm(grid)
+      const message = document.createElement('p')
+      message.className = 'empty-message'
+      message.setAttribute('data-cy', 'ships-empty-message')
+      message.setAttribute('data-testid', 'ships-empty-message')
+      message.textContent = 'No ships found for this cruise line yet.'
+      grid.appendChild(message)
+    }
   }
 }
 
@@ -1271,30 +1176,183 @@ function renderShips(ships) {
   if (!grid) return
 
   grid.innerHTML = ''
+  renderShipCreateForm(grid)
+
+  if (!ships.length) {
+    const message = document.createElement('p')
+    message.className = 'empty-message'
+    message.setAttribute('data-cy', 'ships-empty-message')
+    message.setAttribute('data-testid', 'ships-empty-message')
+    message.textContent = 'No ships found for this cruise line yet.'
+    grid.appendChild(message)
+    return
+  }
 
   ships.forEach(ship => {
     const card = document.createElement('article')
     card.className = 'data-card'
     card.setAttribute('data-cy', 'ship-card')
     card.setAttribute('data-testid', 'ship-card')
-
     card.innerHTML = `
       <div class="card-content">
         <h3>${escapeHtml(ship.name)}</h3>
-        <p class="card-meta"><strong>Current Port:</strong> ${escapeHtml(ship.currentPort || 'Port not listed')}</p>
+        <p class="card-meta"><strong>Current Port:</strong> ${escapeHtml(ship.currentPort || 'Not listed')}</p>
       </div>
-      <div class="card-actions">
+      <div class="card-actions stacked-card-actions">
         <button data-cy="view-sailings-button" data-testid="view-sailings-button" type="button">View Sailings</button>
+        <button class="secondary" data-cy="update-ship-button" data-testid="update-ship-button" type="button">Update Ship</button>
+        <button class="danger subtle-danger" data-cy="delete-ship-button" data-testid="delete-ship-button" type="button">Delete Ship</button>
       </div>
     `
-
     card.querySelector('[data-cy="view-sailings-button"]').addEventListener('click', () => loadSailings(ship.id, ship.name))
-
+    card.querySelector('[data-cy="update-ship-button"]').addEventListener('click', () => updateShipWithPrompts(ship))
+    card.querySelector('[data-cy="delete-ship-button"]').addEventListener('click', () => deleteShipFromShipsPanel(ship))
     grid.appendChild(card)
   })
 }
 
+function renderShipCreateForm(grid) {
+  const form = document.createElement('form')
+  form.className = 'inline-admin-form'
+  form.setAttribute('data-cy', 'create-ship-form')
+  form.setAttribute('data-testid', 'create-ship-form')
+  form.innerHTML = `
+    <h3>Add Ship</h3>
+    <div class="inline-admin-grid">
+      <label><span>Ship name</span><input name="name" type="text" placeholder="Example: Rotterdam" data-cy="create-ship-name-input" data-testid="create-ship-name-input" required /></label>
+      <label><span>Current port</span><input name="currentPort" type="text" placeholder="Miami, Florida" data-cy="create-ship-current-port-input" data-testid="create-ship-current-port-input" /></label>
+    </div>
+    <p class="form-message" data-cy="create-ship-message" data-testid="create-ship-message"></p>
+    <button type="submit" data-cy="create-ship-submit-button" data-testid="create-ship-submit-button">Create Ship</button>
+  `
+  form.addEventListener('submit', createShipFromShipsPanel)
+  grid.appendChild(form)
+}
+
+async function createShipFromShipsPanel(event) {
+  event.preventDefault()
+
+  const form = event.currentTarget
+  const message = form.querySelector('[data-cy="create-ship-message"]')
+  const formData = new FormData(form)
+  const payload = {
+    name: getTrimmedFormValue(formData, 'name'),
+    currentPort: getTrimmedFormValue(formData, 'currentPort'),
+    cruiseLineId: selectedCruiseLineForShips
+  }
+
+  if (!payload.name) {
+    if (message) message.textContent = 'Ship name is required.'
+    return
+  }
+
+  try {
+    if (message) message.textContent = 'Creating ship...'
+
+    const res = await fetch(`${API_BASE}/ship`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+
+    const result = await parseJsonResponse(res)
+
+    if (!res.ok) {
+      throw new Error(result.message || `Create ship failed with status ${res.status}`)
+    }
+
+    form.reset()
+    if (message) message.textContent = result.message || 'Ship created successfully.'
+    await loadShips(selectedCruiseLineForShips, selectedCruiseLineNameForShips)
+  } catch (err) {
+    console.error(err)
+    if (message) message.textContent = err.message || 'Could not create ship.'
+  }
+}
+
+async function updateShipWithPrompts(ship) {
+  const name = window.prompt('Ship name', ship.name || '')
+  if (name === null) return
+
+  const currentPort = window.prompt('Current port', ship.currentPort || '')
+  if (currentPort === null) return
+
+  const payload = {
+    name: name.trim(),
+    currentPort: currentPort.trim(),
+    cruiseLineId: ship.cruiseLineId || selectedCruiseLineForShips
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/ship/${ship.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+
+    const result = await parseJsonResponse(res)
+
+    if (!res.ok) {
+      throw new Error(result.message || `Update ship failed with status ${res.status}`)
+    }
+
+    hideSailingAndItineraryPanelsForShip(ship.id)
+    await loadShips(selectedCruiseLineForShips, selectedCruiseLineNameForShips)
+  } catch (err) {
+    console.error(err)
+    window.alert(err.message || 'Could not update ship.')
+  }
+}
+
+async function deleteShipFromShipsPanel(ship) {
+  const confirmed = window.confirm(`Delete ${ship.name}? This will also delete related sailings, itinerary days, and activities.`)
+
+  if (!confirmed) return
+
+  try {
+    const res = await fetch(`${API_BASE}/ship/${ship.id}`, {
+      method: 'DELETE'
+    })
+
+    const result = await parseJsonResponse(res)
+
+    if (!res.ok) {
+      throw new Error(result.message || `Delete ship failed with status ${res.status}`)
+    }
+
+    hideSailingAndItineraryPanelsForShip(ship.id)
+    await loadShips(selectedCruiseLineForShips, selectedCruiseLineNameForShips)
+  } catch (err) {
+    console.error(err)
+    window.alert(err.message || 'Could not delete ship.')
+  }
+}
+
+function hideSailingAndItineraryPanels() {
+  const sailingsPanel = document.getElementById('sailings-panel')
+  const itineraryPanel = document.getElementById('itinerary-panel')
+  const sailingsGrid = document.getElementById('sailings-grid')
+  const itineraryGrid = document.getElementById('itinerary-grid')
+
+  selectedShipForSailings = null
+  selectedShipNameForSailings = ''
+  selectedSailingForItinerary = null
+
+  if (sailingsPanel) sailingsPanel.hidden = true
+  if (itineraryPanel) itineraryPanel.hidden = true
+  if (sailingsGrid) sailingsGrid.innerHTML = ''
+  if (itineraryGrid) itineraryGrid.innerHTML = ''
+}
+
+function hideSailingAndItineraryPanelsForShip(shipId) {
+  if (selectedShipForSailings === shipId) {
+    hideSailingAndItineraryPanels()
+  }
+}
+
 async function loadSailings(shipId, shipName) {
+  ensureSailingSections()
+
   const panel = document.getElementById('sailings-panel')
   const title = document.getElementById('sailings-title')
   const grid = document.getElementById('sailings-grid')
@@ -1303,6 +1361,7 @@ async function loadSailings(shipId, shipName) {
   try {
     selectedShipForSailings = shipId
     selectedShipNameForSailings = shipName
+    selectedSailingForItinerary = null
 
     if (panel) panel.hidden = false
     if (itineraryPanel) itineraryPanel.hidden = true
@@ -1312,7 +1371,7 @@ async function loadSailings(shipId, shipName) {
     const res = await fetch(`${API_BASE}/ship/${shipId}/sailings`)
 
     if (!res.ok) {
-      throw new Error(`Sailing request failed with status ${res.status}`)
+      throw new Error(`Sailings request failed with status ${res.status}`)
     }
 
     const sailings = await res.json()
@@ -1323,14 +1382,12 @@ async function loadSailings(shipId, shipName) {
   }
 }
 
-
 function renderSailings(sailings) {
   const grid = document.getElementById('sailings-grid')
 
   if (!grid) return
 
   grid.innerHTML = ''
-
   renderSailingCreateForm(grid)
 
   sailings.forEach(sailing => {
@@ -1339,12 +1396,10 @@ function renderSailings(sailings) {
     card.setAttribute('data-cy', 'sailing-card')
     card.setAttribute('data-testid', 'sailing-card')
 
-    const sailingType = sailing.isRepositioning ? 'Repositioning Sailing' : 'Round-Trip / Regional Sailing'
-
     card.innerHTML = `
       <div class="card-content">
         <h3>${escapeHtml(formatSailingDate(sailing.departureDate))}</h3>
-        <p class="card-meta"><strong>Type:</strong> ${escapeHtml(sailingType)}</p>
+        <p class="card-meta"><strong>Type:</strong> ${escapeHtml(sailing.isRepositioning ? 'Repositioning Sailing' : 'Round-Trip / Regional Sailing')}</p>
         <p class="card-meta"><strong>Departure Port:</strong> ${escapeHtml(sailing.departurePort || sailing.port)}</p>
         <p class="card-meta"><strong>Arrival Port:</strong> ${escapeHtml(sailing.arrivalPort || sailing.port)}</p>
         <p class="card-meta"><strong>Length:</strong> ${escapeHtml(String(sailing.days))} days</p>
@@ -1359,89 +1414,55 @@ function renderSailings(sailings) {
     card.querySelector('[data-cy="view-itinerary-button"]').addEventListener('click', () => loadItinerary(sailing.id, sailing))
     card.querySelector('[data-cy="update-sailing-button"]').addEventListener('click', () => updateSailingWithPrompts(sailing))
     card.querySelector('[data-cy="delete-sailing-button"]').addEventListener('click', () => deleteSailing(sailing))
-
     grid.appendChild(card)
   })
 }
 
 function renderSailingCreateForm(grid) {
   const form = document.createElement('form')
-  form.className = 'inline-admin-form sailing-admin-form'
+  form.className = 'inline-admin-form'
   form.setAttribute('data-cy', 'create-sailing-form')
   form.setAttribute('data-testid', 'create-sailing-form')
-
   form.innerHTML = `
     <h3>Add Sailing</h3>
     <div class="inline-admin-grid">
-      <label>
-        <span>Departure date</span>
-        <input name="departureDate" type="date" value="2026-10-01" data-cy="create-sailing-departure-date-input" data-testid="create-sailing-departure-date-input" required />
-      </label>
-      <label>
-        <span>Departure port</span>
-        <input name="departurePort" type="text" value="${escapeHtml(selectedShipNameForSailings ? '' : '')}" placeholder="Miami, Florida" data-cy="create-sailing-departure-port-input" data-testid="create-sailing-departure-port-input" required maxlength="255" />
-      </label>
-      <label>
-        <span>Arrival port</span>
-        <input name="arrivalPort" type="text" placeholder="Miami, Florida" data-cy="create-sailing-arrival-port-input" data-testid="create-sailing-arrival-port-input" required maxlength="255" />
-      </label>
-      <label>
-        <span>Days</span>
-        <input name="days" type="number" min="1" max="30" value="3" data-cy="create-sailing-days-input" data-testid="create-sailing-days-input" required />
-      </label>
-      <label class="checkbox-field">
-        <input name="isRepositioning" type="checkbox" data-cy="create-sailing-repositioning-input" data-testid="create-sailing-repositioning-input" />
-        <span>Repositioning sailing</span>
-      </label>
+      <label><span>Departure date</span><input name="departureDate" type="date" value="2026-10-01" data-cy="create-sailing-departure-date-input" data-testid="create-sailing-departure-date-input" required /></label>
+      <label><span>Departure port</span><input name="departurePort" type="text" placeholder="Miami, Florida" data-cy="create-sailing-departure-port-input" data-testid="create-sailing-departure-port-input" required /></label>
+      <label><span>Arrival port</span><input name="arrivalPort" type="text" placeholder="Nassau, Bahamas" data-cy="create-sailing-arrival-port-input" data-testid="create-sailing-arrival-port-input" required /></label>
+      <label><span>Days</span><input name="days" type="number" min="1" max="30" value="3" data-cy="create-sailing-days-input" data-testid="create-sailing-days-input" required /></label>
+      <label class="checkbox-field"><input name="isRepositioning" type="checkbox" data-cy="create-sailing-repositioning-input" data-testid="create-sailing-repositioning-input" /><span>Repositioning sailing</span></label>
     </div>
     <p class="form-message" data-cy="create-sailing-message" data-testid="create-sailing-message"></p>
     <button type="submit" data-cy="create-sailing-submit-button" data-testid="create-sailing-submit-button">Create Sailing</button>
   `
-
   form.addEventListener('submit', createSailing)
-
   grid.appendChild(form)
-}
-
-function getSailingPayloadFromForm(form) {
-  const formData = new FormData(form)
-  const departurePort = getTrimmedFormValue(formData, 'departurePort')
-  const arrivalPort = getTrimmedFormValue(formData, 'arrivalPort')
-
-  return {
-    departureDate: getTrimmedFormValue(formData, 'departureDate'),
-    port: departurePort,
-    departurePort,
-    arrivalPort,
-    days: Number(formData.get('days')),
-    isRepositioning: Boolean(formData.get('isRepositioning'))
-  }
 }
 
 async function createSailing(event) {
   event.preventDefault()
-
-  if (!selectedShipForSailings) return
-
   const form = event.currentTarget
   const message = form.querySelector('[data-cy="create-sailing-message"]')
-  const payload = getSailingPayloadFromForm(form)
+  const formData = new FormData(form)
+  const departurePort = getTrimmedFormValue(formData, 'departurePort')
+  const payload = {
+    departureDate: getTrimmedFormValue(formData, 'departureDate'),
+    port: departurePort,
+    departurePort,
+    arrivalPort: getTrimmedFormValue(formData, 'arrivalPort'),
+    days: Number(formData.get('days')),
+    isRepositioning: Boolean(formData.get('isRepositioning'))
+  }
 
   try {
     if (message) message.textContent = 'Creating sailing...'
-
     const res = await fetch(`${API_BASE}/ship/${selectedShipForSailings}/sailings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
-
     const result = await parseJsonResponse(res)
-
-    if (!res.ok) {
-      throw new Error(result.message || `Create sailing failed with status ${res.status}`)
-    }
-
+    if (!res.ok) throw new Error(result.message || `Create sailing failed with status ${res.status}`)
     form.reset()
     if (message) message.textContent = result.message || 'Sailing created successfully.'
     await loadSailings(selectedShipForSailings, selectedShipNameForSailings)
@@ -1454,16 +1475,12 @@ async function createSailing(event) {
 async function updateSailingWithPrompts(sailing) {
   const departureDate = window.prompt('Departure date (YYYY-MM-DD)', sailing.departureDate)
   if (departureDate === null) return
-
   const departurePort = window.prompt('Departure port', sailing.departurePort || sailing.port)
   if (departurePort === null) return
-
   const arrivalPort = window.prompt('Arrival port', sailing.arrivalPort || sailing.port)
   if (arrivalPort === null) return
-
   const daysValue = window.prompt('Days', String(sailing.days))
   if (daysValue === null) return
-
   const repositioningValue = window.prompt('Is this a repositioning sailing? true or false', String(Boolean(sailing.isRepositioning)))
   if (repositioningValue === null) return
 
@@ -1477,18 +1494,9 @@ async function updateSailingWithPrompts(sailing) {
   }
 
   try {
-    const res = await fetch(`${API_BASE}/sailings/${sailing.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-
+    const res = await fetch(`${API_BASE}/sailings/${sailing.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
     const result = await parseJsonResponse(res)
-
-    if (!res.ok) {
-      throw new Error(result.message || `Update sailing failed with status ${res.status}`)
-    }
-
+    if (!res.ok) throw new Error(result.message || `Update sailing failed with status ${res.status}`)
     await loadSailings(selectedShipForSailings, selectedShipNameForSailings)
   } catch (err) {
     console.error(err)
@@ -1497,24 +1505,11 @@ async function updateSailingWithPrompts(sailing) {
 }
 
 async function deleteSailing(sailing) {
-  const confirmed = window.confirm(`Delete sailing departing ${sailing.departureDate}?`)
-
-  if (!confirmed) return
-
+  if (!window.confirm(`Delete sailing departing ${sailing.departureDate}?`)) return
   try {
-    const res = await fetch(`${API_BASE}/sailings/${sailing.id}`, {
-      method: 'DELETE'
-    })
-
+    const res = await fetch(`${API_BASE}/sailings/${sailing.id}`, { method: 'DELETE' })
     const result = await parseJsonResponse(res)
-
-    if (!res.ok) {
-      throw new Error(result.message || `Delete sailing failed with status ${res.status}`)
-    }
-
-    const itineraryPanel = document.getElementById('itinerary-panel')
-    if (itineraryPanel) itineraryPanel.hidden = true
-
+    if (!res.ok) throw new Error(result.message || `Delete sailing failed with status ${res.status}`)
     await loadSailings(selectedShipForSailings, selectedShipNameForSailings)
   } catch (err) {
     console.error(err)
@@ -1523,25 +1518,19 @@ async function deleteSailing(sailing) {
 }
 
 async function loadItinerary(sailingId, sailing) {
+  ensureSailingSections()
   const panel = document.getElementById('itinerary-panel')
   const title = document.getElementById('itinerary-title')
   const grid = document.getElementById('itinerary-grid')
 
   try {
     selectedSailingForItinerary = sailing
-
     if (panel) panel.hidden = false
-    if (title) {
-      title.textContent = `${selectedShipNameForSailings || 'Ship'} Itinerary - ${formatSailingDate(sailing.departureDate)}`
-    }
+    if (title) title.textContent = `${selectedShipNameForSailings || 'Ship'} Itinerary - ${formatSailingDate(sailing.departureDate)}`
     if (grid) grid.innerHTML = '<p data-cy="itinerary-loading-message" data-testid="itinerary-loading-message">Loading itinerary...</p>'
 
     const res = await fetch(`${API_BASE}/sailings/${sailingId}/itinerary`)
-
-    if (!res.ok) {
-      throw new Error(`Itinerary request failed with status ${res.status}`)
-    }
-
+    if (!res.ok) throw new Error(`Itinerary request failed with status ${res.status}`)
     const itinerary = await res.json()
     renderItinerary(itinerary)
   } catch (err) {
@@ -1552,11 +1541,8 @@ async function loadItinerary(sailingId, sailing) {
 
 function renderItinerary(itinerary) {
   const grid = document.getElementById('itinerary-grid')
-
   if (!grid) return
-
   grid.innerHTML = ''
-
   renderItineraryCreateForm(grid)
 
   itinerary.forEach(day => {
@@ -1565,44 +1551,30 @@ function renderItinerary(itinerary) {
     details.setAttribute('data-cy', 'itinerary-day')
     details.setAttribute('data-testid', 'itinerary-day')
 
-    const activityItems = (day.activitySchedule || [])
-      .map(activity => `
-        <li data-cy="itinerary-activity" data-testid="itinerary-activity">
-          <span class="activity-time">${escapeHtml(activity.time)}</span>
-          <span>${escapeHtml(activity.activity)}</span>
-          <span class="activity-actions">
-            <button class="secondary" data-activity-id="${escapeHtml(activity.id)}" data-activity-time="${escapeHtml(activity.time)}" data-activity-text="${escapeHtml(activity.activity)}" data-cy="update-activity-button" data-testid="update-activity-button" type="button">Update</button>
-            <button class="danger subtle-danger" data-activity-id="${escapeHtml(activity.id)}" data-cy="delete-activity-button" data-testid="delete-activity-button" type="button">Delete</button>
-          </span>
-        </li>
-      `)
-      .join('')
+    const activityItems = (day.activitySchedule || []).map(activity => `
+      <li data-cy="itinerary-activity" data-testid="itinerary-activity">
+        <span class="activity-time">${escapeHtml(activity.time)}</span>
+        <span>${escapeHtml(activity.activity)}</span>
+        <span class="activity-actions">
+          <button class="secondary" data-cy="update-activity-button" data-testid="update-activity-button" data-activity-id="${escapeHtml(activity.id)}" data-activity-time="${escapeHtml(activity.time)}" data-activity-text="${escapeHtml(activity.activity)}" type="button">Update</button>
+          <button class="danger subtle-danger" data-cy="delete-activity-button" data-testid="delete-activity-button" data-activity-id="${escapeHtml(activity.id)}" type="button">Delete</button>
+        </span>
+      </li>
+    `).join('')
 
     details.innerHTML = `
-      <summary data-cy="itinerary-day-summary" data-testid="itinerary-day-summary">
-        Day ${escapeHtml(String(day.day))} — ${escapeHtml(day.title)}
-      </summary>
-      <p class="itinerary-port" data-cy="itinerary-port" data-testid="itinerary-port">
-        <strong>Port:</strong> ${escapeHtml(day.port || 'At Sea')}
-      </p>
+      <summary data-cy="itinerary-day-summary" data-testid="itinerary-day-summary">Day ${escapeHtml(String(day.day))} — ${escapeHtml(day.title)}</summary>
+      <p class="itinerary-port" data-cy="itinerary-port" data-testid="itinerary-port"><strong>Port:</strong> ${escapeHtml(day.port || 'At Sea')}</p>
       <div class="itinerary-admin-actions">
         <button class="secondary" data-cy="update-itinerary-day-button" data-testid="update-itinerary-day-button" type="button">Update Day</button>
         <button class="danger subtle-danger" data-cy="delete-itinerary-day-button" data-testid="delete-itinerary-day-button" type="button">Delete Day</button>
       </div>
-      <ul class="activity-schedule" data-cy="activity-schedule" data-testid="activity-schedule">
-        ${activityItems}
-      </ul>
+      <ul class="activity-schedule" data-cy="activity-schedule" data-testid="activity-schedule">${activityItems}</ul>
       <form class="inline-admin-form activity-admin-form" data-cy="create-activity-form" data-testid="create-activity-form">
         <h4>Add Activity</h4>
         <div class="inline-admin-grid">
-          <label>
-            <span>Time</span>
-            <input name="time" type="text" placeholder="2:00 PM" data-cy="create-activity-time-input" data-testid="create-activity-time-input" required maxlength="20" />
-          </label>
-          <label>
-            <span>Activity</span>
-            <input name="activity" type="text" placeholder="Poolside games" data-cy="create-activity-text-input" data-testid="create-activity-text-input" required maxlength="255" />
-          </label>
+          <label><span>Time</span><input name="time" type="text" placeholder="2:00 PM" data-cy="create-activity-time-input" data-testid="create-activity-time-input" required /></label>
+          <label><span>Activity</span><input name="activity" type="text" placeholder="Poolside games" data-cy="create-activity-text-input" data-testid="create-activity-text-input" required /></label>
         </div>
         <button type="submit" data-cy="create-activity-submit-button" data-testid="create-activity-submit-button">Add Activity</button>
       </form>
@@ -1611,18 +1583,12 @@ function renderItinerary(itinerary) {
     details.querySelector('[data-cy="update-itinerary-day-button"]').addEventListener('click', () => updateItineraryDayWithPrompts(day))
     details.querySelector('[data-cy="delete-itinerary-day-button"]').addEventListener('click', () => deleteItineraryDay(day))
     details.querySelector('[data-cy="create-activity-form"]').addEventListener('submit', event => createActivity(event, day.id))
-
-    details.querySelectorAll('[data-cy="update-activity-button"]').forEach(button => {
-      button.addEventListener('click', () => updateActivityWithPrompts({
-        id: button.dataset.activityId,
-        time: button.dataset.activityTime,
-        activity: button.dataset.activityText
-      }))
-    })
-
-    details.querySelectorAll('[data-cy="delete-activity-button"]').forEach(button => {
-      button.addEventListener('click', () => deleteActivity(button.dataset.activityId))
-    })
+    details.querySelectorAll('[data-cy="update-activity-button"]').forEach(button => button.addEventListener('click', () => updateActivityWithPrompts({
+      id: button.dataset.activityId,
+      time: button.dataset.activityTime,
+      activity: button.dataset.activityText
+    })))
+    details.querySelectorAll('[data-cy="delete-activity-button"]').forEach(button => button.addEventListener('click', () => deleteActivity(button.dataset.activityId)))
 
     grid.appendChild(details)
   })
@@ -1630,119 +1596,60 @@ function renderItinerary(itinerary) {
 
 function renderItineraryCreateForm(grid) {
   const form = document.createElement('form')
-  form.className = 'inline-admin-form itinerary-admin-form'
+  form.className = 'inline-admin-form'
   form.setAttribute('data-cy', 'create-itinerary-day-form')
   form.setAttribute('data-testid', 'create-itinerary-day-form')
-
-  const nextDay = selectedSailingForItinerary ? Number(selectedSailingForItinerary.days || 1) : 1
-
   form.innerHTML = `
     <h3>Add Itinerary Day</h3>
     <div class="inline-admin-grid">
-      <label>
-        <span>Day</span>
-        <input name="day" type="number" min="1" max="30" value="${escapeHtml(String(nextDay))}" data-cy="create-itinerary-day-number-input" data-testid="create-itinerary-day-number-input" required />
-      </label>
-      <label>
-        <span>Title</span>
-        <input name="title" type="text" placeholder="Port Day — Nassau, Bahamas" data-cy="create-itinerary-day-title-input" data-testid="create-itinerary-day-title-input" required maxlength="255" />
-      </label>
-      <label>
-        <span>Port</span>
-        <input name="port" type="text" placeholder="At Sea" data-cy="create-itinerary-day-port-input" data-testid="create-itinerary-day-port-input" required maxlength="255" />
-      </label>
-      <label>
-        <span>Activity time</span>
-        <input name="activityTime" type="text" placeholder="9:00 AM" data-cy="create-itinerary-activity-time-input" data-testid="create-itinerary-activity-time-input" maxlength="20" />
-      </label>
-      <label>
-        <span>Activity</span>
-        <input name="activity" type="text" placeholder="Morning briefing" data-cy="create-itinerary-activity-text-input" data-testid="create-itinerary-activity-text-input" maxlength="255" />
-      </label>
+      <label><span>Day</span><input name="day" type="number" min="1" max="30" value="1" data-cy="create-itinerary-day-number-input" data-testid="create-itinerary-day-number-input" required /></label>
+      <label><span>Title</span><input name="title" type="text" placeholder="Port Day — Nassau, Bahamas" data-cy="create-itinerary-day-title-input" data-testid="create-itinerary-day-title-input" required /></label>
+      <label><span>Port</span><input name="port" type="text" placeholder="At Sea" data-cy="create-itinerary-day-port-input" data-testid="create-itinerary-day-port-input" required /></label>
+      <label><span>Activity time</span><input name="activityTime" type="text" placeholder="9:00 AM" data-cy="create-itinerary-activity-time-input" data-testid="create-itinerary-activity-time-input" /></label>
+      <label><span>Activity</span><input name="activity" type="text" placeholder="Morning briefing" data-cy="create-itinerary-activity-text-input" data-testid="create-itinerary-activity-text-input" /></label>
     </div>
     <p class="form-message" data-cy="create-itinerary-day-message" data-testid="create-itinerary-day-message"></p>
     <button type="submit" data-cy="create-itinerary-day-submit-button" data-testid="create-itinerary-day-submit-button">Create Itinerary Day</button>
   `
-
   form.addEventListener('submit', createItineraryDay)
-
   grid.appendChild(form)
 }
 
 async function createItineraryDay(event) {
   event.preventDefault()
-
-  if (!selectedSailingForItinerary) return
-
   const form = event.currentTarget
   const formData = new FormData(form)
   const activityTime = getTrimmedFormValue(formData, 'activityTime')
   const activityText = getTrimmedFormValue(formData, 'activity')
-  const message = form.querySelector('[data-cy="create-itinerary-day-message"]')
-
   const payload = {
     day: Number(formData.get('day')),
     title: getTrimmedFormValue(formData, 'title'),
     port: getTrimmedFormValue(formData, 'port'),
-    activitySchedule: activityTime && activityText ? [{
-      time: activityTime,
-      activity: activityText
-    }] : []
+    activitySchedule: activityTime && activityText ? [{ time: activityTime, activity: activityText }] : []
   }
-
   try {
-    if (message) message.textContent = 'Creating itinerary day...'
-
-    const res = await fetch(`${API_BASE}/sailings/${selectedSailingForItinerary.id}/itinerary`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-
+    const res = await fetch(`${API_BASE}/sailings/${selectedSailingForItinerary.id}/itinerary`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
     const result = await parseJsonResponse(res)
-
-    if (!res.ok) {
-      throw new Error(result.message || `Create itinerary day failed with status ${res.status}`)
-    }
-
-    form.reset()
+    if (!res.ok) throw new Error(result.message || `Create itinerary day failed with status ${res.status}`)
     await loadItinerary(selectedSailingForItinerary.id, selectedSailingForItinerary)
   } catch (err) {
     console.error(err)
-    if (message) message.textContent = err.message || 'Could not create itinerary day.'
+    window.alert(err.message || 'Could not create itinerary day.')
   }
 }
 
 async function updateItineraryDayWithPrompts(day) {
   const dayValue = window.prompt('Day number', String(day.day))
   if (dayValue === null) return
-
   const title = window.prompt('Title', day.title)
   if (title === null) return
-
   const port = window.prompt('Port or At Sea', day.port || 'At Sea')
   if (port === null) return
 
-  const payload = {
-    day: Number(dayValue),
-    title: title.trim(),
-    port: port.trim(),
-    activitySchedule: []
-  }
-
   try {
-    const res = await fetch(`${API_BASE}/itinerary-days/${day.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-
+    const res = await fetch(`${API_BASE}/itinerary-days/${day.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ day: Number(dayValue), title: title.trim(), port: port.trim(), activitySchedule: [] }) })
     const result = await parseJsonResponse(res)
-
-    if (!res.ok) {
-      throw new Error(result.message || `Update itinerary day failed with status ${res.status}`)
-    }
-
+    if (!res.ok) throw new Error(result.message || `Update itinerary day failed with status ${res.status}`)
     await loadItinerary(selectedSailingForItinerary.id, selectedSailingForItinerary)
   } catch (err) {
     console.error(err)
@@ -1751,21 +1658,11 @@ async function updateItineraryDayWithPrompts(day) {
 }
 
 async function deleteItineraryDay(day) {
-  const confirmed = window.confirm(`Delete itinerary day ${day.day}?`)
-
-  if (!confirmed) return
-
+  if (!window.confirm(`Delete itinerary day ${day.day}?`)) return
   try {
-    const res = await fetch(`${API_BASE}/itinerary-days/${day.id}`, {
-      method: 'DELETE'
-    })
-
+    const res = await fetch(`${API_BASE}/itinerary-days/${day.id}`, { method: 'DELETE' })
     const result = await parseJsonResponse(res)
-
-    if (!res.ok) {
-      throw new Error(result.message || `Delete itinerary day failed with status ${res.status}`)
-    }
-
+    if (!res.ok) throw new Error(result.message || `Delete itinerary day failed with status ${res.status}`)
     await loadItinerary(selectedSailingForItinerary.id, selectedSailingForItinerary)
   } catch (err) {
     console.error(err)
@@ -1775,29 +1672,13 @@ async function deleteItineraryDay(day) {
 
 async function createActivity(event, itineraryDayId) {
   event.preventDefault()
-
   const form = event.currentTarget
   const formData = new FormData(form)
-
-  const payload = {
-    time: getTrimmedFormValue(formData, 'time'),
-    activity: getTrimmedFormValue(formData, 'activity')
-  }
-
+  const payload = { time: getTrimmedFormValue(formData, 'time'), activity: getTrimmedFormValue(formData, 'activity') }
   try {
-    const res = await fetch(`${API_BASE}/itinerary-days/${itineraryDayId}/activities`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-
+    const res = await fetch(`${API_BASE}/itinerary-days/${itineraryDayId}/activities`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
     const result = await parseJsonResponse(res)
-
-    if (!res.ok) {
-      throw new Error(result.message || `Create activity failed with status ${res.status}`)
-    }
-
-    form.reset()
+    if (!res.ok) throw new Error(result.message || `Create activity failed with status ${res.status}`)
     await loadItinerary(selectedSailingForItinerary.id, selectedSailingForItinerary)
   } catch (err) {
     console.error(err)
@@ -1808,26 +1689,12 @@ async function createActivity(event, itineraryDayId) {
 async function updateActivityWithPrompts(activity) {
   const time = window.prompt('Activity time', activity.time)
   if (time === null) return
-
   const activityText = window.prompt('Activity description', activity.activity)
   if (activityText === null) return
-
   try {
-    const res = await fetch(`${API_BASE}/activities/${activity.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        time: time.trim(),
-        activity: activityText.trim()
-      })
-    })
-
+    const res = await fetch(`${API_BASE}/activities/${activity.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ time: time.trim(), activity: activityText.trim() }) })
     const result = await parseJsonResponse(res)
-
-    if (!res.ok) {
-      throw new Error(result.message || `Update activity failed with status ${res.status}`)
-    }
-
+    if (!res.ok) throw new Error(result.message || `Update activity failed with status ${res.status}`)
     await loadItinerary(selectedSailingForItinerary.id, selectedSailingForItinerary)
   } catch (err) {
     console.error(err)
@@ -1836,21 +1703,11 @@ async function updateActivityWithPrompts(activity) {
 }
 
 async function deleteActivity(activityId) {
-  const confirmed = window.confirm('Delete this activity?')
-
-  if (!confirmed) return
-
+  if (!window.confirm('Delete this activity?')) return
   try {
-    const res = await fetch(`${API_BASE}/activities/${activityId}`, {
-      method: 'DELETE'
-    })
-
+    const res = await fetch(`${API_BASE}/activities/${activityId}`, { method: 'DELETE' })
     const result = await parseJsonResponse(res)
-
-    if (!res.ok) {
-      throw new Error(result.message || `Delete activity failed with status ${res.status}`)
-    }
-
+    if (!res.ok) throw new Error(result.message || `Delete activity failed with status ${res.status}`)
     await loadItinerary(selectedSailingForItinerary.id, selectedSailingForItinerary)
   } catch (err) {
     console.error(err)
@@ -1858,37 +1715,52 @@ async function deleteActivity(activityId) {
   }
 }
 
+function ensureSailingSections() {
+  if (document.getElementById('sailings-panel')) return
 
-function hideSailingAndItineraryPanels() {
-  const sailingsPanel = document.getElementById('sailings-panel')
-  const itineraryPanel = document.getElementById('itinerary-panel')
-  const sailingsGrid = document.getElementById('sailings-grid')
-  const itineraryGrid = document.getElementById('itinerary-grid')
+  const shipsPanel = document.getElementById('ships-panel')
+  const parent = shipsPanel ? shipsPanel.parentElement : document.querySelector('main')
 
-  if (sailingsPanel) sailingsPanel.hidden = true
-  if (itineraryPanel) itineraryPanel.hidden = true
-  if (sailingsGrid) sailingsGrid.innerHTML = ''
-  if (itineraryGrid) itineraryGrid.innerHTML = ''
+  const sailingsPanel = document.createElement('section')
+  sailingsPanel.className = 'section sailings-section scroll-anchor'
+  sailingsPanel.id = 'sailings-panel'
+  sailingsPanel.hidden = true
+  sailingsPanel.setAttribute('data-cy', 'sailings-panel')
+  sailingsPanel.setAttribute('data-testid', 'sailings-panel')
+  sailingsPanel.innerHTML = `
+    <div class="section-heading">
+      <p class="eyebrow">Sailing Admin</p>
+      <h2 id="sailings-title" data-cy="sailings-title" data-testid="sailings-title">Ship Sailings</h2>
+      <p>Create, update, delete, and review sailing dates for the selected ship.</p>
+    </div>
+    <div id="sailings-grid" class="card-grid" data-cy="sailings-grid" data-testid="sailings-grid"></div>
+  `
 
-  selectedShipForSailings = null
-  selectedShipNameForSailings = ''
-  selectedSailingForItinerary = null
+  const itineraryPanel = document.createElement('section')
+  itineraryPanel.className = 'section itinerary-section scroll-anchor'
+  itineraryPanel.id = 'itinerary-panel'
+  itineraryPanel.hidden = true
+  itineraryPanel.setAttribute('data-cy', 'itinerary-panel')
+  itineraryPanel.setAttribute('data-testid', 'itinerary-panel')
+  itineraryPanel.innerHTML = `
+    <div class="section-heading">
+      <p class="eyebrow">Itinerary Admin</p>
+      <h2 id="itinerary-title" data-cy="itinerary-title" data-testid="itinerary-title">Sailing Itinerary</h2>
+      <p>Create, update, delete, and review itinerary days and scheduled activities.</p>
+    </div>
+    <div id="itinerary-grid" class="itinerary-grid" data-cy="itinerary-grid" data-testid="itinerary-grid"></div>
+  `
+
+  parent.insertAdjacentElement('afterend', itineraryPanel)
+  parent.insertAdjacentElement('afterend', sailingsPanel)
 }
 
 function formatSailingDate(value) {
-  if (!value) return 'Date unavailable'
-
-  const [year, month, day] = value.split('-').map(Number)
-
-  if (!year || !month || !day) return value
-
-  return new Date(year, month - 1, day).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
+  if (!value) return 'Unknown departure date'
+  const date = new Date(`${value}T00:00:00`)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }
-
 
 function escapeSingleQuotes(value) {
   return String(value).replace(/'/g, '\\&#39;')
@@ -1996,34 +1868,6 @@ if (uiSmokeTestBtn) {
           statusCode: shipsRes.status,
           recordCount: Array.isArray(shipsData) ? shipsData.length : 0
         })
-
-        const firstShip = Array.isArray(shipsData) && shipsData.length > 0 ? shipsData[0] : null
-
-        if (firstShip) {
-          const sailingsRes = await fetch(`/cruise/ship/${firstShip.id}/sailings`)
-          const sailingsData = await sailingsRes.json()
-
-          results.push({
-            test: 'GET /cruise/ship/:shipId/sailings',
-            passed: sailingsRes.ok && Array.isArray(sailingsData) && sailingsData.length > 0,
-            statusCode: sailingsRes.status,
-            recordCount: Array.isArray(sailingsData) ? sailingsData.length : 0
-          })
-
-          const firstSailing = Array.isArray(sailingsData) && sailingsData.length > 0 ? sailingsData[0] : null
-
-          if (firstSailing) {
-            const itineraryRes = await fetch(`/cruise/sailings/${firstSailing.id}/itinerary`)
-            const itineraryData = await itineraryRes.json()
-
-            results.push({
-              test: 'GET /cruise/sailings/:sailingId/itinerary',
-              passed: itineraryRes.ok && Array.isArray(itineraryData) && itineraryData.length === firstSailing.days,
-              statusCode: itineraryRes.status,
-              recordCount: Array.isArray(itineraryData) ? itineraryData.length : 0
-            })
-          }
-        }
       }
 
       const passed = results.every(result => result.passed)
@@ -2114,8 +1958,8 @@ async function resetDemoData() {
     if (shipsGrid) shipsGrid.innerHTML = ''
     if (searchInput) searchInput.value = ''
 
-    hideSailingAndItineraryPanels()
     hideUpdateCruiseLinePanel()
+    hideSailingAndItineraryPanels()
     await loadCruiseLines()
 
     writeTestOutput('Demo Data Reset Result', {

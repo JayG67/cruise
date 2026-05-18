@@ -100,40 +100,6 @@ test.describe('Cruise Explorer mobile quality checks', () => {
     await expectNoHorizontalOverflow(page)
   })
 
-  test('shows sailings and itinerary details from the mobile ship panel', async ({ page }) => {
-    const firstCard = await getFirstCruiseCard(page)
-
-    await firstCard.getByTestId('view-ships-button').click()
-
-    const firstShipCard = page.getByTestId('ship-card').first()
-    await expect(firstShipCard).toBeVisible()
-    await expect(firstShipCard).toContainText('Current Port:')
-    await expect(firstShipCard).not.toContainText('Ship ID:')
-
-    await firstShipCard.getByTestId('view-sailings-button').click()
-
-    await expect(page.getByTestId('sailings-panel')).toBeVisible()
-    await expect(page.getByTestId('sailing-card').first()).toBeVisible()
-    await expect(page.getByTestId('sailing-card').first()).toContainText('Departure Port:')
-    await expect(page.getByTestId('sailing-card').first()).toContainText('Arrival Port:')
-    await expect(page.getByTestId('view-itinerary-button').first()).toBeVisible()
-
-    await page.getByTestId('view-itinerary-button').first().click()
-
-    await expect(page.getByTestId('itinerary-panel')).toBeVisible()
-
-    const itineraryDay = page.getByTestId('itinerary-day').first()
-
-    await expect(itineraryDay).toBeVisible()
-
-    await itineraryDay.click()
-
-    await expect(page.getByTestId('itinerary-port').first()).toBeVisible()
-    await expect(page.getByTestId('itinerary-activity').first()).toBeVisible()
-
-    await expectNoHorizontalOverflow(page)
-  })
-
   test('opens the update workflow from a cruise card without breaking mobile layout', async ({ page }) => {
     const firstCard = await getFirstCruiseCard(page)
 
@@ -314,4 +280,69 @@ test.describe('Cruise Explorer mobile quality checks', () => {
 
     await expectNoHorizontalOverflow(page)
   })
+
+  test('opens ship sailings and keeps sailing admin controls usable on mobile devices', async ({ page }) => {
+    const firstCard = await getFirstCruiseCard(page)
+
+    await firstCard.getByTestId('view-ships-button').click()
+    await expect(page.getByTestId('ships-panel')).toBeVisible()
+    await expect(page.getByTestId('ship-card').first()).toBeVisible()
+
+    await page.getByTestId('view-sailings-button').first().click()
+
+    await expect(page.getByTestId('sailings-panel')).toBeVisible()
+    await expect(page.getByTestId('create-sailing-form')).toBeVisible()
+    await expect(page.getByTestId('sailing-card').first()).toBeVisible()
+    await expectTouchTargetIsUsable(page.getByTestId('create-sailing-submit-button'))
+    await expectTouchTargetIsUsable(page.getByTestId('view-itinerary-button').first())
+    await expectTouchTargetIsUsable(page.getByTestId('update-sailing-button').first())
+    await expectTouchTargetIsUsable(page.getByTestId('delete-sailing-button').first())
+
+    await page.getByTestId('create-sailing-departure-date-input').fill('2026-10-01')
+    await page.getByTestId('create-sailing-departure-port-input').fill('Miami, Florida')
+    await page.getByTestId('create-sailing-arrival-port-input').fill('Nassau, Bahamas')
+    await page.getByTestId('create-sailing-days-input').fill('4')
+
+    await expect(page.getByTestId('create-sailing-departure-port-input')).toHaveValue('Miami, Florida')
+    await expect(page.getByTestId('create-sailing-arrival-port-input')).toHaveValue('Nassau, Bahamas')
+
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('opens itinerary details and keeps activity controls usable on mobile devices', async ({ page }) => {
+    const firstCard = await getFirstCruiseCard(page)
+
+    await firstCard.getByTestId('view-ships-button').click()
+    await expect(page.getByTestId('ship-card').first()).toBeVisible()
+
+    await page.getByTestId('view-sailings-button').first().click()
+    await expect(page.getByTestId('sailing-card').first()).toBeVisible()
+
+    await page.getByTestId('view-itinerary-button').first().click()
+
+    await expect(page.getByTestId('itinerary-panel')).toBeVisible()
+    await expect(page.getByTestId('create-itinerary-day-form')).toBeVisible()
+    await expect(page.getByTestId('itinerary-day').first()).toBeVisible()
+    await expectTouchTargetIsUsable(page.getByTestId('create-itinerary-day-submit-button'))
+
+    await page.getByTestId('itinerary-day-summary').first().click()
+
+    await expect(page.getByTestId('itinerary-port').first()).toBeVisible()
+    await expect(page.getByTestId('activity-schedule').first()).toBeVisible()
+    await expectTouchTargetIsUsable(page.getByTestId('update-itinerary-day-button').first())
+    await expectTouchTargetIsUsable(page.getByTestId('delete-itinerary-day-button').first())
+    await expectTouchTargetIsUsable(page.getByTestId('create-activity-submit-button').first())
+
+    await page.getByTestId('create-itinerary-day-number-input').fill('2')
+    await page.getByTestId('create-itinerary-day-title-input').fill('Mobile QA Sea Day')
+    await page.getByTestId('create-itinerary-day-port-input').fill('At Sea')
+    await page.getByTestId('create-itinerary-activity-time-input').fill('9:00 AM')
+    await page.getByTestId('create-itinerary-activity-text-input').fill('Mobile itinerary briefing')
+
+    await expect(page.getByTestId('create-itinerary-day-title-input')).toHaveValue('Mobile QA Sea Day')
+    await expect(page.getByTestId('create-itinerary-activity-text-input')).toHaveValue('Mobile itinerary briefing')
+
+    await expectNoHorizontalOverflow(page)
+  })
+
 })

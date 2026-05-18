@@ -1674,119 +1674,7 @@ button[data-cy="update-delete-ship-button"]:hover {
 }
 
 
-.sailings-section,
-.itinerary-section {
-  padding-top: 34px;
-  padding-bottom: 34px;
-}
-
-.sailing-card h3 {
-  color: var(--navy);
-}
-
-.itinerary-list {
-  display: grid;
-  gap: 14px;
-}
-
-.itinerary-day {
-  border: 1px solid #dceaf1;
-  border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 0 12px 28px rgba(7, 24, 39, 0.06);
-  overflow: hidden;
-}
-
-.itinerary-day summary {
-  cursor: pointer;
-  padding: 16px 18px;
-  color: var(--navy);
-  font-weight: 900;
-  list-style-position: inside;
-}
-
-.itinerary-day[open] summary {
-  border-bottom: 1px solid #dceaf1;
-  background: #f8fcff;
-}
-
-.activity-schedule {
-  display: grid;
-  gap: 10px;
-  margin: 0;
-  padding: 16px 18px 18px;
-  list-style: none;
-}
-
-.activity-schedule li {
-  display: grid;
-  grid-template-columns: 90px minmax(0, 1fr);
-  gap: 12px;
-  align-items: start;
-  color: #526575;
-  line-height: 1.45;
-}
-
-.activity-time {
-  color: var(--blue);
-  font-weight: 900;
-}
-
-@media (max-width: 560px) {
-  .activity-schedule li {
-    grid-template-columns: 1fr;
-    gap: 4px;
-  }
-}
-
-
-.itinerary-port {
-  margin: 0;
-  padding: 12px 18px 0;
-  color: #526575;
-  font-size: 0.95rem;
-}
-
-
-/* Mobile Lighthouse performance pass.
-   Keep the visual design, but reduce expensive mobile paint/compositing work in CI-sized viewports. */
-@media (max-width: 720px) {
-  html {
-    scroll-behavior: auto;
-  }
-
-  .nav-bar,
-  .hero-status-pills span,
-  .dashboard-summary-card,
-  .about-card {
-    backdrop-filter: none;
-  }
-
-  .nav-bar,
-  button,
-  .button-link,
-  .data-card,
-  .crud-panel,
-  .form-card,
-  .quality-console,
-  .quality-action-card,
-  .quality-output-panel,
-  .itinerary-day {
-    box-shadow: none;
-  }
-
-  button,
-  .button-link {
-    transition: none;
-  }
-
-  button:hover,
-  .button-link:hover {
-    transform: none;
-  }
-}
-
-
+/* Sailing and itinerary administrative CRUD controls */
 .inline-admin-form {
   grid-column: 1 / -1;
   padding: 18px;
@@ -1837,16 +1725,62 @@ button[data-cy="update-delete-ship-button"]:hover {
   gap: 8px;
 }
 
+.itinerary-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.itinerary-day {
+  padding: 16px;
+  border: 1px solid #dceaf1;
+  border-radius: 18px;
+  background: #ffffff;
+  overflow: visible;
+}
+
+.itinerary-day[open] {
+  overflow: visible;
+}
+
+.itinerary-day summary {
+  cursor: pointer;
+  font-weight: 900;
+  color: var(--navy);
+}
+
+.itinerary-port {
+  margin: 14px 0;
+  color: #526575;
+}
+
+.activity-schedule {
+  display: grid;
+  gap: 10px;
+  padding-left: 0;
+  list-style: none;
+}
+
+.activity-schedule li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 12px;
+  background: #f4f8fb;
+}
+
+.activity-time {
+  font-weight: 900;
+  color: var(--blue);
+}
+
 .activity-actions {
   margin-left: auto;
 }
 
-.activity-schedule li {
-  align-items: center;
-}
-
 .activity-admin-form {
-  margin: 12px 18px 18px;
+  margin-top: 14px;
 }
 
 @media (max-width: 720px) {
@@ -1857,16 +1791,4 @@ button[data-cy="update-delete-ship-button"]:hover {
   .activity-actions {
     margin-left: 0;
   }
-}
-
-
-/* Keep itinerary admin controls actionable inside expanded accordion sections. */
-.itinerary-day[open] {
-  overflow: visible;
-}
-
-.itinerary-day[open] .itinerary-admin-actions,
-.itinerary-day[open] .activity-actions,
-.itinerary-day[open] .activity-admin-form {
-  overflow: visible;
 }
