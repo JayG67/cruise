@@ -2069,3 +2069,46 @@ code,
     border-radius: 18px;
   }
 }
+
+
+/* =========================================
+   iPhone Safari role selector overflow fix
+   WebKit sizes select controls from option text unless
+   the control and its grid ancestors are explicitly constrained.
+========================================= */
+
+.role-selector-section,
+.role-selector-card,
+.role-selector-card label,
+.role-selector-card select,
+.role-summary,
+.role-summary > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.role-selector-card {
+  width: 100%;
+}
+
+.role-selector-card label {
+  width: 100%;
+}
+
+.role-selector-card select {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.role-summary {
+  width: 100%;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 430px) {
+  .role-selector-card {
+    padding: 1rem;
+  }
+}
