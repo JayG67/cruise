@@ -3,6 +3,9 @@ const shipTable = require('../models/ship.model')
 const sailingTable = require('../models/sailing.model')
 const itineraryDayTable = require('../models/itineraryDay.model')
 const activityScheduleTable = require('../models/activitySchedule.model')
+const customerTable = require('../models/customer.model')
+const bookingTable = require('../models/booking.model')
+const bookingPassengerTable = require('../models/bookingPassenger.model')
 const db = require('../db')
 const { eq, inArray } = require('drizzle-orm')
 
@@ -600,6 +603,562 @@ exports.deleteActivitySchedule = async (req, res, next) => {
     await db.delete(activityScheduleTable).where(eq(activityScheduleTable.id, id))
 
     return res.status(200).json({ message: 'Activity deleted successfully' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+async function getBookingPassengers(bookingId) {
+  const passengerRows = await db
+    .select()
+    .from(bookingPassengerTable)
+    .where(eq(bookingPassengerTable.bookingId, bookingId))
+
+  const passengers = []
+
+  for (const passenger of passengerRows || []) {
+    const customerRows = await db
+      .select()
+      .from(customerTable)
+      .where(eq(customerTable.id, passenger.customerId))
+      .limit(1)
+
+    passengers.push({
+      ...passenger,
+      customer: customerRows[0] || null
+    })
+  }
+
+  return passengers
+}
+
+async function getBookingDetails(booking) {
+  if (!booking) return null
+
+  const sailingRows = await db
+    .select()
+    .from(sailingTable)
+    .where(eq(sailingTable.id, booking.sailingId))
+    .limit(1)
+
+  const passengers = await getBookingPassengers(booking.id)
+
+  return {
+    ...booking,
+    sailing: sailingRows[0] || null,
+    passengers
+  }
+}
+
+exports.getCustomers = async (req, res, next) => {
+  try {
+    const customers = await db.select().from(customerTable)
+
+    if (!customers || customers.length === 0) {
+      return res.status(404).json({ message: 'No customers found' })
+    }
+
+    return res.status(200).json(customers)
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.getCustomerById = async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    const rows = await db
+      .select()
+      .from(customerTable)
+      .where(eq(customerTable.id, id))
+      .limit(1)
+
+    if (!rows[0]) {
+      return res.status(404).json({ message: 'Customer not found' })
+    }
+
+    return res.status(200).json(rows[0])
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.insertCustomer = async (req, res, next) => {
+  try {
+    const { id, firstName, lastName, email, phone, loyaltyNumber } = req.body
+
+    const duplicateIdRows = await db
+      .select()
+      .from(customerTable)
+      .where(eq(customerTable.id, id))
+      .limit(1)
+
+    if (duplicateIdRows[0]) {
+      return res.status(400).json({ message: 'Customer with the same ID already exists' })
+    }
+
+    const duplicateEmailRows = await db
+      .select()
+      .from(customerTable)
+      .where(eq(customerTable.email, email))
+      .limit(1)
+
+    if (duplicateEmailRows[0]) {
+      return res.status(400).json({ message: 'Customer with the same email already exists' })
+    }
+
+    await db
+      .insert(customerTable)
+      .values({ id, firstName, lastName, email, phone, loyaltyNumber })
+
+    return res.status(201).json({
+      message: 'Customer created successfully',
+      id
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.updateCustomer = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const { firstName, lastName, email, phone, loyaltyNumber } = req.body
+
+    const existingRows = await db
+      .select()
+      .from(customerTable)
+      .where(eq(customerTable.id, id))
+      .limit(1)
+
+    if (!existingRows[0]) {
+      return res.status(404).json({ message: 'Customer not found' })
+    }
+
+    await db
+      .update(customerTable)
+      .set({ firstName, lastName, email, phone, loyaltyNumber })
+      .where(eq(customerTable.id, id))
+
+    return res.status(200).json({ message: 'Customer updated successfully' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.deleteCustomer = async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    const existingRows = await db
+      .select()
+      .from(customerTable)
+      .where(eq(customerTable.id, id))
+      .limit(1)
+
+    if (!existingRows[0]) {
+      return res.status(404).json({ message: 'Customer not found' })
+    }
+
+    await db
+      .update(bookingTable)
+      .set({ createdByCustomerId: null })
+      .where(eq(bookingTable.createdByCustomerId, id))
+
+    await db
+      .delete(bookingPassengerTable)
+      .where(eq(bookingPassengerTable.customerId, id))
+
+    await db
+      .delete(customerTable)
+      .where(eq(customerTable.id, id))
+
+    return res.status(200).json({ message: 'Customer deleted successfully' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.getBookings = async (req, res, next) => {
+  try {
+    const bookings = await db.select().from(bookingTable)
+
+    if (!bookings || bookings.length === 0) {
+      return res.status(404).json({ message: 'No bookings found' })
+    }
+
+    const bookingDetails = []
+
+    for (const booking of bookings) {
+      bookingDetails.push(await getBookingDetails(booking))
+    }
+
+    return res.status(200).json(bookingDetails)
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.getBookingById = async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    const rows = await db
+      .select()
+      .from(bookingTable)
+      .where(eq(bookingTable.id, id))
+      .limit(1)
+
+    if (!rows[0]) {
+      return res.status(404).json({ message: 'Booking not found' })
+    }
+
+    return res.status(200).json(await getBookingDetails(rows[0]))
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.getBookingsByCustomer = async (req, res, next) => {
+  try {
+    const { customerId } = req.params
+
+    const customerRows = await db
+      .select()
+      .from(customerTable)
+      .where(eq(customerTable.id, customerId))
+      .limit(1)
+
+    if (!customerRows[0]) {
+      return res.status(404).json({ message: 'Customer not found' })
+    }
+
+    const passengerRows = await db
+      .select()
+      .from(bookingPassengerTable)
+      .where(eq(bookingPassengerTable.customerId, customerId))
+
+    if (!passengerRows || passengerRows.length === 0) {
+      return res.status(404).json({ message: 'No bookings found for the specified customer' })
+    }
+
+    const bookings = []
+
+    for (const passengerRow of passengerRows) {
+      const bookingRows = await db
+        .select()
+        .from(bookingTable)
+        .where(eq(bookingTable.id, passengerRow.bookingId))
+        .limit(1)
+
+      if (bookingRows[0]) {
+        bookings.push(await getBookingDetails(bookingRows[0]))
+      }
+    }
+
+    return res.status(200).json(bookings)
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.insertBooking = async (req, res, next) => {
+  try {
+    const {
+      id,
+      sailingId,
+      bookingStatus,
+      cabinNumber,
+      fareCode,
+      embarkationPort,
+      debarkationPort,
+      createdByCustomerId,
+      passengers
+    } = req.body
+
+    const duplicateRows = await db
+      .select()
+      .from(bookingTable)
+      .where(eq(bookingTable.id, id))
+      .limit(1)
+
+    if (duplicateRows[0]) {
+      return res.status(400).json({ message: 'Booking with the same ID already exists' })
+    }
+
+    const sailingRows = await db
+      .select()
+      .from(sailingTable)
+      .where(eq(sailingTable.id, sailingId))
+      .limit(1)
+
+    if (!sailingRows[0]) {
+      return res.status(400).json({ message: 'Invalid sailing ID' })
+    }
+
+    for (const passenger of passengers) {
+      const customerRows = await db
+        .select()
+        .from(customerTable)
+        .where(eq(customerTable.id, passenger.customerId))
+        .limit(1)
+
+      if (!customerRows[0]) {
+        return res.status(400).json({ message: `Invalid customer ID ${passenger.customerId}` })
+      }
+    }
+
+    const uniquePassengerIds = new Set(passengers.map(passenger => passenger.customerId))
+
+    if (uniquePassengerIds.size !== passengers.length) {
+      return res.status(400).json({ message: 'Booking cannot include duplicate customers' })
+    }
+
+
+    const primaryGuestCount = passengers.filter(passenger => passenger.isPrimaryGuest).length
+
+    if (primaryGuestCount !== 1) {
+      return res.status(400).json({ message: 'Booking must include exactly one primary guest' })
+    }
+
+    await db.transaction(async tx => {
+      await tx.insert(bookingTable).values({
+        id,
+        sailingId,
+        bookingStatus,
+        cabinNumber,
+        fareCode,
+        embarkationPort,
+        debarkationPort,
+        createdByCustomerId
+      })
+
+      for (const passenger of passengers) {
+        await tx.insert(bookingPassengerTable).values({
+          id: `${id}-${passenger.customerId}`,
+          bookingId: id,
+          customerId: passenger.customerId,
+          passengerRole: passenger.passengerRole,
+          isPrimaryGuest: Boolean(passenger.isPrimaryGuest),
+          diningPreference: passenger.diningPreference,
+          accessibilityNotes: passenger.accessibilityNotes,
+          boardingGroup: passenger.boardingGroup
+        })
+      }
+    })
+
+    return res.status(201).json({
+      message: 'Booking created successfully',
+      id
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.updateBooking = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const {
+      sailingId,
+      bookingStatus,
+      cabinNumber,
+      fareCode,
+      embarkationPort,
+      debarkationPort,
+      createdByCustomerId,
+      passengers
+    } = req.body
+
+    const existingRows = await db
+      .select()
+      .from(bookingTable)
+      .where(eq(bookingTable.id, id))
+      .limit(1)
+
+    if (!existingRows[0]) {
+      return res.status(404).json({ message: 'Booking not found' })
+    }
+
+    const sailingRows = await db
+      .select()
+      .from(sailingTable)
+      .where(eq(sailingTable.id, sailingId))
+      .limit(1)
+
+    if (!sailingRows[0]) {
+      return res.status(400).json({ message: 'Invalid sailing ID' })
+    }
+
+    const uniquePassengerIds = new Set(passengers.map(passenger => passenger.customerId))
+
+    if (uniquePassengerIds.size !== passengers.length) {
+      return res.status(400).json({ message: 'Booking cannot include duplicate customers' })
+    }
+
+    for (const passenger of passengers) {
+      const customerRows = await db
+        .select()
+        .from(customerTable)
+        .where(eq(customerTable.id, passenger.customerId))
+        .limit(1)
+
+      if (!customerRows[0]) {
+        return res.status(400).json({ message: `Invalid customer ID ${passenger.customerId}` })
+      }
+    }
+
+    const primaryGuestCount = passengers.filter(passenger => passenger.isPrimaryGuest).length
+
+    if (primaryGuestCount !== 1) {
+      return res.status(400).json({ message: 'Booking must include exactly one primary guest' })
+    }
+
+    await db.transaction(async tx => {
+      await tx
+        .update(bookingTable)
+        .set({
+          sailingId,
+          bookingStatus,
+          cabinNumber,
+          fareCode,
+          embarkationPort,
+          debarkationPort,
+          createdByCustomerId
+        })
+        .where(eq(bookingTable.id, id))
+
+      await tx
+        .delete(bookingPassengerTable)
+        .where(eq(bookingPassengerTable.bookingId, id))
+
+      for (const passenger of passengers) {
+        await tx.insert(bookingPassengerTable).values({
+          id: `${id}-${passenger.customerId}`,
+          bookingId: id,
+          customerId: passenger.customerId,
+          passengerRole: passenger.passengerRole,
+          isPrimaryGuest: Boolean(passenger.isPrimaryGuest),
+          diningPreference: passenger.diningPreference,
+          accessibilityNotes: passenger.accessibilityNotes,
+          boardingGroup: passenger.boardingGroup
+        })
+      }
+    })
+
+    return res.status(200).json({ message: 'Booking updated successfully' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.deleteBooking = async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    const existingRows = await db
+      .select()
+      .from(bookingTable)
+      .where(eq(bookingTable.id, id))
+      .limit(1)
+
+    if (!existingRows[0]) {
+      return res.status(404).json({ message: 'Booking not found' })
+    }
+
+    await db
+      .delete(bookingPassengerTable)
+      .where(eq(bookingPassengerTable.bookingId, id))
+
+    await db
+      .delete(bookingTable)
+      .where(eq(bookingTable.id, id))
+
+    return res.status(200).json({ message: 'Booking deleted successfully' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.addBookingPassenger = async (req, res, next) => {
+  try {
+    const { bookingId } = req.params
+    const {
+      customerId,
+      passengerRole,
+      isPrimaryGuest,
+      diningPreference,
+      accessibilityNotes,
+      boardingGroup
+    } = req.body
+
+    const bookingRows = await db
+      .select()
+      .from(bookingTable)
+      .where(eq(bookingTable.id, bookingId))
+      .limit(1)
+
+    if (!bookingRows[0]) {
+      return res.status(404).json({ message: 'Booking not found' })
+    }
+
+    const customerRows = await db
+      .select()
+      .from(customerTable)
+      .where(eq(customerTable.id, customerId))
+      .limit(1)
+
+    if (!customerRows[0]) {
+      return res.status(400).json({ message: 'Invalid customer ID' })
+    }
+
+    const existingPassengerRows = await db
+      .select()
+      .from(bookingPassengerTable)
+      .where(eq(bookingPassengerTable.id, `${bookingId}-${customerId}`))
+      .limit(1)
+
+    if (existingPassengerRows[0]) {
+      return res.status(400).json({ message: 'Customer is already on this booking' })
+    }
+
+    await db.insert(bookingPassengerTable).values({
+      id: `${bookingId}-${customerId}`,
+      bookingId,
+      customerId,
+      passengerRole,
+      isPrimaryGuest: Boolean(isPrimaryGuest),
+      diningPreference,
+      accessibilityNotes,
+      boardingGroup
+    })
+
+    return res.status(201).json({ message: 'Booking passenger added successfully' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.deleteBookingPassenger = async (req, res, next) => {
+  try {
+    const { bookingId, customerId } = req.params
+
+    const passengerRows = await db
+      .select()
+      .from(bookingPassengerTable)
+      .where(eq(bookingPassengerTable.id, `${bookingId}-${customerId}`))
+      .limit(1)
+
+    if (!passengerRows[0]) {
+      return res.status(404).json({ message: 'Booking passenger not found' })
+    }
+
+    await db
+      .delete(bookingPassengerTable)
+      .where(eq(bookingPassengerTable.id, `${bookingId}-${customerId}`))
+
+    return res.status(200).json({ message: 'Booking passenger deleted successfully' })
   } catch (err) {
     next(err)
   }

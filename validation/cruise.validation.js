@@ -4,6 +4,16 @@ const uuidSchema = z
   .string()
   .uuid('Invalid UUID format')
 
+const customerIdSchema = z
+  .string()
+  .trim()
+  .regex(/^C[A-Z0-9]{9}$/, 'Customer ID must be 10 characters and start with C')
+
+const bookingIdSchema = z
+  .string()
+  .trim()
+  .regex(/^B[A-Z0-9]{9}$/, 'Booking ID must be 10 characters and start with B')
+
 const cruiseLineSchema = z.object({
   name: z
     .string()
@@ -116,10 +126,126 @@ const itineraryDaySchema = z.object({
     .default([])
 }).strict()
 
+const customerSchema = z.object({
+  id: customerIdSchema,
+
+  firstName: z
+    .string()
+    .trim()
+    .min(1, 'First name is required')
+    .max(100, 'First name is too long'),
+
+  lastName: z
+    .string()
+    .trim()
+    .min(1, 'Last name is required')
+    .max(100, 'Last name is too long'),
+
+  email: z
+    .string()
+    .trim()
+    .email('Email must be a valid email address')
+    .max(255, 'Email is too long'),
+
+  phone: z
+    .string()
+    .trim()
+    .max(50, 'Phone is too long')
+    .optional(),
+
+  loyaltyNumber: z
+    .string()
+    .trim()
+    .max(100, 'Loyalty number is too long')
+    .optional()
+}).strict()
+
+const bookingPassengerSchema = z.object({
+  customerId: customerIdSchema,
+
+  passengerRole: z
+    .string()
+    .trim()
+    .min(1, 'Passenger role is required')
+    .max(50, 'Passenger role is too long'),
+
+  isPrimaryGuest: z
+    .boolean()
+    .optional()
+    .default(false),
+
+  diningPreference: z
+    .string()
+    .trim()
+    .max(100, 'Dining preference is too long')
+    .optional(),
+
+  accessibilityNotes: z
+    .string()
+    .trim()
+    .max(255, 'Accessibility notes are too long')
+    .optional(),
+
+  boardingGroup: z
+    .string()
+    .trim()
+    .max(50, 'Boarding group is too long')
+    .optional()
+}).strict()
+
+const bookingSchema = z.object({
+  id: bookingIdSchema,
+
+  sailingId: uuidSchema,
+
+  bookingStatus: z
+    .string()
+    .trim()
+    .min(1, 'Booking status is required')
+    .max(50, 'Booking status is too long'),
+
+  cabinNumber: z
+    .string()
+    .trim()
+    .max(20, 'Cabin number is too long')
+    .optional(),
+
+  fareCode: z
+    .string()
+    .trim()
+    .max(50, 'Fare code is too long')
+    .optional(),
+
+  embarkationPort: z
+    .string()
+    .trim()
+    .max(255, 'Embarkation port is too long')
+    .optional(),
+
+  debarkationPort: z
+    .string()
+    .trim()
+    .max(255, 'Debarkation port is too long')
+    .optional(),
+
+  createdByCustomerId: customerIdSchema.optional(),
+
+  passengers: z
+    .array(bookingPassengerSchema)
+    .min(1, 'Booking must include at least one passenger')
+}).strict()
+
+const bookingPassengerCreateSchema = bookingPassengerSchema.strict()
+
 module.exports = {
   cruiseLineSchema,
   shipSchema,
   sailingSchema,
   itineraryDaySchema,
-  activityScheduleSchema
+  activityScheduleSchema,
+  customerSchema,
+  bookingSchema,
+  bookingPassengerCreateSchema,
+  customerIdSchema,
+  bookingIdSchema
 }

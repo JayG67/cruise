@@ -8,7 +8,10 @@ const {
   shipSchema,
   sailingSchema,
   itineraryDaySchema,
-  activityScheduleSchema
+  activityScheduleSchema,
+  customerSchema,
+  bookingSchema,
+  bookingPassengerCreateSchema
 } = require('../validation/cruise.validation')
 
 const router = express.Router()
@@ -23,6 +26,77 @@ router.get(
 router.get(
   '/ships/:cruiseLineId',
   cruiseController.getShipsByCruiseLine
+)
+
+
+router.get(
+  '/customers',
+  cruiseController.getCustomers
+)
+
+router.get(
+  '/customers/:id',
+  cruiseController.getCustomerById
+)
+
+router.get(
+  '/customers/:customerId/bookings',
+  cruiseController.getBookingsByCustomer
+)
+
+router.get(
+  '/bookings',
+  cruiseController.getBookings
+)
+
+router.get(
+  '/bookings/:id',
+  cruiseController.getBookingById
+)
+
+router.post(
+  '/customers',
+  validate(customerSchema),
+  cruiseController.insertCustomer
+)
+
+router.patch(
+  '/customers/:id',
+  validate(customerSchema.omit({ id: true })),
+  cruiseController.updateCustomer
+)
+
+router.delete(
+  '/customers/:id',
+  cruiseController.deleteCustomer
+)
+
+router.post(
+  '/bookings',
+  validate(bookingSchema),
+  cruiseController.insertBooking
+)
+
+router.patch(
+  '/bookings/:id',
+  validate(bookingSchema.omit({ id: true })),
+  cruiseController.updateBooking
+)
+
+router.delete(
+  '/bookings/:id',
+  cruiseController.deleteBooking
+)
+
+router.post(
+  '/bookings/:bookingId/passengers',
+  validate(bookingPassengerCreateSchema),
+  cruiseController.addBookingPassenger
+)
+
+router.delete(
+  '/bookings/:bookingId/passengers/:customerId',
+  cruiseController.deleteBookingPassenger
 )
 
 router.get(
