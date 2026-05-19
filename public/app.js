@@ -18,6 +18,26 @@ let selectedCruiseLineNameForShips = ''
 let selectedShipForSailings = null
 let selectedShipNameForSailings = ''
 let selectedSailingForItinerary = null
+let demoUsers = []
+let activeDemoUser = null
+let activeDemoContext = null
+let pendingFocusTarget = null
+
+function focusSection(sectionId) {
+  const section = document.getElementById(sectionId)
+
+  if (!section) return
+
+  pendingFocusTarget = sectionId
+  section.setAttribute('tabindex', '-1')
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  section.focus({ preventScroll: true })
+}
+
+function getPendingFocusTarget() {
+  return pendingFocusTarget
+}
+
 
 document.addEventListener('DOMContentLoaded', () => {
   const reloadButton = document.getElementById('reload-button')
@@ -28,8 +48,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const updateCruiseLineForm = document.getElementById('update-cruise-line-form')
   const addUpdateShipInputBtn = document.getElementById('add-update-ship-input-btn')
   const cancelUpdateCruiseLineBtn = document.getElementById('cancel-update-cruise-line-btn')
+  const demoUserSelector = document.getElementById('demo-user-selector')
 
   if (document.getElementById('cruise-grid')) {
+    loadDemoUsers()
     loadCruiseLines()
   }
 
@@ -71,7 +93,218 @@ document.addEventListener('DOMContentLoaded', () => {
   if (cancelUpdateCruiseLineBtn) {
     cancelUpdateCruiseLineBtn.addEventListener('click', hideUpdateCruiseLinePanel)
   }
+
+  if (demoUserSelector) {
+    demoUserSelector.addEventListener('change', () => loadDemoUserContext(demoUserSelector.value))
+  }
 })
+
+
+async function loadDemoUsers() {
+  const selector = document.getElementById('demo-user-selector')
+  const summary = document.getElementById('demo-role-summary')
+
+  if (!selector) return
+
+  try {
+    const response = await fetch(`${API_BASE}/demo-users`)
+
+    if (!response.ok) {
+      throw new Error(`Demo users request failed with status ${response.status}`)
+    }
+
+    demoUsers = await response.json()
+    selector.innerHTML = ''
+
+    demoUsers.forEach(user => {
+      const option = document.createElement('option')
+      option.value = user.id
+      option.textContent = `${user.displayName} (${formatDemoRole(user.role)})`
+      selector.appendChild(option)
+    })
+
+    const adminUser = demoUsers.find(user => user.role === 'ADMIN') || demoUsers[0]
+
+    if (adminUser) {
+      selector.value = adminUser.id
+      await loadDemoUserContext(adminUser.id)
+    }
+  } catch (err) {
+    console.error(err)
+    if (summary) summary.textContent = 'Could not load demo roles.'
+  }
+}
+
+async function loadDemoUserContext(userId) {
+  const summary = document.getElementById('demo-role-summary')
+
+  if (!userId) return
+
+  try {
+    if (summary) summary.textContent = 'Loading selected role context...'
+
+    const response = await fetch(`${API_BASE}/demo-users/${encodeURIComponent(userId)}/context`)
+    const context = await parseJsonResponse(response)
+
+    if (!response.ok) {
+      throw new Error(context.message || `Demo user context failed with status ${response.status}`)
+    }
+
+    activeDemoUser = context.user
+    activeDemoContext = context
+    applyDemoRoleVisibility(context)
+    renderDemoRoleSummary(context)
+    renderRoleBookingDashboard(context)
+  } catch (err) {
+    console.error(err)
+    if (summary) summary.textContent = err.message || 'Could not load demo role context.'
+    renderRoleBookingDashboard(null, err.message || 'Could not load demo role context.')
+  }
+}
+
+function applyDemoRoleVisibility(context) {
+  const body = document.body
+  const canManage = Boolean(context?.visibility?.canManageCruiseData)
+
+  body.classList.toggle('demo-admin-mode', canManage)
+  body.classList.toggle('demo-passenger-mode', !canManage)
+
+  document.querySelectorAll('[data-admin-only="true"]').forEach(element => {
+    element.hidden = !canManage
+  })
+}
+
+function renderDemoRoleSummary(context) {
+  const summary = document.getElementById('demo-role-summary')
+
+  if (!summary || !context) return
+
+  const user = context.user
+  const customer = context.customer
+  const bookingCount = context.visibility?.accessibleBookingCount || 0
+  const customerCount = context.visibility?.accessibleCustomerCount || 0
+
+  if (user.role === 'ADMIN') {
+    summary.innerHTML = `
+      <strong>${escapeHtml(user.displayName)}</strong>
+      <span>Admin mode — full cruise data management enabled.</span>
+      <span>${escapeHtml(String(context.visibility.accessibleCustomerCount))} customers and ${escapeHtml(String(context.visibility.accessibleBookingCount))} bookings available.</span>
+    `
+    return
+  }
+
+  summary.innerHTML = `
+    <strong>${escapeHtml(user.displayName)}</strong>
+    <span>${escapeHtml(formatDemoRole(user.role))}${customer ? ` for ${escapeHtml(customer.firstName)} ${escapeHtml(customer.lastName)}` : ''}</span>
+    <span>${escapeHtml(String(bookingCount))} booking${bookingCount === 1 ? '' : 's'} and ${escapeHtml(String(customerCount))} visible customer profile${customerCount === 1 ? '' : 's'}.</span>
+  `
+}
+
+function renderRoleBookingDashboard(context, errorMessage = '') {
+  const dashboard = document.getElementById('role-booking-dashboard')
+  const title = document.getElementById('role-booking-dashboard-heading')
+  const description = document.querySelector('[data-cy="role-booking-dashboard-description"]')
+  const grid = document.getElementById('role-booking-dashboard-grid')
+
+  if (!dashboard || !grid) return
+
+  if (!context) {
+    if (title) title.textContent = 'Booking visibility unavailable'
+    if (description) description.textContent = errorMessage || 'Role context could not be loaded.'
+    grid.innerHTML = '<p class="empty-message" data-cy="role-booking-dashboard-empty" data-testid="role-booking-dashboard-empty">No role-specific booking information is currently available.</p>'
+    return
+  }
+
+  const user = context.user || {}
+  const bookings = Array.isArray(context.bookings) ? context.bookings : []
+  const visibility = context.visibility || {}
+
+  dashboard.hidden = false
+  grid.innerHTML = ''
+
+  if (user.role === 'ADMIN') {
+    if (title) title.textContent = 'Admin operations visibility'
+    if (description) {
+      description.textContent = `Admin can manage cruise data and view ${visibility.accessibleCustomerCount || 0} customers across ${visibility.accessibleBookingCount || 0} bookings.`
+    }
+
+    const card = document.createElement('article')
+    card.className = 'role-booking-card role-admin-card'
+    card.setAttribute('data-cy', 'role-admin-visibility-card')
+    card.setAttribute('data-testid', 'role-admin-visibility-card')
+    card.innerHTML = `
+      <h4>Administrative access</h4>
+      <p><strong>Mode:</strong> Full cruise operations management</p>
+      <p><strong>Customers visible:</strong> ${escapeHtml(String(visibility.accessibleCustomerCount || 0))}</p>
+      <p><strong>Bookings visible:</strong> ${escapeHtml(String(visibility.accessibleBookingCount || 0))}</p>
+      <p class="role-dashboard-note">Customer-facing booking cards are shown when a passenger or group leader role is selected.</p>
+    `
+    grid.appendChild(card)
+    return
+  }
+
+  if (title) title.textContent = `${formatDemoRole(user.role)} booking dashboard`
+  if (description) {
+    description.textContent = `Showing ${bookings.length} booking${bookings.length === 1 ? '' : 's'} visible to ${user.displayName || 'this role'}.`
+  }
+
+  if (!bookings.length) {
+    grid.innerHTML = '<p class="empty-message" data-cy="role-booking-dashboard-empty" data-testid="role-booking-dashboard-empty">No bookings are visible for this selected role.</p>'
+    return
+  }
+
+  bookings.forEach(booking => {
+    const card = document.createElement('article')
+    card.className = 'role-booking-card'
+    card.setAttribute('data-cy', 'role-booking-card')
+    card.setAttribute('data-testid', 'role-booking-card')
+
+    const passengers = Array.isArray(booking.passengers) ? booking.passengers : []
+    const passengerItems = passengers.map(passenger => {
+      const customer = passenger.customer || {}
+      const name = [customer.firstName, customer.lastName].filter(Boolean).join(' ') || passenger.customerId
+
+      return `
+        <li data-cy="role-booking-passenger" data-testid="role-booking-passenger">
+          <span>${escapeHtml(name)}</span>
+          <span>${escapeHtml(passenger.isPrimaryGuest ? 'Primary Guest' : formatDemoRole(passenger.passengerRole || 'Guest'))}</span>
+        </li>
+      `
+    }).join('')
+
+    card.innerHTML = `
+      <div class="role-booking-card-header">
+        <h4>Booking ${escapeHtml(booking.id)}</h4>
+        <span class="status-pill">${escapeHtml(booking.bookingStatus || 'Status unavailable')}</span>
+      </div>
+      <dl class="role-booking-details">
+        <div><dt>Cruise line</dt><dd>${escapeHtml(booking.cruiseLine?.name || 'Cruise line unavailable')}</dd></div>
+        <div><dt>Ship</dt><dd>${escapeHtml(booking.ship?.name || 'Ship unavailable')}</dd></div>
+        <div><dt>Sailing date</dt><dd>${escapeHtml(booking.sailing?.departureDate || 'Date unavailable')}</dd></div>
+        <div><dt>Cabin</dt><dd>${escapeHtml(booking.cabinNumber || 'Not assigned')}</dd></div>
+        <div><dt>Route</dt><dd>${escapeHtml(booking.embarkationPort || booking.sailing?.departurePort || 'Departure unavailable')} → ${escapeHtml(booking.debarkationPort || booking.sailing?.arrivalPort || 'Arrival unavailable')}</dd></div>
+      </dl>
+      <div class="role-passenger-list">
+        <h5>Visible passengers</h5>
+        <ul>${passengerItems}</ul>
+      </div>
+    `
+
+    grid.appendChild(card)
+  })
+}
+
+function formatDemoRole(role) {
+  return String(role || '')
+    .toLowerCase()
+    .split('_')
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+function isDemoAdminMode() {
+  return !activeDemoContext || Boolean(activeDemoContext?.visibility?.canManageCruiseData)
+}
 
 function writeTestOutput(title, data) {
   if (!testOutput) return
@@ -1113,9 +1346,9 @@ function renderCruiseLines(lines) {
       <div class="card-actions">
         <div class="card-primary-actions">
           <button data-cy="view-ships-button" data-testid="view-ships-button" type="button">View Ships</button>
-          <button data-cy="update-cruise-line-button" data-testid="update-cruise-line-button" type="button">Update</button>
+          <button data-admin-only="true" data-cy="update-cruise-line-button" data-testid="update-cruise-line-button" type="button">Update</button>
         </div>
-        <button class="danger subtle-danger" data-cy="delete-cruise-line-button" data-testid="delete-cruise-line-button" type="button">Delete</button>
+        <button data-admin-only="true" class="danger subtle-danger" data-cy="delete-cruise-line-button" data-testid="delete-cruise-line-button" type="button">Delete</button>
       </div>
     `
 
@@ -1136,7 +1369,10 @@ async function loadShips(cruiseLineId, cruiseLineName) {
     selectedCruiseLineForShips = cruiseLineId
     selectedCruiseLineNameForShips = cruiseLineName
 
-    if (panel) panel.hidden = false
+    if (panel) {
+      panel.hidden = false
+      focusSection('ships-panel')
+    }
     if (title) title.textContent = `${cruiseLineName} Ships`
     if (grid) grid.innerHTML = '<p data-cy="ships-loading-message" data-testid="ships-loading-message">Loading ships...</p>'
 
@@ -1200,8 +1436,8 @@ function renderShips(ships) {
       </div>
       <div class="card-actions stacked-card-actions">
         <button data-cy="view-sailings-button" data-testid="view-sailings-button" type="button">View Sailings</button>
-        <button class="secondary" data-cy="update-ship-button" data-testid="update-ship-button" type="button">Update Ship</button>
-        <button class="danger subtle-danger" data-cy="delete-ship-button" data-testid="delete-ship-button" type="button">Delete Ship</button>
+        <button class="secondary" data-admin-only="true" data-cy="update-ship-button" data-testid="update-ship-button" type="button">Update Ship</button>
+        <button class="danger subtle-danger" data-admin-only="true" data-cy="delete-ship-button" data-testid="delete-ship-button" type="button">Delete Ship</button>
       </div>
     `
     card.querySelector('[data-cy="view-sailings-button"]').addEventListener('click', () => loadSailings(ship.id, ship.name))
@@ -1216,6 +1452,7 @@ function renderShipCreateForm(grid) {
   form.className = 'inline-admin-form'
   form.setAttribute('data-cy', 'create-ship-form')
   form.setAttribute('data-testid', 'create-ship-form')
+  form.setAttribute('data-admin-only', 'true')
   form.innerHTML = `
     <h3>Add Ship</h3>
     <div class="inline-admin-grid">
@@ -1363,7 +1600,10 @@ async function loadSailings(shipId, shipName) {
     selectedShipNameForSailings = shipName
     selectedSailingForItinerary = null
 
-    if (panel) panel.hidden = false
+    if (panel) {
+      panel.hidden = false
+      focusSection('sailings-panel')
+    }
     if (itineraryPanel) itineraryPanel.hidden = true
     if (title) title.textContent = `${shipName} Sailings`
     if (grid) grid.innerHTML = '<p data-cy="sailings-loading-message" data-testid="sailings-loading-message">Loading sailings...</p>'
@@ -1406,8 +1646,8 @@ function renderSailings(sailings) {
       </div>
       <div class="card-actions stacked-card-actions">
         <button data-cy="view-itinerary-button" data-testid="view-itinerary-button" type="button">View Itinerary</button>
-        <button class="secondary" data-cy="update-sailing-button" data-testid="update-sailing-button" type="button">Update Sailing</button>
-        <button class="danger subtle-danger" data-cy="delete-sailing-button" data-testid="delete-sailing-button" type="button">Delete Sailing</button>
+        <button class="secondary" data-admin-only="true" data-cy="update-sailing-button" data-testid="update-sailing-button" type="button">Update Sailing</button>
+        <button class="danger subtle-danger" data-admin-only="true" data-cy="delete-sailing-button" data-testid="delete-sailing-button" type="button">Delete Sailing</button>
       </div>
     `
 
@@ -1423,6 +1663,7 @@ function renderSailingCreateForm(grid) {
   form.className = 'inline-admin-form'
   form.setAttribute('data-cy', 'create-sailing-form')
   form.setAttribute('data-testid', 'create-sailing-form')
+  form.setAttribute('data-admin-only', 'true')
   form.innerHTML = `
     <h3>Add Sailing</h3>
     <div class="inline-admin-grid">
@@ -1525,7 +1766,10 @@ async function loadItinerary(sailingId, sailing) {
 
   try {
     selectedSailingForItinerary = sailing
-    if (panel) panel.hidden = false
+    if (panel) {
+      panel.hidden = false
+      focusSection('itinerary-panel')
+    }
     if (title) title.textContent = `${selectedShipNameForSailings || 'Ship'} Itinerary - ${formatSailingDate(sailing.departureDate)}`
     if (grid) grid.innerHTML = '<p data-cy="itinerary-loading-message" data-testid="itinerary-loading-message">Loading itinerary...</p>'
 
@@ -1556,8 +1800,8 @@ function renderItinerary(itinerary) {
         <span class="activity-time">${escapeHtml(activity.time)}</span>
         <span>${escapeHtml(activity.activity)}</span>
         <span class="activity-actions">
-          <button class="secondary" data-cy="update-activity-button" data-testid="update-activity-button" data-activity-id="${escapeHtml(activity.id)}" data-activity-time="${escapeHtml(activity.time)}" data-activity-text="${escapeHtml(activity.activity)}" type="button">Update</button>
-          <button class="danger subtle-danger" data-cy="delete-activity-button" data-testid="delete-activity-button" data-activity-id="${escapeHtml(activity.id)}" type="button">Delete</button>
+          <button class="secondary" data-admin-only="true" data-cy="update-activity-button" data-testid="update-activity-button" data-activity-id="${escapeHtml(activity.id)}" data-activity-time="${escapeHtml(activity.time)}" data-activity-text="${escapeHtml(activity.activity)}" type="button">Update</button>
+          <button class="danger subtle-danger" data-admin-only="true" data-cy="delete-activity-button" data-testid="delete-activity-button" data-activity-id="${escapeHtml(activity.id)}" type="button">Delete</button>
         </span>
       </li>
     `).join('')
@@ -1566,11 +1810,11 @@ function renderItinerary(itinerary) {
       <summary data-cy="itinerary-day-summary" data-testid="itinerary-day-summary">Day ${escapeHtml(String(day.day))} — ${escapeHtml(day.title)}</summary>
       <p class="itinerary-port" data-cy="itinerary-port" data-testid="itinerary-port"><strong>Port:</strong> ${escapeHtml(day.port || 'At Sea')}</p>
       <div class="itinerary-admin-actions">
-        <button class="secondary" data-cy="update-itinerary-day-button" data-testid="update-itinerary-day-button" type="button">Update Day</button>
-        <button class="danger subtle-danger" data-cy="delete-itinerary-day-button" data-testid="delete-itinerary-day-button" type="button">Delete Day</button>
+        <button class="secondary" data-admin-only="true" data-cy="update-itinerary-day-button" data-testid="update-itinerary-day-button" type="button">Update Day</button>
+        <button class="danger subtle-danger" data-admin-only="true" data-cy="delete-itinerary-day-button" data-testid="delete-itinerary-day-button" type="button">Delete Day</button>
       </div>
       <ul class="activity-schedule" data-cy="activity-schedule" data-testid="activity-schedule">${activityItems}</ul>
-      <form class="inline-admin-form activity-admin-form" data-cy="create-activity-form" data-testid="create-activity-form">
+      <form class="inline-admin-form activity-admin-form" data-admin-only="true" data-cy="create-activity-form" data-testid="create-activity-form">
         <h4>Add Activity</h4>
         <div class="inline-admin-grid">
           <label><span>Time</span><input name="time" type="text" placeholder="2:00 PM" data-cy="create-activity-time-input" data-testid="create-activity-time-input" required /></label>
@@ -1599,6 +1843,7 @@ function renderItineraryCreateForm(grid) {
   form.className = 'inline-admin-form'
   form.setAttribute('data-cy', 'create-itinerary-day-form')
   form.setAttribute('data-testid', 'create-itinerary-day-form')
+  form.setAttribute('data-admin-only', 'true')
   form.innerHTML = `
     <h3>Add Itinerary Day</h3>
     <div class="inline-admin-grid">
@@ -1985,4 +2230,11 @@ if (clearTestOutputBtn) {
     const lastRunLabel = document.querySelector('[data-cy="sqa-last-run-label"]')
     if (lastRunLabel) lastRunLabel.textContent = 'No manual run yet'
   })
+}
+
+
+if (typeof window !== 'undefined') {
+  window.__cruiseExplorer = {
+    getPendingFocusTarget
+  }
 }

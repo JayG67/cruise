@@ -80,6 +80,16 @@ async function initializeDatabase() {
     );
   `)
 
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS demo_users (
+      id varchar(20) PRIMARY KEY,
+      "displayName" varchar(255) NOT NULL,
+      role varchar(50) NOT NULL,
+      "customerId" varchar(10) REFERENCES customers(id) ON DELETE SET NULL
+    );
+  `)
+
   await db.execute(sql`
     CREATE TABLE IF NOT EXISTS booking_passengers (
       id varchar(30) PRIMARY KEY,
@@ -115,7 +125,9 @@ async function initializeDatabase() {
     ALTER TABLE itinerary_days ADD COLUMN IF NOT EXISTS port varchar(255);
   `)
 
-  console.log('Database tables verified')
+  if (process.env.NODE_ENV !== 'test' && process.env.SUPPRESS_DB_LOGS !== 'true') {
+    console.log('Database tables verified')
+  }
 }
 
 module.exports = initializeDatabase

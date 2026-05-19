@@ -203,6 +203,20 @@ describe('Sailings and itinerary UI', () => {
     mockItineraryForSailing(repositioningSailingId, repositioningItinerary)
   })
 
+  it('moves focus to the sailings panel after a ship card requests sailings', () => {
+    openShipSailings()
+
+    cy.window().its('__cruiseExplorer').invoke('getPendingFocusTarget').should('eq', 'sailings-panel')
+    cy.get(selectors.sailings.panel).should('be.visible')
+  })
+
+  it('moves focus to the itinerary panel after a sailing card requests itinerary details', () => {
+    openRoundTripItinerary()
+
+    cy.window().its('__cruiseExplorer').invoke('getPendingFocusTarget').should('eq', 'itinerary-panel')
+    cy.get(selectors.itinerary.panel).should('be.visible')
+  })
+
   it('loads sailings for a selected ship and renders itinerary details', () => {
     openRoundTripItinerary()
 
@@ -478,7 +492,7 @@ describe('Sailings and itinerary UI', () => {
     openRoundTripItinerary()
 
     cy.get(selectors.itinerary.createDayForm).should('be.visible')
-    cy.get(selectors.itinerary.createDayNumberInput).clear().type('4')
+    cy.get(selectors.itinerary.createDayNumberInput).should('be.visible').type('{selectall}4', { force: true })
     cy.get(selectors.itinerary.createDayTitleInput).type('Port Day — Nassau, Bahamas')
     cy.get(selectors.itinerary.createDayPortInput).type('Nassau, Bahamas')
     cy.get(selectors.itinerary.createDayActivityTimeInput).type('9:00 AM')

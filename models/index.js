@@ -6,6 +6,7 @@ const activityScheduleTable = require('./activitySchedule.model')
 const customerTable = require('./customer.model')
 const bookingTable = require('./booking.model')
 const bookingPassengerTable = require('./bookingPassenger.model')
+const demoUserTable = require('./demoUser.model')
 
 module.exports = {
   cruiseLineTable,
@@ -15,5 +16,6 @@ module.exports = {
   activityScheduleTable,
   customerTable,
   bookingTable,
-  bookingPassengerTable
+  bookingPassengerTable,
+  demoUserTable
 }

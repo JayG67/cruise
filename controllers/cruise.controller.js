@@ -6,6 +6,7 @@ const activityScheduleTable = require('../models/activitySchedule.model')
 const customerTable = require('../models/customer.model')
 const bookingTable = require('../models/booking.model')
 const bookingPassengerTable = require('../models/bookingPassenger.model')
+const demoUserTable = require('../models/demoUser.model')
 const db = require('../db')
 const { eq, inArray } = require('drizzle-orm')
 
@@ -641,12 +642,154 @@ async function getBookingDetails(booking) {
     .where(eq(sailingTable.id, booking.sailingId))
     .limit(1)
 
+  const sailing = sailingRows[0] || null
+  let ship = null
+  let cruiseLine = null
+
+  if (sailing?.shipId) {
+    const shipRows = await db
+      .select()
+      .from(shipTable)
+      .where(eq(shipTable.id, sailing.shipId))
+      .limit(1)
+
+    ship = shipRows[0] || null
+
+    if (ship?.cruiseLineId) {
+      const cruiseLineRows = await db
+        .select()
+        .from(cruiseLineTable)
+        .where(eq(cruiseLineTable.id, ship.cruiseLineId))
+        .limit(1)
+
+      cruiseLine = cruiseLineRows[0] || null
+    }
+  }
+
   const passengers = await getBookingPassengers(booking.id)
 
   return {
     ...booking,
-    sailing: sailingRows[0] || null,
+    sailing,
+    ship,
+    cruiseLine,
     passengers
+  }
+}
+
+
+exports.getDemoUsers = async (req, res, next) => {
+  try {
+    const demoUsers = await db.select().from(demoUserTable)
+
+    if (!demoUsers || demoUsers.length === 0) {
+      return res.status(404).json({ message: 'No demo users found' })
+    }
+
+    return res.status(200).json(demoUsers)
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.getDemoUserContext = async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    const userRows = await db
+      .select()
+      .from(demoUserTable)
+      .where(eq(demoUserTable.id, id))
+      .limit(1)
+
+    const user = userRows[0]
+
+    if (!user) {
+      return res.status(404).json({ message: 'Demo user not found' })
+    }
+
+    if (user.role === 'ADMIN') {
+      const customers = await db.select().from(customerTable)
+      const bookings = await db.select().from(bookingTable)
+
+      return res.status(200).json({
+        user,
+        customer: null,
+        bookings: [],
+        visibility: {
+          canManageCruiseData: true,
+          canViewAllCustomers: true,
+          canViewAllBookings: true,
+          accessibleCustomerCount: customers.length,
+          accessibleBookingCount: bookings.length
+        }
+      })
+    }
+
+    const customerRows = await db
+      .select()
+      .from(customerTable)
+      .where(eq(customerTable.id, user.customerId))
+      .limit(1)
+
+    const customer = customerRows[0] || null
+
+    if (!customer) {
+      return res.status(200).json({
+        user,
+        customer: null,
+        bookings: [],
+        visibility: {
+          canManageCruiseData: false,
+          canViewAllCustomers: false,
+          canViewAllBookings: false,
+          accessibleCustomerCount: 0,
+          accessibleBookingCount: 0
+        }
+      })
+    }
+
+    const passengerRows = await db
+      .select()
+      .from(bookingPassengerTable)
+      .where(eq(bookingPassengerTable.customerId, customer.id))
+
+    const bookings = []
+
+    for (const passengerRow of passengerRows) {
+      const bookingRows = await db
+        .select()
+        .from(bookingTable)
+        .where(eq(bookingTable.id, passengerRow.bookingId))
+        .limit(1)
+
+      if (bookingRows[0]) {
+        bookings.push(await getBookingDetails(bookingRows[0]))
+      }
+    }
+
+    const accessibleCustomerIds = new Set([customer.id])
+
+    if (user.role === 'GROUP_LEADER') {
+      bookings.forEach(booking => {
+        booking.passengers.forEach(passenger => accessibleCustomerIds.add(passenger.customerId))
+      })
+    }
+
+    return res.status(200).json({
+      user,
+      customer,
+      bookings,
+      visibility: {
+        canManageCruiseData: false,
+        canViewAllCustomers: false,
+        canViewAllBookings: false,
+        accessibleCustomerCount: accessibleCustomerIds.size,
+        accessibleBookingCount: bookings.length
+      }
+    })
+  } catch (err) {
+    next(err)
   }
 }
 

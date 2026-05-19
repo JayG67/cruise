@@ -95267,5 +95267,36 @@
         }
       ]
     }
+  ],
+  "demoUsers": [
+    {
+      "id": "UADMIN0001",
+      "displayName": "Admin Demo User",
+      "role": "ADMIN"
+    },
+    {
+      "id": "UPASS00001",
+      "displayName": "Jay Gallagher Passenger View",
+      "role": "PASSENGER",
+      "customerId": "C000000001"
+    },
+    {
+      "id": "UPASS00002",
+      "displayName": "Grace Multi-Cruise Passenger View",
+      "role": "PASSENGER",
+      "customerId": "C000000010"
+    },
+    {
+      "id": "UGROUP0001",
+      "displayName": "Gallagher Group Leader View",
+      "role": "GROUP_LEADER",
+      "customerId": "C000000001"
+    },
+    {
+      "id": "UGROUP0002",
+      "displayName": "Family Group Leader View",
+      "role": "GROUP_LEADER",
+      "customerId": "C000000003"
+    }
   ]
 }

@@ -10,6 +10,7 @@ const activityScheduleTable = require('../models/activitySchedule.model')
 const customerTable = require('../models/customer.model')
 const bookingTable = require('../models/booking.model')
 const bookingPassengerTable = require('../models/bookingPassenger.model')
+const demoUserTable = require('../models/demoUser.model')
 
 async function loadCruiseData() {
   let cruiseLineCount = 0
@@ -20,6 +21,7 @@ async function loadCruiseData() {
   let customerCount = 0
   let bookingCount = 0
   let bookingPassengerCount = 0
+  let demoUserCount = 0
 
   const filePath = path.join(__dirname, '..', 'data', 'cruise.json')
   const fileContents = fs.readFileSync(filePath, 'utf-8')
@@ -27,6 +29,7 @@ async function loadCruiseData() {
   const sailingIdBySeedKey = new Map()
 
   await db.transaction(async tx => {
+    await tx.delete(demoUserTable)
     await tx.delete(bookingPassengerTable)
     await tx.delete(bookingTable)
     await tx.delete(customerTable)
@@ -152,9 +155,30 @@ async function loadCruiseData() {
         bookingPassengerCount += 1
       }
     }
+
+    for (const demoUser of cruiseData.demoUsers || []) {
+      await tx
+        .insert(demoUserTable)
+        .values({
+          id: demoUser.id,
+          displayName: demoUser.displayName,
+          role: demoUser.role,
+          customerId: demoUser.customerId
+        })
+        .onConflictDoUpdate({
+          target: demoUserTable.id,
+          set: {
+            displayName: demoUser.displayName,
+            role: demoUser.role,
+            customerId: demoUser.customerId
+          }
+        })
+
+      demoUserCount += 1
+    }
   })
 
-  if (process.env.NODE_ENV !== 'test') {
+  if (process.env.NODE_ENV !== 'test' && process.env.SUPPRESS_DB_LOGS !== 'true') {
     console.log('Cruise seed data reset from data/cruise.json')
   }
 
@@ -167,6 +191,7 @@ async function loadCruiseData() {
     customerCount,
     bookingCount,
     bookingPassengerCount,
+    demoUserCount,
     source: 'data/cruise.json'
   }
 }

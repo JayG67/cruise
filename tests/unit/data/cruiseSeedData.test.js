@@ -392,3 +392,43 @@ describe('customer and booking seed data role-selection readiness', () => {
     expect(passengerCounts.some(count => count >= 3)).toBe(true)
   })
 })
+
+
+describe('demo user seed data integrity', () => {
+  function getDemoUsers() {
+    return cruiseSeedData.demoUsers || []
+  }
+
+  function getCustomers() {
+    return cruiseSeedData.customers || []
+  }
+
+  it('contains demo users for admin, passenger, and group leader role previews', () => {
+    const demoUsers = getDemoUsers()
+    const roles = new Set(demoUsers.map(user => user.role))
+
+    expect(demoUsers.length).toBeGreaterThanOrEqual(3)
+    expect(roles.has('ADMIN')).toBe(true)
+    expect(roles.has('PASSENGER')).toBe(true)
+    expect(roles.has('GROUP_LEADER')).toBe(true)
+  })
+
+  it('links passenger and group leader demo users to seeded customers', () => {
+    const customerIds = new Set(getCustomers().map(customer => customer.id))
+
+    getDemoUsers()
+      .filter(user => user.role !== 'ADMIN')
+      .forEach(user => {
+        expect(user.customerId).toMatch(/^C[A-Z0-9]{9}$/)
+        expect(customerIds.has(user.customerId)).toBe(true)
+      })
+  })
+
+  it('does not store authentication secrets in demo role seed data', () => {
+    getDemoUsers().forEach(user => {
+      expect(user.password).toBeUndefined()
+      expect(user.passwordHash).toBeUndefined()
+      expect(user.token).toBeUndefined()
+    })
+  })
+})

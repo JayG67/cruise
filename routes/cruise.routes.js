@@ -29,6 +29,17 @@ router.get(
 )
 
 
+
+router.get(
+  '/demo-users',
+  cruiseController.getDemoUsers
+)
+
+router.get(
+  '/demo-users/:id/context',
+  cruiseController.getDemoUserContext
+)
+
 router.get(
   '/customers',
   cruiseController.getCustomers
