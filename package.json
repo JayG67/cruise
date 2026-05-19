@@ -30,7 +30,7 @@
     "perf:smoke:ci": "start-server-and-test start:ci http://localhost:8000 perf:smoke",
     "lighthouse:mobile": "lighthouse http://localhost:8000 --form-factor=mobile --screenEmulation.mobile=true --only-categories=performance,accessibility,best-practices,seo --chrome-flags=\"--headless\" --output html --output json --output-path ./lighthouse-report --quiet --no-enable-error-reporting",
     "lighthouse:mobile:local": "start-server-and-test start http://localhost:8000 lighthouse:mobile",
-    "lighthouse:ci": "lhci autorun",
+    "lighthouse:ci": "lhci autorun --config=.github/lighthouserc.json",
     "lighthouse:ci:local": "start-server-and-test start http://localhost:8000 lighthouse:ci",
     "lighthouse:ci:ci": "start-server-and-test start:ci http://localhost:8000 lighthouse:ci",
     "lighthouse:prepare-pages": "node scripts/prepare-lighthouse-pages.js",
@@ -49,7 +49,8 @@
     "drizzle-orm": "^0.45.2",
     "express": "^5.2.1",
     "pg": "^8.20.0",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "compression": "^1.7.5"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",

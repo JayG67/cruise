@@ -2,12 +2,15 @@ require('dotenv/config')
 
 const path = require('path')
 const express = require('express')
+const compression = require('compression')
 
 const cruiseRouter = require('./routes/cruise.routes')
 const adminRouter = require('./routes/admin.routes')
 const { serverLogger } = require('./middleware/loggers')
 
 const app = express()
+
+app.use(compression())
 
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(express.json())

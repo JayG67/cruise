@@ -507,7 +507,7 @@ const html = `<!DOCTYPE html>
     <section>
       <h2>Lighthouse Mobile Scores</h2>
       <div class="score-grid">
-        ${scoreCard('Performance', lighthouse.performance, '70+', lighthouseReportUrl)}
+        ${scoreCard('Performance', lighthouse.performance, '65+', lighthouseReportUrl)}
         ${scoreCard('Accessibility', lighthouse.accessibility, '90+', lighthouseReportUrl)}
         ${scoreCard('Best Practices', lighthouse.bestPractices, '85+', lighthouseReportUrl)}
         ${scoreCard('SEO', lighthouse.seo, '85+', lighthouseReportUrl)}

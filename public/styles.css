@@ -41,8 +41,7 @@ input {
   min-height: 100vh;
   color: var(--white);
   background:
-    linear-gradient(90deg, rgba(7, 24, 39, 0.86) 0%, rgba(7, 24, 39, 0.66) 42%, rgba(7, 24, 39, 0.28) 72%, rgba(7, 24, 39, 0.14) 100%),
-    url('/images/cruise-background.png') center right / cover no-repeat;
+    linear-gradient(135deg, rgba(7, 24, 39, 0.98) 0%, rgba(7, 24, 39, 0.9) 52%, rgba(11, 111, 164, 0.72) 100%);
   display: flex;
   flex-direction: column;
 }
@@ -368,6 +367,15 @@ button.secondary:hover,
   width: min(920px, 100%);
   margin: 0 auto;
   color: var(--white);
+}
+
+
+@media (min-width: 761px) {
+  .hero {
+    background:
+      linear-gradient(90deg, rgba(7, 24, 39, 0.86) 0%, rgba(7, 24, 39, 0.66) 42%, rgba(7, 24, 39, 0.28) 72%, rgba(7, 24, 39, 0.14) 100%),
+      url('/images/cruise-background.png') center right / cover no-repeat;
+  }
 }
 
 @media (max-width: 720px) {
@@ -839,8 +847,8 @@ button.delete-ship-btn {
 @media (max-width: 760px) {
   .hero {
     background:
-      linear-gradient(rgba(7, 24, 39, 0.78), rgba(7, 24, 39, 0.82)),
-      url('/images/cruise-background.png') center right / cover no-repeat;
+      radial-gradient(circle at top right, rgba(18, 164, 182, 0.2), transparent 34%),
+      linear-gradient(135deg, rgba(7, 24, 39, 0.98) 0%, rgba(7, 24, 39, 0.92) 56%, rgba(11, 111, 164, 0.78) 100%);
   }
 
   .nav-bar {
@@ -2067,48 +2075,5 @@ code,
   .crud-panel,
   .quality-console {
     border-radius: 18px;
-  }
-}
-
-
-/* =========================================
-   iPhone Safari role selector overflow fix
-   WebKit sizes select controls from option text unless
-   the control and its grid ancestors are explicitly constrained.
-========================================= */
-
-.role-selector-section,
-.role-selector-card,
-.role-selector-card label,
-.role-selector-card select,
-.role-summary,
-.role-summary > * {
-  min-width: 0;
-  max-width: 100%;
-}
-
-.role-selector-card {
-  width: 100%;
-}
-
-.role-selector-card label {
-  width: 100%;
-}
-
-.role-selector-card select {
-  width: 100%;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.role-summary {
-  width: 100%;
-  overflow-wrap: anywhere;
-}
-
-@media (max-width: 430px) {
-  .role-selector-card {
-    padding: 1rem;
   }
 }
