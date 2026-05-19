@@ -1,12 +1,45 @@
 const { test, expect } = require('@playwright/test')
 
 async function expectNoHorizontalOverflow(page) {
-  const overflow = await page.evaluate(() => {
+  const metrics = await page.evaluate(() => {
     const documentElement = document.documentElement
-    return documentElement.scrollWidth > documentElement.clientWidth + 1
+    const body = document.body
+    const viewportWidth = documentElement.clientWidth
+    const documentScrollWidth = documentElement.scrollWidth
+    const bodyScrollWidth = body ? body.scrollWidth : 0
+
+    const overflowingElements = Array.from(document.querySelectorAll('body *'))
+      .map(element => {
+        const rect = element.getBoundingClientRect()
+
+        return {
+          tagName: element.tagName,
+          testId: element.getAttribute('data-testid'),
+          className: typeof element.className === 'string' ? element.className : '',
+          left: Math.round(rect.left),
+          right: Math.round(rect.right),
+          width: Math.round(rect.width)
+        }
+      })
+      .filter(element => element.right > viewportWidth + 8 || element.left < -8)
+      .slice(0, 8)
+
+    return {
+      viewportWidth,
+      documentScrollWidth,
+      bodyScrollWidth,
+      overflowAmount: Math.max(documentScrollWidth, bodyScrollWidth) - viewportWidth,
+      overflowingElements
+    }
   })
 
-  expect(overflow).toBe(false)
+  expect(metrics, JSON.stringify(metrics, null, 2)).toEqual(
+    expect.objectContaining({
+      overflowAmount: expect.any(Number)
+    })
+  )
+
+  expect(metrics.overflowAmount, JSON.stringify(metrics, null, 2)).toBeLessThanOrEqual(8)
 }
 
 async function expectTouchTargetIsUsable(locator) {

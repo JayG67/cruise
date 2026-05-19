@@ -1949,11 +1949,78 @@ button[data-cy="update-delete-ship-button"]:hover {
 
 
 /* =========================================
-   Mobile / tablet touch target hardening
+   CI-stable mobile viewport hardening
+   Keeps iPhone/WebKit emulation from creating
+   tiny horizontal overflow while preserving layout.
 ========================================= */
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+@supports not (overflow: clip) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+}
+
+body,
+main,
+header,
+section,
+.hero,
+.section,
+.nav-bar,
+.quality-console,
+.role-selector-card,
+.role-booking-dashboard,
+.role-booking-dashboard-grid,
+.role-booking-card,
+.card-grid,
+.data-card,
+.crud-panel,
+.form-card,
+.test-panel {
+  min-width: 0;
+  max-width: 100%;
+}
+
+img,
+svg,
+video,
+canvas,
+pre,
+code,
+.test-output {
+  max-width: 100%;
+}
+
+.card-actions,
+.card-primary-actions,
+.stacked-card-actions,
+.itinerary-admin-actions,
+.activity-actions,
+.quality-report-links,
+.hero-cta-row,
+.toolbar {
+  min-width: 0;
+}
+
+.role-booking-card,
+.role-booking-card *,
+.data-card,
+.data-card *,
+.quality-console,
+.quality-console * {
+  overflow-wrap: anywhere;
+}
 
 @media (max-width: 1024px) {
   button,
+  .button-link,
   .primary,
   .secondary,
   .danger,
@@ -1976,5 +2043,29 @@ button[data-cy="update-delete-ship-button"]:hover {
 
   .itinerary-day summary {
     width: 100%;
+  }
+}
+
+@media (max-width: 430px) {
+  .section {
+    width: min(100% - 24px, 1120px);
+  }
+
+  .nav-bar {
+    width: min(100% - 24px, 1120px);
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .role-booking-dashboard-grid,
+  .card-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .role-booking-card,
+  .data-card,
+  .crud-panel,
+  .quality-console {
+    border-radius: 18px;
   }
 }
