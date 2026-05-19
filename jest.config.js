@@ -1,6 +1,9 @@
 module.exports = {
   testEnvironment: 'node',
 
+  setupFiles: ['<rootDir>/tests/setup/jest.env.js'],
+  setupFilesAfterEnv: ['<rootDir>/tests/setup/jest.setup.js'],
+
   modulePathIgnorePatterns: [
     '<rootDir>/github-pages',
     '<rootDir>/playwright-report',
@@ -14,7 +17,9 @@ module.exports = {
   coveragePathIgnorePatterns: [
     '/node_modules/',
     '<rootDir>/github-pages',
-    '<rootDir>/playwright/'
+    '<rootDir>/playwright/',
+    '<rootDir>/tests/',
+    '<rootDir>/models/'
   ],
   testTimeout: 30000
 }

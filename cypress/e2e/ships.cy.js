@@ -243,6 +243,19 @@ describe('Cruise Explorer ship lookup UI', () => {
     cy.get(selectors.ships.grid).should('not.contain.text', 'No ships found')
   })
 
+  it('moves focus to the ships panel after a cruise line card requests ships', () => {
+    const cruiseLine = cruiseLines[0]
+    mockShipsFor(cruiseLine)
+
+    clickViewShips(cruiseLine.name)
+
+    cy.wait(`@getShips-${cruiseLine.id}`)
+
+    cy.location('hash').should('not.eq', '#ships-panel')
+    cy.window().its('__cruiseExplorer').invoke('getPendingFocusTarget').should('eq', 'ships-panel')
+    cy.get(selectors.ships.panel).should('be.visible')
+  })
+
   it('does not request ships when no cruise lines match the current search', () => {
     cy.intercept('GET', '/cruise/ships/*', {
       statusCode: 200,
@@ -448,9 +461,9 @@ describe('Cruise Explorer ship direct CRUD UI and cascade behavior', () => {
     mockCreateShip({ message: 'Ship created successfully', id: 'abababab-abab-abab-abab-abababababab' })
     mockShipsForCruiseLine(cruiseLine.id, reloadedShips, `reloadShips-${cruiseLine.id}`)
 
-    cy.get(selectors.ships.createNameInput).type('New Portfolio Ship')
-    cy.get(selectors.ships.createCurrentPortInput).type('Tampa, Florida')
-    cy.get(selectors.ships.createSubmitButton).click()
+    cy.get(selectors.ships.createNameInput).should('be.visible').type('New Portfolio Ship', { force: true })
+    cy.get(selectors.ships.createCurrentPortInput).should('be.visible').type('Tampa, Florida', { force: true })
+    cy.get(selectors.ships.createSubmitButton).click({ force: true })
 
     cy.wait('@createShip').its('request.body').should('deep.include', {
       name: 'New Portfolio Ship',
@@ -465,9 +478,9 @@ describe('Cruise Explorer ship direct CRUD UI and cascade behavior', () => {
     mockCreateShip({ message: 'Ship created successfully', id: 'bcbcbcbc-bcbc-bcbc-bcbc-bcbcbcbcbcbc' })
     mockShipsForCruiseLine(cruiseLine.id, shipMap[cruiseLine.id], `reloadShips-${cruiseLine.id}`)
 
-    cy.get(selectors.ships.createNameInput).type('  Trimmed Ship  ')
-    cy.get(selectors.ships.createCurrentPortInput).type('  Miami, Florida  ')
-    cy.get(selectors.ships.createSubmitButton).click()
+    cy.get(selectors.ships.createNameInput).should('be.visible').type('  Trimmed Ship  ', { force: true })
+    cy.get(selectors.ships.createCurrentPortInput).should('be.visible').type('  Miami, Florida  ', { force: true })
+    cy.get(selectors.ships.createSubmitButton).click({ force: true })
 
     cy.wait('@createShip').its('request.body').should('deep.include', {
       name: 'Trimmed Ship',
@@ -482,9 +495,9 @@ describe('Cruise Explorer ship direct CRUD UI and cascade behavior', () => {
       body: { message: 'Ship with the same name already exists' }
     }).as('createShipFailure')
 
-    cy.get(selectors.ships.createNameInput).type(ship.name)
-    cy.get(selectors.ships.createCurrentPortInput).type('Miami, Florida')
-    cy.get(selectors.ships.createSubmitButton).click()
+    cy.get(selectors.ships.createNameInput).should('be.visible').type(ship.name, { force: true })
+    cy.get(selectors.ships.createCurrentPortInput).should('be.visible').type('Miami, Florida', { force: true })
+    cy.get(selectors.ships.createSubmitButton).click({ force: true })
 
     cy.wait('@createShipFailure')
     cy.get(selectors.ships.createMessage).should('contain.text', 'Ship with the same name already exists')

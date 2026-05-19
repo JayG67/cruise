@@ -95008,5 +95008,295 @@
         }
       ]
     }
+  ],
+  "customers": [
+    {
+      "id": "C000000001",
+      "firstName": "Jay",
+      "lastName": "Gallagher",
+      "email": "jay.demo@example.com",
+      "phone": "555-0101",
+      "loyaltyNumber": "RC-DIAMOND-001"
+    },
+    {
+      "id": "C000000002",
+      "firstName": "Lissa",
+      "lastName": "Morgan",
+      "email": "lissa.demo@example.com",
+      "phone": "555-0102",
+      "loyaltyNumber": "CC-GOLD-202"
+    },
+    {
+      "id": "C000000003",
+      "firstName": "Ryan",
+      "lastName": "Parker",
+      "email": "ryan.demo@example.com",
+      "phone": "555-0103",
+      "loyaltyNumber": "MSC-2044"
+    },
+    {
+      "id": "C000000004",
+      "firstName": "Ava",
+      "lastName": "Parker",
+      "email": "ava.demo@example.com",
+      "phone": "555-0104",
+      "loyaltyNumber": "MSC-2045"
+    },
+    {
+      "id": "C000000005",
+      "firstName": "Mia",
+      "lastName": "Parker",
+      "email": "mia.demo@example.com",
+      "phone": "555-0105",
+      "loyaltyNumber": "MSC-2046"
+    },
+    {
+      "id": "C000000006",
+      "firstName": "Noah",
+      "lastName": "Kim",
+      "email": "noah.demo@example.com",
+      "phone": "555-0106",
+      "loyaltyNumber": "NCL-777"
+    },
+    {
+      "id": "C000000007",
+      "firstName": "Sophia",
+      "lastName": "Kim",
+      "email": "sophia.demo@example.com",
+      "phone": "555-0107",
+      "loyaltyNumber": "NCL-778"
+    },
+    {
+      "id": "C000000008",
+      "firstName": "Ethan",
+      "lastName": "Rivera",
+      "email": "ethan.demo@example.com",
+      "phone": "555-0108",
+      "loyaltyNumber": "DIS-101"
+    },
+    {
+      "id": "C000000009",
+      "firstName": "Olivia",
+      "lastName": "Rivera",
+      "email": "olivia.demo@example.com",
+      "phone": "555-0109",
+      "loyaltyNumber": "DIS-102"
+    },
+    {
+      "id": "C000000010",
+      "firstName": "Grace",
+      "lastName": "Thompson",
+      "email": "grace.demo@example.com",
+      "phone": "555-0110",
+      "loyaltyNumber": "RC-EMERALD-305"
+    }
+  ],
+  "bookings": [
+    {
+      "id": "B000000001",
+      "shipName": "Adventure of the Seas",
+      "departureDate": "2026-07-05",
+      "bookingStatus": "CONFIRMED",
+      "cabinNumber": "10234",
+      "fareCode": "BALCONY",
+      "embarkationPort": "Miami, Florida",
+      "debarkationPort": "Miami, Florida",
+      "createdByCustomerId": "C000000001",
+      "passengers": [
+        {
+          "customerId": "C000000001",
+          "passengerRole": "PRIMARY",
+          "isPrimaryGuest": true,
+          "diningPreference": "Early seating",
+          "boardingGroup": "A"
+        },
+        {
+          "customerId": "C000000002",
+          "passengerRole": "GUEST",
+          "isPrimaryGuest": false,
+          "diningPreference": "Early seating",
+          "boardingGroup": "A"
+        }
+      ]
+    },
+    {
+      "id": "B000000002",
+      "shipName": "Carnival Celebration",
+      "departureDate": "2026-07-07",
+      "bookingStatus": "CONFIRMED",
+      "cabinNumber": "8356",
+      "fareCode": "OCEANVIEW",
+      "embarkationPort": "Galveston, Texas",
+      "debarkationPort": "Galveston, Texas",
+      "createdByCustomerId": "C000000001",
+      "passengers": [
+        {
+          "customerId": "C000000001",
+          "passengerRole": "PRIMARY",
+          "isPrimaryGuest": true,
+          "diningPreference": "Anytime dining",
+          "boardingGroup": "B"
+        }
+      ]
+    },
+    {
+      "id": "B000000003",
+      "shipName": "MSC Bellissima",
+      "departureDate": "2026-07-06",
+      "bookingStatus": "CONFIRMED",
+      "cabinNumber": "12018",
+      "fareCode": "FAMILY_SUITE",
+      "embarkationPort": "Miami, Florida",
+      "debarkationPort": "Miami, Florida",
+      "createdByCustomerId": "C000000003",
+      "passengers": [
+        {
+          "customerId": "C000000003",
+          "passengerRole": "PRIMARY",
+          "isPrimaryGuest": true,
+          "diningPreference": "Late seating",
+          "boardingGroup": "C"
+        },
+        {
+          "customerId": "C000000004",
+          "passengerRole": "GUEST",
+          "isPrimaryGuest": false,
+          "diningPreference": "Late seating",
+          "boardingGroup": "C"
+        },
+        {
+          "customerId": "C000000005",
+          "passengerRole": "CHILD",
+          "isPrimaryGuest": false,
+          "diningPreference": "Kids menu",
+          "boardingGroup": "C"
+        }
+      ]
+    },
+    {
+      "id": "B000000004",
+      "shipName": "Norwegian Bliss",
+      "departureDate": "2026-07-06",
+      "bookingStatus": "DEPOSIT_PAID",
+      "cabinNumber": "14102",
+      "fareCode": "CLUB_BALCONY",
+      "embarkationPort": "Seattle, Washington",
+      "debarkationPort": "Seattle, Washington",
+      "createdByCustomerId": "C000000006",
+      "passengers": [
+        {
+          "customerId": "C000000006",
+          "passengerRole": "PRIMARY",
+          "isPrimaryGuest": true,
+          "diningPreference": "Freestyle dining",
+          "boardingGroup": "D"
+        },
+        {
+          "customerId": "C000000007",
+          "passengerRole": "GUEST",
+          "isPrimaryGuest": false,
+          "diningPreference": "Freestyle dining",
+          "boardingGroup": "D"
+        }
+      ]
+    },
+    {
+      "id": "B000000005",
+      "shipName": "Disney Dream",
+      "departureDate": "2026-07-06",
+      "bookingStatus": "CONFIRMED",
+      "cabinNumber": "7620",
+      "fareCode": "DELUXE_FAMILY",
+      "embarkationPort": "Port Canaveral, Florida",
+      "debarkationPort": "Port Canaveral, Florida",
+      "createdByCustomerId": "C000000008",
+      "passengers": [
+        {
+          "customerId": "C000000008",
+          "passengerRole": "PRIMARY",
+          "isPrimaryGuest": true,
+          "diningPreference": "Rotational dining",
+          "boardingGroup": "E"
+        },
+        {
+          "customerId": "C000000009",
+          "passengerRole": "GUEST",
+          "isPrimaryGuest": false,
+          "diningPreference": "Rotational dining",
+          "boardingGroup": "E"
+        }
+      ]
+    },
+    {
+      "id": "B000000006",
+      "shipName": "Anthem of the Seas",
+      "departureDate": "2026-07-07",
+      "bookingStatus": "CONFIRMED",
+      "cabinNumber": "9540",
+      "fareCode": "INTERIOR",
+      "embarkationPort": "Miami, Florida",
+      "debarkationPort": "Miami, Florida",
+      "createdByCustomerId": "C000000010",
+      "passengers": [
+        {
+          "customerId": "C000000010",
+          "passengerRole": "PRIMARY",
+          "isPrimaryGuest": true,
+          "diningPreference": "My Time dining",
+          "boardingGroup": "F"
+        }
+      ]
+    },
+    {
+      "id": "B000000007",
+      "shipName": "Norwegian Aqua",
+      "departureDate": "2026-07-05",
+      "bookingStatus": "WAITLISTED",
+      "cabinNumber": "GTY",
+      "fareCode": "SOLO_STUDIO",
+      "embarkationPort": "Seattle, Washington",
+      "debarkationPort": "Seattle, Washington",
+      "createdByCustomerId": "C000000010",
+      "passengers": [
+        {
+          "customerId": "C000000010",
+          "passengerRole": "PRIMARY",
+          "isPrimaryGuest": true,
+          "diningPreference": "Freestyle dining",
+          "boardingGroup": "TBD"
+        }
+      ]
+    }
+  ],
+  "demoUsers": [
+    {
+      "id": "UADMIN0001",
+      "displayName": "Admin Demo User",
+      "role": "ADMIN"
+    },
+    {
+      "id": "UPASS00001",
+      "displayName": "Jay Gallagher Passenger View",
+      "role": "PASSENGER",
+      "customerId": "C000000001"
+    },
+    {
+      "id": "UPASS00002",
+      "displayName": "Grace Multi-Cruise Passenger View",
+      "role": "PASSENGER",
+      "customerId": "C000000010"
+    },
+    {
+      "id": "UGROUP0001",
+      "displayName": "Gallagher Group Leader View",
+      "role": "GROUP_LEADER",
+      "customerId": "C000000001"
+    },
+    {
+      "id": "UGROUP0002",
+      "displayName": "Family Group Leader View",
+      "role": "GROUP_LEADER",
+      "customerId": "C000000003"
+    }
   ]
 }

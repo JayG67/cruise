@@ -37,6 +37,14 @@ function mockCruiseReloadAfterReset(resetBody = {}) {
   }).as('resetDemoData')
 }
 
+
+function waitForSuccessfulReset(alias = '@resetDemoData') {
+  cy.wait(alias).then((interception) => {
+    expect(interception.response.statusCode).to.eq(200)
+    expect(interception.response.body.message).to.eq('Demo data reset successfully')
+  })
+}
+
 function confirmReset(shouldConfirm = true) {
   cy.window().then((win) => {
     cy.stub(win, 'confirm').returns(shouldConfirm).as('confirmReset')
@@ -116,7 +124,7 @@ describe('Reset Demo Data UI', () => {
     cy.get(selectors.cruiseLines.grid).should('contain.text', 'Dirty Demo Cruise Line')
 
     cy.get(selectors.testPanel.resetDemoDataButton).click()
-    cy.wait('@resetDemoData')
+    waitForSuccessfulReset()
     cy.wait('@getCruiseLines')
 
     cy.get('@confirmReset').should('have.been.calledOnce')
@@ -149,7 +157,7 @@ describe('Reset Demo Data UI', () => {
     confirmReset(true)
 
     cy.get(selectors.testPanel.resetDemoDataButton).click()
-    cy.wait('@resetDemoData')
+    waitForSuccessfulReset()
     cy.wait('@getCruiseLines')
 
     cy.get(selectors.testPanel.output)
@@ -172,7 +180,7 @@ describe('Reset Demo Data UI', () => {
     confirmReset(true)
 
     cy.get(selectors.testPanel.resetDemoDataButton).click()
-    cy.wait('@resetDemoData')
+    waitForSuccessfulReset()
     cy.wait('@getCruiseLines')
 
     cy.get(selectors.cruiseLines.searchInput).should('have.value', '')
@@ -191,7 +199,7 @@ describe('Reset Demo Data UI', () => {
     confirmReset(true)
 
     cy.get(selectors.testPanel.resetDemoDataButton).click()
-    cy.wait('@resetDemoData')
+    waitForSuccessfulReset()
     cy.wait('@getCruiseLines')
 
     cy.get(selectors.cruiseLines.searchInput).should('have.value', '')
@@ -265,12 +273,45 @@ describe('Reset Demo Data UI', () => {
     confirmReset(true)
 
     cy.get(selectors.testPanel.resetDemoDataButton).click()
-    cy.wait('@resetDemoData')
+    waitForSuccessfulReset()
     cy.wait('@getCruiseLines')
 
     cy.get(selectors.ships.panel).should('not.be.visible')
     cy.get(selectors.sailings.panel).should('not.be.visible')
     cy.get(selectors.itinerary.panel).should('not.be.visible')
+  })
+
+
+  it('handles repeated successful reset calls without accepting silent server failures', () => {
+    mockCruiseReloadAfterReset()
+    cy.visit('/')
+    cy.wait('@getCruiseLines')
+
+    confirmReset(true)
+
+    cy.get(selectors.testPanel.resetDemoDataButton)
+      .should('be.visible')
+      .click()
+
+    waitForSuccessfulReset()
+
+    cy.get(selectors.testPanel.output)
+      .should('contain.text', 'Demo Data Reset Result')
+      .and('contain.text', 'Demo data reset successfully')
+
+    cy.get('@confirmReset').should('have.been.calledOnce')
+
+    cy.get(selectors.testPanel.resetDemoDataButton)
+      .should('be.visible')
+      .click()
+
+    waitForSuccessfulReset()
+
+    cy.get('@confirmReset').should('have.been.calledTwice')
+
+    cy.get(selectors.testPanel.output)
+      .should('contain.text', 'Demo Data Reset Result')
+      .and('contain.text', 'Demo data reset successfully')
   })
 
   it('does not reload the grid when reset endpoint fails', () => {

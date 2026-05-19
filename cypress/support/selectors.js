@@ -19,6 +19,23 @@ export const selectors = {
     cicdStatus: '[data-cy="hero-status-cicd"]',
     crudStatus: '[data-cy="hero-status-crud"]'
   },  
+
+  demoRole: {
+    panel: '[data-cy="demo-role-panel"]',
+    selector: '[data-cy="demo-user-selector"]',
+    summary: '[data-cy="demo-role-summary"]'
+  },
+
+  roleDashboard: {
+    panel: '[data-cy="role-booking-dashboard"]',
+    title: '[data-cy="role-booking-dashboard-title"]',
+    description: '[data-cy="role-booking-dashboard-description"]',
+    grid: '[data-cy="role-booking-dashboard-grid"]',
+    adminCard: '[data-cy="role-admin-visibility-card"]',
+    bookingCard: '[data-cy="role-booking-card"]',
+    passenger: '[data-cy="role-booking-passenger"]',
+    emptyMessage: '[data-cy="role-booking-dashboard-empty"]'
+  },
   createCruiseLine: {
     panel: '[data-cy="create-cruise-line-panel"]',
     form: '[data-cy="create-cruise-line-form"]',

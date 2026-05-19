@@ -7,6 +7,10 @@ const shipTable = require('../models/ship.model')
 const sailingTable = require('../models/sailing.model')
 const itineraryDayTable = require('../models/itineraryDay.model')
 const activityScheduleTable = require('../models/activitySchedule.model')
+const customerTable = require('../models/customer.model')
+const bookingTable = require('../models/booking.model')
+const bookingPassengerTable = require('../models/bookingPassenger.model')
+const demoUserTable = require('../models/demoUser.model')
 
 async function loadCruiseData() {
   let cruiseLineCount = 0
@@ -14,12 +18,21 @@ async function loadCruiseData() {
   let sailingCount = 0
   let itineraryDayCount = 0
   let activityCount = 0
+  let customerCount = 0
+  let bookingCount = 0
+  let bookingPassengerCount = 0
+  let demoUserCount = 0
 
   const filePath = path.join(__dirname, '..', 'data', 'cruise.json')
   const fileContents = fs.readFileSync(filePath, 'utf-8')
   const cruiseData = JSON.parse(fileContents)
+  const sailingIdBySeedKey = new Map()
 
   await db.transaction(async tx => {
+    await tx.delete(demoUserTable)
+    await tx.delete(bookingPassengerTable)
+    await tx.delete(bookingTable)
+    await tx.delete(customerTable)
     await tx.delete(activityScheduleTable)
     await tx.delete(itineraryDayTable)
     await tx.delete(sailingTable)
@@ -67,6 +80,7 @@ async function loadCruiseData() {
             .returning({ id: sailingTable.id })
 
           const sailingId = insertedSailings[0].id
+          sailingIdBySeedKey.set(`${ship.name}|${sailing.departureDate}`, sailingId)
           sailingCount += 1
 
           for (const itineraryDay of sailing.itinerary || []) {
@@ -95,9 +109,76 @@ async function loadCruiseData() {
         }
       }
     }
+
+    for (const customer of cruiseData.customers || []) {
+      await tx.insert(customerTable).values({
+        id: customer.id,
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        email: customer.email,
+        phone: customer.phone,
+        loyaltyNumber: customer.loyaltyNumber
+      })
+      customerCount += 1
+    }
+
+    for (const booking of cruiseData.bookings || []) {
+      const sailingId = booking.sailingId || sailingIdBySeedKey.get(`${booking.shipName}|${booking.departureDate}`)
+
+      if (!sailingId) {
+        throw new Error(`Unable to resolve sailing for booking ${booking.id}`)
+      }
+
+      await tx.insert(bookingTable).values({
+        id: booking.id,
+        sailingId,
+        bookingStatus: booking.bookingStatus,
+        cabinNumber: booking.cabinNumber,
+        fareCode: booking.fareCode,
+        embarkationPort: booking.embarkationPort,
+        debarkationPort: booking.debarkationPort,
+        createdByCustomerId: booking.createdByCustomerId
+      })
+      bookingCount += 1
+
+      for (const passenger of booking.passengers || []) {
+        await tx.insert(bookingPassengerTable).values({
+          id: `${booking.id}-${passenger.customerId}`,
+          bookingId: booking.id,
+          customerId: passenger.customerId,
+          passengerRole: passenger.passengerRole,
+          isPrimaryGuest: Boolean(passenger.isPrimaryGuest),
+          diningPreference: passenger.diningPreference,
+          accessibilityNotes: passenger.accessibilityNotes,
+          boardingGroup: passenger.boardingGroup
+        })
+        bookingPassengerCount += 1
+      }
+    }
+
+    for (const demoUser of cruiseData.demoUsers || []) {
+      await tx
+        .insert(demoUserTable)
+        .values({
+          id: demoUser.id,
+          displayName: demoUser.displayName,
+          role: demoUser.role,
+          customerId: demoUser.customerId
+        })
+        .onConflictDoUpdate({
+          target: demoUserTable.id,
+          set: {
+            displayName: demoUser.displayName,
+            role: demoUser.role,
+            customerId: demoUser.customerId
+          }
+        })
+
+      demoUserCount += 1
+    }
   })
 
-  if (process.env.NODE_ENV !== 'test') {
+  if (process.env.NODE_ENV !== 'test' && process.env.SUPPRESS_DB_LOGS !== 'true') {
     console.log('Cruise seed data reset from data/cruise.json')
   }
 
@@ -107,6 +188,10 @@ async function loadCruiseData() {
     sailingCount,
     itineraryDayCount,
     activityCount,
+    customerCount,
+    bookingCount,
+    bookingPassengerCount,
+    demoUserCount,
     source: 'data/cruise.json'
   }
 }

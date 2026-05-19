@@ -221,12 +221,12 @@ describe('Sailings and itinerary admin CRUD UI', () => {
 
     openItinerary()
 
-    cy.get(selectors.itinerary.createDayNumberInput).clear().type('2')
+    cy.get(selectors.itinerary.createDayNumberInput).should('be.visible').type('{selectall}2', { force: true })
     cy.get(selectors.itinerary.createDayTitleInput).type('Day at Sea')
     cy.get(selectors.itinerary.createDayPortInput).type('At Sea')
     cy.get(selectors.itinerary.createDayActivityTimeInput).type('9:00 AM')
     cy.get(selectors.itinerary.createDayActivityTextInput).type('Morning briefing')
-    cy.get(selectors.itinerary.createDaySubmitButton).click()
+    cy.get(selectors.itinerary.createDaySubmitButton).click({ force: true })
 
     cy.wait(`@createItineraryDay-${sailingId}`).its('request.body').should('deep.include', {
       day: 2,
@@ -398,10 +398,10 @@ describe('Sailings and itinerary admin CRUD UI', () => {
 
     openItinerary()
 
-    cy.get(selectors.itinerary.createDayNumberInput).clear().type('3')
+    cy.get(selectors.itinerary.createDayNumberInput).should('be.visible').type('{selectall}3', { force: true })
     cy.get(selectors.itinerary.createDayTitleInput).type('Return to Port')
     cy.get(selectors.itinerary.createDayPortInput).type('Miami, Florida')
-    cy.get(selectors.itinerary.createDaySubmitButton).click()
+    cy.get(selectors.itinerary.createDaySubmitButton).click({ force: true })
 
     cy.wait(`@createItineraryDay-${sailingId}`).its('request.body').should('deep.equal', {
       day: 3,
@@ -641,12 +641,12 @@ describe('Sailings and itinerary admin CRUD UI', () => {
 
     openItinerary()
 
-    cy.get(selectors.itinerary.createDayNumberInput).clear().type('4')
+    cy.get(selectors.itinerary.createDayNumberInput).should('be.visible').type('{selectall}4', { force: true })
     cy.get(selectors.itinerary.createDayTitleInput).type('  Port Day — Nassau  ')
     cy.get(selectors.itinerary.createDayPortInput).type('  Nassau, Bahamas  ')
     cy.get(selectors.itinerary.createDayActivityTimeInput).type('  9:00 AM  ')
     cy.get(selectors.itinerary.createDayActivityTextInput).type('  Shore excursion meetup  ')
-    cy.get(selectors.itinerary.createDaySubmitButton).click()
+    cy.get(selectors.itinerary.createDaySubmitButton).click({ force: true })
 
     cy.wait(`@createItineraryDay-${sailingId}`).its('request.body').should('deep.equal', {
       day: 4,

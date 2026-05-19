@@ -45,6 +45,40 @@
     </section>
   </header>
 
+  <section class="section role-selector-section" id="demo-role-panel" data-cy="demo-role-panel" data-testid="demo-role-panel">
+    <div class="section-heading compact-section-heading">
+      <p class="eyebrow">Demo Role Selector</p>
+      <h2>View application as</h2>
+      <p>Switch between admin and passenger perspectives without adding authentication yet.</p>
+    </div>
+
+    <div class="role-selector-card">
+      <label for="demo-user-selector">
+        <span>Demo user</span>
+        <select id="demo-user-selector" data-cy="demo-user-selector" data-testid="demo-user-selector">
+          <option value="">Loading demo users...</option>
+        </select>
+      </label>
+
+      <div id="demo-role-summary" class="role-summary" aria-live="polite" data-cy="demo-role-summary" data-testid="demo-role-summary">
+        Loading demo role context...
+      </div>
+    </div>
+
+      <section id="role-booking-dashboard" class="role-booking-dashboard" aria-labelledby="role-booking-dashboard-heading" data-cy="role-booking-dashboard" data-testid="role-booking-dashboard">
+      <div class="role-dashboard-heading">
+        <p class="eyebrow">Role-Aware View</p>
+        <h3 id="role-booking-dashboard-heading" data-cy="role-booking-dashboard-title" data-testid="role-booking-dashboard-title">Booking visibility</h3>
+        <p data-cy="role-booking-dashboard-description" data-testid="role-booking-dashboard-description">Select a demo persona to view the bookings and passenger information available to that role.</p>
+      </div>
+
+      <div id="role-booking-dashboard-grid" class="role-booking-dashboard-grid" data-cy="role-booking-dashboard-grid" data-testid="role-booking-dashboard-grid">
+        <p class="empty-message" data-cy="role-booking-dashboard-loading" data-testid="role-booking-dashboard-loading">Loading role-specific booking information...</p>
+      </div>
+    </section>
+  </section>
+
+
   <main>
     <section class="section fleet-section" id="cruise-lines" data-cy="cruise-lines-section" data-testid="cruise-lines-section">
       <div class="section-heading dashboard-heading">
@@ -62,7 +96,7 @@
       <div id="status-message" class="status-message" data-cy="cruise-status-message" data-testid="cruise-status-message">Loading cruise lines...</div>
       <div id="cruise-grid" class="card-grid" data-cy="cruise-grid" data-testid="cruise-grid"></div>
 
-      <section class="crud-panel update-panel" id="update-cruise-line-panel" aria-labelledby="update-cruise-line-heading" data-cy="update-cruise-line-panel" data-testid="update-cruise-line-panel" hidden>
+      <section data-admin-only="true" class="crud-panel update-panel" id="update-cruise-line-panel" aria-labelledby="update-cruise-line-heading" data-cy="update-cruise-line-panel" data-testid="update-cruise-line-panel" hidden>
         <div class="crud-panel-header">
           <div>
             <p class="eyebrow">Update Workflow</p>
@@ -130,7 +164,7 @@
       </section>
     </section>
 
-    <section class="section create-workflow-section" id="create-workflow" data-cy="create-workflow-section" data-testid="create-workflow-section">
+    <section data-admin-only="true" class="section create-workflow-section" id="create-workflow" data-cy="create-workflow-section" data-testid="create-workflow-section">
       <div class="section-heading compact-section-heading">
         <p class="eyebrow">Create Workflow</p>
         <h2>Add New Cruise Data</h2>
