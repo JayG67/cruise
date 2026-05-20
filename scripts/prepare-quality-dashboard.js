@@ -496,7 +496,7 @@ const html = `<!DOCTYPE html>
         ${statusCard('Cypress UI Tests', 'PASS', 'Browser workflow regression suite completed successfully.', workflowRunUrl)}
         ${statusCard('Playwright Mobile Tests', 'PASS', 'Mobile Chrome, Mobile Safari, tablet rendering, mobile workflows, SQA controls, and responsive behavior completed successfully.', workflowRunUrl)}
         ${statusCard('k6 Performance Smoke', 'PASS', 'API response-time and success-rate smoke checks completed successfully.', workflowRunUrl)}
-        ${statusCard('Lighthouse Mobile Gate', 'PASS', 'Mobile quality gate completed and generated a public report.', lighthouseReportUrl)}
+        ${statusCard('Mobile Quality & UX Gate', 'PASS', 'Mobile UX, accessibility, performance, and Lighthouse validation completed and generated public evidence.', lighthouseReportUrl)}
         ${statusCard('Jest Coverage', 'PASS', 'Coverage report generated and published to GitHub Pages.', coverageReportUrl)}
         ${statusCard('GitHub Pages Report', 'PASS', 'Latest quality dashboard and Lighthouse report published to GitHub Pages.', qualityDashboardUrl)}
         ${statusCard('Live Application', 'PASS', 'Production deployment is available on Render.', liveAppUrl)}
@@ -505,7 +505,7 @@ const html = `<!DOCTYPE html>
     </section>
 
     <section>
-      <h2>Lighthouse Mobile Scores</h2>
+      <h2>Mobile Lighthouse Scores</h2>
       <div class="score-grid">
         ${scoreCard('Performance', lighthouse.performance, '65+', lighthouseReportUrl)}
         ${scoreCard('Accessibility', lighthouse.accessibility, '90+', lighthouseReportUrl)}
@@ -533,7 +533,7 @@ const html = `<!DOCTYPE html>
           <ul>
             <li>Live app: <a href="${escapeHtml(liveAppUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(liveAppUrl)}</a></li>
             <li>Quality dashboard: <a href="${escapeHtml(qualityDashboardUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(qualityDashboardUrl)}</a></li>
-            <li>Latest Lighthouse report: <a href="${escapeHtml(lighthouseReportUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(lighthouseReportUrl)}</a></li>
+            <li>Latest mobile Lighthouse report: <a href="${escapeHtml(lighthouseReportUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(lighthouseReportUrl)}</a></li>
             <li>Latest coverage report: <a href="${escapeHtml(coverageReportUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(coverageReportUrl)}</a></li>
             <li>Workflow run: <a href="${escapeHtml(workflowRunUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(workflowRunUrl)}</a></li>
           </ul>
@@ -550,7 +550,7 @@ const html = `<!DOCTYPE html>
             <li><strong>Cypress:</strong> CRUD workflows, SQA control panel, browser behavior, API failure paths.</li>
             <li><strong>Playwright Mobile:</strong> mobile Chrome, mobile Safari, tablet rendering, navigation, search, ship panel, update workflow, create workflow, SQA controls, and horizontal-overflow validation.</li>
             <li><strong>k6:</strong> API performance smoke validation and response-time thresholds.</li>
-            <li><strong>Lighthouse:</strong> mobile performance, accessibility, SEO, and best practices.</li>
+            <li><strong>Mobile Quality & UX:</strong> Lighthouse mobile performance, accessibility, SEO, best practices, Playwright mobile behavior, and responsive validation.</li>
           </ul>
         </div>
       </details>

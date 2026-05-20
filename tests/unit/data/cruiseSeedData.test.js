@@ -424,6 +424,36 @@ describe('demo user seed data integrity', () => {
       })
   })
 
+  it('contains at least ten demo role selections for portfolio role diversity', () => {
+    const demoUsers = getDemoUsers()
+    const displayNames = demoUsers.map(user => user.displayName).join(' ')
+
+    expect(demoUsers).toHaveLength(10)
+    expect(displayNames).toContain('Alisa Gallagher')
+    expect(displayNames).toContain('Parker Family')
+    expect(displayNames).toContain('Kim Couple')
+    expect(displayNames).toContain('Grace Thompson')
+  })
+
+  it('keeps Jay Gallagher bookings paired only with Alisa Gallagher', () => {
+    const jayId = 'C000000001'
+    const alisaId = 'C000000002'
+
+    const jayBookings = cruiseSeedData.bookings.filter(booking =>
+      booking.passengers.some(passenger => passenger.customerId === jayId)
+    )
+
+    expect(jayBookings.length).toBeGreaterThan(0)
+
+    jayBookings.forEach(booking => {
+      const passengerIds = booking.passengers.map(passenger => passenger.customerId)
+
+      expect(passengerIds).toContain(jayId)
+      expect(passengerIds).toContain(alisaId)
+      expect(passengerIds).toHaveLength(2)
+    })
+  })
+
   it('does not store authentication secrets in demo role seed data', () => {
     getDemoUsers().forEach(user => {
       expect(user.password).toBeUndefined()

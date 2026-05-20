@@ -296,7 +296,7 @@ test.describe('Cruise Explorer mobile role and passenger dashboard quality check
     await expect(page.getByTestId('cruise-card').first()).toBeVisible()
   })
 
-  test('opens booked cruise details from passenger booking dashboard on mobile', async ({ page }) => {
+  test('opens booked cruise details directly below the selected passenger booking card on mobile', async ({ page }) => {
     await openRoleDashboard(page)
     await selectDemoRole(page, 'UPASS00001', 'Jay Gallagher Passenger View')
 
@@ -305,10 +305,41 @@ test.describe('Cruise Explorer mobile role and passenger dashboard quality check
 
     await firstBookingCard.getByTestId('role-booking-details-button').click()
 
-    await expect(page.getByTestId('itinerary-panel')).toBeVisible()
-    await expect(page.getByTestId('itinerary-title')).toContainText('Details')
-    await expect(page.getByTestId('itinerary-day').first()).toBeVisible()
+    await expect(firstBookingCard.getByTestId('inline-booking-details')).toBeVisible()
+    await expect(firstBookingCard.getByTestId('inline-itinerary-day').first()).toBeVisible()
+    await expect(page.getByTestId('itinerary-panel')).toBeHidden()
     await expectNoHorizontalOverflow(page)
   })
+
+
+  test('keeps expanded passenger booking details anchored to the booking card before cruise line browsing on mobile', async ({ page }) => {
+    await openRoleDashboard(page)
+    await selectDemoRole(page, 'UPASS00001', 'Jay Gallagher Passenger View')
+
+    const firstBookingCard = page.getByTestId('role-booking-card').first()
+    const cruiseLineSection = page.getByTestId('cruise-lines-section')
+
+    await firstBookingCard.getByTestId('role-booking-details-button').click()
+
+    const detailsBox = await firstBookingCard.getByTestId('inline-booking-details').boundingBox()
+    const cruiseLinesBox = await cruiseLineSection.boundingBox()
+
+    expect(detailsBox).not.toBeNull()
+    expect(cruiseLinesBox).not.toBeNull()
+    expect(detailsBox.y).toBeLessThan(cruiseLinesBox.y)
+  })
+
+  test('exposes a broad set of selectable demo personas on mobile', async ({ page }) => {
+    await openRoleDashboard(page)
+
+    const options = await page.getByTestId('demo-user-selector').locator('option').allTextContents()
+
+    expect(options.length).toBeGreaterThanOrEqual(10)
+    expect(options.join(' ')).toContain('Alisa Gallagher')
+    expect(options.join(' ')).toContain('Parker Family')
+    expect(options.join(' ')).toContain('Kim Couple')
+    expect(options.join(' ')).toContain('Grace Thompson')
+  })
+
 
 })

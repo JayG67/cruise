@@ -35,6 +35,8 @@ export const selectors = {
     bookingCard: '[data-cy="role-booking-card"]',
     passenger: '[data-cy="role-booking-passenger"]',
     detailsButton: '[data-cy="role-booking-details-button"]',
+    inlineDetails: '[data-cy="inline-booking-details"]',
+    inlineItineraryDay: '[data-cy="inline-itinerary-day"]',
     emptyMessage: '[data-cy="role-booking-dashboard-empty"]'
   },
   createCruiseLine: {

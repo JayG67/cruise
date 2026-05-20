@@ -95020,9 +95020,9 @@
     },
     {
       "id": "C000000002",
-      "firstName": "Lissa",
-      "lastName": "Morgan",
-      "email": "lissa.demo@example.com",
+      "firstName": "Alisa",
+      "lastName": "Gallagher",
+      "email": "alisa.demo@example.com",
       "phone": "555-0102",
       "loyaltyNumber": "CC-GOLD-202"
     },
@@ -95134,6 +95134,13 @@
           "customerId": "C000000001",
           "passengerRole": "PRIMARY",
           "isPrimaryGuest": true,
+          "diningPreference": "Anytime dining",
+          "boardingGroup": "B"
+        },
+        {
+          "customerId": "C000000002",
+          "passengerRole": "GUEST",
+          "isPrimaryGuest": false,
           "diningPreference": "Anytime dining",
           "boardingGroup": "B"
         }
@@ -95272,7 +95279,8 @@
     {
       "id": "UADMIN0001",
       "displayName": "Admin Demo User",
-      "role": "ADMIN"
+      "role": "ADMIN",
+      "customerId": null
     },
     {
       "id": "UPASS00001",
@@ -95282,9 +95290,9 @@
     },
     {
       "id": "UPASS00002",
-      "displayName": "Grace Multi-Cruise Passenger View",
+      "displayName": "Alisa Gallagher Passenger View",
       "role": "PASSENGER",
-      "customerId": "C000000010"
+      "customerId": "C000000002"
     },
     {
       "id": "UGROUP0001",
@@ -95293,10 +95301,40 @@
       "customerId": "C000000001"
     },
     {
+      "id": "UPASS00003",
+      "displayName": "Ryan Parker Passenger View",
+      "role": "PASSENGER",
+      "customerId": "C000000003"
+    },
+    {
+      "id": "UPASS00004",
+      "displayName": "Ava Parker Passenger View",
+      "role": "PASSENGER",
+      "customerId": "C000000004"
+    },
+    {
       "id": "UGROUP0002",
-      "displayName": "Family Group Leader View",
+      "displayName": "Parker Family Group Leader View",
       "role": "GROUP_LEADER",
       "customerId": "C000000003"
+    },
+    {
+      "id": "UPASS00005",
+      "displayName": "Noah Kim Passenger View",
+      "role": "PASSENGER",
+      "customerId": "C000000006"
+    },
+    {
+      "id": "UGROUP0003",
+      "displayName": "Kim Couple Group Leader View",
+      "role": "GROUP_LEADER",
+      "customerId": "C000000006"
+    },
+    {
+      "id": "UPASS00006",
+      "displayName": "Grace Thompson Multi-Cruise View",
+      "role": "PASSENGER",
+      "customerId": "C000000010"
     }
   ]
 }

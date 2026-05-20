@@ -57,7 +57,7 @@ describe('Demo role selector UI', () => {
   it('loads every expected role option with descriptive labels', () => {
     cy.get(selectors.demoRole.selector)
       .find('option')
-      .should('have.length.at.least', 3)
+      .should('have.length.at.least', 10)
 
     cy.get(selectors.demoRole.selector).find('option[value="UADMIN0001"]')
       .should('contain.text', 'Admin')
@@ -170,20 +170,31 @@ describe('Demo role selector UI', () => {
     cy.get(selectors.cruiseLines.viewShipsButton).first().should('be.visible')
   })
 
-  it('opens cruise details from a passenger booked cruise card', () => {
+  it('opens cruise details directly under the selected passenger booked cruise card', () => {
+    cy.get(selectors.demoRole.selector).find('option').should('have.length.at.least', 10)
     cy.get(selectors.demoRole.selector).select('UPASS00001')
 
-    cy.get(selectors.roleDashboard.bookingCard).first().within(() => {
+    cy.get(selectors.roleDashboard.bookingCard).first().as('selectedBookingCard')
+
+    cy.get('@selectedBookingCard').within(() => {
       cy.get(selectors.roleDashboard.detailsButton)
         .should('be.visible')
         .and('contain.text', 'View Details')
         .click()
     })
 
-    cy.get(selectors.itinerary.panel).should('be.visible')
-    cy.get(selectors.itinerary.title).should('contain.text', 'Details')
-    cy.get(selectors.itinerary.day).should('have.length.greaterThan', 0)
+    cy.get('@selectedBookingCard').within(() => {
+      cy.get(selectors.roleDashboard.inlineDetails)
+        .should('be.visible')
+        .and('contain.text', 'Details')
+
+      cy.get(selectors.roleDashboard.inlineItineraryDay)
+        .should('have.length.greaterThan', 0)
+    })
+
+    cy.get(selectors.itinerary.panel).should('not.be.visible')
   })
+
 
   it('labels sailing itinerary actions as future-ready cruise details', () => {
     cy.get(selectors.cruiseLines.viewShipsButton).first().click()
@@ -193,5 +204,31 @@ describe('Demo role selector UI', () => {
       .should('be.visible')
       .and('contain.text', 'View Details')
   })
+
+  it('keeps Jay Gallagher booked only with Alisa Gallagher in passenger booking cards', () => {
+    cy.get(selectors.demoRole.selector).select('UPASS00001')
+
+    cy.get(selectors.roleDashboard.bookingCard).each($card => {
+      cy.wrap($card).should('contain.text', 'Jay Gallagher')
+      cy.wrap($card).should('contain.text', 'Alisa Gallagher')
+      cy.wrap($card).within(() => {
+        cy.get(selectors.roleDashboard.passenger).should('have.length', 2)
+      })
+    })
+  })
+
+  it('shows diverse demo personas beyond the original three role selections', () => {
+    cy.get(selectors.demoRole.selector).find('option').should('have.length.at.least', 10)
+
+    cy.get(selectors.demoRole.selector).then($selector => {
+      const optionText = [...$selector[0].options].map(option => option.textContent).join(' ')
+
+      expect(optionText).to.include('Alisa Gallagher')
+      expect(optionText).to.include('Parker Family')
+      expect(optionText).to.include('Kim Couple')
+      expect(optionText).to.include('Grace Thompson')
+    })
+  })
+
 
 })

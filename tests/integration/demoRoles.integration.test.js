@@ -133,6 +133,34 @@ describe('Demo role and user context API integration tests', () => {
     })
   })
 
+  it('GET /cruise/demo-users returns at least ten selectable demo personas', async () => {
+    const res = await request(app).get('/cruise/demo-users')
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body).toHaveLength(10)
+    expect(res.body.map(user => user.displayName).join(' ')).toContain('Alisa Gallagher')
+    expect(res.body.map(user => user.displayName).join(' ')).toContain('Parker Family')
+    expect(res.body.map(user => user.displayName).join(' ')).toContain('Kim Couple')
+  })
+
+  it('GET /cruise/demo-users/:id/context keeps Jay bookings paired only with Alisa', async () => {
+    const res = await request(app).get('/cruise/demo-users/UPASS00001/context')
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body.bookings.length).toBeGreaterThan(0)
+
+    res.body.bookings.forEach(booking => {
+      const passengerNames = booking.passengers.map(passenger =>
+        `${passenger.customer.firstName} ${passenger.customer.lastName}`
+      )
+
+      expect(passengerNames).toContain('Jay Gallagher')
+      expect(passengerNames).toContain('Alisa Gallagher')
+      expect(passengerNames).toHaveLength(2)
+    })
+  })
+
+
   it('GET /cruise/demo-users/:id/context returns 404 for an unknown demo user', async () => {
     const res = await request(app).get('/cruise/demo-users/UMISSING01/context')
 

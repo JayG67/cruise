@@ -297,7 +297,7 @@ jobs:
 
 
   lighthouse-mobile-audit:
-    name: Lighthouse Mobile Quality Gate
+    name: Mobile Quality & UX Gate
     runs-on: ubuntu-latest
     needs:
       - integration-tests
@@ -363,10 +363,10 @@ jobs:
         if: always()
         run: npm run quality:prepare-dashboard
 
-      - name: Add Lighthouse report link to job summary
+      - name: Add mobile quality report links to job summary
         if: always()
         run: |
-          echo "## Lighthouse Mobile Quality Report" >> "$GITHUB_STEP_SUMMARY"
+          echo "## Mobile Quality & UX Report" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "[Open Quality Dashboard]($QUALITY_DASHBOARD_URL)" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"

@@ -2144,3 +2144,56 @@ code,
   width: 100%;
   min-height: 36px;
 }
+
+
+.inline-booking-details {
+  margin-top: 1rem;
+  border-top: 1px solid rgba(7, 24, 39, 0.12);
+  padding-top: 1rem;
+}
+
+.inline-booking-details-panel {
+  background: rgba(244, 248, 251, 0.92);
+  border-radius: 18px;
+  padding: 1rem;
+}
+
+.inline-booking-details-header h4 {
+  margin: 0 0 0.35rem;
+}
+
+.inline-booking-details-header p {
+  margin: 0 0 1rem;
+  color: #4b6275;
+}
+
+.inline-itinerary-day {
+  background: white;
+  border-radius: 14px;
+  padding: 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+.inline-itinerary-day h5 {
+  margin: 0 0 0.45rem;
+}
+
+.inline-itinerary-port {
+  margin: 0 0 0.65rem;
+  color: #4b6275;
+  font-size: 0.92rem;
+}
+
+.inline-itinerary-activities {
+  margin: 0;
+  padding-left: 1rem;
+}
+
+.inline-itinerary-activities li {
+  margin-bottom: 0.35rem;
+}
+
+.inline-details-loading,
+.inline-booking-details-error {
+  padding: 0.75rem 0;
+}

@@ -23,6 +23,25 @@ let activeDemoUser = null
 let activeDemoContext = null
 let pendingFocusTarget = null
 
+
+function renderInlineBookingDetailsContainer(bookingId) {
+  return `
+    <div
+      class="inline-booking-details"
+      id="inline-booking-details-${bookingId}"
+      data-testid="inline-booking-details"
+      data-cy="inline-booking-details"
+      hidden
+    >
+      <div
+        class="inline-booking-details-content"
+        id="inline-booking-details-content-${bookingId}"
+      ></div>
+    </div>
+  `
+}
+
+
 function focusSection(sectionId) {
   const section = document.getElementById(sectionId)
 
@@ -331,6 +350,8 @@ function renderRoleBookingDashboard(context, errorMessage = '') {
       <div class="role-booking-actions">
         <button type="button" data-cy="role-booking-details-button" data-testid="role-booking-details-button">View Details</button>
       </div>
+
+      ${renderInlineBookingDetailsContainer(booking.bookingId || booking.id || booking.sailing?.id || 'booking')}
     `
 
     const detailsButton = card.querySelector('[data-cy="role-booking-details-button"]')
@@ -350,25 +371,86 @@ function renderRoleBookingDashboard(context, errorMessage = '') {
 async function loadBookingCruiseDetails(booking) {
   if (!booking?.sailing?.id) return
 
-  selectedCruiseLineForShips = booking.cruiseLine?.id || null
-  selectedCruiseLineNameForShips = booking.cruiseLine?.name || ''
-  selectedShipForSailings = booking.ship?.id || booking.sailing?.shipId || null
-  selectedShipNameForSailings = booking.ship?.name || 'Booked Cruise'
-  selectedSailingForItinerary = booking.sailing.id
+  const bookingKey = booking.bookingId || booking.id || booking.sailing.id
+  const detailsContainer = document.getElementById(`inline-booking-details-${bookingKey}`)
+  const detailsContent = document.getElementById(`inline-booking-details-content-${bookingKey}`)
 
-  const shipsPanel = document.getElementById('ships-panel')
-  const sailingsPanel = document.getElementById('sailings-panel')
+  if (!detailsContainer || !detailsContent) {
+    await loadItinerary(booking.sailing.id, {
+      ...booking.sailing,
+      departurePort: booking.embarkationPort || booking.sailing.departurePort,
+      arrivalPort: booking.debarkationPort || booking.sailing.arrivalPort
+    })
+    return
+  }
 
-  if (shipsPanel) shipsPanel.hidden = true
-  if (sailingsPanel) sailingsPanel.hidden = true
-
-  await loadItinerary(booking.sailing.id, {
-    ...booking.sailing,
-    departurePort: booking.embarkationPort || booking.sailing.departurePort,
-    arrivalPort: booking.debarkationPort || booking.sailing.arrivalPort
+  document.querySelectorAll('[data-testid="inline-booking-details"]').forEach(container => {
+    if (container !== detailsContainer) {
+      container.hidden = true
+    }
   })
-}
 
+  detailsContainer.hidden = false
+  detailsContent.innerHTML = '<p class="inline-details-loading">Loading cruise details...</p>'
+
+  try {
+    const response = await fetch(`${API_BASE}/sailings/${booking.sailing.id}/itinerary`)
+
+    if (!response.ok) {
+      throw new Error(`Cruise details request failed with status ${response.status}`)
+    }
+
+    const itineraryDays = await response.json()
+
+    if (!Array.isArray(itineraryDays) || itineraryDays.length === 0) {
+      detailsContent.innerHTML = '<p class="empty-message">No cruise details are available for this booked sailing yet.</p>'
+      focusSection(`inline-booking-details-${bookingKey}`)
+      return
+    }
+
+    const itineraryMarkup = itineraryDays.map(day => {
+      const activities = (day.activitySchedule || [])
+        .map(activity => `
+          <li>
+            <span class="activity-time">${escapeHtml(activity.time)}</span>
+            <span class="activity-name">${escapeHtml(activity.activity)}</span>
+          </li>
+        `)
+        .join('')
+
+      return `
+        <article class="inline-itinerary-day" data-cy="inline-itinerary-day" data-testid="inline-itinerary-day">
+          <h5>Day ${escapeHtml(String(day.day))}: ${escapeHtml(day.title)}</h5>
+          <p class="inline-itinerary-port">${escapeHtml(day.port)}</p>
+          <ul class="inline-itinerary-activities">
+            ${activities}
+          </ul>
+        </article>
+      `
+    }).join('')
+
+    detailsContent.innerHTML = `
+      <section class="inline-booking-details-panel">
+        <header class="inline-booking-details-header">
+          <h4>${escapeHtml(booking.ship?.name || 'Cruise')} Details</h4>
+          <p>${escapeHtml(booking.embarkationPort || booking.sailing.departurePort || '')} → ${escapeHtml(booking.debarkationPort || booking.sailing.arrivalPort || '')}</p>
+        </header>
+
+        <div class="inline-booking-itinerary">
+          ${itineraryMarkup}
+        </div>
+      </section>
+    `
+    focusSection(`inline-booking-details-${bookingKey}`)
+  } catch (error) {
+    console.error(error)
+    detailsContent.innerHTML = `
+      <div class="inline-booking-details-error">
+        Unable to load cruise details.
+      </div>
+    `
+  }
+}
 
 function formatDemoRole(role) {
   return String(role || '')
