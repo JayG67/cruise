@@ -41,8 +41,7 @@ input {
   min-height: 100vh;
   color: var(--white);
   background:
-    linear-gradient(90deg, rgba(7, 24, 39, 0.86) 0%, rgba(7, 24, 39, 0.66) 42%, rgba(7, 24, 39, 0.28) 72%, rgba(7, 24, 39, 0.14) 100%),
-    url('/images/cruise-background.png') center right / cover no-repeat;
+    linear-gradient(135deg, rgba(7, 24, 39, 0.98) 0%, rgba(7, 24, 39, 0.9) 52%, rgba(11, 111, 164, 0.72) 100%);
   display: flex;
   flex-direction: column;
 }
@@ -368,6 +367,15 @@ button.secondary:hover,
   width: min(920px, 100%);
   margin: 0 auto;
   color: var(--white);
+}
+
+
+@media (min-width: 761px) {
+  .hero {
+    background:
+      linear-gradient(90deg, rgba(7, 24, 39, 0.86) 0%, rgba(7, 24, 39, 0.66) 42%, rgba(7, 24, 39, 0.28) 72%, rgba(7, 24, 39, 0.14) 100%),
+      url('/images/cruise-background.png') center right / cover no-repeat;
+  }
 }
 
 @media (max-width: 720px) {
@@ -839,8 +847,8 @@ button.delete-ship-btn {
 @media (max-width: 760px) {
   .hero {
     background:
-      linear-gradient(rgba(7, 24, 39, 0.78), rgba(7, 24, 39, 0.82)),
-      url('/images/cruise-background.png') center right / cover no-repeat;
+      radial-gradient(circle at top right, rgba(18, 164, 182, 0.2), transparent 34%),
+      linear-gradient(135deg, rgba(7, 24, 39, 0.98) 0%, rgba(7, 24, 39, 0.92) 56%, rgba(11, 111, 164, 0.78) 100%);
   }
 
   .nav-bar {
@@ -2070,44 +2078,57 @@ code,
   }
 }
 
-
 /* =========================================
    iPhone Safari role selector overflow fix
-   WebKit sizes select controls from option text unless
-   the control and its grid ancestors are explicitly constrained.
+   WebKit can size native selects from long option text unless every
+   ancestor/input is explicitly allowed to shrink within the viewport.
 ========================================= */
 
 .role-selector-section,
+.role-selector-section *,
 .role-selector-card,
-.role-selector-card label,
-.role-selector-card select,
+.role-selector-card *,
 .role-summary,
-.role-summary > * {
+.role-summary * {
   min-width: 0;
   max-width: 100%;
+  box-sizing: border-box;
 }
 
 .role-selector-card {
   width: 100%;
+  overflow: hidden;
+}
+
+.role-selector-card label,
+.role-selector-card label span,
+.role-selector-card select,
+.role-summary {
+  width: 100%;
+  max-width: 100%;
 }
 
 .role-selector-card label {
-  width: 100%;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .role-selector-card select {
-  width: 100%;
-  max-width: 100%;
+  display: block;
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.role-summary {
-  width: 100%;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
 @media (max-width: 430px) {
+  .role-selector-section {
+    width: min(100% - 24px, 1120px);
+    padding-left: 0;
+    padding-right: 0;
+  }
+
   .role-selector-card {
     padding: 1rem;
   }
