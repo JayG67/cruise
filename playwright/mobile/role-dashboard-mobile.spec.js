@@ -281,4 +281,34 @@ test.describe('Cruise Explorer mobile role and passenger dashboard quality check
     await expectElementWithinViewport(page, page.getByTestId('role-booking-dashboard'))
     await expectNoHorizontalOverflow(page)
   })
+  test('resets selected cruise workflow panels after switching demo roles on mobile', async ({ page }) => {
+    await openFirstFleetWorkflow(page)
+
+    await expect(page.getByTestId('ships-panel')).toBeVisible()
+    await expect(page.getByTestId('sailings-panel')).toBeVisible()
+    await expect(page.getByTestId('itinerary-panel')).toBeVisible()
+
+    await page.getByTestId('demo-user-selector').selectOption('UPASS00001')
+
+    await expect(page.getByTestId('ships-panel')).toBeHidden()
+    await expect(page.getByTestId('sailings-panel')).toBeHidden()
+    await expect(page.getByTestId('itinerary-panel')).toBeHidden()
+    await expect(page.getByTestId('cruise-card').first()).toBeVisible()
+  })
+
+  test('opens booked cruise details from passenger booking dashboard on mobile', async ({ page }) => {
+    await openRoleDashboard(page)
+    await selectDemoRole(page, 'UPASS00001', 'Jay Gallagher Passenger View')
+
+    const firstBookingCard = page.getByTestId('role-booking-card').first()
+    await expect(firstBookingCard).toBeVisible()
+
+    await firstBookingCard.getByTestId('role-booking-details-button').click()
+
+    await expect(page.getByTestId('itinerary-panel')).toBeVisible()
+    await expect(page.getByTestId('itinerary-title')).toContainText('Details')
+    await expect(page.getByTestId('itinerary-day').first()).toBeVisible()
+    await expectNoHorizontalOverflow(page)
+  })
+
 })

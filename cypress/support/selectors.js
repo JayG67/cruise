@@ -34,6 +34,7 @@ export const selectors = {
     adminCard: '[data-cy="role-admin-visibility-card"]',
     bookingCard: '[data-cy="role-booking-card"]',
     passenger: '[data-cy="role-booking-passenger"]',
+    detailsButton: '[data-cy="role-booking-details-button"]',
     emptyMessage: '[data-cy="role-booking-dashboard-empty"]'
   },
   createCruiseLine: {
@@ -107,6 +108,7 @@ export const selectors = {
     emptyMessage: '[data-cy="sailings-empty-message"]',
     loadingMessage: '[data-cy="sailings-loading-message"]',
     viewItineraryButton: '[data-cy="view-itinerary-button"]',
+    viewDetailsButton: '[data-cy="view-itinerary-button"]',
     createForm: '[data-cy="create-sailing-form"]',
     departureDateInput: '[data-cy="create-sailing-departure-date-input"]',
     departurePortInput: '[data-cy="create-sailing-departure-port-input"]',

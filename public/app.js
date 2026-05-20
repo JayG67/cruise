@@ -95,9 +95,49 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (demoUserSelector) {
-    demoUserSelector.addEventListener('change', () => loadDemoUserContext(demoUserSelector.value))
+    demoUserSelector.addEventListener('change', () => {
+      resetDashboardSelectionState()
+      loadDemoUserContext(demoUserSelector.value)
+    })
   }
 })
+
+
+function resetDashboardSelectionState() {
+  selectedCruiseLineForShips = null
+  selectedCruiseLineNameForShips = ''
+  selectedShipForSailings = null
+  selectedShipNameForSailings = ''
+  selectedSailingForItinerary = null
+
+  const searchInput = document.getElementById('search-input')
+  const shipsPanel = document.getElementById('ships-panel')
+  const shipsTitle = document.getElementById('ships-title')
+  const shipsGrid = document.getElementById('ships-grid')
+  const sailingsPanel = document.getElementById('sailings-panel')
+  const sailingsTitle = document.getElementById('sailings-title')
+  const sailingsGrid = document.getElementById('sailings-grid')
+  const itineraryPanel = document.getElementById('itinerary-panel')
+  const itineraryTitle = document.getElementById('itinerary-title')
+  const itineraryGrid = document.getElementById('itinerary-grid')
+
+  if (searchInput) searchInput.value = ''
+  if (shipsPanel) shipsPanel.hidden = true
+  if (shipsTitle) shipsTitle.textContent = 'Ships'
+  if (shipsGrid) shipsGrid.innerHTML = ''
+  if (sailingsPanel) sailingsPanel.hidden = true
+  if (sailingsTitle) sailingsTitle.textContent = 'Sailings'
+  if (sailingsGrid) sailingsGrid.innerHTML = ''
+  if (itineraryPanel) itineraryPanel.hidden = true
+  if (itineraryTitle) itineraryTitle.textContent = 'Cruise Details'
+  if (itineraryGrid) itineraryGrid.innerHTML = ''
+
+  hideUpdateCruiseLinePanel()
+
+  if (Array.isArray(cruiseLines) && cruiseLines.length) {
+    renderCruiseLines(cruiseLines)
+  }
+}
 
 
 async function loadDemoUsers() {
@@ -288,11 +328,47 @@ function renderRoleBookingDashboard(context, errorMessage = '') {
         <h5>Visible passengers</h5>
         <ul>${passengerItems}</ul>
       </div>
+      <div class="role-booking-actions">
+        <button type="button" data-cy="role-booking-details-button" data-testid="role-booking-details-button">View Details</button>
+      </div>
     `
+
+    const detailsButton = card.querySelector('[data-cy="role-booking-details-button"]')
+
+    if (detailsButton && booking.sailing?.id) {
+      detailsButton.addEventListener('click', () => loadBookingCruiseDetails(booking))
+    } else if (detailsButton) {
+      detailsButton.disabled = true
+      detailsButton.textContent = 'Details unavailable'
+    }
 
     grid.appendChild(card)
   })
 }
+
+
+async function loadBookingCruiseDetails(booking) {
+  if (!booking?.sailing?.id) return
+
+  selectedCruiseLineForShips = booking.cruiseLine?.id || null
+  selectedCruiseLineNameForShips = booking.cruiseLine?.name || ''
+  selectedShipForSailings = booking.ship?.id || booking.sailing?.shipId || null
+  selectedShipNameForSailings = booking.ship?.name || 'Booked Cruise'
+  selectedSailingForItinerary = booking.sailing.id
+
+  const shipsPanel = document.getElementById('ships-panel')
+  const sailingsPanel = document.getElementById('sailings-panel')
+
+  if (shipsPanel) shipsPanel.hidden = true
+  if (sailingsPanel) sailingsPanel.hidden = true
+
+  await loadItinerary(booking.sailing.id, {
+    ...booking.sailing,
+    departurePort: booking.embarkationPort || booking.sailing.departurePort,
+    arrivalPort: booking.debarkationPort || booking.sailing.arrivalPort
+  })
+}
+
 
 function formatDemoRole(role) {
   return String(role || '')
@@ -1645,7 +1721,7 @@ function renderSailings(sailings) {
         <p class="card-meta"><strong>Length:</strong> ${escapeHtml(String(sailing.days))} days</p>
       </div>
       <div class="card-actions stacked-card-actions">
-        <button data-cy="view-itinerary-button" data-testid="view-itinerary-button" type="button">View Itinerary</button>
+        <button data-cy="view-itinerary-button" data-testid="view-itinerary-button" type="button">View Details</button>
         <button class="secondary" data-admin-only="true" data-cy="update-sailing-button" data-testid="update-sailing-button" type="button">Update Sailing</button>
         <button class="danger subtle-danger" data-admin-only="true" data-cy="delete-sailing-button" data-testid="delete-sailing-button" type="button">Delete Sailing</button>
       </div>
@@ -1770,7 +1846,7 @@ async function loadItinerary(sailingId, sailing) {
       panel.hidden = false
       focusSection('itinerary-panel')
     }
-    if (title) title.textContent = `${selectedShipNameForSailings || 'Ship'} Itinerary - ${formatSailingDate(sailing.departureDate)}`
+    if (title) title.textContent = `${selectedShipNameForSailings || sailing.ship?.name || 'Cruise'} Details - ${formatSailingDate(sailing.departureDate)}`
     if (grid) grid.innerHTML = '<p data-cy="itinerary-loading-message" data-testid="itinerary-loading-message">Loading itinerary...</p>'
 
     const res = await fetch(`${API_BASE}/sailings/${sailingId}/itinerary`)

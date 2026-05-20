@@ -234,7 +234,7 @@ describe('Sailings and itinerary UI', () => {
     cy.get(selectors.sailings.card).last().should('contain.text', 'Barcelona, Spain')
 
     cy.get(selectors.itinerary.panel).should('be.visible')
-    cy.get(selectors.itinerary.title).should('contain.text', 'Icon of the Seas Itinerary')
+    cy.get(selectors.itinerary.title).should('contain.text', 'Icon of the Seas Details')
     cy.get(selectors.itinerary.day).should('have.length', 3)
     cy.get(selectors.itinerary.daySummary).first().should('contain.text', 'Day 1')
     cy.get(selectors.itinerary.itineraryPort).first().should('contain.text', 'Miami, Florida')
@@ -306,7 +306,7 @@ describe('Sailings and itinerary UI', () => {
     cy.get(selectors.sailings.viewItineraryButton).last().click()
     cy.wait(`@getItinerary-${repositioningSailingId}`)
 
-    cy.get(selectors.itinerary.title).should('contain.text', 'Icon of the Seas Itinerary')
+    cy.get(selectors.itinerary.title).should('contain.text', 'Icon of the Seas Details')
     cy.get(selectors.itinerary.daySummary).first().should('contain.text', 'Day 1')
     cy.get(selectors.itinerary.grid).should('contain.text', 'Barcelona, Spain')
     cy.get(selectors.itinerary.grid).should('contain.text', 'King’s Wharf, Bermuda')

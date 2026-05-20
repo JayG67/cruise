@@ -2133,3 +2133,14 @@ code,
     padding: 1rem;
   }
 }
+
+
+.role-booking-actions {
+  display: flex;
+  margin-top: 1rem;
+}
+
+.role-booking-actions button {
+  width: 100%;
+  min-height: 36px;
+}

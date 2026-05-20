@@ -153,4 +153,45 @@ describe('Demo role selector UI', () => {
     cy.get(selectors.roleDashboard.bookingCard).should('not.exist')
   })
 
+  it('resets selected cruise workflow panels when switching demo roles', () => {
+    cy.get(selectors.cruiseLines.viewShipsButton).first().click()
+    cy.get(selectors.ships.panel).should('be.visible')
+    cy.get(selectors.ships.viewSailingsButton).first().click()
+    cy.get(selectors.sailings.panel).should('be.visible')
+    cy.get(selectors.sailings.viewDetailsButton).first().click()
+    cy.get(selectors.itinerary.panel).should('be.visible')
+
+    cy.get(selectors.demoRole.selector).select('UPASS00001')
+
+    cy.get(selectors.ships.panel).should('not.be.visible')
+    cy.get(selectors.sailings.panel).should('not.be.visible')
+    cy.get(selectors.itinerary.panel).should('not.be.visible')
+    cy.get(selectors.cruiseLines.card).should('have.length.greaterThan', 0)
+    cy.get(selectors.cruiseLines.viewShipsButton).first().should('be.visible')
+  })
+
+  it('opens cruise details from a passenger booked cruise card', () => {
+    cy.get(selectors.demoRole.selector).select('UPASS00001')
+
+    cy.get(selectors.roleDashboard.bookingCard).first().within(() => {
+      cy.get(selectors.roleDashboard.detailsButton)
+        .should('be.visible')
+        .and('contain.text', 'View Details')
+        .click()
+    })
+
+    cy.get(selectors.itinerary.panel).should('be.visible')
+    cy.get(selectors.itinerary.title).should('contain.text', 'Details')
+    cy.get(selectors.itinerary.day).should('have.length.greaterThan', 0)
+  })
+
+  it('labels sailing itinerary actions as future-ready cruise details', () => {
+    cy.get(selectors.cruiseLines.viewShipsButton).first().click()
+    cy.get(selectors.ships.viewSailingsButton).first().click()
+
+    cy.get(selectors.sailings.viewDetailsButton).first()
+      .should('be.visible')
+      .and('contain.text', 'View Details')
+  })
+
 })
