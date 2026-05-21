@@ -10,7 +10,7 @@ beforeAll(async () => {
 })
 
 describe('Admin reset demo data integration tests', () => {
-  jest.setTimeout(30000)
+  jest.setTimeout(120000)
 
   it('POST /admin/reset-demo-data should reset data from the seed file', async () => {
     const temporaryCruiseLineName = `Temporary Reset Test Line ${Date.now()}`

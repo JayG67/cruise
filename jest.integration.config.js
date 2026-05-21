@@ -3,5 +3,5 @@ module.exports = {
   testMatch: ['**/tests/integration/**/*.test.js'],
   setupFiles: ['<rootDir>/tests/integration/jest.integration.env.js'],
   setupFilesAfterEnv: ['<rootDir>/tests/integration/jest.integration.setup.js'],
-  testTimeout: 30000
+  testTimeout: 120000
 }

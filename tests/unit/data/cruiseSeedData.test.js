@@ -34,6 +34,31 @@ function getItineraryDays() {
   )
 }
 
+
+function addDays(dateString, daysToAdd) {
+  const date = new Date(`${dateString}T00:00:00.000Z`)
+  date.setUTCDate(date.getUTCDate() + daysToAdd)
+  return date
+}
+
+function sailingEndDate(sailing) {
+  return addDays(sailing.departureDate, Math.max(Number(sailing.days || 1) - 1, 0))
+}
+
+function bookingInterval(booking) {
+  const sailing = getSailings().find(({ ship, sailing }) =>
+    ship.name === booking.shipName && sailing.departureDate === booking.departureDate
+  )?.sailing
+
+  expect(sailing).toBeDefined()
+
+  return {
+    start: new Date(`${sailing.departureDate}T00:00:00.000Z`),
+    end: sailingEndDate(sailing)
+  }
+}
+
+
 function getActivities() {
   return getItineraryDays().flatMap(({ cruiseLine, ship, sailing, itineraryDay }) =>
     (itineraryDay.activitySchedule || []).map(activity => ({
@@ -79,6 +104,53 @@ describe('cruise seed data model integrity', () => {
       expect(ship.currentPort.trim()).not.toBe('')
       expect(ship.sailings).toHaveLength(5)
     })
+  })
+
+  it('uses disembarkation-focused itinerary details on the final day of every sailing', () => {
+    getSailings().forEach(({ sailing }) => {
+      const finalDay = [...sailing.itinerary].sort((a, b) => b.day - a.day)[0]
+      const activities = finalDay.activitySchedule.map(activity => `${activity.time} ${activity.activity}`).join(' ')
+
+      expect(finalDay.title).toMatch(/Disembarkation Day/)
+      expect(activities).toContain('8:00 AM All guests must vacate staterooms')
+      expect(activities).toContain('12:00 PM All passengers must be off the ship')
+    })
+  })
+
+  it('does not seed overlapping bookings for the same passenger', () => {
+    const bookingsByCustomer = new Map()
+
+    cruiseSeedData.bookings.forEach(booking => {
+      booking.passengers.forEach(passenger => {
+        bookingsByCustomer.set(
+          passenger.customerId,
+          [...(bookingsByCustomer.get(passenger.customerId) || []), booking]
+        )
+      })
+    })
+
+    bookingsByCustomer.forEach(bookings => {
+      const intervals = bookings
+        .map(booking => ({ ...bookingInterval(booking), bookingId: booking.id }))
+        .sort((a, b) => a.start - b.start)
+
+      for (let index = 1; index < intervals.length; index += 1) {
+        expect(intervals[index].start.getTime()).toBeGreaterThan(intervals[index - 1].end.getTime())
+      }
+    })
+  })
+
+
+  it('contains at least ten activity schedule items per itinerary day for richer passenger planning', () => {
+    getItineraryDays().forEach(({ itineraryDay }) => {
+      expect(itineraryDay.activitySchedule.length).toBeGreaterThanOrEqual(10)
+    })
+  })
+
+  it('includes common cruise theme and dress-night itinerary activities', () => {
+    const activities = getActivities().map(({ activity }) => activity.activity).join(' ')
+
+    expect(activities).toMatch(/Formal Night|White Party|Tropical Night|80s Night|Pirate Night|Elegant Evening|Glow Party/)
   })
 
   it('contains exactly one repositioning sailing per ship', () => {

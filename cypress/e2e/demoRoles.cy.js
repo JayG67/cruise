@@ -230,5 +230,107 @@ describe('Demo role selector UI', () => {
     })
   })
 
+  it('lets a passenger update limited profile and booking preference information', () => {
+    cy.intercept('PATCH', '/cruise/customers/*/passenger-profile').as('savePassengerProfile')
+
+    cy.get(selectors.demoRole.selector).find('option').should('have.length.at.least', 10)
+    cy.get(selectors.demoRole.selector).select('UPASS00001')
+
+    cy.get('[data-testid="passenger-profile-form"]').should('be.visible').within(() => {
+      cy.get('input[name="phone"]').clear().type('555-0101')
+      cy.get('[data-testid="dining-preference-select"]').select('Late seating')
+      cy.get('[data-testid="passenger-profile-submit-button"]').click()
+    })
+
+    cy.wait('@savePassengerProfile')
+      .its('response.statusCode')
+      .should('eq', 200)
+
+    cy.get('[data-testid="passenger-profile-form"]', { timeout: 10000 }).within(() => {
+      cy.get('input[name="phone"]').should('have.value', '555-0101')
+      cy.get('[data-testid="dining-preference-select"]').should('have.value', 'Late seating')
+    })
+  })
+
+
+  it('keeps the passenger profile save button compact while remaining usable', () => {
+    cy.get(selectors.demoRole.selector).select('UPASS00001')
+
+    cy.get('[data-testid="passenger-profile-submit-button"]').then($button => {
+      const rect = $button[0].getBoundingClientRect()
+
+      expect(rect.height).to.be.greaterThan(36)
+      expect(rect.width).to.be.lessThan(220)
+    })
+  })
+
+
+  it('lets a passenger save itinerary favorites and filter to favorite items', () => {
+    cy.get(selectors.demoRole.selector).find('option').should('have.length.at.least', 10)
+    cy.get(selectors.demoRole.selector).select('UPASS00001')
+
+    cy.get(selectors.roleDashboard.bookingCard).first().within(() => {
+      cy.get(selectors.roleDashboard.detailsButton).click()
+      cy.get('[data-cy="inline-itinerary-activity"]').should('have.length.at.least', 10)
+      cy.get('[data-cy="favorite-toggle-button"]')
+        .first()
+        .should('have.attr', 'role', 'checkbox')
+        .and('have.attr', 'aria-checked', 'false')
+        .click()
+
+      cy.get('[data-cy="show-favorite-itinerary-button"]').click()
+      cy.get('[data-cy="inline-itinerary-activity"]').should('have.length.at.least', 1)
+      cy.get('[data-cy="favorite-toggle-button"]')
+        .first()
+        .should('have.attr', 'aria-checked', 'true')
+        .and('have.class', 'is-favorite')
+        .and('contain.text', '★')
+    })
+  })
+
+  it('keeps multiple booking detail panels open and lets passengers hide each panel', () => {
+    cy.get(selectors.demoRole.selector).find('option').should('have.length.at.least', 10)
+    cy.get(selectors.demoRole.selector).select('UPASS00001')
+
+    cy.get(selectors.roleDashboard.bookingCard).should('have.length.at.least', 2)
+
+    cy.get(selectors.roleDashboard.bookingCard).eq(0).as('firstBooking')
+    cy.get(selectors.roleDashboard.bookingCard).eq(1).as('secondBooking')
+
+    cy.get('@firstBooking').within(() => {
+      cy.get(selectors.roleDashboard.detailsButton)
+        .should('contain.text', 'View Details')
+        .and('have.attr', 'aria-expanded', 'false')
+        .click()
+        .should('contain.text', 'Hide Details')
+        .and('have.attr', 'aria-expanded', 'true')
+
+      cy.get(selectors.roleDashboard.inlineDetails).should('be.visible')
+    })
+
+    cy.get('@secondBooking').within(() => {
+      cy.get(selectors.roleDashboard.detailsButton)
+        .should('contain.text', 'View Details')
+        .click()
+        .should('contain.text', 'Hide Details')
+
+      cy.get(selectors.roleDashboard.inlineDetails).should('be.visible')
+    })
+
+    cy.get('@firstBooking').within(() => {
+      cy.get(selectors.roleDashboard.inlineDetails).should('be.visible')
+      cy.get(selectors.roleDashboard.detailsButton)
+        .click()
+        .should('contain.text', 'View Details')
+        .and('have.attr', 'aria-expanded', 'false')
+
+      cy.get(selectors.roleDashboard.inlineDetails).should('not.be.visible')
+    })
+
+    cy.get('@secondBooking').within(() => {
+      cy.get(selectors.roleDashboard.inlineDetails).should('be.visible')
+    })
+  })
+
 
 })

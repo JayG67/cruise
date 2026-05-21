@@ -21,6 +21,27 @@ let selectedSailingForItinerary = null
 let demoUsers = []
 let activeDemoUser = null
 let activeDemoContext = null
+
+
+const DINING_PREFERENCE_OPTIONS = [
+  "Early seating",
+  "Late seating",
+  "Anytime dining",
+  "My Time dining",
+  "Freestyle dining",
+  "Rotational dining",
+  "Flexible dining",
+  "Special dietary request",
+  "Kids menu"
+]
+
+function renderDiningPreferenceOptions(selectedPreference = '') {
+  return DINING_PREFERENCE_OPTIONS
+    .map(option => `<option value="${escapeHtml(option)}" ${option === selectedPreference ? 'selected' : ''}>${escapeHtml(option)}</option>`)
+    .join('')
+}
+
+
 let pendingFocusTarget = null
 
 
@@ -39,6 +60,78 @@ function renderInlineBookingDetailsContainer(bookingId) {
       ></div>
     </div>
   `
+}
+
+
+
+function getActiveCustomerId() {
+  return activeDemoContext?.customer?.id || activeDemoUser?.customerId || ''
+}
+
+function renderPassengerSelfServicePanel(context) {
+  const customer = context.customer || {}
+  const canEdit = Boolean(customer.id)
+
+  if (!canEdit) return ''
+
+  return `
+    <section class="passenger-self-service" data-cy="passenger-self-service-panel" data-testid="passenger-self-service-panel">
+      <h4>My travel profile</h4>
+      <p>Passengers can update limited contact and cruise preference information for the demo booking experience.</p>
+      <form class="passenger-profile-form" data-cy="passenger-profile-form" data-testid="passenger-profile-form">
+        <label><span>First name</span><input name="firstName" value="${escapeHtml(customer.firstName || '')}" required /></label>
+        <label><span>Last name</span><input name="lastName" value="${escapeHtml(customer.lastName || '')}" required /></label>
+        <label><span>Email</span><input name="email" type="email" value="${escapeHtml(customer.email || '')}" required /></label>
+        <label><span>Phone</span><input name="phone" value="${escapeHtml(customer.phone || '')}" /></label>
+        <label><span>Dining preference</span><select name="diningPreference" data-cy="dining-preference-select" data-testid="dining-preference-select">${renderDiningPreferenceOptions(context.bookings?.[0]?.passengers?.find(passenger => passenger.customerId === customer.id)?.diningPreference || 'Anytime dining')}</select></label>
+        <label><span>Accessibility notes</span><input name="accessibilityNotes" value="${escapeHtml(context.bookings?.[0]?.passengers?.find(passenger => passenger.customerId === customer.id)?.accessibilityNotes || '')}" /></label>
+        <button type="submit" data-cy="passenger-profile-submit-button" data-testid="passenger-profile-submit-button">Save profile</button>
+        <p class="form-message" data-cy="passenger-profile-message" data-testid="passenger-profile-message"></p>
+      </form>
+    </section>
+  `
+}
+
+async function savePassengerProfile(event) {
+  event.preventDefault()
+
+  const form = event.currentTarget
+  const customerId = getActiveCustomerId()
+  const message = form.querySelector('[data-cy="passenger-profile-message"]')
+
+  if (!customerId) return
+
+  const formData = new FormData(form)
+  const payload = {
+    firstName: getTrimmedFormValue(formData, 'firstName'),
+    lastName: getTrimmedFormValue(formData, 'lastName'),
+    email: getTrimmedFormValue(formData, 'email'),
+    phone: getTrimmedFormValue(formData, 'phone'),
+    diningPreference: getTrimmedFormValue(formData, 'diningPreference'),
+    accessibilityNotes: getTrimmedFormValue(formData, 'accessibilityNotes')
+  }
+
+  try {
+    if (message) message.textContent = 'Saving profile...'
+
+    const response = await fetch(`${API_BASE}/customers/${customerId}/passenger-profile`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+
+    const result = await parseJsonResponse(response)
+
+    if (!response.ok) {
+      throw new Error(result.message || `Profile update failed with status ${response.status}`)
+    }
+
+    if (message) message.textContent = result.message || 'Profile saved.'
+    await loadDemoUserContext(activeDemoUser.id)
+  } catch (error) {
+    console.error(error)
+    if (message) message.textContent = error.message || 'Could not save profile.'
+  }
 }
 
 
@@ -279,6 +372,7 @@ function renderRoleBookingDashboard(context, errorMessage = '') {
   const visibility = context.visibility || {}
 
   dashboard.hidden = false
+  document.querySelectorAll('[data-cy="passenger-self-service-panel"]').forEach(panel => panel.remove())
   grid.innerHTML = ''
 
   if (user.role === 'ADMIN') {
@@ -301,6 +395,10 @@ function renderRoleBookingDashboard(context, errorMessage = '') {
     grid.appendChild(card)
     return
   }
+
+  grid.insertAdjacentHTML('beforebegin', renderPassengerSelfServicePanel(context))
+  const profileForm = document.querySelector('[data-cy="passenger-profile-form"]')
+  if (profileForm) profileForm.addEventListener('submit', savePassengerProfile)
 
   if (title) title.textContent = `${formatDemoRole(user.role)} booking dashboard`
   if (description) {
@@ -348,7 +446,7 @@ function renderRoleBookingDashboard(context, errorMessage = '') {
         <ul>${passengerItems}</ul>
       </div>
       <div class="role-booking-actions">
-        <button type="button" data-cy="role-booking-details-button" data-testid="role-booking-details-button">View Details</button>
+        <button type="button" data-cy="role-booking-details-button" data-testid="role-booking-details-button" aria-expanded="false">View Details</button>
       </div>
 
       ${renderInlineBookingDetailsContainer(booking.bookingId || booking.id || booking.sailing?.id || 'booking')}
@@ -357,7 +455,7 @@ function renderRoleBookingDashboard(context, errorMessage = '') {
     const detailsButton = card.querySelector('[data-cy="role-booking-details-button"]')
 
     if (detailsButton && booking.sailing?.id) {
-      detailsButton.addEventListener('click', () => loadBookingCruiseDetails(booking))
+      detailsButton.addEventListener('click', () => toggleBookingCruiseDetails(booking, detailsButton))
     } else if (detailsButton) {
       detailsButton.disabled = true
       detailsButton.textContent = 'Details unavailable'
@@ -368,10 +466,27 @@ function renderRoleBookingDashboard(context, errorMessage = '') {
 }
 
 
-async function loadBookingCruiseDetails(booking) {
+function toggleBookingCruiseDetails(booking, detailsButton) {
+  const bookingKey = booking.bookingId || booking.id || booking.sailing?.id
+  const detailsContainer = document.getElementById(`inline-booking-details-${bookingKey}`)
+
+  if (detailsContainer && !detailsContainer.hidden) {
+    detailsContainer.hidden = true
+    detailsButton.textContent = 'View Details'
+    detailsButton.setAttribute('aria-expanded', 'false')
+    return
+  }
+
+  detailsButton.textContent = 'Hide Details'
+  detailsButton.setAttribute('aria-expanded', 'true')
+  loadBookingCruiseDetails(booking)
+}
+
+async function loadBookingCruiseDetails(booking, favoritesOnly = false) {
   if (!booking?.sailing?.id) return
 
   const bookingKey = booking.bookingId || booking.id || booking.sailing.id
+  const customerId = getActiveCustomerId()
   const detailsContainer = document.getElementById(`inline-booking-details-${bookingKey}`)
   const detailsContent = document.getElementById(`inline-booking-details-content-${bookingKey}`)
 
@@ -384,72 +499,109 @@ async function loadBookingCruiseDetails(booking) {
     return
   }
 
-  document.querySelectorAll('[data-testid="inline-booking-details"]').forEach(container => {
-    if (container !== detailsContainer) {
-      container.hidden = true
-    }
-  })
-
   detailsContainer.hidden = false
   detailsContent.innerHTML = '<p class="inline-details-loading">Loading cruise details...</p>'
 
   try {
-    const response = await fetch(`${API_BASE}/sailings/${booking.sailing.id}/itinerary`)
+    const query = new URLSearchParams()
+    if (customerId) query.set('customerId', customerId)
+    if (favoritesOnly) query.set('favoritesOnly', 'true')
 
-    if (!response.ok) {
-      throw new Error(`Cruise details request failed with status ${response.status}`)
-    }
+    const response = await fetch(`${API_BASE}/sailings/${booking.sailing.id}/itinerary?${query.toString()}`)
+
+    if (!response.ok) throw new Error(`Cruise details request failed with status ${response.status}`)
 
     const itineraryDays = await response.json()
 
-    if (!Array.isArray(itineraryDays) || itineraryDays.length === 0) {
-      detailsContent.innerHTML = '<p class="empty-message">No cruise details are available for this booked sailing yet.</p>'
-      focusSection(`inline-booking-details-${bookingKey}`)
-      return
-    }
+    const itineraryMarkup = Array.isArray(itineraryDays) && itineraryDays.length
+      ? itineraryDays.map(day => {
+        const activities = (day.activitySchedule || [])
+          .map(activity => `
+            <li class="inline-itinerary-activity" data-testid="inline-itinerary-activity" data-cy="inline-itinerary-activity">
+              <span><strong>${escapeHtml(activity.time)}</strong> ${escapeHtml(activity.activity)}</span>
+              <button
+                type="button"
+                class="favorite-toggle star-favorite-checkbox ${activity.isFavorite ? 'is-favorite' : ''}"
+                role="checkbox"
+                aria-checked="${activity.isFavorite ? 'true' : 'false'}"
+                aria-label="${activity.isFavorite ? 'Remove favorite' : 'Save favorite'}: ${escapeHtml(activity.activity)}"
+                title="${activity.isFavorite ? 'Remove favorite' : 'Save favorite'}"
+                data-testid="favorite-toggle-button"
+                data-cy="favorite-toggle-button"
+                data-activity-id="${escapeHtml(activity.id)}"
+                data-is-favorite="${activity.isFavorite ? 'true' : 'false'}"
+              >
+                <span aria-hidden="true">${activity.isFavorite ? '★' : '☆'}</span>
+                <span class="sr-only">${activity.isFavorite ? 'Saved favorite' : 'Save favorite'}</span>
+              </button>
+            </li>
+          `)
+          .join('')
 
-    const itineraryMarkup = itineraryDays.map(day => {
-      const activities = (day.activitySchedule || [])
-        .map(activity => `
-          <li>
-            <span class="activity-time">${escapeHtml(activity.time)}</span>
-            <span class="activity-name">${escapeHtml(activity.activity)}</span>
-          </li>
-        `)
-        .join('')
-
-      return `
-        <article class="inline-itinerary-day" data-cy="inline-itinerary-day" data-testid="inline-itinerary-day">
-          <h5>Day ${escapeHtml(String(day.day))}: ${escapeHtml(day.title)}</h5>
-          <p class="inline-itinerary-port">${escapeHtml(day.port)}</p>
-          <ul class="inline-itinerary-activities">
-            ${activities}
-          </ul>
-        </article>
-      `
-    }).join('')
+        return `
+          <article class="inline-itinerary-day" data-cy="inline-itinerary-day" data-testid="inline-itinerary-day">
+            <h5>Day ${escapeHtml(String(day.day))}: ${escapeHtml(day.title)}</h5>
+            <p class="inline-itinerary-port">${escapeHtml(day.port)}</p>
+            <ul class="inline-itinerary-activities">${activities}</ul>
+          </article>
+        `
+      }).join('')
+      : '<p class="empty-message">No favorite itinerary items yet. Switch back to all activities to save some favorites.</p>'
 
     detailsContent.innerHTML = `
       <section class="inline-booking-details-panel">
         <header class="inline-booking-details-header">
           <h4>${escapeHtml(booking.ship?.name || 'Cruise')} Details</h4>
           <p>${escapeHtml(booking.embarkationPort || booking.sailing.departurePort || '')} → ${escapeHtml(booking.debarkationPort || booking.sailing.arrivalPort || '')}</p>
+          <div class="itinerary-filter-actions">
+            <button type="button" data-cy="show-all-itinerary-button" data-testid="show-all-itinerary-button">All itinerary items</button>
+            <button type="button" data-cy="show-favorite-itinerary-button" data-testid="show-favorite-itinerary-button">My favorites</button>
+          </div>
         </header>
-
-        <div class="inline-booking-itinerary">
-          ${itineraryMarkup}
-        </div>
+        <div class="inline-booking-itinerary">${itineraryMarkup}</div>
       </section>
     `
+
+    detailsContent.querySelector('[data-cy="show-all-itinerary-button"]')?.addEventListener('click', () => loadBookingCruiseDetails(booking, false))
+    detailsContent.querySelector('[data-cy="show-favorite-itinerary-button"]')?.addEventListener('click', () => loadBookingCruiseDetails(booking, true))
+    detailsContent.querySelectorAll('[data-cy="favorite-toggle-button"]').forEach(button => {
+      button.addEventListener('click', () => toggleItineraryFavorite(button, booking, favoritesOnly))
+    })
+
     focusSection(`inline-booking-details-${bookingKey}`)
   } catch (error) {
     console.error(error)
-    detailsContent.innerHTML = `
-      <div class="inline-booking-details-error">
-        Unable to load cruise details.
-      </div>
-    `
+    detailsContent.innerHTML = '<div class="inline-booking-details-error">Unable to load cruise details.</div>'
   }
+}
+
+async function toggleItineraryFavorite(button, booking, favoritesOnly = false) {
+  const customerId = getActiveCustomerId()
+  const activityScheduleId = button.dataset.activityId
+  const isFavorite = button.dataset.isFavorite === 'true'
+
+  if (!customerId || !activityScheduleId) return
+
+  const url = isFavorite
+    ? `${API_BASE}/itinerary-favorites/${customerId}/${activityScheduleId}`
+    : `${API_BASE}/itinerary-favorites`
+
+  const options = isFavorite
+    ? { method: 'DELETE' }
+    : {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ customerId, activityScheduleId })
+    }
+
+  const response = await fetch(url, options)
+
+  if (!response.ok) {
+    const result = await parseJsonResponse(response)
+    throw new Error(result.message || 'Could not update itinerary favorite.')
+  }
+
+  await loadBookingCruiseDetails(booking, favoritesOnly)
 }
 
 function formatDemoRole(role) {

@@ -7,8 +7,100 @@ const customerTable = require('../models/customer.model')
 const bookingTable = require('../models/booking.model')
 const bookingPassengerTable = require('../models/bookingPassenger.model')
 const demoUserTable = require('../models/demoUser.model')
+const customerItineraryFavoriteTable = require('../models/customerItineraryFavorite.model')
 const db = require('../db')
 const { eq, inArray } = require('drizzle-orm')
+
+
+
+function addDays(dateString, daysToAdd) {
+  const date = new Date(`${dateString}T00:00:00.000Z`)
+  date.setUTCDate(date.getUTCDate() + daysToAdd)
+  return date
+}
+
+function sailingEndDate(sailing) {
+  const days = Number(sailing?.days || 1)
+  return addDays(sailing.departureDate, Math.max(days - 1, 0))
+}
+
+function rangesOverlap(startA, endA, startB, endB) {
+  return startA <= endB && startB <= endA
+}
+
+async function findBookingOverlapForPassengers({ bookingIdToExclude, sailing, passengers }) {
+  const requestedStart = new Date(`${sailing.departureDate}T00:00:00.000Z`)
+  const requestedEnd = sailingEndDate(sailing)
+  const passengerIds = passengers.map(passenger => passenger.customerId)
+
+  for (const customerId of passengerIds) {
+    const passengerRows = await db
+      .select()
+      .from(bookingPassengerTable)
+      .where(eq(bookingPassengerTable.customerId, customerId))
+
+    for (const passengerRow of passengerRows) {
+      if (bookingIdToExclude && passengerRow.bookingId === bookingIdToExclude) {
+        continue
+      }
+
+      const existingBookings = await db
+        .select()
+        .from(bookingTable)
+        .where(eq(bookingTable.id, passengerRow.bookingId))
+        .limit(1)
+
+      const existingBooking = existingBookings[0]
+      if (!existingBooking) continue
+
+      const existingSailings = await db
+        .select()
+        .from(sailingTable)
+        .where(eq(sailingTable.id, existingBooking.sailingId))
+        .limit(1)
+
+      const existingSailing = existingSailings[0]
+      if (!existingSailing) continue
+
+      const existingStart = new Date(`${existingSailing.departureDate}T00:00:00.000Z`)
+      const existingEnd = sailingEndDate(existingSailing)
+
+      if (rangesOverlap(requestedStart, requestedEnd, existingStart, existingEnd)) {
+        return {
+          customerId,
+          bookingId: existingBooking.id,
+          departureDate: existingSailing.departureDate
+        }
+      }
+    }
+  }
+
+  return null
+}
+
+
+async function getCustomerFavoriteActivityIds(customerId) {
+  if (!customerId) return new Set()
+
+  const rows = await db
+    .select()
+    .from(customerItineraryFavoriteTable)
+    .where(eq(customerItineraryFavoriteTable.customerId, customerId))
+
+  return new Set(rows.map(row => row.activityScheduleId))
+}
+
+async function decorateItineraryWithFavorites(itineraryDays, customerId) {
+  const favoriteIds = await getCustomerFavoriteActivityIds(customerId)
+
+  return itineraryDays.map(day => ({
+    ...day,
+    activitySchedule: (day.activitySchedule || []).map(activity => ({
+      ...activity,
+      isFavorite: favoriteIds.has(activity.id)
+    }))
+  }))
+}
 
 exports.getCruiseLines = async (req, res, next) => {
   try {
@@ -370,6 +462,7 @@ exports.getSailingsByShip = async (req, res, next) => {
 exports.getItineraryBySailing = async (req, res, next) => {
   try {
     const { sailingId } = req.params
+    const { customerId, favoritesOnly } = req.query
 
     const itineraryDays = await db
       .select()
@@ -380,6 +473,7 @@ exports.getItineraryBySailing = async (req, res, next) => {
       return res.status(404).json({ message: 'No itinerary found for the specified sailing' })
     }
 
+    const favoriteIds = await getCustomerFavoriteActivityIds(customerId)
     const itineraryWithActivities = []
 
     for (const itineraryDay of itineraryDays.sort((a, b) => a.day - b.day)) {
@@ -388,10 +482,27 @@ exports.getItineraryBySailing = async (req, res, next) => {
         .from(activityScheduleTable)
         .where(eq(activityScheduleTable.itineraryDayId, itineraryDay.id))
 
+      const decoratedActivities = activitySchedule.map(activity => ({
+        ...activity,
+        isFavorite: favoriteIds.has(activity.id)
+      }))
+
+      const visibleActivities = favoritesOnly === 'true'
+        ? decoratedActivities.filter(activity => activity.isFavorite)
+        : decoratedActivities
+
+      if (favoritesOnly === 'true' && visibleActivities.length === 0) {
+        continue
+      }
+
       itineraryWithActivities.push({
         ...itineraryDay,
-        activitySchedule
+        activitySchedule: visibleActivities
       })
+    }
+
+    if (!itineraryWithActivities.length) {
+      return res.status(404).json({ message: 'No itinerary found for the specified sailing' })
     }
 
     return res.status(200).json(itineraryWithActivities)
@@ -1065,6 +1176,17 @@ exports.insertBooking = async (req, res, next) => {
       return res.status(400).json({ message: 'Booking must include exactly one primary guest' })
     }
 
+    const overlappingBooking = await findBookingOverlapForPassengers({
+      sailing: sailingRows[0],
+      passengers
+    })
+
+    if (overlappingBooking) {
+      return res.status(400).json({
+        message: `Passenger ${overlappingBooking.customerId} already has booking ${overlappingBooking.bookingId} overlapping this sailing`
+      })
+    }
+
     await db.transaction(async tx => {
       await tx.insert(bookingTable).values({
         id,
@@ -1158,6 +1280,18 @@ exports.updateBooking = async (req, res, next) => {
       return res.status(400).json({ message: 'Booking must include exactly one primary guest' })
     }
 
+    const overlappingBooking = await findBookingOverlapForPassengers({
+      bookingIdToExclude: id,
+      sailing: sailingRows[0],
+      passengers
+    })
+
+    if (overlappingBooking) {
+      return res.status(400).json({
+        message: `Passenger ${overlappingBooking.customerId} already has booking ${overlappingBooking.bookingId} overlapping this sailing`
+      })
+    }
+
     await db.transaction(async tx => {
       await tx
         .update(bookingTable)
@@ -1191,6 +1325,94 @@ exports.updateBooking = async (req, res, next) => {
     })
 
     return res.status(200).json({ message: 'Booking updated successfully' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+
+exports.updatePassengerSelfServiceProfile = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const { firstName, lastName, email, phone, diningPreference, accessibilityNotes } = req.body
+
+    const existingRows = await db
+      .select()
+      .from(customerTable)
+      .where(eq(customerTable.id, id))
+      .limit(1)
+
+    if (!existingRows[0]) {
+      return res.status(404).json({ message: 'Customer not found' })
+    }
+
+    await db
+      .update(customerTable)
+      .set({ firstName, lastName, email, phone })
+      .where(eq(customerTable.id, id))
+
+    await db
+      .update(bookingPassengerTable)
+      .set({ diningPreference, accessibilityNotes })
+      .where(eq(bookingPassengerTable.customerId, id))
+
+    return res.status(200).json({ message: 'Passenger profile updated successfully' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.updatePassengerBookingPreferences = async (req, res, next) => {
+  try {
+    const { bookingId, customerId } = req.params
+    const { diningPreference, accessibilityNotes } = req.body
+
+    const existingRows = await db
+      .select()
+      .from(bookingPassengerTable)
+      .where(eq(bookingPassengerTable.id, `${bookingId}-${customerId}`))
+      .limit(1)
+
+    if (!existingRows[0]) {
+      return res.status(404).json({ message: 'Booking passenger not found' })
+    }
+
+    await db
+      .update(bookingPassengerTable)
+      .set({ diningPreference, accessibilityNotes })
+      .where(eq(bookingPassengerTable.id, `${bookingId}-${customerId}`))
+
+    return res.status(200).json({ message: 'Booking preferences updated successfully' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.addItineraryFavorite = async (req, res, next) => {
+  try {
+    const { customerId, activityScheduleId } = req.body
+    const id = `${customerId}-${activityScheduleId}`
+
+    await db
+      .insert(customerItineraryFavoriteTable)
+      .values({ id, customerId, activityScheduleId })
+      .onConflictDoNothing()
+
+    return res.status(201).json({ message: 'Itinerary favorite saved successfully', id })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.deleteItineraryFavorite = async (req, res, next) => {
+  try {
+    const { customerId, activityScheduleId } = req.params
+
+    await db
+      .delete(customerItineraryFavoriteTable)
+      .where(eq(customerItineraryFavoriteTable.id, `${customerId}-${activityScheduleId}`))
+
+    return res.status(200).json({ message: 'Itinerary favorite removed successfully' })
   } catch (err) {
     next(err)
   }
@@ -1264,6 +1486,24 @@ exports.addBookingPassenger = async (req, res, next) => {
 
     if (existingPassengerRows[0]) {
       return res.status(400).json({ message: 'Customer is already on this booking' })
+    }
+
+    const sailingRows = await db
+      .select()
+      .from(sailingTable)
+      .where(eq(sailingTable.id, bookingRows[0].sailingId))
+      .limit(1)
+
+    const overlappingBooking = await findBookingOverlapForPassengers({
+      bookingIdToExclude: bookingId,
+      sailing: sailingRows[0],
+      passengers: [{ customerId }]
+    })
+
+    if (overlappingBooking) {
+      return res.status(400).json({
+        message: `Passenger ${overlappingBooking.customerId} already has booking ${overlappingBooking.bookingId} overlapping this sailing`
+      })
     }
 
     await db.insert(bookingPassengerTable).values({

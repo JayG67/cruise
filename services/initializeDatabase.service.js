@@ -103,6 +103,14 @@ async function initializeDatabase() {
     );
   `)
 
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS customer_itinerary_favorites (
+      id varchar(60) PRIMARY KEY,
+      "customerId" varchar(10) NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+      "activityScheduleId" uuid NOT NULL REFERENCES activity_schedules(id) ON DELETE CASCADE
+    );
+  `)
+
 
 
   await db.execute(sql`

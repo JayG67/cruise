@@ -11,7 +11,10 @@ const {
   activityScheduleSchema,
   customerSchema,
   bookingSchema,
-  bookingPassengerCreateSchema
+  bookingPassengerCreateSchema,
+  passengerCustomerUpdateSchema,
+  bookingPreferenceUpdateSchema,
+  itineraryFavoriteSchema
 } = require('../validation/cruise.validation')
 
 const router = express.Router()
@@ -81,6 +84,31 @@ router.delete(
   '/customers/:id',
   cruiseController.deleteCustomer
 )
+
+
+router.patch(
+  '/customers/:id/passenger-profile',
+  validate(passengerCustomerUpdateSchema),
+  cruiseController.updatePassengerSelfServiceProfile
+)
+
+router.patch(
+  '/bookings/:bookingId/passengers/:customerId/preferences',
+  validate(bookingPreferenceUpdateSchema),
+  cruiseController.updatePassengerBookingPreferences
+)
+
+router.post(
+  '/itinerary-favorites',
+  validate(itineraryFavoriteSchema),
+  cruiseController.addItineraryFavorite
+)
+
+router.delete(
+  '/itinerary-favorites/:customerId/:activityScheduleId',
+  cruiseController.deleteItineraryFavorite
+)
+
 
 router.post(
   '/bookings',

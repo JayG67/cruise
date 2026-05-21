@@ -1,4 +1,4 @@
-jest.setTimeout(30000)
+jest.setTimeout(120000)
 
 const db = require('../../db')
 

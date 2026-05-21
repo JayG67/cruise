@@ -160,7 +160,7 @@ const customerSchema = z.object({
     .optional()
 }).strict()
 
-const diningPreferenceValues = [
+const diningPreferenceOptions = [
   'Early seating',
   'Late seating',
   'Anytime dining',
@@ -172,10 +172,11 @@ const diningPreferenceValues = [
   'Kids menu'
 ]
 
-const diningPreferenceSchema = z.preprocess(
-  value => (typeof value === 'string' ? value.trim() : value),
-  z.enum(diningPreferenceValues).optional()
-)
+const diningPreferenceSchema = z
+  .string()
+  .trim()
+  .pipe(z.enum(diningPreferenceOptions))
+  .optional()
 
 const bookingPassengerSchema = z.object({
   customerId: customerIdSchema,

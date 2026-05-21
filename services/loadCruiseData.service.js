@@ -11,6 +11,26 @@ const customerTable = require('../models/customer.model')
 const bookingTable = require('../models/booking.model')
 const bookingPassengerTable = require('../models/bookingPassenger.model')
 const demoUserTable = require('../models/demoUser.model')
+const customerItineraryFavoriteTable = require('../models/customerItineraryFavorite.model')
+
+const SEED_FILE_PATH = path.join(__dirname, '..', 'data', 'cruise.json')
+
+let cachedCruiseData
+
+function readCruiseSeedData() {
+  if (!cachedCruiseData) {
+    const fileContents = fs.readFileSync(SEED_FILE_PATH, 'utf-8')
+    cachedCruiseData = JSON.parse(fileContents)
+  }
+
+  return cachedCruiseData
+}
+
+async function insertRows(tx, table, rows) {
+  if (!rows.length) return []
+
+  return tx.insert(table).values(rows).returning()
+}
 
 async function loadCruiseData() {
   let cruiseLineCount = 0
@@ -23,13 +43,12 @@ async function loadCruiseData() {
   let bookingPassengerCount = 0
   let demoUserCount = 0
 
-  const filePath = path.join(__dirname, '..', 'data', 'cruise.json')
-  const fileContents = fs.readFileSync(filePath, 'utf-8')
-  const cruiseData = JSON.parse(fileContents)
+  const cruiseData = readCruiseSeedData()
   const sailingIdBySeedKey = new Map()
 
   await db.transaction(async tx => {
     await tx.delete(demoUserTable)
+    await tx.delete(customerItineraryFavoriteTable)
     await tx.delete(bookingPassengerTable)
     await tx.delete(bookingTable)
     await tx.delete(customerTable)
@@ -83,44 +102,47 @@ async function loadCruiseData() {
           sailingIdBySeedKey.set(`${ship.name}|${sailing.departureDate}`, sailingId)
           sailingCount += 1
 
-          for (const itineraryDay of sailing.itinerary || []) {
-            const insertedItineraryDays = await tx
-              .insert(itineraryDayTable)
-              .values({
-                sailingId,
-                day: itineraryDay.day,
-                title: itineraryDay.title,
-                port: itineraryDay.port
-              })
-              .returning({ id: itineraryDayTable.id })
+          const itineraryRows = (sailing.itinerary || []).map(itineraryDay => ({
+            sailingId,
+            day: itineraryDay.day,
+            title: itineraryDay.title,
+            port: itineraryDay.port
+          }))
 
-            const itineraryDayId = insertedItineraryDays[0].id
-            itineraryDayCount += 1
+          const insertedItineraryDays = await insertRows(tx, itineraryDayTable, itineraryRows)
+          itineraryDayCount += insertedItineraryDays.length
 
-            for (const activity of itineraryDay.activitySchedule || []) {
-              await tx.insert(activityScheduleTable).values({
-                itineraryDayId,
+          const activityRows = []
+
+          insertedItineraryDays.forEach((insertedItineraryDay, index) => {
+            const sourceItineraryDay = sailing.itinerary[index]
+
+            for (const activity of sourceItineraryDay.activitySchedule || []) {
+              activityRows.push({
+                itineraryDayId: insertedItineraryDay.id,
                 time: activity.time,
                 activity: activity.activity
               })
-              activityCount += 1
             }
-          }
+          })
+
+          await insertRows(tx, activityScheduleTable, activityRows)
+          activityCount += activityRows.length
         }
       }
     }
 
-    for (const customer of cruiseData.customers || []) {
-      await tx.insert(customerTable).values({
-        id: customer.id,
-        firstName: customer.firstName,
-        lastName: customer.lastName,
-        email: customer.email,
-        phone: customer.phone,
-        loyaltyNumber: customer.loyaltyNumber
-      })
-      customerCount += 1
-    }
+    const customerRows = (cruiseData.customers || []).map(customer => ({
+      id: customer.id,
+      firstName: customer.firstName,
+      lastName: customer.lastName,
+      email: customer.email,
+      phone: customer.phone,
+      loyaltyNumber: customer.loyaltyNumber
+    }))
+
+    await insertRows(tx, customerTable, customerRows)
+    customerCount += customerRows.length
 
     for (const booking of cruiseData.bookings || []) {
       const sailingId = booking.sailingId || sailingIdBySeedKey.get(`${booking.shipName}|${booking.departureDate}`)
@@ -141,19 +163,19 @@ async function loadCruiseData() {
       })
       bookingCount += 1
 
-      for (const passenger of booking.passengers || []) {
-        await tx.insert(bookingPassengerTable).values({
-          id: `${booking.id}-${passenger.customerId}`,
-          bookingId: booking.id,
-          customerId: passenger.customerId,
-          passengerRole: passenger.passengerRole,
-          isPrimaryGuest: Boolean(passenger.isPrimaryGuest),
-          diningPreference: passenger.diningPreference,
-          accessibilityNotes: passenger.accessibilityNotes,
-          boardingGroup: passenger.boardingGroup
-        })
-        bookingPassengerCount += 1
-      }
+      const bookingPassengerRows = (booking.passengers || []).map(passenger => ({
+        id: `${booking.id}-${passenger.customerId}`,
+        bookingId: booking.id,
+        customerId: passenger.customerId,
+        passengerRole: passenger.passengerRole,
+        isPrimaryGuest: Boolean(passenger.isPrimaryGuest),
+        diningPreference: passenger.diningPreference,
+        accessibilityNotes: passenger.accessibilityNotes,
+        boardingGroup: passenger.boardingGroup
+      }))
+
+      await insertRows(tx, bookingPassengerTable, bookingPassengerRows)
+      bookingPassengerCount += bookingPassengerRows.length
     }
 
     for (const demoUser of cruiseData.demoUsers || []) {

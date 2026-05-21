@@ -303,7 +303,9 @@ test.describe('Cruise Explorer mobile role and passenger dashboard quality check
     const firstBookingCard = page.getByTestId('role-booking-card').first()
     await expect(firstBookingCard).toBeVisible()
 
+    await expect(firstBookingCard.getByTestId('role-booking-details-button')).toContainText('View Details')
     await firstBookingCard.getByTestId('role-booking-details-button').click()
+    await expect(firstBookingCard.getByTestId('role-booking-details-button')).toContainText('Hide Details')
 
     await expect(firstBookingCard.getByTestId('inline-booking-details')).toBeVisible()
     await expect(firstBookingCard.getByTestId('inline-itinerary-day').first()).toBeVisible()
@@ -339,6 +341,84 @@ test.describe('Cruise Explorer mobile role and passenger dashboard quality check
     expect(options.join(' ')).toContain('Parker Family')
     expect(options.join(' ')).toContain('Kim Couple')
     expect(options.join(' ')).toContain('Grace Thompson')
+  })
+
+
+  test('keeps multiple booked cruise detail panels open and supports hide details on mobile', async ({ page }) => {
+    await openRoleDashboard(page)
+    await selectDemoRole(page, 'UPASS00001', 'Jay Gallagher Passenger View')
+
+    const firstBookingCard = page.getByTestId('role-booking-card').nth(0)
+    const secondBookingCard = page.getByTestId('role-booking-card').nth(1)
+
+    await expect(firstBookingCard).toBeVisible()
+    await expect(secondBookingCard).toBeVisible()
+
+    await firstBookingCard.getByTestId('role-booking-details-button').click()
+    await secondBookingCard.getByTestId('role-booking-details-button').click()
+
+    await expect(firstBookingCard.getByTestId('inline-booking-details')).toBeVisible()
+    await expect(secondBookingCard.getByTestId('inline-booking-details')).toBeVisible()
+
+    await firstBookingCard.getByTestId('role-booking-details-button').click()
+
+    await expect(firstBookingCard.getByTestId('inline-booking-details')).toBeHidden()
+    await expect(firstBookingCard.getByTestId('role-booking-details-button')).toContainText('View Details')
+    await expect(secondBookingCard.getByTestId('inline-booking-details')).toBeVisible()
+    await expect(secondBookingCard.getByTestId('role-booking-details-button')).toContainText('Hide Details')
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('renders passenger dining preference as a mobile-friendly dropdown with compact save control', async ({ page }) => {
+    await openRoleDashboard(page)
+    await selectDemoRole(page, 'UPASS00001', 'Jay Gallagher Passenger View')
+
+    const profileForm = page.getByTestId('passenger-profile-form')
+    const diningPreference = page.getByTestId('dining-preference-select')
+    const saveButton = page.getByTestId('passenger-profile-submit-button')
+
+    await expect(profileForm).toBeVisible()
+    await expect(diningPreference).toBeVisible()
+    await expect(diningPreference.locator('option')).toHaveCount(9)
+
+    await diningPreference.selectOption('Late seating')
+    await expect(diningPreference).toHaveValue('Late seating')
+
+    const box = await saveButton.boundingBox()
+    expect(box).not.toBeNull()
+    expect(box.height).toBeGreaterThanOrEqual(36)
+    expect(box.width).toBeLessThanOrEqual(220)
+
+    await expectNoHorizontalOverflow(page)
+  })
+
+
+  test('renders itinerary favorites as star checkbox controls on mobile', async ({ page }) => {
+    await openRoleDashboard(page)
+    await selectDemoRole(page, 'UPASS00001', 'Jay Gallagher Passenger View')
+
+    const firstBookingCard = page.getByTestId('role-booking-card').first()
+    await firstBookingCard.getByTestId('role-booking-details-button').click()
+
+    const firstFavorite = firstBookingCard.getByTestId('favorite-toggle-button').first()
+
+    await expect(firstFavorite).toHaveAttribute('role', 'checkbox')
+
+    const initialFavoriteState = await firstFavorite.getAttribute('aria-checked')
+
+    if (initialFavoriteState === 'true') {
+      await firstFavorite.click()
+      await expect(firstFavorite).toHaveAttribute('aria-checked', 'false')
+    }
+
+    await firstFavorite.click()
+
+    await firstBookingCard.getByTestId('show-favorite-itinerary-button').click()
+
+    const savedFavorite = firstBookingCard.getByTestId('favorite-toggle-button').first()
+    await expect(savedFavorite).toHaveAttribute('aria-checked', 'true')
+    await expect(savedFavorite).toContainText('★')
+    await expectNoHorizontalOverflow(page)
   })
 
 

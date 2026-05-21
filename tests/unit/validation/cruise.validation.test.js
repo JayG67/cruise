@@ -496,4 +496,23 @@ describe('Cruise validation schemas', () => {
     })
   })
 
+    it('should reject unsupported dining preference values', () => {
+      const result = bookingSchema.safeParse({
+        id: 'B123456789',
+        sailingId: '550e8400-e29b-41d4-a716-446655440000',
+        bookingStatus: 'CONFIRMED',
+        createdByCustomerId: 'C123456789',
+        passengers: [
+          {
+            customerId: 'C123456789',
+            passengerRole: 'PRIMARY',
+            isPrimaryGuest: true,
+            diningPreference: 'Whatever I want'
+          }
+        ]
+      })
+
+      expect(result.success).toBe(false)
+    })
+
 })

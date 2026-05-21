@@ -20,6 +20,7 @@ beforeAll(async () => {
 
 afterEach(async () => {
   await cleanupTestData()
+
 })
 
 async function getFirstSeededSailing() {
@@ -34,6 +35,37 @@ async function getFirstSeededSailing() {
 
   return sailingsRes.body[0]
 }
+
+
+async function getNonOverlappingSeededSailing(referenceSailing) {
+  const cruiseRes = await request(app).get('/cruise')
+  expect(cruiseRes.statusCode).toBe(200)
+
+  const referenceStart = new Date(`${referenceSailing.departureDate}T00:00:00.000Z`)
+  const referenceEnd = new Date(referenceStart)
+  referenceEnd.setUTCDate(referenceEnd.getUTCDate() + Number(referenceSailing.days || 1))
+
+  for (const cruiseLine of cruiseRes.body) {
+    const shipsRes = await request(app).get(`/cruise/ships/${cruiseLine.id}`)
+
+    if (shipsRes.statusCode !== 200) continue
+
+    for (const ship of shipsRes.body) {
+      const sailingsRes = await request(app).get(`/cruise/ship/${ship.id}/sailings`)
+
+      if (sailingsRes.statusCode !== 200) continue
+
+      const candidate = sailingsRes.body.find(sailing =>
+        new Date(`${sailing.departureDate}T00:00:00.000Z`) > referenceEnd
+      )
+
+      if (candidate) return candidate
+    }
+  }
+
+  throw new Error('Expected a later seeded sailing for non-overlap testing')
+}
+
 
 async function createBooking(overrides = {}) {
   const sailing = overrides.sailing || await getFirstSeededSailing()
@@ -851,4 +883,162 @@ describe('Customer and booking API integration tests', () => {
     expect(res.statusCode).toBe(404)
     expect(res.body).toEqual({ message: 'Booking not found' })
   })
+
+  it('PATCH /cruise/customers/:id/passenger-profile updates only passenger self-service profile fields', async () => {
+    const res = await request(app)
+      .patch('/cruise/customers/C000000001/passenger-profile')
+      .send({
+        firstName: 'Jay',
+        lastName: 'Gallagher',
+        email: 'jay.updated@example.com',
+        phone: '555-9999',
+        diningPreference: 'Late seating',
+        accessibilityNotes: 'Prefers low deck elevators'
+      })
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body.message).toBe('Passenger profile updated successfully')
+
+    const customerRes = await request(app).get('/cruise/customers/C000000001')
+    expect(customerRes.body).toEqual(expect.objectContaining({
+      firstName: 'Jay',
+      lastName: 'Gallagher',
+      email: 'jay.updated@example.com',
+      phone: '555-9999'
+    }))
+  })
+
+  it('POST and DELETE /cruise/itinerary-favorites persists passenger itinerary interests', async () => {
+    const contextRes = await request(app).get('/cruise/demo-users/UPASS00001/context')
+    expect(contextRes.statusCode).toBe(200)
+
+    const sailingId = contextRes.body.bookings[0].sailing.id
+    const itineraryRes = await request(app).get(`/cruise/sailings/${sailingId}/itinerary?customerId=C000000001`)
+    expect(itineraryRes.statusCode).toBe(200)
+
+    const activityScheduleId = itineraryRes.body[0].activitySchedule[0].id
+
+    const favoriteRes = await request(app)
+      .post('/cruise/itinerary-favorites')
+      .send({ customerId: 'C000000001', activityScheduleId })
+
+    expect(favoriteRes.statusCode).toBe(201)
+
+    const favoritesOnlyRes = await request(app).get(`/cruise/sailings/${sailingId}/itinerary?customerId=C000000001&favoritesOnly=true`)
+    expect(favoritesOnlyRes.statusCode).toBe(200)
+    expect(favoritesOnlyRes.body.flatMap(day => day.activitySchedule).map(activity => activity.id)).toContain(activityScheduleId)
+    expect(favoritesOnlyRes.body.flatMap(day => day.activitySchedule).every(activity => activity.isFavorite)).toBe(true)
+
+    const deleteRes = await request(app).delete(`/cruise/itinerary-favorites/C000000001/${activityScheduleId}`)
+    expect(deleteRes.statusCode).toBe(200)
+  })
+
+
+
+  it('POST /cruise/bookings should reject a booking that overlaps an existing passenger booking', async () => {
+    const customer = await createCustomer({ firstName: 'Overlap', lastName: 'Passenger' })
+    const sailing = await getFirstSeededSailing()
+
+    const firstBooking = await createBooking({
+      primaryCustomer: customer,
+      sailing
+    })
+
+    const overlappingRes = await request(app)
+      .post('/cruise/bookings')
+      .send({
+        id: uniqueBookingId(),
+        sailingId: sailing.id,
+        bookingStatus: 'CONFIRMED',
+        cabinNumber: '12222',
+        fareCode: 'BALCONY',
+        embarkationPort: sailing.departurePort,
+        debarkationPort: sailing.arrivalPort,
+        createdByCustomerId: customer.id,
+        passengers: [
+          {
+            customerId: customer.id,
+            passengerRole: 'PRIMARY',
+            isPrimaryGuest: true,
+            diningPreference: 'Anytime dining'
+          }
+        ]
+      })
+
+    expect(overlappingRes.statusCode).toBe(400)
+    expect(overlappingRes.body.message).toContain(`Passenger ${customer.id} already has booking ${firstBooking.id}`)
+  })
+
+  it('PATCH /cruise/bookings/:id should reject updates that create passenger booking overlap', async () => {
+    const customer = await createCustomer({ firstName: 'Patch', lastName: 'Overlap' })
+    const firstSailing = await getFirstSeededSailing()
+    const laterSailing = await getNonOverlappingSeededSailing(firstSailing)
+
+    const firstBooking = await createBooking({
+      primaryCustomer: customer,
+      sailing: firstSailing
+    })
+
+    const secondBooking = await createBooking({
+      primaryCustomer: customer,
+      sailing: laterSailing,
+      payload: {
+        embarkationPort: laterSailing.departurePort,
+        debarkationPort: laterSailing.arrivalPort
+      }
+    })
+
+    const updateRes = await request(app)
+      .patch(`/cruise/bookings/${secondBooking.id}`)
+      .send({
+        sailingId: firstSailing.id,
+        bookingStatus: 'CONFIRMED',
+        cabinNumber: '14444',
+        fareCode: 'BALCONY',
+        embarkationPort: firstSailing.departurePort,
+        debarkationPort: firstSailing.arrivalPort,
+        createdByCustomerId: customer.id,
+        passengers: [
+          {
+            customerId: customer.id,
+            passengerRole: 'PRIMARY',
+            isPrimaryGuest: true,
+            diningPreference: 'Late seating'
+          }
+        ]
+      })
+
+    expect(updateRes.statusCode).toBe(400)
+    expect(updateRes.body.message).toContain(`Passenger ${customer.id} already has booking ${firstBooking.id}`)
+  })
+
+  it('POST /cruise/bookings/:bookingId/passengers should reject passengers with overlapping bookings', async () => {
+    const firstCustomer = await createCustomer({ firstName: 'First', lastName: 'Guest' })
+    const secondCustomer = await createCustomer({ firstName: 'Second', lastName: 'Guest' })
+    const sailing = await getFirstSeededSailing()
+
+    const existingBooking = await createBooking({
+      primaryCustomer: secondCustomer,
+      sailing
+    })
+
+    const targetBooking = await createBooking({
+      primaryCustomer: firstCustomer,
+      sailing
+    })
+
+    const res = await request(app)
+      .post(`/cruise/bookings/${targetBooking.id}/passengers`)
+      .send({
+        customerId: secondCustomer.id,
+        passengerRole: 'GUEST',
+        isPrimaryGuest: false,
+        diningPreference: 'Anytime dining'
+      })
+
+    expect(res.statusCode).toBe(400)
+    expect(res.body.message).toContain(`Passenger ${secondCustomer.id} already has booking ${existingBooking.id}`)
+  })
+
+
 })
