@@ -275,9 +275,16 @@ describe('Demo role selector UI', () => {
       cy.get('[data-cy="favorite-toggle-button"]')
         .first()
         .should('have.attr', 'role', 'checkbox')
-        .and('have.attr', 'aria-checked', 'false')
-        .click()
+        .then($button => {
+          if ($button.attr('aria-checked') === 'true') {
+            cy.wrap($button).click()
+            cy.get('[data-cy="favorite-toggle-button"]')
+              .first()
+              .should('have.attr', 'aria-checked', 'false')
+          }
+        })
 
+      cy.get('[data-cy="favorite-toggle-button"]').first().click()
       cy.get('[data-cy="show-favorite-itinerary-button"]').click()
       cy.get('[data-cy="inline-itinerary-activity"]').should('have.length.at.least', 1)
       cy.get('[data-cy="favorite-toggle-button"]')

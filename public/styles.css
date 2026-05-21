@@ -1,3 +1,90 @@
+
+.workflow-panel-hidden,
+.workflow-panel-hidden[hidden],
+.update-panel[hidden] {
+  display: none !important;
+}
+
+
+/* ADA / WCAG-oriented accessibility support */
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  z-index: 9999;
+  transform: translateY(-160%);
+  border: 3px solid #ffffff;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #071827;
+  font-weight: 900;
+  padding: 10px 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.sr-only {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+:focus-visible {
+  outline: 4px solid #ffbf47;
+  outline-offset: 4px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  box-shadow: 0 0 0 5px rgba(255, 191, 71, 0.34);
+}
+
+[aria-disabled="true"],
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.68;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .button-link,
+  button,
+  input,
+  select,
+  .data-card,
+  .role-booking-card,
+  .quality-action-card {
+    border: 1px solid CanvasText;
+  }
+
+  :focus-visible {
+    outline: 3px solid Highlight;
+  }
+}
+
 :root {
   --navy: #071827;
   --blue: #0b6fa4;

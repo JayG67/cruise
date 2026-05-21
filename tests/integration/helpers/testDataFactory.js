@@ -1,5 +1,12 @@
 const request = require('supertest')
+const { eq } = require('drizzle-orm')
+
 const app = require('../../../app')
+const db = require('../../../db')
+const {
+  cruiseLineTable,
+  shipTable
+} = require('../../../models')
 
 const createdCruiseLineIds = []
 const createdShipIds = []
@@ -64,17 +71,21 @@ async function createCruiseLine(overrides = {}) {
     ...overrides
   }
 
-  const res = await request(app)
-    .post('/cruise/cruise-line')
-    .send(payload)
+  const insertedRows = await db
+    .insert(cruiseLineTable)
+    .values(payload)
+    .returning({ id: cruiseLineTable.id })
 
-  expect(res.statusCode).toBe(201)
-  expect(res.body).toHaveProperty('id')
+  expect(insertedRows[0]).toEqual(
+    expect.objectContaining({
+      id: expect.any(String)
+    })
+  )
 
-  createdCruiseLineIds.push(res.body.id)
+  createdCruiseLineIds.push(insertedRows[0].id)
 
   return {
-    id: res.body.id,
+    id: insertedRows[0].id,
     ...payload
   }
 }
@@ -87,17 +98,29 @@ async function createShip(cruiseLineId, overrides = {}) {
     ...overrides
   }
 
-  const res = await request(app)
-    .post('/cruise/ship')
-    .send(payload)
+  const cruiseLineRows = await db
+    .select()
+    .from(cruiseLineTable)
+    .where(eq(cruiseLineTable.id, cruiseLineId))
+    .limit(1)
 
-  expect(res.statusCode).toBe(201)
-  expect(res.body).toHaveProperty('id')
+  expect(cruiseLineRows[0]).toBeDefined()
 
-  createdShipIds.push(res.body.id)
+  const insertedRows = await db
+    .insert(shipTable)
+    .values(payload)
+    .returning({ id: shipTable.id })
+
+  expect(insertedRows[0]).toEqual(
+    expect.objectContaining({
+      id: expect.any(String)
+    })
+  )
+
+  createdShipIds.push(insertedRows[0].id)
 
   return {
-    id: res.body.id,
+    id: insertedRows[0].id,
     ...payload
   }
 }

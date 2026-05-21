@@ -26,6 +26,28 @@ describe('Cruise Explorer home page', () => {
     })
   })
 
+
+  it('keeps the update workflow hidden on startup until update is selected', () => {
+    cy.get('[data-testid="update-cruise-line-panel"]')
+      .should('not.be.visible')
+      .and('have.attr', 'aria-hidden', 'true')
+      .and('have.class', 'workflow-panel-hidden')
+
+    cy.get('[data-testid="update-cruise-line-button"]').first().click()
+
+    cy.get('[data-testid="update-cruise-line-panel"]')
+      .should('be.visible')
+      .and('have.attr', 'aria-hidden', 'false')
+      .and('not.have.class', 'workflow-panel-hidden')
+
+    cy.get('[data-testid="update-cruise-line-cancel-button"]').click()
+
+    cy.get('[data-testid="update-cruise-line-panel"]')
+      .should('not.be.visible')
+      .and('have.attr', 'aria-hidden', 'true')
+      .and('have.class', 'workflow-panel-hidden')
+  })
+
   it('renders professional dashboard hero content without requiring API interaction', () => {
     cy.visit('/')
 

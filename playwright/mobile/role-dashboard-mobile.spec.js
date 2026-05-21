@@ -393,6 +393,30 @@ test.describe('Cruise Explorer mobile role and passenger dashboard quality check
   })
 
 
+  test('keeps passenger dashboard accessibility semantics available on mobile', async ({ page }) => {
+    await openRoleDashboard(page)
+    await selectDemoRole(page, 'UPASS00001', 'Jay Gallagher Passenger View')
+
+    await expect(page.getByTestId('skip-link')).toHaveAttribute('href', '#main-content')
+    await expect(page.getByTestId('primary-navigation')).toHaveAttribute('aria-label', 'Primary navigation')
+    await expect(page.getByTestId('role-booking-dashboard')).toHaveAttribute('aria-labelledby', 'role-booking-dashboard-heading')
+
+    const firstBookingCard = page.getByTestId('role-booking-card').first()
+    const detailsButton = firstBookingCard.getByTestId('role-booking-details-button')
+
+    await expect(detailsButton).toHaveAttribute('aria-expanded', 'false')
+    await expect(detailsButton).toHaveAttribute('aria-label', /View details for booking/)
+    await detailsButton.click()
+    await expect(detailsButton).toHaveAttribute('aria-expanded', 'true')
+    await expect(detailsButton).toHaveAttribute('aria-label', /Hide details for booking/)
+
+    const firstFavorite = firstBookingCard.getByTestId('favorite-toggle-button').first()
+    await expect(firstFavorite).toHaveAttribute('role', 'checkbox')
+    await expect(firstFavorite).toHaveAttribute('aria-label', /favorite/i)
+    await expectNoHorizontalOverflow(page)
+  })
+
+
   test('renders itinerary favorites as star checkbox controls on mobile', async ({ page }) => {
     await openRoleDashboard(page)
     await selectDemoRole(page, 'UPASS00001', 'Jay Gallagher Passenger View')

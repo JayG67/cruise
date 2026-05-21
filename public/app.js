@@ -50,6 +50,7 @@ function renderInlineBookingDetailsContainer(bookingId) {
     <div
       class="inline-booking-details"
       id="inline-booking-details-${bookingId}"
+      aria-live="polite"
       data-testid="inline-booking-details"
       data-cy="inline-booking-details"
       hidden
@@ -79,14 +80,14 @@ function renderPassengerSelfServicePanel(context) {
       <h4>My travel profile</h4>
       <p>Passengers can update limited contact and cruise preference information for the demo booking experience.</p>
       <form class="passenger-profile-form" data-cy="passenger-profile-form" data-testid="passenger-profile-form">
-        <label><span>First name</span><input name="firstName" value="${escapeHtml(customer.firstName || '')}" required /></label>
-        <label><span>Last name</span><input name="lastName" value="${escapeHtml(customer.lastName || '')}" required /></label>
-        <label><span>Email</span><input name="email" type="email" value="${escapeHtml(customer.email || '')}" required /></label>
-        <label><span>Phone</span><input name="phone" value="${escapeHtml(customer.phone || '')}" /></label>
-        <label><span>Dining preference</span><select name="diningPreference" data-cy="dining-preference-select" data-testid="dining-preference-select">${renderDiningPreferenceOptions(context.bookings?.[0]?.passengers?.find(passenger => passenger.customerId === customer.id)?.diningPreference || 'Anytime dining')}</select></label>
-        <label><span>Accessibility notes</span><input name="accessibilityNotes" value="${escapeHtml(context.bookings?.[0]?.passengers?.find(passenger => passenger.customerId === customer.id)?.accessibilityNotes || '')}" /></label>
+        <label><span>First name</span><input name="firstName" aria-label="First name" value="${escapeHtml(customer.firstName || '')}" required /></label>
+        <label><span>Last name</span><input name="lastName" aria-label="Last name" value="${escapeHtml(customer.lastName || '')}" required /></label>
+        <label><span>Email</span><input name="email" aria-label="Email" type="email" value="${escapeHtml(customer.email || '')}" required /></label>
+        <label><span>Phone</span><input name="phone" aria-label="Phone" value="${escapeHtml(customer.phone || '')}" /></label>
+        <label><span>Dining preference</span><select name="diningPreference" aria-label="Dining preference" data-cy="dining-preference-select" data-testid="dining-preference-select">${renderDiningPreferenceOptions(context.bookings?.[0]?.passengers?.find(passenger => passenger.customerId === customer.id)?.diningPreference || 'Anytime dining')}</select></label>
+        <label><span>Accessibility notes</span><input name="accessibilityNotes" aria-label="Accessibility notes" value="${escapeHtml(context.bookings?.[0]?.passengers?.find(passenger => passenger.customerId === customer.id)?.accessibilityNotes || '')}" /></label>
         <button type="submit" data-cy="passenger-profile-submit-button" data-testid="passenger-profile-submit-button">Save profile</button>
-        <p class="form-message" data-cy="passenger-profile-message" data-testid="passenger-profile-message"></p>
+        <p class="form-message" data-cy="passenger-profile-message" data-testid="passenger-profile-message" role="status" aria-live="polite"></p>
       </form>
     </section>
   `
@@ -151,6 +152,17 @@ function getPendingFocusTarget() {
 }
 
 
+function initializeHiddenWorkflowPanels() {
+  const updatePanel = document.getElementById('update-cruise-line-panel')
+
+  if (updatePanel) {
+    updatePanel.hidden = true
+    updatePanel.classList.add('workflow-panel-hidden')
+    updatePanel.setAttribute('aria-hidden', 'true')
+  }
+}
+
+
 document.addEventListener('DOMContentLoaded', () => {
   const reloadButton = document.getElementById('reload-button')
   const searchInput = document.getElementById('search-input')
@@ -161,6 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const addUpdateShipInputBtn = document.getElementById('add-update-ship-input-btn')
   const cancelUpdateCruiseLineBtn = document.getElementById('cancel-update-cruise-line-btn')
   const demoUserSelector = document.getElementById('demo-user-selector')
+
+  initializeHiddenWorkflowPanels()
 
   if (document.getElementById('cruise-grid')) {
     loadDemoUsers()
@@ -415,6 +429,7 @@ function renderRoleBookingDashboard(context, errorMessage = '') {
     card.className = 'role-booking-card'
     card.setAttribute('data-cy', 'role-booking-card')
     card.setAttribute('data-testid', 'role-booking-card')
+    card.setAttribute('role', 'listitem')
 
     const passengers = Array.isArray(booking.passengers) ? booking.passengers : []
     const passengerItems = passengers.map(passenger => {
@@ -446,7 +461,7 @@ function renderRoleBookingDashboard(context, errorMessage = '') {
         <ul>${passengerItems}</ul>
       </div>
       <div class="role-booking-actions">
-        <button type="button" data-cy="role-booking-details-button" data-testid="role-booking-details-button" aria-expanded="false">View Details</button>
+        <button type="button" data-cy="role-booking-details-button" data-testid="role-booking-details-button" aria-expanded="false" aria-label="View details for booking ${escapeHtml(booking.id || booking.bookingId || 'selected booking')}">View Details</button>
       </div>
 
       ${renderInlineBookingDetailsContainer(booking.bookingId || booking.id || booking.sailing?.id || 'booking')}
@@ -474,11 +489,13 @@ function toggleBookingCruiseDetails(booking, detailsButton) {
     detailsContainer.hidden = true
     detailsButton.textContent = 'View Details'
     detailsButton.setAttribute('aria-expanded', 'false')
+    detailsButton.setAttribute('aria-label', `View details for booking ${booking.id || booking.bookingId || 'selected booking'}`)
     return
   }
 
   detailsButton.textContent = 'Hide Details'
   detailsButton.setAttribute('aria-expanded', 'true')
+  detailsButton.setAttribute('aria-label', `Hide details for booking ${booking.id || booking.bookingId || 'selected booking'}`)
   loadBookingCruiseDetails(booking)
 }
 
@@ -554,8 +571,8 @@ async function loadBookingCruiseDetails(booking, favoritesOnly = false) {
           <h4>${escapeHtml(booking.ship?.name || 'Cruise')} Details</h4>
           <p>${escapeHtml(booking.embarkationPort || booking.sailing.departurePort || '')} → ${escapeHtml(booking.debarkationPort || booking.sailing.arrivalPort || '')}</p>
           <div class="itinerary-filter-actions">
-            <button type="button" data-cy="show-all-itinerary-button" data-testid="show-all-itinerary-button">All itinerary items</button>
-            <button type="button" data-cy="show-favorite-itinerary-button" data-testid="show-favorite-itinerary-button">My favorites</button>
+            <button type="button" data-cy="show-all-itinerary-button" data-testid="show-all-itinerary-button" aria-label="Show all itinerary items for this booking">All itinerary items</button>
+            <button type="button" data-cy="show-favorite-itinerary-button" data-testid="show-favorite-itinerary-button" aria-label="Show only my favorite itinerary items for this booking">My favorites</button>
           </div>
         </header>
         <div class="inline-booking-itinerary">${itineraryMarkup}</div>
@@ -796,7 +813,7 @@ function addShipInputRow(value = '') {
       Ship name
       <input name="shipName" data-cy="create-cruise-line-ship-name-input" data-testid="create-cruise-line-ship-name-input" type="text" placeholder="Example: Rotterdam" maxlength="255" value="${escapeHtml(value)}" />
     </label>
-    <button class="remove-ship-row-btn" data-cy="remove-ship-input-button" data-testid="remove-ship-input-button" type="button">Remove</button>
+    <button class="remove-ship-row-btn" data-cy="remove-ship-input-button" data-testid="remove-ship-input-button" type="button" aria-label="Remove ship row">Remove</button>
   `
 
   row.querySelector('.remove-ship-row-btn').addEventListener('click', () => row.remove())
@@ -856,6 +873,8 @@ async function openUpdateCruiseLineForm(cruiseLineId) {
 
   if (panel) {
     panel.hidden = false
+    panel.classList.remove('workflow-panel-hidden')
+    panel.setAttribute('aria-hidden', 'false')
     panel.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
@@ -963,9 +982,9 @@ function addUpdateShipInputRow(value = '', shipId = '') {
     </label>
     ${shipId ? `
       <div class="ship-row-actions">
-        <button class="delete-ship-btn danger subtle-danger" data-cy="delete-update-ship-button" data-testid="delete-update-ship-button" type="button">Delete Ship</button>
+        <button class="delete-ship-btn danger subtle-danger" data-cy="delete-update-ship-button" data-testid="delete-update-ship-button" type="button" aria-label="Delete ${escapeHtml(value)} from this cruise line">Delete Ship</button>
       </div>
-    ` : '<button class="remove-ship-row-btn" data-cy="remove-update-ship-input-button" data-testid="remove-update-ship-input-button" type="button">Remove</button>'}
+    ` : '<button class="remove-ship-row-btn" data-cy="remove-update-ship-input-button" data-testid="remove-update-ship-input-button" type="button" aria-label="Remove ship row">Remove</button>'}
   `
 
   const removeButton = row.querySelector('.remove-ship-row-btn')
@@ -1149,7 +1168,11 @@ function hideUpdateCruiseLinePanel() {
   const form = document.getElementById('update-cruise-line-form')
   const shipInputList = document.getElementById('update-ship-inputs')
 
-  if (panel) panel.hidden = true
+  if (panel) {
+    panel.hidden = true
+    panel.classList.add('workflow-panel-hidden')
+    panel.setAttribute('aria-hidden', 'true')
+  }
   if (form) form.reset()
   if (shipInputList) shipInputList.innerHTML = ''
   setUpdateCruiseLineMessage('', '')
@@ -1646,19 +1669,20 @@ function renderCruiseLines(lines) {
     card.className = 'data-card'
     card.setAttribute('data-cy', 'cruise-card')
     card.setAttribute('data-testid', 'cruise-card')
+    card.setAttribute('role', 'listitem')
 
     card.innerHTML = `
       <div class="card-content">
         <h3>${escapeHtml(line.name)}</h3>
         <p class="card-meta"><strong>Country:</strong> ${escapeHtml(line.country || 'Not listed')}</p>
-        ${line.website ? `<p class="card-website"><a href="${escapeHtml(line.website)}" target="_blank" rel="noopener" data-cy="cruise-website-link" data-testid="cruise-website-link">Visit website</a></p>` : ''}
+        ${line.website ? `<p class="card-website"><a href="${escapeHtml(line.website)}" target="_blank" rel="noopener" data-cy="cruise-website-link" data-testid="cruise-website-link" aria-label="Visit ${escapeHtml(line.name)} website">Visit website</a></p>` : ''}
       </div>
       <div class="card-actions">
         <div class="card-primary-actions">
-          <button data-cy="view-ships-button" data-testid="view-ships-button" type="button">View Ships</button>
-          <button data-admin-only="true" data-cy="update-cruise-line-button" data-testid="update-cruise-line-button" type="button">Update</button>
+          <button data-cy="view-ships-button" data-testid="view-ships-button" type="button" aria-label="View ships for ${escapeHtml(line.name)}">View Ships</button>
+          <button data-admin-only="true" data-cy="update-cruise-line-button" data-testid="update-cruise-line-button" type="button" aria-label="Update ${escapeHtml(line.name)}">Update</button>
         </div>
-        <button data-admin-only="true" class="danger subtle-danger" data-cy="delete-cruise-line-button" data-testid="delete-cruise-line-button" type="button">Delete</button>
+        <button data-admin-only="true" class="danger subtle-danger" data-cy="delete-cruise-line-button" data-testid="delete-cruise-line-button" type="button" aria-label="Delete ${escapeHtml(line.name)}">Delete</button>
       </div>
     `
 
@@ -1739,15 +1763,16 @@ function renderShips(ships) {
     card.className = 'data-card'
     card.setAttribute('data-cy', 'ship-card')
     card.setAttribute('data-testid', 'ship-card')
+    card.setAttribute('role', 'listitem')
     card.innerHTML = `
       <div class="card-content">
         <h3>${escapeHtml(ship.name)}</h3>
         <p class="card-meta"><strong>Current Port:</strong> ${escapeHtml(ship.currentPort || 'Not listed')}</p>
       </div>
       <div class="card-actions stacked-card-actions">
-        <button data-cy="view-sailings-button" data-testid="view-sailings-button" type="button">View Sailings</button>
-        <button class="secondary" data-admin-only="true" data-cy="update-ship-button" data-testid="update-ship-button" type="button">Update Ship</button>
-        <button class="danger subtle-danger" data-admin-only="true" data-cy="delete-ship-button" data-testid="delete-ship-button" type="button">Delete Ship</button>
+        <button data-cy="view-sailings-button" data-testid="view-sailings-button" type="button" aria-label="View sailings for ${escapeHtml(ship.name)}">View Sailings</button>
+        <button class="secondary" data-admin-only="true" data-cy="update-ship-button" data-testid="update-ship-button" type="button" aria-label="Update ${escapeHtml(ship.name)}">Update Ship</button>
+        <button class="danger subtle-danger" data-admin-only="true" data-cy="delete-ship-button" data-testid="delete-ship-button" type="button" aria-label="Delete ${escapeHtml(ship.name)}">Delete Ship</button>
       </div>
     `
     card.querySelector('[data-cy="view-sailings-button"]').addEventListener('click', () => loadSailings(ship.id, ship.name))
@@ -1945,6 +1970,7 @@ function renderSailings(sailings) {
     card.className = 'data-card sailing-card'
     card.setAttribute('data-cy', 'sailing-card')
     card.setAttribute('data-testid', 'sailing-card')
+    card.setAttribute('role', 'listitem')
 
     card.innerHTML = `
       <div class="card-content">
@@ -1955,9 +1981,9 @@ function renderSailings(sailings) {
         <p class="card-meta"><strong>Length:</strong> ${escapeHtml(String(sailing.days))} days</p>
       </div>
       <div class="card-actions stacked-card-actions">
-        <button data-cy="view-itinerary-button" data-testid="view-itinerary-button" type="button">View Details</button>
-        <button class="secondary" data-admin-only="true" data-cy="update-sailing-button" data-testid="update-sailing-button" type="button">Update Sailing</button>
-        <button class="danger subtle-danger" data-admin-only="true" data-cy="delete-sailing-button" data-testid="delete-sailing-button" type="button">Delete Sailing</button>
+        <button data-cy="view-itinerary-button" data-testid="view-itinerary-button" type="button" aria-label="View details for sailing on ${escapeHtml(formatSailingDate(sailing.departureDate))}">View Details</button>
+        <button class="secondary" data-admin-only="true" data-cy="update-sailing-button" data-testid="update-sailing-button" type="button" aria-label="Update sailing on ${escapeHtml(formatSailingDate(sailing.departureDate))}">Update Sailing</button>
+        <button class="danger subtle-danger" data-admin-only="true" data-cy="delete-sailing-button" data-testid="delete-sailing-button" type="button" aria-label="Delete sailing on ${escapeHtml(formatSailingDate(sailing.departureDate))}">Delete Sailing</button>
       </div>
     `
 
