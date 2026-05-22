@@ -4,6 +4,11 @@ require('../tests/integration/jest.integration.env')
 const db = require('../db')
 const { sql } = require('drizzle-orm')
 
+
+function redactConnectionString(connectionString) {
+  return String(connectionString || '').replace(/:\/\/([^:]+):([^@]+)@/, '://$1:***@')
+}
+
 async function verifyTestDatabaseConnection() {
   try {
     const result = await db.execute(sql`
@@ -17,7 +22,7 @@ async function verifyTestDatabaseConnection() {
     const row = result.rows ? result.rows[0] : result[0]
 
     console.log('Test database connection verified.')
-    console.log(`Resolved connection string: ${db.connectionString}`)
+    console.log(`Resolved connection string: ${redactConnectionString(db.connectionString)}`)
     console.log(`Current user: ${row.current_user}`)
     console.log(`Current database: ${row.current_database}`)
     console.log(`Server address: ${row.server_address}`)

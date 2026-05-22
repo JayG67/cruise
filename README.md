@@ -19,6 +19,27 @@
 
 ---
 
+## Portfolio Review and Repository Hygiene
+
+This repository is intentionally maintained as a recruiter-facing testing portfolio. Source files, tests, seed data, and documentation should be reviewed as product assets. Generated local artifacts should stay out of source control and be published through CI artifacts or GitHub Pages instead.
+
+Useful review commands:
+
+```bash
+npm run unitTests
+npm run integrationTests
+npm run uiTests
+npm run playwright:mobile:local
+npm run playwright:responsive:local
+npm run perf:smoke:local
+npm run lighthouse:ci:local
+npm run repo:hygiene
+```
+
+A dedicated code review summary is available at [`docs/code-review.md`](docs/code-review.md).
+
+---
+
 ## Project Summary
 
 Cruise Explorer is a production-style full-stack portfolio application for managing cruise-line, ship, sailing, itinerary, customer, booking, passenger, and role-aware dashboard data.
@@ -473,7 +494,7 @@ GitHub Actions validates the project with:
 
 Reports are published through GitHub Pages.
 
-Generated reports and local artifacts should not be treated as source code.
+Generated reports and local artifacts should not be treated as source code. Use `npm run repo:hygiene` before pushing to confirm local reports, logs, and OS files are not accidentally tracked.
 
 ---
 
@@ -488,6 +509,7 @@ Current strengths:
 - robust browser workflow coverage
 - mobile-specific regression tests
 - accessibility-focused checks
+- browser security headers
 - production deployment
 - published quality dashboard
 - realistic data integrity rules

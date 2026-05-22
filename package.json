@@ -42,7 +42,9 @@
     "playwright:mobile:ci": "start-server-and-test start:ci http://localhost:8000 playwright:mobile",
     "playwright:responsive": "playwright test --config=playwright.responsive.config.js",
     "playwright:responsive:local": "start-server-and-test start http://localhost:8000 playwright:responsive",
-    "playwright:responsive:ci": "start-server-and-test start:ci http://localhost:8000 playwright:responsive"
+    "playwright:responsive:ci": "start-server-and-test start:ci http://localhost:8000 playwright:responsive",
+    "repo:hygiene": "node scripts/verify-repo-hygiene.js",
+    "portfolio:audit": "npm run repo:hygiene && npm run test:all"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
