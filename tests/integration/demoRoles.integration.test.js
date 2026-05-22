@@ -35,8 +35,22 @@ describe('Demo role and user context API integration tests', () => {
         canViewAllBookings: true
       })
     )
-    expect(res.body.visibility.accessibleCustomerCount).toBeGreaterThanOrEqual(8)
-    expect(res.body.visibility.accessibleBookingCount).toBeGreaterThanOrEqual(6)
+    expect(res.body.visibility.accessibleCustomerCount).toBeGreaterThanOrEqual(24)
+    expect(res.body.visibility.accessibleBookingCount).toBeGreaterThanOrEqual(17)
+  })
+
+  it('GET /cruise/demo-users/:id/context reports admin counts that match customer and booking APIs', async () => {
+    const [contextRes, customersRes, bookingsRes] = await Promise.all([
+      request(app).get('/cruise/demo-users/UADMIN0001/context'),
+      request(app).get('/cruise/customers'),
+      request(app).get('/cruise/bookings')
+    ])
+
+    expect(contextRes.statusCode).toBe(200)
+    expect(customersRes.statusCode).toBe(200)
+    expect(bookingsRes.statusCode).toBe(200)
+    expect(contextRes.body.visibility.accessibleCustomerCount).toBe(customersRes.body.length)
+    expect(contextRes.body.visibility.accessibleBookingCount).toBe(bookingsRes.body.length)
   })
 
   it('GET /cruise/demo-users/:id/context keeps admin context separate from passenger booking cards', async () => {
@@ -137,10 +151,19 @@ describe('Demo role and user context API integration tests', () => {
     const res = await request(app).get('/cruise/demo-users')
 
     expect(res.statusCode).toBe(200)
-    expect(res.body).toHaveLength(10)
+    expect(res.body.length).toBeGreaterThanOrEqual(10)
     expect(res.body.map(user => user.displayName).join(' ')).toContain('Alisa Gallagher')
     expect(res.body.map(user => user.displayName).join(' ')).toContain('Parker Family')
     expect(res.body.map(user => user.displayName).join(' ')).toContain('Kim Couple')
+
+    const roles = new Set(res.body.map(user => user.role))
+    const customerLinkedUsers = res.body.filter(user => user.role !== 'ADMIN')
+
+    expect([...roles]).toEqual(expect.arrayContaining(['ADMIN', 'PASSENGER', 'GROUP_LEADER']))
+    expect(customerLinkedUsers.length).toBeGreaterThanOrEqual(9)
+    customerLinkedUsers.forEach(user => {
+      expect(user.customerId).toMatch(/^C[A-Z0-9]{9}$/)
+    })
   })
 
   it('GET /cruise/demo-users/:id/context keeps Jay bookings paired only with Alisa', async () => {

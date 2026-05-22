@@ -120,6 +120,112 @@ describe('Demo role selector UI', () => {
     cy.get(selectors.roleDashboard.bookingCard).should('not.exist')
   })
 
+  it('lets admin view and search all customers from the role dashboard', () => {
+    cy.get('[data-cy="admin-data-management-panel"]').should('be.visible')
+    cy.get('[data-cy="admin-show-customers-button"]')
+      .should('have.attr', 'aria-pressed', 'true')
+      .and('contain.text', 'Show All Customers')
+
+    cy.get('[data-cy="admin-customer-table-wrap"]').should('be.visible')
+    cy.get('[data-cy="admin-customer-row"]').should('have.length.at.least', 20)
+    cy.get('[data-cy="admin-data-search-input"]').clear().type('Alisa')
+
+    cy.get('[data-cy="admin-data-message"]').should('contain.text', 'Showing')
+    cy.get('[data-cy="admin-customer-row"]')
+      .should('have.length.at.least', 1)
+      .first()
+      .should('contain.text', 'Alisa Gallagher')
+  })
+
+  it('lets admin view and search all bookings from the role dashboard', () => {
+    cy.get('[data-cy="admin-show-bookings-button"]').click()
+
+    cy.get('[data-cy="admin-show-bookings-button"]').should('have.attr', 'aria-pressed', 'true')
+    cy.get('[data-cy="admin-booking-table-wrap"]').should('be.visible')
+    cy.get('[data-cy="admin-booking-row"]')
+      .should('have.length.at.least', 15)
+      .first()
+      .should('contain.text', 'B')
+
+    cy.get('[data-cy="admin-data-search-input"]').clear().type('Royal Caribbean')
+    cy.get('[data-cy="admin-booking-row"]')
+      .should('have.length.at.least', 1)
+      .first()
+      .should('contain.text', 'Royal Caribbean')
+  })
+
+
+  it('renders admin customer and booking data in scrollable tables instead of long card grids', () => {
+    cy.get('[data-cy="admin-customer-table-wrap"]')
+      .should('be.visible')
+      .and($wrap => {
+        expect($wrap[0].scrollHeight).to.be.greaterThan($wrap[0].clientHeight)
+      })
+
+    cy.get('[data-cy="admin-show-bookings-button"]').click()
+    cy.get('[data-cy="admin-booking-table-wrap"]')
+      .should('be.visible')
+      .and($wrap => {
+        expect($wrap[0].scrollHeight).to.be.greaterThan($wrap[0].clientHeight)
+      })
+  })
+
+  it('lets admin open and save a customer edit workflow from the dashboard', () => {
+    cy.intercept('PATCH', '/cruise/customers/*').as('adminCustomerUpdate')
+
+    cy.get('[data-cy="admin-data-search-input"]').clear().type('Jay Gallagher')
+    cy.get('[data-cy="admin-customer-row"]').first().within(() => {
+      cy.get('[data-cy="admin-edit-customer-button"]').click()
+    })
+
+    cy.get('[data-cy="admin-customer-edit-form"]').should('be.visible')
+    cy.get('[data-cy="admin-customer-edit-form"] input[name="phone"]').clear().type('555-3434')
+    cy.get('[data-cy="admin-save-customer-button"]').click()
+
+    cy.wait('@adminCustomerUpdate').its('response.statusCode').should('eq', 200)
+    cy.get('[data-cy="admin-data-message"]').should('contain.text', 'Customer updated successfully')
+    cy.get('[data-cy="admin-customer-row"]').first().should('contain.text', '555-3434')
+  })
+
+  it('keeps admin booking table actions reachable in the horizontally scrollable table', () => {
+    cy.get('[data-cy="admin-show-bookings-button"]').click()
+    cy.get('[data-cy="admin-booking-table-wrap"]').scrollTo('right')
+    cy.get('[data-cy="admin-booking-row"]').first()
+      .find('[data-cy="admin-edit-booking-button"]')
+      .scrollIntoView()
+      .should('exist')
+      .and('not.be.disabled')
+  })
+
+
+  it('lets admin open and save a booking edit workflow from the dashboard', () => {
+    cy.intercept('PATCH', '/cruise/bookings/*').as('adminBookingUpdate')
+
+    cy.get('[data-cy="admin-show-bookings-button"]').click()
+    cy.get('[data-cy="admin-booking-table-wrap"]').scrollTo('right')
+
+    cy.get('[data-cy="admin-booking-row"]').first().then($row => {
+      const bookingId = $row.attr('data-booking-id')
+
+      cy.wrap($row)
+        .find('[data-cy="admin-edit-booking-button"]')
+        .scrollIntoView()
+        .click({ force: true })
+
+      cy.get('[data-cy="admin-booking-edit-form"]').should('be.visible')
+      cy.get('[data-cy="admin-booking-edit-form"] input[name="cabinNumber"]').clear().type('9090')
+      cy.get('[data-cy="admin-save-booking-button"]').click()
+
+      cy.wait('@adminBookingUpdate').then(interception => {
+        expect([200, 204]).to.include(interception.response.statusCode)
+      })
+
+      cy.get('[data-cy="admin-data-message"]').should('contain.text', 'Booking updated successfully')
+      cy.get(`[data-cy="admin-booking-row"][data-booking-id="${bookingId}"]`)
+        .should('contain.text', '9090')
+    })
+  })
+
   it('renders passenger booking cards with cabin, route, and visible passenger details', () => {
     cy.get(selectors.demoRole.selector).select('UPASS00001')
 

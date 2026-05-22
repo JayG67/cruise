@@ -116,7 +116,7 @@ describe('Customer and booking API integration tests', () => {
     const res = await request(app).get('/cruise/customers')
 
     expect(res.statusCode).toBe(200)
-    expect(res.body.length).toBeGreaterThanOrEqual(8)
+    expect(res.body.length).toBeGreaterThanOrEqual(24)
     expect(res.body).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -157,7 +157,7 @@ describe('Customer and booking API integration tests', () => {
     const res = await request(app).get('/cruise/bookings')
 
     expect(res.statusCode).toBe(200)
-    expect(res.body.length).toBeGreaterThanOrEqual(6)
+    expect(res.body.length).toBeGreaterThanOrEqual(17)
 
     res.body.forEach(booking => {
       expect(booking.id).toMatch(/^B[A-Z0-9]{9}$/)
@@ -1038,6 +1038,78 @@ describe('Customer and booking API integration tests', () => {
 
     expect(res.statusCode).toBe(400)
     expect(res.body.message).toContain(`Passenger ${secondCustomer.id} already has booking ${existingBooking.id}`)
+  })
+
+
+  it('PATCH /cruise/bookings/:bookingId/passengers/:customerId/preferences updates booking-specific passenger preferences', async () => {
+    const res = await request(app)
+      .patch('/cruise/bookings/B000000001/passengers/C000000001/preferences')
+      .send({
+        diningPreference: 'Late seating',
+        accessibilityNotes: 'Prefers accessible theater seating'
+      })
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body.message).toBe('Booking preferences updated successfully')
+
+    const bookingRes = await request(app).get('/cruise/bookings/B000000001')
+    expect(bookingRes.statusCode).toBe(200)
+
+    const jayPassenger = bookingRes.body.passengers.find(passenger => passenger.customerId === 'C000000001')
+    expect(jayPassenger).toEqual(expect.objectContaining({
+      diningPreference: 'Late seating',
+      accessibilityNotes: 'Prefers accessible theater seating'
+    }))
+  })
+
+  it('PATCH /cruise/bookings/:bookingId/passengers/:customerId/preferences returns 404 for a missing booking passenger link', async () => {
+    const res = await request(app)
+      .patch('/cruise/bookings/B999999999/passengers/C999999999/preferences')
+      .send({
+        diningPreference: 'Anytime dining',
+        accessibilityNotes: 'No preference'
+      })
+
+    expect(res.statusCode).toBe(404)
+    expect(res.body).toEqual({ message: 'Booking passenger not found' })
+  })
+
+  it('GET /cruise/bookings gives admin enough details to manage booking records', async () => {
+    const res = await request(app).get('/cruise/bookings')
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body.length).toBeGreaterThan(0)
+
+    res.body.forEach(booking => {
+      expect(booking).toEqual(expect.objectContaining({
+        id: expect.stringMatching(/^B\d{9}$/),
+        bookingStatus: expect.any(String),
+        passengers: expect.any(Array),
+        sailing: expect.any(Object),
+        ship: expect.any(Object),
+        cruiseLine: expect.any(Object)
+      }))
+      expect(booking.passengers.length).toBeGreaterThan(0)
+    })
+  })
+
+  it('PATCH /cruise/customers/:id supports admin customer profile updates', async () => {
+    const res = await request(app)
+      .patch('/cruise/customers/C000000002')
+      .send({
+        firstName: 'Alisa',
+        lastName: 'Gallagher',
+        email: 'alisa.admin.updated@example.com',
+        phone: '555-2222',
+        loyaltyNumber: 'LOYALTY-C000000002'
+      })
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body.message).toBe('Customer updated successfully')
+
+    const customerRes = await request(app).get('/cruise/customers/C000000002')
+    expect(customerRes.statusCode).toBe(200)
+    expect(customerRes.body.email).toBe('alisa.admin.updated@example.com')
   })
 
 

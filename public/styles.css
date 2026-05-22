@@ -2445,3 +2445,316 @@ code,
   width: 1px;
 }
 
+
+
+/* Admin customer and booking management */
+.admin-data-management-panel {
+  grid-column: 1 / -1;
+  margin-top: 18px;
+  padding: 22px;
+  border: 1px solid #d5e4ed;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #ffffff 0%, #f6fbfe 100%);
+  box-shadow: 0 18px 40px rgba(7, 24, 39, 0.08);
+}
+
+.admin-data-management-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: start;
+}
+
+.admin-data-management-header h4 {
+  margin: 0 0 6px;
+  font-size: 1.45rem;
+}
+
+.admin-data-management-header p {
+  margin: 0;
+  color: #425a70;
+}
+
+.admin-data-management-counts,
+.admin-data-actions,
+.admin-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-data-management-counts span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #e8f6fb;
+  color: #075985;
+  font-weight: 800;
+}
+
+.admin-data-actions {
+  margin: 18px 0;
+}
+
+.admin-data-tab {
+  background: #e8f6fb;
+  color: #075985;
+}
+
+.admin-data-tab.is-active {
+  background: linear-gradient(135deg, #2f78ad, #43a9ba);
+  color: #ffffff;
+}
+
+.admin-data-search-label {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #071827;
+  font-weight: 800;
+}
+
+.admin-data-search-label input {
+  min-height: 46px;
+  width: 100%;
+}
+
+.admin-data-results {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.admin-data-card {
+  padding: 18px;
+  border: 1px solid #d5e4ed;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(7, 24, 39, 0.06);
+}
+
+.admin-data-card-header {
+  display: flex;
+  gap: 12px;
+  align-items: start;
+  justify-content: space-between;
+}
+
+.admin-data-card h5 {
+  margin: 0 0 12px;
+  font-size: 1.08rem;
+}
+
+.admin-data-details {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.admin-data-details div {
+  display: grid;
+  gap: 2px;
+}
+
+.admin-data-details dt {
+  color: #526b7d;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-data-details dd {
+  margin: 0;
+  color: #071827;
+  font-weight: 700;
+}
+
+.admin-inline-editor {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #d5e4ed;
+}
+
+.admin-edit-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-edit-form label {
+  display: grid;
+  gap: 6px;
+  font-weight: 800;
+}
+
+.admin-edit-form input {
+  width: 100%;
+  min-height: 42px;
+}
+
+.admin-inline-actions {
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+}
+
+@media (max-width: 900px) {
+  .admin-data-management-header,
+  .admin-data-results,
+  .admin-edit-form {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-data-management-counts,
+  .admin-inline-actions {
+    justify-content: flex-start;
+  }
+}
+
+
+
+/* Admin customer and booking table layout */
+.admin-data-results {
+  display: block;
+  max-height: 620px;
+  overflow: hidden;
+  margin-top: 14px;
+}
+
+.admin-data-table-wrap {
+  max-height: 580px;
+  overflow: auto;
+  border: 1px solid #d5e4ed;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(7, 24, 39, 0.02);
+}
+
+.admin-data-table {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.92rem;
+}
+
+.admin-data-table caption {
+  position: sticky;
+  left: 0;
+  padding: 12px 14px;
+  color: #425a70;
+  font-weight: 900;
+  text-align: left;
+}
+
+.admin-data-table th,
+.admin-data-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #d5e4ed;
+  text-align: left;
+  vertical-align: top;
+}
+
+.admin-data-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #e8f6fb;
+  color: #075985;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-data-table tbody tr:hover {
+  background: #f7fbfd;
+}
+
+.admin-data-table td[data-label="Route"],
+.admin-data-table td[data-label="Passengers"] {
+  min-width: 220px;
+}
+
+.admin-editor-row td {
+  padding: 0;
+  background: #f7fbfd;
+}
+
+.admin-editor-row .admin-inline-editor {
+  margin: 0;
+  padding: 18px;
+  border-top: 0;
+}
+
+@media (max-width: 760px) {
+  .admin-data-table {
+    min-width: 0;
+  }
+
+  .admin-data-table thead {
+    display: none;
+  }
+
+  .admin-data-table,
+  .admin-data-table tbody,
+  .admin-data-table tr,
+  .admin-data-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .admin-data-table tr {
+    border-bottom: 1px solid #d5e4ed;
+  }
+
+  .admin-data-table td {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 10px;
+    border-bottom: 0;
+  }
+
+  .admin-data-table td::before {
+    content: attr(data-label);
+    color: #526b7d;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.72rem;
+  }
+
+  .admin-editor-row td {
+    display: block;
+  }
+
+  .admin-editor-row td::before {
+    content: none;
+  }
+}
+
+
+
+/* Keep admin table row actions reachable while tables scroll horizontally. */
+.admin-data-table th:last-child,
+.admin-data-table td:last-child {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  min-width: 140px;
+  background: #ffffff;
+  box-shadow: -10px 0 16px rgba(7, 24, 39, 0.06);
+}
+
+.admin-data-table th:last-child {
+  z-index: 3;
+  background: #e8f6fb;
+}
+
+.admin-data-table tbody tr:hover td:last-child {
+  background: #f7fbfd;
+}
+

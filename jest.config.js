@@ -7,7 +7,8 @@ module.exports = {
   modulePathIgnorePatterns: [
     '<rootDir>/github-pages',
     '<rootDir>/playwright-report',
-    '<rootDir>/test-results'
+    '<rootDir>/test-results',
+    '<rootDir>/.github'
   ],
 
   testPathIgnorePatterns: [

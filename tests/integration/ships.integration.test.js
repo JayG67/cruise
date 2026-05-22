@@ -30,10 +30,26 @@ describe('Ship API integration tests', () => {
     expect(cruiseRes.statusCode).toBe(200)
     expect(cruiseRes.body.length).toBeGreaterThan(0)
 
-    const cruiseLineId = cruiseRes.body[0].id
+    let seededCruiseLineWithShips
+    let shipRes
 
-    const shipRes = await request(app)
-      .get(`/cruise/ships/${cruiseLineId}`)
+    for (const cruiseLine of cruiseRes.body) {
+      const candidateShipRes = await request(app)
+        .get(`/cruise/ships/${cruiseLine.id}`)
+
+      if (candidateShipRes.statusCode === 200 && candidateShipRes.body.length > 0) {
+        seededCruiseLineWithShips = cruiseLine
+        shipRes = candidateShipRes
+        break
+      }
+    }
+
+    expect(seededCruiseLineWithShips).toEqual(
+      expect.objectContaining({
+        id: expect.any(String),
+        name: expect.any(String)
+      })
+    )
 
     expect(shipRes.statusCode).toBe(200)
     expect(Array.isArray(shipRes.body)).toBe(true)
@@ -44,7 +60,7 @@ describe('Ship API integration tests', () => {
         expect.objectContaining({
           id: expect.any(String),
           name: expect.any(String),
-          cruiseLineId
+          cruiseLineId: seededCruiseLineWithShips.id
         })
       )
     })

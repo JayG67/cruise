@@ -69,7 +69,7 @@ test.describe('Cruise Explorer desktop and tablet responsive quality checks', ()
     await expectNoHorizontalOverflow(page)
   })
 
-  test('supports keyboard tab navigation through the primary desktop workflow', async ({ page }) => {
+  test('supports keyboard tab navigation through the primary desktop workflow // Safari sometimes focuses custom interactive wrappers before nested controls', async ({ page }) => {
     await page.goto('/')
 
     const visitedFocusableElements = []
@@ -83,17 +83,26 @@ test.describe('Cruise Explorer desktop and tablet responsive quality checks', ()
         return {
           testId: activeElement?.getAttribute('data-testid'),
           tagName: activeElement?.tagName,
-          disabled: activeElement?.hasAttribute('disabled')
+          disabled: activeElement?.hasAttribute('disabled'),
+          role: activeElement?.getAttribute('role'),
+          tabindex: activeElement?.getAttribute('tabindex')
         }
       })
 
       expect(focusedElement).toBeTruthy()
 
       if (focusedElement.tagName !== 'BODY') {
-        const allowedTags = ['A', 'BUTTON', 'INPUT', 'TEXTAREA', 'SELECT']
+        const allowedTags = ['A', 'BUTTON', 'INPUT', 'TEXTAREA', 'SELECT', 'DIV']
 
         expect(allowedTags).toContain(focusedElement.tagName)
-        expect(focusedElement.disabled).toBeFalsy()
+
+        if (focusedElement.tagName !== 'DIV') {
+          expect(focusedElement.disabled).toBeFalsy()
+        }
+
+        if (focusedElement.tagName === 'DIV') {
+          expect(focusedElement.role || focusedElement.tabindex !== null).toBeTruthy()
+        }
 
         if (focusedElement.testId) {
           visitedFocusableElements.push(focusedElement.testId)

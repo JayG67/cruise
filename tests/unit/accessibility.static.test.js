@@ -103,4 +103,31 @@ describe('static ADA and WCAG-oriented accessibility safeguards', () => {
     expect(indexHtml).toContain('id="testOutput"')
     expect(indexHtml).toContain('aria-label="SQA test output"')
   })
+
+  it('keeps role dashboard rendering functions available for startup demo context', () => {
+    expect(appJs).toContain('function renderDemoRoleSummary')
+    expect(appJs).toContain('function renderRoleBookingDashboard')
+    expect(appJs).toContain('function renderAdminOperationsPanel')
+    expect(appJs).toContain('initializeAdminOperationsPanel()')
+  })
+
+  it('keeps admin customer and booking management controls accessible and testable', () => {
+    expect(appJs).toContain('data-testid="admin-data-management-panel"')
+    expect(appJs).toContain('data-testid="admin-show-customers-button"')
+    expect(appJs).toContain('data-testid="admin-show-bookings-button"')
+    expect(appJs).toContain('aria-pressed')
+    expect(appJs).toContain('aria-label="Admin customer and booking results"')
+  })
+
+
+  it('keeps admin management data in accessible scrollable tables', () => {
+    expect(appJs).toContain('data-testid="admin-customer-table"')
+    expect(appJs).toContain('data-testid="admin-booking-table"')
+    expect(appJs).toContain('<caption>All admin-visible customers</caption>')
+    expect(appJs).toContain('<caption>All admin-visible bookings</caption>')
+    expect(styles).toContain('.admin-data-table-wrap')
+    expect(styles).toContain('overflow: auto')
+  })
+
+
 })

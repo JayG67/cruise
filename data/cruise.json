@@ -272409,6 +272409,118 @@
       "email": "grace.demo@example.com",
       "phone": "555-0110",
       "loyaltyNumber": "RC-EMERALD-305"
+    },
+    {
+      "id": "C000000011",
+      "firstName": "Lena",
+      "lastName": "Morales",
+      "email": "lena.morales.demo@example.com",
+      "phone": "555-0111",
+      "loyaltyNumber": "NCL-1211"
+    },
+    {
+      "id": "C000000012",
+      "firstName": "Marcus",
+      "lastName": "Morales",
+      "email": "marcus.morales.demo@example.com",
+      "phone": "555-0112",
+      "loyaltyNumber": "NCL-1212"
+    },
+    {
+      "id": "C000000013",
+      "firstName": "Sophie",
+      "lastName": "Morales",
+      "email": "sophie.morales.demo@example.com",
+      "phone": "555-0113",
+      "loyaltyNumber": "NCL-1213"
+    },
+    {
+      "id": "C000000014",
+      "firstName": "Ethan",
+      "lastName": "Brooks",
+      "email": "ethan.brooks.demo@example.com",
+      "phone": "555-0114",
+      "loyaltyNumber": "DCL-4401"
+    },
+    {
+      "id": "C000000015",
+      "firstName": "Grace",
+      "lastName": "Brooks",
+      "email": "grace.brooks.demo@example.com",
+      "phone": "555-0115",
+      "loyaltyNumber": "DCL-4402"
+    },
+    {
+      "id": "C000000016",
+      "firstName": "Oliver",
+      "lastName": "Brooks",
+      "email": "oliver.brooks.demo@example.com",
+      "phone": "555-0116",
+      "loyaltyNumber": "DCL-4403"
+    },
+    {
+      "id": "C000000017",
+      "firstName": "Priya",
+      "lastName": "Patel",
+      "email": "priya.patel.demo@example.com",
+      "phone": "555-0117",
+      "loyaltyNumber": "PRIN-7501"
+    },
+    {
+      "id": "C000000018",
+      "firstName": "Samir",
+      "lastName": "Patel",
+      "email": "samir.patel.demo@example.com",
+      "phone": "555-0118",
+      "loyaltyNumber": "PRIN-7502"
+    },
+    {
+      "id": "C000000019",
+      "firstName": "Nora",
+      "lastName": "Chen",
+      "email": "nora.chen.demo@example.com",
+      "phone": "555-0119",
+      "loyaltyNumber": "CEL-9201"
+    },
+    {
+      "id": "C000000020",
+      "firstName": "Daniel",
+      "lastName": "Chen",
+      "email": "daniel.chen.demo@example.com",
+      "phone": "555-0120",
+      "loyaltyNumber": "CEL-9202"
+    },
+    {
+      "id": "C000000021",
+      "firstName": "Harper",
+      "lastName": "Stone",
+      "email": "harper.stone.demo@example.com",
+      "phone": "555-0121",
+      "loyaltyNumber": "MSC-8801"
+    },
+    {
+      "id": "C000000022",
+      "firstName": "Quinn",
+      "lastName": "Stone",
+      "email": "quinn.stone.demo@example.com",
+      "phone": "555-0122",
+      "loyaltyNumber": "MSC-8802"
+    },
+    {
+      "id": "C000000023",
+      "firstName": "Mateo",
+      "lastName": "Rivera",
+      "email": "mateo.rivera.demo@example.com",
+      "phone": "555-0123",
+      "loyaltyNumber": "RCL-3301"
+    },
+    {
+      "id": "C000000024",
+      "firstName": "Isabella",
+      "lastName": "Rivera",
+      "email": "isabella.rivera.demo@example.com",
+      "phone": "555-0124",
+      "loyaltyNumber": "RCL-3302"
     }
   ],
   "bookings": [
@@ -272593,6 +272705,276 @@
           "boardingGroup": "TBD"
         }
       ]
+    },
+    {
+      "id": "B000000008",
+      "shipName": "Norwegian Bliss",
+      "departureDate": "2026-08-03",
+      "bookingStatus": "CONFIRMED",
+      "cabinNumber": "15110",
+      "fareCode": "FAMILY",
+      "embarkationPort": "Seattle, Washington",
+      "debarkationPort": "Seattle, Washington",
+      "createdByCustomerId": "C000000011",
+      "passengers": [
+        {
+          "customerId": "C000000011",
+          "passengerRole": "PRIMARY",
+          "isPrimaryGuest": true,
+          "diningPreference": "Anytime dining",
+          "boardingGroup": "B"
+        },
+        {
+          "customerId": "C000000012",
+          "passengerRole": "GUEST",
+          "isPrimaryGuest": false,
+          "diningPreference": "Anytime dining",
+          "boardingGroup": "B"
+        },
+        {
+          "customerId": "C000000013",
+          "passengerRole": "MINOR",
+          "isPrimaryGuest": false,
+          "diningPreference": "Kids menu",
+          "boardingGroup": "B"
+        }
+      ]
+    },
+    {
+      "id": "B000000009",
+      "shipName": "Disney Wish",
+      "departureDate": "2026-08-02",
+      "bookingStatus": "CONFIRMED",
+      "cabinNumber": "7062",
+      "fareCode": "OCEANVIEW",
+      "embarkationPort": "Port Canaveral, Florida",
+      "debarkationPort": "Port Canaveral, Florida",
+      "createdByCustomerId": "C000000014",
+      "passengers": [
+        {
+          "customerId": "C000000014",
+          "passengerRole": "PRIMARY",
+          "isPrimaryGuest": true,
+          "diningPreference": "Early seating",
+          "boardingGroup": "C"
+        },
+        {
+          "customerId": "C000000015",
+          "passengerRole": "GUEST",
+          "isPrimaryGuest": false,
+          "diningPreference": "Early seating",
+          "boardingGroup": "C"
+        },
+        {
+          "customerId": "C000000016",
+          "passengerRole": "MINOR",
+          "isPrimaryGuest": false,
+          "diningPreference": "Kids menu",
+          "boardingGroup": "C"
+        }
+      ]
+    },
+    {
+      "id": "B000000011",
+      "shipName": "Celebrity Apex",
+      "departureDate": "2026-08-03",
+      "bookingStatus": "CONFIRMED",
+      "cabinNumber": "9215",
+      "fareCode": "AQUA",
+      "embarkationPort": "Fort Lauderdale, Florida",
+      "debarkationPort": "Fort Lauderdale, Florida",
+      "createdByCustomerId": "C000000019",
+      "passengers": [
+        {
+          "customerId": "C000000019",
+          "passengerRole": "PRIMARY",
+          "isPrimaryGuest": true,
+          "diningPreference": "Special dietary request",
+          "boardingGroup": "D"
+        },
+        {
+          "customerId": "C000000020",
+          "passengerRole": "GUEST",
+          "isPrimaryGuest": false,
+          "diningPreference": "Special dietary request",
+          "boardingGroup": "D"
+        }
+      ]
+    },
+    {
+      "id": "B000000012",
+      "shipName": "MSC Seashore",
+      "departureDate": "2026-08-02",
+      "bookingStatus": "CONFIRMED",
+      "cabinNumber": "13008",
+      "fareCode": "YACHT_CLUB",
+      "embarkationPort": "Miami, Florida",
+      "debarkationPort": "Miami, Florida",
+      "createdByCustomerId": "C000000021",
+      "passengers": [
+        {
+          "customerId": "C000000021",
+          "passengerRole": "PRIMARY",
+          "isPrimaryGuest": true,
+          "diningPreference": "Flexible dining",
+          "boardingGroup": "A"
+        },
+        {
+          "customerId": "C000000022",
+          "passengerRole": "GUEST",
+          "isPrimaryGuest": false,
+          "diningPreference": "Flexible dining",
+          "boardingGroup": "A"
+        }
+      ]
+    },
+    {
+      "id": "B000000014",
+      "shipName": "Carnival Mardi Gras",
+      "departureDate": "2026-08-03",
+      "bookingStatus": "WAITLISTED",
+      "cabinNumber": "TBD",
+      "fareCode": "INTERIOR",
+      "embarkationPort": "Port Canaveral, Florida",
+      "debarkationPort": "Port Canaveral, Florida",
+      "createdByCustomerId": "C000000006",
+      "passengers": [
+        {
+          "customerId": "C000000006",
+          "passengerRole": "PRIMARY",
+          "isPrimaryGuest": true,
+          "diningPreference": "Late seating",
+          "boardingGroup": "TBD"
+        }
+      ]
+    },
+    {
+      "id": "B000000015",
+      "shipName": "Margaritaville at Sea Paradise",
+      "departureDate": "2026-08-02",
+      "bookingStatus": "CONFIRMED",
+      "cabinNumber": "5121",
+      "fareCode": "OCEANVIEW",
+      "embarkationPort": "Palm Beach, Florida",
+      "debarkationPort": "Palm Beach, Florida",
+      "createdByCustomerId": "C000000007",
+      "passengers": [
+        {
+          "customerId": "C000000007",
+          "passengerRole": "PRIMARY",
+          "isPrimaryGuest": true,
+          "diningPreference": "Anytime dining",
+          "boardingGroup": "F"
+        },
+        {
+          "customerId": "C000000008",
+          "passengerRole": "GUEST",
+          "isPrimaryGuest": false,
+          "diningPreference": "Anytime dining",
+          "boardingGroup": "F"
+        }
+      ]
+    },
+    {
+      "id": "B000000016",
+      "shipName": "Allure of the Seas",
+      "departureDate": "2026-08-31",
+      "bookingStatus": "DEPOSIT_PAID",
+      "cabinNumber": "10210",
+      "fareCode": "TRANSATLANTIC",
+      "embarkationPort": "Miami, Florida",
+      "debarkationPort": "Barcelona, Spain",
+      "createdByCustomerId": "C000000009",
+      "passengers": [
+        {
+          "customerId": "C000000009",
+          "passengerRole": "PRIMARY",
+          "isPrimaryGuest": true,
+          "diningPreference": "My Time dining",
+          "boardingGroup": "G"
+        },
+        {
+          "customerId": "C000000010",
+          "passengerRole": "GUEST",
+          "isPrimaryGuest": false,
+          "diningPreference": "My Time dining",
+          "boardingGroup": "G"
+        }
+      ]
+    },
+    {
+      "id": "B000000013",
+      "shipName": "Wonder of the Seas",
+      "departureDate": "2026-08-19",
+      "bookingStatus": "CONFIRMED",
+      "cabinNumber": "11220",
+      "fareCode": "BALCONY",
+      "embarkationPort": "Miami, Florida",
+      "debarkationPort": "Miami, Florida",
+      "createdByCustomerId": "C000000023",
+      "passengers": [
+        {
+          "customerId": "C000000023",
+          "passengerRole": "PRIMARY",
+          "isPrimaryGuest": true,
+          "diningPreference": "My Time dining",
+          "boardingGroup": "E"
+        },
+        {
+          "customerId": "C000000024",
+          "passengerRole": "GUEST",
+          "isPrimaryGuest": false,
+          "diningPreference": "My Time dining",
+          "boardingGroup": "E"
+        }
+      ]
+    },
+    {
+      "id": "B000000017",
+      "shipName": "Norwegian Escape",
+      "departureDate": "2026-08-03",
+      "bookingStatus": "CONFIRMED",
+      "cabinNumber": "11888",
+      "fareCode": "SOLO_STUDIO",
+      "embarkationPort": "Miami, Florida",
+      "debarkationPort": "Miami, Florida",
+      "createdByCustomerId": "C000000003",
+      "passengers": [
+        {
+          "customerId": "C000000003",
+          "passengerRole": "PRIMARY",
+          "isPrimaryGuest": true,
+          "diningPreference": "Freestyle dining",
+          "boardingGroup": "C"
+        }
+      ]
+    },
+    {
+      "id": "B000000018",
+      "shipName": "Disney Treasure",
+      "departureDate": "2026-08-06",
+      "bookingStatus": "CONFIRMED",
+      "cabinNumber": "8614",
+      "fareCode": "VERANDAH",
+      "embarkationPort": "Port Canaveral, Florida",
+      "debarkationPort": "Port Canaveral, Florida",
+      "createdByCustomerId": "C000000004",
+      "passengers": [
+        {
+          "customerId": "C000000004",
+          "passengerRole": "PRIMARY",
+          "isPrimaryGuest": true,
+          "diningPreference": "Early seating",
+          "boardingGroup": "D"
+        },
+        {
+          "customerId": "C000000005",
+          "passengerRole": "MINOR",
+          "isPrimaryGuest": false,
+          "diningPreference": "Kids menu",
+          "boardingGroup": "D"
+        }
+      ]
     }
   ],
   "demoUsers": [
@@ -272655,6 +273037,24 @@
       "displayName": "Grace Thompson Multi-Cruise View",
       "role": "PASSENGER",
       "customerId": "C000000010"
+    },
+    {
+      "id": "UPASS00011",
+      "displayName": "Lena Morales Passenger View",
+      "role": "PASSENGER",
+      "customerId": "C000000011"
+    },
+    {
+      "id": "UPASS00017",
+      "displayName": "Priya Patel Passenger View",
+      "role": "PASSENGER",
+      "customerId": "C000000017"
+    },
+    {
+      "id": "UPASS00021",
+      "displayName": "Harper Stone Passenger View",
+      "role": "PASSENGER",
+      "customerId": "C000000021"
     }
   ]
 }

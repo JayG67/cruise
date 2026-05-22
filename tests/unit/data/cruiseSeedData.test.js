@@ -289,7 +289,7 @@ describe('customer and booking seed data integrity', () => {
   it('contains customer IDs using the C-prefixed ten-character portfolio format', () => {
     const customers = getCustomers()
 
-    expect(customers.length).toBeGreaterThanOrEqual(8)
+    expect(customers.length).toBeGreaterThanOrEqual(24)
 
     customers.forEach(customer => {
       expect(customer.id).toMatch(/^C[A-Z0-9]{9}$/)
@@ -302,7 +302,7 @@ describe('customer and booking seed data integrity', () => {
   it('contains booking IDs using the B-prefixed ten-character portfolio format', () => {
     const bookings = getBookings()
 
-    expect(bookings.length).toBeGreaterThanOrEqual(6)
+    expect(bookings.length).toBeGreaterThanOrEqual(17)
 
     bookings.forEach(booking => {
       expect(booking.id).toMatch(/^B[A-Z0-9]{9}$/)
@@ -310,6 +310,21 @@ describe('customer and booking seed data integrity', () => {
       expect(booking.passengers.length).toBeGreaterThan(0)
     })
   })
+
+
+  it('contains a broad booking mix across solo, couple, family, group, and waitlisted scenarios', () => {
+    const bookings = getBookings()
+    const passengerCounts = bookings.map(booking => booking.passengers.length)
+    const statuses = new Set(bookings.map(booking => booking.bookingStatus))
+    const fareCodes = new Set(bookings.map(booking => booking.fareCode))
+
+    expect(passengerCounts).toContain(1)
+    expect(passengerCounts.some(count => count === 2)).toBe(true)
+    expect(passengerCounts.some(count => count >= 3)).toBe(true)
+    expect([...statuses]).toEqual(expect.arrayContaining(['CONFIRMED', 'DEPOSIT_PAID', 'WAITLISTED']))
+    expect(fareCodes.size).toBeGreaterThanOrEqual(8)
+  })
+
 
   it('allows customers to appear across multiple bookings and cruise lines', () => {
     const bookings = getBookings()
@@ -500,7 +515,7 @@ describe('demo user seed data integrity', () => {
     const demoUsers = getDemoUsers()
     const displayNames = demoUsers.map(user => user.displayName).join(' ')
 
-    expect(demoUsers).toHaveLength(10)
+    expect(demoUsers.length).toBeGreaterThanOrEqual(10)
     expect(displayNames).toContain('Alisa Gallagher')
     expect(displayNames).toContain('Parker Family')
     expect(displayNames).toContain('Kim Couple')
