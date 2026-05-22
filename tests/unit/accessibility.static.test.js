@@ -113,10 +113,26 @@ describe('static ADA and WCAG-oriented accessibility safeguards', () => {
 
   it('keeps admin customer and booking management controls accessible and testable', () => {
     expect(appJs).toContain('data-testid="admin-data-management-panel"')
+    expect(appJs).toContain('data-testid="admin-data-search-input"')
     expect(appJs).toContain('data-testid="admin-show-customers-button"')
     expect(appJs).toContain('data-testid="admin-show-bookings-button"')
-    expect(appJs).toContain('aria-pressed')
-    expect(appJs).toContain('aria-label="Admin customer and booking results"')
+    expect(appJs).toContain('aria-controls="admin-customers-panel"')
+    expect(appJs).toContain('aria-controls="admin-bookings-panel"')
+    expect(appJs).toContain('aria-expanded="false"')
+    expect(appJs).toContain('aria-label="Admin customer results"')
+    expect(appJs).toContain('aria-label="Admin booking results"')
+  })
+
+
+  it('keeps admin tables hidden until the admin explicitly opens them', () => {
+    expect(appJs).toContain('data-testid="admin-customers-panel"')
+    expect(appJs).toContain('data-testid="admin-bookings-panel"')
+    expect(appJs).toContain('hidden>')
+    expect(appJs).toContain('adminCustomersVisible = false')
+    expect(appJs).toContain('adminBookingsVisible = false')
+    expect(appJs).toContain('toggleAdminPanel')
+    expect(appJs).toContain("panel.hidden = !visible")
+    expect(styles).toContain('.admin-data-panel[hidden]')
   })
 
 

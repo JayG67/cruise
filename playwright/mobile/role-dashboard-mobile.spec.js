@@ -111,6 +111,38 @@ test.describe('Cruise Explorer mobile role and passenger dashboard quality check
     await expectNoHorizontalOverflow(page)
   })
 
+
+  test('keeps admin customer and booking tables collapsed behind mobile show and hide controls', async ({ page }) => {
+    await openRoleDashboard(page)
+
+    await expect(page.getByTestId('admin-data-search-input')).toBeVisible()
+    await expect(page.getByTestId('admin-customers-panel')).toBeHidden()
+    await expect(page.getByTestId('admin-bookings-panel')).toBeHidden()
+    await expect(page.getByTestId('admin-show-customers-button')).toContainText('Show All Customers')
+    await expect(page.getByTestId('admin-show-bookings-button')).toContainText('Show All Bookings')
+
+    await page.getByTestId('admin-data-search-input').fill('Alisa')
+    await expect(page.getByTestId('admin-data-message')).toContainText('Search found')
+    await expect(page.getByTestId('admin-customer-row')).toHaveCount(0)
+    await expect(page.getByTestId('admin-booking-row')).toHaveCount(0)
+
+    await page.getByTestId('admin-show-customers-button').click()
+    await expect(page.getByTestId('admin-show-customers-button')).toContainText('Hide Customers')
+    await expect(page.getByTestId('admin-customers-panel')).toBeVisible()
+    await expect(page.getByTestId('admin-customer-row').first()).toContainText('Alisa Gallagher')
+
+    await page.getByTestId('admin-show-customers-button').click()
+    await expect(page.getByTestId('admin-show-customers-button')).toContainText('Show All Customers')
+    await expect(page.getByTestId('admin-customers-panel')).toBeHidden()
+
+    await page.getByTestId('admin-show-bookings-button').click()
+    await expect(page.getByTestId('admin-show-bookings-button')).toContainText('Hide Bookings')
+    await expect(page.getByTestId('admin-bookings-panel')).toBeVisible()
+
+    await expectNoHorizontalOverflow(page)
+  })
+
+
   test('keeps every seeded role option selectable from a phone viewport', async ({ page }) => {
     await openRoleDashboard(page)
 

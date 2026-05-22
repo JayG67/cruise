@@ -2758,3 +2758,47 @@ code,
   background: #f7fbfd;
 }
 
+
+
+/* Admin progressive disclosure search and table panels */
+.admin-data-panel {
+  margin-top: 16px;
+}
+
+.admin-data-panel[hidden] {
+  display: none !important;
+}
+
+.admin-data-panel-header {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.admin-data-panel-header h5 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.admin-data-panel-header p {
+  margin: 0;
+  color: #526b7d;
+  font-weight: 800;
+}
+
+.admin-data-actions {
+  margin: 14px 0 18px;
+}
+
+.admin-data-tab[aria-expanded="false"] {
+  background: #e8f6fb;
+  color: #075985;
+}
+
+.admin-data-tab[aria-expanded="true"] {
+  background: linear-gradient(135deg, #2f78ad, #43a9ba);
+  color: #ffffff;
+}
+

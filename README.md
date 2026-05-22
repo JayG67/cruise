@@ -2,456 +2,319 @@
 
 ## Full-Stack Cruise Management Platform & SQA Engineering Portfolio
 
-[![CI](https://github.com/JayG67/cruise/actions/workflows/ci.yml/badge.svg)](https://github.com/JayG67/cruise/actions)
-[![Live Demo](https://img.shields.io/badge/live-demo-brightgreen)](https://cruise-explorer.onrender.com/)
-[![Quality Dashboard](https://img.shields.io/badge/quality-dashboard-success)](https://jayg67.github.io/cruise/)
-[![Coverage Report](https://img.shields.io/badge/jest-coverage-report-brightgreen)](https://jayg67.github.io/cruise/coverage/)
-[![Lighthouse Report](https://img.shields.io/badge/mobile-quality-report-orange)](https://jayg67.github.io/cruise/lighthouse/)
-[![Playwright Mobile](https://img.shields.io/badge/playwright-mobile%20and%20responsive-45ba4b)](./playwright/mobile/)
-[![k6](https://img.shields.io/badge/k6-performance%20smoke-purple)](./performance/cruise-api-smoke.js)
+![Cruise CI](https://img.shields.io/github/actions/workflow/status/JayG67/cruise/node.js.yml?branch=main&label=Cruise%20CI)
+![Production](https://img.shields.io/badge/production-live-00b894)
+![Demo](https://img.shields.io/badge/demo-role--aware-0984e3)
+![Accessibility](https://img.shields.io/badge/accessibility-tested-6c5ce7)
+![Playwright](https://img.shields.io/badge/playwright-mobile%20%2B%20responsive-2d3436)
+![Cypress](https://img.shields.io/badge/cypress-e2e-17202C)
+![Jest](https://img.shields.io/badge/jest-unit%20%2B%20integration-C21325)
+![Performance](https://img.shields.io/badge/performance-smoke%20tested-orange)
+![Coverage](https://img.shields.io/badge/testing-expanded%20coverage-success)
 
-## Live Links
+---
 
-- **Production app:** https://cruise-explorer.onrender.com/
+## 🔗 Live Links
+
+- **Production application:** https://cruise-explorer.onrender.com/
 - **Quality dashboard:** https://jayg67.github.io/cruise/
-- **Coverage report:** https://jayg67.github.io/cruise/coverage/
-- **Mobile Lighthouse report:** https://jayg67.github.io/cruise/lighthouse/
+- **GitHub repository:** https://github.com/JayG67/cruise
 
 ---
 
-## Portfolio Review and Repository Hygiene
+# 📖 Overview
 
-This repository is intentionally maintained as a recruiter-facing testing portfolio. Source files, tests, seed data, and documentation should be reviewed as product assets. Generated local artifacts should stay out of source control and be published through CI artifacts or GitHub Pages instead.
+Cruise Explorer is a portfolio-grade full-stack cruise management platform designed to demonstrate:
 
-Useful review commands:
+- Enterprise-style frontend engineering
+- API development and validation
+- Real-world SQA engineering practices
+- Accessibility-first UI design
+- Mobile and responsive testing
+- End-to-end workflow automation
+- CI-oriented project engineering
+- Production deployment practices
 
-```bash
-npm run unitTests
-npm run integrationTests
-npm run uiTests
-npm run playwright:mobile:local
-npm run playwright:responsive:local
-npm run perf:smoke:local
-npm run lighthouse:ci:local
-npm run repo:hygiene
-```
+The project evolved far beyond a simple cruise lookup application and now includes:
 
-A dedicated code review summary is available at [`docs/code-review.md`](docs/code-review.md).
+- Role-aware booking dashboards
+- Admin operations management
+- Customer and booking management workflows
+- Passenger self-service functionality
+- Responsive fleet browsing
+- Searchable operational datasets
+- Progressive disclosure UI patterns
+- Accessibility and negative-path testing
 
----
-
-## Project Summary
-
-Cruise Explorer is a production-style full-stack portfolio application for managing cruise-line, ship, sailing, itinerary, customer, booking, passenger, and role-aware dashboard data.
-
-The project started as a cruise data administration app and has evolved into a multi-role cruise platform that demonstrates:
-
-- full-stack Node.js and Express API development
-- PostgreSQL persistence
-- relational data modeling
-- role-aware UI behavior
-- passenger self-service workflows
-- itinerary planning and saved favorites
-- booking conflict prevention
-- mobile/responsive validation
-- accessibility-focused UI hardening
-- CI/CD quality gates
-- deep automated testing across unit, integration, UI, mobile, performance, coverage, and Lighthouse layers
-
-This repository is intentionally built as a **software testing and SQA engineering showcase**. The goal is not only to show that the application works, but to show how a quality engineer approaches risk, coverage, regression prevention, data integrity, CI feedback, and user-facing quality.
+This repository is intentionally engineered like a professional production application rather than a tutorial project.
 
 ---
 
-## Why This Project Matters
+# ✨ Current Feature Set
 
-This project demonstrates a QA-first engineering mindset:
+## 🌊 Cruise Fleet Explorer
 
-- features are expanded with matching automated tests
-- bugs found during manual testing are converted into regression coverage
-- API and UI behavior are tested separately and together
-- seed data is validated as a first-class asset
-- CI validates the same quality layers expected in a professional software environment
-- accessibility is treated as product quality, not an afterthought
-- reporting artifacts are published so reviewers can inspect evidence, not just claims
+- Browse cruise lines
+- View ships by cruise line
+- Browse sailings by ship
+- Explore itinerary details
+- View port schedules and activities
+- Responsive mobile-first layouts
 
-For a recruiter, hiring manager, development engineer, or QA leader, this project is intended to show both implementation capability and test leadership.
+## 👤 Role-Aware Demo System
 
----
+Switch application behavior instantly between:
 
-## Current Product Capabilities
+- Admin users
+- Passenger users
+- Group leader users
 
-### Admin Experience
+The role-aware system changes:
 
-Admin users can:
+- Booking visibility
+- Passenger visibility
+- Administrative access
+- Editing permissions
+- Dashboard content
 
-- view all cruise lines
-- search cruise lines by name or country
-- create cruise lines with ships
-- update cruise-line details
-- update, create, and delete ships
-- view ship sailings
-- create, update, and delete sailings
-- create, update, and delete itinerary days
-- create, update, and delete itinerary activities
-- reset demo data safely from the SQA panel
-- run browser-based quality checks from the UI
+## 🛠️ Admin Operations Dashboard
 
-### Passenger and Group Views
+The admin experience now includes:
 
-The demo role selector allows the app to be viewed from multiple role perspectives without requiring authentication.
+- Search-first operational workflow
+- Progressive disclosure data panels
+- Show / hide customer tables
+- Show / hide booking tables
+- Search across:
+  - Customers
+  - Bookings
+  - Ships
+  - Routes
+  - Loyalty IDs
+  - Booking status
+  - Cabin numbers
+  - Passenger names
+- Scrollable enterprise-style data tables
+- Inline editing workflows
+- Customer update workflows
+- Booking update workflows
+- Mobile-safe responsive table handling
 
-Supported demo perspectives include:
+## 🧳 Passenger Experience
 
-- admin
-- individual passenger
-- couple/family passenger
-- group leader
-- multi-cruise passenger
-- passengers with different booking combinations
+Passenger roles can:
 
-Passenger-facing behavior includes:
+- View only authorized bookings
+- See visible passengers per booking
+- Access role-specific dashboards
+- Update profile information
+- View sailing and cabin details
 
-- viewing only bookings visible to the selected role
-- viewing booked cruise details directly under each booking card
-- opening multiple booking detail panels at the same time
-- hiding individual booking detail panels
-- editing limited passenger profile fields
-- selecting dining preference from approved values
-- saving itinerary activities as favorite items
-- filtering itinerary details to all activities or saved favorites
+## 📱 Responsive Engineering
 
-### Booking Rules
+The application includes dedicated responsive validation for:
 
-Booking behavior now includes data integrity safeguards:
+- Desktop Chrome
+- Desktop Safari
+- Mobile Chrome
+- Mobile Safari
+- Tablet layouts
 
-- booking IDs are 10 characters and start with `B`
-- customer IDs are 10 characters and start with `C`
-- bookings require exactly one primary guest
-- duplicate passengers on one booking are rejected
-- invalid customer and sailing references are rejected
-- passenger bookings cannot overlap
-- adding a passenger to an existing booking checks for overlaps
-- seeded demo bookings are validated to avoid impossible passenger schedules
+Layouts are continuously tested for:
 
-### Itinerary Data
-
-The seeded itinerary data is intentionally rich enough to support meaningful UI and test coverage.
-
-Itineraries include:
-
-- embarkation activities
-- port days
-- sea days
-- dining activities
-- entertainment
-- theme/dress nights
-- family activities
-- enrichment events
-- theater shows
-- late-night activities
-- disembarkation-focused final-day schedules
-
-Every final sailing day is focused on disembarkation and includes:
-
-- guests must vacate rooms by **8:00 AM**
-- all passengers must be off the ship by **12:00 PM**
+- Horizontal overflow
+- Touch target usability
+- Viewport containment
+- Responsive table behavior
+- Mobile accessibility
 
 ---
 
-## Accessibility and ADA/WCAG-Oriented Quality Effort
+# 🧪 Testing Philosophy
 
-This project includes a dedicated accessibility pass intended to align the UI with ADA-aware and WCAG-oriented engineering practices.
+Testing is treated as a first-class engineering concern.
 
-Important note: this repository does not claim legal certification. Accessibility compliance depends on legal context, full product scope, assistive-technology review, user testing, and ongoing governance. What this project does provide is a serious technical implementation and automated regression strategy based on common WCAG expectations.
+The project intentionally demonstrates:
 
-### Accessibility Improvements Implemented
-
-The application includes:
-
-- skip link to main content
-- focusable main content landmark
-- primary navigation landmark with accessible name
-- search landmark
-- screen-reader-only text support
-- visible keyboard focus states
-- reduced-motion support
-- forced-colors/high-contrast support
-- live regions for status messages
-- accessible labels for search, status, and SQA output
-- accessible names on dynamic cruise, ship, sailing, and booking actions
-- contextual `aria-label` values on repeated buttons
-- `aria-expanded` for collapsible booking details
-- star favorite buttons exposed as checkbox-style controls
-- `aria-checked` for saved itinerary favorites
-- form labels for visible and screen-reader users
-- mobile-safe touch targets
-- no-horizontal-overflow validation on mobile/tablet layouts
-
-### Accessibility Testing Added
-
-Accessibility is covered by several layers:
-
-| Layer | Coverage |
-|---|---|
-| Unit/static tests | Validate skip link, landmarks, ARIA support, focus CSS, reduced motion, forced-colors, and dynamic accessibility strings |
-| Cypress UI tests | Validate keyboard/focus behavior, accessible names, search/status landmarks, dynamic controls, and favorite checkbox semantics |
-| Playwright mobile tests | Validate accessibility semantics on phone/tablet-sized role dashboards |
-| Lighthouse mobile | Audits accessibility along with performance, best practices, and SEO |
-| Manual testing workflow | Manual accessibility findings should become regression tests before merging |
+- SQA leadership mindset
+- Defensive engineering
+- Regression prevention
+- Negative-path validation
+- Accessibility validation
+- Responsive quality verification
+- Enterprise workflow testing
 
 ---
 
-## Testing Strategy
+# ✅ Test Coverage
 
-This is the heart of the portfolio.
+## Unit Testing — Jest
 
-The repository includes a broad and layered validation approach:
+Covers:
 
-### Unit Tests
+- Controllers
+- Validation middleware
+- Security behavior
+- Accessibility safeguards
+- Static portfolio quality gates
+- Cruise seed data integrity
+- Role-aware rendering logic
+- Progressive disclosure controls
+- Hidden-state verification
+- Negative-path assertions
 
-Unit tests cover:
+Examples:
 
-- controllers
-- validation schemas
-- middleware
-- database exports
-- seed data integrity
-- accessibility static safeguards
-- quality dashboard configuration
-
-Command:
-
-```bash
-npm run unitTests
-```
-
-### Coverage
-
-Jest coverage is generated and published.
-
-Command:
-
-```bash
-npm run coverage
-```
-
-### Integration Tests
-
-Integration tests run against PostgreSQL-backed API workflows and validate:
-
-- cruise lines
-- ships
-- sailings
-- itinerary days
-- itinerary activities
-- customers
-- bookings
-- booking passengers
-- demo roles
-- passenger self-service
-- itinerary favorites
-- booking-overlap rejection
-- admin reset behavior
-- health checks
-
-Command:
-
-```bash
-npm run integrationTests
-```
-
-### Cypress UI Tests
-
-Cypress validates desktop/browser UI behavior:
-
-- home page rendering
-- search behavior
-- create cruise line workflow
-- update cruise line workflow
-- delete cruise line workflow
-- ship workflows
-- sailing and itinerary workflows
-- passenger role dashboard
-- passenger profile editing
-- itinerary favorites
-- reset demo data
-- SQA control panel
-- accessibility behaviors
-
-Command:
-
-```bash
-npm run uiTests
-```
-
-### Playwright Mobile and Responsive Tests
-
-Playwright validates:
-
-- mobile Chrome
-- mobile Safari
-- tablet Safari
-- responsive layout behavior
-- no horizontal overflow
-- touch target usability
-- role dashboard behavior
-- passenger details behavior
-- favorites behavior
-- accessibility semantics on mobile
-
-Commands:
-
-```bash
-npm run playwright:mobile:local
-npm run playwright:responsive:local
-```
-
-### k6 Performance Smoke Testing
-
-k6 validates basic API performance and response success thresholds.
-
-Command:
-
-```bash
-npm run perf:smoke:local
-```
-
-### Lighthouse CI
-
-Lighthouse validates mobile quality gates, including performance and accessibility.
-
-Command:
-
-```bash
-npm run lighthouse:ci:local
-```
-
-### Full Local Validation
-
-Run the full suite:
-
-```bash
-npm run test:all
-```
+- Verifying panels are hidden when they should not exist
+- Verifying admin controls disappear for passenger roles
+- Verifying search behavior with empty results
+- Verifying accessible ARIA attributes remain present
 
 ---
 
-## SQA Control Panel
+## 🌐 End-to-End Testing — Cypress
 
-The application includes an in-browser SQA console that allows reviewers to run quality checks from the UI.
+Cypress validates:
 
-The SQA panel includes:
+- Role switching workflows
+- Admin dashboard workflows
+- Search filtering
+- Show/hide panel functionality
+- Inline editing
+- Customer updates
+- Booking updates
+- Scrollable table behavior
+- Negative UI states
+- Permission isolation
 
-- API health check
-- cruise data verification
-- UI smoke check
-- API contract check
-- safe CRUD workflow check
-- performance smoke check
-- seed data integrity check
-- frontend rendering consistency check
-- deployment diagnostics
-- demo data reset
-- quality report links
+The project intentionally contains both:
 
-This is intended to make the portfolio easier to review and to demonstrate practical QA tooling beyond test files alone.
+- Positive-path tests
+- Negative-path tests
+
+to better demonstrate production-quality SQA engineering.
 
 ---
 
-## Technology Stack
+## 📲 Mobile & Responsive Testing — Playwright
 
-### Backend
+Dedicated Playwright suites validate:
+
+- Mobile usability
+- Responsive layouts
+- Touch interactions
+- Cross-device workflows
+- Overflow prevention
+- Role dashboard usability
+- Admin workflow responsiveness
+
+---
+
+## ⚡ Performance & Lighthouse Validation
+
+Automated quality checks include:
+
+- Lighthouse CI
+- Performance smoke tests
+- Responsive rendering checks
+- Accessibility validation
+
+---
+
+# 🧱 Technical Stack
+
+## Frontend
+
+- Vanilla JavaScript
+- HTML5
+- CSS3
+- Responsive design patterns
+- Accessibility-first architecture
+
+## Backend
 
 - Node.js
 - Express
+- REST APIs
+
+## Database / ORM
+
 - PostgreSQL
 - Drizzle ORM
-- Zod validation
 
-### Frontend
-
-- HTML
-- CSS
-- Vanilla JavaScript
-- Responsive/mobile-first UI behavior
-- Accessible semantic markup and ARIA where appropriate
-
-### Testing and Quality
+## Testing
 
 - Jest
-- Supertest
 - Cypress
 - Playwright
-- k6
 - Lighthouse CI
+
+## Deployment
+
+- Render
 - GitHub Actions
-- GitHub Pages quality dashboard
-- Render deployment
 
 ---
 
-## Project Structure
+# 🧩 Architecture Highlights
 
-```text
-.
-├── app.js
-├── index.js
-├── controllers/
-├── db/
-├── data/
-│   └── cruise.json
-├── middleware/
-├── models/
-├── performance/
-├── playwright/
-│   └── mobile/
-├── public/
-│   ├── app.js
-│   ├── index.html
-│   └── styles.css
-├── routes/
-├── scripts/
-├── services/
-├── tests/
-│   ├── integration/
-│   └── unit/
-├── validation/
-├── cypress/
-│   ├── e2e/
-│   └── support/
-└── .github/
-    └── workflows/
-```
+## Progressive Disclosure UI
+
+The admin dashboard intentionally avoids rendering massive operational datasets immediately.
+
+Instead:
+
+- Search functionality is always available
+- Large customer and booking tables stay collapsed by default
+- Admin users explicitly open only the datasets they need
+- Toggle controls dynamically switch between:
+  - Show All Customers
+  - Hide Customers
+  - Show All Bookings
+  - Hide Bookings
+
+This approach improves:
+
+- Performance
+- Usability
+- Mobile responsiveness
+- Operational scalability
 
 ---
 
-## Local Setup
+## Accessibility Engineering
 
-### 1. Install dependencies
+Accessibility is built into the UI architecture rather than added afterward.
+
+Examples include:
+
+- ARIA-expanded state management
+- ARIA-hidden validation
+- Semantic tables
+- Accessible labels
+- Live status regions
+- Keyboard-friendly controls
+- Screen-reader-aware messaging
+
+Accessibility safeguards are enforced through automated tests.
+
+---
+
+# 🚀 Local Development
+
+## Install dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Start PostgreSQL
+## Start the application
 
 ```bash
-npm run db:up
+npm start
 ```
 
-### 3. Start the application
-
-```bash
-npm run start
-```
-
-The app runs on:
-
-```text
-http://localhost:8000
-```
-
-### 4. Run tests
+## Run full test suite
 
 ```bash
 npm run test:all
@@ -459,91 +322,98 @@ npm run test:all
 
 ---
 
-## Environment Variables
+# 🧪 Available Test Commands
 
-Common variables:
+## Unit tests
 
-```text
-DATABASE_URL
-TEST_DATABASE_URL
-PORT
-SUPPRESS_DB_LOGS
-LIVE_APP_URL
-QUALITY_DASHBOARD_URL
-LIGHTHOUSE_REPORT_URL
-COVERAGE_REPORT_URL
+```bash
+npm run unitTests
 ```
 
-The local Docker-backed setup uses PostgreSQL on port `5433`.
+## Coverage
+
+```bash
+npm run coverage
+```
+
+## Integration tests
+
+```bash
+npm run integrationTests
+```
+
+## Cypress UI tests
+
+```bash
+npm run uiTests
+```
+
+## Playwright mobile suite
+
+```bash
+npm run playwright:mobile:local
+```
+
+## Playwright responsive suite
+
+```bash
+npm run playwright:responsive:local
+```
+
+## Performance smoke tests
+
+```bash
+npm run perf:smoke:local
+```
+
+## Lighthouse CI
+
+```bash
+npm run lighthouse:ci:local
+```
 
 ---
 
-## CI/CD
+# 🎯 Portfolio Goals
 
-GitHub Actions validates the project with:
+This project is intentionally designed to showcase:
 
-- unit tests
-- coverage
-- integration tests
-- Cypress UI tests
-- Playwright mobile tests
-- Playwright responsive tests
-- k6 smoke tests
-- Lighthouse CI
-- quality dashboard publishing
+- Senior-level SQA thinking
+- Full-stack engineering capability
+- API validation practices
+- Test automation architecture
+- Frontend engineering quality
+- Accessibility engineering
+- Responsive engineering
+- CI-oriented development workflows
+- Enterprise-style operational UI design
 
-Reports are published through GitHub Pages.
-
-Generated reports and local artifacts should not be treated as source code. Use `npm run repo:hygiene` before pushing to confirm local reports, logs, and OS files are not accidentally tracked.
+The repository evolves continuously as new engineering concepts, workflows, and testing strategies are implemented.
 
 ---
 
-## Current Quality Posture
+# 📌 Repository Philosophy
 
-This project has grown beyond a simple CRUD demo into a serious portfolio-quality application with layered test coverage and a visible quality posture.
+This repository is treated like an actively evolving production system.
 
-Current strengths:
+New functionality is expected to include:
 
-- strong backend validation
-- high integration coverage
-- robust browser workflow coverage
-- mobile-specific regression tests
-- accessibility-focused checks
-- browser security headers
-- production deployment
-- published quality dashboard
-- realistic data integrity rules
-- manual testing findings converted to regression tests
+- Expanded automated testing
+- Negative-path coverage
+- Accessibility validation
+- Responsive verification
+- Regression prevention
+- CI stability
 
----
+The goal is not simply to add features.
 
-## Roadmap
-
-Planned next steps:
-
-1. Passenger cruise booking workflow
-2. Booking availability and cabin selection rules
-3. Simulated authentication or reviewer-friendly persona switching
-4. Payment-safe mock checkout flow without storing sensitive payment data
-5. Expanded accessibility review checklist
-6. More granular accessibility reporting in the quality dashboard
-7. Additional CI artifact summaries for mobile and accessibility evidence
-8. Cruise-line-specific branding
-9. Passenger group management workflows
+The goal is to demonstrate disciplined engineering.
 
 ---
 
-## Portfolio Positioning
+# 👨‍💻 Author
 
-Cruise Explorer is intended to demonstrate:
+**Jay Gallagher**
 
-- senior QA judgment
-- hands-on automation capability
-- backend and frontend test strategy
-- full-stack engineering ability
-- accessibility awareness
-- CI/CD quality discipline
-- production-minded risk reduction
-- testability-first design
+Senior SQA / Automation Engineering Portfolio Project
 
-The project is deliberately maintained as an evolving example of how quality engineering can guide product development.

@@ -24,6 +24,8 @@ let activeDemoContext = null
 let adminCustomers = []
 let adminBookings = []
 let activeAdminTab = 'customers'
+let adminCustomersVisible = false
+let adminBookingsVisible = false
 
 
 const DINING_PREFERENCE_OPTIONS = [
@@ -386,7 +388,7 @@ function renderAdminOperationsPanel(visibility = {}) {
         <div>
           <p class="eyebrow">Admin Data Management</p>
           <h4 id="admin-data-management-heading">Customers and bookings</h4>
-          <p>Search, view, and update passenger profiles and booking records without switching into a passenger role.</p>
+          <p>Search customers and bookings immediately, then open only the dataset you need to manage.</p>
         </div>
         <div class="admin-data-management-counts" aria-label="Admin-visible data counts">
           <span data-cy="admin-customer-count" data-testid="admin-customer-count">${escapeHtml(String(visibility.accessibleCustomerCount || 0))} customers</span>
@@ -394,32 +396,43 @@ function renderAdminOperationsPanel(visibility = {}) {
         </div>
       </div>
 
-      <div class="admin-data-actions" role="group" aria-label="Admin data views">
-        <button type="button" class="admin-data-tab is-active" data-admin-tab="customers" data-cy="admin-show-customers-button" data-testid="admin-show-customers-button" aria-pressed="true">Show All Customers</button>
-        <button type="button" class="admin-data-tab" data-admin-tab="bookings" data-cy="admin-show-bookings-button" data-testid="admin-show-bookings-button" aria-pressed="false">Show All Bookings</button>
-      </div>
-
       <label class="admin-data-search-label" for="admin-data-search">
         <span>Search admin records</span>
-        <input id="admin-data-search" type="search" placeholder="Search customers, bookings, ships, email, cabin, or route..." autocomplete="off" data-cy="admin-data-search-input" data-testid="admin-data-search-input" />
+        <input id="admin-data-search" type="search" placeholder="Search customers, bookings, ships, email, cabin, route, status, or loyalty number..." autocomplete="off" data-cy="admin-data-search-input" data-testid="admin-data-search-input" />
       </label>
 
-      <p class="form-message" role="status" aria-live="polite" data-cy="admin-data-message" data-testid="admin-data-message">Select a view to load records.</p>
-      <div class="admin-data-results" role="list" aria-label="Admin customer and booking results" data-cy="admin-data-results" data-testid="admin-data-results"></div>
+      <p class="form-message" role="status" aria-live="polite" data-cy="admin-data-message" data-testid="admin-data-message">Search is ready. Customer and booking tables are hidden until opened.</p>
+
+      <div class="admin-data-actions" role="group" aria-label="Admin data table visibility controls">
+        <button type="button" class="admin-data-tab" data-admin-toggle="customers" data-cy="admin-show-customers-button" data-testid="admin-show-customers-button" aria-controls="admin-customers-panel" aria-expanded="false">Show All Customers</button>
+        <button type="button" class="admin-data-tab" data-admin-toggle="bookings" data-cy="admin-show-bookings-button" data-testid="admin-show-bookings-button" aria-controls="admin-bookings-panel" aria-expanded="false">Show All Bookings</button>
+      </div>
+
+      <div class="admin-data-panel" id="admin-customers-panel" data-cy="admin-customers-panel" data-testid="admin-customers-panel" aria-labelledby="admin-customers-panel-heading" hidden>
+        <div class="admin-data-panel-header">
+          <h5 id="admin-customers-panel-heading">Customer records</h5>
+          <p data-cy="admin-customer-results-summary" data-testid="admin-customer-results-summary">Customer table hidden.</p>
+        </div>
+        <div class="admin-data-results" role="region" aria-label="Admin customer results" data-cy="admin-customer-results" data-testid="admin-customer-results"></div>
+      </div>
+
+      <div class="admin-data-panel" id="admin-bookings-panel" data-cy="admin-bookings-panel" data-testid="admin-bookings-panel" aria-labelledby="admin-bookings-panel-heading" hidden>
+        <div class="admin-data-panel-header">
+          <h5 id="admin-bookings-panel-heading">Booking records</h5>
+          <p data-cy="admin-booking-results-summary" data-testid="admin-booking-results-summary">Booking table hidden.</p>
+        </div>
+        <div class="admin-data-results" role="region" aria-label="Admin booking results" data-cy="admin-booking-results" data-testid="admin-booking-results"></div>
+      </div>
     </section>
   `
 }
 
 async function loadAdminData() {
   const message = document.querySelector('[data-cy="admin-data-message"]')
-  const results = document.querySelector('[data-cy="admin-data-results"]')
   const searchInput = document.querySelector('[data-cy="admin-data-search-input"]')
 
-  if (!results) return
-
   try {
-    if (message) message.textContent = 'Loading admin customer and booking records...'
-    results.innerHTML = '<p class="empty-message">Loading admin records...</p>'
+    if (message) message.textContent = 'Loading admin search data...'
 
     const [customerResponse, bookingResponse] = await Promise.all([
       fetch(`${API_BASE}/customers`),
@@ -438,53 +451,90 @@ async function loadAdminData() {
   } catch (error) {
     console.error(error)
     if (message) message.textContent = error.message || 'Could not load admin data.'
+    renderAdminPanelError('customers')
+    renderAdminPanelError('bookings')
+  }
+}
+
+function getAdminSearchableText(record, recordType) {
+  if (recordType === 'bookings') {
+    return [
+      record.id,
+      record.bookingStatus,
+      record.cabinNumber,
+      record.fareCode,
+      record.embarkationPort,
+      record.debarkationPort,
+      record.cruiseLine?.name,
+      record.ship?.name,
+      record.sailing?.departureDate,
+      ...(record.passengers || []).map(passenger => customerDisplayName(passenger.customer))
+    ].join(' ')
+  }
+
+  return [record.id, record.firstName, record.lastName, record.email, record.phone, record.loyaltyNumber].join(' ')
+}
+
+function getFilteredAdminRecords(recordType, searchTerm = '') {
+  const normalizedSearch = searchTerm.trim().toLowerCase()
+  const sourceRecords = recordType === 'bookings' ? adminBookings : adminCustomers
+
+  return sourceRecords.filter(record => getAdminSearchableText(record, recordType).toLowerCase().includes(normalizedSearch))
+}
+
+function updateAdminToggleButton(recordType) {
+  const visible = recordType === 'bookings' ? adminBookingsVisible : adminCustomersVisible
+  const button = document.querySelector(`[data-admin-toggle="${recordType}"]`)
+  const label = recordType === 'bookings' ? 'Bookings' : 'Customers'
+
+  if (!button) return
+
+  button.classList.toggle('is-active', visible)
+  button.setAttribute('aria-expanded', visible ? 'true' : 'false')
+  button.textContent = `${visible ? 'Hide' : 'Show All'} ${label}`
+}
+
+function renderAdminPanelError(recordType) {
+  const panel = document.querySelector(recordType === 'bookings' ? '[data-cy="admin-bookings-panel"]' : '[data-cy="admin-customers-panel"]')
+  const results = document.querySelector(recordType === 'bookings' ? '[data-cy="admin-booking-results"]' : '[data-cy="admin-customer-results"]')
+  const summary = document.querySelector(recordType === 'bookings' ? '[data-cy="admin-booking-results-summary"]' : '[data-cy="admin-customer-results-summary"]')
+
+  if (summary) summary.textContent = `${recordType === 'bookings' ? 'Booking' : 'Customer'} records could not be loaded.`
+  if (panel && !panel.hidden && results) {
     results.innerHTML = '<p class="empty-message">Admin records could not be loaded.</p>'
   }
 }
 
-function renderAdminDataResults(searchTerm = '') {
-  const message = document.querySelector('[data-cy="admin-data-message"]')
-  const results = document.querySelector('[data-cy="admin-data-results"]')
-  const normalizedSearch = searchTerm.trim().toLowerCase()
+function renderAdminPanel(recordType, searchTerm = '') {
+  const isBookings = recordType === 'bookings'
+  const visible = isBookings ? adminBookingsVisible : adminCustomersVisible
+  const panel = document.querySelector(isBookings ? '[data-cy="admin-bookings-panel"]' : '[data-cy="admin-customers-panel"]')
+  const results = document.querySelector(isBookings ? '[data-cy="admin-booking-results"]' : '[data-cy="admin-customer-results"]')
+  const summary = document.querySelector(isBookings ? '[data-cy="admin-booking-results-summary"]' : '[data-cy="admin-customer-results-summary"]')
+  const label = isBookings ? 'booking' : 'customer'
+  const filteredRecords = getFilteredAdminRecords(recordType, searchTerm)
 
-  if (!results) return
+  updateAdminToggleButton(recordType)
 
-  document.querySelectorAll('[data-admin-tab]').forEach(button => {
-    const selected = button.dataset.adminTab === activeAdminTab
-    button.classList.toggle('is-active', selected)
-    button.setAttribute('aria-pressed', selected ? 'true' : 'false')
-  })
+  if (!panel || !results) return
 
-  const sourceRecords = activeAdminTab === 'bookings' ? adminBookings : adminCustomers
-  const filteredRecords = sourceRecords.filter(record => {
-    const searchable = activeAdminTab === 'bookings'
-      ? [
-          record.id,
-          record.bookingStatus,
-          record.cabinNumber,
-          record.fareCode,
-          record.embarkationPort,
-          record.debarkationPort,
-          record.cruiseLine?.name,
-          record.ship?.name,
-          record.sailing?.departureDate,
-          ...(record.passengers || []).map(passenger => customerDisplayName(passenger.customer))
-        ].join(' ')
-      : [record.id, record.firstName, record.lastName, record.email, record.phone, record.loyaltyNumber].join(' ')
+  panel.hidden = !visible
+  panel.setAttribute('aria-hidden', visible ? 'false' : 'true')
 
-    return searchable.toLowerCase().includes(normalizedSearch)
-  })
-
-  if (message) {
-    message.textContent = `Showing ${filteredRecords.length} ${activeAdminTab === 'bookings' ? 'booking' : 'customer'}${filteredRecords.length === 1 ? '' : 's'}.`
-  }
-
-  if (!filteredRecords.length) {
-    results.innerHTML = `<p class="empty-message" data-cy="admin-data-empty-message" data-testid="admin-data-empty-message">No ${activeAdminTab} match the current search.</p>`
+  if (!visible) {
+    results.innerHTML = ''
+    if (summary) summary.textContent = `${isBookings ? 'Booking' : 'Customer'} table hidden. ${filteredRecords.length} ${label}${filteredRecords.length === 1 ? '' : 's'} match the current search.`
     return
   }
 
-  results.innerHTML = activeAdminTab === 'bookings'
+  if (summary) summary.textContent = `Showing ${filteredRecords.length} ${label}${filteredRecords.length === 1 ? '' : 's'}.`
+
+  if (!filteredRecords.length) {
+    results.innerHTML = `<p class="empty-message" data-cy="admin-data-empty-message" data-testid="admin-data-empty-message">No ${recordType} match the current search.</p>`
+    return
+  }
+
+  results.innerHTML = isBookings
     ? renderAdminBookingTable(filteredRecords)
     : renderAdminCustomerTable(filteredRecords)
 
@@ -495,6 +545,34 @@ function renderAdminDataResults(searchTerm = '') {
   results.querySelectorAll('[data-cy="admin-edit-booking-button"]').forEach(button => {
     button.addEventListener('click', () => showAdminBookingEditForm(button.dataset.bookingId))
   })
+}
+
+function renderAdminDataResults(searchTerm = '') {
+  const message = document.querySelector('[data-cy="admin-data-message"]')
+  const customerMatches = getFilteredAdminRecords('customers', searchTerm)
+  const bookingMatches = getFilteredAdminRecords('bookings', searchTerm)
+
+  if (message) {
+    message.textContent = searchTerm.trim()
+      ? `Search found ${customerMatches.length} customer${customerMatches.length === 1 ? '' : 's'} and ${bookingMatches.length} booking${bookingMatches.length === 1 ? '' : 's'}.`
+      : `${adminCustomers.length} customers and ${adminBookings.length} bookings available. Open a table to view records.`
+  }
+
+  renderAdminPanel('customers', searchTerm)
+  renderAdminPanel('bookings', searchTerm)
+}
+
+function toggleAdminPanel(recordType) {
+  if (recordType === 'bookings') {
+    adminBookingsVisible = !adminBookingsVisible
+    activeAdminTab = 'bookings'
+  } else {
+    adminCustomersVisible = !adminCustomersVisible
+    activeAdminTab = 'customers'
+  }
+
+  const searchInput = document.querySelector('[data-cy="admin-data-search-input"]')
+  renderAdminDataResults(searchInput?.value || '')
 }
 
 function renderAdminCustomerTable(customers) {
@@ -733,10 +811,13 @@ function initializeAdminOperationsPanel() {
 
   if (!panel) return
 
-  panel.querySelectorAll('[data-admin-tab]').forEach(button => {
+  adminCustomersVisible = false
+  adminBookingsVisible = false
+  activeAdminTab = 'customers'
+
+  panel.querySelectorAll('[data-admin-toggle]').forEach(button => {
     button.addEventListener('click', () => {
-      activeAdminTab = button.dataset.adminTab || 'customers'
-      renderAdminDataResults(searchInput?.value || '')
+      toggleAdminPanel(button.dataset.adminToggle || 'customers')
     })
   })
 
@@ -744,6 +825,7 @@ function initializeAdminOperationsPanel() {
     searchInput.addEventListener('input', () => renderAdminDataResults(searchInput.value))
   }
 
+  renderAdminDataResults(searchInput?.value || '')
   loadAdminData()
 }
 

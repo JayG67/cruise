@@ -120,27 +120,79 @@ describe('Demo role selector UI', () => {
     cy.get(selectors.roleDashboard.bookingCard).should('not.exist')
   })
 
-  it('lets admin view and search all customers from the role dashboard', () => {
+  it('keeps admin customer and booking tables hidden by default while search remains available', () => {
     cy.get('[data-cy="admin-data-management-panel"]').should('be.visible')
-    cy.get('[data-cy="admin-show-customers-button"]')
-      .should('have.attr', 'aria-pressed', 'true')
-      .and('contain.text', 'Show All Customers')
+    cy.get('[data-cy="admin-data-search-input"]')
+      .should('be.visible')
+      .and('have.attr', 'placeholder')
+      .and('include', 'Search customers, bookings')
 
-    cy.get('[data-cy="admin-customer-table-wrap"]').should('be.visible')
-    cy.get('[data-cy="admin-customer-row"]').should('have.length.at.least', 20)
+    cy.get('[data-cy="admin-customers-panel"]')
+      .should('not.be.visible')
+      .and('have.attr', 'aria-hidden', 'true')
+    cy.get('[data-cy="admin-bookings-panel"]')
+      .should('not.be.visible')
+      .and('have.attr', 'aria-hidden', 'true')
+    cy.get('[data-cy="admin-customer-row"]').should('not.exist')
+    cy.get('[data-cy="admin-booking-row"]').should('not.exist')
+
+    cy.get('[data-cy="admin-show-customers-button"]')
+      .should('contain.text', 'Show All Customers')
+      .and('have.attr', 'aria-expanded', 'false')
+    cy.get('[data-cy="admin-show-bookings-button"]')
+      .should('contain.text', 'Show All Bookings')
+      .and('have.attr', 'aria-expanded', 'false')
+  })
+
+  it('searches admin records before any large table panel is opened', () => {
     cy.get('[data-cy="admin-data-search-input"]').clear().type('Alisa')
 
-    cy.get('[data-cy="admin-data-message"]').should('contain.text', 'Showing')
+    cy.get('[data-cy="admin-data-message"]')
+      .should('contain.text', 'Search found')
+      .and('contain.text', 'customer')
+      .and('contain.text', 'booking')
+
+    cy.get('[data-cy="admin-customer-row"]').should('not.exist')
+    cy.get('[data-cy="admin-booking-row"]').should('not.exist')
+  })
+
+  it('lets admin show, search, and hide all customers from the role dashboard', () => {
+    cy.get('[data-cy="admin-show-customers-button"]').click()
+
+    cy.get('[data-cy="admin-show-customers-button"]')
+      .should('have.attr', 'aria-expanded', 'true')
+      .and('contain.text', 'Hide Customers')
+    cy.get('[data-cy="admin-customers-panel"]')
+      .should('be.visible')
+      .and('have.attr', 'aria-hidden', 'false')
+    cy.get('[data-cy="admin-customer-table-wrap"]').should('be.visible')
+    cy.get('[data-cy="admin-customer-row"]').should('have.length.at.least', 20)
+
+    cy.get('[data-cy="admin-data-search-input"]').clear().type('Alisa')
+    cy.get('[data-cy="admin-customer-results-summary"]').should('contain.text', 'Showing')
     cy.get('[data-cy="admin-customer-row"]')
       .should('have.length.at.least', 1)
       .first()
       .should('contain.text', 'Alisa Gallagher')
+
+    cy.get('[data-cy="admin-show-customers-button"]').click()
+    cy.get('[data-cy="admin-show-customers-button"]')
+      .should('have.attr', 'aria-expanded', 'false')
+      .and('contain.text', 'Show All Customers')
+    cy.get('[data-cy="admin-customers-panel"]').should('not.be.visible')
+    cy.get('[data-cy="admin-customer-row"]').should('not.exist')
   })
 
-  it('lets admin view and search all bookings from the role dashboard', () => {
+
+  it('lets admin show, search, and hide all bookings from the role dashboard', () => {
     cy.get('[data-cy="admin-show-bookings-button"]').click()
 
-    cy.get('[data-cy="admin-show-bookings-button"]').should('have.attr', 'aria-pressed', 'true')
+    cy.get('[data-cy="admin-show-bookings-button"]')
+      .should('have.attr', 'aria-expanded', 'true')
+      .and('contain.text', 'Hide Bookings')
+    cy.get('[data-cy="admin-bookings-panel"]')
+      .should('be.visible')
+      .and('have.attr', 'aria-hidden', 'false')
     cy.get('[data-cy="admin-booking-table-wrap"]').should('be.visible')
     cy.get('[data-cy="admin-booking-row"]')
       .should('have.length.at.least', 15)
@@ -148,14 +200,26 @@ describe('Demo role selector UI', () => {
       .should('contain.text', 'B')
 
     cy.get('[data-cy="admin-data-search-input"]').clear().type('Royal Caribbean')
+    cy.get('[data-cy="admin-booking-results-summary"]').should('contain.text', 'Showing')
     cy.get('[data-cy="admin-booking-row"]')
       .should('have.length.at.least', 1)
       .first()
       .should('contain.text', 'Royal Caribbean')
+
+    cy.get('[data-cy="admin-show-bookings-button"]').click()
+    cy.get('[data-cy="admin-show-bookings-button"]')
+      .should('have.attr', 'aria-expanded', 'false')
+      .and('contain.text', 'Show All Bookings')
+    cy.get('[data-cy="admin-bookings-panel"]').should('not.be.visible')
+    cy.get('[data-cy="admin-booking-row"]').should('not.exist')
   })
 
 
-  it('renders admin customer and booking data in scrollable tables instead of long card grids', () => {
+  it('renders admin customer and booking data in scrollable tables only when requested', () => {
+    cy.get('[data-cy="admin-customer-table-wrap"]').should('not.exist')
+    cy.get('[data-cy="admin-booking-table-wrap"]').should('not.exist')
+
+    cy.get('[data-cy="admin-show-customers-button"]').click()
     cy.get('[data-cy="admin-customer-table-wrap"]')
       .should('be.visible')
       .and($wrap => {
@@ -170,9 +234,11 @@ describe('Demo role selector UI', () => {
       })
   })
 
+
   it('lets admin open and save a customer edit workflow from the dashboard', () => {
     cy.intercept('PATCH', '/cruise/customers/*').as('adminCustomerUpdate')
 
+    cy.get('[data-cy="admin-show-customers-button"]').click()
     cy.get('[data-cy="admin-data-search-input"]').clear().type('Jay Gallagher')
     cy.get('[data-cy="admin-customer-row"]').first().within(() => {
       cy.get('[data-cy="admin-edit-customer-button"]').click()
@@ -225,6 +291,18 @@ describe('Demo role selector UI', () => {
         .should('contain.text', '9090')
     })
   })
+
+  it('hides admin search and data panels when a passenger role is selected', () => {
+    cy.get('[data-cy="admin-data-search-input"]').should('be.visible')
+    cy.get(selectors.demoRole.selector).select('UPASS00001')
+
+    cy.get('[data-cy="admin-data-management-panel"]').should('not.exist')
+    cy.get('[data-cy="admin-data-search-input"]').should('not.exist')
+    cy.get('[data-cy="admin-customer-row"]').should('not.exist')
+    cy.get('[data-cy="admin-booking-row"]').should('not.exist')
+    cy.get(selectors.roleDashboard.bookingCard).should('have.length.at.least', 1)
+  })
+
 
   it('renders passenger booking cards with cabin, route, and visible passenger details', () => {
     cy.get(selectors.demoRole.selector).select('UPASS00001')
