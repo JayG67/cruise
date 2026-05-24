@@ -1,4 +1,15 @@
 import { selectors } from '../support/selectors'
+import {
+  collapseCustomerBookings,
+  expandCustomerBookings,
+  getAdminCustomerRowByName,
+  hideAdminCustomerWorkflows,
+  openAdminCustomerWorkflows,
+  openAdminCustomerWorkflowsFor,
+  openFirstBookingEditor,
+  saveOpenBookingCabin,
+  searchAdminRecords
+} from '../support/adminWorkflows'
 
 describe('Demo role selector UI', () => {
   beforeEach(() => {
@@ -110,112 +121,124 @@ describe('Demo role selector UI', () => {
     cy.get(selectors.demoRole.summary).should('contain.text', 'Admin Demo User')
   })
 
-  it('renders admin operations visibility in the role-aware booking dashboard', () => {
+  it('renders a compact admin workspace without explanatory role cards taking application space', () => {
     cy.get(selectors.roleDashboard.panel).should('be.visible')
-    cy.get(selectors.roleDashboard.title).should('contain.text', 'Admin operations visibility')
-    cy.get(selectors.roleDashboard.adminCard)
-      .should('contain.text', 'Administrative access')
-      .and('contain.text', 'Customers visible')
-      .and('contain.text', 'Bookings visible')
+    cy.get(selectors.roleDashboard.title).should('contain.text', 'Admin workspace')
+    cy.get(selectors.roleDashboard.description)
+      .should('contain.text', 'expand linked bookings inline')
+      .and('contain.text', 'edit records from the same workflow table')
+    cy.get(selectors.roleDashboard.adminCard).should('not.exist')
+    cy.get('[data-cy="admin-data-management-panel"]').should('be.visible')
     cy.get(selectors.roleDashboard.bookingCard).should('not.exist')
   })
 
-  it('keeps admin customer and booking tables hidden by default while search remains available', () => {
+  it('keeps admin customer workflows hidden by default while search remains available', () => {
     cy.get('[data-cy="admin-data-management-panel"]').should('be.visible')
     cy.get('[data-cy="admin-data-search-input"]')
       .should('be.visible')
       .and('have.attr', 'placeholder')
-      .and('include', 'Search customers, bookings')
+      .and('include', 'Search customers, linked bookings')
 
     cy.get('[data-cy="admin-customers-panel"]')
       .should('not.be.visible')
       .and('have.attr', 'aria-hidden', 'true')
-    cy.get('[data-cy="admin-bookings-panel"]')
-      .should('not.be.visible')
-      .and('have.attr', 'aria-hidden', 'true')
+    cy.get('[data-cy="admin-bookings-panel"]').should('not.exist')
     cy.get('[data-cy="admin-customer-row"]').should('not.exist')
     cy.get('[data-cy="admin-booking-row"]').should('not.exist')
 
     cy.get('[data-cy="admin-show-customers-button"]')
-      .should('contain.text', 'Show All Customers')
+      .should('contain.text', 'Show Customer Workflows')
       .and('have.attr', 'aria-expanded', 'false')
-    cy.get('[data-cy="admin-show-bookings-button"]')
-      .should('contain.text', 'Show All Bookings')
-      .and('have.attr', 'aria-expanded', 'false')
+    cy.get('[data-cy="admin-show-bookings-button"]').should('not.exist')
   })
 
-  it('searches admin records before any large table panel is opened', () => {
+  it('searches customer and linked booking records before the workflow table is opened', () => {
     cy.get('[data-cy="admin-data-search-input"]').clear().type('Alisa')
 
     cy.get('[data-cy="admin-data-message"]')
       .should('contain.text', 'Search found')
-      .and('contain.text', 'customer')
-      .and('contain.text', 'booking')
+      .and('contain.text', 'customer workflow')
+      .and('contain.text', 'linked booking')
 
     cy.get('[data-cy="admin-customer-row"]').should('not.exist')
     cy.get('[data-cy="admin-booking-row"]').should('not.exist')
   })
 
-  it('lets admin show, search, and hide all customers from the role dashboard', () => {
-    cy.get('[data-cy="admin-show-customers-button"]').click()
+  it('lets admin show, search, and hide customer-centered workflows from the role dashboard', () => {
+    openAdminCustomerWorkflows()
 
-    cy.get('[data-cy="admin-show-customers-button"]')
-      .should('have.attr', 'aria-expanded', 'true')
-      .and('contain.text', 'Hide Customers')
-    cy.get('[data-cy="admin-customers-panel"]')
-      .should('be.visible')
-      .and('have.attr', 'aria-hidden', 'false')
     cy.get('[data-cy="admin-customer-table-wrap"]').should('be.visible')
     cy.get('[data-cy="admin-customer-row"]').should('have.length.at.least', 20)
 
-    cy.get('[data-cy="admin-data-search-input"]').clear().type('Alisa')
-    cy.get('[data-cy="admin-customer-results-summary"]').should('contain.text', 'Showing')
-    cy.get('[data-cy="admin-customer-row"]')
-      .should('have.length.at.least', 1)
+    searchAdminRecords('Alisa')
+    cy.get('[data-cy="admin-customer-results-summary"]').should('contain.text', 'customer workflow')
+    getAdminCustomerRowByName('Alisa Gallagher')
+      .should('contain.text', 'Alisa Gallagher')
+      .and('contain.text', '2 bookings')
+
+    expandCustomerBookings('Alisa Gallagher')
+    cy.get('[data-cy="admin-booking-row"]')
       .first()
       .should('contain.text', 'Alisa Gallagher')
 
-    cy.get('[data-cy="admin-show-customers-button"]').click()
-    cy.get('[data-cy="admin-show-customers-button"]')
-      .should('have.attr', 'aria-expanded', 'false')
-      .and('contain.text', 'Show All Customers')
-    cy.get('[data-cy="admin-customers-panel"]').should('not.be.visible')
+    hideAdminCustomerWorkflows()
     cy.get('[data-cy="admin-customer-row"]').should('not.exist')
   })
 
+  it('expands customer rows to show linked booking child rows and collapses them again', () => {
+    openAdminCustomerWorkflowsFor('Jay Gallagher')
 
-  it('lets admin show, search, and hide all bookings from the role dashboard', () => {
-    cy.get('[data-cy="admin-show-bookings-button"]').click()
+    expandCustomerBookings('Jay Gallagher')
+      .find('[data-cy="admin-toggle-customer-bookings-button"]')
+      .should('have.attr', 'aria-label')
+      .and('include', 'Hide bookings')
 
-    cy.get('[data-cy="admin-show-bookings-button"]')
-      .should('have.attr', 'aria-expanded', 'true')
-      .and('contain.text', 'Hide Bookings')
-    cy.get('[data-cy="admin-bookings-panel"]')
-      .should('be.visible')
-      .and('have.attr', 'aria-hidden', 'false')
-    cy.get('[data-cy="admin-booking-table-wrap"]').should('be.visible')
-    cy.get('[data-cy="admin-booking-row"]')
-      .should('have.length.at.least', 15)
+    cy.get('[data-cy^="admin-customer-bookings-row-"]')
+      .filter(':visible')
       .first()
-      .should('contain.text', 'B')
+      .within(() => {
+        cy.get('[data-cy="admin-booking-row"]').should('have.length.at.least', 1)
+      })
 
-    cy.get('[data-cy="admin-data-search-input"]').clear().type('Royal Caribbean')
-    cy.get('[data-cy="admin-booking-results-summary"]').should('contain.text', 'Showing')
-    cy.get('[data-cy="admin-booking-row"]')
-      .should('have.length.at.least', 1)
-      .first()
-      .should('contain.text', 'Royal Caribbean')
-
-    cy.get('[data-cy="admin-show-bookings-button"]').click()
-    cy.get('[data-cy="admin-show-bookings-button"]')
-      .should('have.attr', 'aria-expanded', 'false')
-      .and('contain.text', 'Show All Bookings')
-    cy.get('[data-cy="admin-bookings-panel"]').should('not.be.visible')
-    cy.get('[data-cy="admin-booking-row"]').should('not.exist')
+    collapseCustomerBookings('Jay Gallagher')
+    cy.get('[data-cy^="admin-customer-bookings-row-"]').filter(':visible').should('not.exist')
   })
 
+  it('expands booking detail panels within a customer workflow and collapses them again', () => {
+    cy.get('[data-cy="admin-show-customers-button"]').click()
+    cy.get('[data-cy="admin-data-search-input"]').clear().type('Jay Gallagher')
+    cy.get('[data-cy="admin-customer-row"]').first().find('[data-cy="admin-toggle-customer-bookings-button"]').click()
 
-  it('renders admin customer and booking data in scrollable tables only when requested', () => {
+    cy.get('[data-cy="admin-booking-row"]').first().within(() => {
+      cy.get('[data-cy="admin-toggle-booking-details-button"]')
+        .should('contain.text', 'Details')
+        .and('have.attr', 'aria-expanded', 'false')
+        .click()
+    })
+
+    cy.get('[data-cy^="admin-booking-details-row-"]')
+      .filter(':visible')
+      .first()
+      .within(() => {
+        cy.get('[data-cy="admin-booking-details-panel"]')
+          .should('be.visible')
+          .and('contain.text', 'Fare code')
+      })
+
+    cy.get('[data-cy="admin-booking-row"]').first().within(() => {
+      cy.get('[data-cy="admin-toggle-booking-details-button"]')
+        .should('contain.text', 'Hide')
+        .and('have.attr', 'aria-expanded', 'true')
+        .click()
+    })
+
+    cy.get('[data-cy^="admin-booking-details-row-"]').filter(':visible').should('have.length', 0)
+    cy.get('[data-cy="admin-booking-row"]').first().within(() => {
+      cy.get('[data-cy="admin-toggle-booking-details-button"]').should('contain.text', 'Details')
+    })
+  })
+
+  it('renders customer and child booking data in one scrollable parent-child table only when requested', () => {
     cy.get('[data-cy="admin-customer-table-wrap"]').should('not.exist')
     cy.get('[data-cy="admin-booking-table-wrap"]').should('not.exist')
 
@@ -225,68 +248,58 @@ describe('Demo role selector UI', () => {
       .and($wrap => {
         expect($wrap[0].scrollHeight).to.be.greaterThan($wrap[0].clientHeight)
       })
-
-    cy.get('[data-cy="admin-show-bookings-button"]').click()
-    cy.get('[data-cy="admin-booking-table-wrap"]')
-      .should('be.visible')
-      .and($wrap => {
-        expect($wrap[0].scrollHeight).to.be.greaterThan($wrap[0].clientHeight)
-      })
   })
 
-
-  it('lets admin open and save a customer edit workflow from the dashboard', () => {
+  it('lets admin open and save a customer edit workflow from the parent row', () => {
     cy.intercept('PATCH', '/cruise/customers/*').as('adminCustomerUpdate')
 
     cy.get('[data-cy="admin-show-customers-button"]').click()
     cy.get('[data-cy="admin-data-search-input"]').clear().type('Jay Gallagher')
-    cy.get('[data-cy="admin-customer-row"]').first().within(() => {
+    getAdminCustomerRowByName('Jay Gallagher').within(() => {
       cy.get('[data-cy="admin-edit-customer-button"]').click()
     })
 
-    cy.get('[data-cy="admin-customer-edit-form"]').should('be.visible')
-    cy.get('[data-cy="admin-customer-edit-form"] input[name="phone"]').clear().type('555-3434')
+    cy.get('[data-cy="admin-customer-edit-form"]')
+      .scrollIntoView({ block: 'center' })
+      .should('be.visible')
+    cy.get('[data-cy="admin-customer-edit-form"] input[name="phone"]')
+      .scrollIntoView({ block: 'center' })
+      .clear()
+      .type('555-3434')
     cy.get('[data-cy="admin-save-customer-button"]').click()
 
-    cy.wait('@adminCustomerUpdate').its('response.statusCode').should('eq', 200)
+    cy.wait('@adminCustomerUpdate').then(interception => {
+      expect(interception.response.statusCode).to.eq(200)
+      expect(interception.request.body.phone).to.eq('555-3434')
+    })
     cy.get('[data-cy="admin-data-message"]').should('contain.text', 'Customer updated successfully')
-    cy.get('[data-cy="admin-customer-row"]').first().should('contain.text', '555-3434')
+    getAdminCustomerRowByName('Jay Gallagher').should('contain.text', 'Jay Gallagher')
   })
 
-  it('keeps admin booking table actions reachable in the horizontally scrollable table', () => {
-    cy.get('[data-cy="admin-show-bookings-button"]').click()
-    cy.get('[data-cy="admin-booking-table-wrap"]').scrollTo('right')
-    cy.get('[data-cy="admin-booking-row"]').first()
-      .find('[data-cy="admin-edit-booking-button"]')
-      .scrollIntoView()
-      .should('exist')
-      .and('not.be.disabled')
-  })
-
-
-  it('lets admin open and save a booking edit workflow from the dashboard', () => {
+  it('lets admin open and save a booking edit workflow from an expanded child row', () => {
     cy.intercept('PATCH', '/cruise/bookings/*').as('adminBookingUpdate')
 
-    cy.get('[data-cy="admin-show-bookings-button"]').click()
-    cy.get('[data-cy="admin-booking-table-wrap"]').scrollTo('right')
+    openAdminCustomerWorkflowsFor('Jay Gallagher')
+    expandCustomerBookings('Jay Gallagher')
 
-    cy.get('[data-cy="admin-booking-row"]').first().then($row => {
-      const bookingId = $row.attr('data-booking-id')
-
-      cy.wrap($row)
-        .find('[data-cy="admin-edit-booking-button"]')
-        .scrollIntoView()
-        .click({ force: true })
-
-      cy.get('[data-cy="admin-booking-edit-form"]').should('be.visible')
-      cy.get('[data-cy="admin-booking-edit-form"] input[name="cabinNumber"]').clear().type('9090')
-      cy.get('[data-cy="admin-save-booking-button"]').click()
-
-      cy.wait('@adminBookingUpdate').then(interception => {
-        expect([200, 204]).to.include(interception.response.statusCode)
+    cy.get('[data-cy^="admin-customer-bookings-row-"]')
+      .filter(':visible')
+      .first()
+      .within(() => {
+        cy.get('[data-cy="admin-edit-booking-button"]')
+          .first()
+          .should('be.visible')
       })
 
-      cy.get('[data-cy="admin-data-message"]').should('contain.text', 'Booking updated successfully')
+    openFirstBookingEditor()
+    saveOpenBookingCabin('9090')
+
+    cy.wait('@adminBookingUpdate').then(interception => {
+      expect([200, 204]).to.include(interception.response.statusCode)
+    })
+
+    cy.get('[data-cy="admin-data-message"]').should('contain.text', 'Booking updated successfully')
+    cy.get('@activeAdminBookingId').then(bookingId => {
       cy.get(`[data-cy="admin-booking-row"][data-booking-id="${bookingId}"]`)
         .should('contain.text', '9090')
     })
@@ -326,14 +339,17 @@ describe('Demo role selector UI', () => {
   })
 
   it('updates the role-aware booking dashboard when switching between admin and passenger roles', () => {
-    cy.get(selectors.roleDashboard.adminCard).should('be.visible')
+    cy.get('[data-cy="admin-data-management-panel"]').should('be.visible')
+    cy.get(selectors.roleDashboard.adminCard).should('not.exist')
 
     cy.get(selectors.demoRole.selector).select('UPASS00001')
+    cy.get('[data-cy="admin-data-management-panel"]').should('not.exist')
     cy.get(selectors.roleDashboard.adminCard).should('not.exist')
     cy.get(selectors.roleDashboard.bookingCard).should('have.length.at.least', 1)
 
     cy.get(selectors.demoRole.selector).select('UADMIN0001')
-    cy.get(selectors.roleDashboard.adminCard).should('be.visible')
+    cy.get('[data-cy="admin-data-management-panel"]').should('be.visible')
+    cy.get(selectors.roleDashboard.adminCard).should('not.exist')
     cy.get(selectors.roleDashboard.bookingCard).should('not.exist')
   })
 

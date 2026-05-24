@@ -13,6 +13,7 @@
       <a class="brand" href="#home" aria-label="Cruise Explorer home" data-cy="brand-link" data-testid="brand-link">Cruise Explorer</a>
       <div class="nav-links">
         <a href="#dashboard" data-cy="nav-dashboard-link" data-testid="nav-dashboard-link">Dashboard</a>
+        <a href="#workspace-overview" data-cy="nav-workspace-link" data-testid="nav-workspace-link">Workspaces</a>
         <a href="#cruise-lines" data-cy="nav-cruise-lines-link" data-testid="nav-cruise-lines-link">Cruise Lines</a>
         <a href="#testPanel" data-cy="nav-sqa-controls-link" data-testid="nav-sqa-controls-link">SQA Controls</a>
         <a href="#about" data-cy="nav-about-link" data-testid="nav-about-link">About</a>
@@ -26,8 +27,9 @@
           <h1>Manage cruise line and fleet operations</h1>
           <p class="hero-copy">
             A production-style full-stack platform for viewing, searching, creating,
-            updating, and validating cruise data with PostgreSQL persistence,
-            CI/CD deployment, and enterprise-grade automated testing.
+            updating, and validating cruise data with role-based workflows,
+            searchable operations, mobile-first controls, quality gates,
+            accessibility safeguards, and enterprise-grade automated testing.
           </p>
 
           <div class="hero-cta-row" data-cy="hero-cta-row" data-testid="hero-cta-row">
@@ -45,6 +47,96 @@
       </div>
     </section>
   </header>
+
+  <aside class="workspace-rail" aria-label="Cruise Explorer workspace navigation" data-cy="workspace-rail" data-testid="workspace-rail">
+    <div class="workspace-rail-card">
+      <p class="workspace-rail-label">Workspace</p>
+      <nav class="workspace-rail-nav" aria-label="Application workspaces" data-cy="workspace-rail-nav" data-testid="workspace-rail-nav">
+        <a href="#demo-role-panel" data-workspace-link="roles" data-cy="workspace-roles-link" data-testid="workspace-roles-link">Roles</a>
+        <a href="#role-booking-dashboard" data-workspace-link="operations" data-cy="workspace-operations-link" data-testid="workspace-operations-link">Operations</a>
+        <a href="#cruise-lines" data-workspace-link="fleet" data-cy="workspace-fleet-link" data-testid="workspace-fleet-link">Fleet</a>
+        <a href="#add-cruise-line-heading" data-workspace-link="create" data-cy="workspace-create-link" data-testid="workspace-create-link">Create</a>
+        <a href="#ships-panel" data-workspace-link="ships" data-cy="workspace-ships-link" data-testid="workspace-ships-link">Ships</a>
+        <a href="#sailings-panel" data-workspace-link="sailings" data-cy="workspace-sailings-link" data-testid="workspace-sailings-link">Sailings</a>
+        <a href="#itinerary-panel" data-workspace-link="itinerary" data-cy="workspace-itinerary-link" data-testid="workspace-itinerary-link">Itinerary</a>
+        <a href="#testPanel" data-workspace-link="quality" data-cy="workspace-quality-link" data-testid="workspace-quality-link">Quality</a>
+      </nav>
+    </div>
+  </aside>
+
+  <section class="section workspace-overview-section" id="workspace-overview" aria-labelledby="workspace-overview-heading" data-cy="workspace-overview-section" data-testid="workspace-overview-section">
+    <div class="section-heading compact-section-heading">
+      <p class="eyebrow">Operations Console</p>
+      <h2 id="workspace-overview-heading">Choose a workspace</h2>
+      <p>Use the workspace rail to move between role simulation, fleet operations, admin data management, itinerary workflows, and quality validation.</p>
+    </div>
+
+    <div class="workspace-overview-grid" role="list" aria-label="Cruise Explorer workspace overview" data-cy="workspace-overview-grid" data-testid="workspace-overview-grid">
+      <a class="workspace-overview-card" href="#demo-role-panel" role="listitem" data-cy="workspace-overview-card" data-testid="workspace-overview-card">
+        <span class="workspace-icon" aria-hidden="true">👥</span>
+        <strong>Role Simulation</strong>
+        <span>Switch between admin, passenger, and group leader views.</span>
+      </a>
+      <a class="workspace-overview-card" href="#cruise-lines" role="listitem" data-cy="workspace-overview-card" data-testid="workspace-overview-card">
+        <span class="workspace-icon" aria-hidden="true">🚢</span>
+        <strong>Fleet Directory</strong>
+        <span>Search cruise lines, manage fleets, ships, and sailings.</span>
+      </a>
+      <a class="workspace-overview-card" href="#role-booking-dashboard" role="listitem" data-cy="workspace-overview-card" data-testid="workspace-overview-card">
+        <span class="workspace-icon" aria-hidden="true">📋</span>
+        <strong>Admin Operations</strong>
+        <span>Search and manage customer and booking datasets.</span>
+      </a>
+      <a class="workspace-overview-card" href="#testPanel" role="listitem" data-cy="workspace-overview-card" data-testid="workspace-overview-card">
+        <span class="workspace-icon" aria-hidden="true">✅</span>
+        <strong>Quality Console</strong>
+        <span>Run API health, seed integrity, smoke, and diagnostic checks.</span>
+      </a>
+    </div>
+
+    <div class="operations-guide" aria-labelledby="operations-guide-heading" data-cy="operations-guide" data-testid="operations-guide">
+      <div class="operations-guide-copy">
+        <p class="eyebrow">Recommended Workflow</p>
+        <h3 id="operations-guide-heading">Start with the role, then move through the operation</h3>
+        <p>
+          The page now behaves more like an operations console than a long CRUD form:
+          choose the persona, inspect the business context, manage the fleet, and run the quality checks from the control panel.
+        </p>
+      </div>
+      <ol class="operations-guide-steps" aria-label="Recommended operations path" data-cy="operations-guide-steps" data-testid="operations-guide-steps">
+        <li>
+          <a href="#demo-role-panel" data-cy="operations-guide-role-link" data-testid="operations-guide-role-link">
+            <span class="step-number">01</span>
+            <strong>Choose role</strong>
+            <span>Admin, passenger, or group leader visibility.</span>
+          </a>
+        </li>
+        <li>
+          <a href="#role-booking-dashboard" data-cy="operations-guide-booking-link" data-testid="operations-guide-booking-link">
+            <span class="step-number">02</span>
+            <strong>Review operations</strong>
+            <span>Customer and booking workflows with progressive disclosure.</span>
+          </a>
+        </li>
+        <li>
+          <a href="#cruise-lines" data-cy="operations-guide-fleet-link" data-testid="operations-guide-fleet-link">
+            <span class="step-number">03</span>
+            <strong>Manage fleet</strong>
+            <span>Cruise lines, ships, sailings, and itinerary details.</span>
+          </a>
+        </li>
+        <li>
+          <a href="#testPanel" data-cy="operations-guide-quality-link" data-testid="operations-guide-quality-link">
+            <span class="step-number">04</span>
+            <strong>Run quality checks</strong>
+            <span>Health, contract, smoke, CRUD, performance, seed, rendering, and diagnostics.</span>
+          </a>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+
 
   <section class="section role-selector-section" id="demo-role-panel" data-cy="demo-role-panel" data-testid="demo-role-panel">
     <div class="section-heading compact-section-heading">

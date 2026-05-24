@@ -4,10 +4,36 @@ export const selectors = {
     primaryNav: '[data-cy="primary-navigation"]',
     brandLink: '[data-cy="brand-link"]',
     dashboardLink: '[data-cy="nav-dashboard-link"]',
+    workspaceLink: '[data-cy="nav-workspace-link"]',
     sqaControlsLink: '[data-cy="nav-sqa-controls-link"]',
     cruiseLinesLink: '[data-cy="nav-cruise-lines-link"]',
     aboutLink: '[data-cy="nav-about-link"]'
   },
+  workspace: {
+    rail: '[data-cy="workspace-rail"]',
+    nav: '[data-cy="workspace-rail-nav"]',
+    overview: '[data-cy="workspace-overview-section"]',
+    overviewGrid: '[data-cy="workspace-overview-grid"]',
+    overviewCard: '[data-cy="workspace-overview-card"]',
+    rolesLink: '[data-cy="workspace-roles-link"]',
+    operationsLink: '[data-cy="workspace-operations-link"]',
+    fleetLink: '[data-cy="workspace-fleet-link"]',
+    createLink: '[data-cy="workspace-create-link"]',
+    shipsLink: '[data-cy="workspace-ships-link"]',
+    sailingsLink: '[data-cy="workspace-sailings-link"]',
+    itineraryLink: '[data-cy="workspace-itinerary-link"]',
+    qualityLink: '[data-cy="workspace-quality-link"]'
+  },
+
+  operationsGuide: {
+    panel: '[data-cy="operations-guide"]',
+    steps: '[data-cy="operations-guide-steps"]',
+    roleLink: '[data-cy="operations-guide-role-link"]',
+    bookingLink: '[data-cy="operations-guide-booking-link"]',
+    fleetLink: '[data-cy="operations-guide-fleet-link"]',
+    qualityLink: '[data-cy="operations-guide-quality-link"]'
+  },
+
   hero: {
     dashboard: '[data-cy="dashboard-hero"]',
     ctaRow: '[data-cy="hero-cta-row"]',

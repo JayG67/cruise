@@ -28,17 +28,20 @@
 
 ## 📖 Overview
 
-Cruise Explorer is a full-stack cruise management and SQA engineering portfolio project. It is designed to show more than basic CRUD functionality: the application demonstrates role-aware UI behavior, relational data modeling, accessibility-focused frontend engineering, CI/CD quality gates, and layered automated testing.
+Cruise Explorer is a full-stack cruise management and Principal SQA engineering portfolio project. It is designed to show more than basic CRUD functionality: the application demonstrates role-aware UI behavior, relational data modeling, accessibility-focused frontend engineering, CI/CD quality gates, layered automated testing, mobile-first operational UX, and AI-enabled quality strategy.
 
 The project currently includes:
 
 - Cruise line, ship, sailing, itinerary, customer, booking, and passenger data workflows
 - Admin, passenger, and group-leader demo roles
-- Admin customer and booking management
+- Workspace-first navigation for faster movement through operational areas
+- A recommended operations path that turns the page from a long feature list into a guided console workflow
+- Principal SQA / AI-enabled quality positioning documented in the README instead of consuming functional application workspace
+- Admin customer-centered workflow management with inline expandable child bookings
 - Passenger self-service profile and booking preference updates
 - Itinerary activity browsing and favorite activity selection
-- Searchable and scrollable admin data tables
-- Progressive disclosure for large admin datasets
+- Searchable customer workflows that also match linked booking, passenger, cabin, ship, route, status, and loyalty data
+- Progressive disclosure through expandable customer rows, linked booking rows, and booking detail panels
 - Mobile, tablet, and desktop responsive behavior
 - Accessibility-oriented HTML, CSS, and JavaScript patterns
 - Unit, integration, Cypress, Playwright, Lighthouse, and k6 validation
@@ -81,6 +84,50 @@ Role switching resets selected workflow state so stale admin or cruise details a
 
 ---
 
+
+## 🧭 Workspace-First Navigation
+
+The first phase of the UX redesign introduces a workspace navigation layer.
+
+The application now includes:
+
+- A dedicated workspace rail for moving between major operational regions
+- Direct links to role simulation, admin operations, fleet management, create workflows, ship/sailing/itinerary panels, and quality controls
+- Workspace overview cards that act as intentional entry points rather than disconnected decorative cards
+- Faster movement between role simulation, fleet management, admin operations, and quality controls
+- Accessible landmark and link structure for keyboard and screen-reader users
+- Layout-regression tests that verify the workspace rail can be brought fully into view at desktop, tablet, and mobile sizes without horizontal overflow
+- Scroll-offset protection so admin edit forms remain reachable without forced Cypress clicks
+- AI Quality workspace access from both primary navigation and workspace navigation
+
+This is the first step away from a purely vertical feature stack and toward a more realistic enterprise operations console. The current phase intentionally stabilizes navigation and admin edit reachability before larger Tier 1 roadmap work such as tabbed workspaces, sortable tables, pagination, filtering, and slide-out detail drawers.
+
+### Current UX Stabilization Batch
+
+The workspace navigation has been hardened for a cleaner mobile-first operations-console experience:
+
+- Workspace navigation now wraps instead of hiding actions behind horizontal rail scrolling.
+- The rail is constrained to the viewport with explicit max-width and overflow protection.
+- Primary navigation now wraps at tablet widths so long recruiter-facing labels do not widen the document and push the workspace rail offscreen.
+- In-page navigation uses deterministic scrolling so Cypress, keyboard users, and anchor links land predictably.
+- Cypress coverage now validates rail containment across desktop, tablet, narrow desktop, and mobile viewport sizes, including repeated anchor jumps after selecting workspace links.
+- The previous README-style Principal SQA / AI quality showcase was removed from the application because it did not provide user-facing workflow functionality. The README still carries that positioning; the application now reserves screen space for operational tasks.
+- Static coverage was updated to guard against reintroducing documentation-only content into the app chrome while keeping the quality controls reachable from the recommended workflow.
+
+
+## 🤖 Principal SQA / AI-Enabled Quality Positioning
+
+This repository still intentionally presents Principal SQA and AI-enabled quality thinking, but that story belongs primarily in the README, tests, and project structure rather than taking up application workspace with non-interactive marketing content.
+
+The portfolio positioning emphasizes:
+
+- **Release readiness:** quality-gate judgment instead of test-count-only reporting
+- **AI-assisted risk review:** hallucination safeguards, human review expectations, and source-backed acceptance criteria
+- **Healthcare-grade audit thinking:** traceability, high-risk data change validation, accessibility, and no-silent-failure behavior
+- **Automation architecture:** unit, integration, API, Cypress, Playwright, performance, Lighthouse, and CI/CD quality layers
+
+This is especially relevant for AI-enabled QA roles where the value is not simply using AI to generate tests. The value is knowing how to evaluate AI output, constrain risk, preserve auditability, and turn AI acceleration into reviewed engineering assets.
+
 ## 🛠️ Admin Operations Dashboard
 
 The admin dashboard has been redesigned around scalable operational workflows.
@@ -103,25 +150,39 @@ Admin search is visible immediately and works before any large table is opened. 
 - Route
 - Passenger names
 
+### Customer-Centered Parent / Child Workflows
+
+The admin dashboard now uses customers as the operational parent record. Bookings are no longer displayed as a disconnected top-level table. Instead, admins open the customer workflow table, expand a customer row to view linked booking child rows, then expand an individual booking to view additional details.
+
+This better reflects the real relationship between customer records, bookings, passengers, and cruise operations while making better use of application space.
+
+### Edit Workflow Reachability
+
+Customer and booking edit workflows are still rendered inline for this phase, but they now appear in the correct hierarchy:
+
+- Customer edits open from the parent customer row.
+- Booking edits open from the expanded booking child row.
+- Booking details can be expanded and collapsed independently before choosing to edit.
+
+The layout and Cypress coverage treat reachability as part of the UX contract. Edit forms are scrolled into a usable workspace position before typing, and CSS scroll margins keep focused editor fields clear of sticky navigation.
+
 ### Progressive Disclosure
 
-Large datasets are hidden by default.
+Large datasets are hidden by default. The admin can explicitly open or close the customer workflow table with:
 
-The admin can explicitly open or close:
+- **Show Customer Workflows → Hide Customer Workflows**
 
-- **Show All Customers → Hide Customers**
-- **Show All Bookings → Hide Bookings**
-
-This keeps the page manageable when there are many customers or bookings.
+Bookings are intentionally revealed only in the customer context, which reduces disconnected tables and makes the page more manageable when there are many customers or bookings.
 
 ### Admin Tables
 
-The admin tables are:
+The admin workflow table is:
 
-- Scrollable
-- Search-filtered
+- Customer-centered
+- Parent/child expandable
+- Search-filtered across customer and booking fields
 - Accessible with captions and labeled regions
-- Designed for large operational datasets
+- Designed for large operational datasets without forcing bookings into a separate unrelated table
 - Protected by Cypress, Playwright, and static accessibility tests
 
 ### Admin Editing
@@ -239,6 +300,8 @@ Integration tests validate API behavior against PostgreSQL-backed workflows, inc
 
 Cypress validates real browser workflows, including:
 
+- Workspace navigation and operational overview cards
+- Workspace rail viewport containment and horizontal-overflow prevention
 - Cruise line CRUD
 - Ship CRUD
 - Sailing and itinerary workflows
@@ -259,6 +322,8 @@ Cypress validates real browser workflows, including:
 Playwright validates:
 
 - Mobile role dashboard behavior
+- Workspace navigation usability across responsive layouts
+- Desktop and tablet workspace rail containment
 - Mobile Safari and Chrome workflows
 - Tablet behavior
 - Desktop responsive behavior
@@ -338,7 +403,18 @@ http://localhost:8000
 
 ---
 
-## 🧪 Test Commands
+## 🧭 Current UX Direction
+
+The current UX direction is mobile-first and workflow-first. The application is being intentionally moved away from a long vertically stacked CRUD page toward an operations console that helps a reviewer understand the intended path through the system:
+
+1. choose a role,
+2. review the visible customer and booking context,
+3. manage fleet, ships, sailings, and itinerary data,
+4. run the quality control checks that verify health, contracts, CRUD safety, performance, rendering consistency, seed integrity, and deployment diagnostics.
+
+The recommended workflow guide near the top of the app is the first step in making the portfolio feel more like an enterprise operations platform and less like a collection of unrelated feature panels.
+
+
 
 ### Unit tests
 
@@ -435,7 +511,8 @@ This project is built to demonstrate complete project engineering, not just isol
 
 It highlights:
 
-- Senior SQA thinking
+- Senior and Principal SQA thinking
+- Workflow-first UX architecture for operational systems
 - Full-stack engineering capability
 - Test automation design
 - Accessibility engineering
@@ -452,6 +529,10 @@ It highlights:
 
 Potential next steps include:
 
+- Continue moving the UI from vertically stacked CRUD into a guided operations console
+- Workspace tabs for admin operations
+- Slide-out edit drawers for customer and booking management
+- Advanced filter controls for admin datasets
 - Real authentication after the demo experience remains easy to review
 - Pagination for admin customer and booking tables
 - Column sorting for admin tables

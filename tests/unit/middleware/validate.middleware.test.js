@@ -83,6 +83,35 @@ describe('Validation middleware', () => {
     )
   })
 
+  it('should always return a JSON validation envelope for invalid website URLs', () => {
+    const req = {
+      body: {
+        name: 'Invalid Website Cruise Line',
+        country: 'United States',
+        website: 'not-a-real-url'
+      }
+    }
+    const res = mockResponse()
+    const next = jest.fn()
+
+    validate(cruiseLineSchema)(req, res, next)
+
+    expect(next).not.toHaveBeenCalled()
+    expect(res.status).toHaveBeenCalledWith(400)
+    expect(res.type).toHaveBeenCalledWith('application/json')
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Validation failed',
+        errors: expect.arrayContaining([
+          expect.objectContaining({
+            field: 'website',
+            message: 'Website must be a valid URL'
+          })
+        ])
+      })
+    )
+  })
+
   it('should reject unexpected fields through strict schema validation', () => {
     const req = {
       body: {
@@ -104,7 +133,7 @@ describe('Validation middleware', () => {
         message: 'Validation failed',
         errors: expect.arrayContaining([
           expect.objectContaining({
-            field: ''
+            field: 'body'
           })
         ])
       })

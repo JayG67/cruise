@@ -1,11 +1,15 @@
 const request = require('supertest')
-const { eq } = require('drizzle-orm')
+const { eq, inArray } = require('drizzle-orm')
 
 const app = require('../../../app')
 const db = require('../../../db')
 const {
   cruiseLineTable,
-  shipTable
+  shipTable,
+  customerTable,
+  bookingTable,
+  bookingPassengerTable,
+  customerItineraryFavoriteTable
 } = require('../../../models')
 
 const createdCruiseLineIds = []
@@ -126,20 +130,56 @@ async function createShip(cruiseLineId, overrides = {}) {
 }
 
 async function cleanupTestData() {
-  for (const bookingId of [...createdBookingIds]) {
-    await request(app).delete(`/cruise/bookings/${bookingId}`)
+  const bookingIds = [...createdBookingIds]
+  const customerIds = [...createdCustomerIds]
+  const shipIds = [...createdShipIds]
+  const cruiseLineIds = [...createdCruiseLineIds]
+
+  // Integration cleanup should be deterministic and should not depend on the
+  // HTTP layer that the tests are currently exercising. Direct database cleanup
+  // prevents afterEach hooks from hanging behind request middleware, logging,
+  // response compression, or cascade paths that are unrelated to the assertion.
+  if (customerIds.length > 0) {
+    await db
+      .delete(customerItineraryFavoriteTable)
+      .where(inArray(customerItineraryFavoriteTable.customerId, customerIds))
   }
 
-  for (const customerId of [...createdCustomerIds]) {
-    await request(app).delete(`/cruise/customers/${customerId}`)
+  if (bookingIds.length > 0) {
+    await db
+      .delete(bookingPassengerTable)
+      .where(inArray(bookingPassengerTable.bookingId, bookingIds))
+
+    await db
+      .delete(bookingTable)
+      .where(inArray(bookingTable.id, bookingIds))
   }
 
-  for (const shipId of [...createdShipIds]) {
-    await request(app).delete(`/cruise/ship/${shipId}`)
+  if (customerIds.length > 0) {
+    await db
+      .delete(bookingPassengerTable)
+      .where(inArray(bookingPassengerTable.customerId, customerIds))
+
+    await db
+      .update(bookingTable)
+      .set({ createdByCustomerId: null })
+      .where(inArray(bookingTable.createdByCustomerId, customerIds))
+
+    await db
+      .delete(customerTable)
+      .where(inArray(customerTable.id, customerIds))
   }
 
-  for (const cruiseLineId of [...createdCruiseLineIds]) {
-    await request(app).delete(`/cruise/cruise-line/${cruiseLineId}`)
+  if (shipIds.length > 0) {
+    await db
+      .delete(shipTable)
+      .where(inArray(shipTable.id, shipIds))
+  }
+
+  if (cruiseLineIds.length > 0) {
+    await db
+      .delete(cruiseLineTable)
+      .where(inArray(cruiseLineTable.id, cruiseLineIds))
   }
 
   createdBookingIds.length = 0

@@ -178,7 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const addUpdateShipInputBtn = document.getElementById('add-update-ship-input-btn')
   const cancelUpdateCruiseLineBtn = document.getElementById('cancel-update-cruise-line-btn')
   const demoUserSelector = document.getElementById('demo-user-selector')
-
   initializeHiddenWorkflowPanels()
 
   if (document.getElementById('cruise-grid')) {
@@ -232,6 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
     })
   }
 })
+
 
 
 function resetDashboardSelectionState() {
@@ -387,41 +387,32 @@ function renderAdminOperationsPanel(visibility = {}) {
       <div class="admin-data-management-header">
         <div>
           <p class="eyebrow">Admin Data Management</p>
-          <h4 id="admin-data-management-heading">Customers and bookings</h4>
-          <p>Search customers and bookings immediately, then open only the dataset you need to manage.</p>
+          <h4 id="admin-data-management-heading">Customer-centered operations</h4>
+          <p>Search customers first, then expand each customer to manage their bookings and booking details in context.</p>
         </div>
         <div class="admin-data-management-counts" aria-label="Admin-visible data counts">
           <span data-cy="admin-customer-count" data-testid="admin-customer-count">${escapeHtml(String(visibility.accessibleCustomerCount || 0))} customers</span>
-          <span data-cy="admin-booking-count" data-testid="admin-booking-count">${escapeHtml(String(visibility.accessibleBookingCount || 0))} bookings</span>
+          <span data-cy="admin-booking-count" data-testid="admin-booking-count">${escapeHtml(String(visibility.accessibleBookingCount || 0))} linked bookings</span>
         </div>
       </div>
 
       <label class="admin-data-search-label" for="admin-data-search">
         <span>Search admin records</span>
-        <input id="admin-data-search" type="search" placeholder="Search customers, bookings, ships, email, cabin, route, status, or loyalty number..." autocomplete="off" data-cy="admin-data-search-input" data-testid="admin-data-search-input" />
+        <input id="admin-data-search" type="search" placeholder="Search customers, linked bookings, ships, email, cabin, route, status, or loyalty number..." autocomplete="off" data-cy="admin-data-search-input" data-testid="admin-data-search-input" />
       </label>
 
-      <p class="form-message" role="status" aria-live="polite" data-cy="admin-data-message" data-testid="admin-data-message">Search is ready. Customer and booking tables are hidden until opened.</p>
+      <p class="form-message" role="status" aria-live="polite" data-cy="admin-data-message" data-testid="admin-data-message">Search is ready. Open the customer table to view linked booking workflows.</p>
 
-      <div class="admin-data-actions" role="group" aria-label="Admin data table visibility controls">
-        <button type="button" class="admin-data-tab" data-admin-toggle="customers" data-cy="admin-show-customers-button" data-testid="admin-show-customers-button" aria-controls="admin-customers-panel" aria-expanded="false">Show All Customers</button>
-        <button type="button" class="admin-data-tab" data-admin-toggle="bookings" data-cy="admin-show-bookings-button" data-testid="admin-show-bookings-button" aria-controls="admin-bookings-panel" aria-expanded="false">Show All Bookings</button>
+      <div class="admin-data-actions" role="group" aria-label="Admin customer workflow visibility controls">
+        <button type="button" class="admin-data-tab" data-admin-toggle="customers" data-cy="admin-show-customers-button" data-testid="admin-show-customers-button" aria-controls="admin-customers-panel" aria-expanded="false">Show Customer Workflows</button>
       </div>
 
       <div class="admin-data-panel" id="admin-customers-panel" data-cy="admin-customers-panel" data-testid="admin-customers-panel" aria-labelledby="admin-customers-panel-heading" hidden>
         <div class="admin-data-panel-header">
-          <h5 id="admin-customers-panel-heading">Customer records</h5>
-          <p data-cy="admin-customer-results-summary" data-testid="admin-customer-results-summary">Customer table hidden.</p>
+          <h5 id="admin-customers-panel-heading">Customer records with linked bookings</h5>
+          <p data-cy="admin-customer-results-summary" data-testid="admin-customer-results-summary">Customer workflow table hidden.</p>
         </div>
-        <div class="admin-data-results" role="region" aria-label="Admin customer results" data-cy="admin-customer-results" data-testid="admin-customer-results"></div>
-      </div>
-
-      <div class="admin-data-panel" id="admin-bookings-panel" data-cy="admin-bookings-panel" data-testid="admin-bookings-panel" aria-labelledby="admin-bookings-panel-heading" hidden>
-        <div class="admin-data-panel-header">
-          <h5 id="admin-bookings-panel-heading">Booking records</h5>
-          <p data-cy="admin-booking-results-summary" data-testid="admin-booking-results-summary">Booking table hidden.</p>
-        </div>
-        <div class="admin-data-results" role="region" aria-label="Admin booking results" data-cy="admin-booking-results" data-testid="admin-booking-results"></div>
+        <div class="admin-data-results" role="region" aria-label="Admin customer and linked booking results" data-cy="admin-customer-results" data-testid="admin-customer-results"></div>
       </div>
     </section>
   `
@@ -432,7 +423,7 @@ async function loadAdminData() {
   const searchInput = document.querySelector('[data-cy="admin-data-search-input"]')
 
   try {
-    if (message) message.textContent = 'Loading admin search data...'
+    if (message) message.textContent = 'Loading admin customer and linked booking data...'
 
     const [customerResponse, bookingResponse] = await Promise.all([
       fetch(`${API_BASE}/customers`),
@@ -450,10 +441,16 @@ async function loadAdminData() {
     renderAdminDataResults(searchInput?.value || '')
   } catch (error) {
     console.error(error)
-    if (message) message.textContent = error.message || 'Could not load admin data.'
+    if (message) message.textContent = error.message || 'Could not load admin customer workflow data.'
     renderAdminPanelError('customers')
-    renderAdminPanelError('bookings')
   }
+}
+
+function getCustomerBookings(customerId) {
+  return adminBookings.filter(booking => {
+    if (booking.createdByCustomerId === customerId) return true
+    return (booking.passengers || []).some(passenger => passenger.customerId === customerId || passenger.customer?.id === customerId)
+  })
 }
 
 function getAdminSearchableText(record, recordType) {
@@ -472,7 +469,11 @@ function getAdminSearchableText(record, recordType) {
     ].join(' ')
   }
 
-  return [record.id, record.firstName, record.lastName, record.email, record.phone, record.loyaltyNumber].join(' ')
+  const linkedBookingText = getCustomerBookings(record.id)
+    .map(booking => getAdminSearchableText(booking, 'bookings'))
+    .join(' ')
+
+  return [record.id, record.firstName, record.lastName, record.email, record.phone, record.loyaltyNumber, linkedBookingText].join(' ')
 }
 
 function getFilteredAdminRecords(recordType, searchTerm = '') {
@@ -483,38 +484,35 @@ function getFilteredAdminRecords(recordType, searchTerm = '') {
 }
 
 function updateAdminToggleButton(recordType) {
-  const visible = recordType === 'bookings' ? adminBookingsVisible : adminCustomersVisible
-  const button = document.querySelector(`[data-admin-toggle="${recordType}"]`)
-  const label = recordType === 'bookings' ? 'Bookings' : 'Customers'
+  const visible = adminCustomersVisible
+  const button = document.querySelector('[data-admin-toggle="customers"]')
 
   if (!button) return
 
   button.classList.toggle('is-active', visible)
   button.setAttribute('aria-expanded', visible ? 'true' : 'false')
-  button.textContent = `${visible ? 'Hide' : 'Show All'} ${label}`
+  button.textContent = visible ? 'Hide Customer Workflows' : 'Show Customer Workflows'
 }
 
-function renderAdminPanelError(recordType) {
-  const panel = document.querySelector(recordType === 'bookings' ? '[data-cy="admin-bookings-panel"]' : '[data-cy="admin-customers-panel"]')
-  const results = document.querySelector(recordType === 'bookings' ? '[data-cy="admin-booking-results"]' : '[data-cy="admin-customer-results"]')
-  const summary = document.querySelector(recordType === 'bookings' ? '[data-cy="admin-booking-results-summary"]' : '[data-cy="admin-customer-results-summary"]')
+function renderAdminPanelError() {
+  const panel = document.querySelector('[data-cy="admin-customers-panel"]')
+  const results = document.querySelector('[data-cy="admin-customer-results"]')
+  const summary = document.querySelector('[data-cy="admin-customer-results-summary"]')
 
-  if (summary) summary.textContent = `${recordType === 'bookings' ? 'Booking' : 'Customer'} records could not be loaded.`
+  if (summary) summary.textContent = 'Customer workflow records could not be loaded.'
   if (panel && !panel.hidden && results) {
-    results.innerHTML = '<p class="empty-message">Admin records could not be loaded.</p>'
+    results.innerHTML = '<p class="empty-message">Admin customer workflow records could not be loaded.</p>'
   }
 }
 
 function renderAdminPanel(recordType, searchTerm = '') {
-  const isBookings = recordType === 'bookings'
-  const visible = isBookings ? adminBookingsVisible : adminCustomersVisible
-  const panel = document.querySelector(isBookings ? '[data-cy="admin-bookings-panel"]' : '[data-cy="admin-customers-panel"]')
-  const results = document.querySelector(isBookings ? '[data-cy="admin-booking-results"]' : '[data-cy="admin-customer-results"]')
-  const summary = document.querySelector(isBookings ? '[data-cy="admin-booking-results-summary"]' : '[data-cy="admin-customer-results-summary"]')
-  const label = isBookings ? 'booking' : 'customer'
-  const filteredRecords = getFilteredAdminRecords(recordType, searchTerm)
+  const visible = adminCustomersVisible
+  const panel = document.querySelector('[data-cy="admin-customers-panel"]')
+  const results = document.querySelector('[data-cy="admin-customer-results"]')
+  const summary = document.querySelector('[data-cy="admin-customer-results-summary"]')
+  const filteredRecords = getFilteredAdminRecords('customers', searchTerm)
 
-  updateAdminToggleButton(recordType)
+  updateAdminToggleButton('customers')
 
   if (!panel || !results) return
 
@@ -523,88 +521,93 @@ function renderAdminPanel(recordType, searchTerm = '') {
 
   if (!visible) {
     results.innerHTML = ''
-    if (summary) summary.textContent = `${isBookings ? 'Booking' : 'Customer'} table hidden. ${filteredRecords.length} ${label}${filteredRecords.length === 1 ? '' : 's'} match the current search.`
+    if (summary) summary.textContent = `Customer workflow table hidden. ${filteredRecords.length} customer${filteredRecords.length === 1 ? '' : 's'} match the current search.`
     return
   }
 
-  if (summary) summary.textContent = `Showing ${filteredRecords.length} ${label}${filteredRecords.length === 1 ? '' : 's'}.`
+  if (summary) summary.textContent = `Showing ${filteredRecords.length} customer workflow${filteredRecords.length === 1 ? '' : 's'} with linked bookings available as expandable child rows.`
 
   if (!filteredRecords.length) {
-    results.innerHTML = `<p class="empty-message" data-cy="admin-data-empty-message" data-testid="admin-data-empty-message">No ${recordType} match the current search.</p>`
+    results.innerHTML = '<p class="empty-message" data-cy="admin-data-empty-message" data-testid="admin-data-empty-message">No customer workflows match the current search.</p>'
     return
   }
 
-  results.innerHTML = isBookings
-    ? renderAdminBookingTable(filteredRecords)
-    : renderAdminCustomerTable(filteredRecords)
-
-  results.querySelectorAll('[data-cy="admin-edit-customer-button"]').forEach(button => {
-    button.addEventListener('click', () => showAdminCustomerEditForm(button.dataset.customerId))
-  })
-
-  results.querySelectorAll('[data-cy="admin-edit-booking-button"]').forEach(button => {
-    button.addEventListener('click', () => showAdminBookingEditForm(button.dataset.bookingId))
-  })
+  results.innerHTML = renderAdminCustomerTable(filteredRecords)
+  bindAdminCustomerWorkflowEvents(results)
 }
 
 function renderAdminDataResults(searchTerm = '') {
   const message = document.querySelector('[data-cy="admin-data-message"]')
   const customerMatches = getFilteredAdminRecords('customers', searchTerm)
   const bookingMatches = getFilteredAdminRecords('bookings', searchTerm)
+  const hasSearch = Boolean(searchTerm.trim())
 
   if (message) {
-    message.textContent = searchTerm.trim()
-      ? `Search found ${customerMatches.length} customer${customerMatches.length === 1 ? '' : 's'} and ${bookingMatches.length} booking${bookingMatches.length === 1 ? '' : 's'}.`
-      : `${adminCustomers.length} customers and ${adminBookings.length} bookings available. Open a table to view records.`
+    message.textContent = hasSearch
+      ? `Search found ${customerMatches.length} customer workflow${customerMatches.length === 1 ? '' : 's'} and ${bookingMatches.length} linked booking${bookingMatches.length === 1 ? '' : 's'}.`
+      : `${adminCustomers.length} customers and ${adminBookings.length} linked bookings available. Open customer workflows to view parent and child records.`
   }
 
   renderAdminPanel('customers', searchTerm)
-  renderAdminPanel('bookings', searchTerm)
 }
 
-function toggleAdminPanel(recordType) {
-  if (recordType === 'bookings') {
-    adminBookingsVisible = !adminBookingsVisible
-    activeAdminTab = 'bookings'
-  } else {
-    adminCustomersVisible = !adminCustomersVisible
-    activeAdminTab = 'customers'
-  }
+function toggleAdminPanel() {
+  adminCustomersVisible = !adminCustomersVisible
+  activeAdminTab = 'customers'
 
   const searchInput = document.querySelector('[data-cy="admin-data-search-input"]')
   renderAdminDataResults(searchInput?.value || '')
 }
 
 function renderAdminCustomerTable(customers) {
-  const rows = customers.map(customer => `
-    <tr data-cy="admin-customer-row" data-testid="admin-customer-row" data-customer-id="${escapeHtml(customer.id)}">
-      <td data-label="Customer">${escapeHtml(customerDisplayName(customer))}</td>
-      <td data-label="ID">${escapeHtml(customer.id)}</td>
-      <td data-label="Email">${escapeHtml(customer.email || 'Not provided')}</td>
-      <td data-label="Phone">${escapeHtml(customer.phone || 'Not provided')}</td>
-      <td data-label="Loyalty">${escapeHtml(customer.loyaltyNumber || 'Not assigned')}</td>
-      <td data-label="Actions">
-        <button type="button" data-cy="admin-edit-customer-button" data-testid="admin-edit-customer-button" data-customer-id="${escapeHtml(customer.id)}" aria-label="Edit customer ${escapeHtml(customerDisplayName(customer))}">Edit Customer</button>
-      </td>
-    </tr>
-    <tr class="admin-editor-row" data-cy="admin-customer-editor-row-${escapeHtml(customer.id)}" data-testid="admin-customer-editor-row-${escapeHtml(customer.id)}" hidden>
-      <td colspan="6">
-        <div class="admin-inline-editor" data-cy="admin-customer-editor-${escapeHtml(customer.id)}" data-testid="admin-customer-editor-${escapeHtml(customer.id)}"></div>
-      </td>
-    </tr>
-  `).join('')
+  const rows = customers.map(customer => {
+    const linkedBookings = getCustomerBookings(customer.id)
+    const linkedBookingCount = linkedBookings.length
+    const customerId = escapeHtml(customer.id)
+    const customerName = escapeHtml(customerDisplayName(customer))
+
+    return `
+      <tr class="admin-parent-row" data-cy="admin-customer-row" data-testid="admin-customer-row" data-customer-id="${customerId}">
+        <td data-label="Customer">
+          <button type="button" class="admin-row-disclosure" data-cy="admin-toggle-customer-bookings-button" data-testid="admin-toggle-customer-bookings-button" data-customer-id="${customerId}" data-customer-name="${customerName}" aria-expanded="false" aria-controls="admin-customer-bookings-${customerId}" aria-label="Show bookings for ${customerName}">
+            <span aria-hidden="true" class="admin-disclosure-icon">▸</span>
+            <span>${customerName}</span>
+          </button>
+        </td>
+        <td data-label="Email">${escapeHtml(customer.email || 'Not provided')}</td>
+        <td data-label="Phone">${escapeHtml(customer.phone || 'Not provided')}</td>
+        <td data-label="Loyalty">${escapeHtml(customer.loyaltyNumber || 'Not assigned')}</td>
+        <td data-label="Bookings"><span class="status-pill">${escapeHtml(String(linkedBookingCount))} booking${linkedBookingCount === 1 ? '' : 's'}</span></td>
+        <td data-label="Actions" class="admin-row-actions">
+          <button type="button" data-cy="admin-edit-customer-button" data-testid="admin-edit-customer-button" data-customer-id="${customerId}" aria-label="Edit customer ${customerName}">Edit</button>
+        </td>
+      </tr>
+      <tr class="admin-editor-row" data-cy="admin-customer-editor-row-${customerId}" data-testid="admin-customer-editor-row-${customerId}" hidden>
+        <td colspan="6">
+          <div class="admin-inline-editor" data-cy="admin-customer-editor-${customerId}" data-testid="admin-customer-editor-${customerId}"></div>
+        </td>
+      </tr>
+      <tr class="admin-child-row admin-customer-bookings-row" data-cy="admin-customer-bookings-row-${customerId}" data-testid="admin-customer-bookings-row-${customerId}" hidden>
+        <td colspan="6">
+          <div id="admin-customer-bookings-${customerId}" class="admin-child-panel" data-cy="admin-customer-bookings-panel" data-testid="admin-customer-bookings-panel" aria-label="Bookings for ${customerName}">
+            ${renderAdminCustomerBookings(customer, linkedBookings)}
+          </div>
+        </td>
+      </tr>
+    `
+  }).join('')
 
   return `
     <div class="admin-data-table-wrap" data-cy="admin-customer-table-wrap" data-testid="admin-customer-table-wrap" tabindex="0">
-      <table class="admin-data-table" data-cy="admin-customer-table" data-testid="admin-customer-table">
-        <caption>All admin-visible customers</caption>
+      <table class="admin-data-table admin-hierarchical-table" data-cy="admin-customer-table" data-testid="admin-customer-table">
+        <caption>Admin-visible customers with expandable linked bookings and booking details</caption>
         <thead>
           <tr>
             <th scope="col">Customer</th>
-            <th scope="col">ID</th>
             <th scope="col">Email</th>
             <th scope="col">Phone</th>
             <th scope="col">Loyalty</th>
+            <th scope="col">Bookings</th>
             <th scope="col">Actions</th>
           </tr>
         </thead>
@@ -614,44 +617,20 @@ function renderAdminCustomerTable(customers) {
   `
 }
 
-function renderAdminBookingTable(bookings) {
-  const rows = bookings.map(booking => {
-    const passengerSummary = (booking.passengers || [])
-      .map(passenger => customerDisplayName(passenger.customer))
-      .join(', ')
-
-    return `
-      <tr data-cy="admin-booking-row" data-testid="admin-booking-row" data-booking-id="${escapeHtml(booking.id)}">
-        <td data-label="Booking">${escapeHtml(booking.id)}</td>
-        <td data-label="Status"><span class="status-pill">${escapeHtml(booking.bookingStatus || 'Status unavailable')}</span></td>
-        <td data-label="Cruise">${escapeHtml(booking.cruiseLine?.name || 'Cruise line unavailable')}</td>
-        <td data-label="Ship">${escapeHtml(booking.ship?.name || 'Ship unavailable')}</td>
-        <td data-label="Sailing">${escapeHtml(booking.sailing?.departureDate || 'Date unavailable')}</td>
-        <td data-label="Cabin">${escapeHtml(booking.cabinNumber || 'Not assigned')}</td>
-        <td data-label="Route">${escapeHtml(booking.embarkationPort || booking.sailing?.departurePort || 'Departure unavailable')} → ${escapeHtml(booking.debarkationPort || booking.sailing?.arrivalPort || 'Arrival unavailable')}</td>
-        <td data-label="Passengers">${escapeHtml(passengerSummary || 'No passengers')}</td>
-        <td data-label="Actions">
-          <button type="button" data-cy="admin-edit-booking-button" data-testid="admin-edit-booking-button" data-booking-id="${escapeHtml(booking.id)}" aria-label="Edit booking ${escapeHtml(booking.id)}">Edit Booking</button>
-        </td>
-      </tr>
-      <tr class="admin-editor-row" data-cy="admin-booking-editor-row-${escapeHtml(booking.id)}" data-testid="admin-booking-editor-row-${escapeHtml(booking.id)}" hidden>
-        <td colspan="9">
-          <div class="admin-inline-editor" data-cy="admin-booking-editor-${escapeHtml(booking.id)}" data-testid="admin-booking-editor-${escapeHtml(booking.id)}"></div>
-        </td>
-      </tr>
-    `
-  }).join('')
+function renderAdminCustomerBookings(customer, bookings) {
+  if (!bookings.length) {
+    return `<p class="empty-message" data-cy="admin-customer-no-bookings" data-testid="admin-customer-no-bookings">No linked bookings for ${escapeHtml(customerDisplayName(customer))}.</p>`
+  }
 
   return `
-    <div class="admin-data-table-wrap" data-cy="admin-booking-table-wrap" data-testid="admin-booking-table-wrap" tabindex="0">
-      <table class="admin-data-table" data-cy="admin-booking-table" data-testid="admin-booking-table">
-        <caption>All admin-visible bookings</caption>
+    <div class="admin-booking-child-list" data-cy="admin-booking-child-list" data-testid="admin-booking-child-list">
+      <table class="admin-booking-child-table" data-cy="admin-booking-child-table" data-testid="admin-booking-child-table">
+        <caption>Bookings linked to ${escapeHtml(customerDisplayName(customer))}</caption>
         <thead>
           <tr>
             <th scope="col">Booking</th>
             <th scope="col">Status</th>
             <th scope="col">Cruise</th>
-            <th scope="col">Ship</th>
             <th scope="col">Sailing</th>
             <th scope="col">Cabin</th>
             <th scope="col">Route</th>
@@ -659,10 +638,97 @@ function renderAdminBookingTable(bookings) {
             <th scope="col">Actions</th>
           </tr>
         </thead>
-        <tbody>${rows}</tbody>
+        <tbody>
+          ${bookings.map(booking => renderAdminBookingChildRecord(booking)).join('')}
+        </tbody>
       </table>
     </div>
   `
+}
+
+function renderAdminBookingChildRecord(booking) {
+  const bookingId = escapeHtml(booking.id)
+  const route = `${booking.embarkationPort || booking.sailing?.departurePort || 'Departure unavailable'} → ${booking.debarkationPort || booking.sailing?.arrivalPort || 'Arrival unavailable'}`
+  const passengerSummary = (booking.passengers || [])
+    .map(passenger => customerDisplayName(passenger.customer))
+    .join(', ')
+
+  return `
+    <tr class="admin-booking-row" data-cy="admin-booking-row" data-testid="admin-booking-row" data-booking-id="${bookingId}">
+      <td data-label="Booking"><strong>${bookingId}</strong></td>
+      <td data-label="Status"><span class="status-pill">${escapeHtml(booking.bookingStatus || 'Status unavailable')}</span></td>
+      <td data-label="Cruise">${escapeHtml(booking.cruiseLine?.name || 'Cruise line unavailable')}<br><span class="muted-table-text">${escapeHtml(booking.ship?.name || 'Ship unavailable')}</span></td>
+      <td data-label="Sailing">${escapeHtml(booking.sailing?.departureDate || 'Date unavailable')}</td>
+      <td data-label="Cabin">${escapeHtml(booking.cabinNumber || 'Not assigned')}</td>
+      <td data-label="Route">${escapeHtml(route)}</td>
+      <td data-label="Passengers">${escapeHtml(passengerSummary || 'No passengers')}</td>
+      <td data-label="Actions" class="admin-row-actions">
+        <button type="button" class="secondary" data-cy="admin-toggle-booking-details-button" data-testid="admin-toggle-booking-details-button" data-booking-id="${bookingId}" aria-expanded="false" aria-controls="admin-booking-details-${bookingId}" aria-label="Show details for booking ${bookingId}">Details</button>
+        <button type="button" data-cy="admin-edit-booking-button" data-testid="admin-edit-booking-button" data-booking-id="${bookingId}" aria-label="Edit booking ${bookingId}">Edit</button>
+      </td>
+    </tr>
+    <tr class="admin-booking-detail-row" data-cy="admin-booking-details-row-${bookingId}" data-testid="admin-booking-details-row-${bookingId}" hidden>
+      <td colspan="8">
+        <div class="admin-booking-detail-panel" id="admin-booking-details-${bookingId}" data-cy="admin-booking-details-panel" data-testid="admin-booking-details-panel">
+          <dl class="admin-data-details">
+            <div><dt>Fare code</dt><dd>${escapeHtml(booking.fareCode || 'Not assigned')}</dd></div>
+            <div><dt>Embarkation</dt><dd>${escapeHtml(booking.embarkationPort || booking.sailing?.departurePort || 'Not provided')}</dd></div>
+            <div><dt>Debarkation</dt><dd>${escapeHtml(booking.debarkationPort || booking.sailing?.arrivalPort || 'Not provided')}</dd></div>
+            <div><dt>Created by customer</dt><dd>${escapeHtml(booking.createdByCustomerId || 'Not provided')}</dd></div>
+          </dl>
+        </div>
+        <div class="admin-inline-editor" data-cy="admin-booking-editor-${bookingId}" data-testid="admin-booking-editor-${bookingId}" hidden></div>
+      </td>
+    </tr>
+  `
+}
+
+function bindAdminCustomerWorkflowEvents(results) {
+  results.querySelectorAll('[data-cy="admin-toggle-customer-bookings-button"]').forEach(button => {
+    button.addEventListener('click', () => toggleAdminCustomerBookings(button.dataset.customerId))
+  })
+
+  results.querySelectorAll('[data-cy="admin-toggle-booking-details-button"]').forEach(button => {
+    button.addEventListener('click', () => toggleAdminBookingDetails(button.dataset.bookingId, button))
+  })
+
+  results.querySelectorAll('[data-cy="admin-edit-customer-button"]').forEach(button => {
+    button.addEventListener('click', () => showAdminCustomerEditForm(button.dataset.customerId))
+  })
+
+  results.querySelectorAll('[data-cy="admin-edit-booking-button"]').forEach(button => {
+    button.addEventListener('click', () => showAdminBookingEditForm(button.dataset.bookingId, button))
+  })
+}
+
+function toggleAdminCustomerBookings(customerId) {
+  const row = document.querySelector(`[data-cy="admin-customer-bookings-row-${cssEscape(customerId)}"]`)
+  const button = document.querySelector(`[data-cy="admin-toggle-customer-bookings-button"][data-customer-id="${cssEscape(customerId)}"]`)
+
+  if (!row || !button) return
+
+  const expanded = row.hidden
+  row.hidden = !expanded
+  button.setAttribute('aria-expanded', expanded ? 'true' : 'false')
+  button.setAttribute('aria-label', `${expanded ? 'Hide' : 'Show'} bookings for ${button.dataset.customerName || button.textContent.trim()}`)
+  const icon = button.querySelector('.admin-disclosure-icon')
+  if (icon) icon.textContent = expanded ? '▾' : '▸'
+}
+
+function toggleAdminBookingDetails(bookingId, triggerButton) {
+  const button = triggerButton || document.querySelector(`[data-cy="admin-toggle-booking-details-button"][data-booking-id="${cssEscape(bookingId)}"]`)
+  const bookingRow = button?.closest('[data-cy="admin-booking-row"]')
+  const row = bookingRow?.nextElementSibling?.matches(`[data-cy="admin-booking-details-row-${cssEscape(bookingId)}"]`)
+    ? bookingRow.nextElementSibling
+    : document.querySelector(`[data-cy="admin-booking-details-row-${cssEscape(bookingId)}"]`)
+  const panel = row?.querySelector('[data-cy="admin-booking-details-panel"]')
+
+  if (!panel || !row || !button) return
+
+  const expanded = row.hidden
+  row.hidden = !expanded
+  button.setAttribute('aria-expanded', expanded ? 'true' : 'false')
+  button.textContent = expanded ? 'Hide' : 'Details'
 }
 
 function showAdminCustomerEditForm(customerId) {
@@ -687,10 +753,16 @@ function showAdminCustomerEditForm(customerId) {
     </form>
   `
 
-  editor.querySelector('form').addEventListener('submit', event => saveAdminCustomer(event, customerId))
+  const form = editor.querySelector('form')
+  form.addEventListener('submit', event => saveAdminCustomer(event, customerId))
   editor.querySelector('[data-cy="admin-cancel-edit-button"]').addEventListener('click', () => {
     editorRow.hidden = true
     editor.innerHTML = ''
+  })
+
+  requestAnimationFrame(() => {
+    form.scrollIntoView({ block: 'center', inline: 'nearest' })
+    form.querySelector('input')?.focus({ preventScroll: true })
   })
 }
 
@@ -728,14 +800,27 @@ async function saveAdminCustomer(event, customerId) {
   }
 }
 
-function showAdminBookingEditForm(bookingId) {
+function showAdminBookingEditForm(bookingId, triggerButton = null) {
   const booking = adminBookings.find(record => record.id === bookingId)
-  const editor = document.querySelector(`[data-cy="admin-booking-editor-${cssEscape(bookingId)}"]`)
-  const editorRow = document.querySelector(`[data-cy="admin-booking-editor-row-${cssEscape(bookingId)}"]`)
+  const escapedBookingId = cssEscape(bookingId)
+  const bookingRow = triggerButton?.closest('[data-cy="admin-booking-row"]') || null
+  const scopedDetailRow = bookingRow?.nextElementSibling?.matches(`[data-cy="admin-booking-details-row-${escapedBookingId}"]`)
+    ? bookingRow.nextElementSibling
+    : null
+  const detailRow = scopedDetailRow || document.querySelector(`[data-cy="admin-booking-details-row-${escapedBookingId}"]`)
+  const editor = detailRow?.querySelector(`[data-cy="admin-booking-editor-${escapedBookingId}"]`) || null
+  const detailsButton = bookingRow?.querySelector(`[data-cy="admin-toggle-booking-details-button"][data-booking-id="${escapedBookingId}"]`)
+    || document.querySelector(`[data-cy="admin-toggle-booking-details-button"][data-booking-id="${escapedBookingId}"]`)
 
-  if (!booking || !editor || !editorRow) return
+  if (!booking || !editor || !detailRow) return
 
-  editorRow.hidden = false
+  if (detailRow) detailRow.hidden = false
+  if (detailsButton) {
+    detailsButton.setAttribute('aria-expanded', 'true')
+    detailsButton.textContent = 'Hide'
+  }
+
+  editor.hidden = false
   editor.innerHTML = `
     <form class="admin-edit-form" data-cy="admin-booking-edit-form" data-testid="admin-booking-edit-form">
       <label><span>Status</span><input name="bookingStatus" value="${escapeHtml(booking.bookingStatus || '')}" required /></label>
@@ -750,10 +835,16 @@ function showAdminBookingEditForm(bookingId) {
     </form>
   `
 
-  editor.querySelector('form').addEventListener('submit', event => saveAdminBooking(event, bookingId))
+  const form = editor.querySelector('form')
+  form.addEventListener('submit', event => saveAdminBooking(event, bookingId))
   editor.querySelector('[data-cy="admin-cancel-edit-button"]').addEventListener('click', () => {
-    editorRow.hidden = true
+    editor.hidden = true
     editor.innerHTML = ''
+  })
+
+  requestAnimationFrame(() => {
+    form.scrollIntoView({ block: 'center', inline: 'nearest' })
+    form.querySelector('input[name="cabinNumber"]')?.focus({ preventScroll: true })
   })
 }
 
@@ -850,24 +941,17 @@ function renderRoleBookingDashboard(context, errorMessage = '') {
 
   dashboard.hidden = false
   document.querySelectorAll('[data-cy="passenger-self-service-panel"]').forEach(panel => panel.remove())
+  grid.classList.remove('is-admin-workspace')
   grid.innerHTML = ''
 
   if (user.role === 'ADMIN') {
-    if (title) title.textContent = 'Admin operations visibility'
+    if (title) title.textContent = 'Admin workspace'
     if (description) {
-      description.textContent = `Admin can manage cruise data, view ${visibility.accessibleCustomerCount || 0} customers, and manage ${visibility.accessibleBookingCount || 0} bookings from this dashboard.`
+      description.textContent = 'Search customers, expand linked bookings inline, review booking details, and edit records from the same workflow table.'
     }
 
-    grid.innerHTML = `
-      <article class="role-booking-card role-admin-card" data-cy="role-admin-visibility-card" data-testid="role-admin-visibility-card">
-        <h4>Administrative access</h4>
-        <p><strong>Mode:</strong> Full cruise operations management</p>
-        <p><strong>Customers visible:</strong> ${escapeHtml(String(visibility.accessibleCustomerCount || 0))}</p>
-        <p><strong>Bookings visible:</strong> ${escapeHtml(String(visibility.accessibleBookingCount || 0))}</p>
-        <p class="role-dashboard-note">Use the admin data management tools below to search, view, and edit customers and bookings.</p>
-      </article>
-      ${renderAdminOperationsPanel(visibility)}
-    `
+    grid.classList.add('is-admin-workspace')
+    grid.innerHTML = renderAdminOperationsPanel(visibility)
 
     initializeAdminOperationsPanel()
     return

@@ -26,6 +26,66 @@ describe('static ADA and WCAG-oriented accessibility safeguards', () => {
     expect(indexHtml).toContain('aria-label="SQA test output"')
   })
 
+  it('guards against offscreen workspace rail positioning and hidden horizontal scroll', () => {
+    expect(styles).toContain('.workspace-rail')
+    expect(styles).toContain('width: 100%')
+    expect(styles).toContain('max-width: 100%')
+    expect(styles).toContain('margin: 0')
+    expect(styles).toContain('overflow: clip')
+    expect(styles).toContain('overflow-x: clip')
+    expect(styles).toContain('contain: layout paint')
+    expect(styles).toContain('flex-wrap: wrap')
+    expect(styles).toContain('max-width: calc(100% - 32px)')
+    expect(styles).toContain('white-space: normal')
+    expect(styles).not.toContain('margin-left: -206px')
+    expect(styles).not.toContain('margin: -38px auto 0')
+    expect(styles).not.toContain('position: fixed')
+  })
+
+
+  it('keeps workspace navigation accessible and connected to major application regions', () => {
+    expect(indexHtml).toContain('data-testid="workspace-rail"')
+    expect(indexHtml).toContain('aria-label="Cruise Explorer workspace navigation"')
+    expect(indexHtml).toContain('data-testid="workspace-overview-section"')
+    expect(indexHtml).toContain('id="workspace-overview-heading"')
+    expect(indexHtml).toContain('href="#demo-role-panel"')
+    expect(indexHtml).toContain('href="#role-booking-dashboard"')
+    expect(indexHtml).toContain('href="#cruise-lines"')
+    expect(indexHtml).toContain('href="#testPanel"')
+    expect(styles).toContain('.workspace-rail')
+    expect(styles).toContain('.workspace-overview-grid')
+  })
+
+
+  it('documents a workflow-first operations guide with accessible next-step anchors', () => {
+    expect(indexHtml).toContain('data-testid="operations-guide"')
+    expect(indexHtml).toContain('id="operations-guide-heading"')
+    expect(indexHtml).toContain('aria-label="Recommended operations path"')
+    expect(indexHtml).toContain('data-testid="operations-guide-role-link"')
+    expect(indexHtml).toContain('data-testid="operations-guide-booking-link"')
+    expect(indexHtml).toContain('data-testid="operations-guide-fleet-link"')
+    expect(indexHtml).toContain('data-testid="operations-guide-quality-link"')
+    expect(styles).toContain('.operations-guide')
+    expect(styles).toContain('.operations-guide-steps')
+    expect(styles).toContain('grid-template-columns: repeat(4, minmax(0, 1fr))')
+    expect(styles).toContain('@media (max-width: 620px)')
+  })
+
+
+
+  it('keeps admin role guidance out of the application workspace and preserves functional hierarchy controls', () => {
+    expect(appJs).not.toContain('role-admin-visibility-card')
+    expect(appJs).not.toContain('Administrative access')
+    expect(appJs).toContain('Admin workspace')
+    expect(appJs).toContain('expand linked bookings inline')
+    expect(appJs).toContain('data-testid="admin-toggle-customer-bookings-button"')
+    expect(appJs).toContain('data-testid="admin-booking-child-table"')
+    expect(appJs).toContain('data-testid="admin-booking-details-panel"')
+    expect(styles).toContain('.admin-row-disclosure')
+    expect(styles).toContain('.admin-booking-child-table')
+    expect(styles).toContain('.role-booking-dashboard-grid.is-admin-workspace')
+  })
+
   it('keeps major panels associated with visible headings', () => {
     expect(indexHtml).toContain('aria-labelledby="add-cruise-line-heading"')
     expect(indexHtml).toContain('aria-labelledby="update-cruise-line-heading"')
@@ -111,39 +171,53 @@ describe('static ADA and WCAG-oriented accessibility safeguards', () => {
     expect(appJs).toContain('initializeAdminOperationsPanel()')
   })
 
-  it('keeps admin customer and booking management controls accessible and testable', () => {
+  it('keeps admin customer-centered workflow controls accessible and testable', () => {
     expect(appJs).toContain('data-testid="admin-data-management-panel"')
     expect(appJs).toContain('data-testid="admin-data-search-input"')
     expect(appJs).toContain('data-testid="admin-show-customers-button"')
-    expect(appJs).toContain('data-testid="admin-show-bookings-button"')
+    expect(appJs).not.toContain('data-testid="admin-show-bookings-button"')
     expect(appJs).toContain('aria-controls="admin-customers-panel"')
-    expect(appJs).toContain('aria-controls="admin-bookings-panel"')
     expect(appJs).toContain('aria-expanded="false"')
-    expect(appJs).toContain('aria-label="Admin customer results"')
-    expect(appJs).toContain('aria-label="Admin booking results"')
+    expect(appJs).toContain('aria-label="Admin customer and linked booking results"')
+    expect(appJs).toContain('data-testid="admin-toggle-customer-bookings-button"')
+    expect(appJs).toContain('data-testid="admin-toggle-booking-details-button"')
   })
 
 
-  it('keeps admin tables hidden until the admin explicitly opens them', () => {
+  it('keeps admin customer workflow tables hidden until explicitly opened', () => {
     expect(appJs).toContain('data-testid="admin-customers-panel"')
-    expect(appJs).toContain('data-testid="admin-bookings-panel"')
+    expect(appJs).not.toContain('data-testid="admin-bookings-panel"')
     expect(appJs).toContain('hidden>')
     expect(appJs).toContain('adminCustomersVisible = false')
-    expect(appJs).toContain('adminBookingsVisible = false')
     expect(appJs).toContain('toggleAdminPanel')
-    expect(appJs).toContain("panel.hidden = !visible")
+    expect(appJs).toContain('panel.hidden = !visible')
     expect(styles).toContain('.admin-data-panel[hidden]')
   })
 
 
-  it('keeps admin management data in accessible scrollable tables', () => {
+  it('keeps admin management data in accessible parent-child workflow tables', () => {
     expect(appJs).toContain('data-testid="admin-customer-table"')
-    expect(appJs).toContain('data-testid="admin-booking-table"')
-    expect(appJs).toContain('<caption>All admin-visible customers</caption>')
-    expect(appJs).toContain('<caption>All admin-visible bookings</caption>')
+    expect(appJs).not.toContain('data-testid="admin-booking-table"')
+    expect(appJs).toContain('Admin-visible customers with expandable linked bookings and booking details')
+    expect(appJs).toContain('data-testid="admin-booking-row"')
+    expect(appJs).toContain('data-testid="admin-booking-details-panel"')
     expect(styles).toContain('.admin-data-table-wrap')
     expect(styles).toContain('overflow: auto')
+    expect(styles).toContain('.admin-child-panel')
   })
 
+
+
+  it('keeps README-level SQA and AI positioning out of the application chrome', () => {
+    expect(indexHtml).not.toContain('data-testid="principal-sqa-showcase"')
+    expect(indexHtml).not.toContain('Enterprise Quality Engineering Command Center')
+    expect(indexHtml).not.toContain('data-testid="ai-quality-workbench"')
+    expect(appJs).not.toContain('AI_QUALITY_REVIEWS')
+    expect(appJs).not.toContain('initializeAiQualityWorkbench()')
+    expect(styles).not.toContain('.principal-sqa-showcase')
+    expect(styles).not.toContain('.sqa-command-grid')
+    expect(styles).not.toContain('.ai-quality-workbench')
+    expect(indexHtml).toContain('href="#testPanel" data-cy="operations-guide-quality-link"')
+  })
 
 })

@@ -44,4 +44,12 @@ describe('Playwright portfolio coverage inventory', () => {
     expect(config).toContain('Desktop Safari - 1280px')
     expect(config).toContain('Tablet Chrome - 900px')
   })
+  it('keeps mobile admin hierarchy checks scoped to visible child rows', () => {
+    const spec = fs.readFileSync(roleDashboardSpecPath, 'utf8')
+
+    expect(spec).toContain("const visibleBookingRow = page.locator('[data-testid=\"admin-booking-row\"]:visible').first()")
+    expect(spec).toContain("await visibleBookingRow.getByTestId('admin-toggle-booking-details-button').click()")
+    expect(spec).toContain("page.locator('[data-testid^=\"admin-booking-details-row-\"]:visible').first()")
+  })
+
 })

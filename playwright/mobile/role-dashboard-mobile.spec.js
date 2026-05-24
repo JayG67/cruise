@@ -97,13 +97,43 @@ async function openFirstFleetWorkflow(page) {
   await expect(page.getByTestId('itinerary-panel')).toBeVisible()
 }
 
+async function searchAdminRecords(page, searchTerm) {
+  await page.getByTestId('admin-data-search-input').fill(searchTerm)
+}
+
+async function openAdminCustomerWorkflows(page) {
+  await page.getByTestId('admin-show-customers-button').click()
+  await expect(page.getByTestId('admin-show-customers-button')).toContainText('Hide Customer Workflows')
+  await expect(page.getByTestId('admin-customers-panel')).toBeVisible()
+}
+
+async function hideAdminCustomerWorkflows(page) {
+  await page.getByTestId('admin-show-customers-button').click()
+  await expect(page.getByTestId('admin-show-customers-button')).toContainText('Show Customer Workflows')
+  await expect(page.getByTestId('admin-customers-panel')).toBeHidden()
+}
+
+async function getCustomerWorkflowByName(page, customerName) {
+  return page.getByTestId('admin-customer-row').filter({ hasText: customerName }).first()
+}
+
+async function expandCustomerBookingsFor(page, customerName) {
+  const customerWorkflow = await getCustomerWorkflowByName(page, customerName)
+  await customerWorkflow.getByTestId('admin-toggle-customer-bookings-button').click()
+  await expect(customerWorkflow.getByTestId('admin-toggle-customer-bookings-button')).toHaveAttribute('aria-expanded', 'true')
+
+  return customerWorkflow
+}
+
 test.describe('Cruise Explorer mobile role and passenger dashboard quality checks', () => {
   test('renders the role selector and booking dashboard as mobile-first content', async ({ page }) => {
     await openRoleDashboard(page)
 
     await expect(page.getByTestId('demo-role-summary')).toContainText('Admin Demo User')
-    await expect(page.getByTestId('role-booking-dashboard-title')).toContainText('Admin operations visibility')
-    await expect(page.getByTestId('role-admin-visibility-card')).toBeVisible()
+    await expect(page.getByTestId('role-booking-dashboard-title')).toContainText('Admin workspace')
+    await expect(page.getByTestId('role-booking-dashboard-description')).toContainText('expand linked bookings inline')
+    await expect(page.getByTestId('role-admin-visibility-card')).toHaveCount(0)
+    await expect(page.getByTestId('admin-data-management-panel')).toBeVisible()
 
     await expectTouchTargetIsUsable(page.getByTestId('demo-user-selector'))
     await expectElementWithinViewport(page, page.getByTestId('demo-role-panel'))
@@ -112,36 +142,45 @@ test.describe('Cruise Explorer mobile role and passenger dashboard quality check
   })
 
 
-  test('keeps admin customer and booking tables collapsed behind mobile show and hide controls', async ({ page }) => {
+  test('keeps admin customer workflows collapsed behind mobile show and hide controls', async ({ page }) => {
     await openRoleDashboard(page)
 
     await expect(page.getByTestId('admin-data-search-input')).toBeVisible()
     await expect(page.getByTestId('admin-customers-panel')).toBeHidden()
-    await expect(page.getByTestId('admin-bookings-panel')).toBeHidden()
-    await expect(page.getByTestId('admin-show-customers-button')).toContainText('Show All Customers')
-    await expect(page.getByTestId('admin-show-bookings-button')).toContainText('Show All Bookings')
+    await expect(page.getByTestId('admin-bookings-panel')).toHaveCount(0)
+    await expect(page.getByTestId('admin-show-customers-button')).toContainText('Show Customer Workflows')
+    await expect(page.getByTestId('admin-show-bookings-button')).toHaveCount(0)
 
-    await page.getByTestId('admin-data-search-input').fill('Alisa')
+    await searchAdminRecords(page, 'Alisa')
     await expect(page.getByTestId('admin-data-message')).toContainText('Search found')
     await expect(page.getByTestId('admin-customer-row')).toHaveCount(0)
     await expect(page.getByTestId('admin-booking-row')).toHaveCount(0)
 
-    await page.getByTestId('admin-show-customers-button').click()
-    await expect(page.getByTestId('admin-show-customers-button')).toContainText('Hide Customers')
-    await expect(page.getByTestId('admin-customers-panel')).toBeVisible()
-    await expect(page.getByTestId('admin-customer-row').first()).toContainText('Alisa Gallagher')
+    await openAdminCustomerWorkflows(page)
+    const matchingCustomerWorkflow = await getCustomerWorkflowByName(page, 'Alisa Gallagher')
+    await expect(matchingCustomerWorkflow).toContainText('Alisa Gallagher')
+    await expect(matchingCustomerWorkflow).toContainText('2 bookings')
+    await expect(matchingCustomerWorkflow.getByTestId('admin-toggle-customer-bookings-button')).toHaveAttribute('aria-expanded', 'false')
 
-    await page.getByTestId('admin-show-customers-button').click()
-    await expect(page.getByTestId('admin-show-customers-button')).toContainText('Show All Customers')
-    await expect(page.getByTestId('admin-customers-panel')).toBeHidden()
+    await expandCustomerBookingsFor(page, 'Alisa Gallagher')
 
-    await page.getByTestId('admin-show-bookings-button').click()
-    await expect(page.getByTestId('admin-show-bookings-button')).toContainText('Hide Bookings')
-    await expect(page.getByTestId('admin-bookings-panel')).toBeVisible()
+    const visibleBookingTable = page.locator('[data-testid="admin-booking-child-table"]:visible').first()
+    await expect(visibleBookingTable).toBeVisible()
+
+    const visibleBookingRow = page.locator('[data-testid="admin-booking-row"]:visible').first()
+    await expect(visibleBookingRow).toBeVisible()
+    await expect(visibleBookingRow).toContainText('Alisa Gallagher')
+
+    await visibleBookingRow.getByTestId('admin-toggle-booking-details-button').click()
+
+    const visibleBookingDetailsRow = page.locator('[data-testid^="admin-booking-details-row-"]:visible').first()
+    await expect(visibleBookingDetailsRow).toBeVisible()
+    await expect(visibleBookingDetailsRow.getByTestId('admin-booking-details-panel')).toContainText('Fare code')
+
+    await hideAdminCustomerWorkflows(page)
 
     await expectNoHorizontalOverflow(page)
   })
-
 
   test('keeps every seeded role option selectable from a phone viewport', async ({ page }) => {
     await openRoleDashboard(page)
@@ -213,7 +252,8 @@ test.describe('Cruise Explorer mobile role and passenger dashboard quality check
 
     await selectDemoRole(page, 'UADMIN0001', 'Admin Demo User')
 
-    await expect(page.getByTestId('role-admin-visibility-card')).toBeVisible()
+    await expect(page.getByTestId('role-admin-visibility-card')).toHaveCount(0)
+    await expect(page.getByTestId('admin-data-management-panel')).toBeVisible()
     await expect(page.getByTestId('role-booking-card')).toHaveCount(0)
     await expect(page.getByTestId('create-cruise-line-panel')).toBeVisible()
     await expect(page.getByTestId('update-cruise-line-button').first()).toBeVisible()

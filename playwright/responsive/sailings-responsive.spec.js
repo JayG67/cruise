@@ -1,5 +1,19 @@
 const { test, expect } = require('@playwright/test')
 
+
+async function expectElementFullyWithinViewport(page, locator) {
+  await locator.scrollIntoViewIfNeeded()
+
+  const box = await locator.boundingBox()
+  const viewport = page.viewportSize()
+
+  expect(box).not.toBeNull()
+  expect(box.x).toBeGreaterThanOrEqual(0)
+  expect(box.y).toBeGreaterThanOrEqual(0)
+  expect(box.x + box.width).toBeLessThanOrEqual(viewport.width + 1)
+  expect(box.y + box.height).toBeLessThanOrEqual(viewport.height + 1)
+}
+
 async function expectNoHorizontalOverflow(page) {
   const overflow = await page.evaluate(() => {
     const documentElement = document.documentElement
@@ -34,6 +48,48 @@ async function openFirstSailing(page) {
 }
 
 test.describe('Cruise Explorer desktop and tablet responsive quality checks', () => {
+
+  test('keeps the workspace rail fully inside desktop and tablet viewports', async ({ page }) => {
+    await page.goto('/')
+
+    const rail = page.getByTestId('workspace-rail')
+    const overview = page.getByTestId('workspace-overview-section')
+
+    await expect(rail).toBeVisible()
+    await expect(overview).toBeVisible()
+    await expectElementFullyWithinViewport(page, rail)
+    await expectNoHorizontalOverflow(page)
+
+    await page.setViewportSize({ width: 900, height: 900 })
+    await expect(rail).toBeVisible()
+    await expectElementFullyWithinViewport(page, rail)
+    await expectNoHorizontalOverflow(page)
+  })
+
+
+
+  test('keeps the recommended workflow guide readable without horizontal overflow', async ({ page }) => {
+    await page.goto('/')
+
+    const guide = page.getByTestId('operations-guide')
+    const steps = page.getByTestId('operations-guide-steps')
+
+    await expect(guide).toBeVisible()
+    await expect(guide).toContainText('Start with the role')
+    await expect(guide).toContainText('Run quality checks')
+    await expectElementFullyWithinViewport(page, guide)
+    await expectNoHorizontalOverflow(page)
+
+    await page.setViewportSize({ width: 900, height: 900 })
+    await expect(steps).toBeVisible()
+    await expectNoHorizontalOverflow(page)
+
+    await page.setViewportSize({ width: 390, height: 844 })
+    await expect(guide).toBeVisible()
+    await expectNoHorizontalOverflow(page)
+  })
+
+
   test('keeps the admin dashboard usable in a desktop browser viewport', async ({ page }) => {
     await waitForCruiseCards(page)
 

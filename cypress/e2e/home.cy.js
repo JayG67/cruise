@@ -2,6 +2,23 @@ import { selectors } from '../support/selectors'
 import { homeCruiseLines as cruiseLines } from '../support/testData'
 import { visitHomeWithCruiseLines } from '../support/apiMocks'
 
+function expectElementFullyWithinViewport(selectorOrElement) {
+  cy.get(selectorOrElement).then($element => {
+    const rect = $element[0].getBoundingClientRect()
+
+    cy.window().then(window => {
+      const viewportWidth = window.innerWidth
+      const viewportHeight = window.innerHeight
+
+      expect(rect.left, 'left edge is inside viewport').to.be.at.least(0)
+      expect(rect.right, 'right edge is inside viewport').to.be.at.most(viewportWidth)
+      expect(rect.top, 'top edge is not clipped far above viewport').to.be.at.least(-1)
+      expect(rect.bottom, 'bottom edge is inside viewport').to.be.at.most(viewportHeight)
+    })
+  })
+}
+
+
 describe('Cruise Explorer home page', () => {
   beforeEach(() => {
     visitHomeWithCruiseLines()
@@ -20,11 +37,139 @@ describe('Cruise Explorer home page', () => {
     cy.get(selectors.navigation.primaryNav).within(() => {
       cy.get(selectors.navigation.brandLink).should('have.attr', 'href', '#home')
       cy.get(selectors.navigation.dashboardLink).should('have.attr', 'href', '#dashboard')
+      cy.get(selectors.navigation.workspaceLink).should('have.attr', 'href', '#workspace-overview')
       cy.get(selectors.navigation.sqaControlsLink).should('have.attr', 'href', '#testPanel')
       cy.get(selectors.navigation.cruiseLinesLink).should('have.attr', 'href', '#cruise-lines')
       cy.get(selectors.navigation.aboutLink).should('have.attr', 'href', '#about')
     })
   })
+
+  it('renders a workspace navigation rail and overview cards for workflow-first navigation', () => {
+    cy.get(selectors.workspace.rail).scrollIntoView().should('be.visible')
+    cy.get(selectors.workspace.nav).within(() => {
+      cy.get(selectors.workspace.rolesLink).should('have.attr', 'href', '#demo-role-panel')
+      cy.get(selectors.workspace.operationsLink).should('have.attr', 'href', '#role-booking-dashboard')
+      cy.get(selectors.workspace.fleetLink).should('have.attr', 'href', '#cruise-lines')
+      cy.get(selectors.workspace.createLink).should('have.attr', 'href', '#add-cruise-line-heading')
+      cy.get(selectors.workspace.qualityLink).should('have.attr', 'href', '#testPanel')
+    })
+
+    expectElementFullyWithinViewport(selectors.workspace.rail)
+    expectElementFullyWithinViewport(`${selectors.workspace.rail} .workspace-rail-card`)
+    cy.get(selectors.workspace.nav).then($nav => {
+      expect($nav[0].scrollWidth, 'workspace rail nav does not cause page overflow').to.be.at.most($nav[0].clientWidth + 24)
+    })
+
+    cy.document().then(document => {
+      expect(document.documentElement.scrollWidth, 'document has no horizontal page overflow').to.be.at.most(document.documentElement.clientWidth + 1)
+    })
+
+    cy.get(selectors.workspace.overview).should('be.visible')
+    cy.get(selectors.workspace.overviewCard)
+      .should('have.length', 4)
+      .and('contain.text', 'Role Simulation')
+      .and('contain.text', 'Fleet Directory')
+      .and('contain.text', 'Admin Operations')
+      .and('contain.text', 'Quality Console')
+  })
+
+
+
+  it('renders a workflow-first operations guide with reachable next-step links', () => {
+    cy.get(selectors.operationsGuide.panel).scrollIntoView().should('be.visible')
+    cy.get(selectors.operationsGuide.panel)
+      .should('contain.text', 'Recommended Workflow')
+      .and('contain.text', 'Start with the role, then move through the operation')
+      .and('contain.text', 'Choose role')
+      .and('contain.text', 'Review operations')
+      .and('contain.text', 'Manage fleet')
+      .and('contain.text', 'Run quality checks')
+
+    cy.get(selectors.operationsGuide.steps).find('a').should('have.length', 4)
+    cy.get(selectors.operationsGuide.roleLink).should('have.attr', 'href', '#demo-role-panel')
+    cy.get(selectors.operationsGuide.bookingLink).should('have.attr', 'href', '#role-booking-dashboard')
+    cy.get(selectors.operationsGuide.fleetLink).should('have.attr', 'href', '#cruise-lines')
+    cy.get(selectors.operationsGuide.qualityLink).should('have.attr', 'href', '#testPanel')
+
+    cy.get(selectors.operationsGuide.qualityLink).click()
+    cy.get(selectors.testPanel.panel).should('be.visible')
+  })
+
+
+
+  it('keeps the workspace rail inside the viewport at desktop, tablet, and mobile widths', () => {
+    ;[
+      [1280, 720],
+      [1000, 660],
+      [900, 900],
+      [390, 844]
+    ].forEach(([width, height]) => {
+      cy.viewport(width, height)
+      cy.visit('/')
+
+      cy.window().then(window => {
+        expect(window.innerWidth, `viewport width applied for ${width}px case`).to.equal(width)
+      })
+
+      cy.get(selectors.workspace.rail).scrollIntoView().should('be.visible')
+      expectElementFullyWithinViewport(selectors.workspace.rail)
+      expectElementFullyWithinViewport(`${selectors.workspace.rail} .workspace-rail-card`)
+
+      cy.get(selectors.workspace.nav).then($nav => {
+        expect($nav[0].scrollWidth, `rail nav does not require horizontal scrolling at ${width}px`).to.be.at.most($nav[0].clientWidth + 1)
+      })
+
+      cy.document().then(document => {
+        expect(document.documentElement.scrollWidth, `no horizontal overflow at ${width}px`).to.be.at.most(document.documentElement.clientWidth + 1)
+      })
+    })
+  })
+
+  it('keeps workspace navigation viewport-safe after repeated anchor jumps', () => {
+    cy.viewport(390, 844)
+    cy.visit('/')
+
+    ;[
+      selectors.workspace.qualityLink,
+      selectors.workspace.rolesLink,
+      selectors.workspace.fleetLink,
+      selectors.workspace.createLink
+    ].forEach(selector => {
+      cy.get(selector).click()
+      cy.get(selectors.workspace.rail).scrollIntoView().should('be.visible')
+      expectElementFullyWithinViewport(selectors.workspace.rail)
+      cy.document().then(document => {
+        expect(document.documentElement.scrollWidth, `no horizontal overflow after activating ${selector}`).to.be.at.most(document.documentElement.clientWidth + 1)
+      })
+    })
+  })
+
+
+
+  it('uses workspace links to move directly to major operational areas', () => {
+    cy.get(selectors.workspace.qualityLink).click()
+    cy.location('hash').should('eq', '#testPanel')
+    cy.get(selectors.testPanel.panel).should('be.visible')
+
+    cy.get(selectors.workspace.fleetLink).click()
+    cy.location('hash').should('eq', '#cruise-lines')
+    cy.get(selectors.cruiseLines.section).should('be.visible')
+
+    cy.get(selectors.workspace.rolesLink).click()
+    cy.location('hash').should('eq', '#demo-role-panel')
+    cy.get(selectors.demoRole.panel).should('be.visible')
+  })
+
+  it('does not render workspace overview cards as disconnected controls', () => {
+    cy.get(selectors.workspace.overviewCard).each($card => {
+      cy.wrap($card).should('have.attr', 'href').and('match', /^#.+/)
+    })
+
+    cy.get(selectors.workspace.overviewCard).contains('Role Simulation').click()
+    cy.location('hash').should('eq', '#demo-role-panel')
+  })
+
+
 
 
   it('keeps the update workflow hidden on startup until update is selected', () => {
