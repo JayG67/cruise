@@ -345,3 +345,12 @@ dd {
   outline: 3px solid #f5b342;
   outline-offset: 3px;
 }
+
+.booking-draft-editor {
+  margin-top: 0.85rem;
+}
+
+.booking-draft-editor .secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}

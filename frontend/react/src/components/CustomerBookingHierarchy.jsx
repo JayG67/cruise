@@ -8,6 +8,12 @@ import {
   summarizeHierarchyRows
 } from '../domain/adminHierarchy.js'
 import {
+  createBookingDraft,
+  summarizeBookingDraftChanges,
+  updateBookingDraftField,
+  validateBookingDraft
+} from '../domain/bookingDrafts.js'
+import {
   createCustomerDraft,
   summarizeCustomerDraftChanges,
   updateCustomerDraftField,
@@ -27,6 +33,8 @@ export default function CustomerBookingHierarchy({ customers = [], bookings = []
   const [expandedBookingIds, setExpandedBookingIds] = useState(() => new Set())
   const [customerDrafts, setCustomerDrafts] = useState(() => ({}))
   const [customerDraftMessages, setCustomerDraftMessages] = useState(() => ({}))
+  const [bookingDrafts, setBookingDrafts] = useState(() => ({}))
+  const [bookingDraftMessages, setBookingDraftMessages] = useState(() => ({}))
 
   const allRows = useMemo(() => buildCustomerBookingRows(customers, bookings), [customers, bookings])
   const rows = useMemo(() => filterCustomerBookingRows(allRows, searchTerm), [allRows, searchTerm])
@@ -119,6 +127,56 @@ export default function CustomerBookingHierarchy({ customers = [], bookings = []
     }
   }
 
+
+  function openBookingDraft(customerId, booking) {
+    const bookingKey = createBookingExpansionKey(customerId, booking.id)
+
+    setBookingDrafts(current => ({
+      ...current,
+      [bookingKey]: createBookingDraft(booking)
+    }))
+    setBookingDraftMessages(current => ({
+      ...current,
+      [bookingKey]: ''
+    }))
+  }
+
+  function updateBookingDraft(bookingKey, fieldName, value) {
+    setBookingDrafts(current => ({
+      ...current,
+      [bookingKey]: updateBookingDraftField(current[bookingKey], fieldName, value)
+    }))
+  }
+
+  function cancelBookingDraft(bookingKey) {
+    setBookingDrafts(current => {
+      const nextDrafts = { ...current }
+      delete nextDrafts[bookingKey]
+      return nextDrafts
+    })
+    setBookingDraftMessages(current => {
+      const nextMessages = { ...current }
+      delete nextMessages[bookingKey]
+      return nextMessages
+    })
+  }
+
+  function validateBookingDraftFor(customerId, booking) {
+    const bookingKey = createBookingExpansionKey(customerId, booking.id)
+    const draft = bookingDrafts[bookingKey]
+    const validation = validateBookingDraft(draft)
+    const changedFields = summarizeBookingDraftChanges(booking, draft)
+
+    setBookingDraftMessages(current => ({
+      ...current,
+      [bookingKey]: validation.isValid
+        ? `Booking draft is valid with ${changedFields.length} changed fields. Stage 6 intentionally stops before live booking mutation.`
+        : Object.values(validation.errors).join(' ')
+    }))
+
+    return { draft, validation, changedFields }
+  }
+
   function expandAllVisibleCustomers() {
     setExpandedCustomerIds(current => expandVisibleCustomers(current, rows))
   }
@@ -149,11 +207,11 @@ export default function CustomerBookingHierarchy({ customers = [], bookings = []
     <section className="hierarchy-card" aria-labelledby="react-hierarchy-heading" data-testid="react-admin-hierarchy">
       <div className="section-heading-row">
         <div>
-          <p className="eyebrow">Stage 5 migration slice</p>
+          <p className="eyebrow">Stage 6 migration slice</p>
           <h2 id="react-hierarchy-heading">Customer → booking hierarchy</h2>
           <p className="section-summary">
             React now owns search, summary counts, duplicate-booking-safe expansion state,
-            customer edit draft state, and a guarded customer save mutation boundary.
+            customer save mutations, and booking draft state before live booking mutations.
           </p>
         </div>
         <label className="search-control">
@@ -222,6 +280,12 @@ export default function CustomerBookingHierarchy({ customers = [], bookings = []
                     onSaveCustomerDraft={() => saveCustomerDraftFor(customer)}
                     isSavingCustomer={savingCustomerId === customer.id}
                     onCancelCustomerDraft={() => cancelCustomerDraft(customer.id)}
+                    bookingDrafts={bookingDrafts}
+                    bookingDraftMessages={bookingDraftMessages}
+                    onEditBooking={booking => openBookingDraft(customer.id, booking)}
+                    onUpdateBookingDraft={updateBookingDraft}
+                    onValidateBookingDraft={booking => validateBookingDraftFor(customer.id, booking)}
+                    onCancelBookingDraft={cancelBookingDraft}
                   />
                 )
               })}
@@ -248,7 +312,13 @@ function CustomerHierarchyRow({
   onValidateCustomerDraft,
   onSaveCustomerDraft,
   isSavingCustomer,
-  onCancelCustomerDraft
+  onCancelCustomerDraft,
+  bookingDrafts,
+  bookingDraftMessages,
+  onEditBooking,
+  onUpdateBookingDraft,
+  onValidateBookingDraft,
+  onCancelBookingDraft
 }) {
   return (
     <>
@@ -308,6 +378,23 @@ function CustomerHierarchyRow({
                     </div>
                     <p><strong>{booking.cruiseLine?.name || 'Cruise unavailable'}</strong> · {booking.ship?.name || 'Ship unavailable'}</p>
                     <p>Cabin {booking.cabinNumber || 'not assigned'} · {getBookingRoute(booking)}</p>
+                    <button
+                      type="button"
+                      className="secondary-button compact-button"
+                      onClick={() => onEditBooking(booking)}
+                      data-testid="react-edit-booking-button"
+                    >
+                      Edit booking draft
+                    </button>
+                    {bookingDrafts[bookingRowKey] && (
+                      <BookingDraftForm
+                        draft={bookingDrafts[bookingRowKey]}
+                        message={bookingDraftMessages[bookingRowKey]}
+                        onUpdate={(fieldName, value) => onUpdateBookingDraft(bookingRowKey, fieldName, value)}
+                        onValidate={() => onValidateBookingDraft(booking)}
+                        onCancel={() => onCancelBookingDraft(bookingRowKey)}
+                      />
+                    )}
                     {bookingExpanded && (
                       <dl className="details-grid">
                         <div><dt>Fare code</dt><dd>{booking.fareCode || 'Not assigned'}</dd></div>
@@ -323,6 +410,49 @@ function CustomerHierarchyRow({
         </tr>
       )}
     </>
+  )
+}
+
+
+
+function BookingDraftForm({ draft, message, onUpdate, onValidate, onCancel }) {
+  return (
+    <form className="draft-editor booking-draft-editor" aria-label={`Edit booking draft for ${draft.id}`} data-testid="react-booking-draft-form" onSubmit={event => event.preventDefault()}>
+      <div className="draft-grid">
+        <label>
+          <span>Status</span>
+          <input value={draft.bookingStatus} onChange={event => onUpdate('bookingStatus', event.target.value)} />
+        </label>
+        <label>
+          <span>Cabin</span>
+          <input value={draft.cabinNumber} onChange={event => onUpdate('cabinNumber', event.target.value)} />
+        </label>
+        <label>
+          <span>Fare code</span>
+          <input value={draft.fareCode} onChange={event => onUpdate('fareCode', event.target.value)} />
+        </label>
+        <label>
+          <span>Embarkation port</span>
+          <input value={draft.embarkationPort} onChange={event => onUpdate('embarkationPort', event.target.value)} />
+        </label>
+        <label>
+          <span>Debarkation port</span>
+          <input value={draft.debarkationPort} onChange={event => onUpdate('debarkationPort', event.target.value)} />
+        </label>
+      </div>
+      <div className="button-row">
+        <button type="button" className="secondary-button" onClick={onValidate} data-testid="react-validate-booking-draft">
+          Validate booking draft
+        </button>
+        <button type="button" className="secondary-button" disabled data-testid="react-save-booking-draft">
+          Save booking draft coming in Stage 7
+        </button>
+        <button type="button" className="secondary-button" onClick={onCancel}>
+          Cancel
+        </button>
+      </div>
+      {message && <p className="draft-message" role="status">{message}</p>}
+    </form>
   )
 }
 

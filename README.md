@@ -645,3 +645,17 @@ npm run react:migration:audit
 npm run react:build
 npm run test:all
 ```
+
+
+### React Stage 6 migration checkpoint
+
+The React migration now includes booking draft state for the Admin Customer → Booking hierarchy. Stage 6 keeps the production DOM app untouched and deliberately stops before live booking mutation so the state model can be reviewed and tested independently.
+
+Validation commands:
+
+```bash
+npm run react:stage6:audit
+npm run react:migration:audit
+npm run react:build
+npm run test:all
+```

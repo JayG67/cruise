@@ -129,4 +129,25 @@ describe('React migration scaffold', () => {
     expect(packageJson.scripts['react:migration:audit']).toContain('react:stage5:audit')
   })
 
+
+  it('adds Stage 6 booking draft state before wiring live booking mutations', () => {
+    const bookingDrafts = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/bookingDrafts.js'), 'utf8')
+    const component = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx'), 'utf8')
+    const styles = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/styles/app.css'), 'utf8')
+
+    expect(bookingDrafts).toContain('export function createBookingDraft')
+    expect(bookingDrafts).toContain('export function validateBookingDraft')
+    expect(bookingDrafts).toContain('export function summarizeBookingDraftChanges')
+    expect(component).toContain('bookingDrafts')
+    expect(component).toContain('BookingDraftForm')
+    expect(component).toContain('data-testid="react-booking-draft-form"')
+    expect(component).toContain('data-testid="react-validate-booking-draft"')
+    expect(component).toContain('Save booking draft coming in Stage 7')
+    expect(component).toContain('Stage 6 intentionally stops before live booking mutation')
+    expect(component).not.toContain('updateBookingProfile(')
+    expect(styles).toContain('.booking-draft-editor')
+    expect(packageJson.scripts['react:stage6:audit']).toBe('node scripts/verify-react-stage-6.js')
+    expect(packageJson.scripts['react:migration:audit']).toContain('react:stage6:audit')
+  })
+
 })

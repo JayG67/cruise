@@ -97,3 +97,17 @@ This stage moves the React slice from read-only hierarchy exploration toward rea
 - Preserve the production DOM app as the stable UI while React gains mutation parity one workflow at a time.
 
 This stage matters because the React proof of concept now exercises a real end-to-end admin edit path without cutting over the production UI.
+
+
+## Stage 6: Booking draft state before live booking mutations
+
+Stage 6 adds booking-level draft state inside the isolated React hierarchy. The goal is to prove the booking edit workflow can be modeled as local, duplicate-safe React state before wiring a live booking PATCH mutation.
+
+This stage intentionally does **not** save booking changes to the API. That separation keeps the migration safe and demonstrates a professional sequencing pattern:
+
+1. Model draft state.
+2. Validate draft behavior.
+3. Preserve current production behavior.
+4. Add mutation only after the state model is covered.
+
+Stage 7 can add the booking mutation boundary once the React draft behavior is stable.
