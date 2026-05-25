@@ -669,3 +669,16 @@ The React migration shell now includes a live booking mutation boundary. The Rea
 ### React migration Stage 8 checkpoint
 
 Stage 8 extracts the customer and booking draft editors from the React hierarchy component into reusable components. This keeps the migration incremental while reducing component size and preserving stable test IDs for future component-level coverage.
+
+
+### React migration Stage 9: draft editor field contracts
+
+Stage 9 centralizes React customer and booking draft editor field metadata in domain modules. This improves maintainability by keeping form fields, labels, and stable test IDs aligned while the production DOM UI remains untouched.
+
+Validation commands:
+
+```bash
+npm run react:migration:audit
+npm run react:build
+npm run test:all
+```

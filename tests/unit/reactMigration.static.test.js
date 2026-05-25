@@ -199,3 +199,29 @@ describe('React migration Stage 8 draft editor extraction', () => {
     expect(packageJson.scripts['react:migration:audit']).toContain('react:stage8:audit')
   })
 })
+
+
+describe('React migration Stage 9 draft editor field contracts', () => {
+  const projectRoot = path.resolve(__dirname, '../..')
+  const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'))
+
+  it('extracts draft editor field metadata so form structure is centralized and guarded', () => {
+    const customerFields = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/customerDraftFormFields.js'), 'utf8')
+    const bookingFields = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/bookingDraftFormFields.js'), 'utf8')
+    const customerForm = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerDraftForm.jsx'), 'utf8')
+    const bookingForm = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/BookingDraftForm.jsx'), 'utf8')
+
+    expect(customerFields).toContain('customerDraftFields')
+    expect(customerFields).toContain('loyaltyNumber')
+    expect(bookingFields).toContain('bookingDraftFields')
+    expect(bookingFields).toContain('debarkationPort')
+    expect(customerForm).toContain('customerDraftFields.map')
+    expect(customerForm).toContain('data-testid={`react-customer-draft-${field.name}`}')
+    expect(customerForm).toContain('data-testid="react-cancel-customer-draft"')
+    expect(bookingForm).toContain('bookingDraftFields.map')
+    expect(bookingForm).toContain('data-testid={`react-booking-draft-${field.name}`}')
+    expect(bookingForm).toContain('data-testid="react-cancel-booking-draft"')
+    expect(packageJson.scripts['react:stage9:audit']).toBe('node scripts/verify-react-stage-9.js')
+    expect(packageJson.scripts['react:migration:audit']).toContain('react:stage9:audit')
+  })
+})

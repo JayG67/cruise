@@ -121,3 +121,10 @@ Stage 7 can add the booking mutation boundary once the React draft behavior is s
 - Keep the production DOM UI untouched while the React shell becomes more componentized and easier to test.
 
 This stage is an architectural cleanup stage. It makes the React migration easier to extend without changing runtime behavior or API contracts.
+
+
+## Stage 9: Draft editor field contracts
+
+Stage 9 extracts customer and booking draft editor field metadata into React domain modules. This keeps the form structure centralized, makes future validation/component coverage easier, and reduces the chance that customer and booking editor fields drift away from the API mutation payloads.
+
+The production DOM application remains untouched. The React shell continues to prove the migration path through isolated, auditable increments before any cutover decision.
