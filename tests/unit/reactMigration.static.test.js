@@ -142,12 +142,34 @@ describe('React migration scaffold', () => {
     expect(component).toContain('BookingDraftForm')
     expect(component).toContain('data-testid="react-booking-draft-form"')
     expect(component).toContain('data-testid="react-validate-booking-draft"')
-    expect(component).toContain('Save booking draft coming in Stage 7')
-    expect(component).toContain('Stage 6 intentionally stops before live booking mutation')
-    expect(component).not.toContain('updateBookingProfile(')
+    expect(component).toContain('data-testid="react-save-booking-draft"')
+    expect(component).toContain('Booking draft is valid with')
     expect(styles).toContain('.booking-draft-editor')
     expect(packageJson.scripts['react:stage6:audit']).toBe('node scripts/verify-react-stage-6.js')
     expect(packageJson.scripts['react:migration:audit']).toContain('react:stage6:audit')
   })
 
+})
+
+
+describe('React migration Stage 7 booking mutation boundary', () => {
+  const projectRoot = path.resolve(__dirname, '../..')
+  const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'))
+
+  it('adds a Stage 7 React booking mutation boundary with full booking payload preservation', () => {
+    const client = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/api/client.js'), 'utf8')
+    const hook = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/hooks/useBookingDetailsMutation.js'), 'utf8')
+    const app = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/App.jsx'), 'utf8')
+    const component = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx'), 'utf8')
+
+    expect(client).toContain('export async function updateBookingDetails')
+    expect(hook).toContain('useBookingDetailsMutation')
+    expect(hook).toContain('passengers: (booking.passengers || []).map(getPassengerPayload)')
+    expect(app).toContain('onSaveBookingDraft={saveBookingDetails}')
+    expect(component).toContain('async function saveBookingDraftFor')
+    expect(component).toContain('Booking draft saved through the React mutation boundary.')
+    expect(component).toContain('data-testid="react-save-booking-draft"')
+    expect(packageJson.scripts['react:stage7:audit']).toBe('node scripts/verify-react-stage-7.js')
+    expect(packageJson.scripts['react:migration:audit']).toContain('react:stage7:audit')
+  })
 })

@@ -60,3 +60,16 @@ export async function updateCustomerProfile(customerId, payload, options = {}) {
     body: JSON.stringify(payload)
   })
 }
+
+
+export async function updateBookingDetails(bookingId, payload, options = {}) {
+  return requestJson(`/cruise/bookings/${encodeURIComponent(bookingId)}`, {
+    ...options,
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}

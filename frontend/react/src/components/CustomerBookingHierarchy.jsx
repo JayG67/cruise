@@ -27,7 +27,19 @@ import {
   toggleExpandedId
 } from '../domain/hierarchyExpansionState.js'
 
-export default function CustomerBookingHierarchy({ customers = [], bookings = [], isLoading, error, onRetry, onSaveCustomerDraft, savingCustomerId = '', mutationError = '' }) {
+export default function CustomerBookingHierarchy({
+  customers = [],
+  bookings = [],
+  isLoading,
+  error,
+  onRetry,
+  onSaveCustomerDraft,
+  savingCustomerId = '',
+  mutationError = '',
+  onSaveBookingDraft,
+  savingBookingId = '',
+  bookingMutationError = ''
+}) {
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedCustomerIds, setExpandedCustomerIds] = useState(() => new Set())
   const [expandedBookingIds, setExpandedBookingIds] = useState(() => new Set())
@@ -170,11 +182,52 @@ export default function CustomerBookingHierarchy({ customers = [], bookings = []
     setBookingDraftMessages(current => ({
       ...current,
       [bookingKey]: validation.isValid
-        ? `Booking draft is valid with ${changedFields.length} changed fields. Stage 6 intentionally stops before live booking mutation.`
+        ? `Booking draft is valid with ${changedFields.length} changed fields. Use Save booking draft to exercise the React booking mutation boundary.`
         : Object.values(validation.errors).join(' ')
     }))
 
     return { draft, validation, changedFields }
+  }
+
+  async function saveBookingDraftFor(customerId, booking) {
+    const bookingKey = createBookingExpansionKey(customerId, booking.id)
+    const { draft, validation, changedFields } = validateBookingDraftFor(customerId, booking)
+
+    if (!validation.isValid) return
+
+    if (changedFields.length === 0) {
+      setBookingDraftMessages(current => ({
+        ...current,
+        [bookingKey]: 'No booking fields changed. Nothing to save.'
+      }))
+      return
+    }
+
+    if (!onSaveBookingDraft) {
+      setBookingDraftMessages(current => ({
+        ...current,
+        [bookingKey]: 'Booking save boundary is not available in this React migration shell.'
+      }))
+      return
+    }
+
+    try {
+      const result = await onSaveBookingDraft(booking, draft)
+      setBookingDraftMessages(current => ({
+        ...current,
+        [bookingKey]: result?.message || 'Booking draft saved through the React mutation boundary.'
+      }))
+      setBookingDrafts(current => {
+        const nextDrafts = { ...current }
+        delete nextDrafts[bookingKey]
+        return nextDrafts
+      })
+    } catch (saveError) {
+      setBookingDraftMessages(current => ({
+        ...current,
+        [bookingKey]: saveError.message || bookingMutationError || 'Unable to save booking draft.'
+      }))
+    }
   }
 
   function expandAllVisibleCustomers() {
@@ -207,11 +260,11 @@ export default function CustomerBookingHierarchy({ customers = [], bookings = []
     <section className="hierarchy-card" aria-labelledby="react-hierarchy-heading" data-testid="react-admin-hierarchy">
       <div className="section-heading-row">
         <div>
-          <p className="eyebrow">Stage 6 migration slice</p>
+          <p className="eyebrow">Stage 7 migration slice</p>
           <h2 id="react-hierarchy-heading">Customer → booking hierarchy</h2>
           <p className="section-summary">
             React now owns search, summary counts, duplicate-booking-safe expansion state,
-            customer save mutations, and booking draft state before live booking mutations.
+            customer save mutations, booking draft state, and live booking save mutations.
           </p>
         </div>
         <label className="search-control">
@@ -285,6 +338,8 @@ export default function CustomerBookingHierarchy({ customers = [], bookings = []
                     onEditBooking={booking => openBookingDraft(customer.id, booking)}
                     onUpdateBookingDraft={updateBookingDraft}
                     onValidateBookingDraft={booking => validateBookingDraftFor(customer.id, booking)}
+                    onSaveBookingDraft={booking => saveBookingDraftFor(customer.id, booking)}
+                    savingBookingId={savingBookingId}
                     onCancelBookingDraft={cancelBookingDraft}
                   />
                 )
@@ -318,6 +373,8 @@ function CustomerHierarchyRow({
   onEditBooking,
   onUpdateBookingDraft,
   onValidateBookingDraft,
+  onSaveBookingDraft,
+  savingBookingId,
   onCancelBookingDraft
 }) {
   return (
@@ -392,6 +449,8 @@ function CustomerHierarchyRow({
                         message={bookingDraftMessages[bookingRowKey]}
                         onUpdate={(fieldName, value) => onUpdateBookingDraft(bookingRowKey, fieldName, value)}
                         onValidate={() => onValidateBookingDraft(booking)}
+                        onSave={() => onSaveBookingDraft(booking)}
+                        isSaving={savingBookingId === booking.id}
                         onCancel={() => onCancelBookingDraft(bookingRowKey)}
                       />
                     )}
@@ -415,7 +474,7 @@ function CustomerHierarchyRow({
 
 
 
-function BookingDraftForm({ draft, message, onUpdate, onValidate, onCancel }) {
+function BookingDraftForm({ draft, message, onUpdate, onValidate, onSave, isSaving, onCancel }) {
   return (
     <form className="draft-editor booking-draft-editor" aria-label={`Edit booking draft for ${draft.id}`} data-testid="react-booking-draft-form" onSubmit={event => event.preventDefault()}>
       <div className="draft-grid">
@@ -444,8 +503,8 @@ function BookingDraftForm({ draft, message, onUpdate, onValidate, onCancel }) {
         <button type="button" className="secondary-button" onClick={onValidate} data-testid="react-validate-booking-draft">
           Validate booking draft
         </button>
-        <button type="button" className="secondary-button" disabled data-testid="react-save-booking-draft">
-          Save booking draft coming in Stage 7
+        <button type="button" className="primary-button" onClick={onSave} disabled={isSaving} data-testid="react-save-booking-draft">
+          {isSaving ? 'Saving booking draft…' : 'Save booking draft'}
         </button>
         <button type="button" className="secondary-button" onClick={onCancel}>
           Cancel

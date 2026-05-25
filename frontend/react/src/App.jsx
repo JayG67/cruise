@@ -1,11 +1,13 @@
 import useAdminHierarchySnapshot from './hooks/useAdminHierarchySnapshot.js'
 import useCustomerProfileMutation from './hooks/useCustomerProfileMutation.js'
+import useBookingDetailsMutation from './hooks/useBookingDetailsMutation.js'
 import CustomerBookingHierarchy from './components/CustomerBookingHierarchy.jsx'
 import MigrationReadiness from './components/MigrationReadiness.jsx'
 
 export default function App() {
   const { snapshot, isLoading, error, reload } = useAdminHierarchySnapshot()
   const { saveCustomerProfile, savingCustomerId, mutationError } = useCustomerProfileMutation({ onSaved: reload })
+  const { saveBookingDetails, savingBookingId, bookingMutationError } = useBookingDetailsMutation({ onSaved: reload })
 
   return (
     <main className="app-shell">
@@ -14,8 +16,8 @@ export default function App() {
         <h1 id="react-migration-title">React migration preview</h1>
         <p>
           This isolated Vite shell proves the staged React migration without replacing the stable
-          production DOM application. Stage 2 adds a React API boundary with cancellable loading,
-          retry behavior, stable state ownership, and the first React customer mutation boundary for the customer → booking hierarchy.
+          production DOM application. Stage 7 adds live React booking mutations on top of cancellable loading,
+          stable state ownership, customer saves, and draft-first booking edits for the customer → booking hierarchy.
         </p>
       </section>
 
@@ -30,6 +32,9 @@ export default function App() {
         onSaveCustomerDraft={saveCustomerProfile}
         savingCustomerId={savingCustomerId}
         mutationError={mutationError}
+        onSaveBookingDraft={saveBookingDetails}
+        savingBookingId={savingBookingId}
+        bookingMutationError={bookingMutationError}
       />
     </main>
   )

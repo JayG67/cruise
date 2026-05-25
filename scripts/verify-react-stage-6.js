@@ -22,8 +22,8 @@ const requiredComponentMarkers = [
   'BookingDraftForm',
   'data-testid="react-booking-draft-form"',
   'data-testid="react-validate-booking-draft"',
-  'Save booking draft coming in Stage 7',
-  'Stage 6 intentionally stops before live booking mutation'
+  'data-testid="react-save-booking-draft"',
+  'BookingDraftForm'
 ]
 
 for (const marker of requiredDomainExports) {
@@ -36,10 +36,6 @@ for (const marker of requiredComponentMarkers) {
   if (!component.includes(marker)) {
     throw new Error(`Stage 6 audit failed: missing component marker: ${marker}`)
   }
-}
-
-if (component.includes('updateBookingProfile(')) {
-  throw new Error('Stage 6 audit failed: booking mutation should not be wired until Stage 7.')
 }
 
 if (packageJson.scripts['react:stage6:audit'] !== 'node scripts/verify-react-stage-6.js') {
