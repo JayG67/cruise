@@ -7,6 +7,13 @@ import {
   getCustomerName,
   summarizeHierarchyRows
 } from '../domain/adminHierarchy.js'
+import {
+  collapseBookingsForVisibleCustomers,
+  collapseVisibleCustomers,
+  createBookingExpansionKey,
+  expandVisibleCustomers,
+  toggleExpandedId
+} from '../domain/hierarchyExpansionState.js'
 
 export default function CustomerBookingHierarchy({ customers = [], bookings = [], isLoading, error, onRetry }) {
   const [searchTerm, setSearchTerm] = useState('')
@@ -17,27 +24,14 @@ export default function CustomerBookingHierarchy({ customers = [], bookings = []
   const rows = useMemo(() => filterCustomerBookingRows(allRows, searchTerm), [allRows, searchTerm])
   const summary = useMemo(() => summarizeHierarchyRows(rows), [rows])
 
-  function toggleSetValue(currentSet, value) {
-    const nextSet = new Set(currentSet)
-    if (nextSet.has(value)) nextSet.delete(value)
-    else nextSet.add(value)
-    return nextSet
-  }
 
   function expandAllVisibleCustomers() {
-    setExpandedCustomerIds(current => {
-      const nextSet = new Set(current)
-      rows.forEach(({ customer }) => nextSet.add(customer.id))
-      return nextSet
-    })
+    setExpandedCustomerIds(current => expandVisibleCustomers(current, rows))
   }
 
   function collapseAllVisibleCustomers() {
-    setExpandedCustomerIds(current => {
-      const visibleCustomerIds = new Set(rows.map(({ customer }) => customer.id))
-      return new Set([...current].filter(customerId => !visibleCustomerIds.has(customerId)))
-    })
-    setExpandedBookingIds(new Set())
+    setExpandedCustomerIds(current => collapseVisibleCustomers(current, rows))
+    setExpandedBookingIds(current => collapseBookingsForVisibleCustomers(current, rows))
   }
 
   if (isLoading) {
@@ -61,11 +55,11 @@ export default function CustomerBookingHierarchy({ customers = [], bookings = []
     <section className="hierarchy-card" aria-labelledby="react-hierarchy-heading" data-testid="react-admin-hierarchy">
       <div className="section-heading-row">
         <div>
-          <p className="eyebrow">Stage 1 migration slice</p>
+          <p className="eyebrow">Stage 3 migration slice</p>
           <h2 id="react-hierarchy-heading">Customer → booking hierarchy</h2>
           <p className="section-summary">
             React now owns search, filtered summary counts, customer expansion, booking detail
-            expansion, and duplicate-booking-safe row state for this proof-of-concept workflow.
+            expansion, and extracted duplicate-booking-safe state transitions for this proof-of-concept workflow.
           </p>
         </div>
         <label className="search-control">
@@ -124,8 +118,8 @@ export default function CustomerBookingHierarchy({ customers = [], bookings = []
                     linkedBookings={linkedBookings}
                     isExpanded={isExpanded}
                     expandedBookingIds={expandedBookingIds}
-                    onToggleCustomer={() => setExpandedCustomerIds(current => toggleSetValue(current, customer.id))}
-                    onToggleBooking={bookingId => setExpandedBookingIds(current => toggleSetValue(current, `${customer.id}:${bookingId}`))}
+                    onToggleCustomer={() => setExpandedCustomerIds(current => toggleExpandedId(current, customer.id))}
+                    onToggleBooking={bookingId => setExpandedBookingIds(current => toggleExpandedId(current, createBookingExpansionKey(customer.id, bookingId)))}
                   />
                 )
               })}
@@ -165,7 +159,7 @@ function CustomerHierarchyRow({
               {linkedBookings.length === 0 ? (
                 <p className="muted">No linked bookings for this customer.</p>
               ) : linkedBookings.map(booking => {
-                const bookingRowKey = `${customer.id}:${booking.id}`
+                const bookingRowKey = createBookingExpansionKey(customer.id, booking.id)
                 const bookingExpanded = expandedBookingIds.has(bookingRowKey)
                 const passengerNames = getBookingPassengerNames(booking)
 

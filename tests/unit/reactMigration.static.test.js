@@ -74,4 +74,19 @@ describe('React migration scaffold', () => {
     expect(packageJson.scripts['react:migration:audit']).toContain('react:stage2:audit')
   })
 
+  it('extracts Stage 3 React expansion state transitions from the hierarchy component', () => {
+    const state = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/hierarchyExpansionState.js'), 'utf8')
+    const component = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx'), 'utf8')
+
+    expect(state).toContain('export function toggleExpandedId')
+    expect(state).toContain('export function expandVisibleCustomers')
+    expect(state).toContain('export function collapseVisibleCustomers')
+    expect(state).toContain('export function createBookingExpansionKey')
+    expect(component).toContain("from '../domain/hierarchyExpansionState.js'")
+    expect(component).toContain('createBookingExpansionKey(customer.id, booking.id)')
+    expect(component).not.toContain('function toggleSetValue')
+    expect(packageJson.scripts['react:stage3:audit']).toBe('node scripts/verify-react-stage-3.js')
+    expect(packageJson.scripts['react:migration:audit']).toContain('react:stage3:audit')
+  })
+
 })

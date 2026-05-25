@@ -66,3 +66,13 @@ This becomes a strong Principal SQA / AI-enabled engineering story because it sh
 - Continue to keep the production DOM app untouched until the React workflow has equivalent coverage.
 
 This stage is intentionally small but important: it turns the React preview from static component work into a production-shaped client boundary.
+
+
+### Stage 3: Extracted state transition model
+
+- Extract customer and booking expansion transitions out of the React component.
+- Keep duplicate-booking-safe expansion keys in one domain module.
+- Preserve visible-row collapse behavior without clearing unrelated hidden customer state.
+- Add audit guardrails so future React migration work does not reintroduce inline selector-style state handling.
+
+This stage is intentionally small. It demonstrates that the migration is moving toward testable state ownership before the legacy DOM workflow is replaced.

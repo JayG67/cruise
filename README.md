@@ -607,3 +607,15 @@ npm run test:all
 ```
 
 The production DOM application remains active while the React implementation matures behind guardrail tests.
+
+
+### React migration Stage 3
+
+The React migration now includes an extracted hierarchy expansion state module. Customer expansion, booking detail expansion keys, and visible-row collapse behavior are centralized under `frontend/react/src/domain/hierarchyExpansionState.js` so the migration is moving toward testable state ownership instead of inline DOM-style UI logic.
+
+Run the migration guardrails with:
+
+```bash
+npm run react:migration:audit
+npm run react:build
+```
