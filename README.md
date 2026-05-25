@@ -128,6 +128,33 @@ The portfolio positioning emphasizes:
 
 This is especially relevant for AI-enabled QA roles where the value is not simply using AI to generate tests. The value is knowing how to evaluate AI output, constrain risk, preserve auditability, and turn AI acceleration into reviewed engineering assets.
 
+
+## ⚛️ React Migration Track
+
+The project now includes the first safe stage of a React migration under `frontend/react`. The production application still runs from the existing `public/` DOM implementation, but the repository now has a dedicated React/Vite workspace for incremental modernization.
+
+This migration is intentionally staged because the current application already has meaningful maturity and broad regression coverage. The goal is not to rewrite a working app for fashion. The goal is to demonstrate a realistic modernization path: keep the stable Express/Postgres API, preserve the existing quality gates, and migrate one high-value workflow at a time.
+
+The first migration candidate is the Admin Customer → Booking hierarchy because it contains the most UI state: customer search, expandable parent rows, linked child bookings, duplicate booking visibility, booking detail panels, and edit workflow reachability.
+
+React migration commands:
+
+```bash
+npm install
+npm run react:dev
+npm run react:build
+npm run react:scaffold:audit
+```
+
+Supporting documentation:
+
+- `docs/react-migration-plan.md`
+- `docs/branching-strategy.md`
+
+### Branching model for the migration
+
+Use `main` as the stable, recruiter-safe branch and create a long-lived `dev` branch for integration work. React migration feature branches should branch from `dev`, merge back into `dev` after focused validation, and only promote to `main` after the full quality gate is clean. This mirrors real-world development while keeping the production portfolio stable.
+
 ## 🛠️ Admin Operations Dashboard
 
 The admin dashboard has been redesigned around scalable operational workflows.
@@ -467,6 +494,15 @@ npm run lighthouse:ci:local
 ### Full validation suite
 
 ```bash
+npm run test:all
+```
+
+`npm run coverage` and `npm run integrationTests` now start the local Docker PostgreSQL service and wait for the test database before running database-backed tests. This prevents false failures where the test code is healthy but Postgres is not yet listening on `127.0.0.1:5433`.
+
+If the database ever needs a clean local reset, run:
+
+```bash
+npm run db:reset
 npm run test:all
 ```
 
