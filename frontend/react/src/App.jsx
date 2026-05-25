@@ -16,8 +16,8 @@ export default function App() {
         <h1 id="react-migration-title">React migration preview</h1>
         <p>
           This isolated Vite shell proves the staged React migration without replacing the stable
-          production DOM application. Stage 7 adds live React booking mutations on top of cancellable loading,
-          stable state ownership, customer saves, and draft-first booking edits for the customer → booking hierarchy.
+          production DOM application. Stage 8 extracts reusable draft editor components on top of cancellable loading,
+          stable state ownership, customer saves, and live booking mutations for the customer → booking hierarchy.
         </p>
       </section>
 

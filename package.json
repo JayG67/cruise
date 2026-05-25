@@ -51,13 +51,14 @@
     "react:scaffold:audit": "node scripts/verify-react-migration-scaffold.js",
     "db:test:ready": "docker compose up -d && node scripts/wait-for-test-db.js",
     "react:stage1:audit": "node scripts/verify-react-stage-1.js",
-    "react:migration:audit": "npm run react:scaffold:audit && npm run react:stage1:audit && npm run react:stage2:audit && npm run react:stage3:audit && npm run react:stage4:audit && npm run react:stage5:audit && npm run react:stage6:audit && npm run react:stage7:audit",
+    "react:migration:audit": "npm run react:scaffold:audit && npm run react:stage1:audit && npm run react:stage2:audit && npm run react:stage3:audit && npm run react:stage4:audit && npm run react:stage5:audit && npm run react:stage6:audit && npm run react:stage7:audit && npm run react:stage8:audit",
     "react:stage2:audit": "node scripts/verify-react-stage-2.js",
     "react:stage3:audit": "node scripts/verify-react-stage-3.js",
     "react:stage4:audit": "node scripts/verify-react-stage-4.js",
     "react:stage5:audit": "node scripts/verify-react-stage-5.js",
     "react:stage6:audit": "node scripts/verify-react-stage-6.js",
-    "react:stage7:audit": "node scripts/verify-react-stage-7.js"
+    "react:stage7:audit": "node scripts/verify-react-stage-7.js",
+    "react:stage8:audit": "node scripts/verify-react-stage-8.js"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

@@ -664,3 +664,8 @@ npm run test:all
 ### React Stage 7 booking mutation boundary
 
 The React migration shell now includes a live booking mutation boundary. The React preview can edit and save booking draft fields through the existing `/cruise/bookings/:id` API while preserving passenger membership and sailing context. The production DOM app remains the source of truth until a later cutover stage.
+
+
+### React migration Stage 8 checkpoint
+
+Stage 8 extracts the customer and booking draft editors from the React hierarchy component into reusable components. This keeps the migration incremental while reducing component size and preserving stable test IDs for future component-level coverage.

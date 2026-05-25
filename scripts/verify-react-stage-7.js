@@ -18,6 +18,7 @@ const client = read('frontend/react/src/api/client.js')
 const hook = read('frontend/react/src/hooks/useBookingDetailsMutation.js')
 const app = read('frontend/react/src/App.jsx')
 const component = read('frontend/react/src/components/CustomerBookingHierarchy.jsx')
+const bookingForm = read('frontend/react/src/components/BookingDraftForm.jsx')
 const plan = read('docs/react-migration-plan.md')
 
 assertContains(client, 'export async function updateBookingDetails', 'React API client')
@@ -29,8 +30,8 @@ assertContains(app, 'useBookingDetailsMutation', 'React App')
 assertContains(app, 'onSaveBookingDraft={saveBookingDetails}', 'React App')
 assertContains(component, 'async function saveBookingDraftFor', 'React hierarchy component')
 assertContains(component, 'Booking draft saved through the React mutation boundary.', 'React hierarchy component')
-assertContains(component, 'data-testid="react-save-booking-draft"', 'React hierarchy component')
-assertContains(component, "Saving booking draft…", 'React hierarchy component')
+assertContains(bookingForm, 'data-testid="react-save-booking-draft"', 'React booking draft form')
+assertContains(bookingForm, "Saving booking draft…", 'React booking draft form')
 assertContains(plan, 'Stage 7', 'React migration plan')
 
 if (packageJson.scripts['react:stage7:audit'] !== 'node scripts/verify-react-stage-7.js') {

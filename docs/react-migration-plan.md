@@ -111,3 +111,13 @@ This stage intentionally does **not** save booking changes to the API. That sepa
 4. Add mutation only after the state model is covered.
 
 Stage 7 can add the booking mutation boundary once the React draft behavior is stable.
+
+
+### Stage 8: Draft editor component extraction
+
+- Extract customer and booking draft forms into dedicated React components.
+- Keep the hierarchy component focused on orchestration, expansion state, and mutation handoff.
+- Preserve all existing `data-testid` hooks so Cypress, Playwright, and future React component tests can continue to target stable controls.
+- Keep the production DOM UI untouched while the React shell becomes more componentized and easier to test.
+
+This stage is an architectural cleanup stage. It makes the React migration easier to extend without changing runtime behavior or API contracts.
