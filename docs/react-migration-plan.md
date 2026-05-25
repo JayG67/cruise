@@ -27,6 +27,8 @@ This migration is not justified by popularity alone. It is justified by maintain
 
 - Build React components for customer search, expandable customer rows, booking rows, and booking details.
 - Consume existing `/cruise/customers` and `/cruise/bookings` endpoints.
+- Extract hierarchy mapping, duplicate-booking matching, filtering, route formatting, and summary counts into `frontend/react/src/domain/adminHierarchy.js`.
+- Keep React state scoped to customer and booking row ownership so duplicate booking IDs under different customers do not recreate the hidden-row problems found during the legacy UX work.
 - Keep the React shell as a development-only workspace until test parity is reached.
 
 ### Stage 2: Component tests and workflow parity

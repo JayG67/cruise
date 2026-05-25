@@ -33,7 +33,28 @@ describe('React migration scaffold', () => {
     expect(component).toContain('useState')
     expect(component).toContain('expandedCustomerIds')
     expect(component).toContain('expandedBookingIds')
-    expect(component).toContain('bookingMatchesCustomer')
+    expect(component).toContain('buildCustomerBookingRows')
     expect(component).not.toContain('document.querySelector')
   })
+  it('extracts React hierarchy domain logic away from component rendering', () => {
+    const domain = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/adminHierarchy.js'), 'utf8')
+    const component = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx'), 'utf8')
+
+    expect(domain).toContain('export function buildCustomerBookingRows')
+    expect(domain).toContain('export function filterCustomerBookingRows')
+    expect(domain).toContain('export function summarizeHierarchyRows')
+    expect(domain).toContain('bookingMatchesCustomer')
+    expect(component).toContain('buildCustomerBookingRows')
+    expect(component).toContain('filterCustomerBookingRows')
+    expect(component).toContain('Expand visible customers')
+    expect(component).toContain('Collapse visible customers')
+  })
+
+  it('adds a Stage 1 React migration audit script for hierarchy guardrails', () => {
+    expect(packageJson.scripts['react:stage1:audit']).toBe('node scripts/verify-react-stage-1.js')
+    expect(packageJson.scripts['react:migration:audit']).toContain('react:scaffold:audit')
+    expect(packageJson.scripts['react:migration:audit']).toContain('react:stage1:audit')
+    expect(fs.existsSync(path.join(projectRoot, 'scripts/verify-react-stage-1.js'))).toBe(true)
+  })
+
 })
