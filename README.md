@@ -585,3 +585,25 @@ Potential next steps include:
 **Jay Gallagher**
 
 Senior SQA / Automation Engineering Portfolio Project
+
+---
+
+## ⚛️ React migration status
+
+The project is now migrating the frontend incrementally on the long-lived `dev` branch while keeping `main` stable and demo-ready.
+
+Current React migration stages:
+
+- **Stage 0:** Vite/React scaffold isolated under `frontend/react`.
+- **Stage 1:** Customer → booking hierarchy proof of concept with extracted domain logic.
+- **Stage 2:** API client boundary and retryable loading hook for the React hierarchy snapshot.
+
+Useful commands:
+
+```bash
+npm run react:migration:audit
+npm run react:build
+npm run test:all
+```
+
+The production DOM application remains active while the React implementation matures behind guardrail tests.

@@ -55,3 +55,14 @@ This becomes a strong Principal SQA / AI-enabled engineering story because it sh
 - Regression-first migration strategy.
 - Test architecture that catches duplicate hidden-row failures across Cypress and Playwright.
 - AI-assisted development used with human review and durable guardrails.
+
+
+### Stage 2: API boundary and retryable loading
+
+- Extract React API calls into `frontend/react/src/api/client.js`.
+- Add a React loading hook that owns loading, error, cancellation, and retry behavior.
+- Keep the existing Express/Postgres API as the source of truth.
+- Add stable React migration `data-testid` attributes for future component and Playwright coverage.
+- Continue to keep the production DOM app untouched until the React workflow has equivalent coverage.
+
+This stage is intentionally small but important: it turns the React preview from static component work into a production-shaped client boundary.

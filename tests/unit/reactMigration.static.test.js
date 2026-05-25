@@ -57,4 +57,21 @@ describe('React migration scaffold', () => {
     expect(fs.existsSync(path.join(projectRoot, 'scripts/verify-react-stage-1.js'))).toBe(true)
   })
 
+  it('adds a Stage 2 React API boundary with cancellable loading and retry UX', () => {
+    const client = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/api/client.js'), 'utf8')
+    const hook = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/hooks/useAdminHierarchySnapshot.js'), 'utf8')
+    const app = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/App.jsx'), 'utf8')
+    const component = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx'), 'utf8')
+
+    expect(client).toContain('export async function getAdminHierarchySnapshot')
+    expect(client).toContain('Promise.all')
+    expect(hook).toContain('AbortController')
+    expect(hook).toContain('reload')
+    expect(app).toContain('useAdminHierarchySnapshot')
+    expect(component).toContain('Retry loading snapshot')
+    expect(component).toContain('data-testid="react-admin-hierarchy"')
+    expect(packageJson.scripts['react:stage2:audit']).toBe('node scripts/verify-react-stage-2.js')
+    expect(packageJson.scripts['react:migration:audit']).toContain('react:stage2:audit')
+  })
+
 })

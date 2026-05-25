@@ -8,7 +8,7 @@ import {
   summarizeHierarchyRows
 } from '../domain/adminHierarchy.js'
 
-export default function CustomerBookingHierarchy({ customers = [], bookings = [], isLoading, error }) {
+export default function CustomerBookingHierarchy({ customers = [], bookings = [], isLoading, error, onRetry }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedCustomerIds, setExpandedCustomerIds] = useState(() => new Set())
   const [expandedBookingIds, setExpandedBookingIds] = useState(() => new Set())
@@ -45,11 +45,20 @@ export default function CustomerBookingHierarchy({ customers = [], bookings = []
   }
 
   if (error) {
-    return <p role="alert" className="status-card error">{error}</p>
+    return (
+      <section className="status-card error" role="alert" aria-label="React hierarchy loading error">
+        <p>{error}</p>
+        {onRetry && (
+          <button type="button" className="secondary-button" onClick={onRetry}>
+            Retry loading snapshot
+          </button>
+        )}
+      </section>
+    )
   }
 
   return (
-    <section className="hierarchy-card" aria-labelledby="react-hierarchy-heading">
+    <section className="hierarchy-card" aria-labelledby="react-hierarchy-heading" data-testid="react-admin-hierarchy">
       <div className="section-heading-row">
         <div>
           <p className="eyebrow">Stage 1 migration slice</p>
@@ -62,6 +71,7 @@ export default function CustomerBookingHierarchy({ customers = [], bookings = []
         <label className="search-control">
           <span>Search snapshot</span>
           <input
+            data-testid="react-hierarchy-search-input"
             value={searchTerm}
             onChange={event => setSearchTerm(event.target.value)}
             placeholder="Customer, booking, cabin, ship…"
@@ -71,15 +81,15 @@ export default function CustomerBookingHierarchy({ customers = [], bookings = []
       </div>
 
       <div className="hierarchy-toolbar" aria-label="React hierarchy controls">
-        <p id="react-hierarchy-summary" className="result-summary" role="status">
+        <p id="react-hierarchy-summary" className="result-summary" role="status" data-testid="react-hierarchy-summary">
           Showing {summary.customerCount} customers, {summary.uniqueBookingCount} unique bookings,
           and {summary.totalCustomerBookingLinks} customer-booking links.
         </p>
         <div className="button-row">
-          <button type="button" className="secondary-button" onClick={expandAllVisibleCustomers}>
+          <button type="button" className="secondary-button" onClick={expandAllVisibleCustomers} data-testid="react-expand-visible-customers">
             Expand visible customers
           </button>
-          <button type="button" className="secondary-button" onClick={collapseAllVisibleCustomers}>
+          <button type="button" className="secondary-button" onClick={collapseAllVisibleCustomers} data-testid="react-collapse-visible-customers">
             Collapse visible customers
           </button>
         </div>
@@ -94,7 +104,7 @@ export default function CustomerBookingHierarchy({ customers = [], bookings = []
           <table>
             <caption>React proof-of-concept hierarchy using the existing API contract.</caption>
             <thead>
-              <tr>
+              <tr data-testid="react-customer-row">
                 <th scope="col">Customer</th>
                 <th scope="col">Email</th>
                 <th scope="col">Phone</th>
@@ -160,7 +170,7 @@ function CustomerHierarchyRow({
                 const passengerNames = getBookingPassengerNames(booking)
 
                 return (
-                  <article className="booking-card" key={bookingRowKey}>
+                  <article className="booking-card" key={bookingRowKey} data-testid="react-booking-card">
                     <div className="booking-card-heading">
                       <button
                         type="button"
