@@ -87,3 +87,13 @@ This stage is intentionally small. It demonstrates that the migration is moving 
 - Preserve the production DOM app and existing API behavior while the React workflow matures.
 
 This stage moves the React slice from read-only hierarchy exploration toward realistic admin edit workflows without risking persisted data changes.
+
+
+### Stage 5: Customer mutation boundary
+
+- Add a React API mutation boundary for customer profile updates.
+- Keep validation in the React draft state layer before sending API requests.
+- Wire successful saves to reload the hierarchy snapshot through the existing Stage 2 loading hook.
+- Preserve the production DOM app as the stable UI while React gains mutation parity one workflow at a time.
+
+This stage matters because the React proof of concept now exercises a real end-to-end admin edit path without cutting over the production UI.

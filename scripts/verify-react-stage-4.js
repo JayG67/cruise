@@ -58,8 +58,8 @@ if (!component.includes('data-testid="react-customer-draft-row"') || !component.
   process.exit(1)
 }
 
-if (!component.includes('API mutation wiring is intentionally deferred')) {
-  console.error('Stage 4 must keep draft validation separate from live API mutation.')
+if (!component.includes('data-testid="react-validate-customer-draft"')) {
+  console.error('Stage 4 must keep draft validation available before any later mutation boundary saves.')
   process.exit(1)
 }
 

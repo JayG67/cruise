@@ -21,7 +21,7 @@ import {
   toggleExpandedId
 } from '../domain/hierarchyExpansionState.js'
 
-export default function CustomerBookingHierarchy({ customers = [], bookings = [], isLoading, error, onRetry }) {
+export default function CustomerBookingHierarchy({ customers = [], bookings = [], isLoading, error, onRetry, onSaveCustomerDraft, savingCustomerId = '', mutationError = '' }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedCustomerIds, setExpandedCustomerIds] = useState(() => new Set())
   const [expandedBookingIds, setExpandedBookingIds] = useState(() => new Set())
@@ -72,9 +72,51 @@ export default function CustomerBookingHierarchy({ customers = [], bookings = []
     setCustomerDraftMessages(current => ({
       ...current,
       [customer.id]: validation.isValid
-        ? `Draft is valid with ${changedFields.length} changed fields. API mutation wiring is intentionally deferred to a later stage.`
+        ? `Draft is valid with ${changedFields.length} changed fields. Use Save draft to exercise the React mutation boundary.`
         : Object.values(validation.errors).join(' ')
     }))
+
+    return { draft, validation, changedFields }
+  }
+
+  async function saveCustomerDraftFor(customer) {
+    const { draft, validation, changedFields } = validateCustomerDraftFor(customer)
+
+    if (!validation.isValid) return
+
+    if (changedFields.length === 0) {
+      setCustomerDraftMessages(current => ({
+        ...current,
+        [customer.id]: 'No customer fields changed. Nothing to save.'
+      }))
+      return
+    }
+
+    if (!onSaveCustomerDraft) {
+      setCustomerDraftMessages(current => ({
+        ...current,
+        [customer.id]: 'Save boundary is not available in this React migration shell.'
+      }))
+      return
+    }
+
+    try {
+      const result = await onSaveCustomerDraft(customer.id, draft)
+      setCustomerDraftMessages(current => ({
+        ...current,
+        [customer.id]: result?.message || 'Customer draft saved through the React mutation boundary.'
+      }))
+      setCustomerDrafts(current => {
+        const nextDrafts = { ...current }
+        delete nextDrafts[customer.id]
+        return nextDrafts
+      })
+    } catch (saveError) {
+      setCustomerDraftMessages(current => ({
+        ...current,
+        [customer.id]: saveError.message || mutationError || 'Unable to save customer draft.'
+      }))
+    }
   }
 
   function expandAllVisibleCustomers() {
@@ -107,11 +149,11 @@ export default function CustomerBookingHierarchy({ customers = [], bookings = []
     <section className="hierarchy-card" aria-labelledby="react-hierarchy-heading" data-testid="react-admin-hierarchy">
       <div className="section-heading-row">
         <div>
-          <p className="eyebrow">Stage 4 migration slice</p>
+          <p className="eyebrow">Stage 5 migration slice</p>
           <h2 id="react-hierarchy-heading">Customer → booking hierarchy</h2>
           <p className="section-summary">
             React now owns search, summary counts, duplicate-booking-safe expansion state,
-            and customer edit draft state without mutating the production API yet.
+            customer edit draft state, and a guarded customer save mutation boundary.
           </p>
         </div>
         <label className="search-control">
@@ -177,6 +219,8 @@ export default function CustomerBookingHierarchy({ customers = [], bookings = []
                     onEditCustomer={() => openCustomerDraft(customer)}
                     onUpdateCustomerDraft={(fieldName, value) => updateCustomerDraft(customer.id, fieldName, value)}
                     onValidateCustomerDraft={() => validateCustomerDraftFor(customer)}
+                    onSaveCustomerDraft={() => saveCustomerDraftFor(customer)}
+                    isSavingCustomer={savingCustomerId === customer.id}
                     onCancelCustomerDraft={() => cancelCustomerDraft(customer.id)}
                   />
                 )
@@ -202,6 +246,8 @@ function CustomerHierarchyRow({
   onEditCustomer,
   onUpdateCustomerDraft,
   onValidateCustomerDraft,
+  onSaveCustomerDraft,
+  isSavingCustomer,
   onCancelCustomerDraft
 }) {
   return (
@@ -229,6 +275,8 @@ function CustomerHierarchyRow({
               message={customerDraftMessage}
               onUpdate={onUpdateCustomerDraft}
               onValidate={onValidateCustomerDraft}
+              onSave={onSaveCustomerDraft}
+              isSaving={isSavingCustomer}
               onCancel={onCancelCustomerDraft}
             />
           </td>
@@ -279,7 +327,7 @@ function CustomerHierarchyRow({
 }
 
 
-function CustomerDraftForm({ draft, message, onUpdate, onValidate, onCancel }) {
+function CustomerDraftForm({ draft, message, onUpdate, onValidate, onSave, isSaving, onCancel }) {
   return (
     <form className="draft-editor" aria-label={`Edit draft for ${draft.firstName} ${draft.lastName}`} onSubmit={event => event.preventDefault()}>
       <div className="draft-grid">
@@ -307,6 +355,9 @@ function CustomerDraftForm({ draft, message, onUpdate, onValidate, onCancel }) {
       <div className="button-row">
         <button type="button" className="secondary-button" onClick={onValidate} data-testid="react-validate-customer-draft">
           Validate draft
+        </button>
+        <button type="button" className="primary-button" onClick={onSave} disabled={isSaving} data-testid="react-save-customer-draft">
+          {isSaving ? 'Saving draft…' : 'Save draft'}
         </button>
         <button type="button" className="secondary-button" onClick={onCancel}>
           Cancel

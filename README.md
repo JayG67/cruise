@@ -632,3 +632,16 @@ npm run react:migration:audit
 npm run react:build
 npm run test:all
 ```
+
+
+## React migration Stage 5
+
+The React migration shell now includes a customer profile mutation boundary. The production DOM app remains the stable UI, while the isolated React/Vite shell can validate customer draft state and save customer profile updates through the existing Express API.
+
+Useful commands:
+
+```bash
+npm run react:migration:audit
+npm run react:build
+npm run test:all
+```

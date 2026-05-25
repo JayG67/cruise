@@ -48,3 +48,15 @@ export async function getAdminHierarchySnapshot(options = {}) {
 
   return { customers, bookings }
 }
+
+export async function updateCustomerProfile(customerId, payload, options = {}) {
+  return requestJson(`/cruise/customers/${encodeURIComponent(customerId)}`, {
+    ...options,
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
