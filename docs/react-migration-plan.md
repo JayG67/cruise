@@ -76,3 +76,14 @@ This stage is intentionally small but important: it turns the React preview from
 - Add audit guardrails so future React migration work does not reintroduce inline selector-style state handling.
 
 This stage is intentionally small. It demonstrates that the migration is moving toward testable state ownership before the legacy DOM workflow is replaced.
+
+
+### Stage 4: Customer edit draft state
+
+- Add `frontend/react/src/domain/customerDrafts.js` for customer edit draft creation, field updates, validation, and changed-field summaries.
+- Add a React-only customer draft editor inside the hierarchy proof of concept.
+- Keep draft validation local and intentionally defer live API mutation wiring until a later stage.
+- Expose stable `data-testid` hooks for future React component and browser coverage.
+- Preserve the production DOM app and existing API behavior while the React workflow matures.
+
+This stage moves the React slice from read-only hierarchy exploration toward realistic admin edit workflows without risking persisted data changes.

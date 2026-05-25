@@ -619,3 +619,16 @@ Run the migration guardrails with:
 npm run react:migration:audit
 npm run react:build
 ```
+
+
+### React migration Stage 4
+
+The React migration now includes a customer edit draft state foundation. This adds local draft creation, field updates, validation messaging, and stable test hooks without mutating the production API yet. The goal is to mature the React admin hierarchy toward real edit workflows while preserving the existing passing DOM application as the production baseline.
+
+Run the React migration guardrails with:
+
+```bash
+npm run react:migration:audit
+npm run react:build
+npm run test:all
+```

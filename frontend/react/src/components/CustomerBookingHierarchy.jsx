@@ -8,6 +8,12 @@ import {
   summarizeHierarchyRows
 } from '../domain/adminHierarchy.js'
 import {
+  createCustomerDraft,
+  summarizeCustomerDraftChanges,
+  updateCustomerDraftField,
+  validateCustomerDraft
+} from '../domain/customerDrafts.js'
+import {
   collapseBookingsForVisibleCustomers,
   collapseVisibleCustomers,
   createBookingExpansionKey,
@@ -19,11 +25,57 @@ export default function CustomerBookingHierarchy({ customers = [], bookings = []
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedCustomerIds, setExpandedCustomerIds] = useState(() => new Set())
   const [expandedBookingIds, setExpandedBookingIds] = useState(() => new Set())
+  const [customerDrafts, setCustomerDrafts] = useState(() => ({}))
+  const [customerDraftMessages, setCustomerDraftMessages] = useState(() => ({}))
 
   const allRows = useMemo(() => buildCustomerBookingRows(customers, bookings), [customers, bookings])
   const rows = useMemo(() => filterCustomerBookingRows(allRows, searchTerm), [allRows, searchTerm])
   const summary = useMemo(() => summarizeHierarchyRows(rows), [rows])
 
+
+  function openCustomerDraft(customer) {
+    setCustomerDrafts(current => ({
+      ...current,
+      [customer.id]: createCustomerDraft(customer)
+    }))
+    setCustomerDraftMessages(current => ({
+      ...current,
+      [customer.id]: ''
+    }))
+  }
+
+  function updateCustomerDraft(customerId, fieldName, value) {
+    setCustomerDrafts(current => ({
+      ...current,
+      [customerId]: updateCustomerDraftField(current[customerId], fieldName, value)
+    }))
+  }
+
+  function cancelCustomerDraft(customerId) {
+    setCustomerDrafts(current => {
+      const nextDrafts = { ...current }
+      delete nextDrafts[customerId]
+      return nextDrafts
+    })
+    setCustomerDraftMessages(current => {
+      const nextMessages = { ...current }
+      delete nextMessages[customerId]
+      return nextMessages
+    })
+  }
+
+  function validateCustomerDraftFor(customer) {
+    const draft = customerDrafts[customer.id]
+    const validation = validateCustomerDraft(draft)
+    const changedFields = summarizeCustomerDraftChanges(customer, draft)
+
+    setCustomerDraftMessages(current => ({
+      ...current,
+      [customer.id]: validation.isValid
+        ? `Draft is valid with ${changedFields.length} changed fields. API mutation wiring is intentionally deferred to a later stage.`
+        : Object.values(validation.errors).join(' ')
+    }))
+  }
 
   function expandAllVisibleCustomers() {
     setExpandedCustomerIds(current => expandVisibleCustomers(current, rows))
@@ -55,11 +107,11 @@ export default function CustomerBookingHierarchy({ customers = [], bookings = []
     <section className="hierarchy-card" aria-labelledby="react-hierarchy-heading" data-testid="react-admin-hierarchy">
       <div className="section-heading-row">
         <div>
-          <p className="eyebrow">Stage 3 migration slice</p>
+          <p className="eyebrow">Stage 4 migration slice</p>
           <h2 id="react-hierarchy-heading">Customer → booking hierarchy</h2>
           <p className="section-summary">
-            React now owns search, filtered summary counts, customer expansion, booking detail
-            expansion, and extracted duplicate-booking-safe state transitions for this proof-of-concept workflow.
+            React now owns search, summary counts, duplicate-booking-safe expansion state,
+            and customer edit draft state without mutating the production API yet.
           </p>
         </div>
         <label className="search-control">
@@ -120,6 +172,12 @@ export default function CustomerBookingHierarchy({ customers = [], bookings = []
                     expandedBookingIds={expandedBookingIds}
                     onToggleCustomer={() => setExpandedCustomerIds(current => toggleExpandedId(current, customer.id))}
                     onToggleBooking={bookingId => setExpandedBookingIds(current => toggleExpandedId(current, createBookingExpansionKey(customer.id, bookingId)))}
+                    customerDraft={customerDrafts[customer.id]}
+                    customerDraftMessage={customerDraftMessages[customer.id]}
+                    onEditCustomer={() => openCustomerDraft(customer)}
+                    onUpdateCustomerDraft={(fieldName, value) => updateCustomerDraft(customer.id, fieldName, value)}
+                    onValidateCustomerDraft={() => validateCustomerDraftFor(customer)}
+                    onCancelCustomerDraft={() => cancelCustomerDraft(customer.id)}
                   />
                 )
               })}
@@ -138,7 +196,13 @@ function CustomerHierarchyRow({
   isExpanded,
   expandedBookingIds,
   onToggleCustomer,
-  onToggleBooking
+  onToggleBooking,
+  customerDraft,
+  customerDraftMessage,
+  onEditCustomer,
+  onUpdateCustomerDraft,
+  onValidateCustomerDraft,
+  onCancelCustomerDraft
 }) {
   return (
     <>
@@ -150,8 +214,26 @@ function CustomerHierarchyRow({
         </td>
         <td>{customer.email || 'Not provided'}</td>
         <td>{customer.phone || 'Not provided'}</td>
-        <td>{linkedBookings.length} bookings</td>
+        <td>
+          <span>{linkedBookings.length} bookings</span>
+          <button className="secondary-button compact-button" type="button" onClick={onEditCustomer} data-testid="react-edit-customer-button">
+            Edit customer
+          </button>
+        </td>
       </tr>
+      {customerDraft && (
+        <tr className="editor-row" data-testid="react-customer-draft-row">
+          <td colSpan="4">
+            <CustomerDraftForm
+              draft={customerDraft}
+              message={customerDraftMessage}
+              onUpdate={onUpdateCustomerDraft}
+              onValidate={onValidateCustomerDraft}
+              onCancel={onCancelCustomerDraft}
+            />
+          </td>
+        </tr>
+      )}
       {isExpanded && (
         <tr className="child-row">
           <td colSpan="4">
@@ -193,5 +275,44 @@ function CustomerHierarchyRow({
         </tr>
       )}
     </>
+  )
+}
+
+
+function CustomerDraftForm({ draft, message, onUpdate, onValidate, onCancel }) {
+  return (
+    <form className="draft-editor" aria-label={`Edit draft for ${draft.firstName} ${draft.lastName}`} onSubmit={event => event.preventDefault()}>
+      <div className="draft-grid">
+        <label>
+          <span>First name</span>
+          <input value={draft.firstName} onChange={event => onUpdate('firstName', event.target.value)} />
+        </label>
+        <label>
+          <span>Last name</span>
+          <input value={draft.lastName} onChange={event => onUpdate('lastName', event.target.value)} />
+        </label>
+        <label>
+          <span>Email</span>
+          <input value={draft.email} onChange={event => onUpdate('email', event.target.value)} />
+        </label>
+        <label>
+          <span>Phone</span>
+          <input value={draft.phone} onChange={event => onUpdate('phone', event.target.value)} />
+        </label>
+        <label>
+          <span>Loyalty number</span>
+          <input value={draft.loyaltyNumber} onChange={event => onUpdate('loyaltyNumber', event.target.value)} />
+        </label>
+      </div>
+      <div className="button-row">
+        <button type="button" className="secondary-button" onClick={onValidate} data-testid="react-validate-customer-draft">
+          Validate draft
+        </button>
+        <button type="button" className="secondary-button" onClick={onCancel}>
+          Cancel
+        </button>
+      </div>
+      {message && <p className="draft-message" role="status">{message}</p>}
+    </form>
   )
 }

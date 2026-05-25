@@ -89,4 +89,21 @@ describe('React migration scaffold', () => {
     expect(packageJson.scripts['react:migration:audit']).toContain('react:stage3:audit')
   })
 
+  it('adds Stage 4 customer draft state before wiring React mutations', () => {
+    const drafts = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/customerDrafts.js'), 'utf8')
+    const component = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx'), 'utf8')
+    const styles = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/styles/app.css'), 'utf8')
+
+    expect(drafts).toContain('export function createCustomerDraft')
+    expect(drafts).toContain('export function validateCustomerDraft')
+    expect(drafts).toContain('export function summarizeCustomerDraftChanges')
+    expect(component).toContain('customerDrafts')
+    expect(component).toContain('CustomerDraftForm')
+    expect(component).toContain('data-testid="react-customer-draft-row"')
+    expect(component).toContain('API mutation wiring is intentionally deferred')
+    expect(styles).toContain('.draft-editor')
+    expect(packageJson.scripts['react:stage4:audit']).toBe('node scripts/verify-react-stage-4.js')
+    expect(packageJson.scripts['react:migration:audit']).toContain('react:stage4:audit')
+  })
+
 })
