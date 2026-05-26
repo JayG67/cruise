@@ -421,3 +421,65 @@ dd {
 .roadmap-list {
   margin-bottom: 0;
 }
+
+.query-status-card {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #d7e1ef;
+  border-radius: 1.25rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+.query-status-card.error {
+  border-color: #f5b8b8;
+}
+
+.query-status-card h2 {
+  font-size: 1.15rem;
+  margin: 0.15rem 0;
+}
+
+.query-status-card p {
+  margin: 0;
+}
+
+.query-status-metrics {
+  display: flex;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.query-status-metrics div {
+  background: #f8fbff;
+  border: 1px solid #dfe9f5;
+  border-radius: 0.85rem;
+  padding: 0.6rem 0.75rem;
+}
+
+.query-status-metrics dt {
+  color: #52667a;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.query-status-metrics dd {
+  color: #17324d;
+  font-weight: 700;
+  margin: 0.15rem 0 0;
+}
+
+@media (max-width: 720px) {
+  .query-status-card {
+    grid-template-columns: 1fr;
+  }
+
+  .query-status-metrics {
+    flex-direction: column;
+  }
+}

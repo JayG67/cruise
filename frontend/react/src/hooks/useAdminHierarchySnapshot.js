@@ -8,10 +8,13 @@ export default function useAdminHierarchySnapshot() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [reloadCount, setReloadCount] = useState(0)
+  const [lastLoadedAt, setLastLoadedAt] = useState('')
 
   const reload = useCallback(() => {
     setReloadCount(current => current + 1)
   }, [])
+
+  const isRefreshing = isLoading && reloadCount > 0
 
   useEffect(() => {
     const controller = new AbortController()
@@ -29,6 +32,7 @@ export default function useAdminHierarchySnapshot() {
           customers: Array.isArray(data.customers) ? data.customers : [],
           bookings: Array.isArray(data.bookings) ? data.bookings : []
         })
+        setLastLoadedAt(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }))
         setError('')
       } catch (loadError) {
         if (!isMounted || loadError.name === 'AbortError') return
@@ -52,6 +56,9 @@ export default function useAdminHierarchySnapshot() {
     snapshot,
     isLoading,
     error,
-    reload
+    reload,
+    isRefreshing,
+    lastLoadedAt,
+    requestId: reloadCount + 1
   }
 }

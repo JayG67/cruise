@@ -5,11 +5,12 @@ import CustomerBookingHierarchy from './components/CustomerBookingHierarchy.jsx'
 import MigrationReadiness from './components/MigrationReadiness.jsx'
 import MigrationRoadmapPanel from './components/MigrationRoadmapPanel.jsx'
 import ReactMigrationRouteNav from './components/ReactMigrationRouteNav.jsx'
+import ReactQueryStatusPanel from './components/ReactQueryStatusPanel.jsx'
 import { currentReactMigrationStage, getReactMigrationStageLabel } from './domain/reactMigrationRoadmap.js'
 import { useReactMigrationRoute } from './hooks/useReactMigrationRoute.js'
 
 export default function App() {
-  const { snapshot, isLoading, error, reload } = useAdminHierarchySnapshot()
+  const { snapshot, isLoading, isRefreshing, error, reload, lastLoadedAt, requestId } = useAdminHierarchySnapshot()
   const { saveCustomerProfile, savingCustomerId, mutationError } = useCustomerProfileMutation({ onSaved: reload })
   const { saveBookingDetails, savingBookingId, bookingMutationError } = useBookingDetailsMutation({ onSaved: reload })
   const { activeRouteKey, activeRoute, routes, selectRoute } = useReactMigrationRoute()
@@ -33,6 +34,17 @@ export default function App() {
         routes={routes}
         activeRouteKey={activeRouteKey}
         onSelectRoute={selectRoute}
+      />
+
+      <ReactQueryStatusPanel
+        isLoading={isLoading}
+        isRefreshing={isRefreshing}
+        error={error}
+        lastLoadedAt={lastLoadedAt}
+        requestId={requestId}
+        customerCount={snapshot.customers.length}
+        bookingCount={snapshot.bookings.length}
+        onRefresh={reload}
       />
 
       <section className="route-panel" aria-label={activeRoute.label} data-testid={`react-active-route-${activeRoute.key}`}>

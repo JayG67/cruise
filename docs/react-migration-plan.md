@@ -197,3 +197,11 @@ This keeps reviewer-facing text aligned with the actual migration architecture a
 - Keep the production DOM app untouched while React begins to look like a complete application shell.
 - Preserve the same API-backed hierarchy workflow and mutation hooks behind the hierarchy route.
 - Add audit and static guardrails so future migration work can grow route-by-route instead of through one oversized component.
+
+
+### Stage 18: Live API query shell
+
+- Add a route-level React query status panel that makes live API loading, refresh, error, and request metadata visible in the isolated React preview.
+- Expose a refresh control that reuses the existing cancellable Stage 2 snapshot hook instead of adding a second fetch path.
+- Track last-loaded time, request sequence, customer count, and booking count so the React shell starts behaving like a production-ready API-driven interface.
+- Keep the production DOM app untouched while React gains the operational feedback needed before any future cutover.

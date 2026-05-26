@@ -429,3 +429,30 @@ describe('React migration Stage 17 route-level preview shell', () => {
     expect(packageJson.scripts['react:migration:audit']).toContain('react:stage17:audit')
   })
 })
+
+
+
+describe('React migration Stage 18 live API query shell', () => {
+  const projectRoot = path.resolve(__dirname, '../..')
+  const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'))
+
+  it('exposes live API query status and refresh metadata in the React route shell', () => {
+    const app = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/App.jsx'), 'utf8')
+    const queryStatus = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactQueryStatusPanel.jsx'), 'utf8')
+    const snapshotHook = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/hooks/useAdminHierarchySnapshot.js'), 'utf8')
+    const roadmap = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/reactMigrationRoadmap.js'), 'utf8')
+
+    expect(app).toContain("import ReactQueryStatusPanel from './components/ReactQueryStatusPanel.jsx'")
+    expect(app).toContain('requestId={requestId}')
+    expect(app).toContain('onRefresh={reload}')
+    expect(queryStatus).toContain('data-testid="react-query-status-panel"')
+    expect(queryStatus).toContain('data-testid="react-refresh-query"')
+    expect(queryStatus).toContain("role={error ? 'alert' : 'status'}")
+    expect(snapshotHook).toContain('lastLoadedAt')
+    expect(snapshotHook).toContain('isRefreshing')
+    expect(roadmap).toContain('number: 18')
+    expect(roadmap).toContain('Live API query shell')
+    expect(packageJson.scripts['react:stage18:audit']).toBe('node scripts/verify-react-stage-18.js')
+    expect(packageJson.scripts['react:migration:audit']).toContain('react:stage18:audit')
+  })
+})
