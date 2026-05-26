@@ -456,3 +456,35 @@ describe('React migration Stage 18 live API query shell', () => {
     expect(packageJson.scripts['react:migration:audit']).toContain('react:stage18:audit')
   })
 })
+
+
+describe('React migration Stage 19 cutover readiness gates', () => {
+  const projectRoot = path.resolve(__dirname, '../..')
+  const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'))
+
+  function read(relativePath) {
+    return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
+  }
+
+  it('adds a cutover readiness route so the remaining migration is release-gate driven', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const routes = read('frontend/react/src/domain/reactMigrationRoutes.js')
+    const cutoverDomain = read('frontend/react/src/domain/reactCutoverReadiness.js')
+    const cutoverPanel = read('frontend/react/src/components/ReactCutoverReadinessPanel.jsx')
+    const roadmap = read('frontend/react/src/domain/reactMigrationRoadmap.js')
+    const plan = read('docs/react-migration-plan.md')
+
+    expect(app).toContain("import ReactCutoverReadinessPanel from './components/ReactCutoverReadinessPanel.jsx'")
+    expect(app).toContain("activeRouteKey === 'cutover'")
+    expect(routes).toContain("key: 'cutover'")
+    expect(cutoverDomain).toContain('reactCutoverReadinessGates')
+    expect(cutoverDomain).toContain('summarizeReactCutoverReadiness')
+    expect(cutoverDomain).toContain('getReactCutoverRecommendation')
+    expect(cutoverPanel).toContain('data-testid="react-cutover-readiness-panel"')
+    expect(cutoverPanel).toContain('data-testid="react-cutover-gates"')
+    expect(roadmap).toContain('number: 19')
+    expect(plan).toContain('Stage 19: Cutover readiness gates')
+    expect(packageJson.scripts['react:stage19:audit']).toBe('node scripts/verify-react-stage-19.js')
+    expect(packageJson.scripts['react:migration:audit']).toContain('react:stage19:audit')
+  })
+})

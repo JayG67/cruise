@@ -483,3 +483,61 @@ dd {
     flex-direction: column;
   }
 }
+
+
+.cutover-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.cutover-summary {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.cutover-summary span {
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+  border-radius: 999px;
+  color: #075985;
+  font-weight: 800;
+  padding: 0.45rem 0.75rem;
+}
+
+.cutover-gate-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.cutover-gate {
+  background: #ffffff;
+  border: 1px solid #d7e5ee;
+  border-radius: 1rem;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  padding: 1rem;
+}
+
+.cutover-gate.ready {
+  border-color: #86efac;
+}
+
+.cutover-gate.watch {
+  border-color: #fde68a;
+}
+
+.cutover-gate.blocked {
+  border-color: #fecaca;
+}
+
+.gate-status {
+  color: #0f6f8f;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+}

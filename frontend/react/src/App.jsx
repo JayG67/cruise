@@ -6,6 +6,7 @@ import MigrationReadiness from './components/MigrationReadiness.jsx'
 import MigrationRoadmapPanel from './components/MigrationRoadmapPanel.jsx'
 import ReactMigrationRouteNav from './components/ReactMigrationRouteNav.jsx'
 import ReactQueryStatusPanel from './components/ReactQueryStatusPanel.jsx'
+import ReactCutoverReadinessPanel from './components/ReactCutoverReadinessPanel.jsx'
 import { currentReactMigrationStage, getReactMigrationStageLabel } from './domain/reactMigrationRoadmap.js'
 import { useReactMigrationRoute } from './hooks/useReactMigrationRoute.js'
 
@@ -51,6 +52,8 @@ export default function App() {
         {activeRouteKey === 'readiness' && <MigrationReadiness />}
 
         {activeRouteKey === 'roadmap' && <MigrationRoadmapPanel />}
+
+        {activeRouteKey === 'cutover' && <ReactCutoverReadinessPanel />}
 
         {activeRouteKey === 'hierarchy' && (
           <CustomerBookingHierarchy

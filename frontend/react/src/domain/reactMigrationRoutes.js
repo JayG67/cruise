@@ -13,6 +13,11 @@ export const REACT_MIGRATION_ROUTES = [
     key: 'roadmap',
     label: 'Roadmap',
     description: 'Summarize migration status, completed slices, and next production-readiness checkpoints.'
+  },
+  {
+    key: 'cutover',
+    label: 'Cutover readiness',
+    description: 'Review production-style gates before replacing any legacy DOM workflow.'
   }
 ]
 

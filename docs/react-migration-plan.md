@@ -205,3 +205,15 @@ This keeps reviewer-facing text aligned with the actual migration architecture a
 - Expose a refresh control that reuses the existing cancellable Stage 2 snapshot hook instead of adding a second fetch path.
 - Track last-loaded time, request sequence, customer count, and booking count so the React shell starts behaving like a production-ready API-driven interface.
 - Keep the production DOM app untouched while React gains the operational feedback needed before any future cutover.
+
+
+### Stage 19: Cutover readiness gates
+
+Stage 19 intentionally consolidates the migration roadmap. Instead of continuing indefinitely through very small stages, the React preview now includes an explicit cutover readiness route with release-style gates.
+
+- Add a React cutover readiness route to the isolated preview shell.
+- Track API parity, mutation parity, accessibility contracts, browser coverage, and production cutover toggle readiness.
+- Keep the legacy DOM app untouched while making the remaining migration work visible as release criteria.
+- Use this stage as the pivot from micro-stage construction to larger cutover-oriented slices.
+
+The practical remaining roadmap should be short: add React browser coverage, introduce a controlled cutover/feature flag, then remove duplicated legacy UI only after the React route proves stable.
