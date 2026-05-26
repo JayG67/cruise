@@ -23,6 +23,11 @@ export const REACT_MIGRATION_ROUTES = [
     key: 'pilot',
     label: 'Pilot launch',
     description: 'Translate the remaining migration work into a dev-branch pilot launch checklist.'
+  },
+  {
+    key: 'parity',
+    label: 'Pilot parity',
+    description: 'Consolidate browser and regression evidence before the final React pilot cutover decision.'
   }
 ]
 

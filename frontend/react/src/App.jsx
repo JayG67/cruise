@@ -8,6 +8,7 @@ import ReactMigrationRouteNav from './components/ReactMigrationRouteNav.jsx'
 import ReactQueryStatusPanel from './components/ReactQueryStatusPanel.jsx'
 import ReactCutoverReadinessPanel from './components/ReactCutoverReadinessPanel.jsx'
 import ReactPilotLaunchPanel from './components/ReactPilotLaunchPanel.jsx'
+import ReactPilotParityPanel from './components/ReactPilotParityPanel.jsx'
 import { currentReactMigrationStage, getReactMigrationStageLabel } from './domain/reactMigrationRoadmap.js'
 import { useReactMigrationRoute } from './hooks/useReactMigrationRoute.js'
 
@@ -57,6 +58,8 @@ export default function App() {
         {activeRouteKey === 'cutover' && <ReactCutoverReadinessPanel />}
 
         {activeRouteKey === 'pilot' && <ReactPilotLaunchPanel />}
+
+        {activeRouteKey === 'parity' && <ReactPilotParityPanel />}
 
         {activeRouteKey === 'hierarchy' && (
           <CustomerBookingHierarchy

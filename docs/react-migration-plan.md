@@ -230,3 +230,21 @@ Stage 20 intentionally compresses the remaining React migration into a practical
 - Use the pilot checklist and cutover readiness gates as the final decision framework.
 
 This is the point where the portfolio story shifts from “migration scaffolding” to “release-managed modernization.”
+
+
+## Stage 21: Pilot parity evidence
+
+Stage 21 consolidates the migration around release evidence instead of continuing many small technical stages.
+
+Added:
+
+- React pilot parity evidence route.
+- Shared parity domain data for browser, regression, and route-smoke readiness.
+- Route-level parity recommendation for dev-branch review.
+- A Stage 21 audit so the pilot evidence panel remains wired into the React migration shell.
+
+Exit criteria before final pilot cutover:
+
+- Existing Cypress, Playwright mobile, Playwright responsive, performance, and Lighthouse checks remain green.
+- React route smoke coverage is added for the pilot shell.
+- Legacy DOM customer hierarchy remains available until the pilot route is explicitly approved.

@@ -1,7 +1,7 @@
 export const currentReactMigrationStage = {
-  number: 20,
-  title: 'Pilot launch checklist',
-  summary: 'The React migration is now framed around a dev-branch pilot launch path instead of many small open-ended stages, with the legacy DOM app preserved as the fallback until browser parity is proven.'
+  number: 21,
+  title: 'Pilot parity evidence',
+  summary: 'The React migration is now consolidated around pilot parity evidence: existing Cypress, Playwright, performance, and Lighthouse coverage stay active while the final gate becomes a dedicated React route smoke check before cutover.'
 }
 
 export const migrationReadinessPoints = [
@@ -13,7 +13,8 @@ export const migrationReadinessPoints = [
   'Route-level React preview navigation now separates functional workflow review from migration status review.',
   'The React shell now exposes live query status, refresh behavior, and request metadata before production cutover.',
   'React cutover readiness is now tracked as explicit release gates instead of an open-ended list of micro-stages.',
-  'The remaining migration is now managed as a dev-branch pilot launch checklist with explicit fallback and parity expectations.'
+  'The remaining migration is now managed as a dev-branch pilot launch checklist with explicit fallback and parity expectations.',
+  'React pilot parity evidence is now consolidated into a route-level panel before the final pilot cutover decision.'
 ]
 
 export function getReactMigrationStageLabel(stage = currentReactMigrationStage) {
@@ -22,6 +23,11 @@ export function getReactMigrationStageLabel(stage = currentReactMigrationStage) 
 
 
 export const reactMigrationStageHistory = [
+  {
+    number: 21,
+    title: 'Pilot parity evidence',
+    summary: 'Browser parity and regression evidence were consolidated so the migration can finish with one final React route smoke gate instead of many small stages.'
+  },
   {
     number: 17,
     title: 'Route-level preview shell',
@@ -36,6 +42,11 @@ export const reactMigrationStageHistory = [
     number: 19,
     title: 'Cutover readiness gates',
     summary: 'The React shell added production-style cutover readiness gates so the remaining migration work could be managed as release criteria.'
+  },
+  {
+    number: 20,
+    title: 'Pilot launch checklist',
+    summary: 'The remaining migration work was compressed into a dev-branch pilot launch checklist with explicit fallback and browser parity expectations.'
   },
   currentReactMigrationStage
 ]

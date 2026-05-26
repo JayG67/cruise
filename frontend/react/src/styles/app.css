@@ -602,3 +602,64 @@ dd {
   color: #52667a;
   font-weight: 700;
 }
+
+
+.parity-card {
+  background: #ffffff;
+  border: 1px solid #d7e1ef;
+  border-radius: 1.25rem;
+  box-shadow: 0 1rem 2rem rgba(15, 23, 42, 0.08);
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.parity-summary {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.parity-summary span {
+  background: #eefdf7;
+  border: 1px solid #bbf7d0;
+  border-radius: 999px;
+  color: #166534;
+  font-weight: 800;
+  padding: 0.45rem 0.75rem;
+}
+
+.parity-check-list {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.parity-check {
+  background: #f8fbff;
+  border: 1px solid #dfe9f5;
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.parity-check.covered {
+  border-color: #86efac;
+}
+
+.parity-check.watch {
+  border-color: #fde68a;
+}
+
+.parity-check.gap {
+  border-color: #fecaca;
+}
+
+.parity-check small {
+  color: #52667a;
+  font-weight: 700;
+}

@@ -520,3 +520,35 @@ describe('React migration Stage 20 pilot launch checklist', () => {
     expect(packageJson.scripts['react:migration:audit']).toContain('react:stage20:audit')
   })
 })
+
+
+describe('React migration Stage 21 pilot parity evidence', () => {
+  const projectRoot = path.resolve(__dirname, '../..')
+  const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'))
+
+  function read(relativePath) {
+    return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
+  }
+
+  it('adds route-level pilot parity evidence before final cutover work', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const routes = read('frontend/react/src/domain/reactMigrationRoutes.js')
+    const parityDomain = read('frontend/react/src/domain/reactPilotParity.js')
+    const parityPanel = read('frontend/react/src/components/ReactPilotParityPanel.jsx')
+    const roadmap = read('frontend/react/src/domain/reactMigrationRoadmap.js')
+    const plan = read('docs/react-migration-plan.md')
+
+    expect(app).toContain("import ReactPilotParityPanel from './components/ReactPilotParityPanel.jsx'")
+    expect(app).toContain("activeRouteKey === 'parity'")
+    expect(routes).toContain("key: 'parity'")
+    expect(parityDomain).toContain('reactPilotParityChecks')
+    expect(parityDomain).toContain('summarizeReactPilotParity')
+    expect(parityDomain).toContain('getReactPilotParityRecommendation')
+    expect(parityPanel).toContain('data-testid="react-pilot-parity-panel"')
+    expect(parityPanel).toContain('data-testid="react-parity-checks"')
+    expect(roadmap).toContain('number: 21')
+    expect(plan).toContain('Stage 21: Pilot parity evidence')
+    expect(packageJson.scripts['react:stage21:audit']).toBe('node scripts/verify-react-stage-21.js')
+    expect(packageJson.scripts['react:migration:audit']).toContain('react:stage21:audit')
+  })
+})
