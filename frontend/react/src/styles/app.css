@@ -354,3 +354,70 @@ dd {
   cursor: not-allowed;
   opacity: 0.65;
 }
+
+
+.react-route-nav {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  margin: 1rem 0;
+}
+
+.route-tab {
+  align-items: flex-start;
+  background: #ffffff;
+  border: 1px solid #d7e1ef;
+  border-radius: 1rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-height: 6rem;
+  padding: 1rem;
+  text-align: left;
+}
+
+.route-tab span {
+  color: #17324d;
+  font-weight: 700;
+}
+
+.route-tab small {
+  color: #52667a;
+  line-height: 1.35;
+}
+
+.route-tab.active {
+  border-color: #1f6feb;
+  box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.14);
+}
+
+.route-panel {
+  margin-top: 1rem;
+}
+
+.roadmap-card {
+  background: #ffffff;
+  border: 1px solid #d7e1ef;
+  border-radius: 1.25rem;
+  box-shadow: 0 1rem 2rem rgba(15, 23, 42, 0.08);
+  padding: 1.25rem;
+}
+
+.roadmap-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  margin: 1rem 0;
+}
+
+.roadmap-tile {
+  background: #f8fbff;
+  border: 1px solid #dfe9f5;
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.roadmap-list {
+  margin-bottom: 0;
+}

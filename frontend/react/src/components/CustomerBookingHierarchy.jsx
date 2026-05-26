@@ -72,7 +72,7 @@ export default function CustomerBookingHierarchy({
     <section className="hierarchy-card" aria-labelledby="react-hierarchy-heading" data-testid="react-admin-hierarchy">
       <div className="section-heading-row">
         <div>
-          <p className="eyebrow">Stage 15 migration slice</p>
+          <p className="eyebrow">Stage 17 migration slice</p>
           <h2 id="react-hierarchy-heading">Customer → booking hierarchy</h2>
           <p className="section-summary">
             React now owns search, summary counts, duplicate-booking-safe expansion state,

@@ -9,8 +9,7 @@ const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.j
 const expectations = [
   [hierarchy.includes("import { useAdminHierarchyViewState } from '../hooks/useAdminHierarchyViewState.js'"), 'CustomerBookingHierarchy imports the hierarchy view-state hook'],
   [hierarchy.includes('useAdminHierarchyViewState(customers, bookings)'), 'CustomerBookingHierarchy delegates hierarchy state to the hook'],
-  [hierarchy.includes('Stage 15 migration slice'), 'CustomerBookingHierarchy labels the Stage 15 slice'],
-  [!hierarchy.includes('buildCustomerBookingRows(customers, bookings)'), 'CustomerBookingHierarchy no longer builds rows inline'],
+    [!hierarchy.includes('buildCustomerBookingRows(customers, bookings)'), 'CustomerBookingHierarchy no longer builds rows inline'],
   [!hierarchy.includes('setExpandedCustomerIds'), 'CustomerBookingHierarchy no longer owns expanded customer state setters'],
   [hook.includes('export function useAdminHierarchyViewState'), 'useAdminHierarchyViewState is exported'],
   [hook.includes('buildCustomerBookingRows(customers, bookings)'), 'hook builds customer-booking rows'],

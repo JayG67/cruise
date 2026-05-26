@@ -355,7 +355,7 @@ describe('React migration Stage 14 draft workflow hook extraction', () => {
 
     expect(hierarchy).toContain("import { useCustomerDraftWorkflow } from '../hooks/useCustomerDraftWorkflow.js'")
     expect(hierarchy).toContain("import { useBookingDraftWorkflow } from '../hooks/useBookingDraftWorkflow.js'")
-    expect(hierarchy).toContain('Stage 15 migration slice')
+    expect(hierarchy).toContain('migration slice')
     expect(hierarchy).toContain('useCustomerDraftWorkflow({ onSaveCustomerDraft, mutationError })')
     expect(hierarchy).toContain('useBookingDraftWorkflow({ onSaveBookingDraft, bookingMutationError })')
     expect(hierarchy).not.toContain('setCustomerDrafts')
@@ -382,7 +382,7 @@ describe('React migration Stage 15 hierarchy view-state hook extraction', () => 
 
     expect(hierarchy).toContain("import { useAdminHierarchyViewState } from '../hooks/useAdminHierarchyViewState.js'")
     expect(hierarchy).toContain('useAdminHierarchyViewState(customers, bookings)')
-    expect(hierarchy).toContain('Stage 15 migration slice')
+    expect(hierarchy).toContain('migration slice')
     expect(hierarchy).not.toContain('buildCustomerBookingRows(customers, bookings)')
     expect(hierarchy).not.toContain('setExpandedCustomerIds')
     expect(hierarchy).not.toContain('setExpandedBookingIds')
@@ -394,5 +394,38 @@ describe('React migration Stage 15 hierarchy view-state hook extraction', () => 
     expect(viewStateHook).toContain('collapseBookingsForVisibleCustomers(current, rows)')
     expect(packageJson.scripts['react:stage15:audit']).toBe('node scripts/verify-react-stage-15.js')
     expect(packageJson.scripts['react:migration:audit']).toContain('react:stage15:audit')
+  })
+})
+
+
+describe('React migration Stage 17 route-level preview shell', () => {
+  const projectRoot = path.resolve(__dirname, '../..')
+  const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'))
+
+  function read(relativePath) {
+    return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
+  }
+
+  it('adds route-level React preview navigation without touching the production DOM app', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const routes = read('frontend/react/src/domain/reactMigrationRoutes.js')
+    const routeHook = read('frontend/react/src/hooks/useReactMigrationRoute.js')
+    const routeNav = read('frontend/react/src/components/ReactMigrationRouteNav.jsx')
+    const roadmapPanel = read('frontend/react/src/components/MigrationRoadmapPanel.jsx')
+
+    expect(routes).toContain('REACT_MIGRATION_ROUTES')
+    expect(routes).toContain("key: 'hierarchy'")
+    expect(routes).toContain("key: 'readiness'")
+    expect(routes).toContain("key: 'roadmap'")
+    expect(routeHook).toContain('useReactMigrationRoute')
+    expect(routeNav).toContain('react-migration-route-nav')
+    expect(roadmapPanel).toContain('react-migration-roadmap-panel')
+    expect(app).toContain('ReactMigrationRouteNav')
+    expect(app).toContain("activeRouteKey === 'hierarchy'")
+    expect(app).toContain("activeRouteKey === 'readiness'")
+    expect(app).toContain("activeRouteKey === 'roadmap'")
+    expect(fs.readFileSync(path.join(projectRoot, 'public/app.js'), 'utf8')).not.toContain('ReactMigrationRouteNav')
+    expect(packageJson.scripts['react:stage17:audit']).toBe('node scripts/verify-react-stage-17.js')
+    expect(packageJson.scripts['react:migration:audit']).toContain('react:stage17:audit')
   })
 })

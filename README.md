@@ -755,3 +755,12 @@ npm run test:all
 ### React Migration Stage 16
 
 Stage 16 adds shared React migration roadmap metadata so the preview shell and readiness panel describe the current migration state from one source. This keeps the portfolio narrative aligned with the code as the staged React migration continues.
+
+
+## ⚛️ React Migration Status
+
+The repository is using a staged React migration on the `dev` branch while the existing DOM application remains the stable production baseline.
+
+Current React migration checkpoint: **Stage 17 — Route-level preview shell**.
+
+The React shell now separates the hierarchy workflow, readiness rationale, and roadmap status into route-level preview sections. This keeps the modernization story realistic: the team can grow React workflow parity one screen at a time without destabilizing the existing app.

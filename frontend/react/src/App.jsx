@@ -3,12 +3,16 @@ import useCustomerProfileMutation from './hooks/useCustomerProfileMutation.js'
 import useBookingDetailsMutation from './hooks/useBookingDetailsMutation.js'
 import CustomerBookingHierarchy from './components/CustomerBookingHierarchy.jsx'
 import MigrationReadiness from './components/MigrationReadiness.jsx'
+import MigrationRoadmapPanel from './components/MigrationRoadmapPanel.jsx'
+import ReactMigrationRouteNav from './components/ReactMigrationRouteNav.jsx'
 import { currentReactMigrationStage, getReactMigrationStageLabel } from './domain/reactMigrationRoadmap.js'
+import { useReactMigrationRoute } from './hooks/useReactMigrationRoute.js'
 
 export default function App() {
   const { snapshot, isLoading, error, reload } = useAdminHierarchySnapshot()
   const { saveCustomerProfile, savingCustomerId, mutationError } = useCustomerProfileMutation({ onSaved: reload })
   const { saveBookingDetails, savingBookingId, bookingMutationError } = useBookingDetailsMutation({ onSaved: reload })
+  const { activeRouteKey, activeRoute, routes, selectRoute } = useReactMigrationRoute()
 
   return (
     <main className="app-shell">
@@ -25,21 +29,33 @@ export default function App() {
         </p>
       </section>
 
-      <MigrationReadiness />
-
-      <CustomerBookingHierarchy
-        customers={snapshot.customers}
-        bookings={snapshot.bookings}
-        isLoading={isLoading}
-        error={error}
-        onRetry={reload}
-        onSaveCustomerDraft={saveCustomerProfile}
-        savingCustomerId={savingCustomerId}
-        mutationError={mutationError}
-        onSaveBookingDraft={saveBookingDetails}
-        savingBookingId={savingBookingId}
-        bookingMutationError={bookingMutationError}
+      <ReactMigrationRouteNav
+        routes={routes}
+        activeRouteKey={activeRouteKey}
+        onSelectRoute={selectRoute}
       />
+
+      <section className="route-panel" aria-label={activeRoute.label} data-testid={`react-active-route-${activeRoute.key}`}>
+        {activeRouteKey === 'readiness' && <MigrationReadiness />}
+
+        {activeRouteKey === 'roadmap' && <MigrationRoadmapPanel />}
+
+        {activeRouteKey === 'hierarchy' && (
+          <CustomerBookingHierarchy
+            customers={snapshot.customers}
+            bookings={snapshot.bookings}
+            isLoading={isLoading}
+            error={error}
+            onRetry={reload}
+            onSaveCustomerDraft={saveCustomerProfile}
+            savingCustomerId={savingCustomerId}
+            mutationError={mutationError}
+            onSaveBookingDraft={saveBookingDetails}
+            savingBookingId={savingBookingId}
+            bookingMutationError={bookingMutationError}
+          />
+        )}
+      </section>
     </main>
   )
 }

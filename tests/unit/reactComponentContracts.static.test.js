@@ -38,3 +38,22 @@ describe('React component accessibility and presentation contracts', () => {
     expect(bookingCard).toContain('data-testid="react-booking-card"')
   })
 })
+
+
+describe('React route preview accessibility contracts', () => {
+  const projectRoot = path.resolve(__dirname, '../..')
+
+  function read(relativePath) {
+    return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
+  }
+
+  it('keeps React route preview navigation accessible and discoverable', () => {
+    const routeNav = read('frontend/react/src/components/ReactMigrationRouteNav.jsx')
+    const app = read('frontend/react/src/App.jsx')
+
+    expect(routeNav).toContain('aria-label="React migration preview sections"')
+    expect(routeNav).toContain('aria-current={isActive ? \'page\' : undefined}')
+    expect(routeNav).toContain('aria-pressed={isActive}')
+    expect(app).toContain('aria-label={activeRoute.label}')
+  })
+})

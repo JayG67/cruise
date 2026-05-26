@@ -188,3 +188,12 @@ Stage 15 extracts the React hierarchy search, summary, customer expansion, booki
 Stage 16 centralizes the React migration status and readiness messaging into `frontend/react/src/domain/reactMigrationRoadmap.js`. The React preview and readiness panel now consume the same stage metadata instead of carrying stale hard-coded migration copy.
 
 This keeps reviewer-facing text aligned with the actual migration architecture as the work continues through additional stages. The production DOM application remains untouched.
+
+
+### Stage 17: Route-level preview shell
+
+- Add route-level navigation inside the isolated React preview shell.
+- Separate the high-risk hierarchy workflow from readiness and roadmap review panels.
+- Keep the production DOM app untouched while React begins to look like a complete application shell.
+- Preserve the same API-backed hierarchy workflow and mutation hooks behind the hierarchy route.
+- Add audit and static guardrails so future migration work can grow route-by-route instead of through one oversized component.
