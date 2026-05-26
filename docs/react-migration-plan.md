@@ -142,3 +142,14 @@ The production DOM application remains untouched. Stage 10 is still an isolated 
 ### Stage 11: Draft field accessibility contracts
 
 Stage 11 centralizes required-field and input-type metadata for the React customer and booking draft editors. The forms now render `required`, `aria-required`, field types, and autocomplete behavior from the same field contracts used by validation guardrails, keeping accessibility expectations aligned with the staged migration.
+
+
+### Stage 12: Presentation component decomposition
+
+- Extract `CustomerHierarchyRow` from the larger React hierarchy container.
+- Extract `BookingCard` so booking details, passenger summaries, and booking draft editing have a focused owner.
+- Keep state orchestration in `CustomerBookingHierarchy` while moving row/card rendering into smaller reviewable components.
+- Add stable React test IDs for customer row toggles, child booking rows, booking detail toggles, and visible booking details.
+- Preserve the production DOM app until the React workflow has equivalent browser coverage.
+
+This stage improves maintainability before cutover: the React hierarchy now has clearer component seams for future component tests, Playwright coverage, and AI-assisted refactoring reviews.

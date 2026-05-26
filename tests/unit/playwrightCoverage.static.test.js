@@ -53,3 +53,16 @@ describe('Playwright portfolio coverage inventory', () => {
   })
 
 })
+
+describe('inline booking detail scoping guardrails', () => {
+  const projectRoot = path.resolve(__dirname, '../..')
+
+  it('scopes role booking detail toggles to the clicked booking card', () => {
+    const app = fs.readFileSync(path.join(projectRoot, 'public/app.js'), 'utf8')
+
+    expect(app).toContain('function getScopedInlineBookingDetails')
+    expect(app).toContain("triggerElement?.closest?.('[data-cy=\"role-booking-card\"]')")
+    expect(app).toContain('loadBookingCruiseDetails(booking, false, detailsButton)')
+    expect(app).toContain('loadBookingCruiseDetails(booking, favoritesOnly, button)')
+  })
+})

@@ -714,3 +714,13 @@ Stage 11 centralizes required-field and input-type metadata for the React custom
 ### SQA console validation hardening
 
 - Tightened the SQA console Safe CRUD workflow so its ship create/update payloads include the required current-port contract and added coverage that verifies the manual console action sends API-valid payloads.
+
+
+### React migration Stage 12
+
+Stage 12 decomposes the React customer-booking hierarchy into smaller presentation components:
+
+- `CustomerHierarchyRow`
+- `BookingCard`
+
+This keeps state orchestration centralized while making customer rows and booking cards easier to review, test, and eventually compare against the legacy DOM implementation during migration.

@@ -1028,9 +1028,21 @@ function renderRoleBookingDashboard(context, errorMessage = '') {
 }
 
 
-function toggleBookingCruiseDetails(booking, detailsButton) {
+function getScopedInlineBookingDetails(booking, triggerElement) {
   const bookingKey = booking.bookingId || booking.id || booking.sailing?.id
-  const detailsContainer = document.getElementById(`inline-booking-details-${bookingKey}`)
+  const bookingCard = triggerElement?.closest?.('[data-cy="role-booking-card"]')
+
+  return {
+    bookingKey,
+    detailsContainer: bookingCard?.querySelector('[data-cy="inline-booking-details"]')
+      || document.getElementById(`inline-booking-details-${bookingKey}`),
+    detailsContent: bookingCard?.querySelector('.inline-booking-details-content')
+      || document.getElementById(`inline-booking-details-content-${bookingKey}`)
+  }
+}
+
+function toggleBookingCruiseDetails(booking, detailsButton) {
+  const { detailsContainer } = getScopedInlineBookingDetails(booking, detailsButton)
 
   if (detailsContainer && !detailsContainer.hidden) {
     detailsContainer.hidden = true
@@ -1043,16 +1055,14 @@ function toggleBookingCruiseDetails(booking, detailsButton) {
   detailsButton.textContent = 'Hide Details'
   detailsButton.setAttribute('aria-expanded', 'true')
   detailsButton.setAttribute('aria-label', `Hide details for booking ${booking.id || booking.bookingId || 'selected booking'}`)
-  loadBookingCruiseDetails(booking)
+  loadBookingCruiseDetails(booking, false, detailsButton)
 }
 
-async function loadBookingCruiseDetails(booking, favoritesOnly = false) {
+async function loadBookingCruiseDetails(booking, favoritesOnly = false, triggerElement = null) {
   if (!booking?.sailing?.id) return
 
-  const bookingKey = booking.bookingId || booking.id || booking.sailing.id
+  const { bookingKey, detailsContainer, detailsContent } = getScopedInlineBookingDetails(booking, triggerElement)
   const customerId = getActiveCustomerId()
-  const detailsContainer = document.getElementById(`inline-booking-details-${bookingKey}`)
-  const detailsContent = document.getElementById(`inline-booking-details-content-${bookingKey}`)
 
   if (!detailsContainer || !detailsContent) {
     await loadItinerary(booking.sailing.id, {
@@ -1126,8 +1136,8 @@ async function loadBookingCruiseDetails(booking, favoritesOnly = false) {
       </section>
     `
 
-    detailsContent.querySelector('[data-cy="show-all-itinerary-button"]')?.addEventListener('click', () => loadBookingCruiseDetails(booking, false))
-    detailsContent.querySelector('[data-cy="show-favorite-itinerary-button"]')?.addEventListener('click', () => loadBookingCruiseDetails(booking, true))
+    detailsContent.querySelector('[data-cy="show-all-itinerary-button"]')?.addEventListener('click', event => loadBookingCruiseDetails(booking, false, event.currentTarget))
+    detailsContent.querySelector('[data-cy="show-favorite-itinerary-button"]')?.addEventListener('click', event => loadBookingCruiseDetails(booking, true, event.currentTarget))
     detailsContent.querySelectorAll('[data-cy="favorite-toggle-button"]').forEach(button => {
       button.addEventListener('click', () => toggleItineraryFavorite(button, booking, favoritesOnly))
     })
@@ -1165,7 +1175,7 @@ async function toggleItineraryFavorite(button, booking, favoritesOnly = false) {
     throw new Error(result.message || 'Could not update itinerary favorite.')
   }
 
-  await loadBookingCruiseDetails(booking, favoritesOnly)
+  await loadBookingCruiseDetails(booking, favoritesOnly, button)
 }
 
 function formatDemoRole(role) {

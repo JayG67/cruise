@@ -3,11 +3,13 @@ const path = require('path')
 
 const projectRoot = path.resolve(__dirname, '..')
 const componentPath = path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx')
+const bookingCardPath = path.join(projectRoot, 'frontend/react/src/components/BookingCard.jsx')
 const bookingFormPath = path.join(projectRoot, 'frontend/react/src/components/BookingDraftForm.jsx')
 const domainPath = path.join(projectRoot, 'frontend/react/src/domain/bookingDrafts.js')
 const packageJsonPath = path.join(projectRoot, 'package.json')
 
 const component = fs.readFileSync(componentPath, 'utf8')
+const bookingCard = fs.readFileSync(bookingCardPath, 'utf8')
 const bookingForm = fs.readFileSync(bookingFormPath, 'utf8')
 const domain = fs.readFileSync(domainPath, 'utf8')
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
@@ -20,7 +22,10 @@ const requiredDomainExports = [
 ]
 
 const requiredComponentMarkers = [
-  'bookingDrafts',
+  'bookingDrafts'
+]
+
+const requiredBookingCardMarkers = [
   'BookingDraftForm'
 ]
 
@@ -39,6 +44,12 @@ for (const marker of requiredDomainExports) {
 for (const marker of requiredComponentMarkers) {
   if (!component.includes(marker)) {
     throw new Error(`Stage 6 audit failed: missing component marker: ${marker}`)
+  }
+}
+
+for (const marker of requiredBookingCardMarkers) {
+  if (!bookingCard.includes(marker)) {
+    throw new Error(`Stage 6 audit failed: missing booking card marker: ${marker}`)
   }
 }
 

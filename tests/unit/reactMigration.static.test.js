@@ -77,13 +77,15 @@ describe('React migration scaffold', () => {
   it('extracts Stage 3 React expansion state transitions from the hierarchy component', () => {
     const state = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/hierarchyExpansionState.js'), 'utf8')
     const component = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx'), 'utf8')
+    const customerRow = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerHierarchyRow.jsx'), 'utf8')
 
     expect(state).toContain('export function toggleExpandedId')
     expect(state).toContain('export function expandVisibleCustomers')
     expect(state).toContain('export function collapseVisibleCustomers')
     expect(state).toContain('export function createBookingExpansionKey')
     expect(component).toContain("from '../domain/hierarchyExpansionState.js'")
-    expect(component).toContain('createBookingExpansionKey(customer.id, booking.id)')
+    expect(component).toContain('createBookingExpansionKey(customer.id, bookingId)')
+    expect(customerRow).toContain('createBookingExpansionKey(customer.id, booking.id)')
     expect(component).not.toContain('function toggleSetValue')
     expect(packageJson.scripts['react:stage3:audit']).toBe('node scripts/verify-react-stage-3.js')
     expect(packageJson.scripts['react:migration:audit']).toContain('react:stage3:audit')
@@ -92,6 +94,7 @@ describe('React migration scaffold', () => {
   it('adds Stage 4 customer draft state before wiring React mutations', () => {
     const drafts = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/customerDrafts.js'), 'utf8')
     const component = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx'), 'utf8')
+    const customerRow = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerHierarchyRow.jsx'), 'utf8')
     const customerForm = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerDraftForm.jsx'), 'utf8')
     const styles = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/styles/app.css'), 'utf8')
 
@@ -99,8 +102,8 @@ describe('React migration scaffold', () => {
     expect(drafts).toContain('export function validateCustomerDraft')
     expect(drafts).toContain('export function summarizeCustomerDraftChanges')
     expect(component).toContain('customerDrafts')
-    expect(component).toContain('CustomerDraftForm')
-    expect(component).toContain('data-testid="react-customer-draft-row"')
+    expect(customerRow).toContain('CustomerDraftForm')
+    expect(customerRow).toContain('data-testid="react-customer-draft-row"')
     expect(customerForm).toContain('data-testid="react-validate-customer-draft"')
     expect(styles).toContain('.draft-editor')
     expect(packageJson.scripts['react:stage4:audit']).toBe('node scripts/verify-react-stage-4.js')
@@ -113,6 +116,7 @@ describe('React migration scaffold', () => {
     const hook = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/hooks/useCustomerProfileMutation.js'), 'utf8')
     const app = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/App.jsx'), 'utf8')
     const component = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx'), 'utf8')
+    const customerRow = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerHierarchyRow.jsx'), 'utf8')
     const customerForm = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerDraftForm.jsx'), 'utf8')
     const styles = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/styles/app.css'), 'utf8')
 
@@ -135,6 +139,7 @@ describe('React migration scaffold', () => {
   it('adds Stage 6 booking draft state before wiring live booking mutations', () => {
     const bookingDrafts = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/bookingDrafts.js'), 'utf8')
     const component = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx'), 'utf8')
+    const bookingCard = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/BookingCard.jsx'), 'utf8')
     const bookingForm = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/BookingDraftForm.jsx'), 'utf8')
     const styles = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/styles/app.css'), 'utf8')
 
@@ -142,7 +147,7 @@ describe('React migration scaffold', () => {
     expect(bookingDrafts).toContain('export function validateBookingDraft')
     expect(bookingDrafts).toContain('export function summarizeBookingDraftChanges')
     expect(component).toContain('bookingDrafts')
-    expect(component).toContain('BookingDraftForm')
+    expect(bookingCard).toContain('BookingDraftForm')
     expect(bookingForm).toContain('data-testid="react-booking-draft-form"')
     expect(bookingForm).toContain('data-testid="react-validate-booking-draft"')
     expect(bookingForm).toContain('data-testid="react-save-booking-draft"')
@@ -164,6 +169,7 @@ describe('React migration Stage 7 booking mutation boundary', () => {
     const hook = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/hooks/useBookingDetailsMutation.js'), 'utf8')
     const app = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/App.jsx'), 'utf8')
     const component = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx'), 'utf8')
+    const bookingCard = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/BookingCard.jsx'), 'utf8')
     const bookingForm = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/BookingDraftForm.jsx'), 'utf8')
 
     expect(client).toContain('export async function updateBookingDetails')
@@ -185,11 +191,13 @@ describe('React migration Stage 8 draft editor extraction', () => {
 
   it('extracts reusable draft editor components without losing mutation guardrails', () => {
     const hierarchy = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx'), 'utf8')
+    const customerRow = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerHierarchyRow.jsx'), 'utf8')
+    const bookingCard = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/BookingCard.jsx'), 'utf8')
     const customerForm = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerDraftForm.jsx'), 'utf8')
     const bookingForm = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/BookingDraftForm.jsx'), 'utf8')
 
-    expect(hierarchy).toContain("import CustomerDraftForm from './CustomerDraftForm.jsx'")
-    expect(hierarchy).toContain("import BookingDraftForm from './BookingDraftForm.jsx'")
+    expect(customerRow).toContain("import CustomerDraftForm from './CustomerDraftForm.jsx'")
+    expect(bookingCard).toContain("import BookingDraftForm from './BookingDraftForm.jsx'")
     expect(hierarchy).not.toContain('function CustomerDraftForm(')
     expect(hierarchy).not.toContain('function BookingDraftForm(')
     expect(customerForm).toContain('data-testid="react-save-customer-draft"')
@@ -275,5 +283,28 @@ describe('React migration Stage 11 draft field accessibility contracts', () => {
     expect(bookingForm).toContain("aria-required={field.required ? 'true' : undefined}")
     expect(packageJson.scripts['react:stage11:audit']).toBe('node scripts/verify-react-stage-11.js')
     expect(packageJson.scripts['react:migration:audit']).toContain('react:stage11:audit')
+  })
+})
+
+
+describe('React migration Stage 12 presentation component decomposition', () => {
+  const projectRoot = path.resolve(__dirname, '../..')
+  const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'))
+
+  it('extracts hierarchy presentation into reviewable customer row and booking card components', () => {
+    const hierarchy = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx'), 'utf8')
+    const customerRow = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerHierarchyRow.jsx'), 'utf8')
+    const bookingCard = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/BookingCard.jsx'), 'utf8')
+
+    expect(hierarchy).toContain("import CustomerHierarchyRow from './CustomerHierarchyRow.jsx'")
+    expect(hierarchy).not.toContain('function CustomerHierarchyRow')
+    expect(customerRow).toContain("import BookingCard from './BookingCard.jsx'")
+    expect(customerRow).toContain('data-testid="react-toggle-customer-bookings"')
+    expect(customerRow).toContain('data-testid="react-customer-bookings-row"')
+    expect(bookingCard).toContain('export default function BookingCard')
+    expect(bookingCard).toContain('data-testid="react-toggle-booking-details"')
+    expect(bookingCard).toContain('data-testid="react-booking-details"')
+    expect(packageJson.scripts['react:stage12:audit']).toBe('node scripts/verify-react-stage-12.js')
+    expect(packageJson.scripts['react:migration:audit']).toContain('react:stage12:audit')
   })
 })

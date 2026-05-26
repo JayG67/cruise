@@ -7,6 +7,8 @@ const requiredFiles = [
   'frontend/react/src/components/CustomerDraftForm.jsx',
   'frontend/react/src/components/BookingDraftForm.jsx',
   'frontend/react/src/components/CustomerBookingHierarchy.jsx',
+  'frontend/react/src/components/CustomerHierarchyRow.jsx',
+  'frontend/react/src/components/BookingCard.jsx',
   'docs/react-migration-plan.md'
 ]
 
@@ -19,13 +21,15 @@ for (const filePath of requiredFiles) {
 }
 
 const hierarchy = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx'), 'utf8')
+const customerRow = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerHierarchyRow.jsx'), 'utf8')
+const bookingCard = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/BookingCard.jsx'), 'utf8')
 const customerForm = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerDraftForm.jsx'), 'utf8')
 const bookingForm = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/BookingDraftForm.jsx'), 'utf8')
 const migrationPlan = fs.readFileSync(path.join(projectRoot, 'docs/react-migration-plan.md'), 'utf8')
 
 const expectations = [
-  [hierarchy.includes("import CustomerDraftForm from './CustomerDraftForm.jsx'"), 'Customer hierarchy must import extracted customer draft form.'],
-  [hierarchy.includes("import BookingDraftForm from './BookingDraftForm.jsx'"), 'Customer hierarchy must import extracted booking draft form.'],
+  [customerRow.includes("import CustomerDraftForm from './CustomerDraftForm.jsx'"), 'Customer hierarchy row must import extracted customer draft form.'],
+  [bookingCard.includes("import BookingDraftForm from './BookingDraftForm.jsx'"), 'Booking card must import extracted booking draft form.'],
   [!hierarchy.includes('function CustomerDraftForm('), 'Customer draft form should not remain inline in the hierarchy component.'],
   [!hierarchy.includes('function BookingDraftForm('), 'Booking draft form should not remain inline in the hierarchy component.'],
   [customerForm.includes('data-testid="react-save-customer-draft"'), 'Customer draft form must preserve save test id.'],

@@ -4,6 +4,7 @@ const path = require('path')
 const projectRoot = path.resolve(__dirname, '..')
 const draftPath = path.join(projectRoot, 'frontend/react/src/domain/customerDrafts.js')
 const componentPath = path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx')
+const customerRowPath = path.join(projectRoot, 'frontend/react/src/components/CustomerHierarchyRow.jsx')
 const customerFormPath = path.join(projectRoot, 'frontend/react/src/components/CustomerDraftForm.jsx')
 const stylesPath = path.join(projectRoot, 'frontend/react/src/styles/app.css')
 const planPath = path.join(projectRoot, 'docs/react-migration-plan.md')
@@ -12,6 +13,7 @@ const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.j
 const requiredFiles = [
   draftPath,
   componentPath,
+  customerRowPath,
   customerFormPath,
   stylesPath,
   planPath
@@ -27,6 +29,7 @@ ${missingFiles.join('\n')}`)
 
 const drafts = fs.readFileSync(draftPath, 'utf8')
 const component = fs.readFileSync(componentPath, 'utf8')
+const customerRow = fs.readFileSync(customerRowPath, 'utf8')
 const customerForm = fs.readFileSync(customerFormPath, 'utf8')
 const styles = fs.readFileSync(stylesPath, 'utf8')
 const plan = fs.readFileSync(planPath, 'utf8')
@@ -51,12 +54,12 @@ if (!component.includes("from '../domain/customerDrafts.js'")) {
   process.exit(1)
 }
 
-if (!component.includes('customerDrafts') || !component.includes('CustomerDraftForm')) {
-  console.error('React hierarchy component must own customer draft editor state before API mutation wiring.')
+if (!component.includes('customerDrafts') || !customerRow.includes('CustomerDraftForm')) {
+  console.error('React hierarchy components must own customer draft state and render the extracted draft editor.')
   process.exit(1)
 }
 
-if (!component.includes('data-testid="react-customer-draft-row"') || !customerForm.includes('data-testid="react-validate-customer-draft"')) {
+if (!customerRow.includes('data-testid="react-customer-draft-row"') || !customerForm.includes('data-testid="react-validate-customer-draft"')) {
   console.error('React customer draft workflow must expose stable test IDs for future component and browser coverage.')
   process.exit(1)
 }

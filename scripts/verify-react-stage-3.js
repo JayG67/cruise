@@ -4,12 +4,14 @@ const path = require('path')
 const projectRoot = path.resolve(__dirname, '..')
 const statePath = path.join(projectRoot, 'frontend/react/src/domain/hierarchyExpansionState.js')
 const componentPath = path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx')
+const customerRowPath = path.join(projectRoot, 'frontend/react/src/components/CustomerHierarchyRow.jsx')
 const planPath = path.join(projectRoot, 'docs/react-migration-plan.md')
 const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'))
 
 const requiredFiles = [
   statePath,
   componentPath,
+  customerRowPath,
   planPath
 ]
 
@@ -23,6 +25,7 @@ ${missingFiles.join('\n')}`)
 
 const state = fs.readFileSync(statePath, 'utf8')
 const component = fs.readFileSync(componentPath, 'utf8')
+const customerRow = fs.readFileSync(customerRowPath, 'utf8')
 const plan = fs.readFileSync(planPath, 'utf8')
 
 const expectedStateExports = [
@@ -51,8 +54,8 @@ if (component.includes('function toggleSetValue')) {
   process.exit(1)
 }
 
-if (!component.includes('createBookingExpansionKey(customer.id, booking.id)')) {
-  console.error('React hierarchy component must use duplicate-booking-safe expansion keys from the Stage 3 state module.')
+if (!component.includes('createBookingExpansionKey(customer.id, bookingId)') || !customerRow.includes('createBookingExpansionKey(customer.id, booking.id)')) {
+  console.error('React hierarchy components must use duplicate-booking-safe expansion keys from the Stage 3 state module.')
   process.exit(1)
 }
 

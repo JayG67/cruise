@@ -1,11 +1,8 @@
 import { useMemo, useState } from 'react'
-import BookingDraftForm from './BookingDraftForm.jsx'
-import CustomerDraftForm from './CustomerDraftForm.jsx'
+import CustomerHierarchyRow from './CustomerHierarchyRow.jsx'
 import {
   buildCustomerBookingRows,
   filterCustomerBookingRows,
-  getBookingPassengerNames,
-  getBookingRoute,
   getCustomerName,
   summarizeHierarchyRows
 } from '../domain/adminHierarchy.js'
@@ -272,11 +269,11 @@ export default function CustomerBookingHierarchy({
     <section className="hierarchy-card" aria-labelledby="react-hierarchy-heading" data-testid="react-admin-hierarchy">
       <div className="section-heading-row">
         <div>
-          <p className="eyebrow">Stage 10 migration slice</p>
+          <p className="eyebrow">Stage 12 migration slice</p>
           <h2 id="react-hierarchy-heading">Customer → booking hierarchy</h2>
           <p className="section-summary">
             React now owns search, summary counts, duplicate-booking-safe expansion state,
-            customer and booking mutation boundaries, reusable draft editor components, and shared accessible feedback contracts.
+            customer and booking mutation boundaries, reusable draft editor components, shared accessible feedback contracts, and extracted row/card presentation components.
           </p>
         </div>
         <label className="search-control">
@@ -363,125 +360,3 @@ export default function CustomerBookingHierarchy({
     </section>
   )
 }
-
-function CustomerHierarchyRow({
-  customer,
-  customerName,
-  linkedBookings,
-  isExpanded,
-  expandedBookingIds,
-  onToggleCustomer,
-  onToggleBooking,
-  customerDraft,
-  customerDraftMessage,
-  onEditCustomer,
-  onUpdateCustomerDraft,
-  onValidateCustomerDraft,
-  onSaveCustomerDraft,
-  isSavingCustomer,
-  onCancelCustomerDraft,
-  bookingDrafts,
-  bookingDraftMessages,
-  onEditBooking,
-  onUpdateBookingDraft,
-  onValidateBookingDraft,
-  onSaveBookingDraft,
-  savingBookingId,
-  onCancelBookingDraft
-}) {
-  return (
-    <>
-      <tr>
-        <td>
-          <button className="link-button" type="button" aria-expanded={isExpanded} onClick={onToggleCustomer}>
-            {isExpanded ? '▾' : '▸'} {customerName}
-          </button>
-        </td>
-        <td>{customer.email || 'Not provided'}</td>
-        <td>{customer.phone || 'Not provided'}</td>
-        <td>
-          <span>{linkedBookings.length} bookings</span>
-          <button className="secondary-button compact-button" type="button" onClick={onEditCustomer} data-testid="react-edit-customer-button">
-            Edit customer
-          </button>
-        </td>
-      </tr>
-      {customerDraft && (
-        <tr className="editor-row" data-testid="react-customer-draft-row">
-          <td colSpan="4">
-            <CustomerDraftForm
-              draft={customerDraft}
-              message={customerDraftMessage}
-              onUpdate={onUpdateCustomerDraft}
-              onValidate={onValidateCustomerDraft}
-              onSave={onSaveCustomerDraft}
-              isSaving={isSavingCustomer}
-              onCancel={onCancelCustomerDraft}
-            />
-          </td>
-        </tr>
-      )}
-      {isExpanded && (
-        <tr className="child-row">
-          <td colSpan="4">
-            <div className="child-panel" aria-label={`Bookings for ${customerName}`}>
-              {linkedBookings.length === 0 ? (
-                <p className="muted">No linked bookings for this customer.</p>
-              ) : linkedBookings.map(booking => {
-                const bookingRowKey = createBookingExpansionKey(customer.id, booking.id)
-                const bookingExpanded = expandedBookingIds.has(bookingRowKey)
-                const passengerNames = getBookingPassengerNames(booking)
-
-                return (
-                  <article className="booking-card" key={bookingRowKey} data-testid="react-booking-card">
-                    <div className="booking-card-heading">
-                      <button
-                        type="button"
-                        className="link-button"
-                        aria-expanded={bookingExpanded}
-                        onClick={() => onToggleBooking(booking.id)}
-                      >
-                        {bookingExpanded ? 'Hide' : 'Details'} {booking.id}
-                      </button>
-                      <span className="status-pill">{booking.bookingStatus || 'Status unavailable'}</span>
-                    </div>
-                    <p><strong>{booking.cruiseLine?.name || 'Cruise unavailable'}</strong> · {booking.ship?.name || 'Ship unavailable'}</p>
-                    <p>Cabin {booking.cabinNumber || 'not assigned'} · {getBookingRoute(booking)}</p>
-                    <button
-                      type="button"
-                      className="secondary-button compact-button"
-                      onClick={() => onEditBooking(booking)}
-                      data-testid="react-edit-booking-button"
-                    >
-                      Edit booking draft
-                    </button>
-                    {bookingDrafts[bookingRowKey] && (
-                      <BookingDraftForm
-                        draft={bookingDrafts[bookingRowKey]}
-                        message={bookingDraftMessages[bookingRowKey]}
-                        onUpdate={(fieldName, value) => onUpdateBookingDraft(bookingRowKey, fieldName, value)}
-                        onValidate={() => onValidateBookingDraft(booking)}
-                        onSave={() => onSaveBookingDraft(booking)}
-                        isSaving={savingBookingId === booking.id}
-                        onCancel={() => onCancelBookingDraft(bookingRowKey)}
-                      />
-                    )}
-                    {bookingExpanded && (
-                      <dl className="details-grid">
-                        <div><dt>Fare code</dt><dd>{booking.fareCode || 'Not assigned'}</dd></div>
-                        <div><dt>Sailing</dt><dd>{booking.sailing?.departureDate || 'Date unavailable'}</dd></div>
-                        <div><dt>Passengers</dt><dd>{passengerNames.join(', ') || 'Passengers unavailable'}</dd></div>
-                      </dl>
-                    )}
-                  </article>
-                )
-              })}
-            </div>
-          </td>
-        </tr>
-      )}
-    </>
-  )
-}
-
-
