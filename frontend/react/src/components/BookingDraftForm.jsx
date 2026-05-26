@@ -1,3 +1,4 @@
+import DraftFeedback from './DraftFeedback.jsx'
 import { bookingDraftFields } from '../domain/bookingDraftFormFields.js'
 
 export default function BookingDraftForm({ draft, message, onUpdate, onValidate, onSave, isSaving, onCancel }) {
@@ -26,7 +27,7 @@ export default function BookingDraftForm({ draft, message, onUpdate, onValidate,
           Cancel
         </button>
       </div>
-      {message && <p className="draft-message" role="status">{message}</p>}
+      <DraftFeedback feedback={message} testId="react-booking-draft-feedback" />
     </form>
   )
 }

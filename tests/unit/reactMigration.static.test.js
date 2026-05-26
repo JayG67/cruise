@@ -225,3 +225,31 @@ describe('React migration Stage 9 draft editor field contracts', () => {
     expect(packageJson.scripts['react:migration:audit']).toContain('react:stage9:audit')
   })
 })
+
+
+describe('React migration Stage 10 accessible draft feedback contracts', () => {
+  const projectRoot = path.resolve(__dirname, '../..')
+  const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'))
+
+  it('centralizes draft feedback messaging and exposes accessible status/error contracts', () => {
+    const feedbackDomain = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/draftFeedback.js'), 'utf8')
+    const feedbackComponent = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/DraftFeedback.jsx'), 'utf8')
+    const customerForm = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerDraftForm.jsx'), 'utf8')
+    const bookingForm = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/BookingDraftForm.jsx'), 'utf8')
+    const hierarchy = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx'), 'utf8')
+
+    expect(feedbackDomain).toContain('export function createValidationFeedback')
+    expect(feedbackDomain).toContain('export function createMutationErrorFeedback')
+    expect(feedbackComponent).toContain("tone === 'error' ? 'alert' : 'status'")
+    expect(feedbackComponent).toContain('data-testid={testId}')
+    expect(customerForm).toContain("import DraftFeedback from './DraftFeedback.jsx'")
+    expect(customerForm).toContain('testId="react-customer-draft-feedback"')
+    expect(bookingForm).toContain("import DraftFeedback from './DraftFeedback.jsx'")
+    expect(bookingForm).toContain('testId="react-booking-draft-feedback"')
+    expect(hierarchy).toContain('createValidationFeedback(')
+    expect(hierarchy).toContain('createNoChangesFeedback(')
+    expect(hierarchy).toContain('createMutationErrorFeedback(')
+    expect(packageJson.scripts['react:stage10:audit']).toBe('node scripts/verify-react-stage-10.js')
+    expect(packageJson.scripts['react:migration:audit']).toContain('react:stage10:audit')
+  })
+})

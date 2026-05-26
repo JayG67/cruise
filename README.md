@@ -682,3 +682,20 @@ npm run react:migration:audit
 npm run react:build
 npm run test:all
 ```
+
+
+### React migration Stage 10
+
+Stage 10 adds an accessible draft feedback contract to the isolated React migration shell. Customer and booking draft editors now share centralized feedback helpers and a reusable feedback component so validation, no-change, unavailable-save, success, and mutation-error states are consistent.
+
+Run the Stage 10 guardrail with:
+
+```bash
+npm run react:stage10:audit
+```
+
+The full React migration audit now includes Stage 10:
+
+```bash
+npm run react:migration:audit
+```

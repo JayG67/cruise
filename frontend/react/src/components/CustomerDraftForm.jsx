@@ -1,3 +1,4 @@
+import DraftFeedback from './DraftFeedback.jsx'
 import { customerDraftFields } from '../domain/customerDraftFormFields.js'
 
 export default function CustomerDraftForm({ draft, message, onUpdate, onValidate, onSave, isSaving, onCancel }) {
@@ -27,7 +28,7 @@ export default function CustomerDraftForm({ draft, message, onUpdate, onValidate
           Cancel
         </button>
       </div>
-      {message && <p className="draft-message" role="status">{message}</p>}
+      <DraftFeedback feedback={message} testId="react-customer-draft-feedback" />
     </form>
   )
 }

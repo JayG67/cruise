@@ -128,3 +128,12 @@ This stage is an architectural cleanup stage. It makes the React migration easie
 Stage 9 extracts customer and booking draft editor field metadata into React domain modules. This keeps the form structure centralized, makes future validation/component coverage easier, and reduces the chance that customer and booking editor fields drift away from the API mutation payloads.
 
 The production DOM application remains untouched. The React shell continues to prove the migration path through isolated, auditable increments before any cutover decision.
+
+
+## Stage 10: accessible draft feedback contract
+
+Stage 10 centralizes React draft feedback into a small domain module and reusable feedback component. Customer and booking draft editors now share the same pattern for validation success, validation errors, no-change messages, unavailable save boundaries, mutation success, and mutation failure.
+
+This stage matters because draft save behavior is now moving closer to production quality. The React shell needs consistent assistive-technology behavior before any future cutover. Error feedback is exposed as `role="alert"` while informational and success feedback are exposed as `role="status"`.
+
+The production DOM application remains untouched. Stage 10 is still an isolated migration increment that makes the React shell easier to validate with future component and browser tests.

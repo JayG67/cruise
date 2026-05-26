@@ -16,6 +16,14 @@ import {
   validateBookingDraft
 } from '../domain/bookingDrafts.js'
 import {
+  createDraftFeedback,
+  createMutationErrorFeedback,
+  createNoChangesFeedback,
+  createSaveSuccessFeedback,
+  createSaveUnavailableFeedback,
+  createValidationFeedback
+} from '../domain/draftFeedback.js'
+import {
   createCustomerDraft,
   summarizeCustomerDraftChanges,
   updateCustomerDraftField,
@@ -93,9 +101,10 @@ export default function CustomerBookingHierarchy({
 
     setCustomerDraftMessages(current => ({
       ...current,
-      [customer.id]: validation.isValid
-        ? `Draft is valid with ${changedFields.length} changed fields. Use Save draft to exercise the React mutation boundary.`
-        : Object.values(validation.errors).join(' ')
+      [customer.id]: createValidationFeedback(
+        validation,
+        `Draft is valid with ${changedFields.length} changed fields. Use Save draft to exercise the React mutation boundary.`
+      )
     }))
 
     return { draft, validation, changedFields }
@@ -109,7 +118,7 @@ export default function CustomerBookingHierarchy({
     if (changedFields.length === 0) {
       setCustomerDraftMessages(current => ({
         ...current,
-        [customer.id]: 'No customer fields changed. Nothing to save.'
+        [customer.id]: createNoChangesFeedback('customer')
       }))
       return
     }
@@ -117,7 +126,7 @@ export default function CustomerBookingHierarchy({
     if (!onSaveCustomerDraft) {
       setCustomerDraftMessages(current => ({
         ...current,
-        [customer.id]: 'Save boundary is not available in this React migration shell.'
+        [customer.id]: createSaveUnavailableFeedback('Customer')
       }))
       return
     }
@@ -126,7 +135,7 @@ export default function CustomerBookingHierarchy({
       const result = await onSaveCustomerDraft(customer.id, draft)
       setCustomerDraftMessages(current => ({
         ...current,
-        [customer.id]: result?.message || 'Customer draft saved through the React mutation boundary.'
+        [customer.id]: createSaveSuccessFeedback(result?.message || 'Customer draft saved through the React mutation boundary.')
       }))
       setCustomerDrafts(current => {
         const nextDrafts = { ...current }
@@ -136,7 +145,7 @@ export default function CustomerBookingHierarchy({
     } catch (saveError) {
       setCustomerDraftMessages(current => ({
         ...current,
-        [customer.id]: saveError.message || mutationError || 'Unable to save customer draft.'
+        [customer.id]: createMutationErrorFeedback(saveError, mutationError || 'Unable to save customer draft.')
       }))
     }
   }
@@ -183,9 +192,10 @@ export default function CustomerBookingHierarchy({
 
     setBookingDraftMessages(current => ({
       ...current,
-      [bookingKey]: validation.isValid
-        ? `Booking draft is valid with ${changedFields.length} changed fields. Use Save booking draft to exercise the React booking mutation boundary.`
-        : Object.values(validation.errors).join(' ')
+      [bookingKey]: createValidationFeedback(
+        validation,
+        `Booking draft is valid with ${changedFields.length} changed fields. Use Save booking draft to exercise the React booking mutation boundary.`
+      )
     }))
 
     return { draft, validation, changedFields }
@@ -200,7 +210,7 @@ export default function CustomerBookingHierarchy({
     if (changedFields.length === 0) {
       setBookingDraftMessages(current => ({
         ...current,
-        [bookingKey]: 'No booking fields changed. Nothing to save.'
+        [bookingKey]: createNoChangesFeedback('booking')
       }))
       return
     }
@@ -208,7 +218,7 @@ export default function CustomerBookingHierarchy({
     if (!onSaveBookingDraft) {
       setBookingDraftMessages(current => ({
         ...current,
-        [bookingKey]: 'Booking save boundary is not available in this React migration shell.'
+        [bookingKey]: createSaveUnavailableFeedback('Booking')
       }))
       return
     }
@@ -217,7 +227,7 @@ export default function CustomerBookingHierarchy({
       const result = await onSaveBookingDraft(booking, draft)
       setBookingDraftMessages(current => ({
         ...current,
-        [bookingKey]: result?.message || 'Booking draft saved through the React mutation boundary.'
+        [bookingKey]: createSaveSuccessFeedback(result?.message || 'Booking draft saved through the React mutation boundary.')
       }))
       setBookingDrafts(current => {
         const nextDrafts = { ...current }
@@ -227,7 +237,7 @@ export default function CustomerBookingHierarchy({
     } catch (saveError) {
       setBookingDraftMessages(current => ({
         ...current,
-        [bookingKey]: saveError.message || bookingMutationError || 'Unable to save booking draft.'
+        [bookingKey]: createMutationErrorFeedback(saveError, bookingMutationError || 'Unable to save booking draft.')
       }))
     }
   }
@@ -262,11 +272,11 @@ export default function CustomerBookingHierarchy({
     <section className="hierarchy-card" aria-labelledby="react-hierarchy-heading" data-testid="react-admin-hierarchy">
       <div className="section-heading-row">
         <div>
-          <p className="eyebrow">Stage 8 migration slice</p>
+          <p className="eyebrow">Stage 10 migration slice</p>
           <h2 id="react-hierarchy-heading">Customer → booking hierarchy</h2>
           <p className="section-summary">
             React now owns search, summary counts, duplicate-booking-safe expansion state,
-            customer and booking mutation boundaries, and extracted reusable draft editor components.
+            customer and booking mutation boundaries, reusable draft editor components, and shared accessible feedback contracts.
           </p>
         </div>
         <label className="search-control">
