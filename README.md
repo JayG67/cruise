@@ -408,6 +408,11 @@ The project includes:
 
 ---
 
+### Test Run Hygiene Update
+
+The default `npm run coverage` command intentionally runs the full Jest coverage pass across both unit and integration tests so the portfolio-level coverage percentage continues to reflect the real backend surface area. To avoid duplicate database-backed integration execution during the normal local pipeline, `npm run test` does not run `npm run integrationTests` after coverage. The dedicated `npm run integrationTests` command remains available for focused API validation, and `npm run coverage:all` is kept as an explicit alias for a full Jest coverage pass.
+
+
 ## 🚀 Getting Started
 
 ### Install dependencies
@@ -497,7 +502,7 @@ npm run lighthouse:ci:local
 npm run test:all
 ```
 
-`npm run coverage` and `npm run integrationTests` now start the local Docker PostgreSQL service and wait for the test database before running database-backed tests. This prevents false failures where the test code is healthy but Postgres is not yet listening on `127.0.0.1:5433`.
+`npm run coverage`, `npm run coverage:all`, and `npm run integrationTests` start the local Docker PostgreSQL service and wait for the test database before running database-backed tests. The full `npm run test` path uses coverage as the single Jest pass that includes integration coverage, then proceeds to Cypress UI coverage without rerunning the integration suite a second time.
 
 If the database ever needs a clean local reset, run:
 
@@ -699,3 +704,13 @@ The full React migration audit now includes Stage 10:
 ```bash
 npm run react:migration:audit
 ```
+
+
+### React migration Stage 11: Draft field accessibility contracts
+
+Stage 11 centralizes required-field and input-type metadata for the React customer and booking draft editors. The forms now render `required`, `aria-required`, field types, and autocomplete behavior from the same field contracts used by validation guardrails, keeping accessibility expectations aligned with the staged migration.
+
+
+### SQA console validation hardening
+
+- Tightened the SQA console Safe CRUD workflow so its ship create/update payloads include the required current-port contract and added coverage that verifies the manual console action sends API-valid payloads.

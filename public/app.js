@@ -1949,6 +1949,7 @@ async function runSafeCrudWorkflowCheck() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: `SQA Temporary Ship ${timestamp}`,
+            currentPort: 'SQA Test Port',
             cruiseLineId: createdCruiseLine.id
           })
         })
@@ -1964,6 +1965,7 @@ async function runSafeCrudWorkflowCheck() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: `SQA Temporary Ship ${timestamp} Updated`,
+            currentPort: 'SQA Updated Test Port',
             cruiseLineId: createdCruiseLine.id
           })
         })

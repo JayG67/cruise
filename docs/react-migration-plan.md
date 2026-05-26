@@ -137,3 +137,8 @@ Stage 10 centralizes React draft feedback into a small domain module and reusabl
 This stage matters because draft save behavior is now moving closer to production quality. The React shell needs consistent assistive-technology behavior before any future cutover. Error feedback is exposed as `role="alert"` while informational and success feedback are exposed as `role="status"`.
 
 The production DOM application remains untouched. Stage 10 is still an isolated migration increment that makes the React shell easier to validate with future component and browser tests.
+
+
+### Stage 11: Draft field accessibility contracts
+
+Stage 11 centralizes required-field and input-type metadata for the React customer and booking draft editors. The forms now render `required`, `aria-required`, field types, and autocomplete behavior from the same field contracts used by validation guardrails, keeping accessibility expectations aligned with the staged migration.

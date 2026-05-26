@@ -210,7 +210,26 @@ function removeTrackedCruiseLine(cruiseLineId) {
   }
 }
 
+async function getSeededBookingWithPassengers(request, app) {
+  const bookingsResponse = await request(app).get('/cruise/bookings')
+
+  expect(bookingsResponse.statusCode).toBe(200)
+  expect(Array.isArray(bookingsResponse.body)).toBe(true)
+
+  const seededBooking = bookingsResponse.body.find(booking => (
+    booking
+    && booking.id
+    && Array.isArray(booking.passengers)
+    && booking.passengers.length > 0
+  ))
+
+  expect(seededBooking).toBeDefined()
+
+  return seededBooking
+}
+
 module.exports = {
+  getSeededBookingWithPassengers,
   uniqueName,
   uniqueCustomerId,
   uniqueBookingId,

@@ -10,6 +10,10 @@ export default function BookingDraftForm({ draft, message, onUpdate, onValidate,
             <span>{field.label}</span>
             <input
               value={draft[field.name] || ''}
+              type={field.type || 'text'}
+              autoComplete={field.autoComplete || 'off'}
+              required={field.required}
+              aria-required={field.required ? 'true' : undefined}
               onChange={event => onUpdate(field.name, event.target.value)}
               data-testid={`react-booking-draft-${field.name}`}
             />

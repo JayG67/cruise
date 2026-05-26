@@ -253,3 +253,27 @@ describe('React migration Stage 10 accessible draft feedback contracts', () => {
     expect(packageJson.scripts['react:migration:audit']).toContain('react:stage10:audit')
   })
 })
+
+
+describe('React migration Stage 11 draft field accessibility contracts', () => {
+  const projectRoot = path.resolve(__dirname, '../..')
+  const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'))
+
+  it('marks required React draft fields through shared metadata and accessible input attributes', () => {
+    const customerFields = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/customerDraftFormFields.js'), 'utf8')
+    const bookingFields = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/bookingDraftFormFields.js'), 'utf8')
+    const customerForm = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerDraftForm.jsx'), 'utf8')
+    const bookingForm = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/BookingDraftForm.jsx'), 'utf8')
+
+    expect(customerFields).toContain('getRequiredCustomerDraftFieldNames')
+    expect(customerFields).toContain("type: 'email'")
+    expect(bookingFields).toContain('getRequiredBookingDraftFieldNames')
+    expect(bookingFields).toContain('required: true')
+    expect(customerForm).toContain("type={field.type || 'text'}")
+    expect(customerForm).toContain("aria-required={field.required ? 'true' : undefined}")
+    expect(bookingForm).toContain("autoComplete={field.autoComplete || 'off'}")
+    expect(bookingForm).toContain("aria-required={field.required ? 'true' : undefined}")
+    expect(packageJson.scripts['react:stage11:audit']).toBe('node scripts/verify-react-stage-11.js')
+    expect(packageJson.scripts['react:migration:audit']).toContain('react:stage11:audit')
+  })
+})

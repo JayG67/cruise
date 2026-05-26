@@ -626,6 +626,7 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
     const temporaryShip = {
       id: '88888888-8888-4888-8888-888888888888',
       name: 'SQA Temporary Ship',
+      currentPort: 'SQA Test Port',
       cruiseLineId: temporaryCruiseLine.id
     }
 
@@ -639,14 +640,36 @@ describe('Cruise Explorer SQA Test Control Panel', () => {
       body: { ...temporaryCruiseLine, name: 'SQA Temporary Cruise Line Updated' }
     }).as('sqaUpdateCruiseLine')
 
-    cy.intercept('POST', '/cruise/ship', {
-      statusCode: 201,
-      body: temporaryShip
+    cy.intercept('POST', '/cruise/ship', req => {
+      expect(req.body.name).to.match(/^SQA Temporary Ship \d+$/)
+      expect(req.body).to.include({
+        currentPort: 'SQA Test Port',
+        cruiseLineId: temporaryCruiseLine.id
+      })
+
+      temporaryShip.name = req.body.name
+
+      req.reply({
+        statusCode: 201,
+        body: temporaryShip
+      })
     }).as('sqaCreateShip')
 
-    cy.intercept('PATCH', `/cruise/ship/${temporaryShip.id}`, {
-      statusCode: 200,
-      body: { ...temporaryShip, name: 'SQA Temporary Ship Updated' }
+    cy.intercept('PATCH', `/cruise/ship/${temporaryShip.id}`, req => {
+      expect(req.body.name).to.match(/^SQA Temporary Ship \d+ Updated$/)
+      expect(req.body).to.include({
+        currentPort: 'SQA Updated Test Port',
+        cruiseLineId: temporaryCruiseLine.id
+      })
+
+      req.reply({
+        statusCode: 200,
+        body: {
+          ...temporaryShip,
+          name: req.body.name,
+          currentPort: 'SQA Updated Test Port'
+        }
+      })
     }).as('sqaUpdateShip')
 
     cy.intercept('GET', `/cruise/ships/${temporaryCruiseLine.id}`, {

@@ -12,13 +12,29 @@ beforeAll(async () => {
 
 async function getSeededShipAndSailing() {
   const cruiseRes = await request(app).get('/cruise')
-  const shipsRes = await request(app).get(`/cruise/ships/${cruiseRes.body[0].id}`)
-  const sailingsRes = await request(app).get(`/cruise/ship/${shipsRes.body[0].id}/sailings`)
+  expect(cruiseRes.statusCode).toBe(200)
+  expect(Array.isArray(cruiseRes.body)).toBe(true)
 
-  return {
-    ship: shipsRes.body[0],
-    sailing: sailingsRes.body[0]
+  for (const cruiseLine of cruiseRes.body) {
+    const shipsRes = await request(app).get(`/cruise/ships/${cruiseLine.id}`)
+
+    if (shipsRes.statusCode !== 200 || !Array.isArray(shipsRes.body) || shipsRes.body.length === 0) {
+      continue
+    }
+
+    for (const ship of shipsRes.body) {
+      const sailingsRes = await request(app).get(`/cruise/ship/${ship.id}/sailings`)
+
+      if (sailingsRes.statusCode === 200 && Array.isArray(sailingsRes.body) && sailingsRes.body.length > 0) {
+        return {
+          ship,
+          sailing: sailingsRes.body[0]
+        }
+      }
+    }
   }
+
+  throw new Error('Expected seeded cruise data to include at least one ship with a sailing')
 }
 
 describe('Sailing and itinerary API integration tests', () => {

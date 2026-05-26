@@ -12,6 +12,7 @@ const {
   trackBooking,
   removeTrackedBooking
 } = require('./helpers/testDataFactory')
+const { getSeededBookingWithPassengers } = require('./helpers/testDataFactory')
 
 beforeAll(async () => {
   await initializeDatabase()
@@ -1013,6 +1014,9 @@ describe('Customer and booking API integration tests', () => {
   })
 
   it('POST /cruise/bookings/:bookingId/passengers should reject passengers with overlapping bookings', async () => {
+    const seededBooking = await getSeededBookingWithPassengers(request, app)
+    const seededBookingId = seededBooking.id
+
     const firstCustomer = await createCustomer({ firstName: 'First', lastName: 'Guest' })
     const secondCustomer = await createCustomer({ firstName: 'Second', lastName: 'Guest' })
     const sailing = await getFirstSeededSailing()
