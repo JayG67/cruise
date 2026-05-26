@@ -731,3 +731,22 @@ This keeps state orchestration centralized while making customer rows and bookin
 Stage 13 hardens accessibility and presentation contracts on the extracted React hierarchy components. Customer expansion buttons now explicitly control their booking panels, and booking detail toggles explicitly control their detail panels using stable IDs derived from the same duplicate-safe hierarchy keys.
 
 This is still an isolated React migration step: the production DOM app remains untouched while the React shell gains stronger component seams and accessibility contracts for future browser/component coverage.
+
+
+### React migration Stage 14
+
+Stage 14 extracts customer and booking draft workflow orchestration from the React hierarchy container into dedicated hooks:
+
+- `useCustomerDraftWorkflow`
+- `useBookingDraftWorkflow`
+
+This keeps `CustomerBookingHierarchy` focused on search, summary, expansion state, and row composition while each draft workflow owns creation, validation, no-change handling, save success/error feedback, and cancel behavior. The production DOM application remains untouched.
+
+Validation commands:
+
+```bash
+npm run react:stage14:audit
+npm run react:migration:audit
+npm run react:build
+npm run test:all
+```

@@ -19,6 +19,8 @@ const feedbackComponent = read('frontend/react/src/components/DraftFeedback.jsx'
 const customerForm = read('frontend/react/src/components/CustomerDraftForm.jsx')
 const bookingForm = read('frontend/react/src/components/BookingDraftForm.jsx')
 const hierarchy = read('frontend/react/src/components/CustomerBookingHierarchy.jsx')
+const customerWorkflow = read('frontend/react/src/hooks/useCustomerDraftWorkflow.js')
+const bookingWorkflow = read('frontend/react/src/hooks/useBookingDraftWorkflow.js')
 const plan = read('docs/react-migration-plan.md')
 
 ;[
@@ -39,10 +41,13 @@ assertContains(customerForm, 'testId="react-customer-draft-feedback"', 'Stage 10
 assertContains(bookingForm, "import DraftFeedback from './DraftFeedback.jsx'", 'Stage 10 booking form')
 assertContains(bookingForm, 'testId="react-booking-draft-feedback"', 'Stage 10 booking form')
 
-assertContains(hierarchy, 'createValidationFeedback(', 'Stage 10 hierarchy')
-assertContains(hierarchy, 'createNoChangesFeedback(', 'Stage 10 hierarchy')
-assertContains(hierarchy, 'createMutationErrorFeedback(', 'Stage 10 hierarchy')
-assertContains(hierarchy, 'Stage 10 migration slice', 'Stage 10 hierarchy')
+assertContains(customerWorkflow, 'createValidationFeedback(', 'Stage 10 customer draft workflow hook')
+assertContains(customerWorkflow, 'createNoChangesFeedback(', 'Stage 10 customer draft workflow hook')
+assertContains(customerWorkflow, 'createMutationErrorFeedback(', 'Stage 10 customer draft workflow hook')
+assertContains(bookingWorkflow, 'createValidationFeedback(', 'Stage 10 booking draft workflow hook')
+assertContains(bookingWorkflow, 'createNoChangesFeedback(', 'Stage 10 booking draft workflow hook')
+assertContains(bookingWorkflow, 'createMutationErrorFeedback(', 'Stage 10 booking draft workflow hook')
+assertContains(hierarchy, 'Stage 14 migration slice', 'Stage 10 hierarchy still represented in current migration summary')
 
 assertContains(plan, 'Stage 10', 'React migration plan')
 assertContains(plan, 'accessible draft feedback contract', 'React migration plan')

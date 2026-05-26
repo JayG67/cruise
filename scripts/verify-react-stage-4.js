@@ -4,6 +4,7 @@ const path = require('path')
 const projectRoot = path.resolve(__dirname, '..')
 const draftPath = path.join(projectRoot, 'frontend/react/src/domain/customerDrafts.js')
 const componentPath = path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx')
+const customerWorkflowPath = path.join(projectRoot, 'frontend/react/src/hooks/useCustomerDraftWorkflow.js')
 const customerRowPath = path.join(projectRoot, 'frontend/react/src/components/CustomerHierarchyRow.jsx')
 const customerFormPath = path.join(projectRoot, 'frontend/react/src/components/CustomerDraftForm.jsx')
 const stylesPath = path.join(projectRoot, 'frontend/react/src/styles/app.css')
@@ -13,6 +14,7 @@ const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.j
 const requiredFiles = [
   draftPath,
   componentPath,
+  customerWorkflowPath,
   customerRowPath,
   customerFormPath,
   stylesPath,
@@ -29,6 +31,7 @@ ${missingFiles.join('\n')}`)
 
 const drafts = fs.readFileSync(draftPath, 'utf8')
 const component = fs.readFileSync(componentPath, 'utf8')
+const customerWorkflow = fs.readFileSync(customerWorkflowPath, 'utf8')
 const customerRow = fs.readFileSync(customerRowPath, 'utf8')
 const customerForm = fs.readFileSync(customerFormPath, 'utf8')
 const styles = fs.readFileSync(stylesPath, 'utf8')
@@ -49,13 +52,13 @@ ${missingExports.join('\n')}`)
   process.exit(1)
 }
 
-if (!component.includes("from '../domain/customerDrafts.js'")) {
-  console.error('React hierarchy component must consume the Stage 4 customer draft state module.')
+if (!customerWorkflow.includes("from '../domain/customerDrafts.js'")) {
+  console.error('React customer draft workflow hook must consume the Stage 4 customer draft state module.')
   process.exit(1)
 }
 
-if (!component.includes('customerDrafts') || !customerRow.includes('CustomerDraftForm')) {
-  console.error('React hierarchy components must own customer draft state and render the extracted draft editor.')
+if (!component.includes('customerDrafts') || !customerWorkflow.includes('customerDrafts') || !customerRow.includes('CustomerDraftForm')) {
+  console.error('React hierarchy and workflow components must expose customer draft state and render the extracted draft editor.')
   process.exit(1)
 }
 

@@ -7,32 +7,14 @@ import {
   summarizeHierarchyRows
 } from '../domain/adminHierarchy.js'
 import {
-  createBookingDraft,
-  summarizeBookingDraftChanges,
-  updateBookingDraftField,
-  validateBookingDraft
-} from '../domain/bookingDrafts.js'
-import {
-  createDraftFeedback,
-  createMutationErrorFeedback,
-  createNoChangesFeedback,
-  createSaveSuccessFeedback,
-  createSaveUnavailableFeedback,
-  createValidationFeedback
-} from '../domain/draftFeedback.js'
-import {
-  createCustomerDraft,
-  summarizeCustomerDraftChanges,
-  updateCustomerDraftField,
-  validateCustomerDraft
-} from '../domain/customerDrafts.js'
-import {
   collapseBookingsForVisibleCustomers,
   collapseVisibleCustomers,
   createBookingExpansionKey,
   expandVisibleCustomers,
   toggleExpandedId
 } from '../domain/hierarchyExpansionState.js'
+import { useBookingDraftWorkflow } from '../hooks/useBookingDraftWorkflow.js'
+import { useCustomerDraftWorkflow } from '../hooks/useCustomerDraftWorkflow.js'
 
 export default function CustomerBookingHierarchy({
   customers = [],
@@ -50,194 +32,31 @@ export default function CustomerBookingHierarchy({
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedCustomerIds, setExpandedCustomerIds] = useState(() => new Set())
   const [expandedBookingIds, setExpandedBookingIds] = useState(() => new Set())
-  const [customerDrafts, setCustomerDrafts] = useState(() => ({}))
-  const [customerDraftMessages, setCustomerDraftMessages] = useState(() => ({}))
-  const [bookingDrafts, setBookingDrafts] = useState(() => ({}))
-  const [bookingDraftMessages, setBookingDraftMessages] = useState(() => ({}))
 
   const allRows = useMemo(() => buildCustomerBookingRows(customers, bookings), [customers, bookings])
   const rows = useMemo(() => filterCustomerBookingRows(allRows, searchTerm), [allRows, searchTerm])
   const summary = useMemo(() => summarizeHierarchyRows(rows), [rows])
 
 
-  function openCustomerDraft(customer) {
-    setCustomerDrafts(current => ({
-      ...current,
-      [customer.id]: createCustomerDraft(customer)
-    }))
-    setCustomerDraftMessages(current => ({
-      ...current,
-      [customer.id]: ''
-    }))
-  }
+  const {
+    customerDrafts,
+    customerDraftMessages,
+    openCustomerDraft,
+    updateCustomerDraft,
+    validateCustomerDraftFor,
+    saveCustomerDraftFor,
+    cancelCustomerDraft
+  } = useCustomerDraftWorkflow({ onSaveCustomerDraft, mutationError })
 
-  function updateCustomerDraft(customerId, fieldName, value) {
-    setCustomerDrafts(current => ({
-      ...current,
-      [customerId]: updateCustomerDraftField(current[customerId], fieldName, value)
-    }))
-  }
-
-  function cancelCustomerDraft(customerId) {
-    setCustomerDrafts(current => {
-      const nextDrafts = { ...current }
-      delete nextDrafts[customerId]
-      return nextDrafts
-    })
-    setCustomerDraftMessages(current => {
-      const nextMessages = { ...current }
-      delete nextMessages[customerId]
-      return nextMessages
-    })
-  }
-
-  function validateCustomerDraftFor(customer) {
-    const draft = customerDrafts[customer.id]
-    const validation = validateCustomerDraft(draft)
-    const changedFields = summarizeCustomerDraftChanges(customer, draft)
-
-    setCustomerDraftMessages(current => ({
-      ...current,
-      [customer.id]: createValidationFeedback(
-        validation,
-        `Draft is valid with ${changedFields.length} changed fields. Use Save draft to exercise the React mutation boundary.`
-      )
-    }))
-
-    return { draft, validation, changedFields }
-  }
-
-  async function saveCustomerDraftFor(customer) {
-    const { draft, validation, changedFields } = validateCustomerDraftFor(customer)
-
-    if (!validation.isValid) return
-
-    if (changedFields.length === 0) {
-      setCustomerDraftMessages(current => ({
-        ...current,
-        [customer.id]: createNoChangesFeedback('customer')
-      }))
-      return
-    }
-
-    if (!onSaveCustomerDraft) {
-      setCustomerDraftMessages(current => ({
-        ...current,
-        [customer.id]: createSaveUnavailableFeedback('Customer')
-      }))
-      return
-    }
-
-    try {
-      const result = await onSaveCustomerDraft(customer.id, draft)
-      setCustomerDraftMessages(current => ({
-        ...current,
-        [customer.id]: createSaveSuccessFeedback(result?.message || 'Customer draft saved through the React mutation boundary.')
-      }))
-      setCustomerDrafts(current => {
-        const nextDrafts = { ...current }
-        delete nextDrafts[customer.id]
-        return nextDrafts
-      })
-    } catch (saveError) {
-      setCustomerDraftMessages(current => ({
-        ...current,
-        [customer.id]: createMutationErrorFeedback(saveError, mutationError || 'Unable to save customer draft.')
-      }))
-    }
-  }
-
-
-  function openBookingDraft(customerId, booking) {
-    const bookingKey = createBookingExpansionKey(customerId, booking.id)
-
-    setBookingDrafts(current => ({
-      ...current,
-      [bookingKey]: createBookingDraft(booking)
-    }))
-    setBookingDraftMessages(current => ({
-      ...current,
-      [bookingKey]: ''
-    }))
-  }
-
-  function updateBookingDraft(bookingKey, fieldName, value) {
-    setBookingDrafts(current => ({
-      ...current,
-      [bookingKey]: updateBookingDraftField(current[bookingKey], fieldName, value)
-    }))
-  }
-
-  function cancelBookingDraft(bookingKey) {
-    setBookingDrafts(current => {
-      const nextDrafts = { ...current }
-      delete nextDrafts[bookingKey]
-      return nextDrafts
-    })
-    setBookingDraftMessages(current => {
-      const nextMessages = { ...current }
-      delete nextMessages[bookingKey]
-      return nextMessages
-    })
-  }
-
-  function validateBookingDraftFor(customerId, booking) {
-    const bookingKey = createBookingExpansionKey(customerId, booking.id)
-    const draft = bookingDrafts[bookingKey]
-    const validation = validateBookingDraft(draft)
-    const changedFields = summarizeBookingDraftChanges(booking, draft)
-
-    setBookingDraftMessages(current => ({
-      ...current,
-      [bookingKey]: createValidationFeedback(
-        validation,
-        `Booking draft is valid with ${changedFields.length} changed fields. Use Save booking draft to exercise the React booking mutation boundary.`
-      )
-    }))
-
-    return { draft, validation, changedFields }
-  }
-
-  async function saveBookingDraftFor(customerId, booking) {
-    const bookingKey = createBookingExpansionKey(customerId, booking.id)
-    const { draft, validation, changedFields } = validateBookingDraftFor(customerId, booking)
-
-    if (!validation.isValid) return
-
-    if (changedFields.length === 0) {
-      setBookingDraftMessages(current => ({
-        ...current,
-        [bookingKey]: createNoChangesFeedback('booking')
-      }))
-      return
-    }
-
-    if (!onSaveBookingDraft) {
-      setBookingDraftMessages(current => ({
-        ...current,
-        [bookingKey]: createSaveUnavailableFeedback('Booking')
-      }))
-      return
-    }
-
-    try {
-      const result = await onSaveBookingDraft(booking, draft)
-      setBookingDraftMessages(current => ({
-        ...current,
-        [bookingKey]: createSaveSuccessFeedback(result?.message || 'Booking draft saved through the React mutation boundary.')
-      }))
-      setBookingDrafts(current => {
-        const nextDrafts = { ...current }
-        delete nextDrafts[bookingKey]
-        return nextDrafts
-      })
-    } catch (saveError) {
-      setBookingDraftMessages(current => ({
-        ...current,
-        [bookingKey]: createMutationErrorFeedback(saveError, bookingMutationError || 'Unable to save booking draft.')
-      }))
-    }
-  }
+  const {
+    bookingDrafts,
+    bookingDraftMessages,
+    openBookingDraft,
+    updateBookingDraft,
+    validateBookingDraftFor,
+    saveBookingDraftFor,
+    cancelBookingDraft
+  } = useBookingDraftWorkflow({ onSaveBookingDraft, bookingMutationError })
 
   function expandAllVisibleCustomers() {
     setExpandedCustomerIds(current => expandVisibleCustomers(current, rows))
@@ -269,11 +88,11 @@ export default function CustomerBookingHierarchy({
     <section className="hierarchy-card" aria-labelledby="react-hierarchy-heading" data-testid="react-admin-hierarchy">
       <div className="section-heading-row">
         <div>
-          <p className="eyebrow">Stage 13 migration slice</p>
+          <p className="eyebrow">Stage 14 migration slice</p>
           <h2 id="react-hierarchy-heading">Customer → booking hierarchy</h2>
           <p className="section-summary">
             React now owns search, summary counts, duplicate-booking-safe expansion state,
-            customer and booking mutation boundaries, reusable draft editor components, shared accessible feedback contracts, and extracted row/card presentation components, and explicit aria-controls contracts for expandable hierarchy panels.
+            customer and booking mutation boundaries, reusable draft editor components, shared accessible feedback contracts, and extracted row/card presentation components, explicit aria-controls contracts for expandable hierarchy panels, and extracted draft workflow hooks for customer and booking edits.
           </p>
         </div>
         <label className="search-control">

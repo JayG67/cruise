@@ -30,7 +30,7 @@ assertContains(bookingCard, 'aria-label={`Booking ${booking.id} for ${passengerS
 assertContains(bookingCard, 'id={detailsId}', 'controlled booking details panel id')
 assertContains(bookingCard, 'data-testid="react-booking-details"', 'booking details test id')
 
-assertContains(hierarchy, 'Stage 13 migration slice', 'Stage 13 hierarchy summary copy')
+assertContains(hierarchy, 'aria-controls contracts', 'presentation accessibility summary copy')
 assertContains(packageJson.scripts['react:migration:audit'], 'react:stage13:audit', 'Stage 13 included in aggregate audit')
 
 console.log('React Stage 13 presentation accessibility contract audit passed.')

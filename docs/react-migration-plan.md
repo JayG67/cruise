@@ -164,3 +164,14 @@ This stage improves maintainability before cutover: the React hierarchy now has 
 - Add static guardrails for the React presentation contracts before introducing broader React browser coverage.
 
 This stage improves migration safety by making the extracted components easier to test and less dependent on surrounding table context.
+
+
+### Stage 14: Draft workflow hook extraction
+
+- Extract customer draft workflow state and actions into `useCustomerDraftWorkflow`.
+- Extract booking draft workflow state and actions into `useBookingDraftWorkflow`.
+- Keep duplicate-booking-safe keys inside the booking draft workflow hook so repeated booking IDs remain independently editable by customer context.
+- Keep the hierarchy component focused on orchestration and composition instead of owning every draft transition inline.
+- Preserve the production DOM UI and existing regression suite while the React migration shell gains clearer state-management seams.
+
+This stage improves maintainability and creates a cleaner future boundary for component tests or route-level React cutover work.
