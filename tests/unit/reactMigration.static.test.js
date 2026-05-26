@@ -488,3 +488,35 @@ describe('React migration Stage 19 cutover readiness gates', () => {
     expect(packageJson.scripts['react:migration:audit']).toContain('react:stage19:audit')
   })
 })
+
+
+describe('React migration Stage 20 pilot launch checklist', () => {
+  const projectRoot = path.resolve(__dirname, '../..')
+  const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'))
+
+  function read(relativePath) {
+    return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
+  }
+
+  it('adds a dev-branch pilot launch route so the remaining migration is not an endless stage chain', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const routes = read('frontend/react/src/domain/reactMigrationRoutes.js')
+    const pilotDomain = read('frontend/react/src/domain/reactPilotLaunch.js')
+    const pilotPanel = read('frontend/react/src/components/ReactPilotLaunchPanel.jsx')
+    const roadmap = read('frontend/react/src/domain/reactMigrationRoadmap.js')
+    const plan = read('docs/react-migration-plan.md')
+
+    expect(app).toContain("import ReactPilotLaunchPanel from './components/ReactPilotLaunchPanel.jsx'")
+    expect(app).toContain("activeRouteKey === 'pilot'")
+    expect(routes).toContain("key: 'pilot'")
+    expect(pilotDomain).toContain('reactPilotLaunchSteps')
+    expect(pilotDomain).toContain('summarizeReactPilotLaunch')
+    expect(pilotDomain).toContain('getReactPilotLaunchRecommendation')
+    expect(pilotPanel).toContain('data-testid="react-pilot-launch-panel"')
+    expect(pilotPanel).toContain('data-testid="react-pilot-steps"')
+    expect(roadmap).toContain('number: 20')
+    expect(plan).toContain('Stage 20: Pilot launch checklist')
+    expect(packageJson.scripts['react:stage20:audit']).toBe('node scripts/verify-react-stage-20.js')
+    expect(packageJson.scripts['react:migration:audit']).toContain('react:stage20:audit')
+  })
+})

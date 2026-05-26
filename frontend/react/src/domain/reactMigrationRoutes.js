@@ -18,6 +18,11 @@ export const REACT_MIGRATION_ROUTES = [
     key: 'cutover',
     label: 'Cutover readiness',
     description: 'Review production-style gates before replacing any legacy DOM workflow.'
+  },
+  {
+    key: 'pilot',
+    label: 'Pilot launch',
+    description: 'Translate the remaining migration work into a dev-branch pilot launch checklist.'
   }
 ]
 

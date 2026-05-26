@@ -217,3 +217,16 @@ Stage 19 intentionally consolidates the migration roadmap. Instead of continuing
 - Use this stage as the pivot from micro-stage construction to larger cutover-oriented slices.
 
 The practical remaining roadmap should be short: add React browser coverage, introduce a controlled cutover/feature flag, then remove duplicated legacy UI only after the React route proves stable.
+
+
+## Stage 20: Pilot launch checklist
+
+Stage 20 intentionally compresses the remaining React migration into a practical pilot-launch path instead of continuing with many tiny technical stages.
+
+- Keep the legacy DOM application as the production fallback.
+- Treat the React shell as a dev-branch pilot route.
+- Validate Vite build/audit readiness before any cutover proposal.
+- Add React browser parity checks before retiring the matching legacy workflow.
+- Use the pilot checklist and cutover readiness gates as the final decision framework.
+
+This is the point where the portfolio story shifts from “migration scaffolding” to “release-managed modernization.”
