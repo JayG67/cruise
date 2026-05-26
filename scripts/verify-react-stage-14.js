@@ -26,7 +26,7 @@ const packageJson = JSON.parse(readProjectFile('package.json'))
 
 assertContains(hierarchy, "import { useCustomerDraftWorkflow } from '../hooks/useCustomerDraftWorkflow.js'", 'customer draft workflow hook import')
 assertContains(hierarchy, "import { useBookingDraftWorkflow } from '../hooks/useBookingDraftWorkflow.js'", 'booking draft workflow hook import')
-assertContains(hierarchy, 'Stage 14 migration slice', 'Stage 14 hierarchy summary copy')
+assertContains(hierarchy, 'draft workflow hooks for customer and booking edits', 'Stage 14 hierarchy summary copy')
 assertContains(hierarchy, 'useCustomerDraftWorkflow({ onSaveCustomerDraft, mutationError })', 'customer draft workflow usage')
 assertContains(hierarchy, 'useBookingDraftWorkflow({ onSaveBookingDraft, bookingMutationError })', 'booking draft workflow usage')
 assertNotContains(hierarchy, 'createNoChangesFeedback', 'inline draft feedback orchestration in hierarchy component')

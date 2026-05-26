@@ -1,18 +1,6 @@
-import { useMemo, useState } from 'react'
 import CustomerHierarchyRow from './CustomerHierarchyRow.jsx'
-import {
-  buildCustomerBookingRows,
-  filterCustomerBookingRows,
-  getCustomerName,
-  summarizeHierarchyRows
-} from '../domain/adminHierarchy.js'
-import {
-  collapseBookingsForVisibleCustomers,
-  collapseVisibleCustomers,
-  createBookingExpansionKey,
-  expandVisibleCustomers,
-  toggleExpandedId
-} from '../domain/hierarchyExpansionState.js'
+import { getCustomerName } from '../domain/adminHierarchy.js'
+import { useAdminHierarchyViewState } from '../hooks/useAdminHierarchyViewState.js'
 import { useBookingDraftWorkflow } from '../hooks/useBookingDraftWorkflow.js'
 import { useCustomerDraftWorkflow } from '../hooks/useCustomerDraftWorkflow.js'
 
@@ -29,14 +17,18 @@ export default function CustomerBookingHierarchy({
   savingBookingId = '',
   bookingMutationError = ''
 }) {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [expandedCustomerIds, setExpandedCustomerIds] = useState(() => new Set())
-  const [expandedBookingIds, setExpandedBookingIds] = useState(() => new Set())
-
-  const allRows = useMemo(() => buildCustomerBookingRows(customers, bookings), [customers, bookings])
-  const rows = useMemo(() => filterCustomerBookingRows(allRows, searchTerm), [allRows, searchTerm])
-  const summary = useMemo(() => summarizeHierarchyRows(rows), [rows])
-
+  const {
+    searchTerm,
+    rows,
+    summary,
+    expandedCustomerIds,
+    expandedBookingIds,
+    updateSearchTerm,
+    toggleCustomer,
+    toggleBooking,
+    expandAllVisibleCustomers,
+    collapseAllVisibleCustomers
+  } = useAdminHierarchyViewState(customers, bookings)
 
   const {
     customerDrafts,
@@ -58,14 +50,6 @@ export default function CustomerBookingHierarchy({
     cancelBookingDraft
   } = useBookingDraftWorkflow({ onSaveBookingDraft, bookingMutationError })
 
-  function expandAllVisibleCustomers() {
-    setExpandedCustomerIds(current => expandVisibleCustomers(current, rows))
-  }
-
-  function collapseAllVisibleCustomers() {
-    setExpandedCustomerIds(current => collapseVisibleCustomers(current, rows))
-    setExpandedBookingIds(current => collapseBookingsForVisibleCustomers(current, rows))
-  }
 
   if (isLoading) {
     return <p role="status" className="status-card">Loading React customer hierarchy snapshot…</p>
@@ -88,11 +72,11 @@ export default function CustomerBookingHierarchy({
     <section className="hierarchy-card" aria-labelledby="react-hierarchy-heading" data-testid="react-admin-hierarchy">
       <div className="section-heading-row">
         <div>
-          <p className="eyebrow">Stage 14 migration slice</p>
+          <p className="eyebrow">Stage 15 migration slice</p>
           <h2 id="react-hierarchy-heading">Customer → booking hierarchy</h2>
           <p className="section-summary">
             React now owns search, summary counts, duplicate-booking-safe expansion state,
-            customer and booking mutation boundaries, reusable draft editor components, shared accessible feedback contracts, and extracted row/card presentation components, explicit aria-controls contracts for expandable hierarchy panels, and extracted draft workflow hooks for customer and booking edits.
+            customer and booking mutation boundaries, reusable draft editor components, shared accessible feedback contracts, and extracted row/card presentation components, explicit aria-controls contracts for expandable hierarchy panels, extracted draft workflow hooks for customer and booking edits, and a reusable hierarchy view-state hook for search, summary, expansion, and collapse behavior.
           </p>
         </div>
         <label className="search-control">
@@ -100,7 +84,7 @@ export default function CustomerBookingHierarchy({
           <input
             data-testid="react-hierarchy-search-input"
             value={searchTerm}
-            onChange={event => setSearchTerm(event.target.value)}
+            onChange={event => updateSearchTerm(event.target.value)}
             placeholder="Customer, booking, cabin, ship…"
             aria-describedby="react-hierarchy-summary"
           />
@@ -151,8 +135,8 @@ export default function CustomerBookingHierarchy({
                     linkedBookings={linkedBookings}
                     isExpanded={isExpanded}
                     expandedBookingIds={expandedBookingIds}
-                    onToggleCustomer={() => setExpandedCustomerIds(current => toggleExpandedId(current, customer.id))}
-                    onToggleBooking={bookingId => setExpandedBookingIds(current => toggleExpandedId(current, createBookingExpansionKey(customer.id, bookingId)))}
+                    onToggleCustomer={() => toggleCustomer(customer.id)}
+                    onToggleBooking={bookingId => toggleBooking(customer.id, bookingId)}
                     customerDraft={customerDrafts[customer.id]}
                     customerDraftMessage={customerDraftMessages[customer.id]}
                     onEditCustomer={() => openCustomerDraft(customer)}

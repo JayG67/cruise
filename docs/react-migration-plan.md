@@ -175,3 +175,8 @@ This stage improves migration safety by making the extracted components easier t
 - Preserve the production DOM UI and existing regression suite while the React migration shell gains clearer state-management seams.
 
 This stage improves maintainability and creates a cleaner future boundary for component tests or route-level React cutover work.
+
+
+### React Migration Stage 15 — Hierarchy View-State Hook
+
+Stage 15 extracts the React hierarchy search, summary, customer expansion, booking expansion, and collapse orchestration into `useAdminHierarchyViewState`. This keeps `CustomerBookingHierarchy` focused on composition while preserving duplicate-booking-safe expansion behavior and existing regression guardrails.
