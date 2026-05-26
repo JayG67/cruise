@@ -19,6 +19,7 @@ ${missingFiles.join('\n')}`)
 
 const domain = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/adminHierarchy.js'), 'utf8')
 const component = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx'), 'utf8')
+const viewStateHook = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/hooks/useAdminHierarchyViewState.js'), 'utf8')
 
 const requiredDomainExports = [
   'export function buildCustomerBookingRows',
@@ -36,8 +37,13 @@ ${missingExports.join('\n')}`)
   process.exit(1)
 }
 
-if (!component.includes('buildCustomerBookingRows') || !component.includes('filterCustomerBookingRows')) {
-  console.error('React hierarchy component must consume the extracted domain module.')
+if (!viewStateHook.includes('buildCustomerBookingRows') || !viewStateHook.includes('filterCustomerBookingRows')) {
+  console.error('React hierarchy view-state hook must consume the extracted domain module.')
+  process.exit(1)
+}
+
+if (!component.includes('useAdminHierarchyViewState')) {
+  console.error('React hierarchy component must consume the extracted view-state hook.')
   process.exit(1)
 }
 

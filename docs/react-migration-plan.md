@@ -180,3 +180,11 @@ This stage improves maintainability and creates a cleaner future boundary for co
 ### React Migration Stage 15 — Hierarchy View-State Hook
 
 Stage 15 extracts the React hierarchy search, summary, customer expansion, booking expansion, and collapse orchestration into `useAdminHierarchyViewState`. This keeps `CustomerBookingHierarchy` focused on composition while preserving duplicate-booking-safe expansion behavior and existing regression guardrails.
+
+
+
+### Stage 16: Migration roadmap metadata
+
+Stage 16 centralizes the React migration status and readiness messaging into `frontend/react/src/domain/reactMigrationRoadmap.js`. The React preview and readiness panel now consume the same stage metadata instead of carrying stale hard-coded migration copy.
+
+This keeps reviewer-facing text aligned with the actual migration architecture as the work continues through additional stages. The production DOM application remains untouched.

@@ -750,3 +750,8 @@ npm run react:migration:audit
 npm run react:build
 npm run test:all
 ```
+
+
+### React Migration Stage 16
+
+Stage 16 adds shared React migration roadmap metadata so the preview shell and readiness panel describe the current migration state from one source. This keeps the portfolio narrative aligned with the code as the staged React migration continues.

@@ -4,6 +4,7 @@ const path = require('path')
 const projectRoot = path.resolve(__dirname, '..')
 const statePath = path.join(projectRoot, 'frontend/react/src/domain/hierarchyExpansionState.js')
 const componentPath = path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx')
+const viewStateHookPath = path.join(projectRoot, 'frontend/react/src/hooks/useAdminHierarchyViewState.js')
 const customerRowPath = path.join(projectRoot, 'frontend/react/src/components/CustomerHierarchyRow.jsx')
 const planPath = path.join(projectRoot, 'docs/react-migration-plan.md')
 const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'))
@@ -11,6 +12,7 @@ const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.j
 const requiredFiles = [
   statePath,
   componentPath,
+  viewStateHookPath,
   customerRowPath,
   planPath
 ]
@@ -25,6 +27,7 @@ ${missingFiles.join('\n')}`)
 
 const state = fs.readFileSync(statePath, 'utf8')
 const component = fs.readFileSync(componentPath, 'utf8')
+const viewStateHook = fs.readFileSync(viewStateHookPath, 'utf8')
 const customerRow = fs.readFileSync(customerRowPath, 'utf8')
 const plan = fs.readFileSync(planPath, 'utf8')
 
@@ -44,8 +47,13 @@ ${missingExports.join('\n')}`)
   process.exit(1)
 }
 
-if (!component.includes("from '../domain/hierarchyExpansionState.js'")) {
-  console.error('React hierarchy component must consume the extracted Stage 3 state transition module.')
+if (!viewStateHook.includes("from '../domain/hierarchyExpansionState.js'")) {
+  console.error('React hierarchy view-state hook must consume the extracted Stage 3 state transition module.')
+  process.exit(1)
+}
+
+if (!component.includes('useAdminHierarchyViewState')) {
+  console.error('React hierarchy component must consume the extracted view-state hook.')
   process.exit(1)
 }
 
@@ -54,7 +62,7 @@ if (component.includes('function toggleSetValue')) {
   process.exit(1)
 }
 
-if (!component.includes('createBookingExpansionKey(customer.id, bookingId)') || !customerRow.includes('createBookingExpansionKey(customer.id, booking.id)')) {
+if (!viewStateHook.includes('createBookingExpansionKey(customerId, bookingId)') || !customerRow.includes('createBookingExpansionKey(customer.id, booking.id)')) {
   console.error('React hierarchy components must use duplicate-booking-safe expansion keys from the Stage 3 state module.')
   process.exit(1)
 }

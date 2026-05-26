@@ -47,7 +47,7 @@ assertContains(customerWorkflow, 'createMutationErrorFeedback(', 'Stage 10 custo
 assertContains(bookingWorkflow, 'createValidationFeedback(', 'Stage 10 booking draft workflow hook')
 assertContains(bookingWorkflow, 'createNoChangesFeedback(', 'Stage 10 booking draft workflow hook')
 assertContains(bookingWorkflow, 'createMutationErrorFeedback(', 'Stage 10 booking draft workflow hook')
-assertContains(hierarchy, 'Stage 14 migration slice', 'Stage 10 hierarchy still represented in current migration summary')
+assertContains(hierarchy, 'migration slice', 'Stage 10 hierarchy still represented in current migration summary')
 
 assertContains(plan, 'Stage 10', 'React migration plan')
 assertContains(plan, 'accessible draft feedback contract', 'React migration plan')
