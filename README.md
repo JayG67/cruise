@@ -129,31 +129,37 @@ The portfolio positioning emphasizes:
 This is especially relevant for AI-enabled QA roles where the value is not simply using AI to generate tests. The value is knowing how to evaluate AI output, constrain risk, preserve auditability, and turn AI acceleration into reviewed engineering assets.
 
 
-## ⚛️ React Migration Track
+## ⚛️ React Modernization Track
 
-The project now includes the first safe stage of a React migration under `frontend/react`. The production application still runs from the existing `public/` DOM implementation, but the repository now has a dedicated React/Vite workspace for incremental modernization.
+The project includes a React/Vite modernization preview under `frontend/react`. The existing DOM app in `public/` remains the production baseline until the React app has browser-level parity coverage and manual cutover approval.
 
-This migration is intentionally staged because the current application already has meaningful maturity and broad regression coverage. The goal is not to rewrite a working app for fashion. The goal is to demonstrate a realistic modernization path: keep the stable Express/Postgres API, preserve the existing quality gates, and migrate one high-value workflow at a time.
+The migration is no longer being expanded through more numbered stages. The repository now keeps the useful React source, a consolidated readiness audit, and cutover documentation while removing the one-off stage-by-stage audit overhead.
 
-The first migration candidate is the Admin Customer → Booking hierarchy because it contains the most UI state: customer search, expandable parent rows, linked child bookings, duplicate booking visibility, booking detail panels, and edit workflow reachability.
-
-React migration commands:
+React commands:
 
 ```bash
 npm install
 npm run react:dev
 npm run react:build
-npm run react:scaffold:audit
+npm run react:readiness:audit
 ```
+
+Manual React preview workflow:
+
+1. Start the API/DOM app with `npm run start`.
+2. Start the React preview with `npm run react:dev`.
+3. Open the Vite URL, usually `http://localhost:5173`.
+4. Validate the React routes, live API refresh, hierarchy search, expansion, customer draft save, and booking draft save.
 
 Supporting documentation:
 
 - `docs/react-migration-plan.md`
+- `docs/react-migration-review-summary.md`
 - `docs/branching-strategy.md`
 
 ### Branching model for the migration
 
-Use `main` as the stable, recruiter-safe branch and create a long-lived `dev` branch for integration work. React migration feature branches should branch from `dev`, merge back into `dev` after focused validation, and only promote to `main` after the full quality gate is clean. This mirrors real-world development while keeping the production portfolio stable.
+Use `main` as the stable, recruiter-safe branch and a long-lived `dev` branch for integration work. Promote to `main` only after the full quality gate is clean and the React cutover plan is reviewed.
 
 ## 🛠️ Admin Operations Dashboard
 
@@ -595,172 +601,33 @@ Senior SQA / Automation Engineering Portfolio Project
 
 ## ⚛️ React migration status
 
-The project is now migrating the frontend incrementally on the long-lived `dev` branch while keeping `main` stable and demo-ready.
+The React migration construction phase is complete. The existing DOM app remains the stable production baseline while the React/Vite preview under `frontend/react` is prepared for browser parity testing and controlled cutover.
 
-Current React migration stages:
+The project now uses one consolidated readiness command instead of dozens of numbered migration-stage audits. The useful migration evidence lives in the React source, tests, README, and `docs/react-migration-review-summary.md`.
 
-- **Stage 0:** Vite/React scaffold isolated under `frontend/react`.
-- **Stage 1:** Customer → booking hierarchy proof of concept with extracted domain logic.
-- **Stage 2:** API client boundary and retryable loading hook for the React hierarchy snapshot.
+### What the React preview includes
 
-Useful commands:
+- Vite/React app under `frontend/react`
+- Existing Express/Postgres API consumed through a React API boundary
+- Live customer → booking hierarchy preview
+- Duplicate-booking-safe expansion state
+- Customer and booking draft workflows
+- Customer and booking mutation boundaries
+- Accessible draft feedback and field contracts
+- Route-level React preview shell
+- Query status, refresh, and request metadata
+- Cutover readiness, pilot launch, parity evidence, and handoff views
+
+### Reviewer validation commands
 
 ```bash
-npm run react:migration:audit
+npm run react:readiness:audit
 npm run react:build
 npm run test:all
 ```
 
-The production DOM application remains active while the React implementation matures behind guardrail tests.
+### Migration handoff summary
 
+The recruiter/reviewer story is now: **a working DOM application was modernized toward React without sacrificing regression coverage.** The work shows risk control, test preservation, component decomposition, API-boundary thinking, accessibility contracts, and production-style cutover planning.
 
-### React migration Stage 3
-
-The React migration now includes an extracted hierarchy expansion state module. Customer expansion, booking detail expansion keys, and visible-row collapse behavior are centralized under `frontend/react/src/domain/hierarchyExpansionState.js` so the migration is moving toward testable state ownership instead of inline DOM-style UI logic.
-
-Run the migration guardrails with:
-
-```bash
-npm run react:migration:audit
-npm run react:build
-```
-
-
-### React migration Stage 4
-
-The React migration now includes a customer edit draft state foundation. This adds local draft creation, field updates, validation messaging, and stable test hooks without mutating the production API yet. The goal is to mature the React admin hierarchy toward real edit workflows while preserving the existing passing DOM application as the production baseline.
-
-Run the React migration guardrails with:
-
-```bash
-npm run react:migration:audit
-npm run react:build
-npm run test:all
-```
-
-
-## React migration Stage 5
-
-The React migration shell now includes a customer profile mutation boundary. The production DOM app remains the stable UI, while the isolated React/Vite shell can validate customer draft state and save customer profile updates through the existing Express API.
-
-Useful commands:
-
-```bash
-npm run react:migration:audit
-npm run react:build
-npm run test:all
-```
-
-
-### React Stage 6 migration checkpoint
-
-The React migration now includes booking draft state for the Admin Customer → Booking hierarchy. Stage 6 keeps the production DOM app untouched and deliberately stops before live booking mutation so the state model can be reviewed and tested independently.
-
-Validation commands:
-
-```bash
-npm run react:stage6:audit
-npm run react:migration:audit
-npm run react:build
-npm run test:all
-```
-
-
-### React Stage 7 booking mutation boundary
-
-The React migration shell now includes a live booking mutation boundary. The React preview can edit and save booking draft fields through the existing `/cruise/bookings/:id` API while preserving passenger membership and sailing context. The production DOM app remains the source of truth until a later cutover stage.
-
-
-### React migration Stage 8 checkpoint
-
-Stage 8 extracts the customer and booking draft editors from the React hierarchy component into reusable components. This keeps the migration incremental while reducing component size and preserving stable test IDs for future component-level coverage.
-
-
-### React migration Stage 9: draft editor field contracts
-
-Stage 9 centralizes React customer and booking draft editor field metadata in domain modules. This improves maintainability by keeping form fields, labels, and stable test IDs aligned while the production DOM UI remains untouched.
-
-Validation commands:
-
-```bash
-npm run react:migration:audit
-npm run react:build
-npm run test:all
-```
-
-
-### React migration Stage 10
-
-Stage 10 adds an accessible draft feedback contract to the isolated React migration shell. Customer and booking draft editors now share centralized feedback helpers and a reusable feedback component so validation, no-change, unavailable-save, success, and mutation-error states are consistent.
-
-Run the Stage 10 guardrail with:
-
-```bash
-npm run react:stage10:audit
-```
-
-The full React migration audit now includes Stage 10:
-
-```bash
-npm run react:migration:audit
-```
-
-
-### React migration Stage 11: Draft field accessibility contracts
-
-Stage 11 centralizes required-field and input-type metadata for the React customer and booking draft editors. The forms now render `required`, `aria-required`, field types, and autocomplete behavior from the same field contracts used by validation guardrails, keeping accessibility expectations aligned with the staged migration.
-
-
-### SQA console validation hardening
-
-- Tightened the SQA console Safe CRUD workflow so its ship create/update payloads include the required current-port contract and added coverage that verifies the manual console action sends API-valid payloads.
-
-
-### React migration Stage 12
-
-Stage 12 decomposes the React customer-booking hierarchy into smaller presentation components:
-
-- `CustomerHierarchyRow`
-- `BookingCard`
-
-This keeps state orchestration centralized while making customer rows and booking cards easier to review, test, and eventually compare against the legacy DOM implementation during migration.
-
-
-### React migration Stage 13
-
-Stage 13 hardens accessibility and presentation contracts on the extracted React hierarchy components. Customer expansion buttons now explicitly control their booking panels, and booking detail toggles explicitly control their detail panels using stable IDs derived from the same duplicate-safe hierarchy keys.
-
-This is still an isolated React migration step: the production DOM app remains untouched while the React shell gains stronger component seams and accessibility contracts for future browser/component coverage.
-
-
-### React migration Stage 14
-
-Stage 14 extracts customer and booking draft workflow orchestration from the React hierarchy container into dedicated hooks:
-
-- `useCustomerDraftWorkflow`
-- `useBookingDraftWorkflow`
-
-This keeps `CustomerBookingHierarchy` focused on search, summary, expansion state, and row composition while each draft workflow owns creation, validation, no-change handling, save success/error feedback, and cancel behavior. The production DOM application remains untouched.
-
-Validation commands:
-
-```bash
-npm run react:stage14:audit
-npm run react:migration:audit
-npm run react:build
-npm run test:all
-```
-
-
-### React Migration Stage 16
-
-Stage 16 adds shared React migration roadmap metadata so the preview shell and readiness panel describe the current migration state from one source. This keeps the portfolio narrative aligned with the code as the staged React migration continues.
-
-
-## ⚛️ React Migration Status
-
-The repository is using a staged React migration on the `dev` branch while the existing DOM application remains the stable production baseline.
-
-Current React migration checkpoint: **Stage 17 — Route-level preview shell**.
-
-The React shell now separates the hierarchy workflow, readiness rationale, and roadmap status into route-level preview sections. This keeps the modernization story realistic: the team can grow React workflow parity one screen at a time without destabilizing the existing app.
+See `docs/react-migration-review-summary.md` for the concise PR/reviewer version of the migration story.

@@ -18,9 +18,15 @@ export const reactMigrationHandoffItems = [
     status: 'complete'
   },
   {
+    id: 'review-cleanup',
+    label: 'PR cleanup replaces additional micro-stages',
+    evidence: 'The migration is capped at Stage 22; the next step is documentation cleanup, full validation, and a squash/curated PR review instead of Stage 23.',
+    status: 'complete'
+  },
+  {
     id: 'remaining-cutover',
     label: 'Final cutover work is intentionally explicit',
-    evidence: 'The next production step is not another migration stage; it is a focused PR review and route smoke test before replacing any legacy workflow.',
+    evidence: 'The next production step is route-level smoke coverage or a feature-flagged React pilot before replacing any legacy workflow.',
     status: 'watch'
   }
 ]
