@@ -16,14 +16,22 @@ export default function BookingCard({
   onCancelBookingDraft
 }) {
   const passengerNames = getBookingPassengerNames(booking)
+  const detailsId = `react-booking-details-${bookingRowKey}`
+  const passengerSummary = passengerNames.join(', ') || 'passengers unavailable'
 
   return (
-    <article className="booking-card" key={bookingRowKey} data-testid="react-booking-card">
+    <article
+      className="booking-card"
+      key={bookingRowKey}
+      data-testid="react-booking-card"
+      aria-label={`Booking ${booking.id} for ${passengerSummary}`}
+    >
       <div className="booking-card-heading">
         <button
           type="button"
           className="link-button"
           aria-expanded={bookingExpanded}
+          aria-controls={detailsId}
           onClick={() => onToggleBooking(booking.id)}
           data-testid="react-toggle-booking-details"
         >
@@ -53,10 +61,10 @@ export default function BookingCard({
         />
       )}
       {bookingExpanded && (
-        <dl className="details-grid" data-testid="react-booking-details">
+        <dl className="details-grid" data-testid="react-booking-details" id={detailsId} aria-label={`Details for booking ${booking.id}`}>
           <div><dt>Fare code</dt><dd>{booking.fareCode || 'Not assigned'}</dd></div>
           <div><dt>Sailing</dt><dd>{booking.sailing?.departureDate || 'Date unavailable'}</dd></div>
-          <div><dt>Passengers</dt><dd>{passengerNames.join(', ') || 'Passengers unavailable'}</dd></div>
+          <div><dt>Passengers</dt><dd>{passengerSummary}</dd></div>
         </dl>
       )}
     </article>

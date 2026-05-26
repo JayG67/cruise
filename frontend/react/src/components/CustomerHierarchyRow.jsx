@@ -27,6 +27,8 @@ export default function CustomerHierarchyRow({
   savingBookingId,
   onCancelBookingDraft
 }) {
+  const bookingsRowId = `react-customer-bookings-${customer.id}`
+
   return (
     <>
       <tr>
@@ -35,6 +37,7 @@ export default function CustomerHierarchyRow({
             className="link-button"
             type="button"
             aria-expanded={isExpanded}
+            aria-controls={bookingsRowId}
             onClick={onToggleCustomer}
             data-testid="react-toggle-customer-bookings"
           >
@@ -66,7 +69,7 @@ export default function CustomerHierarchyRow({
         </tr>
       )}
       {isExpanded && (
-        <tr className="child-row" data-testid="react-customer-bookings-row">
+        <tr className="child-row" data-testid="react-customer-bookings-row" id={bookingsRowId}>
           <td colSpan="4">
             <div className="child-panel" aria-label={`Bookings for ${customerName}`}>
               {linkedBookings.length === 0 ? (

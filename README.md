@@ -724,3 +724,10 @@ Stage 12 decomposes the React customer-booking hierarchy into smaller presentati
 - `BookingCard`
 
 This keeps state orchestration centralized while making customer rows and booking cards easier to review, test, and eventually compare against the legacy DOM implementation during migration.
+
+
+### React migration Stage 13
+
+Stage 13 hardens accessibility and presentation contracts on the extracted React hierarchy components. Customer expansion buttons now explicitly control their booking panels, and booking detail toggles explicitly control their detail panels using stable IDs derived from the same duplicate-safe hierarchy keys.
+
+This is still an isolated React migration step: the production DOM app remains untouched while the React shell gains stronger component seams and accessibility contracts for future browser/component coverage.

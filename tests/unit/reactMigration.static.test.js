@@ -308,3 +308,24 @@ describe('React migration Stage 12 presentation component decomposition', () => 
     expect(packageJson.scripts['react:migration:audit']).toContain('react:stage12:audit')
   })
 })
+
+
+describe('React migration Stage 13 presentation accessibility contracts', () => {
+  const projectRoot = path.resolve(__dirname, '../..')
+  const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'))
+
+  it('adds explicit aria-controls contracts for extracted hierarchy presentation components', () => {
+    const hierarchy = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx'), 'utf8')
+    const customerRow = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerHierarchyRow.jsx'), 'utf8')
+    const bookingCard = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/BookingCard.jsx'), 'utf8')
+
+    expect(hierarchy).toContain('Stage 13 migration slice')
+    expect(customerRow).toContain('aria-controls={bookingsRowId}')
+    expect(customerRow).toContain('id={bookingsRowId}')
+    expect(bookingCard).toContain('aria-controls={detailsId}')
+    expect(bookingCard).toContain('id={detailsId}')
+    expect(bookingCard).toContain('aria-label={`Booking ${booking.id} for ${passengerSummary}`}')
+    expect(packageJson.scripts['react:stage13:audit']).toBe('node scripts/verify-react-stage-13.js')
+    expect(packageJson.scripts['react:migration:audit']).toContain('react:stage13:audit')
+  })
+})

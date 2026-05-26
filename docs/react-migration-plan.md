@@ -153,3 +153,14 @@ Stage 11 centralizes required-field and input-type metadata for the React custom
 - Preserve the production DOM app until the React workflow has equivalent browser coverage.
 
 This stage improves maintainability before cutover: the React hierarchy now has clearer component seams for future component tests, Playwright coverage, and AI-assisted refactoring reviews.
+
+
+### Stage 13: Presentation accessibility contracts
+
+- Add explicit `aria-controls` relationships between customer expansion buttons and their controlled booking panels.
+- Add explicit `aria-controls` relationships between booking detail toggles and their controlled detail panels.
+- Keep detail panel IDs based on duplicate-safe customer/booking keys so repeated bookings remain independently addressable.
+- Add accessible labels to extracted booking cards so the standalone component remains understandable outside the larger hierarchy table.
+- Add static guardrails for the React presentation contracts before introducing broader React browser coverage.
+
+This stage improves migration safety by making the extracted components easier to test and less dependent on surrounding table context.
