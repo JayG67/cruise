@@ -51,7 +51,7 @@
     "react:scaffold:audit": "node scripts/verify-react-migration-scaffold.js",
     "db:test:ready": "docker compose up -d && node scripts/wait-for-test-db.js",
     "react:stage1:audit": "node scripts/verify-react-stage-1.js",
-    "react:migration:audit": "npm run react:scaffold:audit && npm run react:stage1:audit && npm run react:stage2:audit && npm run react:stage3:audit && npm run react:stage4:audit && npm run react:stage5:audit && npm run react:stage6:audit && npm run react:stage7:audit && npm run react:stage8:audit && npm run react:stage9:audit && npm run react:stage10:audit && npm run react:stage11:audit && npm run react:stage12:audit && npm run react:stage13:audit && npm run react:stage14:audit && npm run react:stage15:audit && npm run react:stage16:audit && npm run react:stage17:audit && npm run react:stage18:audit && npm run react:stage19:audit && npm run react:stage20:audit && npm run react:stage21:audit",
+    "react:migration:audit": "npm run react:scaffold:audit && npm run react:stage1:audit && npm run react:stage2:audit && npm run react:stage3:audit && npm run react:stage4:audit && npm run react:stage5:audit && npm run react:stage6:audit && npm run react:stage7:audit && npm run react:stage8:audit && npm run react:stage9:audit && npm run react:stage10:audit && npm run react:stage11:audit && npm run react:stage12:audit && npm run react:stage13:audit && npm run react:stage14:audit && npm run react:stage15:audit && npm run react:stage16:audit && npm run react:stage17:audit && npm run react:stage18:audit && npm run react:stage19:audit && npm run react:stage20:audit && npm run react:stage21:audit && npm run react:stage22:audit",
     "react:stage2:audit": "node scripts/verify-react-stage-2.js",
     "react:stage3:audit": "node scripts/verify-react-stage-3.js",
     "react:stage4:audit": "node scripts/verify-react-stage-4.js",
@@ -72,7 +72,8 @@
     "react:stage18:audit": "node scripts/verify-react-stage-18.js",
     "react:stage19:audit": "node scripts/verify-react-stage-19.js",
     "react:stage20:audit": "node scripts/verify-react-stage-20.js",
-    "react:stage21:audit": "node scripts/verify-react-stage-21.js"
+    "react:stage21:audit": "node scripts/verify-react-stage-21.js",
+    "react:stage22:audit": "node scripts/verify-react-stage-22.js"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

@@ -28,6 +28,11 @@ export const REACT_MIGRATION_ROUTES = [
     key: 'parity',
     label: 'Pilot parity',
     description: 'Consolidate browser and regression evidence before the final React pilot cutover decision.'
+  },
+  {
+    key: 'handoff',
+    label: 'Final handoff',
+    description: 'Close the staged migration sequence and define the final PR review and pilot cutover path.'
   }
 ]
 

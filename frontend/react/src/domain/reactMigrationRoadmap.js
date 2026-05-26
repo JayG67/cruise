@@ -1,7 +1,7 @@
 export const currentReactMigrationStage = {
-  number: 21,
-  title: 'Pilot parity evidence',
-  summary: 'The React migration is now consolidated around pilot parity evidence: existing Cypress, Playwright, performance, and Lighthouse coverage stay active while the final gate becomes a dedicated React route smoke check before cutover.'
+  number: 22,
+  title: 'Final migration handoff',
+  summary: 'The staged React migration is capped at Stage 22. Remaining work moves to PR review, route-level smoke coverage, and a deliberate pilot cutover decision rather than more micro-stages.'
 }
 
 export const migrationReadinessPoints = [
@@ -14,7 +14,8 @@ export const migrationReadinessPoints = [
   'The React shell now exposes live query status, refresh behavior, and request metadata before production cutover.',
   'React cutover readiness is now tracked as explicit release gates instead of an open-ended list of micro-stages.',
   'The remaining migration is now managed as a dev-branch pilot launch checklist with explicit fallback and parity expectations.',
-  'React pilot parity evidence is now consolidated into a route-level panel before the final pilot cutover decision.'
+  'React pilot parity evidence is now consolidated into a route-level panel before the final pilot cutover decision.',
+  'The staged migration now ends with a final handoff summary so reviewers can see the cutover decision path without reading every stage commit.'
 ]
 
 export function getReactMigrationStageLabel(stage = currentReactMigrationStage) {
@@ -23,6 +24,11 @@ export function getReactMigrationStageLabel(stage = currentReactMigrationStage) 
 
 
 export const reactMigrationStageHistory = [
+  {
+    number: 22,
+    title: 'Final migration handoff',
+    summary: 'The migration sequence was capped with a handoff route that turns the remaining work into PR review, smoke coverage, and pilot cutover decision-making.'
+  },
   {
     number: 21,
     title: 'Pilot parity evidence',

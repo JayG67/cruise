@@ -9,6 +9,7 @@ import ReactQueryStatusPanel from './components/ReactQueryStatusPanel.jsx'
 import ReactCutoverReadinessPanel from './components/ReactCutoverReadinessPanel.jsx'
 import ReactPilotLaunchPanel from './components/ReactPilotLaunchPanel.jsx'
 import ReactPilotParityPanel from './components/ReactPilotParityPanel.jsx'
+import ReactMigrationHandoffPanel from './components/ReactMigrationHandoffPanel.jsx'
 import { currentReactMigrationStage, getReactMigrationStageLabel } from './domain/reactMigrationRoadmap.js'
 import { useReactMigrationRoute } from './hooks/useReactMigrationRoute.js'
 
@@ -60,6 +61,8 @@ export default function App() {
         {activeRouteKey === 'pilot' && <ReactPilotLaunchPanel />}
 
         {activeRouteKey === 'parity' && <ReactPilotParityPanel />}
+
+        {activeRouteKey === 'handoff' && <ReactMigrationHandoffPanel />}
 
         {activeRouteKey === 'hierarchy' && (
           <CustomerBookingHierarchy

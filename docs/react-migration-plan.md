@@ -248,3 +248,20 @@ Exit criteria before final pilot cutover:
 - Existing Cypress, Playwright mobile, Playwright responsive, performance, and Lighthouse checks remain green.
 - React route smoke coverage is added for the pilot shell.
 - Legacy DOM customer hierarchy remains available until the pilot route is explicitly approved.
+
+
+### Stage 22: Final migration handoff
+
+- Cap the staged migration sequence.
+- Add a final React handoff route that summarizes what is complete, what needs watch coverage, and what remains blocked.
+- Move remaining work into PR review, route-level smoke testing, and pilot cutover decision-making instead of continuing micro-stages.
+- Keep the legacy DOM application as fallback until the React route is explicitly approved for pilot cutover.
+
+## Post-stage workflow
+
+After Stage 22, stop adding migration stage numbers by default. The next work should be:
+- run the full local and GitHub test suite,
+- review the React preview route manually,
+- add a focused React route smoke test if needed,
+- decide whether to squash the staged dev-branch commits before merging,
+- merge only when `main` can remain the stable portfolio baseline.

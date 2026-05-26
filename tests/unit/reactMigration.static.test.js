@@ -552,3 +552,36 @@ describe('React migration Stage 21 pilot parity evidence', () => {
     expect(packageJson.scripts['react:migration:audit']).toContain('react:stage21:audit')
   })
 })
+
+
+describe('React migration Stage 22 final migration handoff', () => {
+  const projectRoot = path.resolve(__dirname, '../..')
+  const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'))
+
+  function read(relativePath) {
+    return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
+  }
+
+  it('caps the staged migration and moves remaining work into PR review and pilot cutover decisions', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const routes = read('frontend/react/src/domain/reactMigrationRoutes.js')
+    const handoffDomain = read('frontend/react/src/domain/reactMigrationHandoff.js')
+    const handoffPanel = read('frontend/react/src/components/ReactMigrationHandoffPanel.jsx')
+    const roadmap = read('frontend/react/src/domain/reactMigrationRoadmap.js')
+    const plan = read('docs/react-migration-plan.md')
+
+    expect(app).toContain("import ReactMigrationHandoffPanel from './components/ReactMigrationHandoffPanel.jsx'")
+    expect(app).toContain("activeRouteKey === 'handoff'")
+    expect(routes).toContain("key: 'handoff'")
+    expect(handoffDomain).toContain('reactMigrationHandoffItems')
+    expect(handoffDomain).toContain('summarizeReactMigrationHandoff')
+    expect(handoffDomain).toContain('getReactMigrationHandoffRecommendation')
+    expect(handoffPanel).toContain('data-testid="react-migration-handoff-panel"')
+    expect(handoffPanel).toContain('data-testid="react-handoff-items"')
+    expect(roadmap).toContain('number: 22')
+    expect(plan).toContain('Stage 22: Final migration handoff')
+    expect(plan).toContain('After Stage 22, stop adding migration stage numbers by default')
+    expect(packageJson.scripts['react:stage22:audit']).toBe('node scripts/verify-react-stage-22.js')
+    expect(packageJson.scripts['react:migration:audit']).toContain('react:stage22:audit')
+  })
+})
