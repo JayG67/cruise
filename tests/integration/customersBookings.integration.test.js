@@ -38,13 +38,27 @@ async function getFirstSeededSailing() {
 }
 
 
+function getSailingDateRange(sailing) {
+  const start = new Date(`${sailing.departureDate}T00:00:00.000Z`)
+  const end = new Date(start)
+
+  end.setUTCDate(end.getUTCDate() + Number(sailing.days || 1))
+
+  return { start, end }
+}
+
+function sailingsDoNotOverlap(firstSailing, secondSailing) {
+  const first = getSailingDateRange(firstSailing)
+  const second = getSailingDateRange(secondSailing)
+
+  return second.end <= first.start || second.start >= first.end
+}
+
 async function getNonOverlappingSeededSailing(referenceSailing) {
   const cruiseRes = await request(app).get('/cruise')
   expect(cruiseRes.statusCode).toBe(200)
 
-  const referenceStart = new Date(`${referenceSailing.departureDate}T00:00:00.000Z`)
-  const referenceEnd = new Date(referenceStart)
-  referenceEnd.setUTCDate(referenceEnd.getUTCDate() + Number(referenceSailing.days || 1))
+  const candidates = []
 
   for (const cruiseLine of cruiseRes.body) {
     const shipsRes = await request(app).get(`/cruise/ships/${cruiseLine.id}`)
@@ -56,15 +70,17 @@ async function getNonOverlappingSeededSailing(referenceSailing) {
 
       if (sailingsRes.statusCode !== 200) continue
 
-      const candidate = sailingsRes.body.find(sailing =>
-        new Date(`${sailing.departureDate}T00:00:00.000Z`) > referenceEnd
-      )
-
-      if (candidate) return candidate
+      candidates.push(...sailingsRes.body)
     }
   }
 
-  throw new Error('Expected a later seeded sailing for non-overlap testing')
+  const candidate = candidates.find(sailing =>
+    sailing.id !== referenceSailing.id && sailingsDoNotOverlap(referenceSailing, sailing)
+  )
+
+  if (candidate) return candidate
+
+  throw new Error('Expected a seeded sailing outside the reference sailing date range for non-overlap testing')
 }
 
 

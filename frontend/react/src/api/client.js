@@ -2,13 +2,29 @@ const DEFAULT_HEADERS = {
   Accept: 'application/json'
 }
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+
+function buildApiUrl(path) {
+  if (!path.startsWith('/')) {
+    throw new Error(`API path must start with "/": ${path}`)
+  }
+
+  return `${API_BASE_URL}${path}`
+}
+
+function getApiTroubleshootingMessage(response) {
+  const requestedUrl = response?.url || 'API response'
+
+  return `Expected JSON from ${requestedUrl}. Make sure the Express API is running on port 8000 and the React Vite proxy is configured for local preview.`
+}
+
 export async function parseJsonResponse(response) {
   let payload
 
   try {
     payload = await response.json()
   } catch (error) {
-    throw new Error(`Expected JSON from ${response.url || 'API response'}.`)
+    throw new Error(getApiTroubleshootingMessage(response))
   }
 
   if (!response.ok) {
@@ -19,7 +35,7 @@ export async function parseJsonResponse(response) {
 }
 
 export async function requestJson(path, options = {}) {
-  const response = await fetch(path, {
+  const response = await fetch(buildApiUrl(path), {
     ...options,
     headers: {
       ...DEFAULT_HEADERS,
@@ -60,7 +76,6 @@ export async function updateCustomerProfile(customerId, payload, options = {}) {
     body: JSON.stringify(payload)
   })
 }
-
 
 export async function updateBookingDetails(bookingId, payload, options = {}) {
   return requestJson(`/cruise/bookings/${encodeURIComponent(bookingId)}`, {
