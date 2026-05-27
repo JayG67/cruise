@@ -82,3 +82,28 @@ Before making React the production UI, add browser tests for the React preview r
 ## 6. Merge guidance
 
 Use a squash merge or curated merge commit when promoting `dev` to `main` so the public history reads as one coherent modernization effort.
+
+## Local React preview verification
+
+The React preview is intentionally separate from the legacy DOM app during cutover work.
+
+Recommended local command:
+
+```bash
+npm run react:dev:local
+```
+
+This starts the Express app on `http://localhost:8000`, then starts the Vite React preview on `http://localhost:5173`. The React preview keeps API calls relative, and Vite proxies `/cruise`, `/health`, and `/admin` requests to the Express backend.
+
+Manual verification:
+1. Open `http://localhost:8000` and confirm the legacy DOM app still works.
+2. Open `http://localhost:5173` and confirm the React preview loads customer and booking data.
+3. Click **Refresh API snapshot** in the React preview and confirm the live API query panel reports a loaded snapshot.
+4. Exercise the customer hierarchy, draft validation, customer save boundary, and booking save boundary.
+5. Run `npm run react:build` before committing any React cutover-related change.
+
+For a production-like local build preview:
+
+```bash
+npm run react:preview:local
+```

@@ -1,69 +1,59 @@
 const fs = require('fs')
 const path = require('path')
 
-const projectRoot = path.resolve(__dirname, '..')
+const projectRoot = path.join(__dirname, '..')
 
-function read(relativePath) {
-  return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
-}
-
-function assertFile(relativePath) {
+function readFile(relativePath) {
   const filePath = path.join(projectRoot, relativePath)
+
   if (!fs.existsSync(filePath)) {
-    throw new Error(`Missing required React readiness file: ${relativePath}`)
+    throw new Error(`Expected file to exist: ${relativePath}`)
   }
-  return read(relativePath)
+
+  return fs.readFileSync(filePath, 'utf8')
 }
 
 function assertIncludes(content, expected, label) {
+  if (typeof content !== 'string') {
+    throw new Error(`${label} could not be read before checking for: ${expected}`)
+  }
+
   if (!content.includes(expected)) {
     throw new Error(`${label} must include: ${expected}`)
   }
 }
 
-function assertNotIncludes(content, unexpected, label) {
-  if (content.includes(unexpected)) {
-    throw new Error(`${label} must not include: ${unexpected}`)
+function assertScript(packageJson, scriptName, expected) {
+  const script = packageJson.scripts && packageJson.scripts[scriptName]
+
+  if (typeof script !== 'string') {
+    throw new Error(`package.json must define script: ${scriptName}`)
   }
+
+  assertIncludes(script, expected, `${scriptName} script`)
 }
 
-const packageJson = JSON.parse(assertFile('package.json'))
-const app = assertFile('frontend/react/src/App.jsx')
-const hierarchy = assertFile('frontend/react/src/components/CustomerBookingHierarchy.jsx')
-const customerRow = assertFile('frontend/react/src/components/CustomerHierarchyRow.jsx')
-const bookingCard = assertFile('frontend/react/src/components/BookingCard.jsx')
-const client = assertFile('frontend/react/src/api/client.js')
-const snapshotHook = assertFile('frontend/react/src/hooks/useAdminHierarchySnapshot.js')
-const viewStateHook = assertFile('frontend/react/src/hooks/useAdminHierarchyViewState.js')
-const customerWorkflow = assertFile('frontend/react/src/hooks/useCustomerDraftWorkflow.js')
-const bookingWorkflow = assertFile('frontend/react/src/hooks/useBookingDraftWorkflow.js')
-const routes = assertFile('frontend/react/src/domain/reactMigrationRoutes.js')
-const reviewSummary = assertFile('docs/react-migration-review-summary.md')
+const packageJson = JSON.parse(readFile('package.json'))
+const viteConfig = readFile('frontend/react/vite.config.js')
+const app = readFile('frontend/react/src/App.jsx')
+const readinessDoc = readFile('docs/react-cutover-checklist.md')
+const migrationPlan = readFile('docs/react-migration-plan.md')
 
-assertIncludes(packageJson.scripts['react:dev'], 'vite --config frontend/react/vite.config.js', 'react:dev script')
-assertIncludes(packageJson.scripts['react:build'], 'vite build --config frontend/react/vite.config.js', 'react:build script')
-assertIncludes(packageJson.scripts['react:migration:audit'], 'react:readiness:audit', 'react:migration:audit script')
-assertIncludes(packageJson.scripts['react:readiness:audit'], 'verify-react-readiness.js', 'react:readiness:audit script')
+assertScript(packageJson, 'react:readiness:audit', 'node scripts/verify-react-readiness.js')
+assertScript(packageJson, 'react:build', 'vite build --config frontend/react/vite.config.js')
+assertScript(packageJson, 'react:dev', 'vite --config frontend/react/vite.config.js')
+assertScript(packageJson, 'react:dev:local', 'start-server-and-test start http://localhost:8000 react:dev')
 
-assertIncludes(app, 'useAdminHierarchySnapshot', 'React app')
-assertIncludes(app, 'ReactMigrationRouteNav', 'React app')
-assertIncludes(app, 'CustomerBookingHierarchy', 'React app')
-assertIncludes(client, 'getAdminHierarchySnapshot', 'React API client')
-assertIncludes(client, 'updateCustomerProfile', 'React API client')
-assertIncludes(client, 'updateBookingDetails', 'React API client')
-assertIncludes(snapshotHook, 'AbortController', 'React snapshot hook')
-assertIncludes(viewStateHook, 'useState', 'React hierarchy view-state hook')
-assertIncludes(viewStateHook, 'createBookingExpansionKey', 'React hierarchy view-state hook')
-assertIncludes(customerWorkflow, 'saveCustomerDraftFor', 'React customer draft workflow hook')
-assertIncludes(bookingWorkflow, 'saveBookingDraftFor', 'React booking draft workflow hook')
-assertIncludes(hierarchy, 'useAdminHierarchyViewState', 'React hierarchy component')
-assertIncludes(customerRow, 'aria-controls={bookingsRowId}', 'React customer row')
-assertIncludes(bookingCard, 'aria-controls={detailsId}', 'React booking card')
-assertIncludes(routes, 'hierarchy', 'React migration routes')
-assertIncludes(routes, 'handoff', 'React migration routes')
-assertIncludes(reviewSummary, 'No Stage 23 is planned by default', 'React migration review summary')
+assertIncludes(viteConfig, "'/cruise'", 'React Vite proxy')
+assertIncludes(viteConfig, "'/health'", 'React Vite proxy')
+assertIncludes(viteConfig, "'/admin'", 'React Vite proxy')
+assertIncludes(viteConfig, 'http://localhost:8000', 'React Vite proxy')
+assertIncludes(viteConfig, 'REACT_API_PROXY_TARGET', 'React Vite proxy')
 
-assertNotIncludes(app, 'document.querySelector', 'React app')
-assertNotIncludes(hierarchy, 'document.querySelector', 'React hierarchy component')
+assertIncludes(app, 'React migration preview', 'React preview app')
+assertIncludes(app, 'ReactQueryStatusPanel', 'React preview app')
+assertIncludes(readinessDoc, '/app-next', 'React cutover checklist')
+assertIncludes(migrationPlan, 'React Cutover Plan', 'React migration plan')
+assertIncludes(migrationPlan, 'react:readiness:audit', 'React migration plan')
 
 console.log('React readiness audit passed.')

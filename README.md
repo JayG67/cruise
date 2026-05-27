@@ -631,3 +631,18 @@ npm run test:all
 The recruiter/reviewer story is now: **a working DOM application was modernized toward React without sacrificing regression coverage.** The work shows risk control, test preservation, component decomposition, API-boundary thinking, accessibility contracts, and production-style cutover planning.
 
 See `docs/react-migration-review-summary.md` for the concise PR/reviewer version of the migration story.
+
+### React preview local verification
+
+The React app is still a preview path, not the production UI. To compare both front ends locally:
+
+```bash
+# legacy DOM app only
+npm run start
+
+# React preview with the Express API started and proxied automatically
+npm run react:dev:local
+```
+
+Open the legacy app at `http://localhost:8000` and the React preview at `http://localhost:5173`. The Vite config proxies `/cruise`, `/health`, and `/admin` to the Express backend so the React preview can use the same API without CORS changes.
+

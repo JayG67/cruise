@@ -52,4 +52,20 @@ describe('React migration readiness guardrails', () => {
     expect(summary).toContain('No Stage 23 is planned by default')
     expect(summary).toContain('Recommended next work')
   })
+  it('keeps React local preview API calls wired through the Vite proxy', () => {
+    const viteConfig = read('frontend/react/vite.config.js')
+    const client = read('frontend/react/src/api/client.js')
+
+    expect(packageJson.scripts['react:dev:local']).toContain('start-server-and-test start http://localhost:8000 react:dev')
+    expect(packageJson.scripts['react:preview:local']).toContain('start-server-and-test start http://localhost:8000 react:preview')
+    expect(viteConfig).toContain("'/cruise'")
+    expect(viteConfig).toContain("'/health'")
+    expect(viteConfig).toContain("'/admin'")
+    expect(viteConfig).toContain('REACT_API_PROXY_TARGET')
+    expect(viteConfig).toContain('preview:')
+    expect(client).toContain('VITE_API_BASE_URL')
+    expect(client).toContain('Make sure the Express API is running on port 8000')
+  })
+
+
 })
