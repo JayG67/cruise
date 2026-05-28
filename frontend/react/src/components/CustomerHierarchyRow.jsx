@@ -34,28 +34,31 @@ export default function CustomerHierarchyRow({
       <tr>
         <td>
           <button
-            className="link-button"
+            className="link-button customer-disclosure-button"
             type="button"
             aria-expanded={isExpanded}
             aria-controls={bookingsRowId}
             onClick={onToggleCustomer}
             data-testid="react-toggle-customer-bookings"
           >
-            {isExpanded ? '▾' : '▸'} {customerName}
+            <span aria-hidden="true">{isExpanded ? '▾' : '▸'}</span> {customerName}
           </button>
         </td>
         <td>{customer.email || 'Not provided'}</td>
         <td>{customer.phone || 'Not provided'}</td>
+        <td>{customer.loyaltyNumber || customer.loyaltyId || '—'}</td>
         <td>
-          <span>{linkedBookings.length} bookings</span>
-          <button className="secondary-button compact-button" type="button" onClick={onEditCustomer} data-testid="react-edit-customer-button">
-            Edit customer
+          <span className="linked-booking-pill">{linkedBookings.length} bookings</span>
+        </td>
+        <td>
+          <button className="primary-action-button compact-action-button" type="button" onClick={onEditCustomer} data-testid="react-edit-customer-button">
+            Edit
           </button>
         </td>
       </tr>
       {customerDraft && (
         <tr className="editor-row" data-testid="react-customer-draft-row">
-          <td colSpan="4">
+          <td colSpan="6">
             <CustomerDraftForm
               draft={customerDraft}
               message={customerDraftMessage}
@@ -70,7 +73,7 @@ export default function CustomerHierarchyRow({
       )}
       {isExpanded && (
         <tr className="child-row" data-testid="react-customer-bookings-row" id={bookingsRowId}>
-          <td colSpan="4">
+          <td colSpan="6">
             <div className="child-panel" aria-label={`Bookings for ${customerName}`}>
               {linkedBookings.length === 0 ? (
                 <p className="muted">No linked bookings for this customer.</p>

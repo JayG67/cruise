@@ -971,12 +971,14 @@ function renderRoleBookingDashboard(context, errorMessage = '') {
     return
   }
 
-  bookings.forEach(booking => {
+  bookings.forEach((booking, bookingIndex) => {
+    const bookingCardKey = `${booking.bookingId || booking.id || booking.sailing?.id || 'booking'}-${bookingIndex}`
     const card = document.createElement('article')
     card.className = 'role-booking-card'
     card.setAttribute('data-cy', 'role-booking-card')
     card.setAttribute('data-testid', 'role-booking-card')
     card.setAttribute('role', 'listitem')
+    card.dataset.bookingCardKey = bookingCardKey
 
     const passengers = Array.isArray(booking.passengers) ? booking.passengers : []
     const passengerItems = passengers.map(passenger => {
@@ -1011,7 +1013,7 @@ function renderRoleBookingDashboard(context, errorMessage = '') {
         <button type="button" data-cy="role-booking-details-button" data-testid="role-booking-details-button" aria-expanded="false" aria-label="View details for booking ${escapeHtml(booking.id || booking.bookingId || 'selected booking')}">View Details</button>
       </div>
 
-      ${renderInlineBookingDetailsContainer(booking.bookingId || booking.id || booking.sailing?.id || 'booking')}
+      ${renderInlineBookingDetailsContainer(bookingCardKey)}
     `
 
     const detailsButton = card.querySelector('[data-cy="role-booking-details-button"]')
@@ -1029,8 +1031,9 @@ function renderRoleBookingDashboard(context, errorMessage = '') {
 
 
 function getScopedInlineBookingDetails(booking, triggerElement) {
-  const bookingKey = booking.bookingId || booking.id || booking.sailing?.id
+  const fallbackBookingKey = booking.bookingId || booking.id || booking.sailing?.id
   const bookingCard = triggerElement?.closest?.('[data-cy="role-booking-card"]')
+  const bookingKey = bookingCard?.dataset?.bookingCardKey || fallbackBookingKey
 
   return {
     bookingKey,
@@ -1041,20 +1044,33 @@ function getScopedInlineBookingDetails(booking, triggerElement) {
   }
 }
 
+function setBookingDetailsButtonState(detailsButton, booking, isExpanded) {
+  detailsButton.textContent = isExpanded ? 'Hide Details' : 'View Details'
+  detailsButton.setAttribute('aria-expanded', isExpanded ? 'true' : 'false')
+  detailsButton.setAttribute(
+    'aria-label',
+    `${isExpanded ? 'Hide' : 'View'} details for booking ${booking.id || booking.bookingId || 'selected booking'}`
+  )
+}
+
 function toggleBookingCruiseDetails(booking, detailsButton) {
-  const { detailsContainer } = getScopedInlineBookingDetails(booking, detailsButton)
+  const { detailsContainer, detailsContent } = getScopedInlineBookingDetails(booking, detailsButton)
 
   if (detailsContainer && !detailsContainer.hidden) {
     detailsContainer.hidden = true
-    detailsButton.textContent = 'View Details'
-    detailsButton.setAttribute('aria-expanded', 'false')
-    detailsButton.setAttribute('aria-label', `View details for booking ${booking.id || booking.bookingId || 'selected booking'}`)
+    setBookingDetailsButtonState(detailsButton, booking, false)
     return
   }
 
-  detailsButton.textContent = 'Hide Details'
-  detailsButton.setAttribute('aria-expanded', 'true')
-  detailsButton.setAttribute('aria-label', `Hide details for booking ${booking.id || booking.bookingId || 'selected booking'}`)
+  if (detailsContainer) {
+    detailsContainer.hidden = false
+  }
+
+  if (detailsContent && !detailsContent.innerHTML.trim()) {
+    detailsContent.innerHTML = '<p class="inline-details-loading">Loading cruise details...</p>'
+  }
+
+  setBookingDetailsButtonState(detailsButton, booking, true)
   loadBookingCruiseDetails(booking, false, detailsButton)
 }
 

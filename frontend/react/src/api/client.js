@@ -88,3 +88,8 @@ export async function updateBookingDetails(bookingId, payload, options = {}) {
     body: JSON.stringify(payload)
   })
 }
+
+export async function getCruiseLines(options = {}) {
+  const cruiseLines = await requestJson('/cruise', options)
+  return Array.isArray(cruiseLines) ? cruiseLines : []
+}

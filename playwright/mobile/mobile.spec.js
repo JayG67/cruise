@@ -52,6 +52,22 @@ async function expectTouchTargetIsUsable(locator) {
   expect(box.height).toBeGreaterThanOrEqual(32)
 }
 
+
+async function clickSqaButtonAndWaitForOutput(page, testId, expectedTitle) {
+  const button = page.getByTestId(testId)
+
+  await expect(button).toBeVisible()
+  await expect(button).toBeEnabled()
+  await button.scrollIntoViewIfNeeded()
+  await button.click()
+
+  const output = page.getByTestId('test-output')
+
+  await expect(output).not.toContainText('Test output will appear here...')
+  await expect(output).toContainText(expectedTitle)
+  await expect(output).toContainText('"passed": true')
+}
+
 async function waitForCruiseCards(page) {
   await page.goto('/')
 
@@ -271,10 +287,7 @@ test.describe('Cruise Explorer mobile quality checks', () => {
   test('runs the mobile API health check from the SQA panel', async ({ page }) => {
     await page.goto('/#testPanel')
 
-    await page.getByTestId('health-check-button').click()
-
-    await expect(page.getByTestId('test-output')).toContainText('Health Check Result')
-    await expect(page.getByTestId('test-output')).toContainText('"passed": true')
+    await clickSqaButtonAndWaitForOutput(page, 'health-check-button', 'Health Check Result')
 
     await expectNoHorizontalOverflow(page)
   })
@@ -282,10 +295,7 @@ test.describe('Cruise Explorer mobile quality checks', () => {
   test('runs the mobile UI smoke check from the SQA panel', async ({ page }) => {
     await page.goto('/#testPanel')
 
-    await page.getByTestId('ui-smoke-test-button').click()
-
-    await expect(page.getByTestId('test-output')).toContainText('UI Smoke Check Result')
-    await expect(page.getByTestId('test-output')).toContainText('"passed": true')
+    await clickSqaButtonAndWaitForOutput(page, 'ui-smoke-test-button', 'UI Smoke Check Result')
 
     await expectNoHorizontalOverflow(page)
   })

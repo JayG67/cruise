@@ -1,6 +1,7 @@
 require('dotenv/config')
 
 const path = require('path')
+const fs = require('fs')
 const express = require('express')
 const compression = require('compression')
 
@@ -9,6 +10,20 @@ const adminRouter = require('./routes/admin.routes')
 const { serverLogger } = require('./middleware/loggers')
 
 const app = express()
+
+const reactBuildDir = path.join(__dirname, 'dist', 'react')
+const reactIndexPath = path.join(reactBuildDir, 'index.html')
+
+function sendReactPreview(req, res, next) {
+  if (!fs.existsSync(reactIndexPath)) {
+    return res.status(404).type('text/plain').send(
+      'React preview build was not found. Run npm run react:build before opening /app-next.'
+    )
+  }
+
+  return res.sendFile(reactIndexPath, next)
+}
+
 
 
 function securityHeaders(req, res, next) {
@@ -35,6 +50,9 @@ function securityHeaders(req, res, next) {
 
 app.use(securityHeaders)
 app.use(compression())
+
+app.use('/app-next', express.static(reactBuildDir, { redirect: false }))
+app.get(/^\/app-next(?:\/.*)?$/, sendReactPreview)
 
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(express.json())

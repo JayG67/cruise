@@ -47,13 +47,47 @@ describe('React route preview accessibility contracts', () => {
     return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
   }
 
-  it('keeps React route preview navigation accessible and discoverable', () => {
-    const routeNav = read('frontend/react/src/components/ReactMigrationRouteNav.jsx')
+  it('keeps React workspace controls accessible and discoverable', () => {
     const app = read('frontend/react/src/App.jsx')
 
-    expect(routeNav).toContain('aria-label="React migration preview sections"')
-    expect(routeNav).toContain('aria-current={isActive ? \'page\' : undefined}')
-    expect(routeNav).toContain('aria-pressed={isActive}')
-    expect(app).toContain('aria-label={activeRoute.label}')
+    expect(app).toContain('aria-label="React application workspaces"')
+    expect(app).toContain('data-testid="react-workspace-role-button"')
+    expect(app).toContain('data-testid="react-workspace-operations-button"')
+    expect(app).toContain('data-testid="react-workspace-fleet-button"')
+    expect(app).toContain('data-testid="react-workspace-quality-button"')
+    expect(app).toContain('aria-label="Customer-centered operations"')
   })
+
+  it('keeps React recommended workflow buttons accessible', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const hierarchy = read('frontend/react/src/components/CustomerBookingHierarchy.jsx')
+
+    expect(app).toContain('aria-label="Recommended workflow controls"')
+    expect(app).toContain('type="button" className="workflow-step-button"')
+    expect(hierarchy).toContain('aria-expanded={workflowsVisible}')
+    expect(hierarchy).toContain('aria-controls="react-customer-workflow-table"')
+  })
+
+
+  it('keeps React admin workspace table semantics aligned with the DOM workflow table', () => {
+    const hierarchy = read('frontend/react/src/components/CustomerBookingHierarchy.jsx')
+    const row = read('frontend/react/src/components/CustomerHierarchyRow.jsx')
+
+    expect(hierarchy).toContain('aria-labelledby="react-admin-workspace-heading"')
+    expect(hierarchy).toContain('aria-label="Admin workspace record counts"')
+    expect(hierarchy).toContain('caption>Admin-visible customers')
+    expect(row).toContain('aria-expanded={isExpanded}')
+    expect(row).toContain('aria-controls={bookingsRowId}')
+    expect(row).toContain('td colSpan="6"')
+  })
+
+
+  it('keeps React admin and fleet sections sequenced like the DOM app', () => {
+    const app = read('frontend/react/src/App.jsx')
+
+    expect(app.indexOf('<ReactRoleSelector')).toBeLessThan(app.indexOf('<CustomerBookingHierarchy'))
+    expect(app.indexOf('<CustomerBookingHierarchy')).toBeLessThan(app.indexOf('<ReactFleetDirectory'))
+    expect(app.indexOf('<ReactFleetDirectory')).toBeLessThan(app.indexOf('<ReactQueryStatusPanel'))
+  })
+
 })

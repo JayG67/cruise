@@ -1,6 +1,6 @@
 export default function ReactMigrationRouteNav({ routes = [], activeRouteKey, onSelectRoute }) {
   return (
-    <nav className="react-route-nav" aria-label="React migration preview sections" data-testid="react-migration-route-nav">
+    <nav className="react-route-nav" aria-label="React app workspace sections" data-testid="react-migration-route-nav">
       {routes.map(route => {
         const isActive = route.key === activeRouteKey
 

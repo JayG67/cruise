@@ -34,7 +34,7 @@ describe('React migration readiness guardrails', () => {
     const bookingWorkflow = read('frontend/react/src/hooks/useBookingDraftWorkflow.js')
 
     expect(app).toContain('useAdminHierarchySnapshot')
-    expect(app).toContain('ReactMigrationRouteNav')
+    expect(app).toContain('react-workspace-card-grid')
     expect(hierarchy).toContain('useAdminHierarchyViewState')
     expect(viewStateHook).toContain('createBookingExpansionKey')
     expect(customerWorkflow).toContain('saveCustomerDraftFor')
@@ -63,9 +63,195 @@ describe('React migration readiness guardrails', () => {
     expect(viteConfig).toContain("'/admin'")
     expect(viteConfig).toContain('REACT_API_PROXY_TARGET')
     expect(viteConfig).toContain('preview:')
+    expect(viteConfig).toContain("base: '/app-next/'")
     expect(client).toContain('VITE_API_BASE_URL')
     expect(client).toContain('Make sure the Express API is running on port 8000')
   })
 
+
+
+  it('serves the React build from Express at /app-next before legacy DOM retirement', () => {
+    const app = read('app.js')
+    const integration = read('tests/integration/reactPreview.integration.test.js')
+
+    expect(app).toContain("const reactBuildDir = path.join(__dirname, 'dist', 'react')")
+    expect(app).toContain("app.use('/app-next', express.static(reactBuildDir, { redirect: false }))")
+    expect(app).toContain("app.get(/^\\/app-next(?:\\/.*)?$/, sendReactPreview)")
+    expect(app).toContain('Run npm run react:build before opening /app-next')
+    expect(integration).toContain('GET /app-next should serve the built React preview shell from Express')
+    expect(integration).toContain('GET /app-next nested routes should fall back to the React shell')
+  })
+
+
+  it('keeps the Express-hosted React route visually aligned with the production DOM shell', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+    const routes = read('frontend/react/src/domain/reactMigrationRoutes.js')
+
+    expect(app).toContain('production-parity-shell')
+    expect(app).toContain('react-top-navigation')
+    expect(app).toContain('Manage cruise line and fleet operations')
+    expect(app).toContain('Open Current DOM App')
+    expect(app).toContain('Operations console')
+    expect(styles).toContain("url('/images/cruise-background.png')")
+    expect(styles).toContain('.production-hero')
+    expect(styles).toContain('.react-top-nav')
+    expect(styles).toContain('min-height: 82vh')
+    expect(routes).toContain("label: 'Operations'")
+    expect(routes).toContain('Search and manage customer and booking workflows with progressive disclosure.')
+  })
+
+
+  it('keeps the React workspace aligned with the DOM operations console pattern', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+    const routeNav = read('frontend/react/src/components/ReactMigrationRouteNav.jsx')
+    const routes = read('frontend/react/src/domain/reactMigrationRoutes.js')
+
+    expect(app).toContain('operations-console-panel')
+    expect(app).toContain('Choose a workspace')
+    expect(app).toContain('Role Simulation')
+    expect(app).toContain('Admin Operations')
+    expect(app).toContain('Fleet Directory')
+    expect(app).toContain('Quality Console')
+    expect(app).toContain('react-recommended-workflow')
+    expect(styles).toContain('.react-workspace-card-grid')
+    expect(styles).toContain('.recommended-workflow-panel')
+    expect(styles).toContain('.workflow-step-list')
+    expect(routeNav).toContain('React app workspace sections')
+    expect(routes).toContain("label: 'Operations'")
+  })
+
+
+  it('keeps React guardrails focused on durable behavior instead of stale migration copy', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const routes = read('frontend/react/src/domain/reactMigrationRoutes.js')
+
+    expect(app).toContain('react-workspace-card-grid')
+    expect(app).toContain('react-recommended-workflow')
+    expect(routes).toContain("label: 'Operations'")
+    expect(routes).toContain("label: 'Quality'")
+    expect(routes).not.toContain('Manage the highest-risk admin customer')
+  })
+
+
+  it('keeps the React route focused on production replacement sections', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const client = read('frontend/react/src/api/client.js')
+    const roleSelector = read('frontend/react/src/components/ReactRoleSelector.jsx')
+    const fleetDirectory = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const fleetHook = read('frontend/react/src/hooks/useCruiseLines.js')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(app).toContain('ReactRoleSelector')
+    expect(app).toContain('ReactFleetDirectory')
+    expect(app).toContain('Manage cruise line and fleet operations')
+    expect(app).toContain('Full React Route')
+    expect(client).toContain('getCruiseLines')
+    expect(roleSelector).toContain('View application as')
+    expect(roleSelector).toContain('Admin Demo User')
+    expect(fleetDirectory).toContain('Cruise Line Directory')
+    expect(fleetDirectory).toContain('View Ships')
+    expect(fleetHook).toContain('useCruiseLines')
+    expect(styles).toContain('.react-app-section')
+    expect(styles).toContain('.fleet-card-grid')
+  })
+
+
+  it('keeps the React hero replacement-focused instead of migration-focused', () => {
+    const app = read('frontend/react/src/App.jsx')
+
+    expect(app).toContain('Manage cruise line and fleet operations')
+    expect(app).toContain('A production-style React operations console')
+    expect(app).toContain('Full React Route')
+    expect(app).not.toContain('React migration preview')
+  })
+
+
+  it('keeps workspace cards as clickable replacement-app controls', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+    const roleSelector = read('frontend/react/src/components/ReactRoleSelector.jsx')
+
+    expect(app).toContain('function scrollToSection')
+    expect(app).toContain('data-testid="react-workspace-role-button"')
+    expect(app).toContain('data-testid="react-workspace-operations-button"')
+    expect(app).toContain('data-testid="react-workspace-fleet-button"')
+    expect(app).toContain('data-testid="react-workspace-quality-button"')
+    expect(app).not.toContain('<ReactMigrationRouteNav')
+    expect(app).not.toContain('<MigrationReadiness')
+    expect(app).not.toContain('<ReactPilotLaunchPanel')
+    expect(roleSelector).toContain('id="react-role-selector"')
+    expect(styles).toContain('React replacement app workspace controls')
+    expect(styles).toContain('.operations-console-panel .react-route-nav')
+  })
+
+
+  it('keeps recommended workflow steps clickable like the DOM app', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(app).toContain('data-testid="react-workflow-role-button"')
+    expect(app).toContain('data-testid="react-workflow-operations-button"')
+    expect(app).toContain('data-testid="react-workflow-fleet-button"')
+    expect(app).toContain('data-testid="react-workflow-quality-button"')
+    expect(app).toContain('aria-label="Recommended workflow controls"')
+    expect(styles).toContain('.workflow-step-button')
+  })
+
+  it('keeps the React admin workspace functional behind an explicit workflow toggle', () => {
+    const hierarchy = read('frontend/react/src/components/CustomerBookingHierarchy.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(hierarchy).toContain('useState(false)')
+    expect(hierarchy).toContain('Show Customer Workflows')
+    expect(hierarchy).toContain('Hide Customer Workflows')
+    expect(hierarchy).toContain('data-testid="react-toggle-customer-workflows"')
+    expect(hierarchy).toContain('data-testid="react-customer-workflow-table"')
+    expect(hierarchy).toContain('Customer-centered operations')
+    expect(hierarchy).not.toContain('Stage 17 migration slice')
+    expect(styles).toContain('.admin-workflow-summary-card')
+    expect(styles).toContain('.primary-action-button')
+  })
+
+
+  it('keeps React admin workspace visually and behaviorally aligned with the DOM admin workspace', () => {
+    const hierarchy = read('frontend/react/src/components/CustomerBookingHierarchy.jsx')
+    const row = read('frontend/react/src/components/CustomerHierarchyRow.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(hierarchy).toContain('react-admin-workspace')
+    expect(hierarchy).toContain('Role-aware view')
+    expect(hierarchy).toContain('Admin Data Management')
+    expect(hierarchy).toContain('react-admin-stat-pills')
+    expect(hierarchy).toContain('Customer records with linked bookings')
+    expect(hierarchy).toContain('<th scope="col">Loyalty</th>')
+    expect(hierarchy).toContain('<th scope="col">Actions</th>')
+    expect(row).toContain('customer-disclosure-button')
+    expect(row).toContain('linked-booking-pill')
+    expect(row).toContain('compact-action-button')
+    expect(styles).toContain('React admin workspace parity pass')
+    expect(styles).toContain('.react-admin-management-card')
+    expect(styles).toContain('.react-admin-table-scroll')
+  })
+
+
+  it('keeps React application sections in the same operational order as the DOM app', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    const roleIndex = app.indexOf('<ReactRoleSelector')
+    const adminIndex = app.indexOf('<CustomerBookingHierarchy')
+    const fleetIndex = app.indexOf('<ReactFleetDirectory')
+    const qualityIndex = app.indexOf('<ReactQueryStatusPanel')
+
+    expect(roleIndex).toBeGreaterThan(-1)
+    expect(adminIndex).toBeGreaterThan(roleIndex)
+    expect(fleetIndex).toBeGreaterThan(adminIndex)
+    expect(qualityIndex).toBeGreaterThan(fleetIndex)
+    expect(app).toContain('className="react-quality-section"')
+    expect(styles).toContain('DOM flow alignment pass')
+    expect(styles).toContain('.fleet-directory-section')
+  })
 
 })

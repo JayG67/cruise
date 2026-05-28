@@ -1,38 +1,38 @@
 export const REACT_MIGRATION_ROUTES = [
   {
     key: 'hierarchy',
-    label: 'Customer hierarchy',
-    description: 'Exercise the highest-risk admin customer → booking workflow in React before production cutover.'
+    label: 'Operations',
+    description: 'Search and manage customer and booking workflows with progressive disclosure.'
   },
   {
     key: 'readiness',
-    label: 'Readiness',
-    description: 'Show why this migration is being staged and how risk is controlled.'
+    label: 'Roles',
+    description: 'Review staged admin, passenger, and group-leader behavior before cutover.'
   },
   {
     key: 'roadmap',
-    label: 'Roadmap',
-    description: 'Summarize migration status, completed slices, and next production-readiness checkpoints.'
+    label: 'Fleet',
+    description: 'Track remaining cruise line, ship, sailing, and itinerary parity work.'
   },
   {
     key: 'cutover',
-    label: 'Cutover readiness',
+    label: 'Quality',
     description: 'Review production-style gates before replacing any legacy DOM workflow.'
   },
   {
     key: 'pilot',
-    label: 'Pilot launch',
-    description: 'Translate the remaining migration work into a dev-branch pilot launch checklist.'
+    label: 'Pilot',
+    description: 'Translate remaining parity work into a dev-branch pilot launch checklist.'
   },
   {
     key: 'parity',
-    label: 'Pilot parity',
-    description: 'Consolidate browser and regression evidence before the final React pilot cutover decision.'
+    label: 'Evidence',
+    description: 'Compare browser, API, accessibility, and workflow evidence before cutover.'
   },
   {
     key: 'handoff',
-    label: 'Final handoff',
-    description: 'Close the staged migration sequence and define the final PR review and pilot cutover path.'
+    label: 'Handoff',
+    description: 'Close the staged migration sequence and define the final review path.'
   }
 ]
 

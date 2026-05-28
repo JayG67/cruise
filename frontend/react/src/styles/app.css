@@ -712,3 +712,870 @@ dd {
 .handoff-item.blocked {
   border-left: 0.35rem solid #c53030;
 }
+
+
+/* Production parity pass for the Express-hosted React route. */
+:root {
+  --navy: #071827;
+  --blue: #0b6fa4;
+  --teal: #12a4b6;
+  --white: #ffffff;
+  --muted: #d8e3ea;
+  --surface: #ffffff;
+  --panel: #f4f8fb;
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+body {
+  color: var(--navy);
+  background: #f4f8fb;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.production-parity-shell {
+  width: 100%;
+  margin: 0;
+  padding: 0 0 4rem;
+}
+
+.production-hero {
+  min-height: 82vh;
+  color: var(--white);
+  background:
+    linear-gradient(90deg, rgba(7, 24, 39, 0.95) 0%, rgba(7, 24, 39, 0.84) 42%, rgba(7, 24, 39, 0.36) 100%),
+    url('/images/cruise-background.png') center / cover no-repeat,
+    linear-gradient(135deg, #071827 0%, #0b6fa4 100%);
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.react-top-nav {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(7, 24, 39, 0.72);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(14px);
+}
+
+.react-brand {
+  color: var(--white);
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.react-nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  justify-content: flex-end;
+}
+
+.react-nav-links a {
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 800;
+  padding: 10px 12px;
+}
+
+.react-nav-links a:hover,
+.react-nav-links a:focus-visible {
+  color: var(--white);
+}
+
+.production-hero-content {
+  width: min(1120px, calc(100% - 32px));
+  margin: auto;
+  padding: clamp(4rem, 10vw, 8rem) 0;
+}
+
+.production-hero .eyebrow {
+  color: #79e8f2;
+  margin-bottom: 1rem;
+}
+
+.production-hero h1 {
+  color: var(--white);
+  font-size: clamp(3rem, 8vw, 5.8rem);
+  line-height: 0.95;
+  max-width: 760px;
+  text-wrap: balance;
+}
+
+.production-hero .hero-copy {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  font-weight: 650;
+  line-height: 1.6;
+  max-width: 720px;
+}
+
+.hero-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 1.4rem;
+}
+
+.button-link {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-weight: 900;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+}
+
+.button-link.primary {
+  background: linear-gradient(135deg, var(--blue), var(--teal));
+  color: var(--white);
+  box-shadow: 0 12px 26px rgba(7, 24, 39, 0.24);
+}
+
+.button-link.secondary {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  color: var(--white);
+}
+
+.hero-status-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 1.5rem;
+}
+
+.hero-status-pills span {
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--white);
+  font-size: 0.82rem;
+  font-weight: 900;
+  padding: 0.45rem 0.8rem;
+}
+
+.react-workspace-panel,
+.route-panel,
+.status-card,
+.readiness-card,
+.hierarchy-card {
+  width: min(1120px, calc(100% - 2rem));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.react-workspace-panel {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: -3rem;
+  margin-bottom: 1rem;
+  padding: clamp(1rem, 3vw, 1.6rem);
+  border: 1px solid #d8e2ef;
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 24px 60px rgba(7, 24, 39, 0.16);
+}
+
+.react-workspace-panel h2 {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+}
+
+.react-route-nav {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  margin: 0;
+}
+
+.route-tab {
+  min-height: 112px;
+  text-align: left;
+}
+
+.route-tab.active {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(11, 111, 164, 0.16), 0 16px 30px rgba(7, 24, 39, 0.12);
+}
+
+.status-card {
+  border-left: 6px solid var(--teal);
+}
+
+.hierarchy-card {
+  border-top: 6px solid var(--blue);
+}
+
+@media (max-width: 760px) {
+  .production-hero {
+    min-height: 760px;
+  }
+
+  .react-top-nav {
+    align-items: flex-start;
+    border-radius: 1.5rem;
+    flex-direction: column;
+  }
+
+  .react-nav-links {
+    justify-content: flex-start;
+  }
+
+  .react-nav-links a {
+    padding-left: 0;
+  }
+
+  .production-hero h1 {
+    font-size: clamp(2.55rem, 14vw, 4rem);
+  }
+
+  .react-workspace-panel {
+    margin-top: -2rem;
+  }
+}
+
+
+/* DOM behavior parity pass: make the React workspace feel like the current operations console. */
+.operations-console-panel {
+  gap: 1.5rem;
+  margin-top: -3.4rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.operations-console-copy {
+  max-width: 760px;
+}
+
+.operations-console-copy h2 {
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  margin-bottom: 0.75rem;
+}
+
+.operations-console-copy p {
+  color: #38556e;
+  line-height: 1.55;
+}
+
+.react-workspace-card-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.react-workspace-card {
+  background: linear-gradient(145deg, #ffffff, #f7fbff);
+  border: 1px solid #d8e2ef;
+  border-radius: 1.2rem;
+  box-shadow: 0 18px 38px rgba(7, 24, 39, 0.08);
+  padding: 1.15rem;
+}
+
+.react-workspace-card h3 {
+  margin: 0.65rem 0 0.45rem;
+}
+
+.react-workspace-card p {
+  color: #38556e;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.workspace-icon {
+  align-items: center;
+  background: #e8f7ff;
+  border-radius: 1rem;
+  display: inline-flex;
+  font-size: 1.35rem;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+}
+
+.recommended-workflow-panel {
+  align-items: stretch;
+  background: linear-gradient(135deg, #ffffff, #eaf8fb);
+  border: 1px solid #cfe3ee;
+  border-radius: 1.4rem;
+  box-shadow: 0 24px 60px rgba(7, 24, 39, 0.1);
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1.15fr) minmax(420px, 1fr);
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+.recommended-workflow-panel h3 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  line-height: 1.1;
+  margin: 0 0 0.75rem;
+}
+
+.recommended-workflow-panel p {
+  color: #38556e;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.workflow-step-list {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.workflow-step-list li {
+  background: #ffffff;
+  border: 1px solid #d8e2ef;
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.65rem;
+  min-height: 132px;
+  padding: 1rem;
+}
+
+.workflow-step-list strong {
+  align-items: center;
+  background: linear-gradient(135deg, #0b6fa4, #12a4b6);
+  border-radius: 0.85rem;
+  color: #ffffff;
+  display: inline-flex;
+  height: 42px;
+  justify-content: center;
+  width: 42px;
+}
+
+.workflow-step-list span {
+  color: #173047;
+  font-weight: 800;
+}
+
+.operations-console-panel .react-route-nav {
+  border-top: 1px solid #e3ebf4;
+  padding-top: 1rem;
+}
+
+.operations-console-panel .route-tab {
+  min-height: 92px;
+}
+
+.status-card {
+  width: min(1120px, calc(100% - 2rem));
+  margin-top: 1rem;
+}
+
+@media (max-width: 980px) {
+  .react-workspace-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .recommended-workflow-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-step-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .react-workspace-card-grid,
+  .workflow-step-list {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-console-panel {
+    margin-top: -2rem;
+  }
+}
+
+
+/* React replacement-readiness pass: promote real app sections over migration scaffolding. */
+.react-app-section {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 1.5rem auto;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid #d8e2ef;
+  border-radius: 1.35rem;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 18px 44px rgba(7, 24, 39, 0.08);
+}
+
+.role-selector-section {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.role-selector-section h2,
+.fleet-directory-section h2 {
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.react-field-label {
+  font-weight: 900;
+}
+
+.react-select,
+.fleet-search-control input {
+  width: 100%;
+  border: 1px solid #b8c7d7;
+  border-radius: 0.85rem;
+  min-height: 46px;
+  padding: 0.75rem;
+}
+
+.role-summary-card {
+  display: grid;
+  gap: 0.35rem;
+  border-radius: 1rem;
+  background: #f6f9fd;
+  padding: 1rem;
+}
+
+.fleet-heading-row {
+  align-items: center;
+}
+
+.light-action {
+  color: #0b4f83;
+  border: 1px solid #b9c8d8;
+  background: #ffffff;
+}
+
+.muted-status {
+  color: #4b637a;
+  font-weight: 700;
+}
+
+.fleet-card-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.fleet-card {
+  display: grid;
+  gap: 0.55rem;
+  border: 1px solid #d8e2ef;
+  border-radius: 1rem;
+  background: linear-gradient(145deg, #ffffff, #f8fbff);
+  box-shadow: 0 14px 32px rgba(7, 24, 39, 0.08);
+  padding: 1rem;
+}
+
+.fleet-card h3 {
+  margin: 0;
+}
+
+.fleet-card p {
+  margin: 0;
+}
+
+.fleet-card a {
+  color: #0b5f94;
+  font-weight: 900;
+  text-decoration: underline;
+}
+
+.fleet-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.fleet-card-actions button {
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0b6fa4, #12a4b6);
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 900;
+  padding: 0.55rem 0.85rem;
+}
+
+@media (max-width: 980px) {
+  .fleet-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .fleet-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* React replacement app workspace controls: cards now behave as navigation buttons like the DOM app. */
+.react-workspace-card {
+  appearance: none;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.react-workspace-card:hover {
+  border-color: #8ec9df;
+  box-shadow: 0 22px 44px rgba(7, 24, 39, 0.14);
+  transform: translateY(-1px);
+}
+
+.react-workspace-card:focus-visible {
+  outline: 4px solid #ffbf47;
+  outline-offset: 4px;
+}
+
+.workspace-card-title {
+  color: #071827;
+  display: block;
+  font-size: 1rem;
+  font-weight: 900;
+  margin: 0.65rem 0 0.4rem;
+}
+
+.operations-console-panel .react-route-nav {
+  display: none;
+}
+
+/* React behavior parity controls for DOM-like operations workflow. */
+.workflow-step-list li {
+  padding: 0;
+}
+
+.workflow-step-button {
+  appearance: none;
+  background: #ffffff;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: grid;
+  gap: 0.65rem;
+  height: 100%;
+  min-height: 132px;
+  padding: 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.workflow-step-button:hover {
+  box-shadow: inset 0 0 0 2px #8ec9df;
+}
+
+.workflow-step-button:focus-visible {
+  outline: 4px solid #ffbf47;
+  outline-offset: 4px;
+}
+
+.admin-workflow-summary-card {
+  align-items: center;
+  background: linear-gradient(135deg, #ffffff, #eef8fb);
+  border: 1px solid #d8e2ef;
+  border-radius: 1rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
+.primary-action-button {
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0b6fa4, #12a4b6);
+  box-shadow: 0 12px 24px rgba(7, 24, 39, 0.16);
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 900;
+  min-height: 42px;
+  padding: 0.65rem 1rem;
+}
+
+.primary-action-button:focus-visible {
+  outline: 4px solid #ffbf47;
+  outline-offset: 4px;
+}
+
+@media (max-width: 720px) {
+  .admin-workflow-summary-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+/* React admin workspace parity pass: align /app-next with the DOM role-aware admin workspace. */
+.react-admin-workspace {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 1.5rem auto;
+}
+
+.react-admin-heading {
+  margin: 0 0 1rem;
+}
+
+.react-admin-heading h2 {
+  font-size: clamp(1.9rem, 4vw, 2.7rem);
+}
+
+.react-admin-heading p:not(.eyebrow) {
+  color: #38556e;
+  margin: 0;
+}
+
+.react-admin-management-card {
+  border: 1px solid #cfe3ee;
+  border-radius: 1.35rem;
+  background: linear-gradient(145deg, #ffffff, #f2fbff);
+  box-shadow: 0 18px 44px rgba(7, 24, 39, 0.08);
+  padding: clamp(1rem, 3vw, 1.35rem);
+}
+
+.react-admin-card-heading {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.react-admin-card-heading h3 {
+  font-size: clamp(1.25rem, 3vw, 1.7rem);
+  margin: 0 0 0.35rem;
+}
+
+.react-admin-card-heading p:not(.eyebrow) {
+  color: #38556e;
+  margin: 0;
+}
+
+.react-admin-stat-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}
+
+.react-admin-stat-pills span,
+.linked-booking-pill {
+  background: #dff7ff;
+  border-radius: 999px;
+  color: #0b5f94;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 0.35rem 0.65rem;
+}
+
+.react-admin-search {
+  margin-top: 1rem;
+}
+
+.react-admin-search input {
+  background: #ffffff;
+  border-color: #dbe8f1;
+}
+
+.react-admin-workflow-bar {
+  align-items: center;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin-top: 1rem;
+}
+
+.primary-action-button {
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0b6fa4, #12a4b6);
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 900;
+  padding: 0.7rem 1rem;
+}
+
+.primary-action-button:focus-visible {
+  outline: 4px solid #ffbf47;
+  outline-offset: 4px;
+}
+
+.react-admin-table-wrap {
+  border: 1px solid #d7e6f0;
+  border-radius: 1rem;
+  background: #ffffff;
+  margin-top: 1rem;
+  overflow: hidden;
+}
+
+.react-admin-table-heading {
+  align-items: center;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 420px);
+  padding: 0.85rem 1rem;
+}
+
+.react-admin-table-heading span {
+  color: #52677c;
+  font-weight: 800;
+}
+
+.react-admin-table-scroll {
+  margin-top: 0;
+  max-height: 480px;
+  overflow: auto;
+}
+
+.react-admin-table {
+  min-width: 980px;
+}
+
+.react-admin-table caption {
+  background: #f7fbff;
+  color: #40576f;
+  font-weight: 800;
+  padding: 0.85rem 1rem;
+}
+
+.react-admin-table th {
+  background: #dff3fb;
+  color: #0b5f94;
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.react-admin-table td {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.customer-disclosure-button {
+  color: #071827;
+  white-space: nowrap;
+}
+
+.compact-action-button {
+  padding: 0.5rem 0.8rem;
+}
+
+@media (max-width: 760px) {
+  .react-admin-card-heading,
+  .react-admin-workflow-bar,
+  .react-admin-table-heading {
+    grid-template-columns: 1fr;
+  }
+
+  .react-admin-stat-pills {
+    justify-content: flex-start;
+  }
+}
+
+/* DOM flow alignment pass: match the legacy application section order and admin workspace footprint. */
+.route-panel {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 1.5rem auto;
+}
+
+.react-quality-section {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 1.5rem auto;
+}
+
+.react-admin-workspace {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.react-admin-heading {
+  padding-top: 0.25rem;
+}
+
+.react-admin-heading h2 {
+  margin-bottom: 0.45rem;
+}
+
+.react-admin-management-card {
+  padding: clamp(1.15rem, 2.5vw, 1.6rem);
+}
+
+.react-admin-card-heading {
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr) max-content;
+}
+
+.react-admin-card-heading h3 {
+  margin-bottom: 0.25rem;
+}
+
+.react-admin-search {
+  margin-top: 0.9rem;
+}
+
+.react-admin-search span {
+  color: #071827;
+  font-size: 0.92rem;
+}
+
+.react-admin-search input {
+  min-height: 48px;
+}
+
+.react-admin-workflow-bar {
+  align-items: center;
+  margin-top: 1.15rem;
+}
+
+.react-admin-table-wrap {
+  margin-top: 0.85rem;
+}
+
+.react-admin-table-heading {
+  padding: 0.75rem 0.9rem;
+}
+
+.react-admin-table th,
+.react-admin-table td {
+  padding: 0.75rem 0.9rem;
+}
+
+.react-admin-table tbody tr:hover td {
+  background: #f7fbff;
+}
+
+.fleet-directory-section {
+  margin-top: 3.25rem;
+}
+
+.react-quality-section .status-card {
+  width: 100%;
+}
+
+@media (max-width: 760px) {
+  .route-panel,
+  .react-quality-section {
+    width: min(100% - 1rem, 1120px);
+  }
+
+  .react-admin-card-heading {
+    grid-template-columns: 1fr;
+  }
+
+  .fleet-directory-section {
+    margin-top: 2rem;
+  }
+}

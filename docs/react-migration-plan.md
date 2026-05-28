@@ -107,3 +107,10 @@ Modernize cruise portfolio with React preview and cutover readiness path
 ```
 
 The portfolio story should be: **working legacy application modernized through React using regression safety, API parity, accessibility contracts, and controlled cutover planning**.
+
+
+## Step 2: Express-hosted React preview
+
+The React build is now intended to be served by Express at `/app-next` after `npm run react:build`.
+
+This is still not a cutover. The legacy DOM app remains the production-quality experience at `/`, while `/app-next` becomes the realistic parity workspace for the React replacement path.

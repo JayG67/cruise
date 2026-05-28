@@ -44,6 +44,16 @@ describe('Playwright portfolio coverage inventory', () => {
     expect(config).toContain('Desktop Safari - 1280px')
     expect(config).toContain('Tablet Chrome - 900px')
   })
+
+  it('keeps mobile SQA checks waiting for updated output instead of a stale placeholder', () => {
+    const spec = fs.readFileSync(mobileSpecPath, 'utf8')
+
+    expect(spec).toContain('async function clickSqaButtonAndWaitForOutput')
+    expect(spec).toContain("await expect(output).not.toContainText('Test output will appear here...')")
+    expect(spec).toContain("await clickSqaButtonAndWaitForOutput(page, 'ui-smoke-test-button', 'UI Smoke Check Result')")
+    expect(spec).toContain("await clickSqaButtonAndWaitForOutput(page, 'health-check-button', 'Health Check Result')")
+  })
+
   it('keeps mobile admin hierarchy checks scoped to visible child rows', () => {
     const spec = fs.readFileSync(roleDashboardSpecPath, 'utf8')
 
@@ -65,4 +75,30 @@ describe('inline booking detail scoping guardrails', () => {
     expect(app).toContain('loadBookingCruiseDetails(booking, false, detailsButton)')
     expect(app).toContain('loadBookingCruiseDetails(booking, favoritesOnly, button)')
   })
+
+  it('keeps passenger booking detail containers uniquely scoped per rendered booking card', () => {
+    const app = fs.readFileSync(path.join(projectRoot, 'public/app.js'), 'utf8')
+
+    expect(app).toContain('bookings.forEach((booking, bookingIndex)')
+    expect(app).toContain('const bookingCardKey = `${booking.bookingId || booking.id || booking.sailing?.id || \'booking\'}-${bookingIndex}`')
+    expect(app).toContain('card.dataset.bookingCardKey = bookingCardKey')
+    expect(app).toContain('bookingCard?.dataset?.bookingCardKey')
+    expect(app).toContain('function setBookingDetailsButtonState')
+  })
+
+  it('does not leak passenger booking card keys into non-booking result cards', () => {
+    const app = fs.readFileSync(path.join(projectRoot, 'public/app.js'), 'utf8')
+    const renderCruiseLinesStart = app.indexOf('function renderCruiseLines')
+    const renderShipsStart = app.indexOf('async function loadShips', renderCruiseLinesStart)
+    const renderCruiseLinesBlock = app.slice(renderCruiseLinesStart, renderShipsStart)
+    const renderShipsFunctionStart = app.indexOf('function renderShips')
+    const renderShipsFunctionEnd = app.indexOf('async function loadSailings', renderShipsFunctionStart)
+    const renderShipsBlock = app.slice(renderShipsFunctionStart, renderShipsFunctionEnd)
+
+    expect(renderCruiseLinesBlock).toContain('lines.forEach(line =>')
+    expect(renderCruiseLinesBlock).not.toContain('bookingCardKey')
+    expect(renderShipsBlock).not.toContain('bookingCardKey')
+    expect(app).toContain('card.dataset.bookingCardKey = bookingCardKey')
+  })
+
 })
