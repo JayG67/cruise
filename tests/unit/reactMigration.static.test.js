@@ -149,7 +149,9 @@ describe('React migration readiness guardrails', () => {
     expect(app).toContain('Full React Route')
     expect(client).toContain('getCruiseLines')
     expect(roleSelector).toContain('View application as')
-    expect(roleSelector).toContain('Admin Demo User')
+    expect(roleSelector).toContain('demoUsers.map')
+    expect(roleSelector).toContain('formatDemoUserLabel(user)')
+    expect(roleSelector).toContain('react-demo-user-select')
     expect(fleetDirectory).toContain('Cruise Line Directory')
     expect(fleetDirectory).toContain('View Ships')
     expect(fleetHook).toContain('useCruiseLines')
@@ -252,6 +254,127 @@ describe('React migration readiness guardrails', () => {
     expect(app).toContain('className="react-quality-section"')
     expect(styles).toContain('DOM flow alignment pass')
     expect(styles).toContain('.fleet-directory-section')
+  })
+
+
+  it('keeps React fleet cards and create workflow aligned with the DOM app', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const client = read('frontend/react/src/api/client.js')
+    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const createWorkflow = read('frontend/react/src/components/ReactCruiseLineCreateWorkflow.jsx')
+    const createHook = read('frontend/react/src/hooks/useCruiseLineCreateWorkflow.js')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(app).toContain('ReactCruiseLineCreateWorkflow')
+    expect(app.indexOf('<ReactFleetDirectory')).toBeLessThan(app.indexOf('<ReactCruiseLineCreateWorkflow'))
+    expect(app.indexOf('<ReactCruiseLineCreateWorkflow')).toBeLessThan(app.indexOf('<ReactQueryStatusPanel'))
+    expect(client).toContain('createCruiseLine')
+    expect(client).toContain('createShip')
+    expect(fleet).toContain('fleet-danger-action')
+    expect(fleet).toContain('Delete')
+    expect(createWorkflow).toContain('Add New Cruise Data')
+    expect(createWorkflow).toContain('Add a Cruise Line')
+    expect(createWorkflow).toContain('data-testid="react-save-cruise-line"')
+    expect(createHook).toContain('normalizeShips')
+    expect(styles).toContain('React fleet and create workflow parity pass')
+    expect(styles).toContain('React controlled edit forms replacing prompt-driven fleet edits')
+  })
+
+
+  it('keeps React SQA console aligned with the DOM manual validation dashboard', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const client = read('frontend/react/src/api/client.js')
+    const sqa = read('frontend/react/src/components/ReactSqaConsole.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(app).toContain('ReactSqaConsole')
+    expect(app.indexOf('<ReactCruiseLineCreateWorkflow')).toBeLessThan(app.indexOf('<ReactSqaConsole'))
+    expect(app.indexOf('<ReactSqaConsole')).toBeLessThan(app.indexOf('<ReactQueryStatusPanel'))
+    expect(client).toContain('getHealthStatus')
+    expect(client).toContain('resetDemoData')
+    expect(sqa).toContain('SQA Test Control Panel')
+    expect(sqa).toContain('Manual validation tools for API-driven UI behavior')
+    expect(sqa).toContain('Health Check')
+    expect(sqa).toContain('UI Smoke Check')
+    expect(sqa).toContain('Safe CRUD Workflow')
+    expect(sqa).toContain('Demo Data Recovery')
+    expect(sqa).toContain('react-sqa-output')
+    expect(styles).toContain('React SQA console parity pass')
+    expect(styles).toContain('.react-sqa-action-grid')
+  })
+
+
+  it('keeps React role selector backed by the live demo-user API', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const client = read('frontend/react/src/api/client.js')
+    const hook = read('frontend/react/src/hooks/useDemoUsers.js')
+    const selector = read('frontend/react/src/components/ReactRoleSelector.jsx')
+
+    expect(app).toContain('useDemoUsers')
+    expect(app).toContain('demoUsers={demoUsers}')
+    expect(client).toContain('getDemoUsers')
+    expect(client).toContain('/cruise/demo-users')
+    expect(hook).toContain('setSelectedDemoUserId')
+    expect(selector).not.toContain('const DEMO_ROLES')
+    expect(selector).toContain('demoUsers.map')
+    expect(selector).toContain('react-demo-user-select')
+    expect(selector).toContain('demo users available')
+  })
+
+
+  it('keeps production replacement role selector API-backed instead of hard-coded', () => {
+    const client = read('frontend/react/src/api/client.js')
+    const hook = read('frontend/react/src/hooks/useDemoUsers.js')
+    const roleSelector = read('frontend/react/src/components/ReactRoleSelector.jsx')
+
+    expect(client).toContain('/cruise/demo-users')
+    expect(hook).toContain('getDemoUsers')
+    expect(hook).toContain('selectedDemoUser')
+    expect(roleSelector).toContain('demoUsers.map')
+    expect(roleSelector).toContain('formatDemoUserLabel(user)')
+    expect(roleSelector).not.toContain('const DEMO_ROLES')
+  })
+
+
+  it('keeps React demo user labels readable instead of ID-only', () => {
+    const selector = read('frontend/react/src/components/ReactRoleSelector.jsx')
+
+    expect(selector).toContain('user.displayName')
+    expect(selector).toContain('formatDemoUserRole')
+    expect(selector).toContain('formatDemoUserLabel(user)')
+    expect(selector).toContain('user.id')
+  })
+
+
+  it('keeps React role switching aligned with the DOM app', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const roleDashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const roleView = read('frontend/react/src/domain/roleView.js')
+    const selector = read('frontend/react/src/components/ReactRoleSelector.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(app).toContain('selectedRoleView')
+    expect(app).toContain('getVisibleRoleBookings')
+    expect(app).toContain("selectedRoleView === 'admin'")
+    expect(app).toContain('ReactRoleDashboard')
+    expect(roleView).toContain("if (roleView === 'group-leader') return 'Group booking dashboard'")
+    expect(roleView).toContain("return 'Passenger booking dashboard'")
+    expect(roleDashboard).toContain('getRoleDashboardTitle(roleView)')
+    expect(roleDashboard).toContain('My travel profile')
+    expect(roleDashboard).toContain('Visible passengers')
+    expect(roleView).toContain('getSelectedRoleView')
+    expect(roleView).toContain('getVisibleRoleBookings')
+    expect(selector).toContain('visibleBookingCount')
+    expect(styles).toContain('React role switching parity pass')
+  })
+
+
+  it('keeps React role summary safe before demo users load', () => {
+    const roleView = read('frontend/react/src/domain/roleView.js')
+
+    expect(roleView).toContain("selectedDemoUser?.displayName || 'the group leader'")
+    expect(roleView).toContain("selectedDemoUser?.displayName || 'the selected passenger'")
+    expect(roleView).toContain('getSelectedRoleView(selectedDemoUser)')
   })
 
 })

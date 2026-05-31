@@ -17,13 +17,26 @@ const createdShipIds = []
 const createdCustomerIds = []
 const createdBookingIds = []
 
+let uniqueCustomerSequence = 0
+let uniqueBookingSequence = 0
+
+function uniqueSeedSafeId(prefix, sequence) {
+  const timePart = (Date.now() % 1000000).toString().padStart(6, '0')
+  const sequencePart = (sequence % 46656).toString(36).toUpperCase().padStart(3, '0')
+
+  return `${prefix}${timePart}${sequencePart}`
+}
 
 function uniqueCustomerId() {
-  return `C${Math.floor(Math.random() * 1000000000).toString().padStart(9, '0')}`
+  uniqueCustomerSequence += 1
+
+  return uniqueSeedSafeId('C', uniqueCustomerSequence)
 }
 
 function uniqueBookingId() {
-  return `B${Math.floor(Math.random() * 1000000000).toString().padStart(9, '0')}`
+  uniqueBookingSequence += 1
+
+  return uniqueSeedSafeId('B', uniqueBookingSequence)
 }
 
 async function createCustomer(overrides = {}) {

@@ -9,7 +9,7 @@ const bookingPassengerTable = require('../models/bookingPassenger.model')
 const demoUserTable = require('../models/demoUser.model')
 const customerItineraryFavoriteTable = require('../models/customerItineraryFavorite.model')
 const db = require('../db')
-const { eq, inArray } = require('drizzle-orm')
+const { and, eq, inArray } = require('drizzle-orm')
 
 
 
@@ -1481,7 +1481,12 @@ exports.addBookingPassenger = async (req, res, next) => {
     const existingPassengerRows = await db
       .select()
       .from(bookingPassengerTable)
-      .where(eq(bookingPassengerTable.id, `${bookingId}-${customerId}`))
+      .where(
+        and(
+          eq(bookingPassengerTable.bookingId, bookingId),
+          eq(bookingPassengerTable.customerId, customerId)
+        )
+      )
       .limit(1)
 
     if (existingPassengerRows[0]) {

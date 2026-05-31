@@ -25,7 +25,11 @@ export default function CustomerHierarchyRow({
   onValidateBookingDraft,
   onSaveBookingDraft,
   savingBookingId,
-  onCancelBookingDraft
+  onCancelBookingDraft,
+  onDeleteCustomer,
+  isDeletingCustomer = false,
+  onDeleteBooking,
+  deletingBookingId = ''
 }) {
   const bookingsRowId = `react-customer-bookings-${customer.id}`
 
@@ -51,9 +55,20 @@ export default function CustomerHierarchyRow({
           <span className="linked-booking-pill">{linkedBookings.length} bookings</span>
         </td>
         <td>
-          <button className="primary-action-button compact-action-button" type="button" onClick={onEditCustomer} data-testid="react-edit-customer-button">
-            Edit
-          </button>
+          <div className="react-row-action-cluster">
+            <button className="primary-action-button compact-action-button" type="button" onClick={onEditCustomer} data-testid="react-edit-customer-button">
+              Edit
+            </button>
+            <button
+              className="fleet-danger-action compact-action-button"
+              type="button"
+              onClick={onDeleteCustomer}
+              disabled={isDeletingCustomer}
+              data-testid="react-delete-customer-row-button"
+            >
+              {isDeletingCustomer ? 'Deleting…' : 'Delete'}
+            </button>
+          </div>
         </td>
       </tr>
       {customerDraft && (
@@ -95,6 +110,8 @@ export default function CustomerHierarchyRow({
                     onSaveBookingDraft={onSaveBookingDraft}
                     isSavingBooking={savingBookingId === booking.id}
                     onCancelBookingDraft={onCancelBookingDraft}
+                    onDeleteBooking={() => onDeleteBooking?.(booking)}
+                    isDeletingBooking={deletingBookingId === booking.id}
                   />
                 )
               })}

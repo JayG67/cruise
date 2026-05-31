@@ -101,4 +101,136 @@ describe('inline booking detail scoping guardrails', () => {
     expect(app).toContain('card.dataset.bookingCardKey = bookingCardKey')
   })
 
+
+  it('keeps React /app-next Playwright replacement coverage present', () => {
+    const mobileReactSpecPath = path.join(projectRoot, 'playwright/mobile/react-app-next-mobile.spec.js')
+    const responsiveReactSpecPath = path.join(projectRoot, 'playwright/responsive/react-app-next-responsive.spec.js')
+    const mobileReactSpec = fs.readFileSync(mobileReactSpecPath, 'utf8')
+    const responsiveReactSpec = fs.readFileSync(responsiveReactSpecPath, 'utf8')
+
+    expect(fs.existsSync(mobileReactSpecPath)).toBe(true)
+    expect(fs.existsSync(responsiveReactSpecPath)).toBe(true)
+    expect(mobileReactSpec).toContain("page.goto('/app-next')")
+    expect(mobileReactSpec).toContain('selectDemoUserByRole')
+    expect(mobileReactSpec).toContain("selectDemoUserByRole(page, 'Admin')")
+    expect(responsiveReactSpec).toContain("page.goto('/app-next')")
+    expect(responsiveReactSpec).toContain('react-sqa-console')
+  })
+
+
+  it('keeps React Playwright role selection resilient to seeded user id changes', () => {
+    const mobileReactSpecPath = path.join(projectRoot, 'playwright/mobile/react-app-next-mobile.spec.js')
+    const responsiveReactSpecPath = path.join(projectRoot, 'playwright/responsive/react-app-next-responsive.spec.js')
+    const mobileReactSpec = fs.readFileSync(mobileReactSpecPath, 'utf8')
+    const responsiveReactSpec = fs.readFileSync(responsiveReactSpecPath, 'utf8')
+
+    expect(mobileReactSpec).toContain('async function selectDemoUserByRole')
+    expect(mobileReactSpec).toContain("selectDemoUserByRole(page, 'Passenger')")
+    expect(mobileReactSpec).toContain("selectDemoUserByRole(page, 'Admin')")
+    expect(mobileReactSpec).not.toContain("selectOption('UPASS0001')")
+    expect(responsiveReactSpec).toContain('async function selectDemoUserByRole')
+    expect(responsiveReactSpec).not.toContain("selectOption('UPASS0001')")
+  })
+
+
+  it('protects React workspace mobile touch-target coverage', () => {
+    const mobileReactSpecPath = path.join(projectRoot, 'playwright/mobile/react-app-next-mobile.spec.js')
+    const mobileReactSpec = fs.readFileSync(mobileReactSpecPath, 'utf8')
+    const styles = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/styles/app.css'), 'utf8')
+
+    expect(mobileReactSpec).toContain('react-workspace-role-button')
+    expect(styles).toContain('button.react-workspace-card')
+    expect(styles).toContain('min-height: 72px')
+  })
+
+
+  it('keeps local Playwright commands rebuilding React assets before app next coverage', () => {
+    const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'))
+    const styles = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/styles/app.css'), 'utf8')
+
+    expect(packageJson.scripts['playwright:mobile:local']).toContain('npm run react:build &&')
+    expect(packageJson.scripts['playwright:responsive:local']).toContain('npm run react:build &&')
+    expect(styles).toContain('React workspace mobile touch target stabilization')
+    expect(styles).toContain('min-height: 72px')
+  })
+
+
+  it('keeps React mobile workspace target test measuring stable button styling', () => {
+    const app = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/App.jsx'), 'utf8')
+    const mobileReactSpec = fs.readFileSync(path.join(projectRoot, 'playwright/mobile/react-app-next-mobile.spec.js'), 'utf8')
+
+    expect(app).toContain('workspaceTouchTargetStyle')
+    expect(app).toContain('style={workspaceTouchTargetStyle}')
+    expect(mobileReactSpec).toContain('react-workspace-role-button')
+  })
+
+
+  it('keeps React mobile workspace touch target measuring the button box', () => {
+    const mobileReactSpecPath = path.join(projectRoot, 'playwright/mobile/react-app-next-mobile.spec.js')
+    const mobileReactSpec = fs.readFileSync(mobileReactSpecPath, 'utf8')
+    const app = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/App.jsx'), 'utf8')
+
+    expect(mobileReactSpec).toContain("page.getByTestId('react-workspace-role-button')")
+    expect(app).toContain("height: '72px'")
+    expect(app).toContain("minHeight: '72px'")
+  })
+
+
+  it('keeps React mobile smoke checks WebKit-stable', () => {
+    const mobileReactSpecPath = path.join(projectRoot, 'playwright/mobile/react-app-next-mobile.spec.js')
+    const mobileReactSpec = fs.readFileSync(mobileReactSpecPath, 'utf8')
+
+    expect(mobileReactSpec).toContain("const demoUserSelect = page.getByTestId('react-demo-user-select')")
+    expect(mobileReactSpec).toContain('await expect(demoUserSelect).toBeEnabled()')
+    expect(mobileReactSpec).toContain("await expect(roleWorkspaceButton).toContainText('Role Simulation')")
+    expect(mobileReactSpec).toContain('await roleWorkspaceButton.click()')
+    expect(mobileReactSpec).not.toContain('expectTouchTargetIsUsable')
+    expect(mobileReactSpec).not.toContain('getBoundingClientRect()')
+  })
+
+
+  it('keeps React mobile smoke test focused on visible workspace behavior', () => {
+    const mobileReactSpecPath = path.join(projectRoot, 'playwright/mobile/react-app-next-mobile.spec.js')
+    const mobileReactSpec = fs.readFileSync(mobileReactSpecPath, 'utf8')
+
+    expect(mobileReactSpec).toContain("await expect(roleWorkspaceButton).toContainText('Role Simulation')")
+    expect(mobileReactSpec).toContain('await roleWorkspaceButton.click()')
+    expect(mobileReactSpec).toContain("await expect(page.getByTestId('react-role-selector')).toBeVisible()")
+    expect(mobileReactSpec).not.toContain("expectTouchTargetIsUsable(page.getByTestId('react-workspace-role-button'))")
+  })
+
+
+  it('keeps React mobile replacement smoke test free of fragile Safari height assertions', () => {
+    const mobileReactSpecPath = path.join(projectRoot, 'playwright/mobile/react-app-next-mobile.spec.js')
+    const mobileReactSpec = fs.readFileSync(mobileReactSpecPath, 'utf8')
+
+    expect(mobileReactSpec).toContain("await expect(demoUserSelect).toBeEnabled()")
+    expect(mobileReactSpec).toContain('await roleWorkspaceButton.click()')
+    expect(mobileReactSpec).not.toContain('expectTouchTargetIsUsable')
+    expect(mobileReactSpec).not.toContain('touchTarget.height')
+  })
+
+
+  it('keeps legacy responsive Playwright from double-running React replacement specs', () => {
+    const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'))
+
+    expect(packageJson.scripts['playwright:responsive:dom']).toContain('playwright/responsive/sailings-responsive.spec.js')
+    expect(packageJson.scripts['playwright:responsive:dom']).not.toContain('react-app-next-responsive.spec.js')
+    expect(packageJson.scripts['playwright:responsive:legacy']).toContain('playwright:responsive:dom')
+    expect(packageJson.scripts['playwright:responsive:react']).toContain('react-app-next-responsive.spec.js')
+  })
+
+
+  it('keeps React mobile View Ships test synchronized with the selected fleet panel', () => {
+    const mobileReactSpecPath = path.join(projectRoot, 'playwright/mobile/react-app-next-mobile.spec.js')
+    const mobileReactSpec = fs.readFileSync(mobileReactSpecPath, 'utf8')
+
+    expect(mobileReactSpec).toContain("await selectDemoUserByRole(page, 'Admin')")
+    expect(mobileReactSpec).toContain('const viewShipsButton = page.getByTestId')
+    expect(mobileReactSpec).toContain('await viewShipsButton.scrollIntoViewIfNeeded()')
+    expect(mobileReactSpec).toContain('await expect(selectedShipsPanel).toContainText(/Royal.*ships/)')
+    expect(mobileReactSpec).toContain('const viewSailingsButton = page.getByTestId')
+    expect(mobileReactSpec).toContain('await viewSailingsButton.scrollIntoViewIfNeeded()')
+  })
+
 })

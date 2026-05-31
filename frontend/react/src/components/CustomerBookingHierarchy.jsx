@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { createBooking, createCustomer, deleteBooking, deleteCustomer } from '../api/client.js'
 import CustomerHierarchyRow from './CustomerHierarchyRow.jsx'
+import ConfirmActionPanel from './ConfirmActionPanel.jsx'
 import { getCustomerName } from '../domain/adminHierarchy.js'
 import { useAdminHierarchyViewState } from '../hooks/useAdminHierarchyViewState.js'
 import { useBookingDraftWorkflow } from '../hooks/useBookingDraftWorkflow.js'
@@ -52,6 +54,186 @@ export default function CustomerBookingHierarchy({
   } = useBookingDraftWorkflow({ onSaveBookingDraft, bookingMutationError })
 
   const [workflowsVisible, setWorkflowsVisible] = useState(false)
+  const [adminMutationMessage, setAdminMutationMessage] = useState('')
+  const [createCustomerDraft, setCreateCustomerDraft] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    loyaltyNumber: ''
+  })
+  const [createBookingDraft, setCreateBookingDraft] = useState({
+    customerId: '',
+    bookingStatus: 'CONFIRMED',
+    cabinNumber: '',
+    fareCode: '',
+    embarkationPort: '',
+    debarkationPort: ''
+  })
+  const [deleteCustomerId, setDeleteCustomerId] = useState('')
+  const [deleteBookingId, setDeleteBookingId] = useState('')
+  const [activeDeleteId, setActiveDeleteId] = useState('')
+  const [pendingDelete, setPendingDelete] = useState(null)
+
+  function updateCreateCustomerDraft(fieldName, value) {
+    setCreateCustomerDraft(current => ({ ...current, [fieldName]: value }))
+  }
+
+  function updateCreateBookingDraft(fieldName, value) {
+    setCreateBookingDraft(current => ({ ...current, [fieldName]: value }))
+  }
+
+  async function handleCreateCustomer(event) {
+    event.preventDefault()
+
+    const payload = {
+      firstName: createCustomerDraft.firstName.trim(),
+      lastName: createCustomerDraft.lastName.trim(),
+      email: createCustomerDraft.email.trim(),
+      phone: createCustomerDraft.phone.trim(),
+      loyaltyNumber: createCustomerDraft.loyaltyNumber.trim()
+    }
+
+    if (!payload.firstName || !payload.lastName || !payload.email) {
+      setAdminMutationMessage('First name, last name, and email are required to create a customer.')
+      return
+    }
+
+    try {
+      const created = await createCustomer(payload)
+      setCreateCustomerDraft({ firstName: '', lastName: '', email: '', phone: '', loyaltyNumber: '' })
+      setAdminMutationMessage(`${created.firstName || payload.firstName} ${created.lastName || payload.lastName} was created through the React admin workspace.`)
+      await onRetry?.()
+    } catch (error) {
+      setAdminMutationMessage(error.message || 'Unable to create customer.')
+    }
+  }
+
+  async function handleCreateBooking(event) {
+    event.preventDefault()
+
+    const payload = {
+      customerId: createBookingDraft.customerId.trim(),
+      bookingStatus: createBookingDraft.bookingStatus.trim(),
+      cabinNumber: createBookingDraft.cabinNumber.trim(),
+      fareCode: createBookingDraft.fareCode.trim(),
+      embarkationPort: createBookingDraft.embarkationPort.trim(),
+      debarkationPort: createBookingDraft.debarkationPort.trim()
+    }
+
+    if (!payload.customerId || !payload.bookingStatus || !payload.cabinNumber) {
+      setAdminMutationMessage('Customer ID, booking status, and cabin number are required to create a booking.')
+      return
+    }
+
+    try {
+      const created = await createBooking(payload)
+      setCreateBookingDraft({
+        customerId: '',
+        bookingStatus: 'CONFIRMED',
+        cabinNumber: '',
+        fareCode: '',
+        embarkationPort: '',
+        debarkationPort: ''
+      })
+      setAdminMutationMessage(`${created.id || 'New'} booking was created through the React admin workspace.`)
+      await onRetry?.()
+    } catch (error) {
+      setAdminMutationMessage(error.message || 'Unable to create booking.')
+    }
+  }
+
+  function requestDeleteCustomerById(customerId, label = customerId) {
+    const normalizedCustomerId = String(customerId || '').trim()
+
+    if (!normalizedCustomerId) {
+      setAdminMutationMessage('Customer ID is required before deleting a customer.')
+      return
+    }
+
+    setPendingDelete({
+      type: 'customer',
+      id: normalizedCustomerId,
+      label,
+      message: `Delete customer ${label}?`,
+      confirmLabel: 'Delete Customer'
+    })
+  }
+
+  function requestDeleteBookingById(bookingId, label = bookingId) {
+    const normalizedBookingId = String(bookingId || '').trim()
+
+    if (!normalizedBookingId) {
+      setAdminMutationMessage('Booking ID is required before deleting a booking.')
+      return
+    }
+
+    setPendingDelete({
+      type: 'booking',
+      id: normalizedBookingId,
+      label,
+      message: `Delete booking ${label}?`,
+      confirmLabel: 'Delete Booking'
+    })
+  }
+
+  async function executeDeleteCustomer(customerId, label = customerId) {
+    setActiveDeleteId(`customer:${customerId}`)
+
+    try {
+      await deleteCustomer(customerId)
+      setDeleteCustomerId('')
+      setAdminMutationMessage(`${label} customer was deleted through the React admin workspace.`)
+      await onRetry?.()
+    } catch (error) {
+      setAdminMutationMessage(error.message || 'Unable to delete customer.')
+    } finally {
+      setActiveDeleteId('')
+    }
+  }
+
+  async function executeDeleteBooking(bookingId, label = bookingId) {
+    setActiveDeleteId(`booking:${bookingId}`)
+
+    try {
+      await deleteBooking(bookingId)
+      setDeleteBookingId('')
+      setAdminMutationMessage(`${label} booking was deleted through the React admin workspace.`)
+      await onRetry?.()
+    } catch (error) {
+      setAdminMutationMessage(error.message || 'Unable to delete booking.')
+    } finally {
+      setActiveDeleteId('')
+    }
+  }
+
+  async function confirmPendingDelete() {
+    const action = pendingDelete
+    if (!action) return
+
+    try {
+      if (action.type === 'customer') await executeDeleteCustomer(action.id, action.label)
+      if (action.type === 'booking') await executeDeleteBooking(action.id, action.label)
+    } finally {
+      setPendingDelete(null)
+    }
+  }
+
+  function cancelPendingDelete() {
+    setPendingDelete(null)
+    setAdminMutationMessage('Delete action was cancelled.')
+  }
+
+  function handleDeleteCustomer(event) {
+    event.preventDefault()
+    return requestDeleteCustomerById(deleteCustomerId, deleteCustomerId.trim())
+  }
+
+  function handleDeleteBooking(event) {
+    event.preventDefault()
+    return requestDeleteBookingById(deleteBookingId, deleteBookingId.trim())
+  }
+
 
   if (isLoading) {
     return <p role="status" className="status-card">Loading customer and booking workspace…</p>
@@ -96,6 +278,67 @@ export default function CustomerBookingHierarchy({
             <span>{summary.uniqueBookingCount} linked bookings</span>
           </div>
         </div>
+
+        <section className="react-admin-mutation-panel" aria-label="React admin create and delete workflows" data-testid="react-admin-mutation-panel">
+          <div>
+            <p className="eyebrow">Admin CRUD parity</p>
+            <h4>Create and delete customer or booking records</h4>
+            <p>These workflows exercise the same customer and booking mutation boundaries that the DOM app owns today. Contextual row actions now let admins delete records from the workflow they are already reviewing instead of copying IDs into a separate form.</p>
+          </div>
+
+          {adminMutationMessage && (
+            <p className="draft-message" role="status" data-testid="react-admin-mutation-message">{adminMutationMessage}</p>
+          )}
+
+          <ConfirmActionPanel
+            title="Confirm admin delete"
+            message={pendingDelete?.message}
+            confirmLabel={pendingDelete?.confirmLabel}
+            onConfirm={confirmPendingDelete}
+            onCancel={cancelPendingDelete}
+            isWorking={Boolean(activeDeleteId)}
+            testId="react-admin-delete-confirmation"
+          />
+
+          <div className="react-admin-mutation-grid">
+            <form className="draft-editor" onSubmit={handleCreateCustomer} data-testid="react-admin-create-customer-form">
+              <h5>Create Customer</h5>
+              <div className="draft-grid">
+                <label><span>First name</span><input value={createCustomerDraft.firstName} onChange={event => updateCreateCustomerDraft('firstName', event.target.value)} data-testid="react-admin-create-customer-first-name" /></label>
+                <label><span>Last name</span><input value={createCustomerDraft.lastName} onChange={event => updateCreateCustomerDraft('lastName', event.target.value)} data-testid="react-admin-create-customer-last-name" /></label>
+                <label><span>Email</span><input value={createCustomerDraft.email} onChange={event => updateCreateCustomerDraft('email', event.target.value)} data-testid="react-admin-create-customer-email" /></label>
+                <label><span>Phone</span><input value={createCustomerDraft.phone} onChange={event => updateCreateCustomerDraft('phone', event.target.value)} data-testid="react-admin-create-customer-phone" /></label>
+                <label><span>Loyalty</span><input value={createCustomerDraft.loyaltyNumber} onChange={event => updateCreateCustomerDraft('loyaltyNumber', event.target.value)} data-testid="react-admin-create-customer-loyalty" /></label>
+              </div>
+              <button type="submit" className="primary-button" data-testid="react-admin-create-customer-submit">Create Customer</button>
+            </form>
+
+            <form className="draft-editor" onSubmit={handleCreateBooking} data-testid="react-admin-create-booking-form">
+              <h5>Create Booking</h5>
+              <div className="draft-grid">
+                <label><span>Customer ID</span><input value={createBookingDraft.customerId} onChange={event => updateCreateBookingDraft('customerId', event.target.value)} data-testid="react-admin-create-booking-customer-id" /></label>
+                <label><span>Status</span><input value={createBookingDraft.bookingStatus} onChange={event => updateCreateBookingDraft('bookingStatus', event.target.value)} data-testid="react-admin-create-booking-status" /></label>
+                <label><span>Cabin</span><input value={createBookingDraft.cabinNumber} onChange={event => updateCreateBookingDraft('cabinNumber', event.target.value)} data-testid="react-admin-create-booking-cabin" /></label>
+                <label><span>Fare</span><input value={createBookingDraft.fareCode} onChange={event => updateCreateBookingDraft('fareCode', event.target.value)} data-testid="react-admin-create-booking-fare" /></label>
+                <label><span>Embarkation</span><input value={createBookingDraft.embarkationPort} onChange={event => updateCreateBookingDraft('embarkationPort', event.target.value)} data-testid="react-admin-create-booking-embarkation" /></label>
+                <label><span>Debarkation</span><input value={createBookingDraft.debarkationPort} onChange={event => updateCreateBookingDraft('debarkationPort', event.target.value)} data-testid="react-admin-create-booking-debarkation" /></label>
+              </div>
+              <button type="submit" className="primary-button" data-testid="react-admin-create-booking-submit">Create Booking</button>
+            </form>
+
+            <form className="draft-editor" onSubmit={handleDeleteBooking} data-testid="react-admin-delete-booking-form">
+              <h5>Delete Booking by ID</h5>
+              <label><span>Booking ID</span><input value={deleteBookingId} onChange={event => setDeleteBookingId(event.target.value)} data-testid="react-admin-delete-booking-id" /></label>
+              <button type="submit" className="fleet-danger-action" disabled={activeDeleteId === `booking:${deleteBookingId.trim()}`} data-testid="react-admin-delete-booking-submit">Delete Booking</button>
+            </form>
+
+            <form className="draft-editor" onSubmit={handleDeleteCustomer} data-testid="react-admin-delete-customer-form">
+              <h5>Delete Customer by ID</h5>
+              <label><span>Customer ID</span><input value={deleteCustomerId} onChange={event => setDeleteCustomerId(event.target.value)} data-testid="react-admin-delete-customer-id" /></label>
+              <button type="submit" className="fleet-danger-action" disabled={activeDeleteId === `customer:${deleteCustomerId.trim()}`} data-testid="react-admin-delete-customer-submit">Delete Customer</button>
+            </form>
+          </div>
+        </section>
 
         <label className="search-control react-admin-search">
           <span>Search admin records</span>
@@ -197,6 +440,10 @@ export default function CustomerBookingHierarchy({
                           onSaveBookingDraft={booking => saveBookingDraftFor(customer.id, booking)}
                           savingBookingId={savingBookingId}
                           onCancelBookingDraft={cancelBookingDraft}
+                          onDeleteCustomer={() => requestDeleteCustomerById(customer.id, customerName)}
+                          isDeletingCustomer={activeDeleteId === `customer:${customer.id}`}
+                          onDeleteBooking={booking => requestDeleteBookingById(booking.id, booking.id)}
+                          deletingBookingId={activeDeleteId.startsWith('booking:') ? activeDeleteId.replace('booking:', '') : ''}
                         />
                       )
                     })}

@@ -28,13 +28,27 @@ async function getFirstSeededSailing() {
   const cruiseRes = await request(app).get('/cruise')
   expect(cruiseRes.statusCode).toBe(200)
 
-  const shipsRes = await request(app).get(`/cruise/ships/${cruiseRes.body[0].id}`)
-  expect(shipsRes.statusCode).toBe(200)
+  for (const cruiseLine of cruiseRes.body) {
+    const shipsRes = await request(app).get(`/cruise/ships/${cruiseLine.id}`)
 
-  const sailingsRes = await request(app).get(`/cruise/ship/${shipsRes.body[0].id}/sailings`)
-  expect(sailingsRes.statusCode).toBe(200)
+    if (shipsRes.statusCode !== 200 || !Array.isArray(shipsRes.body)) {
+      continue
+    }
 
-  return sailingsRes.body[0]
+    for (const ship of shipsRes.body) {
+      const sailingsRes = await request(app).get(`/cruise/ship/${ship.id}/sailings`)
+
+      if (
+        sailingsRes.statusCode === 200
+        && Array.isArray(sailingsRes.body)
+        && sailingsRes.body.length > 0
+      ) {
+        return sailingsRes.body[0]
+      }
+    }
+  }
+
+  throw new Error('No seeded sailings found in test data')
 }
 
 
@@ -783,6 +797,7 @@ describe('Customer and booking API integration tests', () => {
   })
 
   it('POST /cruise/bookings/:bookingId/passengers should reject a duplicate passenger', async () => {
+    // Regression: duplicate detection uses bookingId and customerId rather than the synthetic row id.
     const booking = await createBooking()
 
     const res = await request(app)
@@ -928,25 +943,29 @@ describe('Customer and booking API integration tests', () => {
   it('POST and DELETE /cruise/itinerary-favorites persists passenger itinerary interests', async () => {
     const contextRes = await request(app).get('/cruise/demo-users/UPASS00001/context')
     expect(contextRes.statusCode).toBe(200)
+    expect(contextRes.body.customer.id).toEqual(expect.any(String))
+    expect(contextRes.body.bookings.length).toBeGreaterThan(0)
 
+    const customerId = contextRes.body.customer.id
     const sailingId = contextRes.body.bookings[0].sailing.id
-    const itineraryRes = await request(app).get(`/cruise/sailings/${sailingId}/itinerary?customerId=C000000001`)
+    const itineraryRes = await request(app).get(`/cruise/sailings/${sailingId}/itinerary?customerId=${customerId}`)
     expect(itineraryRes.statusCode).toBe(200)
+    expect(itineraryRes.body[0].activitySchedule.length).toBeGreaterThan(0)
 
     const activityScheduleId = itineraryRes.body[0].activitySchedule[0].id
 
     const favoriteRes = await request(app)
       .post('/cruise/itinerary-favorites')
-      .send({ customerId: 'C000000001', activityScheduleId })
+      .send({ customerId, activityScheduleId })
 
     expect(favoriteRes.statusCode).toBe(201)
 
-    const favoritesOnlyRes = await request(app).get(`/cruise/sailings/${sailingId}/itinerary?customerId=C000000001&favoritesOnly=true`)
+    const favoritesOnlyRes = await request(app).get(`/cruise/sailings/${sailingId}/itinerary?customerId=${customerId}&favoritesOnly=true`)
     expect(favoritesOnlyRes.statusCode).toBe(200)
     expect(favoritesOnlyRes.body.flatMap(day => day.activitySchedule).map(activity => activity.id)).toContain(activityScheduleId)
     expect(favoritesOnlyRes.body.flatMap(day => day.activitySchedule).every(activity => activity.isFavorite)).toBe(true)
 
-    const deleteRes = await request(app).delete(`/cruise/itinerary-favorites/C000000001/${activityScheduleId}`)
+    const deleteRes = await request(app).delete(`/cruise/itinerary-favorites/${customerId}/${activityScheduleId}`)
     expect(deleteRes.statusCode).toBe(200)
   })
 

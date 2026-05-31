@@ -90,4 +90,431 @@ describe('React route preview accessibility contracts', () => {
     expect(app.indexOf('<ReactFleetDirectory')).toBeLessThan(app.indexOf('<ReactQueryStatusPanel'))
   })
 
+
+  it('keeps React create cruise line workflow accessible', () => {
+    const createWorkflow = read('frontend/react/src/components/ReactCruiseLineCreateWorkflow.jsx')
+
+    expect(createWorkflow).toContain('aria-labelledby="react-create-heading"')
+    expect(createWorkflow).toContain('role="status"')
+    expect(createWorkflow).toContain('data-testid="react-create-cruise-line-name"')
+    expect(createWorkflow).toContain('data-testid="react-create-ship-name"')
+    expect(createWorkflow).toContain('data-testid="react-save-cruise-line"')
+  })
+
+
+  it('keeps React SQA console controls accessible', () => {
+    const sqa = read('frontend/react/src/components/ReactSqaConsole.jsx')
+
+    expect(sqa).toContain('aria-labelledby="react-sqa-heading"')
+    expect(sqa).toContain('aria-label="React SQA validation actions"')
+    expect(sqa).toContain('aria-label="Quality report links"')
+    expect(sqa).toContain('role="status"')
+    expect(sqa).toContain('aria-live="polite"')
+    expect(sqa).toContain("testId: 'react-sqa-health-button'")
+    expect(sqa).toContain('data-testid={action.testId}')
+    expect(sqa).toContain("testId: 'react-sqa-ui-smoke-button'")
+    expect(sqa).toContain('data-testid="react-sqa-reset-demo-data-button"')
+  })
+
+
+  it('keeps React demo user selector populated from API results', () => {
+    const selector = read('frontend/react/src/components/ReactRoleSelector.jsx')
+    const hook = read('frontend/react/src/hooks/useDemoUsers.js')
+
+    expect(selector).toContain('value={selectedDemoUserId}')
+    expect(selector).toContain('onChange={event => onSelectDemoUser?.(event.target.value)}')
+    expect(selector).toContain('data-testid="react-demo-user-select"')
+    expect(selector).toContain('formatDemoUserLabel(user)')
+    expect(hook).toContain('getDemoUsers')
+    expect(hook).toContain('selectedDemoUser')
+  })
+
+
+  it('formats React demo user options with display names and readable roles', () => {
+    const selector = read('frontend/react/src/components/ReactRoleSelector.jsx')
+
+    expect(selector).toContain('user.displayName')
+    expect(selector).toContain('formatDemoUserRole')
+    expect(selector).toContain("split('_')")
+    expect(selector).toContain('<option key={user.id} value={user.id}>{formatDemoUserLabel(user)}</option>')
+  })
+
+
+  it('keeps React passenger and group dashboards accessible after role switching', () => {
+    const roleDashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const app = read('frontend/react/src/App.jsx')
+
+    expect(roleDashboard).toContain('aria-labelledby="react-role-dashboard-heading"')
+    expect(roleDashboard).toContain('data-testid={`react-${roleView}-dashboard`}')
+    expect(roleDashboard).toContain('aria-labelledby="react-passenger-profile-heading"')
+    expect(roleDashboard).toContain('data-testid="react-role-booking-card"')
+    expect(app).toContain('visibleBookingCount={visibleRoleBookings.length}')
+  })
+
+
+  it('keeps React role dashboard tolerant of loading demo-user data', () => {
+    const roleView = read('frontend/react/src/domain/roleView.js')
+    const roleDashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+
+    expect(roleView).toContain('selectedDemoUser?.displayName')
+    expect(roleDashboard).toContain('selectedDemoUser={selectedDemoUser}')
+    expect(roleDashboard).toContain('getRoleSummaryLine')
+  })
+
+
+  it('keeps React workspace cards usable as Safari mobile touch targets', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(app).toContain('data-testid="react-workspace-role-button"')
+    expect(app).toContain('data-testid="react-workspace-operations-button"')
+    expect(app).toContain('data-testid="react-workspace-fleet-button"')
+    expect(app).toContain('data-testid="react-workspace-quality-button"')
+    expect(styles).toContain('React workspace mobile touch target stabilization')
+    expect(styles).toContain('button.react-workspace-card')
+    expect(styles).toContain('min-height: 72px')
+    expect(styles).toContain('padding-block: 1rem')
+  })
+
+
+  it('keeps React workspace buttons guarded with inline Safari-safe touch targets', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(app).toContain('const workspaceTouchTargetStyle')
+    expect(app).toContain("minHeight: '72px'")
+    expect(app).toContain('style={workspaceTouchTargetStyle}')
+    expect(styles).toContain('React workspace button hard guarantee')
+    expect(styles).toContain('min-height: 72px !important')
+  })
+
+
+  it('keeps React workspace buttons at an explicit WebKit-safe height', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(app).toContain("height: '72px'")
+    expect(app).toContain("blockSize: '72px'")
+    expect(app).toContain("minBlockSize: '72px'")
+    expect(app).toContain("WebkitAppearance: 'none'")
+    expect(styles).toContain('React workspace explicit WebKit height contract')
+    expect(styles).toContain('height: 72px !important')
+    expect(styles).toContain('min-block-size: 72px !important')
+  })
+
+
+  it('keeps React workspace touch-target styles exposed to Playwright', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(app).toContain("height: '72px'")
+    expect(app).toContain("blockSize: '72px'")
+    expect(app).toContain("boxSizing: 'border-box'")
+    expect(styles).toContain('height: 72px !important')
+    expect(styles).toContain('box-sizing: border-box !important')
+  })
+
+
+  it('keeps React mobile tests validating behavior instead of fragile Safari measurements', () => {
+    const mobileReactSpec = read('playwright/mobile/react-app-next-mobile.spec.js')
+
+    expect(mobileReactSpec).toContain('await expect(demoUserSelect).toBeEnabled()')
+    expect(mobileReactSpec).toContain('await roleWorkspaceButton.click()')
+    expect(mobileReactSpec).not.toContain('expectTouchTargetIsUsable')
+  })
+
+
+  it('keeps React fleet directory wired to the real View Ships API workflow', () => {
+    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const client = read('frontend/react/src/api/client.js')
+    const cypress = read('cypress/react/reactApp.cy.js')
+    const responsive = read('playwright/responsive/react-app-next-responsive.spec.js')
+
+    expect(client).toContain('export async function getShipsForCruiseLine')
+    expect(client).toContain('/cruise/ships/${encodeURIComponent(cruiseLineId)}')
+    expect(fleet).toContain('getShipsForCruiseLine')
+    expect(fleet).toContain('data-testid="react-fleet-search"')
+    expect(fleet).toContain('data-testid="react-view-ships-button"')
+    expect(fleet).toContain('data-testid="react-selected-ships-panel"')
+    expect(fleet).toContain('data-testid="react-ship-card"')
+    expect(cypress).toContain('searches the React fleet directory and loads ships for a selected cruise line')
+    expect(responsive).toContain('loads React fleet ships from the fleet directory at desktop width')
+  })
+
+
+  it('keeps React fleet delete parity wired through the real API', () => {
+    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const client = read('frontend/react/src/api/client.js')
+    const cypress = read('cypress/react/reactApp.cy.js')
+    const responsive = read('playwright/responsive/react-app-next-responsive.spec.js')
+
+    expect(client).toContain('export async function deleteCruiseLine')
+    expect(fleet).toContain('deleteCruiseLine')
+    expect(fleet).toContain('function requestDeleteCruiseLine')
+    expect(fleet).toContain('async function executeDeleteCruiseLine')
+    expect(fleet).toContain('ConfirmActionPanel')
+    expect(fleet).toContain('testId="react-fleet-delete-confirmation"')
+    expect(fleet).toContain('data-testid="react-delete-cruise-line-button"')
+    expect(fleet).toContain('data-testid="react-fleet-action-message"')
+    expect(cypress).toContain('supports React fleet delete cancellation and confirmed deletion')
+    expect(responsive).toContain('keeps React fleet delete guarded by a native React confirmation panel')
+  })
+
+
+  it('keeps React create workflow parity covered by browser tests', () => {
+    const createWorkflow = read('frontend/react/src/components/ReactCruiseLineCreateWorkflow.jsx')
+    const hook = read('frontend/react/src/hooks/useCruiseLineCreateWorkflow.js')
+    const cypress = read('cypress/react/reactApp.cy.js')
+    const responsive = read('playwright/responsive/react-app-next-responsive.spec.js')
+
+    expect(createWorkflow).toContain('data-testid="react-remove-ship-row"')
+    expect(createWorkflow).toContain('data-testid="react-reset-cruise-line"')
+    expect(hook).toContain('normalizeOptional')
+    expect(hook).toContain('normalizeShips')
+    expect(hook).toContain('createCruiseLine')
+    expect(hook).toContain('createShip')
+    expect(cypress).toContain('creates a React cruise line with starter ships and reset parity')
+    expect(cypress).toContain("cy.intercept('POST', '/cruise/cruise-line'")
+    expect(cypress).toContain("cy.intercept('POST', '/cruise/ship'")
+    expect(responsive).toContain('keeps React create workflow usable at desktop width')
+  })
+
+
+  it('keeps React ship CRUD and sailing lookup parity wired through browser coverage', () => {
+    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const client = read('frontend/react/src/api/client.js')
+    const cypress = read('cypress/react/reactApp.cy.js')
+    const mobile = read('playwright/mobile/react-app-next-mobile.spec.js')
+    const responsive = read('playwright/responsive/react-app-next-responsive.spec.js')
+
+    expect(client).toContain('export async function updateShip')
+    expect(client).toContain('export async function deleteShip')
+    expect(client).toContain('export async function getSailingsForShip')
+    expect(fleet).toContain('handleCreateShip')
+    expect(fleet).toContain('handleUpdateShip')
+    expect(fleet).toContain('requestDeleteShip')
+    expect(fleet).toContain('executeDeleteShip')
+    expect(fleet).toContain('handleViewSailings')
+    expect(fleet).toContain('data-testid="react-create-ship-form"')
+    expect(fleet).toContain('data-testid="react-view-sailings-button"')
+    expect(fleet).toContain('data-testid="react-update-ship-button"')
+    expect(fleet).toContain('data-testid="react-ship-edit-form"')
+    expect(fleet).toContain('data-testid="react-save-ship-edit"')
+    expect(fleet).toContain('data-testid="react-delete-ship-button"')
+    expect(fleet).toContain('data-testid="react-sailings-panel"')
+    expect(cypress).toContain('manages React ship CRUD and sailing lookup from the selected fleet panel')
+    expect(mobile).toContain('keeps React ship and sailing controls reachable on mobile')
+    expect(responsive).toContain('keeps React ship CRUD and sailings readable at desktop width')
+  })
+
+
+  it('keeps React admin create and delete parity wired through browser coverage', () => {
+    const hierarchy = read('frontend/react/src/components/CustomerBookingHierarchy.jsx')
+    const client = read('frontend/react/src/api/client.js')
+    const cypress = read('cypress/react/reactApp.cy.js')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(client).toContain('export async function createCustomer')
+    expect(client).toContain('export async function deleteCustomer')
+    expect(client).toContain('export async function createBooking')
+    expect(client).toContain('export async function deleteBooking')
+    expect(hierarchy).toContain('handleCreateCustomer')
+    expect(hierarchy).toContain('handleCreateBooking')
+    expect(hierarchy).toContain('handleDeleteCustomer')
+    expect(hierarchy).toContain('handleDeleteBooking')
+    expect(hierarchy).toContain('data-testid="react-admin-create-customer-form"')
+    expect(hierarchy).toContain('data-testid="react-admin-create-booking-form"')
+    expect(hierarchy).toContain('data-testid="react-admin-delete-booking-form"')
+    expect(hierarchy).toContain('data-testid="react-admin-delete-customer-form"')
+    expect(read('frontend/react/src/components/CustomerHierarchyRow.jsx')).toContain('data-testid="react-delete-customer-row-button"')
+    expect(read('frontend/react/src/components/BookingCard.jsx')).toContain('data-testid="react-delete-booking-row-button"')
+    expect(cypress).toContain('creates and deletes React admin customers and bookings')
+    expect(cypress).toContain('deletes React admin customer and booking records from contextual workflow rows')
+    expect(cypress).toContain('switches through React role dashboards using the actual demo user select')
+    expect(cypress).not.toContain(`cy.get('[data-testid="react-role-selector"]').select`)
+    expect(styles).toContain('React admin create/delete parity')
+  })
+
+
+  it('keeps React role dashboard test ids based on normalized role views', () => {
+    const roleView = read('frontend/react/src/domain/roleView.js')
+    const roleDashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const cypress = read('cypress/react/reactApp.cy.js')
+
+    expect(roleView).toContain("if (normalizedRole.includes('group')) return 'group-leader'")
+    expect(roleDashboard).toContain('data-testid={`react-${roleView}-dashboard`}')
+    expect(cypress).toContain("react-group-leader-dashboard")
+    expect(cypress).not.toContain("react-group-dashboard")
+  })
+
+
+  it('keeps itinerary favorite integration test tied to demo-user context', () => {
+    const integration = read('tests/integration/customersBookings.integration.test.js')
+    const itineraryFavoriteTest = integration.slice(
+      integration.indexOf("POST and DELETE /cruise/itinerary-favorites persists passenger itinerary interests"),
+      integration.indexOf("POST /cruise/bookings should reject a booking that overlaps an existing passenger booking")
+    )
+
+    expect(itineraryFavoriteTest).toContain('const customerId = contextRes.body.customer.id')
+    expect(itineraryFavoriteTest).toContain('send({ customerId, activityScheduleId })')
+    expect(itineraryFavoriteTest).toContain('/itinerary-favorites/${customerId}/${activityScheduleId}')
+    expect(itineraryFavoriteTest).not.toContain('customerId=C000000001')
+    expect(itineraryFavoriteTest).not.toContain("customerId: 'C000000001'")
+  })
+
+
+  it('keeps React itinerary detail parity wired through browser coverage', () => {
+    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const client = read('frontend/react/src/api/client.js')
+    const cypress = read('cypress/react/reactApp.cy.js')
+    const mobile = read('playwright/mobile/react-app-next-mobile.spec.js')
+    const responsive = read('playwright/responsive/react-app-next-responsive.spec.js')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(client).toContain('export async function getItineraryForSailing')
+    expect(fleet).toContain('handleViewItinerary')
+    expect(fleet).toContain('data-testid="react-view-itinerary-button"')
+    expect(fleet).toContain('data-testid="react-itinerary-panel"')
+    expect(fleet).toContain('data-testid="react-itinerary-day-card"')
+    expect(fleet).toContain('data-testid="react-itinerary-activity"')
+    expect(cypress).toContain('loadReactItinerary')
+    expect(cypress).toContain('react-itinerary-panel')
+    expect(mobile).toContain('react-view-itinerary-button')
+    expect(responsive).toContain('react-view-itinerary-button')
+    expect(styles).toContain('React itinerary detail parity')
+  })
+
+
+  it('keeps React cruise line update parity wired through browser coverage', () => {
+    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const client = read('frontend/react/src/api/client.js')
+    const cypress = read('cypress/react/reactApp.cy.js')
+    const mobile = read('playwright/mobile/react-app-next-mobile.spec.js')
+    const responsive = read('playwright/responsive/react-app-next-responsive.spec.js')
+
+    expect(client).toContain('export async function updateCruiseLine')
+    expect(client).toContain('/cruise/cruise-line/${encodeURIComponent(cruiseLineId)}')
+    expect(fleet).toContain('async function handleUpdateCruiseLine')
+    expect(fleet).toContain('openCruiseLineEdit')
+    expect(fleet).toContain('data-testid="react-update-cruise-line-button"')
+    expect(fleet).toContain('data-testid="react-cruise-line-edit-form"')
+    expect(fleet).toContain('data-testid="react-save-cruise-line-edit"')
+    expect(fleet).toContain('setSelectedCruiseLine({')
+    expect(cypress).toContain('updates a React cruise line from the fleet directory')
+    expect(cypress).toContain('updateReactCruiseLine')
+    expect(mobile).toContain('keeps React cruise line update action reachable on mobile')
+    expect(responsive).toContain('keeps React cruise line update form guarded by controlled cancellation')
+  })
+
+
+  it('keeps React cruise line update Cypress test from cancelling before PATCH', () => {
+    const cypress = read('cypress/react/reactApp.cy.js')
+
+    expect(cypress).toContain('react-cruise-line-edit-form')
+    expect(cypress).toContain('react-save-cruise-line-edit')
+    expect(cypress).toContain("cy.intercept('PATCH', '/cruise/cruise-line/*'")
+    expect(cypress).toContain('expect(req.url).to.match(/\\/cruise\\/cruise-line\\/[0-9a-f-]{36}$/)')
+  })
+
+
+  it('keeps React cruise line update test using live seeded cruise line ids', () => {
+    const cypress = read('cypress/react/reactApp.cy.js')
+
+    expect(cypress).toContain("cy.intercept('PATCH', '/cruise/cruise-line/*'")
+    expect(cypress).toContain('expect(req.url).to.match(/\\/cruise\\/cruise-line\\/[0-9a-f-]{36}$/)')
+    expect(cypress).toContain("const cruiseLineId = req.url.split('/').pop()")
+    expect(cypress).not.toContain("expect(req.url).to.contain('/cruise/cruise-line/royal-caribbean')")
+  })
+
+
+  it('keeps React sailing CRUD parity wired through browser coverage', () => {
+    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const client = read('frontend/react/src/api/client.js')
+    const cypress = read('cypress/react/reactApp.cy.js')
+    const mobile = read('playwright/mobile/react-app-next-mobile.spec.js')
+    const responsive = read('playwright/responsive/react-app-next-responsive.spec.js')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(client).toContain('export async function createSailing')
+    expect(client).toContain('export async function updateSailing')
+    expect(client).toContain('export async function deleteSailing')
+    expect(fleet).toContain('handleCreateSailing')
+    expect(fleet).toContain('handleUpdateSailing')
+    expect(fleet).toContain('requestDeleteSailing')
+    expect(fleet).toContain('executeDeleteSailing')
+    expect(fleet).toContain('data-testid="react-create-sailing-form"')
+    expect(fleet).toContain('data-testid="react-update-sailing-button"')
+    expect(fleet).toContain('data-testid="react-delete-sailing-button"')
+    expect(cypress).toContain('createReactSailing')
+    expect(cypress).toContain('updateReactSailing')
+    expect(cypress).toContain('deleteReactSailing')
+    expect(mobile).toContain('keeps React sailing CRUD controls reachable on mobile')
+    expect(responsive).toContain('keeps React sailing CRUD controls readable at desktop width')
+    expect(styles).toContain('React sailing CRUD parity')
+  })
+
+
+  it('keeps React sailing CRUD covered through controlled edit forms instead of prompts', () => {
+    const cypress = read('cypress/react/reactApp.cy.js')
+    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const testStart = cypress.indexOf("manages React ship CRUD and sailing lookup from the selected fleet panel")
+    const testEnd = cypress.indexOf("runs a React SQA health check and writes output", testStart)
+    const testBlock = cypress.slice(testStart, testEnd)
+
+    expect(fleet).toContain('data-testid="react-sailing-edit-form"')
+    expect(fleet).toContain('data-testid="react-edit-sailing-departure-date"')
+    expect(fleet).toContain('openSailingEdit')
+    expect(testBlock).toContain("cy.getByTestId('react-sailing-edit-form').should('be.visible')")
+    expect(testBlock.match(/cy\.stub\(win, 'prompt'\)/g) || []).toHaveLength(0)
+    expect(testBlock).toContain("cy.getByTestId('react-fleet-delete-confirmation-confirm')")
+    expect(testBlock.match(/cy\.stub\(win, 'confirm'\)/g) || []).toHaveLength(0)
+  })
+
+
+  it('keeps React itinerary day and activity CRUD parity wired through browser coverage', () => {
+    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const client = read('frontend/react/src/api/client.js')
+    const cypress = read('cypress/react/reactApp.cy.js')
+    const mobile = read('playwright/mobile/react-app-next-mobile.spec.js')
+    const responsive = read('playwright/responsive/react-app-next-responsive.spec.js')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(client).toContain('export async function createItineraryDay')
+    expect(client).toContain('export async function updateItineraryDay')
+    expect(client).toContain('export async function deleteItineraryDay')
+    expect(client).toContain('export async function createItineraryActivity')
+    expect(client).toContain('export async function updateItineraryActivity')
+    expect(client).toContain('export async function deleteItineraryActivity')
+    expect(fleet).toContain('handleCreateItineraryDay')
+    expect(fleet).toContain('handleUpdateItineraryDay')
+    expect(fleet).toContain('requestDeleteItineraryDay')
+    expect(fleet).toContain('executeDeleteItineraryDay')
+    expect(fleet).toContain('handleCreateItineraryActivity')
+    expect(fleet).toContain('handleUpdateItineraryActivity')
+    expect(fleet).toContain('requestDeleteItineraryActivity')
+    expect(fleet).toContain('executeDeleteItineraryActivity')
+    expect(fleet).toContain('data-testid="react-create-itinerary-day-form"')
+    expect(fleet).toContain('data-testid="react-create-itinerary-activity-form"')
+    expect(fleet).toContain('data-testid="react-update-itinerary-day-button"')
+    expect(fleet).toContain('data-testid="react-delete-itinerary-activity-button"')
+    expect(cypress).toContain('createReactItineraryDay')
+    expect(cypress).toContain('updateReactItineraryActivity')
+    expect(mobile).toContain('keeps React itinerary CRUD controls reachable on mobile')
+    expect(responsive).toContain('keeps React itinerary CRUD controls readable at desktop width')
+    expect(styles).toContain('React itinerary day and activity CRUD parity')
+  })
+
+
+  it('keeps React itinerary activity delete test scoped to the matching itinerary day', () => {
+    const cypress = read('cypress/react/reactApp.cy.js')
+    const testStart = cypress.indexOf("manages React ship CRUD and sailing lookup from the selected fleet panel")
+    const testEnd = cypress.indexOf("runs a React SQA health check and writes output", testStart)
+    const testBlock = cypress.slice(testStart, testEnd)
+
+    expect(testBlock).toContain(".find('[data-testid=\"react-delete-itinerary-activity-button\"]')")
+    expect(testBlock).toContain("React Dinner Show was deleted")
+    expect(testBlock).toContain("cy.getByTestId('react-itinerary-day-grid').should('not.contain.text', 'React Dinner Show')")
+    expect(testBlock).not.toContain("cy.getByTestId('react-delete-itinerary-activity-button').last().click()")
+  })
+
 })

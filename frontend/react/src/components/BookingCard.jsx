@@ -13,7 +13,9 @@ export default function BookingCard({
   onValidateBookingDraft,
   onSaveBookingDraft,
   isSavingBooking,
-  onCancelBookingDraft
+  onCancelBookingDraft,
+  onDeleteBooking,
+  isDeletingBooking = false
 }) {
   const passengerNames = getBookingPassengerNames(booking)
   const detailsId = `react-booking-details-${bookingRowKey}`
@@ -41,14 +43,25 @@ export default function BookingCard({
       </div>
       <p><strong>{booking.cruiseLine?.name || 'Cruise unavailable'}</strong> · {booking.ship?.name || 'Ship unavailable'}</p>
       <p>Cabin {booking.cabinNumber || 'not assigned'} · {getBookingRoute(booking)}</p>
-      <button
-        type="button"
-        className="secondary-button compact-button"
-        onClick={() => onEditBooking(booking)}
-        data-testid="react-edit-booking-button"
-      >
-        Edit booking draft
-      </button>
+      <div className="react-booking-action-row">
+        <button
+          type="button"
+          className="secondary-button compact-button"
+          onClick={() => onEditBooking(booking)}
+          data-testid="react-edit-booking-button"
+        >
+          Edit booking draft
+        </button>
+        <button
+          type="button"
+          className="fleet-danger-action compact-button"
+          onClick={onDeleteBooking}
+          disabled={isDeletingBooking}
+          data-testid="react-delete-booking-row-button"
+        >
+          {isDeletingBooking ? 'Deleting…' : 'Delete booking'}
+        </button>
+      </div>
       {bookingDraft && (
         <BookingDraftForm
           draft={bookingDraft}

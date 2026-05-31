@@ -2,16 +2,42 @@ import useAdminHierarchySnapshot from './hooks/useAdminHierarchySnapshot.js'
 import useCustomerProfileMutation from './hooks/useCustomerProfileMutation.js'
 import useBookingDetailsMutation from './hooks/useBookingDetailsMutation.js'
 import useCruiseLines from './hooks/useCruiseLines.js'
+import useDemoUsers from './hooks/useDemoUsers.js'
 import ReactFleetDirectory from './components/ReactFleetDirectory.jsx'
+import ReactCruiseLineCreateWorkflow from './components/ReactCruiseLineCreateWorkflow.jsx'
 import ReactRoleSelector from './components/ReactRoleSelector.jsx'
 import CustomerBookingHierarchy from './components/CustomerBookingHierarchy.jsx'
 import ReactQueryStatusPanel from './components/ReactQueryStatusPanel.jsx'
+import ReactSqaConsole from './components/ReactSqaConsole.jsx'
+import ReactRoleDashboard from './components/ReactRoleDashboard.jsx'
+import { getSelectedRoleView, getVisibleRoleBookings } from './domain/roleView.js'
 
 export default function App() {
   const { snapshot, isLoading, isRefreshing, error, reload, lastLoadedAt, requestId } = useAdminHierarchySnapshot()
   const { cruiseLines, isLoading: fleetLoading, isRefreshing: fleetRefreshing, error: fleetError, reload: reloadFleet } = useCruiseLines()
+  const { demoUsers, selectedDemoUser, selectedDemoUserId, setSelectedDemoUserId, isLoading: demoUsersLoading, error: demoUsersError } = useDemoUsers()
   const { saveCustomerProfile, savingCustomerId, mutationError } = useCustomerProfileMutation({ onSaved: reload })
   const { saveBookingDetails, savingBookingId, bookingMutationError } = useBookingDetailsMutation({ onSaved: reload })
+  const selectedRoleView = getSelectedRoleView(selectedDemoUser)
+  const visibleRoleBookings = getVisibleRoleBookings(selectedDemoUser, snapshot.bookings)
+  const workspaceTouchTargetStyle = {
+    WebkitAppearance: 'none',
+    alignItems: 'flex-start',
+    appearance: 'none',
+    blockSize: '72px',
+    boxSizing: 'border-box',
+    display: 'flex',
+    flexDirection: 'column',
+    height: '72px',
+    justifyContent: 'center',
+    lineHeight: '1.25',
+    minBlockSize: '72px',
+    minHeight: '72px',
+    overflow: 'visible',
+    paddingBottom: '1rem',
+    paddingTop: '1rem',
+    width: '100%'
+  }
 
   function scrollToSection(sectionId) {
     document.getElementById(sectionId)?.scrollIntoView({ block: 'start' })
@@ -66,22 +92,22 @@ export default function App() {
         </div>
 
         <div className="react-workspace-card-grid" aria-label="React application workspaces" data-testid="react-workspace-card-grid">
-          <button type="button" className="react-workspace-card" onClick={() => scrollToSection('react-role-selector')} data-testid="react-workspace-role-button">
+          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => scrollToSection('react-role-selector')} data-testid="react-workspace-role-button">
             <span className="workspace-icon" aria-hidden="true">👥</span>
             <span className="workspace-card-title">Role Simulation</span>
             <span>Switch between admin, passenger, and group leader views.</span>
           </button>
-          <button type="button" className="react-workspace-card" onClick={() => scrollToSection('react-hierarchy')} data-testid="react-workspace-operations-button">
+          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => scrollToSection('react-hierarchy')} data-testid="react-workspace-operations-button">
             <span className="workspace-icon" aria-hidden="true">🧾</span>
             <span className="workspace-card-title">Admin Operations</span>
             <span>Search and manage customer and booking datasets.</span>
           </button>
-          <button type="button" className="react-workspace-card" onClick={() => scrollToSection('react-fleet')} data-testid="react-workspace-fleet-button">
+          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => scrollToSection('react-fleet')} data-testid="react-workspace-fleet-button">
             <span className="workspace-icon" aria-hidden="true">🚢</span>
             <span className="workspace-card-title">Fleet Directory</span>
             <span>Search cruise lines, manage fleets, ships, and sailings.</span>
           </button>
-          <button type="button" className="react-workspace-card" onClick={() => scrollToSection('react-quality')} data-testid="react-workspace-quality-button">
+          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => scrollToSection('react-quality')} data-testid="react-workspace-quality-button">
             <span className="workspace-icon" aria-hidden="true">✅</span>
             <span className="workspace-card-title">Quality Console</span>
             <span>Run API health, data readiness, and deployment checks.</span>
@@ -126,36 +152,58 @@ export default function App() {
       <ReactRoleSelector
         customerCount={snapshot.customers.length}
         bookingCount={snapshot.bookings.length}
+        demoUsers={demoUsers}
+        selectedDemoUser={selectedDemoUser}
+        selectedDemoUserId={selectedDemoUserId}
+        isLoadingDemoUsers={demoUsersLoading}
+        demoUserError={demoUsersError}
+        onSelectDemoUser={setSelectedDemoUserId}
+        visibleBookingCount={visibleRoleBookings.length}
       />
 
-      <section
-        className="route-panel"
-        id="react-hierarchy"
-        aria-label="Customer-centered operations"
-        data-testid="react-active-route-operations"
-      >
-        <CustomerBookingHierarchy
+      {selectedRoleView === 'admin' ? (
+        <>
+          <section
+            className="route-panel"
+            id="react-hierarchy"
+            aria-label="Customer-centered operations"
+            data-testid="react-active-route-operations"
+          >
+            <CustomerBookingHierarchy
+              customers={snapshot.customers}
+              bookings={snapshot.bookings}
+              isLoading={isLoading}
+              error={error}
+              onRetry={reload}
+              onSaveCustomerDraft={saveCustomerProfile}
+              savingCustomerId={savingCustomerId}
+              mutationError={mutationError}
+              onSaveBookingDraft={saveBookingDetails}
+              savingBookingId={savingBookingId}
+              bookingMutationError={bookingMutationError}
+            />
+          </section>
+
+          <ReactFleetDirectory
+            cruiseLines={cruiseLines}
+            isLoading={fleetLoading}
+            isRefreshing={fleetRefreshing}
+            error={fleetError}
+            onRefresh={reloadFleet}
+          />
+
+          <ReactCruiseLineCreateWorkflow onCreated={reloadFleet} />
+
+          <ReactSqaConsole onRefreshData={() => Promise.all([reload(), reloadFleet()])} />
+        </>
+      ) : (
+        <ReactRoleDashboard
+          selectedDemoUser={selectedDemoUser}
           customers={snapshot.customers}
           bookings={snapshot.bookings}
-          isLoading={isLoading}
-          error={error}
-          onRetry={reload}
-          onSaveCustomerDraft={saveCustomerProfile}
-          savingCustomerId={savingCustomerId}
-          mutationError={mutationError}
-          onSaveBookingDraft={saveBookingDetails}
-          savingBookingId={savingBookingId}
-          bookingMutationError={bookingMutationError}
+          visibleBookings={visibleRoleBookings}
         />
-      </section>
-
-      <ReactFleetDirectory
-        cruiseLines={cruiseLines}
-        isLoading={fleetLoading}
-        isRefreshing={fleetRefreshing}
-        error={fleetError}
-        onRefresh={reloadFleet}
-      />
+      )}
 
       <section id="react-quality" className="react-quality-section" aria-label="React API status">
         <ReactQueryStatusPanel
