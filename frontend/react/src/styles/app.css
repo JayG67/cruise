@@ -2578,3 +2578,75 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
   flex-wrap: wrap;
   gap: 0.6rem;
 }
+
+
+/* React /app-next mobile overflow hardening.
+   The GitHub CI WebKit run caught horizontal document overflow after opening the
+   React ship/sailing and itinerary CRUD panels. Safari sizes flex/grid children
+   from their min-content width more aggressively than Chromium, so long action
+   labels, headings, and form controls must be allowed to shrink and wrap. */
+.react-production-parity-shell,
+.react-production-parity-shell *,
+.react-production-parity-shell *::before,
+.react-production-parity-shell *::after {
+  min-width: 0;
+}
+
+.react-production-parity-shell {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.react-production-parity-shell section,
+.react-production-parity-shell article,
+.react-production-parity-shell form,
+.react-production-parity-shell div,
+.react-production-parity-shell h1,
+.react-production-parity-shell h2,
+.react-production-parity-shell h3,
+.react-production-parity-shell h4,
+.react-production-parity-shell h5,
+.react-production-parity-shell p,
+.react-production-parity-shell li {
+  max-width: 100%;
+}
+
+.react-production-parity-shell input,
+.react-production-parity-shell select,
+.react-production-parity-shell textarea {
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
+}
+
+.react-production-parity-shell button,
+.react-production-parity-shell .fleet-primary-action,
+.react-production-parity-shell .fleet-secondary-action,
+.react-production-parity-shell .fleet-danger-action,
+.react-production-parity-shell .primary-action-button {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+@media (max-width: 560px) {
+  .react-production-parity-shell .react-ship-card-actions,
+  .react-production-parity-shell .react-sailing-card-actions,
+  .react-production-parity-shell .react-itinerary-card-actions,
+  .react-production-parity-shell .react-inline-edit-actions,
+  .react-production-parity-shell .react-confirm-action-row {
+    align-items: stretch;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .react-production-parity-shell .fleet-primary-action,
+  .react-production-parity-shell .fleet-secondary-action,
+  .react-production-parity-shell .fleet-danger-action,
+  .react-production-parity-shell .primary-action-button {
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+  }
+}
