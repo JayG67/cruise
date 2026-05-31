@@ -2595,6 +2595,8 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
 .react-production-parity-shell {
   max-width: 100%;
   overflow-wrap: anywhere;
+  overflow-x: clip;
+  width: 100%;
 }
 
 .react-production-parity-shell section,
@@ -2650,3 +2652,28 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
     width: 100%;
   }
 }
+
+/* React Mobile Safari checkbox overflow fix.
+   The global mobile overflow hardening intentionally makes text inputs fill
+   their containers, but checkbox controls must keep intrinsic sizing inside
+   flex labels. WebKit counts the full-width checkbox plus its label text as
+   document overflow in the /app-next ship/sailing and itinerary panels. */
+.react-production-parity-shell input[type="checkbox"],
+.react-production-parity-shell input[type="radio"] {
+  flex: 0 0 auto;
+  inline-size: 1rem;
+  max-inline-size: 1rem;
+  max-width: 1rem;
+  min-inline-size: 1rem;
+  min-width: 1rem;
+  width: 1rem;
+}
+
+.react-production-parity-shell .react-checkbox-label {
+  align-items: center;
+  flex-wrap: wrap;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
