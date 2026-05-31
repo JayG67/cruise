@@ -225,9 +225,11 @@ describe('React route preview accessibility contracts', () => {
 
 
   it('keeps React checkbox labels from creating Mobile Safari document overflow', () => {
+    const app = read('frontend/react/src/App.jsx')
     const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
     const styles = read('frontend/react/src/styles/app.css')
 
+    expect(app).toContain('react-production-parity-shell')
     expect(fleet).toContain('className="react-checkbox-label"')
     expect(styles).toContain('React Mobile Safari checkbox overflow fix')
     expect(styles).toContain('overflow-x: clip')

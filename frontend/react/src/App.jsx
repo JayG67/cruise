@@ -44,7 +44,7 @@ export default function App() {
   }
 
   return (
-    <main className="app-shell production-parity-shell" data-testid="react-production-parity-shell">
+    <main className="app-shell production-parity-shell react-production-parity-shell" data-testid="react-production-parity-shell">
       <section className="production-hero" id="react-dashboard" aria-labelledby="react-app-title" data-testid="react-production-hero">
         <nav className="react-top-nav" aria-label="React application primary navigation" data-testid="react-top-navigation">
           <a className="react-brand" href="/app-next" aria-label="Cruise Explorer React home">
