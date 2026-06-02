@@ -1,4 +1,4 @@
-aconst fs = require('fs')
+const fs = require('fs')
 const path = require('path')
 
 const sourceDir = path.resolve(process.cwd(), 'lhci-report')
