@@ -400,7 +400,7 @@ export default function CustomerBookingHierarchy({
                 <table className="react-admin-table">
                   <caption>Admin-visible customers with expandable linked bookings and booking details</caption>
                   <thead>
-                    <tr data-testid="react-customer-row">
+                    <tr data-testid="react-customer-header-row">
                       <th scope="col">Customer</th>
                       <th scope="col">Email</th>
                       <th scope="col">Phone</th>

@@ -13,13 +13,13 @@ function selectDemoUserByVisibleRole(roleText) {
 }
 
 function visitReactAppAsAdmin() {
-  cy.visit('/app-next')
+  cy.visit('/')
   cy.getByTestId('react-demo-user-select').should('be.visible')
   selectDemoUserByVisibleRole('Admin')
   cy.getByTestId('react-demo-user-summary').should('contain.text', 'Admin')
 }
 
-describe('React app replacement route', () => {
+describe('React default app replacement route', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
   })
@@ -30,6 +30,38 @@ describe('React app replacement route', () => {
     cy.getByTestId('react-role-selector').should('be.visible')
     cy.getByTestId('react-demo-user-select').should('be.visible')
     cy.getByTestId('react-workspace-card-grid').should('be.visible')
+    cy.getByTestId('react-migration-route-nav').should('be.visible')
+    cy.getByTestId('react-release-readiness-section').should('be.visible')
+    cy.getByTestId('react-active-route-summary').should('contain.text', 'hierarchy')
+    cy.getByTestId('react-active-route-evidence-panel').should('contain.text', 'Operations workflow is the current React focus')
+    cy.getByTestId('react-pilot-launch-panel').should('not.exist')
+    cy.getByTestId('react-pilot-parity-panel').should('not.exist')
+    cy.getByTestId('react-migration-handoff-panel').should('not.exist')
+  })
+
+
+
+  it('navigates React cutover evidence from the workspace route rail', () => {
+    cy.getByTestId('react-route-readiness').click()
+    cy.getByTestId('react-route-readiness').should('have.attr', 'aria-pressed', 'true')
+    cy.getByTestId('react-active-route-summary').should('contain.text', 'readiness')
+    cy.getByTestId('react-active-route-evidence-panel').should('contain.text', 'Role simulation is the current React focus')
+
+    cy.getByTestId('react-route-pilot').click()
+    cy.getByTestId('react-route-pilot').should('have.attr', 'aria-pressed', 'true')
+    cy.getByTestId('react-active-route-summary').should('contain.text', 'pilot')
+    cy.getByTestId('react-pilot-launch-panel').should('contain.text', 'React pilot launch checklist')
+    cy.getByTestId('react-active-route-evidence-panel').should('not.exist')
+
+    cy.getByTestId('react-route-parity').click()
+    cy.getByTestId('react-route-parity').should('have.attr', 'aria-pressed', 'true')
+    cy.getByTestId('react-pilot-launch-panel').should('not.exist')
+    cy.getByTestId('react-pilot-parity-panel').should('contain.text', 'React pilot parity evidence')
+
+    cy.getByTestId('react-route-handoff').click()
+    cy.getByTestId('react-route-handoff').should('have.attr', 'aria-pressed', 'true')
+    cy.getByTestId('react-pilot-parity-panel').should('not.exist')
+    cy.getByTestId('react-migration-handoff-panel').should('contain.text', 'React migration handoff summary')
   })
 
   it('switches from admin to passenger view when a passenger demo user is selected', () => {
@@ -39,6 +71,184 @@ describe('React app replacement route', () => {
     cy.contains('Passenger booking dashboard').should('be.visible')
     cy.contains('My travel profile').should('be.visible')
     cy.getByTestId('react-active-route-operations').should('not.exist')
+  })
+
+
+  it('opens React passenger booking details and filters favorite itinerary days', () => {
+    const demoUsers = [
+      {
+        id: 'react-admin-user',
+        displayName: 'React Admin',
+        role: 'Admin',
+        email: 'admin.react@example.com'
+      },
+      {
+        id: 'react-passenger-user',
+        displayName: 'React Passenger',
+        role: 'Passenger',
+        customerId: 'react-passenger-customer',
+        email: 'react.passenger@example.com'
+      }
+    ]
+    const customers = [
+      {
+        id: 'react-passenger-customer',
+        firstName: 'React',
+        lastName: 'Passenger',
+        email: 'react.passenger@example.com',
+        phone: '555-0303'
+      }
+    ]
+    const bookings = [
+      {
+        id: 'react-passenger-booking',
+        bookingStatus: 'CONFIRMED',
+        cabinNumber: 'P101',
+        fareCode: 'RP',
+        embarkationPort: 'Miami',
+        debarkationPort: 'Nassau',
+        createdByCustomerId: 'react-passenger-customer',
+        cruiseLine: { name: 'React Cruise Line' },
+        ship: { name: 'React Ship' },
+        sailing: {
+          departureDate: '2026-12-12',
+          itinerary: [
+            {
+              id: 'react-day-1',
+              day: 1,
+              title: 'React Embarkation',
+              port: 'Miami',
+              activities: [
+                { id: 'react-activity-1', time: '08:00 AM', activity: 'Terminal arrival' }
+              ]
+            },
+            {
+              id: 'react-day-2',
+              day: 2,
+              title: 'React Port Day',
+              port: 'Nassau',
+              activities: [
+                { id: 'react-activity-2', time: '10:00 AM', activity: 'Harbor walk' }
+              ]
+            }
+          ]
+        },
+        passengers: [
+          {
+            customerId: 'react-passenger-customer',
+            passengerType: 'Primary',
+            customer: customers[0]
+          }
+        ]
+      }
+    ]
+
+    cy.intercept('GET', '/cruise/demo-users', demoUsers).as('loadReactDemoUsersForPassengerDetails')
+    cy.intercept('GET', '/cruise/customers', customers).as('loadReactCustomersForPassengerDetails')
+    cy.intercept('GET', '/cruise/bookings', bookings).as('loadReactBookingsForPassengerDetails')
+
+    visitReactAppAsAdmin()
+    cy.wait('@loadReactDemoUsersForPassengerDetails')
+    cy.wait('@loadReactCustomersForPassengerDetails')
+    cy.wait('@loadReactBookingsForPassengerDetails')
+
+    selectDemoUserByVisibleRole('Passenger')
+    cy.getByTestId('react-passenger-dashboard').should('be.visible')
+    cy.getByTestId('react-role-booking-card').should('contain.text', 'react-passenger-booking')
+    cy.getByTestId('react-role-booking-details-toggle').click()
+    cy.getByTestId('react-role-booking-details').should('contain.text', 'Booking details')
+    cy.getByTestId('react-role-detail-passenger-row').should('contain.text', 'React Passenger')
+    cy.getByTestId('react-role-itinerary-day').should('have.length', 2)
+    cy.getByTestId('react-role-favorite-itinerary-toggle').first().check()
+    cy.getByTestId('react-role-favorites-only-toggle').check()
+    cy.getByTestId('react-role-itinerary-day').should('have.length', 1).and('contain.text', 'React Embarkation')
+    cy.getByTestId('react-role-booking-details-toggle').click()
+    cy.getByTestId('react-role-booking-details').should('not.exist')
+  })
+
+
+  it('saves React passenger profile and preference changes through the passenger self-service API', () => {
+    const demoUsers = [
+      {
+        id: 'react-admin-user',
+        displayName: 'React Admin',
+        role: 'Admin',
+        email: 'admin.react@example.com'
+      },
+      {
+        id: 'react-passenger-user',
+        displayName: 'React Passenger',
+        role: 'Passenger',
+        customerId: 'react-passenger-customer',
+        email: 'react.passenger@example.com'
+      }
+    ]
+    const customers = [
+      {
+        id: 'react-passenger-customer',
+        firstName: 'React',
+        lastName: 'Passenger',
+        email: 'react.passenger@example.com',
+        phone: '555-0303'
+      }
+    ]
+    const bookings = [
+      {
+        id: 'react-passenger-booking',
+        bookingStatus: 'CONFIRMED',
+        cabinNumber: 'P101',
+        fareCode: 'RP',
+        embarkationPort: 'Miami',
+        debarkationPort: 'Nassau',
+        createdByCustomerId: 'react-passenger-customer',
+        cruiseLine: { name: 'React Cruise Line' },
+        ship: { name: 'React Ship' },
+        passengers: [
+          {
+            customerId: 'react-passenger-customer',
+            passengerType: 'Primary',
+            diningPreference: 'Anytime dining',
+            accessibilityNotes: '',
+            customer: customers[0]
+          }
+        ]
+      }
+    ]
+
+    cy.intercept('GET', '/cruise/demo-users', demoUsers).as('loadReactDemoUsersForPassengerProfile')
+    cy.intercept('GET', '/cruise/customers', customers).as('loadReactCustomersForPassengerProfile')
+    cy.intercept('GET', '/cruise/bookings', bookings).as('loadReactBookingsForPassengerProfile')
+    cy.intercept('PATCH', '/cruise/customers/react-passenger-customer/passenger-profile', req => {
+      expect(req.body).to.include({
+        firstName: 'React',
+        lastName: 'Passenger',
+        email: 'react.passenger@example.com',
+        phone: '555-9191',
+        diningPreference: 'Late seating',
+        accessibilityNotes: 'Prefers elevators near dining room'
+      })
+
+      req.reply({
+        statusCode: 200,
+        body: { message: 'Passenger profile updated successfully' }
+      })
+    }).as('saveReactPassengerProfile')
+
+    visitReactAppAsAdmin()
+    cy.wait('@loadReactDemoUsersForPassengerProfile')
+    cy.wait('@loadReactCustomersForPassengerProfile')
+    cy.wait('@loadReactBookingsForPassengerProfile')
+
+    selectDemoUserByVisibleRole('Passenger')
+    cy.getByTestId('react-passenger-profile-form').should('be.visible').within(() => {
+      cy.getByTestId('react-passenger-profile-phone').clear().type('555-9191')
+      cy.getByTestId('react-dining-preference-select').select('Late seating')
+      cy.getByTestId('react-passenger-profile-accessibility-notes').type('Prefers elevators near dining room')
+      cy.getByTestId('react-passenger-profile-submit-button').click()
+    })
+
+    cy.wait('@saveReactPassengerProfile')
+    cy.getByTestId('react-passenger-profile-message').should('contain.text', 'Passenger profile updated successfully')
   })
 
 
@@ -693,6 +903,31 @@ describe('React app replacement route', () => {
     cy.wait('@deleteReactShip')
     cy.getByTestId('react-ship-action-message').should('contain.text', 'React Utopia was deleted')
     cy.getByTestId('react-ship-card').should('have.length', 2)
+  })
+
+
+  it('resets React demo data through a native React confirmation panel', () => {
+    cy.intercept('POST', '/admin/reset-demo-data', {
+      statusCode: 200,
+      body: { reset: true, customers: 24, bookings: 12 }
+    }).as('resetReactDemoData')
+
+    cy.getByTestId('react-sqa-console').should('be.visible')
+    cy.getByTestId('react-sqa-reset-demo-data-button').scrollIntoView().click()
+    cy.getByTestId('react-sqa-reset-confirmation')
+      .should('be.visible')
+      .and('contain.text', 'Reset public demo data back to the seed dataset?')
+
+    cy.getByTestId('react-sqa-reset-confirmation-cancel').click()
+    cy.getByTestId('react-sqa-reset-confirmation').should('not.exist')
+    cy.getByTestId('react-sqa-status').should('contain.text', 'Ready for validation')
+
+    cy.getByTestId('react-sqa-reset-demo-data-button').click()
+    cy.getByTestId('react-sqa-reset-confirmation-confirm').click()
+    cy.wait('@resetReactDemoData')
+    cy.getByTestId('react-sqa-output').should('contain.text', 'Demo Data Recovery Result')
+    cy.getByTestId('react-sqa-output').should('contain.text', '"passed": true')
+    cy.getByTestId('react-sqa-reset-confirmation').should('not.exist')
   })
 
   it('runs a React SQA health check and writes output', () => {

@@ -99,6 +99,30 @@ export function getVisiblePassengerRows(booking = {}) {
   }).filter(passenger => passenger.name)
 }
 
+
+export function getBookingItineraryDays(booking = {}) {
+  const possibleItineraries = [
+    booking.itinerary,
+    booking.itineraryDays,
+    booking.sailing?.itinerary,
+    booking.sailing?.itineraryDays
+  ]
+
+  const itineraryDays = possibleItineraries.find(candidate => Array.isArray(candidate)) || []
+
+  return [...itineraryDays].sort((a, b) => Number(a.day || 0) - Number(b.day || 0))
+}
+
+export function getItineraryDayActivities(day = {}) {
+  const activities = Array.isArray(day.activities)
+    ? day.activities
+    : Array.isArray(day.activitySchedule)
+      ? day.activitySchedule
+      : []
+
+  return [...activities].sort((a, b) => String(a.time || '').localeCompare(String(b.time || '')))
+}
+
 export function getSelectedCustomerName(selectedDemoUser = {}, customers = []) {
   return getCustomerName(findDemoCustomer(selectedDemoUser, customers) || { name: selectedDemoUser.displayName, id: selectedDemoUser.id })
 }

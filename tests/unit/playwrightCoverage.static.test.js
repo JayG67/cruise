@@ -102,7 +102,7 @@ describe('inline booking detail scoping guardrails', () => {
   })
 
 
-  it('keeps React /app-next Playwright replacement coverage present', () => {
+  it('keeps React default Playwright replacement coverage present', () => {
     const mobileReactSpecPath = path.join(projectRoot, 'playwright/mobile/react-app-next-mobile.spec.js')
     const responsiveReactSpecPath = path.join(projectRoot, 'playwright/responsive/react-app-next-responsive.spec.js')
     const mobileReactSpec = fs.readFileSync(mobileReactSpecPath, 'utf8')
@@ -110,10 +110,10 @@ describe('inline booking detail scoping guardrails', () => {
 
     expect(fs.existsSync(mobileReactSpecPath)).toBe(true)
     expect(fs.existsSync(responsiveReactSpecPath)).toBe(true)
-    expect(mobileReactSpec).toContain("page.goto('/app-next')")
+    expect(mobileReactSpec).toContain("page.goto('/')")
     expect(mobileReactSpec).toContain('selectDemoUserByRole')
     expect(mobileReactSpec).toContain("selectDemoUserByRole(page, 'Admin')")
-    expect(responsiveReactSpec).toContain("page.goto('/app-next')")
+    expect(responsiveReactSpec).toContain("page.goto('/')")
     expect(responsiveReactSpec).toContain('react-sqa-console')
   })
 
@@ -232,5 +232,28 @@ describe('inline booking detail scoping guardrails', () => {
     expect(mobileReactSpec).toContain('const viewSailingsButton = page.getByTestId')
     expect(mobileReactSpec).toContain('await viewSailingsButton.scrollIntoViewIfNeeded()')
   })
+
+  it('keeps React Playwright Phase 2 mobile coverage broad enough for production parity', () => {
+    const mobileReactSpecPath = path.join(projectRoot, 'playwright/mobile/react-app-next-mobile.spec.js')
+    const mobileReactSpec = fs.readFileSync(mobileReactSpecPath, 'utf8')
+
+    expect(countPlaywrightTests(mobileReactSpecPath)).toBeGreaterThanOrEqual(16)
+    expect(mobileReactSpec).toContain('keeps React customer hierarchy workflows usable on mobile')
+    expect(mobileReactSpec).toContain('keeps React admin mutation forms reachable on mobile')
+    expect(mobileReactSpec).toContain('keeps React SQA console action grid usable on mobile')
+    expect(mobileReactSpec).toContain('keeps React confirmation panels viewport-safe on mobile')
+  })
+
+  it('keeps React Playwright Phase 2 responsive coverage broad enough for production parity', () => {
+    const responsiveReactSpecPath = path.join(projectRoot, 'playwright/responsive/react-app-next-responsive.spec.js')
+    const responsiveReactSpec = fs.readFileSync(responsiveReactSpecPath, 'utf8')
+
+    expect(countPlaywrightTests(responsiveReactSpecPath)).toBeGreaterThanOrEqual(17)
+    expect(responsiveReactSpec).toContain('keeps React customer hierarchy table usable at desktop width')
+    expect(responsiveReactSpec).toContain('keeps React admin draft forms stable at tablet width')
+    expect(responsiveReactSpec).toContain('keeps React SQA output panels readable without layout overflow')
+    expect(responsiveReactSpec).toContain('keeps React itinerary admin cards stable at tablet width')
+  })
+
 
 })

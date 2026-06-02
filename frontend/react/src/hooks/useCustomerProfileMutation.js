@@ -1,5 +1,14 @@
 import { useCallback, useState } from 'react'
-import { updateCustomerProfile } from '../api/client.js'
+import { updateCustomerProfile, updatePassengerProfile } from '../api/client.js'
+
+function trimOptional(value) {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function hasPassengerProfileFields(draft = {}) {
+  return Object.prototype.hasOwnProperty.call(draft, 'diningPreference') ||
+    Object.prototype.hasOwnProperty.call(draft, 'accessibilityNotes')
+}
 
 export default function useCustomerProfileMutation({ onSaved } = {}) {
   const [savingCustomerId, setSavingCustomerId] = useState('')
@@ -10,19 +19,29 @@ export default function useCustomerProfileMutation({ onSaved } = {}) {
     setMutationError('')
 
     try {
-      const response = await updateCustomerProfile(customerId, {
-        firstName: draft.firstName.trim(),
-        lastName: draft.lastName.trim(),
-        email: draft.email.trim(),
-        phone: draft.phone.trim(),
-        loyaltyNumber: draft.loyaltyNumber.trim()
-      })
+      const basePayload = {
+        firstName: trimOptional(draft.firstName),
+        lastName: trimOptional(draft.lastName),
+        email: trimOptional(draft.email),
+        phone: trimOptional(draft.phone)
+      }
+
+      const response = hasPassengerProfileFields(draft)
+        ? await updatePassengerProfile(customerId, {
+          ...basePayload,
+          diningPreference: trimOptional(draft.diningPreference),
+          accessibilityNotes: trimOptional(draft.accessibilityNotes)
+        })
+        : await updateCustomerProfile(customerId, {
+          ...basePayload,
+          loyaltyNumber: trimOptional(draft.loyaltyNumber)
+        })
 
       if (onSaved) onSaved()
 
       return response
     } catch (error) {
-      const message = error.message || 'Unable to save the React customer draft.'
+      const message = error.message || 'Unable to save the React customer profile.'
       setMutationError(message)
       throw new Error(message)
     } finally {

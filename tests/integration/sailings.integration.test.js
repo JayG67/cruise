@@ -416,21 +416,20 @@ describe('Relational cascade and full hierarchy integrity', () => {
 
     expect(itineraryDayRes.statusCode).toBe(201)
 
-    const activityRes = await request(app)
-      .post(`/cruise/itinerary-days/${itineraryDayRes.body.id}/activities`)
-      .send({
-        time: '2:00 PM',
-        activity: 'Cascade safety briefing'
-      })
+    const itineraryRes = await request(app).get(`/cruise/sailings/${sailingRes.body.id}/itinerary`)
+    expect(itineraryRes.statusCode).toBe(200)
 
-    expect(activityRes.statusCode).toBe(201)
+    const createdDay = itineraryRes.body.find(day => day.id === itineraryDayRes.body.id)
+    const createdActivity = createdDay?.activitySchedule?.find(activity => activity.activity === 'Cascade boarding lunch')
+
+    expect(createdActivity).toBeDefined()
 
     return {
       cruiseLineId: cruiseLineRes.body.id,
       shipId: shipRes.body.id,
       sailingId: sailingRes.body.id,
       itineraryDayId: itineraryDayRes.body.id,
-      activityId: activityRes.body.id
+      activityId: createdActivity.id
     }
   }
 

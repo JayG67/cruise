@@ -35,7 +35,7 @@ export default function CustomerHierarchyRow({
 
   return (
     <>
-      <tr>
+      <tr data-testid="react-customer-row">
         <td>
           <button
             className="link-button customer-disclosure-button"

@@ -74,6 +74,18 @@ async function openRoleDashboard(page) {
   await expect(page.getByTestId('role-booking-dashboard-grid')).toBeVisible()
 }
 
+
+async function openBookingDetailsPanel(bookingCard) {
+  const detailsButton = bookingCard.getByTestId('role-booking-details-button')
+  const detailsPanel = bookingCard.getByTestId('inline-booking-details')
+
+  await detailsButton.scrollIntoViewIfNeeded()
+  await expect(detailsButton).toBeVisible()
+  await detailsButton.click()
+  await expect(detailsButton).toContainText('Hide Details')
+  await expect(detailsPanel).toBeVisible()
+}
+
 async function selectDemoRole(page, userId, expectedSummaryText) {
   await page.getByTestId('demo-user-selector').selectOption(userId)
 
@@ -426,12 +438,10 @@ test.describe('Cruise Explorer mobile role and passenger dashboard quality check
     await expect(firstBookingCard).toBeVisible()
     await expect(secondBookingCard).toBeVisible()
 
-    await firstBookingCard.getByTestId('role-booking-details-button').click()
-    await secondBookingCard.getByTestId('role-booking-details-button').click()
+    await openBookingDetailsPanel(firstBookingCard)
+    await openBookingDetailsPanel(secondBookingCard)
 
-    await expect(firstBookingCard.getByTestId('inline-booking-details')).toBeVisible()
-    await expect(secondBookingCard.getByTestId('inline-booking-details')).toBeVisible()
-
+    await firstBookingCard.getByTestId('role-booking-details-button').scrollIntoViewIfNeeded()
     await firstBookingCard.getByTestId('role-booking-details-button').click()
 
     await expect(firstBookingCard.getByTestId('inline-booking-details')).toBeHidden()

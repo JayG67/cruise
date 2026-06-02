@@ -744,6 +744,31 @@ async function getBookingPassengers(bookingId) {
   return passengers
 }
 
+async function getSailingItineraryDetails(sailingId) {
+  if (!sailingId) return []
+
+  const itineraryDays = await db
+    .select()
+    .from(itineraryDayTable)
+    .where(eq(itineraryDayTable.sailingId, sailingId))
+
+  const itineraryWithActivities = []
+
+  for (const itineraryDay of itineraryDays || []) {
+    const activities = await db
+      .select()
+      .from(activityScheduleTable)
+      .where(eq(activityScheduleTable.itineraryDayId, itineraryDay.id))
+
+    itineraryWithActivities.push({
+      ...itineraryDay,
+      activitySchedule: [...(activities || [])].sort((a, b) => String(a.time || '').localeCompare(String(b.time || '')))
+    })
+  }
+
+  return itineraryWithActivities.sort((a, b) => Number(a.day || 0) - Number(b.day || 0))
+}
+
 async function getBookingDetails(booking) {
   if (!booking) return null
 
@@ -778,13 +803,23 @@ async function getBookingDetails(booking) {
   }
 
   const passengers = await getBookingPassengers(booking.id)
+  const itineraryDays = await getSailingItineraryDetails(booking.sailingId)
+  const sailingWithItinerary = sailing
+    ? {
+        ...sailing,
+        itinerary: itineraryDays,
+        itineraryDays
+      }
+    : null
 
   return {
     ...booking,
-    sailing,
+    sailing: sailingWithItinerary,
     ship,
     cruiseLine,
-    passengers
+    passengers,
+    itinerary: itineraryDays,
+    itineraryDays
   }
 }
 

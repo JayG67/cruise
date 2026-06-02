@@ -131,7 +131,7 @@ This is especially relevant for AI-enabled QA roles where the value is not simpl
 
 ## ⚛️ React Modernization Track
 
-The project includes a React/Vite modernization preview under `frontend/react`. The existing DOM app in `public/` remains the production baseline until the React app has browser-level parity coverage and manual cutover approval.
+The project now serves the React/Vite application as the production-default experience. The legacy DOM app remains temporarily available at `/legacy` as an explicit rollback path until the final deletion pass removes the old DOM files and DOM-only browser suites.
 
 The migration is no longer being expanded through more numbered stages. The repository now keeps the useful React source, a consolidated readiness audit, and cutover documentation while removing the one-off stage-by-stage audit overhead.
 
@@ -139,17 +139,18 @@ React commands:
 
 ```bash
 npm install
-npm run react:dev
 npm run react:build
 npm run react:readiness:audit
+npm run react:cutover:complete
+npm run test:all
 ```
 
-Manual React preview workflow:
+Manual React production workflow:
 
-1. Start the API/DOM app with `npm run start`.
-2. Start the React preview with `npm run react:dev`.
-3. Open the Vite URL, usually `http://localhost:5173`.
-4. Validate the React routes, live API refresh, hierarchy search, expansion, customer draft save, and booking draft save.
+1. Start the app with `npm run start`.
+2. Open `http://localhost:8000`.
+3. Confirm the React app, role selector, fleet workflows, passenger profile, itinerary favorites, SQA panel, and migration evidence route rail all load from the production root.
+4. Open `http://localhost:8000/legacy` only when you intentionally need the temporary rollback app for comparison.
 
 Supporting documentation:
 
@@ -601,7 +602,7 @@ Senior SQA / Automation Engineering Portfolio Project
 
 ## ⚛️ React migration status
 
-The React migration construction phase is complete. The existing DOM app remains the stable production baseline while the React/Vite preview under `frontend/react` is prepared for browser parity testing and controlled cutover.
+The React migration construction phase has moved into production cutover. The React/Vite app under `frontend/react` is the default live experience, and the old DOM app is isolated to `/legacy` for temporary rollback verification.
 
 The project now uses one consolidated readiness command instead of dozens of numbered migration-stage audits. The useful migration evidence lives in the React source, tests, README, and `docs/react-migration-review-summary.md`.
 
@@ -632,42 +633,27 @@ The recruiter/reviewer story is now: **a working DOM application was modernized 
 
 See `docs/react-migration-review-summary.md` for the concise PR/reviewer version of the migration story.
 
-### React preview local verification
+### React production-root verification
 
-The React app is still a preview path, not the production UI. To compare both front ends locally:
+The React app is now the production/default UI. To compare both front ends locally:
 
 ```bash
-# legacy DOM app only
+# React production root with Express API
 npm run start
 
-# React preview with the Express API started and proxied automatically
+# Optional Vite developer server with API proxy
 npm run react:dev:local
 ```
 
-Open the legacy app at `http://localhost:8000` and the React preview at `http://localhost:5173`. The Vite config proxies `/cruise`, `/health`, and `/admin` to the Express backend so the React preview can use the same API without CORS changes.
+Open the React app at `http://localhost:8000`. The old DOM app is intentionally isolated at `http://localhost:8000/legacy` as a temporary rollback route only.
 
+### React compatibility route
 
+The Express-hosted `/app-next` route remains as a compatibility alias while older links and migration notes age out, but the production contract is now `/`. New browser tests and reviewer guidance should target `http://localhost:8000`.
 
-### React preview route
+### React asset base
 
-The React migration preview can be built and served from the Express application:
-
-```bash
-npm run react:build
-npm run start
-```
-
-Then open:
-
-```text
-http://localhost:8000/app-next
-```
-
-The legacy DOM application remains available at `/` until the React experience reaches full parity.
-
-### React preview asset base
-
-When manually checking the Express-hosted React preview, always rebuild after Vite config or React changes:
+When manually checking the Express-hosted React app, always rebuild after Vite config or React changes:
 
 ```bash
 npm run react:build
@@ -677,10 +663,10 @@ npm run start
 Then hard refresh:
 
 ```text
-http://localhost:8000/app-next
+http://localhost:8000
 ```
 
-The React build uses `base: '/app-next/'` so generated JavaScript and CSS assets load from `/app-next/assets/...` instead of `/assets/...`.
+The React build still supports the `/app-next` compatibility alias for older migration links, but the default reviewer route is `/`.
 
 
 ### React visual parity milestone
@@ -776,17 +762,14 @@ Use `npm run test:react:all` to run unit coverage plus React-focused Cypress, mo
 and responsive Playwright checks. Legacy DOM browser scripts remain available as `uiTests:legacy`,
 `playwright:mobile:legacy`, and `playwright:responsive:legacy` until final DOM retirement.
 
-### Full DOM plus React test gate
+### React production test gate
 
-`npm run test:all` is now the full gate for this migration. It runs the existing unit/coverage/Cypress
-suite, the legacy DOM Playwright suites, the React `/app-next` Cypress and Playwright suites,
+`npm run test:all` is now the React production gate for this migration. It runs the existing Jest/API coverage suite, React Cypress, React Playwright mobile/responsive checks, performance smoke, and Lighthouse against the React-default app,
 performance smoke, and Lighthouse. Do not retire the DOM app until this full gate is green.
 
 ### React Cypress isolation pass
 
-The React `/app-next` Cypress replacement spec lives under `cypress/react` so the legacy DOM
-Cypress sweep continues to cover only `cypress/e2e`. `npm run test:all` still runs both suites:
-legacy DOM Cypress first, then the dedicated React Cypress and React Playwright checks.
+The React Cypress replacement spec lives under `cypress/react` and now targets the production root `/`. Legacy DOM Cypress remains available only through explicit rollback scripts; `npm run test:all` runs the React production browser gate by default.
 
 ### React Playwright role-selection stabilization
 
@@ -829,16 +812,14 @@ touch target instead of collapsing to text height.
 
 ### React mobile WebKit touch-target helper
 
-The React `/app-next` mobile Playwright helper now evaluates the control's rendered layout and
+The React mobile Playwright helper now evaluates the control's rendered layout and
 computed CSS in the browser before asserting touch-target size. This keeps Safari checks focused
 on the actual usable hit area when WebKit reports a collapsed locator bounding box.
 
 
 ### React and legacy mobile Playwright split
 
-The legacy mobile Playwright command now runs only the DOM mobile specs. The React `/app-next`
-mobile spec runs under the React browser suite, so `npm run test:all` still covers both apps
-without double-running the React replacement spec inside the legacy gate.
+The React mobile Playwright command now runs the React production/default mobile spec. Legacy DOM mobile checks remain available through `npm run legacy:rollback:audit`, but they are no longer part of the default `npm run test:all` production gate.
 
 
 ### Cypress DOM and React spec discovery
@@ -1042,3 +1023,102 @@ production cutover and reduces brittle browser-dialog coupling.
 
 
 - React-native confirmation panels now replace browser confirm dialogs for admin, fleet, ship, sailing, itinerary-day, and activity deletes on `/app-next`, moving the migration route closer to production cutover.
+
+- The React SQA console reset workflow now uses the shared React confirmation panel instead of `window.confirm`, so the `/app-next` route has no remaining browser-dialog dependency for destructive React actions. Cypress coverage confirms both cancel and confirm paths before running the reset request.
+
+### React migration update: release readiness command center
+
+The `/app-next` React route now includes a release-readiness command center so the migration story is visible inside the application instead of living only in planning notes. The React workspace route rail can move directly to Operations, Roles, Fleet, Quality, Pilot, Evidence, and Handoff views. The page now renders the roadmap, cutover gates, pilot launch checklist, parity evidence, and handoff summary in the React route, giving reviewers a single place to inspect the remaining DOM replacement criteria.
+
+This slice is intentionally aimed at finishing the migration narrative: the old DOM app is still available as the production fallback, while `/app-next` now presents the cutover evidence and workspace navigation expected from a production replacement route.
+
+- React migration route rail now drives a focused evidence panel so reviewers see one cutover slice at a time instead of a long static evidence wall.
+
+### React passenger itinerary parity pass
+
+The `/app-next` passenger and group-leader dashboards now move beyond static booking cards. Visible bookings include an expandable React details panel with booking fields, passenger manifest rows, itinerary days, scheduled activities, favorite itinerary checkboxes, and a favorites-only filter. This closes a larger role-dashboard parity gap with the legacy DOM experience while keeping the React route accessible, mobile-safe, and covered by Cypress/static guardrails.
+
+
+#### React passenger self-service profile parity
+
+The `/app-next` React route now includes the passenger self-service profile workflow from the DOM app. Passenger demo users can edit limited contact fields, dining preference, and accessibility notes through the React form, which calls the same `/cruise/customers/:id/passenger-profile` API used by the legacy DOM experience. Cypress coverage verifies the PATCH payload and the live-region save message so the React replacement keeps parity with the recruiter-facing workflow.
+
+### React default cutover switch
+
+The Express host now has a controlled React cutover path. `/app-next` remains the explicit React preview route, `/legacy` keeps the DOM app available for rollback and comparison, and setting `CRUISE_DEFAULT_EXPERIENCE=react` serves the React shell from `/`. This gives the project a safe production switch-over step before deleting the legacy DOM app from the codebase.
+### React default cutover slice
+
+The live Express host now treats React as the default experience. `/` serves the built React shell unless `CRUISE_DEFAULT_EXPERIENCE=legacy`, `dom`, `false`, or `0` is set. The legacy DOM app remains available at `/legacy` and the legacy browser test wrappers now start the server in explicit legacy mode so existing DOM coverage remains useful during the rollback window. Render also builds the React bundle during deployment so the default root route has production assets available.
+
+
+### React default root testing and legacy asset isolation
+
+The React app is now tested as the default `/` experience instead of only as `/app-next`. React Cypress and React Playwright replacement checks start the standard server and load the root route, while the legacy DOM browser suites still start explicit legacy mode. This keeps the live app validation aligned with the production cutover path.
+
+Legacy DOM assets are now isolated from the production root during React default mode. `/legacy` continues to serve the rollback app and its `app.js`/`styles.css` files, but `/app.js` and `/styles.css` are no longer exposed from `/` unless `CRUISE_DEFAULT_EXPERIENCE=legacy` is set. Shared images remain available under `/images` for the React shell.
+
+### React default test gate alignment
+
+The app is now treated as a React production application instead of a DOM app with a React preview.  The default UI test command targets the React route, while legacy DOM checks remain available as an explicit rollback audit.
+
+```bash
+npm run uiTests               # React Cypress tests against /
+npm run browserTests:react    # React Cypress + React Playwright checks
+npm run legacy:rollback:audit # Old DOM rollback validation
+npm run test:all              # Full React production gate: Jest, React browser tests, perf, Lighthouse
+```
+
+This keeps recruiters and reviewers focused on the live React application while preserving a temporary `/legacy` safety net until the old DOM app is removed.
+
+
+### React production gate and legacy rollback audit
+
+The default quality command now treats React as the product:
+
+```bash
+npm run test:all
+```
+
+The legacy DOM app is still reachable at `/legacy` and can be intentionally verified with:
+
+```bash
+npm run legacy:rollback:audit
+```
+
+This keeps the main recruiter-facing gate focused on the live React application while preserving a temporary rollback check until the final DOM deletion pass.
+
+### Legacy quarantine audit
+
+The React production gate now includes a fast legacy quarantine audit. The audit confirms that the legacy DOM app is still available for rollback through `/legacy` and `CRUISE_DEFAULT_EXPERIENCE=legacy`, but that React remains the default `/` experience and the default `test:all` browser target. This keeps the old DOM app from accidentally leaking back into the production root while preserving a deliberate rollback path during the final cleanup window.
+
+```bash
+npm run legacy:quarantine:audit
+```
+
+### React cutover completion audit
+
+`npm run react:cutover:complete` is the final migration guardrail for the default React app. It verifies that production tests target `/`, the legacy DOM app is isolated to explicit rollback routes/scripts, GitHub Actions labels the React production gates clearly, Render builds React before deploy, and README/checklist guidance no longer describes React as merely a preview.
+
+This audit is included in `npm run test:all`, `npm run react:production:audit`, and `npm run react:default:audit` so future changes cannot quietly drift back toward legacy-DOM defaults.
+
+### React Cypress Phase 1 parity expansion
+
+The React production route now has a broader Cypress Phase 1 parity suite instead of relying on a single replacement spec. The React browser coverage is split by production concern under `cypress/react`:
+
+- `reactHome.cy.js` covers the production shell, workspace cards, route navigation, and query status panel.
+- `reactSearch.cy.js` covers React fleet filtering, empty states, trimmed search terms, and action preservation.
+- `reactShips.cy.js` covers selected-fleet ship loading, empty/error states, create, edit, and controlled-form behavior.
+- `reactSailings.cy.js` covers sailing lookup, create/update workflows, itinerary rendering, and itinerary activity creation.
+- `reactRoles.cy.js` covers passenger/group-leader role switching, booking detail expansion, itinerary favorites, multiple detail panels, and passenger profile save behavior.
+
+Shared deterministic React Cypress data and helper flows live in `cypress/react/support/reactTestHelpers.js` so future React tests can add coverage without duplicating setup or accidentally depending on legacy DOM selectors.
+
+
+### React Cypress parity expansion
+
+The React production route now has a broader Cypress parity suite under `cypress/react/`, expanding from the initial cutover smoke coverage into focused specs for create workflows, admin hierarchy, passenger self-service, fleet error handling, itinerary CRUD, migration evidence panels, and the SQA console. The `test:inventory:audit` guardrail now requires at least 13 React Cypress specs so production React coverage cannot quietly regress while the legacy DOM app remains quarantined as rollback-only code.
+
+### React Cypress and Playwright Phase 2 parity expansion
+
+React production-route coverage now moves beyond the first parity slice. The Cypress suite under `cypress/react/` adds focused tests for admin mutation validation, deeper fleet directory state, accessibility/keyboard behavior, lifecycle isolation, and SQA console failure modes. The React Playwright mobile and responsive specs were also expanded so Phase 2 covers passenger workflows, admin workflows, confirmation panels, route evidence panels, and layout safety from phone, tablet, and desktop viewports.
+

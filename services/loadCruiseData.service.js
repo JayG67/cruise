@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const { randomUUID } = require('crypto')
 
 const db = require('../db')
 const cruiseLineTable = require('../models/cruiseline.model')
@@ -14,6 +15,7 @@ const demoUserTable = require('../models/demoUser.model')
 const customerItineraryFavoriteTable = require('../models/customerItineraryFavorite.model')
 
 const SEED_FILE_PATH = path.join(__dirname, '..', 'data', 'cruise.json')
+const INSERT_CHUNK_SIZE = 500
 
 let cachedCruiseData
 
@@ -27,24 +29,154 @@ function readCruiseSeedData() {
 }
 
 async function insertRows(tx, table, rows) {
-  if (!rows.length) return []
+  if (!rows.length) return 0
 
-  return tx.insert(table).values(rows).returning()
+  for (let index = 0; index < rows.length; index += INSERT_CHUNK_SIZE) {
+    await tx.insert(table).values(rows.slice(index, index + INSERT_CHUNK_SIZE))
+  }
+
+  return rows.length
+}
+
+function buildSeedRows(cruiseData) {
+  const cruiseLineRows = []
+  const shipRows = []
+  const sailingRows = []
+  const itineraryDayRows = []
+  const activityRows = []
+  const customerRows = []
+  const bookingRows = []
+  const bookingPassengerRows = []
+  const demoUserRows = []
+  const sailingIdBySeedKey = new Map()
+
+  for (const cruiseLine of cruiseData.cruiseLines || []) {
+    const cruiseLineId = randomUUID()
+
+    cruiseLineRows.push({
+      id: cruiseLineId,
+      name: cruiseLine.name,
+      country: cruiseLine.country,
+      website: cruiseLine.website
+    })
+
+    for (const ship of cruiseLine.ships || []) {
+      const shipId = randomUUID()
+
+      shipRows.push({
+        id: shipId,
+        name: ship.name,
+        currentPort: ship.currentPort,
+        cruiseLineId
+      })
+
+      for (const sailing of ship.sailings || []) {
+        const sailingId = randomUUID()
+
+        sailingIdBySeedKey.set(`${ship.name}|${sailing.departureDate}`, sailingId)
+        sailingRows.push({
+          id: sailingId,
+          shipId,
+          departureDate: sailing.departureDate,
+          port: sailing.port || sailing.departurePort,
+          departurePort: sailing.departurePort || sailing.port,
+          arrivalPort: sailing.arrivalPort || sailing.port,
+          days: sailing.days,
+          isRepositioning: Boolean(sailing.isRepositioning)
+        })
+
+        for (const itineraryDay of sailing.itinerary || []) {
+          const itineraryDayId = randomUUID()
+
+          itineraryDayRows.push({
+            id: itineraryDayId,
+            sailingId,
+            day: itineraryDay.day,
+            title: itineraryDay.title,
+            port: itineraryDay.port
+          })
+
+          for (const activity of itineraryDay.activitySchedule || []) {
+            activityRows.push({
+              id: randomUUID(),
+              itineraryDayId,
+              time: activity.time,
+              activity: activity.activity
+            })
+          }
+        }
+      }
+    }
+  }
+
+  for (const customer of cruiseData.customers || []) {
+    customerRows.push({
+      id: customer.id,
+      firstName: customer.firstName,
+      lastName: customer.lastName,
+      email: customer.email,
+      phone: customer.phone,
+      loyaltyNumber: customer.loyaltyNumber
+    })
+  }
+
+  for (const booking of cruiseData.bookings || []) {
+    const sailingId = booking.sailingId || sailingIdBySeedKey.get(`${booking.shipName}|${booking.departureDate}`)
+
+    if (!sailingId) {
+      throw new Error(`Unable to resolve sailing for booking ${booking.id}`)
+    }
+
+    bookingRows.push({
+      id: booking.id,
+      sailingId,
+      bookingStatus: booking.bookingStatus,
+      cabinNumber: booking.cabinNumber,
+      fareCode: booking.fareCode,
+      embarkationPort: booking.embarkationPort,
+      debarkationPort: booking.debarkationPort,
+      createdByCustomerId: booking.createdByCustomerId
+    })
+
+    for (const passenger of booking.passengers || []) {
+      bookingPassengerRows.push({
+        id: `${booking.id}-${passenger.customerId}`,
+        bookingId: booking.id,
+        customerId: passenger.customerId,
+        passengerRole: passenger.passengerRole,
+        isPrimaryGuest: Boolean(passenger.isPrimaryGuest),
+        diningPreference: passenger.diningPreference,
+        accessibilityNotes: passenger.accessibilityNotes,
+        boardingGroup: passenger.boardingGroup
+      })
+    }
+  }
+
+  for (const demoUser of cruiseData.demoUsers || []) {
+    demoUserRows.push({
+      id: demoUser.id,
+      displayName: demoUser.displayName,
+      role: demoUser.role,
+      customerId: demoUser.customerId
+    })
+  }
+
+  return {
+    cruiseLineRows,
+    shipRows,
+    sailingRows,
+    itineraryDayRows,
+    activityRows,
+    customerRows,
+    bookingRows,
+    bookingPassengerRows,
+    demoUserRows
+  }
 }
 
 async function loadCruiseData() {
-  let cruiseLineCount = 0
-  let shipCount = 0
-  let sailingCount = 0
-  let itineraryDayCount = 0
-  let activityCount = 0
-  let customerCount = 0
-  let bookingCount = 0
-  let bookingPassengerCount = 0
-  let demoUserCount = 0
-
   const cruiseData = readCruiseSeedData()
-  const sailingIdBySeedKey = new Map()
+  const rows = buildSeedRows(cruiseData)
 
   await db.transaction(async tx => {
     await tx.delete(demoUserTable)
@@ -58,146 +190,15 @@ async function loadCruiseData() {
     await tx.delete(shipTable)
     await tx.delete(cruiseLineTable)
 
-    for (const cruiseLine of cruiseData.cruiseLines || []) {
-      const insertedCruiseLines = await tx
-        .insert(cruiseLineTable)
-        .values({
-          name: cruiseLine.name,
-          country: cruiseLine.country,
-          website: cruiseLine.website
-        })
-        .returning({ id: cruiseLineTable.id })
-
-      const cruiseLineId = insertedCruiseLines[0].id
-      cruiseLineCount += 1
-
-      for (const ship of cruiseLine.ships || []) {
-        const insertedShips = await tx
-          .insert(shipTable)
-          .values({
-            name: ship.name,
-            currentPort: ship.currentPort,
-            cruiseLineId
-          })
-          .returning({ id: shipTable.id })
-
-        const shipId = insertedShips[0].id
-        shipCount += 1
-
-        for (const sailing of ship.sailings || []) {
-          const insertedSailings = await tx
-            .insert(sailingTable)
-            .values({
-              shipId,
-              departureDate: sailing.departureDate,
-              port: sailing.port || sailing.departurePort,
-              departurePort: sailing.departurePort || sailing.port,
-              arrivalPort: sailing.arrivalPort || sailing.port,
-              days: sailing.days,
-              isRepositioning: Boolean(sailing.isRepositioning)
-            })
-            .returning({ id: sailingTable.id })
-
-          const sailingId = insertedSailings[0].id
-          sailingIdBySeedKey.set(`${ship.name}|${sailing.departureDate}`, sailingId)
-          sailingCount += 1
-
-          const itineraryRows = (sailing.itinerary || []).map(itineraryDay => ({
-            sailingId,
-            day: itineraryDay.day,
-            title: itineraryDay.title,
-            port: itineraryDay.port
-          }))
-
-          const insertedItineraryDays = await insertRows(tx, itineraryDayTable, itineraryRows)
-          itineraryDayCount += insertedItineraryDays.length
-
-          const activityRows = []
-
-          insertedItineraryDays.forEach((insertedItineraryDay, index) => {
-            const sourceItineraryDay = sailing.itinerary[index]
-
-            for (const activity of sourceItineraryDay.activitySchedule || []) {
-              activityRows.push({
-                itineraryDayId: insertedItineraryDay.id,
-                time: activity.time,
-                activity: activity.activity
-              })
-            }
-          })
-
-          await insertRows(tx, activityScheduleTable, activityRows)
-          activityCount += activityRows.length
-        }
-      }
-    }
-
-    const customerRows = (cruiseData.customers || []).map(customer => ({
-      id: customer.id,
-      firstName: customer.firstName,
-      lastName: customer.lastName,
-      email: customer.email,
-      phone: customer.phone,
-      loyaltyNumber: customer.loyaltyNumber
-    }))
-
-    await insertRows(tx, customerTable, customerRows)
-    customerCount += customerRows.length
-
-    for (const booking of cruiseData.bookings || []) {
-      const sailingId = booking.sailingId || sailingIdBySeedKey.get(`${booking.shipName}|${booking.departureDate}`)
-
-      if (!sailingId) {
-        throw new Error(`Unable to resolve sailing for booking ${booking.id}`)
-      }
-
-      await tx.insert(bookingTable).values({
-        id: booking.id,
-        sailingId,
-        bookingStatus: booking.bookingStatus,
-        cabinNumber: booking.cabinNumber,
-        fareCode: booking.fareCode,
-        embarkationPort: booking.embarkationPort,
-        debarkationPort: booking.debarkationPort,
-        createdByCustomerId: booking.createdByCustomerId
-      })
-      bookingCount += 1
-
-      const bookingPassengerRows = (booking.passengers || []).map(passenger => ({
-        id: `${booking.id}-${passenger.customerId}`,
-        bookingId: booking.id,
-        customerId: passenger.customerId,
-        passengerRole: passenger.passengerRole,
-        isPrimaryGuest: Boolean(passenger.isPrimaryGuest),
-        diningPreference: passenger.diningPreference,
-        accessibilityNotes: passenger.accessibilityNotes,
-        boardingGroup: passenger.boardingGroup
-      }))
-
-      await insertRows(tx, bookingPassengerTable, bookingPassengerRows)
-      bookingPassengerCount += bookingPassengerRows.length
-    }
-
-    for (const demoUser of cruiseData.demoUsers || []) {
-      await tx
-        .insert(demoUserTable)
-        .values({
-          id: demoUser.id,
-          displayName: demoUser.displayName,
-          role: demoUser.role,
-          customerId: demoUser.customerId
-        })
-        .onConflictDoUpdate({
-          target: demoUserTable.id,
-          set: {
-            displayName: demoUser.displayName,
-            role: demoUser.role,
-            customerId: demoUser.customerId
-          }
-        })
-
-      demoUserCount += 1
-    }
+    await insertRows(tx, cruiseLineTable, rows.cruiseLineRows)
+    await insertRows(tx, shipTable, rows.shipRows)
+    await insertRows(tx, sailingTable, rows.sailingRows)
+    await insertRows(tx, itineraryDayTable, rows.itineraryDayRows)
+    await insertRows(tx, activityScheduleTable, rows.activityRows)
+    await insertRows(tx, customerTable, rows.customerRows)
+    await insertRows(tx, bookingTable, rows.bookingRows)
+    await insertRows(tx, bookingPassengerTable, rows.bookingPassengerRows)
+    await insertRows(tx, demoUserTable, rows.demoUserRows)
   })
 
   if (process.env.NODE_ENV !== 'test' && process.env.SUPPRESS_DB_LOGS !== 'true') {
@@ -205,15 +206,15 @@ async function loadCruiseData() {
   }
 
   return {
-    cruiseLineCount,
-    shipCount,
-    sailingCount,
-    itineraryDayCount,
-    activityCount,
-    customerCount,
-    bookingCount,
-    bookingPassengerCount,
-    demoUserCount,
+    cruiseLineCount: rows.cruiseLineRows.length,
+    shipCount: rows.shipRows.length,
+    sailingCount: rows.sailingRows.length,
+    itineraryDayCount: rows.itineraryDayRows.length,
+    activityCount: rows.activityRows.length,
+    customerCount: rows.customerRows.length,
+    bookingCount: rows.bookingRows.length,
+    bookingPassengerCount: rows.bookingPassengerRows.length,
+    demoUserCount: rows.demoUserRows.length,
     source: 'data/cruise.json'
   }
 }

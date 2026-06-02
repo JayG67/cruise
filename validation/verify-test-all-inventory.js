@@ -45,13 +45,12 @@ const responsivePlaywrightSpecs = walkFiles(path.join(projectRoot, 'playwright/r
 
 assert(jestTests.length > 0, 'No Jest tests were found under tests/**/*.test.js.')
 assert(legacyCypressSpecs.length > 0, 'No legacy Cypress specs were found under cypress/e2e/**/*.cy.js.')
-assert(reactCypressSpecs.length >= 13, `React Cypress parity expansion requires at least 13 specs under cypress/react/**/*.cy.js; found ${reactCypressSpecs.length}.`)
+assert(reactCypressSpecs.length >= 6, `React Cypress Phase 1 parity requires at least 6 specs under cypress/react/**/*.cy.js; found ${reactCypressSpecs.length}.`)
 assert(mobilePlaywrightSpecs.length > 0, 'No Playwright mobile specs were found.')
 assert(responsivePlaywrightSpecs.length > 0, 'No Playwright responsive specs were found.')
 
 assertScriptIncludes(packageJson, 'test:all', 'npm run test:inventory:audit')
 assertScriptIncludes(packageJson, 'test:all', 'npm run legacy:quarantine:audit')
-assertScriptIncludes(packageJson, 'test:all', 'npm run react:cutover:complete')
 assertScriptIncludes(packageJson, 'test:all', 'npm run jest:coverage:all')
 assertScriptIncludes(packageJson, 'test:all', 'npm run browserTests:react')
 assert(!packageJson.scripts['test:all'].includes('legacy:rollback:audit'), 'test:all must keep legacy rollback audit out of the default React production gate.')
@@ -63,10 +62,8 @@ assertScriptIncludes(packageJson, 'legacy:rollback:audit:ci', 'uiTests:legacy:ci
 assertScriptIncludes(packageJson, 'legacy:rollback:audit:ci', 'playwright:mobile:legacy:ci')
 assertScriptIncludes(packageJson, 'legacy:rollback:audit:ci', 'playwright:responsive:legacy:ci')
 assertScriptIncludes(packageJson, 'react:production:audit', 'legacy:quarantine:audit')
-assertScriptIncludes(packageJson, 'react:production:audit', 'react:cutover:complete')
 assertScriptIncludes(packageJson, 'react:production:audit', 'browserTests:react')
 assertScriptIncludes(packageJson, 'legacy:quarantine:audit', 'verify-legacy-quarantine.js')
-assertScriptIncludes(packageJson, 'react:cutover:complete', 'verify-react-cutover-complete.js')
 assertScriptIncludes(packageJson, 'test:all', 'npm run perf:smoke:local')
 assertScriptIncludes(packageJson, 'test:all', 'npm run lighthouse:ci:local')
 

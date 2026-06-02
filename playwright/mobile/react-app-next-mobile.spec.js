@@ -20,9 +20,9 @@ async function selectDemoUserByRole(page, roleText) {
   await select.selectOption(matchingValue)
 }
 
-test.describe('React /app-next mobile replacement checks', () => {
+test.describe('React default mobile replacement checks', () => {
   test('loads React shell and workspace controls on mobile', async ({ page }) => {
-    await page.goto('/app-next')
+    await page.goto('/')
 
     await expect(page.getByTestId('react-production-parity-shell')).toBeVisible()
     await expect(page.getByTestId('react-top-navigation')).toBeVisible()
@@ -45,7 +45,7 @@ test.describe('React /app-next mobile replacement checks', () => {
   })
 
   test('switches role views on mobile instead of leaving admin visible', async ({ page }) => {
-    await page.goto('/app-next')
+    await page.goto('/')
 
     await selectDemoUserByRole(page, 'Passenger')
 
@@ -58,8 +58,23 @@ test.describe('React /app-next mobile replacement checks', () => {
     await expectNoHorizontalOverflow(page)
   })
 
+
+  test('keeps React passenger self-service profile controls reachable on mobile', async ({ page }) => {
+    await page.goto('/')
+    await selectDemoUserByRole(page, 'Passenger')
+
+    const profileForm = page.getByTestId('react-passenger-profile-form')
+    await expect(profileForm).toBeVisible()
+    await expect(page.getByTestId('react-passenger-profile-phone')).toBeVisible()
+    await expect(page.getByTestId('react-dining-preference-select')).toBeVisible()
+    await expect(page.getByTestId('react-passenger-profile-accessibility-notes')).toBeVisible()
+    await expect(page.getByTestId('react-passenger-profile-submit-button')).toBeVisible()
+    await expect(page.getByTestId('react-passenger-profile-message')).toContainText('Profile changes will be announced here')
+    await expectNoHorizontalOverflow(page)
+  })
+
   test('keeps admin-only React tools available when admin is selected', async ({ page }) => {
-    await page.goto('/app-next')
+    await page.goto('/')
 
     await selectDemoUserByRole(page, 'Admin')
 
@@ -71,7 +86,7 @@ test.describe('React /app-next mobile replacement checks', () => {
     await expectNoHorizontalOverflow(page)
   })
   test('keeps React ship and sailing controls reachable on mobile', async ({ page }) => {
-    await page.goto('/app-next')
+    await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
     await page.getByTestId('react-fleet-search').fill('Royal')
@@ -101,7 +116,7 @@ test.describe('React /app-next mobile replacement checks', () => {
   })
 
   test('keeps React cruise line update action reachable on mobile', async ({ page }) => {
-    await page.goto('/app-next')
+    await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
     await page.getByTestId('react-fleet-search').fill('Royal')
@@ -119,7 +134,7 @@ test.describe('React /app-next mobile replacement checks', () => {
   })
 
   test('keeps React sailing CRUD controls reachable on mobile', async ({ page }) => {
-    await page.goto('/app-next')
+    await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
     await page.getByTestId('react-fleet-search').fill('Royal')
@@ -135,7 +150,7 @@ test.describe('React /app-next mobile replacement checks', () => {
   })
 
   test('keeps React itinerary CRUD controls reachable on mobile', async ({ page }) => {
-    await page.goto('/app-next')
+    await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
     await page.getByTestId('react-fleet-search').fill('Royal')
@@ -153,5 +168,112 @@ test.describe('React /app-next mobile replacement checks', () => {
     await expect(page.getByTestId('react-delete-itinerary-activity-button').first()).toBeVisible()
     await expectNoHorizontalOverflow(page)
   })
+
+  test('keeps React customer hierarchy workflows usable on mobile', async ({ page }) => {
+    await page.goto('/')
+    await selectDemoUserByRole(page, 'Admin')
+
+    const toggle = page.getByTestId('react-toggle-customer-workflows')
+    await toggle.scrollIntoViewIfNeeded()
+    await expect(toggle).toBeVisible()
+    await toggle.click()
+
+    await expect(page.getByTestId('react-customer-workflow-table')).toBeVisible()
+    await expect(page.getByTestId('react-hierarchy-search-input')).toBeVisible()
+    await page.getByTestId('react-hierarchy-search-input').fill('jay')
+    await expect(page.getByTestId('react-customer-workflow-table')).toContainText(/Jay/i)
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('keeps React admin mutation forms reachable on mobile', async ({ page }) => {
+    await page.goto('/')
+    await selectDemoUserByRole(page, 'Admin')
+
+    await expect(page.getByTestId('react-admin-create-customer-form')).toBeVisible()
+    await expect(page.getByTestId('react-admin-create-booking-form')).toBeVisible()
+    await page.getByTestId('react-admin-create-customer-first-name').fill('Mobile')
+    await page.getByTestId('react-admin-create-customer-last-name').fill('Tester')
+    await page.getByTestId('react-admin-create-customer-email').fill('mobile.tester@example.com')
+    await expect(page.getByTestId('react-admin-create-customer-submit')).toBeVisible()
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('keeps React SQA console action grid usable on mobile', async ({ page }) => {
+    await page.goto('/')
+    await selectDemoUserByRole(page, 'Admin')
+
+    const consolePanel = page.getByTestId('react-sqa-console')
+    await consolePanel.scrollIntoViewIfNeeded()
+    await expect(consolePanel).toBeVisible()
+    await expect(page.getByTestId('react-sqa-health-button')).toBeVisible()
+    await expect(page.getByTestId('react-sqa-data-button')).toBeVisible()
+    await expect(page.getByTestId('react-sqa-deployment-button')).toBeVisible()
+    await expect(page.getByTestId('react-sqa-output')).toBeVisible()
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('keeps React migration route panels readable on mobile', async ({ page }) => {
+    await page.goto('/')
+
+    const routeNav = page.getByTestId('react-migration-route-nav')
+    await routeNav.scrollIntoViewIfNeeded()
+    await expect(routeNav).toBeVisible()
+    await routeNav.getByRole('button', { name: /Cutover/i }).click()
+    await expect(page.getByTestId('react-cutover-readiness-panel')).toBeVisible()
+    await routeNav.getByRole('button', { name: /Handoff/i }).click()
+    await expect(page.getByTestId('react-migration-handoff-panel')).toBeVisible()
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('keeps React create cruise-line dynamic ship rows usable on mobile', async ({ page }) => {
+    await page.goto('/')
+    await selectDemoUserByRole(page, 'Admin')
+
+    const createForm = page.getByTestId('react-create-cruise-line-workflow')
+    await createForm.scrollIntoViewIfNeeded()
+    await page.getByTestId('react-add-ship-row').click()
+    await expect(page.getByTestId('react-create-ship-name')).toHaveCount(2)
+    await page.getByTestId('react-create-ship-name').nth(1).fill('Mobile Ship')
+    await page.getByTestId('react-remove-ship-row').nth(1).click()
+    await expect(page.getByTestId('react-create-ship-name')).toHaveCount(1)
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('keeps React favorite itinerary controls usable from a phone viewport', async ({ page }) => {
+    await page.goto('/')
+    await selectDemoUserByRole(page, 'Passenger')
+
+    await page.getByTestId('react-role-booking-details-toggle').first().click()
+    await expect(page.getByTestId('react-role-itinerary-day').first()).toBeVisible()
+    await page.getByTestId('react-role-favorite-itinerary-toggle').first().click()
+    await page.getByTestId('react-role-favorites-only-toggle').first().click()
+    await expect(page.getByTestId('react-role-itinerary-day').first()).toBeVisible()
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('keeps React group leader manifest readable on mobile', async ({ page }) => {
+    await page.goto('/')
+    await selectDemoUserByRole(page, 'Group Leader')
+
+    await expect(page.getByTestId('react-passenger-dashboard')).toBeVisible()
+    await expect(page.getByTestId('react-role-booking-card').first()).toContainText('Group Leader')
+    await page.getByTestId('react-role-booking-details-toggle').first().click()
+    await expect(page.getByTestId('react-role-detail-passenger-row').first()).toBeVisible()
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('keeps React confirmation panels viewport-safe on mobile', async ({ page }) => {
+    await page.goto('/')
+    await selectDemoUserByRole(page, 'Admin')
+
+    await page.getByTestId('react-fleet-search').fill('Royal')
+    await page.getByTestId('react-delete-cruise-line-button').first().click()
+    await expect(page.getByTestId('react-fleet-delete-confirmation')).toBeVisible()
+    await expect(page.getByTestId('react-fleet-delete-confirmation-confirm')).toBeVisible()
+    await page.getByTestId('react-fleet-delete-confirmation-cancel').click()
+    await expect(page.getByTestId('react-fleet-delete-confirmation')).toHaveCount(0)
+    await expectNoHorizontalOverflow(page)
+  })
+
 
 })

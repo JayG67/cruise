@@ -179,10 +179,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: React Cutover Completion Audit
+        run: npm run react:cutover:complete
+
       - name: Verify test database connection
         run: npm run db:verify:test
 
-      - name: Run Cypress tests
+      - name: Run React production Cypress tests
         run: npm run uiTests:ci
 
   playwright-mobile-tests:
@@ -230,7 +233,7 @@ jobs:
       - name: Verify test database connection
         run: npm run db:verify:test
 
-      - name: Run Playwright mobile tests
+      - name: Run React production mobile tests
         run: npm run playwright:mobile:ci
 
       - name: Upload Playwright mobile report

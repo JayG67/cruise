@@ -1256,7 +1256,15 @@ a {
 }
 
 .operations-console-panel .react-route-nav {
-  display: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  max-width: 100%;
+}
+
+.operations-console-panel .route-tab {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  width: 100%;
 }
 
 /* React behavior parity controls for DOM-like operations workflow. */
@@ -2008,6 +2016,14 @@ a {
   gap: 1rem;
 }
 
+.role-booking-badges {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
 .role-booking-fields {
   display: grid;
   gap: 0.75rem;
@@ -2677,3 +2693,233 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
   overflow-wrap: anywhere;
 }
 
+
+/* React release readiness command center for final DOM replacement evidence. */
+.react-release-readiness-section {
+  display: grid;
+  gap: 1rem;
+  margin: 1rem auto 0;
+  width: min(1120px, calc(100% - 2rem));
+}
+
+.release-readiness-heading {
+  background: #ffffff;
+  border: 1px solid #d7e1ef;
+  border-radius: 1.25rem;
+  box-shadow: 0 1rem 2rem rgba(15, 23, 42, 0.08);
+  padding: clamp(1rem, 3vw, 1.4rem);
+}
+
+.release-readiness-heading h2 {
+  color: #17324d;
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
+  line-height: 1.1;
+  margin: 0.2rem 0 0.65rem;
+}
+
+.release-readiness-heading p:last-child {
+  color: #52667a;
+  margin-bottom: 0;
+  max-width: 76ch;
+}
+
+.react-release-readiness-section .roadmap-card,
+.react-release-readiness-section .readiness-card,
+.react-release-readiness-section .pilot-card,
+.react-release-readiness-section .parity-card,
+.react-release-readiness-section .handoff-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 720px) {
+  .react-release-readiness-section {
+    width: min(100%, calc(100% - 1rem));
+  }
+}
+
+/* Route-driven React migration evidence keeps reviewers focused on one cutover slice at a time. */
+.active-route-summary {
+  align-items: center;
+  background: #eef7ff;
+  border: 1px solid #c8dff5;
+  border-radius: 999px;
+  color: #0f5e9c;
+  display: inline-flex;
+  gap: 0.5rem;
+  max-width: 100%;
+  padding: 0.45rem 0.75rem;
+  width: fit-content;
+}
+
+.active-route-summary span {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.active-route-summary strong {
+  overflow-wrap: anywhere;
+}
+
+.active-route-evidence-card {
+  background: #ffffff;
+  border: 1px solid #d7e1ef;
+  border-radius: 1.25rem;
+  box-shadow: 0 1rem 2rem rgba(15, 23, 42, 0.08);
+  display: grid;
+  gap: 1rem;
+  max-width: 100%;
+  min-width: 0;
+  padding: 1.25rem;
+}
+
+.active-route-evidence-card h3 {
+  color: #071827;
+  font-size: clamp(1.25rem, 3vw, 1.7rem);
+  margin: 0 0 0.5rem;
+}
+
+.active-route-evidence-card p {
+  margin: 0;
+}
+
+.active-route-evidence-list {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  max-width: 100%;
+  min-width: 0;
+  padding: 0;
+}
+
+.active-route-evidence-list li {
+  background: #f8fbff;
+  border: 1px solid #dfe9f5;
+  border-radius: 1rem;
+  color: #173047;
+  font-weight: 700;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 0.85rem;
+}
+
+.active-route-next-step {
+  background: #fff8e8;
+  border: 1px solid #f5d28c;
+  border-radius: 1rem;
+  color: #5c4100;
+  font-weight: 800;
+  padding: 0.85rem;
+}
+
+/* React passenger and group booking details parity with the legacy role dashboard. */
+.role-booking-detail-panel {
+  background: #f8fbff;
+  border: 1px solid #dbe8f5;
+  border-radius: 1rem;
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+  max-width: 100%;
+  min-width: 0;
+  padding: 1rem;
+}
+
+.role-booking-detail-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  max-width: 100%;
+  min-width: 0;
+}
+
+.role-detail-card,
+.role-itinerary-panel,
+.role-itinerary-day {
+  background: #ffffff;
+  border: 1px solid #d7e1ef;
+  border-radius: 1rem;
+  max-width: 100%;
+  min-width: 0;
+  padding: 1rem;
+}
+
+.role-detail-card h4,
+.role-itinerary-panel h4,
+.role-itinerary-day h5 {
+  margin: 0 0 0.5rem;
+}
+
+.compact-fields {
+  gap: 0.5rem;
+}
+
+.role-itinerary-heading,
+.role-itinerary-day-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.role-itinerary-heading p,
+.role-itinerary-day-heading p {
+  margin: 0;
+}
+
+.role-favorites-filter,
+.role-favorite-day-toggle {
+  flex: 0 1 auto;
+  max-width: 100%;
+  min-width: 0;
+  width: auto;
+}
+
+.role-itinerary-list,
+.role-activity-list {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.role-itinerary-list {
+  margin-top: 1rem;
+}
+
+.role-activity-list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+}
+
+.role-activity-list li {
+  align-items: flex-start;
+  background: #f7fafc;
+  border: 1px solid #e5eef7;
+  border-radius: 0.75rem;
+  display: flex;
+  gap: 0.65rem;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 0.65rem;
+}
+
+.role-activity-list strong {
+  color: #315d83;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 48rem) {
+  .role-itinerary-heading,
+  .role-itinerary-day-heading,
+  .role-activity-list li {
+    flex-direction: column;
+  }
+}

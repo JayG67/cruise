@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 
+import ConfirmActionPanel from './ConfirmActionPanel.jsx'
 import { getBookings, getCruiseLines, getCustomers, getHealthStatus, resetDemoData } from '../api/client.js'
 
 function formatResult(title, payload) {
@@ -18,6 +19,7 @@ export default function ReactSqaConsole({ onRefreshData }) {
   const [lastRun, setLastRun] = useState('No manual run yet')
   const [isRunning, setIsRunning] = useState(false)
   const [status, setStatus] = useState('Ready for validation')
+  const [resetConfirmationVisible, setResetConfirmationVisible] = useState(false)
 
   const validationActions = useMemo(() => ([
     {
@@ -159,9 +161,18 @@ export default function ReactSqaConsole({ onRefreshData }) {
     }
   }
 
+  function requestResetDemoData() {
+    setResetConfirmationVisible(true)
+    setStatus('Demo data recovery needs confirmation')
+  }
+
+  function cancelResetDemoData() {
+    setResetConfirmationVisible(false)
+    setStatus('Ready for validation')
+    setLastRun('Demo Data Recovery cancelled')
+  }
+
   async function handleResetDemoData() {
-    const confirmed = window.confirm('Reset public demo data back to the seed dataset?')
-    if (!confirmed) return
     setIsRunning(true)
     setStatus('Running Demo Data Recovery')
     setLastRun('Running: Demo Data Recovery')
@@ -170,6 +181,7 @@ export default function ReactSqaConsole({ onRefreshData }) {
       const result = await resetDemoData()
       await onRefreshData?.()
       setOutput(formatResult('Demo Data Recovery Result', { passed: true, ...result }))
+      setResetConfirmationVisible(false)
       setStatus('Ready for validation')
       setLastRun('Last run: Demo Data Recovery Passed')
     } catch (error) {
@@ -215,9 +227,21 @@ export default function ReactSqaConsole({ onRefreshData }) {
         <article className="react-sqa-action-card danger-card">
           <h3>Demo Data Recovery</h3>
           <p>Reset public demo data after CRUD exploration or recruiter testing.</p>
-          <button type="button" className="danger-action-button" onClick={handleResetDemoData} disabled={isRunning} data-testid="react-sqa-reset-demo-data-button">
+          <button type="button" className="danger-action-button" onClick={requestResetDemoData} disabled={isRunning} data-testid="react-sqa-reset-demo-data-button">
             Reset Demo Data
           </button>
+          {resetConfirmationVisible && (
+            <ConfirmActionPanel
+              title="Reset demo data"
+              message="Reset public demo data back to the seed dataset?"
+              confirmLabel="Reset Demo Data"
+              cancelLabel="Keep Current Data"
+              onConfirm={handleResetDemoData}
+              onCancel={cancelResetDemoData}
+              isWorking={isRunning}
+              testId="react-sqa-reset-confirmation"
+            />
+          )}
         </article>
       </div>
 

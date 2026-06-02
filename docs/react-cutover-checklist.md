@@ -2,6 +2,13 @@
 
 Use this checklist after the migration cleanup is committed on `dev`. It is intentionally focused on production readiness, not historical migration stages.
 
+## Current cutover status after React default switch
+
+React is now the default root experience and the default production test gate. The old DOM app is intentionally scoped to `/legacy` for rollback and comparison while the project finishes the final cleanup period. React Cypress and React Playwright now exercise `/` directly, not only `/app-next`, so the automated gate validates the same route that recruiters and hiring engineers will see first. The legacy DOM app is no longer part of the default `npm run test:all` gate; it is preserved in an explicit rollback audit so it cannot block React production readiness unless you intentionally run the rollback check.
+
+Legacy DOM JavaScript and CSS are no longer served from the production root during React default mode. `/legacy/app.js` and `/legacy/styles.css` remain available for rollback, while `/app.js` and `/styles.css` are only restored if `CRUISE_DEFAULT_EXPERIENCE=legacy` is set. Shared visual assets remain available under `/images` so the React hero can keep the existing brand image without reopening the full legacy asset surface.
+
+
 ## 1. Clean repository state
 
 Remove migration-only and generated local artifacts before PR review:
@@ -27,26 +34,26 @@ Review all deletions before committing.
 
 ```bash
 npm run react:readiness:audit
+npm run react:cutover:complete
 npm run react:build
 npm run test:all
 ```
 
-The DOM app remains production until React parity is proven.
+React is now the production-default root experience; `npm run test:all` is the React production gate. Run `npm run legacy:rollback:audit` only when you intentionally want to verify the temporary `/legacy` fallback before deleting it.
 
-## 3. Manually test React preview
+## 3. Manually test React default and rollback routes
 
-Run both apps locally:
+Run the Express-hosted app locally:
 
 ```bash
 npm run start
-npm run react:dev
 ```
 
-Open the Vite URL, usually `http://localhost:5173`.
+Open `http://localhost:8000` for the React default app and `http://localhost:8000/legacy` only when you need rollback comparison.
 
 Manual checks:
 
-- React app loads with no browser console errors.
+- React root app loads with no browser console errors.
 - Route navigation works for hierarchy, readiness, roadmap, cutover, pilot, parity, and handoff views.
 - Live API query status shows customer and booking counts.
 - Refresh reloads the API-backed hierarchy.
@@ -57,11 +64,11 @@ Manual checks:
 - Booking draft validate/save works and refreshes data.
 - Narrow/mobile viewport remains usable.
 
-## 4. Add React browser parity coverage before cutover
+## 4. Maintain React browser parity coverage after cutover
 
-Before making React the production UI, add browser tests for the React preview route. These tests should cover:
+React browser tests now exercise the production-default `/` route. Keep or expand coverage for:
 
-- React preview route loads.
+- React root route loads.
 - API-backed hierarchy renders.
 - Search works.
 - Customer expansion works.
@@ -71,80 +78,48 @@ Before making React the production UI, add browser tests for the React preview r
 - Error/retry behavior works.
 - Mobile/tablet layout is usable.
 
-## 5. Controlled cutover path
+## 5. Controlled retirement path
 
-1. Serve the React production build from Express under `/app-next`.
-2. Point new React browser tests at `/app-next`.
-3. Keep `/` on the DOM app until `/app-next` is green.
-4. After parity, switch `/` to React and keep the DOM app temporarily under `/legacy` if needed.
-5. After one stable validation cycle, remove `public/app.js`, `public/styles.css`, and the legacy DOM-specific tests that are replaced by React parity tests.
+1. Keep `/` on React and `/legacy` as the temporary rollback route.
+2. Keep legacy browser wrappers pinned to `CRUISE_DEFAULT_EXPERIENCE=legacy` until the final deletion pass.
+3. Confirm React root Cypress, React root Playwright, performance, Lighthouse, and Jest gates all pass through `npm run test:all`.
+4. Optionally run `npm run legacy:rollback:audit` while the rollback route exists.
+5. After one stable validation cycle, delete `public/app.js`, `public/styles.css`, and legacy DOM-specific browser tests that have React parity coverage.
+6. Remove `/legacy` routing after the final deletion PR is validated.
 
 ## 6. Merge guidance
 
 Use a squash merge or curated merge commit when promoting `dev` to `main` so the public history reads as one coherent modernization effort.
 
-## Local React preview verification
+## Local React production verification
 
-The React preview is intentionally separate from the legacy DOM app during cutover work.
+React is now the default production route. Use the Vite preview only for component-development convenience; use the Express root route for release validation.
 
 Recommended local command:
+
+```bash
+npm run start
+```
+
+Manual verification:
+1. Open `http://localhost:8000` and confirm the React app loads from the production root.
+2. Confirm role switching, fleet search, ships, sailings, itinerary details, passenger profile updates, itinerary favorites, and SQA health checks work from `/`.
+3. Open `http://localhost:8000/legacy` only when intentionally comparing the temporary rollback route.
+4. Run `npm run react:cutover:complete` before committing any final cutover or cleanup change.
+
+For a Vite developer server with the Express API proxy:
 
 ```bash
 npm run react:dev:local
 ```
 
-This starts the Express app on `http://localhost:8000`, then starts the Vite React preview on `http://localhost:5173`. The React preview keeps API calls relative, and Vite proxies `/cruise`, `/health`, and `/admin` requests to the Express backend.
+## Express-hosted compatibility route
 
-Manual verification:
-1. Open `http://localhost:8000` and confirm the legacy DOM app still works.
-2. Open `http://localhost:5173` and confirm the React preview loads customer and booking data.
-3. Click **Refresh API snapshot** in the React preview and confirm the live API query panel reports a loaded snapshot.
-4. Exercise the customer hierarchy, draft validation, customer save boundary, and booking save boundary.
-5. Run `npm run react:build` before committing any React cutover-related change.
+`/app-next` remains a compatibility alias for older migration links, but `/` is the production contract and the default React browser-test target. New verification, screenshots, and reviewer guidance should use `http://localhost:8000`.
 
-For a production-like local build preview:
+## React cutover completion audit
 
-```bash
-npm run react:preview:local
-```
-
-
-## Express-hosted preview route
-
-The React application must be served by the existing Express application before any DOM retirement work begins.
-
-Local verification:
-
-```bash
-npm run react:build
-npm run start
-```
-
-Then open:
-
-```text
-http://localhost:8000/app-next
-```
-
-The legacy DOM app remains available at `/` until `/app-next` reaches functional, visual, accessibility, and mobile parity.
-
-## React preview asset base
-
-When manually checking the Express-hosted React preview, always rebuild after Vite config or React changes:
-
-```bash
-npm run react:build
-npm run start
-```
-
-Then hard refresh:
-
-```text
-http://localhost:8000/app-next
-```
-
-The React build uses `base: '/app-next/'` so generated JavaScript and CSS assets load from `/app-next/assets/...` instead of `/assets/...`.
-
+`npm run react:cutover:complete` verifies that React is the production root, React Cypress and Playwright target `/`, legacy DOM assets are isolated to rollback routes/scripts, GitHub Actions labels the React production gates clearly, Render builds React before deploy, and this checklist no longer describes React as only a preview.
 
 ### React visual parity milestone
 
@@ -242,8 +217,7 @@ and responsive Playwright checks. Legacy DOM browser scripts remain available as
 ### Full DOM plus React test gate
 
 `npm run test:all` is now the full gate for this migration. It runs the existing unit/coverage/Cypress
-suite, the legacy DOM Playwright suites, the React `/app-next` Cypress and Playwright suites,
-performance smoke, and Lighthouse. Do not retire the DOM app until this full gate is green.
+suite, React Cypress, React Playwright suites, performance smoke, and Lighthouse. Run `npm run legacy:rollback:audit` separately only when validating the temporary rollback route.
 
 ### React Cypress isolation pass
 
@@ -294,8 +268,7 @@ on the actual usable hit area when WebKit reports a collapsed locator bounding b
 ### React and legacy mobile Playwright split
 
 The legacy mobile Playwright command now runs only the DOM mobile specs. The React `/app-next`
-mobile spec runs under the React browser suite, so `npm run test:all` still covers both apps
-without double-running the React replacement spec inside the legacy gate.
+mobile spec runs under the React browser suite. Legacy DOM mobile specs are now isolated to `npm run legacy:rollback:audit`.
 
 
 ### Cypress DOM and React spec discovery
@@ -496,3 +469,56 @@ created activity it just added.
 - Added React workflow-table delete actions for customers and linked bookings so admins can manage records from the row they are already reviewing.
 - Kept the existing ID-based delete forms as a fallback while the React route is still running in parallel with the DOM app.
 - Added Cypress and static guardrail coverage for row-level customer and booking delete behavior.
+
+### React default cutover switch
+
+The server now supports a reversible default-route switch for the final migration window:
+
+- Keep `/app-next` as the explicit React preview route while parity testing continues.
+- Keep `/legacy` as the temporary DOM fallback route during cutover.
+- Set `CRUISE_DEFAULT_EXPERIENCE=react` to serve the React build from `/` without deleting the DOM app yet.
+- After the React route passes CI and manual review as the default experience, remove the legacy DOM files in a dedicated cleanup PR.
+### React default cutover slice
+
+The live Express host now treats React as the default experience. `/` serves the built React shell unless `CRUISE_DEFAULT_EXPERIENCE=legacy`, `dom`, `false`, or `0` is set. The legacy DOM app remains available at `/legacy` and the legacy browser test wrappers now start the server in explicit legacy mode so existing DOM coverage remains useful during the rollback window. Render also builds the React bundle during deployment so the default root route has production assets available.
+
+
+### React production test gate alignment
+
+The canonical `npm run test` and `npm run uiTests` commands now exercise the React production route.  The legacy DOM application is still available for rollback at `/legacy`, but its browser coverage is intentionally grouped under `npm run legacy:rollback:audit` instead of being the meaning of the default UI test command.
+
+Current cutover gates:
+
+```bash
+npm run uiTests              # React Cypress production smoke/regression route
+npm run browserTests:react   # React Cypress + React Playwright mobile/responsive
+npm run legacy:rollback:audit # Explicit legacy DOM rollback audit
+npm run test:all             # Jest + React browser gate + performance + Lighthouse
+npm run react:cutover:audit  # React production audit + explicit rollback audit
+```
+
+This keeps the project aligned with the final cutover goal: React is the production app, and the DOM app is a temporary rollback surface until deletion.
+
+### Legacy quarantine audit
+
+The React production gate now includes a lightweight legacy quarantine audit before the browser suites run. This audit verifies that the old DOM app remains reachable only through the explicit `/legacy` rollback route or `CRUISE_DEFAULT_EXPERIENCE=legacy`, while the normal `/` production path and React browser tests stay focused on the React app. It also guards the npm scripts so `test:all` cannot silently reintroduce the legacy rollback browser audit into the default React production gate.
+
+Run it directly when you want a fast cutover sanity check:
+
+```bash
+npm run legacy:quarantine:audit
+```
+
+### React Cypress Phase 1 parity expansion
+
+The React app now has focused Cypress suites for the same major browser concerns that made the legacy DOM app valuable as a QA portfolio project: home/workspace navigation, fleet search, ship CRUD, sailing/itinerary workflows, and role-aware passenger/group dashboards. The default React browser gate discovers all files under `cypress/react/**/*.cy.js`, and the inventory audit now requires at least six React Cypress specs so production React coverage cannot quietly collapse back to a single smoke test.
+
+
+### React Cypress parity expansion
+
+The React production route now has a broader Cypress parity suite under `cypress/react/`, expanding from the initial cutover smoke coverage into focused specs for create workflows, admin hierarchy, passenger self-service, fleet error handling, itinerary CRUD, migration evidence panels, and the SQA console. The `test:inventory:audit` guardrail now requires at least 13 React Cypress specs so production React coverage cannot quietly regress while the legacy DOM app remains quarantined as rollback-only code.
+
+### React Cypress and Playwright Phase 2 parity expansion
+
+React production-route coverage now moves beyond the first parity slice. The Cypress suite under `cypress/react/` adds focused tests for admin mutation validation, deeper fleet directory state, accessibility/keyboard behavior, lifecycle isolation, and SQA console failure modes. The React Playwright mobile and responsive specs were also expanded so Phase 2 covers passenger workflows, admin workflows, confirmation panels, route evidence panels, and layout safety from phone, tablet, and desktop viewports.
+

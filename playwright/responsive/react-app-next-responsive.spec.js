@@ -20,9 +20,9 @@ async function selectDemoUserByRole(page, roleText) {
   await select.selectOption(matchingValue)
 }
 
-test.describe('React /app-next desktop and tablet replacement checks', () => {
+test.describe('React default desktop and tablet replacement checks', () => {
   test('keeps React replacement sections in production order', async ({ page }) => {
-    await page.goto('/app-next')
+    await page.goto('/')
 
     await expect(page.getByTestId('react-role-selector')).toBeVisible()
     await expect(page.getByTestId('react-active-route-operations')).toBeVisible()
@@ -48,7 +48,7 @@ test.describe('React /app-next desktop and tablet replacement checks', () => {
   })
 
   test('keeps React responsive role switching usable at tablet width', async ({ page }) => {
-    await page.goto('/app-next')
+    await page.goto('/')
     await page.setViewportSize({ width: 900, height: 1100 })
 
     await selectDemoUserByRole(page, 'Passenger')
@@ -60,7 +60,7 @@ test.describe('React /app-next desktop and tablet replacement checks', () => {
     await expectNoHorizontalOverflow(page)
   })
   test('loads React fleet ships from the fleet directory at desktop width', async ({ page }) => {
-    await page.goto('/app-next')
+    await page.goto('/')
 
     await page.getByTestId('react-fleet-search').fill('Royal')
     await expect(page.getByTestId('react-fleet-card').first()).toContainText('Royal')
@@ -74,7 +74,7 @@ test.describe('React /app-next desktop and tablet replacement checks', () => {
   })
 
   test('keeps React fleet delete guarded by a native React confirmation panel', async ({ page }) => {
-    await page.goto('/app-next')
+    await page.goto('/')
 
     await page.getByTestId('react-fleet-search').fill('Norwegian')
     await expect(page.getByTestId('react-fleet-card').first()).toContainText('Norwegian')
@@ -88,7 +88,7 @@ test.describe('React /app-next desktop and tablet replacement checks', () => {
   })
 
   test('keeps React create workflow usable at desktop width', async ({ page }) => {
-    await page.goto('/app-next')
+    await page.goto('/')
 
     await page.getByTestId('react-create-cruise-line-name').fill('Responsive React Cruise')
     await page.getByTestId('react-create-cruise-line-country').fill('United States')
@@ -103,7 +103,7 @@ test.describe('React /app-next desktop and tablet replacement checks', () => {
   })
 
   test('keeps React ship CRUD and sailings readable at desktop width', async ({ page }) => {
-    await page.goto('/app-next')
+    await page.goto('/')
 
     await page.getByTestId('react-fleet-search').fill('Royal')
     await page.getByTestId('react-view-ships-button').first().click()
@@ -122,7 +122,7 @@ test.describe('React /app-next desktop and tablet replacement checks', () => {
   })
 
   test('keeps React cruise line update form guarded by controlled cancellation', async ({ page }) => {
-    await page.goto('/app-next')
+    await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
     await page.getByTestId('react-fleet-search').fill('Royal')
@@ -138,7 +138,7 @@ test.describe('React /app-next desktop and tablet replacement checks', () => {
   })
 
   test('keeps React sailing CRUD controls readable at desktop width', async ({ page }) => {
-    await page.goto('/app-next')
+    await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
     await page.getByTestId('react-fleet-search').fill('Royal')
@@ -154,7 +154,7 @@ test.describe('React /app-next desktop and tablet replacement checks', () => {
   })
 
   test('keeps React itinerary CRUD controls readable at desktop width', async ({ page }) => {
-    await page.goto('/app-next')
+    await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
     await page.getByTestId('react-fleet-search').fill('Royal')
@@ -172,5 +172,109 @@ test.describe('React /app-next desktop and tablet replacement checks', () => {
     await expect(page.getByTestId('react-delete-itinerary-activity-button').first()).toBeVisible()
     await expectNoHorizontalOverflow(page)
   })
+
+  test('keeps React customer hierarchy table usable at desktop width', async ({ page }) => {
+    await page.goto('/')
+    await selectDemoUserByRole(page, 'Admin')
+
+    await page.getByTestId('react-toggle-customer-workflows').click()
+    await expect(page.getByTestId('react-customer-workflow-table')).toBeVisible()
+    await page.getByTestId('react-expand-visible-customers').click()
+    await expect(page.getByTestId('react-customer-bookings-row').first()).toBeVisible()
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('keeps React admin draft forms stable at tablet width', async ({ page }) => {
+    await page.goto('/')
+    await page.setViewportSize({ width: 900, height: 1100 })
+    await selectDemoUserByRole(page, 'Admin')
+
+    await page.getByTestId('react-toggle-customer-workflows').click()
+    await page.getByTestId('react-edit-customer-button').first().click()
+    await expect(page.getByTestId('react-customer-draft-form')).toBeVisible()
+    await page.getByTestId('react-cancel-customer-draft').click()
+    await expect(page.getByTestId('react-customer-draft-form')).toHaveCount(0)
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('keeps React route panels stable at desktop and tablet widths', async ({ page }) => {
+    await page.goto('/')
+
+    for (const [width, height] of [[1440, 1000], [900, 1100]]) {
+      await page.setViewportSize({ width, height })
+      await page.getByTestId('react-migration-route-nav').getByRole('button', { name: /Roadmap/i }).click()
+      await expect(page.getByTestId('react-migration-roadmap-panel')).toBeVisible()
+      await page.getByTestId('react-migration-route-nav').getByRole('button', { name: /Parity/i }).click()
+      await expect(page.getByTestId('react-pilot-parity-panel')).toBeVisible()
+      await expectNoHorizontalOverflow(page)
+    }
+  })
+
+  test('keeps React SQA output panels readable without layout overflow', async ({ page }) => {
+    await page.goto('/')
+    await selectDemoUserByRole(page, 'Admin')
+
+    await page.getByTestId('react-sqa-console').scrollIntoViewIfNeeded()
+    await page.getByTestId('react-sqa-data-button').click()
+    await expect(page.getByTestId('react-sqa-output')).toContainText('Data Verification Result')
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('keeps React create workflow grid stable at desktop and tablet widths', async ({ page }) => {
+    await page.goto('/')
+    await selectDemoUserByRole(page, 'Admin')
+
+    for (const [width, height] of [[1280, 900], [900, 1100]]) {
+      await page.setViewportSize({ width, height })
+      await page.getByTestId('react-create-cruise-line-name').fill('Responsive Cruise')
+      await page.getByTestId('react-add-ship-row').click()
+      await expect(page.getByTestId('react-create-ship-name').first()).toBeVisible()
+      await expectNoHorizontalOverflow(page)
+      await page.getByTestId('react-reset-cruise-line').click()
+    }
+  })
+
+  test('keeps React passenger details cards stable across desktop and tablet widths', async ({ page }) => {
+    await page.goto('/')
+    await selectDemoUserByRole(page, 'Passenger')
+
+    for (const [width, height] of [[1280, 900], [900, 1100]]) {
+      await page.setViewportSize({ width, height })
+      await page.getByTestId('react-role-booking-details-toggle').first().click()
+      await expect(page.getByTestId('react-role-booking-details').first()).toBeVisible()
+      await expect(page.getByTestId('react-role-detail-passenger-row').first()).toBeVisible()
+      await page.getByTestId('react-role-booking-details-toggle').first().click()
+      await expectNoHorizontalOverflow(page)
+    }
+  })
+
+  test('keeps React fleet filtering and selected ship panels stable at wide desktop width', async ({ page }) => {
+    await page.goto('/')
+    await page.setViewportSize({ width: 1440, height: 1000 })
+    await selectDemoUserByRole(page, 'Admin')
+
+    await page.getByTestId('react-fleet-search').fill('Royal')
+    await expect(page.getByTestId('react-fleet-card').first()).toContainText('Royal')
+    await page.getByTestId('react-view-ships-button').first().click()
+    await expect(page.getByTestId('react-selected-ships-panel')).toBeVisible()
+    await expect(page.getByTestId('react-ship-card').first()).toBeVisible()
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('keeps React itinerary admin cards stable at tablet width', async ({ page }) => {
+    await page.goto('/')
+    await page.setViewportSize({ width: 900, height: 1100 })
+    await selectDemoUserByRole(page, 'Admin')
+
+    await page.getByTestId('react-fleet-search').fill('Royal')
+    await page.getByTestId('react-view-ships-button').first().click()
+    await page.getByTestId('react-view-sailings-button').first().click()
+    await page.getByTestId('react-view-itinerary-button').first().click()
+    await expect(page.getByTestId('react-itinerary-panel')).toBeVisible()
+    await expect(page.getByTestId('react-itinerary-day-card').first()).toBeVisible()
+    await expect(page.getByTestId('react-create-itinerary-day-form')).toBeVisible()
+    await expectNoHorizontalOverflow(page)
+  })
+
 
 })

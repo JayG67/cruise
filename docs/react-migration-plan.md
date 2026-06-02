@@ -96,7 +96,7 @@ Retire `public/app.js`, `public/styles.css`, and `public/index.html` only after:
 - Manual test checklist passes.
 - The README clearly explains the new React frontend.
 
-Until then, the DOM app is the production fallback and should remain in place.
+At this point, React is the production default. The DOM app is now a temporary rollback fallback only and should not be part of the default production test gate.
 
 ## GitHub/portfolio guidance
 
@@ -114,3 +114,36 @@ The portfolio story should be: **working legacy application modernized through R
 The React build is now intended to be served by Express at `/app-next` after `npm run react:build`.
 
 This is still not a cutover. The legacy DOM app remains the production-quality experience at `/`, while `/app-next` becomes the realistic parity workspace for the React replacement path.
+
+### React default-route cutover switch
+
+A reversible Express-hosted cutover switch is now available. The application can serve React at `/` with `CRUISE_DEFAULT_EXPERIENCE=react`, while `/legacy` keeps the DOM app reachable for a short rollback window. This separates the production traffic switch from the later DOM file removal, reducing risk as the migration reaches full parity.
+### React default cutover slice
+
+The live Express host now treats React as the default experience. `/` serves the built React shell unless `CRUISE_DEFAULT_EXPERIENCE=legacy`, `dom`, `false`, or `0` is set. The legacy DOM app remains available at `/legacy` and the legacy browser test wrappers now start the server in explicit legacy mode so existing DOM coverage remains useful during the rollback window. Render also builds the React bundle during deployment so the default root route has production assets available.
+
+
+## React production test gate alignment
+
+The project has moved past preview-mode testing.  The default UI test path now targets the React production experience at `/`, while the old DOM browser suites are preserved under an explicit rollback audit.
+
+- `npm run uiTests` runs React Cypress coverage.
+- `npm run browserTests:react` runs React Cypress plus React Playwright mobile/responsive checks.
+- `npm run legacy:rollback:audit` runs the old DOM Cypress and Playwright checks only as rollback validation.
+- `npm run test:all` runs the React production coverage and final quality gates. Run `npm run legacy:rollback:audit` separately when intentionally validating rollback.
+
+This is the bridge step before removing `public/app.js` and the DOM-only browser specs after the remaining rollback window is no longer needed.
+
+
+## React production gate cutover
+
+`npm run test:all` now represents the React production gate: Jest/API coverage, React Cypress, React mobile/responsive Playwright, performance smoke, and Lighthouse. Legacy DOM browser tests remain available through `npm run legacy:rollback:audit` while `/legacy` exists, but they are no longer part of the default production readiness gate. This keeps the repository focused on the live React application while preserving a deliberate rollback verification path until final DOM deletion.
+
+## React Cypress Phase 1 parity expansion
+
+Phase 1 of React test parity expanded Cypress coverage from one broad replacement spec into focused production-route suites for home/workspace navigation, fleet search, ship workflows, sailings/itinerary workflows, and role dashboards. The new shared helper module in `cypress/react/support/reactTestHelpers.js` centralizes deterministic API fixtures and common navigation flows so React tests can grow with the production app without depending on legacy DOM selectors.
+
+### React Cypress and Playwright Phase 2 parity expansion
+
+React production-route coverage now moves beyond the first parity slice. The Cypress suite under `cypress/react/` adds focused tests for admin mutation validation, deeper fleet directory state, accessibility/keyboard behavior, lifecycle isolation, and SQA console failure modes. The React Playwright mobile and responsive specs were also expanded so Phase 2 covers passenger workflows, admin workflows, confirmation panels, route evidence panels, and layout safety from phone, tablet, and desktop viewports.
+

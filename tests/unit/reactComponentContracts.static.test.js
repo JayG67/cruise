@@ -55,6 +55,8 @@ describe('React route preview accessibility contracts', () => {
     expect(app).toContain('data-testid="react-workspace-operations-button"')
     expect(app).toContain('data-testid="react-workspace-fleet-button"')
     expect(app).toContain('data-testid="react-workspace-quality-button"')
+    expect(app).toContain('data-testid="react-release-readiness-section"')
+    expect(app).toContain('ReactMigrationRouteNav')
     expect(app).toContain('aria-label="Customer-centered operations"')
   })
 
@@ -114,6 +116,45 @@ describe('React route preview accessibility contracts', () => {
     expect(sqa).toContain('data-testid={action.testId}')
     expect(sqa).toContain("testId: 'react-sqa-ui-smoke-button'")
     expect(sqa).toContain('data-testid="react-sqa-reset-demo-data-button"')
+    expect(sqa).toContain('import ConfirmActionPanel')
+    expect(sqa).toContain('resetConfirmationVisible')
+    expect(sqa).toContain('testId="react-sqa-reset-confirmation"')
+    expect(sqa).not.toContain('window.confirm')
+  })
+
+
+  it('keeps React SQA reset recovery guarded by a React confirmation panel', () => {
+    const cypress = read('cypress/react/reactApp.cy.js')
+    const sqa = read('frontend/react/src/components/ReactSqaConsole.jsx')
+
+    expect(sqa).toContain('requestResetDemoData')
+    expect(sqa).toContain('cancelResetDemoData')
+    expect(sqa).toContain('testId="react-sqa-reset-confirmation"')
+    expect(cypress).toContain('resets React demo data through a native React confirmation panel')
+    expect(cypress).toContain("cy.getByTestId('react-sqa-reset-confirmation-cancel')")
+    expect(cypress).toContain("cy.getByTestId('react-sqa-reset-confirmation-confirm')")
+    expect(cypress).not.toContain("cy.stub(win, 'confirm')")
+  })
+
+
+  it('keeps React passenger self-service profile saves wired to the passenger-profile API', () => {
+    const client = read('frontend/react/src/api/client.js')
+    const hook = read('frontend/react/src/hooks/useCustomerProfileMutation.js')
+    const roleDashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const cypress = read('cypress/react/reactApp.cy.js')
+
+    expect(client).toContain('updatePassengerProfile')
+    expect(client).toContain('/passenger-profile')
+    expect(hook).toContain('updatePassengerProfile')
+    expect(hook).toContain('hasPassengerProfileFields')
+    expect(hook).toContain('diningPreference: trimOptional(draft.diningPreference)')
+    expect(hook).toContain('accessibilityNotes: trimOptional(draft.accessibilityNotes)')
+    expect(roleDashboard).toContain('onSavePassengerProfile')
+    expect(roleDashboard).toContain('buildPassengerProfileDraft')
+    expect(roleDashboard).toContain('[selectedCustomerId, selectedDemoUser?.id]')
+    expect(roleDashboard).not.toContain('[selectedCustomer?.id, selectedDemoUser?.id, visibleBookings]')
+    expect(cypress).toContain('saves React passenger profile and preference changes through the passenger self-service API')
+    expect(cypress).toContain("cy.intercept('PATCH', '/cruise/customers/react-passenger-customer/passenger-profile'")
   })
 
 
@@ -147,8 +188,35 @@ describe('React route preview accessibility contracts', () => {
     expect(roleDashboard).toContain('aria-labelledby="react-role-dashboard-heading"')
     expect(roleDashboard).toContain('data-testid={`react-${roleView}-dashboard`}')
     expect(roleDashboard).toContain('aria-labelledby="react-passenger-profile-heading"')
+    expect(roleDashboard).toContain('data-testid="react-passenger-profile-form"')
+    expect(roleDashboard).toContain('data-testid="react-dining-preference-select"')
+    expect(roleDashboard).toContain('data-testid="react-passenger-profile-message"')
+    expect(roleDashboard).toContain('role="status" aria-live="polite"')
     expect(roleDashboard).toContain('data-testid="react-role-booking-card"')
     expect(app).toContain('visibleBookingCount={visibleRoleBookings.length}')
+    expect(app).toContain('onSavePassengerProfile={saveCustomerProfile}')
+  })
+
+
+  it('keeps React passenger booking details and itinerary favorites in parity with the DOM dashboard', () => {
+    const roleDashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const roleView = read('frontend/react/src/domain/roleView.js')
+    const styles = read('frontend/react/src/styles/app.css')
+    const cypress = read('cypress/react/reactApp.cy.js')
+
+    expect(roleDashboard).toContain('RoleBookingDetails')
+    expect(roleDashboard).toContain('data-testid="react-role-booking-details-toggle"')
+    expect(roleDashboard).toContain('data-testid="react-role-booking-details"')
+    expect(roleDashboard).toContain('data-testid="react-role-itinerary-day"')
+    expect(roleDashboard).toContain('data-testid="react-role-favorite-itinerary-toggle"')
+    expect(roleDashboard).toContain('data-testid="react-role-favorites-only-toggle"')
+    expect(roleDashboard).toContain('aria-expanded={isExpanded}')
+    expect(roleView).toContain('getBookingItineraryDays')
+    expect(roleView).toContain('getItineraryDayActivities')
+    expect(styles).toContain('React passenger and group booking details parity with the legacy role dashboard')
+    expect(styles).toContain('.role-booking-detail-panel')
+    expect(styles).toContain('.role-itinerary-day')
+    expect(cypress).toContain('opens React passenger booking details and filters favorite itinerary days')
   })
 
 

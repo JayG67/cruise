@@ -43,6 +43,14 @@ describe('static ADA and WCAG-oriented accessibility safeguards', () => {
   })
 
 
+  it('keeps inline booking detail panels truly hidden after mobile users collapse them', () => {
+    expect(appJs).toContain('detailsContainer.hidden = true')
+    expect(appJs).toContain('setBookingDetailsButtonState(detailsButton, booking, false)')
+    expect(styles).toContain('.inline-booking-details[hidden]')
+    expect(styles).toContain('display: none !important')
+  })
+
+
   it('keeps workspace navigation accessible and connected to major application regions', () => {
     expect(indexHtml).toContain('data-testid="workspace-rail"')
     expect(indexHtml).toContain('aria-label="Cruise Explorer workspace navigation"')

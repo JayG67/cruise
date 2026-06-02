@@ -121,6 +121,19 @@ export async function updateCustomerProfile(customerId, payload, options = {}) {
   })
 }
 
+
+export async function updatePassengerProfile(customerId, payload, options = {}) {
+  return requestJson(`/cruise/customers/${encodeURIComponent(customerId)}/passenger-profile`, {
+    ...options,
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
 export async function updateBookingDetails(bookingId, payload, options = {}) {
   return requestJson(`/cruise/bookings/${encodeURIComponent(bookingId)}`, {
     ...options,

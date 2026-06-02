@@ -2255,6 +2255,10 @@ code,
   padding-top: 1rem;
 }
 
+.inline-booking-details[hidden] {
+  display: none !important;
+}
+
 .inline-booking-details-panel {
   background: rgba(244, 248, 251, 0.92);
   border-radius: 18px;

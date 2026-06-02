@@ -10,6 +10,14 @@ import CustomerBookingHierarchy from './components/CustomerBookingHierarchy.jsx'
 import ReactQueryStatusPanel from './components/ReactQueryStatusPanel.jsx'
 import ReactSqaConsole from './components/ReactSqaConsole.jsx'
 import ReactRoleDashboard from './components/ReactRoleDashboard.jsx'
+import ReactMigrationRouteNav from './components/ReactMigrationRouteNav.jsx'
+import MigrationRoadmapPanel from './components/MigrationRoadmapPanel.jsx'
+import ReactCutoverReadinessPanel from './components/ReactCutoverReadinessPanel.jsx'
+import ReactPilotLaunchPanel from './components/ReactPilotLaunchPanel.jsx'
+import ReactPilotParityPanel from './components/ReactPilotParityPanel.jsx'
+import ReactMigrationHandoffPanel from './components/ReactMigrationHandoffPanel.jsx'
+import ReactMigrationActiveRoutePanel from './components/ReactMigrationActiveRoutePanel.jsx'
+import { useReactMigrationRoute } from './hooks/useReactMigrationRoute.js'
 import { getSelectedRoleView, getVisibleRoleBookings } from './domain/roleView.js'
 
 export default function App() {
@@ -20,6 +28,16 @@ export default function App() {
   const { saveBookingDetails, savingBookingId, bookingMutationError } = useBookingDetailsMutation({ onSaved: reload })
   const selectedRoleView = getSelectedRoleView(selectedDemoUser)
   const visibleRoleBookings = getVisibleRoleBookings(selectedDemoUser, snapshot.bookings)
+  const { routes: migrationRoutes, activeRouteKey, selectRoute } = useReactMigrationRoute()
+  const routeSectionMap = {
+    hierarchy: 'react-hierarchy',
+    readiness: 'react-role-selector',
+    roadmap: 'react-fleet',
+    cutover: 'react-quality',
+    pilot: 'react-release-readiness',
+    parity: 'react-release-readiness',
+    handoff: 'react-release-readiness'
+  }
   const workspaceTouchTargetStyle = {
     WebkitAppearance: 'none',
     alignItems: 'flex-start',
@@ -39,7 +57,18 @@ export default function App() {
     width: '100%'
   }
 
-  function scrollToSection(sectionId) {
+  function scrollToSection(sectionId, routeKey) {
+    if (routeKey) {
+      selectRoute(routeKey)
+    }
+
+    document.getElementById(sectionId)?.scrollIntoView({ block: 'start' })
+  }
+
+  function selectMigrationRoute(routeKey) {
+    selectRoute(routeKey)
+    const sectionId = routeSectionMap[routeKey] || 'react-dashboard'
+
     document.getElementById(sectionId)?.scrollIntoView({ block: 'start' })
   }
 
@@ -70,7 +99,7 @@ export default function App() {
 
           <div className="hero-cta-row" aria-label="React application shortcuts">
             <a className="button-link primary" href="#react-hierarchy">Review Operations</a>
-            <a className="button-link secondary" href="/">Open Current DOM App</a>
+            <a className="button-link secondary" href="/legacy">Open Legacy DOM App</a>
           </div>
 
           <div className="hero-status-pills" aria-label="React application capabilities">
@@ -92,22 +121,22 @@ export default function App() {
         </div>
 
         <div className="react-workspace-card-grid" aria-label="React application workspaces" data-testid="react-workspace-card-grid">
-          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => scrollToSection('react-role-selector')} data-testid="react-workspace-role-button">
+          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => scrollToSection('react-role-selector', 'readiness')} data-testid="react-workspace-role-button">
             <span className="workspace-icon" aria-hidden="true">👥</span>
             <span className="workspace-card-title">Role Simulation</span>
             <span>Switch between admin, passenger, and group leader views.</span>
           </button>
-          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => scrollToSection('react-hierarchy')} data-testid="react-workspace-operations-button">
+          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => scrollToSection('react-hierarchy', 'hierarchy')} data-testid="react-workspace-operations-button">
             <span className="workspace-icon" aria-hidden="true">🧾</span>
             <span className="workspace-card-title">Admin Operations</span>
             <span>Search and manage customer and booking datasets.</span>
           </button>
-          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => scrollToSection('react-fleet')} data-testid="react-workspace-fleet-button">
+          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => scrollToSection('react-fleet', 'roadmap')} data-testid="react-workspace-fleet-button">
             <span className="workspace-icon" aria-hidden="true">🚢</span>
             <span className="workspace-card-title">Fleet Directory</span>
             <span>Search cruise lines, manage fleets, ships, and sailings.</span>
           </button>
-          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => scrollToSection('react-quality')} data-testid="react-workspace-quality-button">
+          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => scrollToSection('react-quality', 'cutover')} data-testid="react-workspace-quality-button">
             <span className="workspace-icon" aria-hidden="true">✅</span>
             <span className="workspace-card-title">Quality Console</span>
             <span>Run API health, data readiness, and deployment checks.</span>
@@ -126,27 +155,33 @@ export default function App() {
           </div>
           <ol className="workflow-step-list" aria-label="Recommended workflow controls">
             <li>
-              <button type="button" className="workflow-step-button" onClick={() => scrollToSection('react-role-selector')} data-testid="react-workflow-role-button">
+              <button type="button" className="workflow-step-button" onClick={() => scrollToSection('react-role-selector', 'readiness')} data-testid="react-workflow-role-button">
                 <strong>01</strong><span>Choose role</span>
               </button>
             </li>
             <li>
-              <button type="button" className="workflow-step-button" onClick={() => scrollToSection('react-hierarchy')} data-testid="react-workflow-operations-button">
+              <button type="button" className="workflow-step-button" onClick={() => scrollToSection('react-hierarchy', 'hierarchy')} data-testid="react-workflow-operations-button">
                 <strong>02</strong><span>Review operations</span>
               </button>
             </li>
             <li>
-              <button type="button" className="workflow-step-button" onClick={() => scrollToSection('react-fleet')} data-testid="react-workflow-fleet-button">
+              <button type="button" className="workflow-step-button" onClick={() => scrollToSection('react-fleet', 'roadmap')} data-testid="react-workflow-fleet-button">
                 <strong>03</strong><span>Manage fleet</span>
               </button>
             </li>
             <li>
-              <button type="button" className="workflow-step-button" onClick={() => scrollToSection('react-quality')} data-testid="react-workflow-quality-button">
+              <button type="button" className="workflow-step-button" onClick={() => scrollToSection('react-quality', 'cutover')} data-testid="react-workflow-quality-button">
                 <strong>04</strong><span>Run quality checks</span>
               </button>
             </li>
           </ol>
         </div>
+
+        <ReactMigrationRouteNav
+          routes={migrationRoutes}
+          activeRouteKey={activeRouteKey}
+          onSelectRoute={selectMigrationRoute}
+        />
       </section>
 
       <ReactRoleSelector
@@ -202,8 +237,37 @@ export default function App() {
           customers={snapshot.customers}
           bookings={snapshot.bookings}
           visibleBookings={visibleRoleBookings}
+          onSavePassengerProfile={saveCustomerProfile}
+          savingCustomerId={savingCustomerId}
+          mutationError={mutationError}
         />
       )}
+
+
+
+      <section id="react-release-readiness" className="react-release-readiness-section" aria-labelledby="react-release-readiness-heading" data-testid="react-release-readiness-section">
+        <div className="release-readiness-heading">
+          <p className="eyebrow">React cutover command center</p>
+          <h2 id="react-release-readiness-heading">Route-driven migration evidence for replacing the DOM app</h2>
+          <p>
+            The workspace rail now controls the active React migration evidence panel instead of showing every
+            cutover artifact at once. Reviewers can focus on one workflow, gate, pilot, parity, or handoff
+            path while the rest of the app stays available below.
+          </p>
+        </div>
+        <div className="active-route-summary" data-testid="react-active-route-summary">
+          <span>Active route</span>
+          <strong>{activeRouteKey}</strong>
+        </div>
+        {(activeRouteKey === 'hierarchy' || activeRouteKey === 'readiness') && (
+          <ReactMigrationActiveRoutePanel routeKey={activeRouteKey} />
+        )}
+        {activeRouteKey === 'roadmap' && <MigrationRoadmapPanel />}
+        {activeRouteKey === 'cutover' && <ReactCutoverReadinessPanel />}
+        {activeRouteKey === 'pilot' && <ReactPilotLaunchPanel />}
+        {activeRouteKey === 'parity' && <ReactPilotParityPanel />}
+        {activeRouteKey === 'handoff' && <ReactMigrationHandoffPanel />}
+      </section>
 
       <section id="react-quality" className="react-quality-section" aria-label="React API status">
         <ReactQueryStatusPanel

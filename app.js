@@ -13,6 +13,18 @@ const app = express()
 
 const reactBuildDir = path.join(__dirname, 'dist', 'react')
 const reactIndexPath = path.join(reactBuildDir, 'index.html')
+const legacyPublicDir = path.join(__dirname, 'public')
+const legacyIndexPath = path.join(legacyPublicDir, 'index.html')
+const legacyImagesDir = path.join(legacyPublicDir, 'images')
+const legacyRootStatic = express.static(legacyPublicDir, { redirect: false })
+
+function isLegacyDefaultExperienceEnabled() {
+  return ['0', 'false', 'legacy', 'dom'].includes(String(process.env.CRUISE_DEFAULT_EXPERIENCE || '').toLowerCase())
+}
+
+function isReactDefaultExperienceEnabled() {
+  return !isLegacyDefaultExperienceEnabled()
+}
 
 function sendReactPreview(req, res, next) {
   if (!fs.existsSync(reactIndexPath)) {
@@ -21,10 +33,38 @@ function sendReactPreview(req, res, next) {
     )
   }
 
-  return res.sendFile(reactIndexPath, next)
+  return res.sendFile(reactIndexPath, (err) => {
+    if (err) {
+      next(err)
+    }
+  })
 }
 
 
+
+function sendLegacyApp(req, res, next) {
+  return res.sendFile(legacyIndexPath, (err) => {
+    if (err) {
+      next(err)
+    }
+  })
+}
+
+function sendDefaultExperience(req, res, next) {
+  if (isReactDefaultExperienceEnabled()) {
+    return sendReactPreview(req, res, next)
+  }
+
+  return sendLegacyApp(req, res, next)
+}
+
+function serveLegacyRootStaticOnlyInRollbackMode(req, res, next) {
+  if (isLegacyDefaultExperienceEnabled()) {
+    return legacyRootStatic(req, res, next)
+  }
+
+  return next()
+}
 
 function securityHeaders(req, res, next) {
   res.setHeader('X-Content-Type-Options', 'nosniff')
@@ -51,10 +91,16 @@ function securityHeaders(req, res, next) {
 app.use(securityHeaders)
 app.use(compression())
 
+app.use('/images', express.static(legacyImagesDir, { redirect: false }))
+
 app.use('/app-next', express.static(reactBuildDir, { redirect: false }))
 app.get(/^\/app-next(?:\/.*)?$/, sendReactPreview)
 
-app.use(express.static(path.join(__dirname, 'public')))
+app.use('/legacy', express.static(legacyPublicDir, { redirect: false }))
+app.get(/^\/legacy(?:\/.*)?$/, sendLegacyApp)
+app.get('/', sendDefaultExperience)
+
+app.use(serveLegacyRootStaticOnlyInRollbackMode)
 app.use(express.json())
 app.use(serverLogger)
 
@@ -67,7 +113,12 @@ app.use('/admin', adminRouter)
 
 app.use((err, req, res, next) => {
   console.error(err)
-  res.status(500).json({
+
+  if (res.headersSent) {
+    return next(err)
+  }
+
+  return res.status(500).json({
     message: 'Internal server error',
     error: err.message
   })
