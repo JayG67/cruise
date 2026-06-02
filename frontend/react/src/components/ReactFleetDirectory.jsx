@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 
 import ConfirmActionPanel from './ConfirmActionPanel.jsx'
+import { getCruiseLineBranding } from '../domain/cruiseLineBranding.js'
 
 import {
   createItineraryActivity,
@@ -168,6 +169,7 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
   }, [cruiseLines, searchTerm])
 
   const visibleCruiseLines = filteredCruiseLines.slice(0, 8)
+  const selectedBranding = selectedCruiseLine ? getCruiseLineBranding(selectedCruiseLine) : null
 
   async function reloadSelectedShips(cruiseLine = selectedCruiseLine) {
     if (!cruiseLine?.id) {
@@ -870,6 +872,9 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
             {cruiseLine.website && (
               <a href={cruiseLine.website} target="_blank" rel="noreferrer">Visit website</a>
             )}
+            <p className="brand-theme-summary" data-testid="react-fleet-brand-summary">
+              <strong>Brand theme:</strong> {getCruiseLineBranding(cruiseLine).themeName}
+            </p>
             <div className="fleet-card-actions" aria-label={`Actions for ${cruiseLine.name}`}>
               <button
                 type="button"

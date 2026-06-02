@@ -20,7 +20,7 @@
     "cypress:open": "cypress open --browser chrome",
     "cypress:run": "cypress run --spec \"cypress/e2e/**/*.cy.js\"",
     "uiTests": "npm run uiTests:react",
-    "uiTests:ci": "npm run uiTests:react",
+    "uiTests:ci": "npm run uiTests:react:ci",
     "db:verify:test": "node scripts/verify-test-db-connection.js",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
@@ -79,7 +79,8 @@
     "legacy:rollback:audit:ci": "npm run uiTests:legacy:ci && npm run playwright:mobile:legacy:ci && npm run playwright:responsive:legacy:ci",
     "uiTests:legacy:ci": "npm run react:build && start-server-and-test start:legacy:ci http://localhost:8000 cypress:run",
     "legacy:quarantine:audit": "node scripts/verify-legacy-quarantine.js",
-    "react:cutover:complete": "node scripts/verify-react-cutover-complete.js"
+    "react:cutover:complete": "node scripts/verify-react-cutover-complete.js",
+    "uiTests:react:ci": "npm run react:build && start-server-and-test start:ci http://localhost:8000 cypress:run:react"
   },
   "dependencies": {
     "compression": "^1.7.5",

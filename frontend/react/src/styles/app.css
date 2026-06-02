@@ -2923,3 +2923,178 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
     flex-direction: column;
   }
 }
+
+.cruise-line-brand-panel {
+  align-items: stretch;
+  background: linear-gradient(135deg, var(--brand-accent), #ffffff 72%);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-left: 0.55rem solid var(--brand-primary);
+  border-radius: 1.25rem;
+  box-shadow: 0 1rem 2rem rgba(15, 23, 42, 0.08);
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+}
+
+.brand-panel-copy h3 {
+  color: var(--brand-primary);
+  margin-bottom: 0.35rem;
+}
+
+.brand-theme-summary {
+  background: rgba(15, 23, 42, 0.05);
+  border-radius: 999px;
+  display: inline-flex;
+  gap: 0.35rem;
+  margin: 0.75rem 0 0;
+  padding: 0.35rem 0.7rem;
+}
+
+.brand-token-list {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 1rem 0 0;
+}
+
+.brand-token-list div {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 0.9rem;
+  padding: 0.75rem;
+}
+
+.brand-token-list dt {
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.brand-token-list dd {
+  color: #0f172a;
+  font-weight: 800;
+  margin: 0.25rem 0 0;
+}
+
+.brand-swatch-row {
+  align-content: center;
+  display: grid;
+  gap: 0.75rem;
+  min-width: 12rem;
+}
+
+.brand-swatch {
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  padding: 0.55rem 0.8rem;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.brand-swatch.primary {
+  background: var(--brand-primary);
+}
+
+.brand-swatch.secondary {
+  background: var(--brand-secondary);
+}
+
+.brand-swatch.accent {
+  background: var(--brand-accent);
+  color: var(--brand-primary);
+  outline: 1px solid rgba(15, 23, 42, 0.18);
+}
+
+@media (max-width: 760px) {
+  .cruise-line-brand-panel,
+  .brand-token-list {
+    grid-template-columns: 1fr;
+  }
+
+  .brand-swatch-row {
+    min-width: 0;
+  }
+}
+
+/* Operations console alignment pass.
+   Keep the workspace and recommended-workflow controls as real buttons, but let
+   their content define a stable card height instead of forcing a 72px box. */
+.operations-console-panel {
+  overflow: hidden;
+}
+
+.react-workspace-card-grid {
+  align-items: stretch;
+}
+
+button.react-workspace-card,
+button.react-workspace-card[data-testid^="react-workspace-"] {
+  block-size: auto !important;
+  height: auto !important;
+  justify-content: flex-start !important;
+  min-block-size: 128px !important;
+  min-height: 128px !important;
+  overflow: visible !important;
+  padding: 1rem !important;
+}
+
+button.react-workspace-card .workspace-card-title,
+.react-workspace-card[data-testid^="react-workspace-"] .workspace-card-title {
+  margin-block: 0.55rem 0.35rem;
+}
+
+.recommended-workflow-panel {
+  align-items: stretch;
+  grid-template-columns: minmax(0, 1fr) minmax(480px, 0.95fr);
+}
+
+.workflow-step-list {
+  align-items: stretch;
+}
+
+.workflow-step-list li,
+.workflow-step-button {
+  min-height: 160px;
+}
+
+.workflow-step-button {
+  align-content: start;
+  border-radius: 1rem;
+  line-height: 1.2;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.workflow-step-button span {
+  display: block;
+  max-width: 8rem;
+}
+
+@media (max-width: 1040px) {
+  .recommended-workflow-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-step-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 780px) {
+  .workflow-step-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .workflow-step-list,
+  .react-workspace-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
