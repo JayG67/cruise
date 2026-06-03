@@ -450,16 +450,18 @@ exports.getSailingsByShip = async (req, res, next) => {
   try {
     const { shipId } = req.params
 
+    const ship = await findOne(shipTable, shipTable.id, shipId)
+
+    if (!ship) {
+      return res.status(404).json({ message: 'Ship not found' })
+    }
+
     const sailings = await db
       .select()
       .from(sailingTable)
       .where(eq(sailingTable.shipId, shipId))
 
-    if (!sailings || sailings.length === 0) {
-      return res.status(404).json({ message: 'No sailings found for the specified ship' })
-    }
-
-    return res.status(200).json(sailings)
+    return res.status(200).json(sailings || [])
   } catch (err) {
     next(err)
   }

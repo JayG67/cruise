@@ -355,8 +355,12 @@ jobs:
           mkdir -p github-pages
           cp -R coverage-artifact/github-pages/coverage github-pages/coverage
 
-      - name: Run Lighthouse mobile quality gate
+      - name: Run Lighthouse mobile audit and quality gate
         run: npm run lighthouse:ci:ci
+
+      - name: Verify Lighthouse mobile report artifact
+        if: always()
+        run: npm run lighthouse:assert-report
 
       - name: Prepare Lighthouse report for GitHub Pages
         if: always()

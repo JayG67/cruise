@@ -67,13 +67,33 @@ const result = spawnSync(executable, ['lhci', 'autorun', '--config=.github/light
 const scores = readLatestScores()
 
 if (scores) {
-  console.log('')
-  console.log('Lighthouse mobile scores')
-  console.log(`  report: ${scores.file}`)
-  console.log(`  performance: ${formatScore(scores.performance)}`)
-  console.log(`  accessibility: ${formatScore(scores.accessibility)}`)
-  console.log(`  best-practices: ${formatScore(scores.bestPractices)}`)
-  console.log(`  seo: ${formatScore(scores.seo)}`)
+  const scoreLines = [
+    '',
+    'Lighthouse mobile scores',
+    `  report: ${scores.file}`,
+    `  performance: ${formatScore(scores.performance)}`,
+    `  accessibility: ${formatScore(scores.accessibility)}`,
+    `  best-practices: ${formatScore(scores.bestPractices)}`,
+    `  seo: ${formatScore(scores.seo)}`
+  ]
+
+  console.log(scoreLines.join('\n'))
+
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    fs.appendFileSync(
+      process.env.GITHUB_STEP_SUMMARY,
+      [
+        '## Lighthouse Mobile Scores',
+        '',
+        `- Report: \`${scores.file}\``,
+        `- Performance: **${formatScore(scores.performance)}**`,
+        `- Accessibility: **${formatScore(scores.accessibility)}**`,
+        `- Best Practices: **${formatScore(scores.bestPractices)}**`,
+        `- SEO: **${formatScore(scores.seo)}**`,
+        ''
+      ].join('\n')
+    )
+  }
 } else {
   console.log('')
   console.log('Lighthouse mobile scores: no Lighthouse JSON report was found to summarize.')

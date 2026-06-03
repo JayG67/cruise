@@ -37,6 +37,40 @@ async function getSeededShipAndSailing() {
   throw new Error('Expected seeded cruise data to include at least one ship with a sailing')
 }
 
+async function createIsolatedShipForSailingTest() {
+  const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`
+
+  const cruiseLineRes = await request(app)
+    .post('/cruise/cruise-line')
+    .send({
+      name: `Sailing QA Cruise ${suffix}`,
+      country: 'United States',
+      website: 'https://example.com',
+      brandFamily: 'Sailing QA Group',
+      brandTheme: 'Integration Test Fleet',
+      marketPositioning: 'Isolated cruise line used to verify sailing CRUD without relying on shared seed fleet state.'
+    })
+
+  expect(cruiseLineRes.statusCode).toBe(201)
+
+  const shipRes = await request(app)
+    .post('/cruise/ship')
+    .send({
+      name: `Sailing QA Ship ${suffix}`,
+      currentPort: 'Miami, Florida',
+      cruiseLineId: cruiseLineRes.body.id
+    })
+
+  expect(shipRes.statusCode).toBe(201)
+
+  return {
+    id: shipRes.body.id,
+    name: `Sailing QA Ship ${suffix}`,
+    currentPort: 'Miami, Florida',
+    cruiseLineId: cruiseLineRes.body.id
+  }
+}
+
 describe('Sailing and itinerary API integration tests', () => {
   it('returns sailings and itinerary for a seeded ship', async () => {
     const { ship, sailing } = await getSeededShipAndSailing()
@@ -59,7 +93,7 @@ describe('Sailing and itinerary API integration tests', () => {
   })
 
   it('creates, updates, and deletes sailing records', async () => {
-    const { ship } = await getSeededShipAndSailing()
+    const ship = await createIsolatedShipForSailingTest()
 
     const createRes = await request(app)
       .post(`/cruise/ship/${ship.id}/sailings`)
@@ -142,7 +176,7 @@ describe('Sailing and itinerary API integration tests', () => {
   })
 
   it('persists created sailing values and removes the sailing after delete', async () => {
-    const { ship } = await getSeededShipAndSailing()
+    const ship = await createIsolatedShipForSailingTest()
 
     const createRes = await request(app)
       .post(`/cruise/ship/${ship.id}/sailings`)

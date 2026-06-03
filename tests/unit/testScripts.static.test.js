@@ -115,4 +115,20 @@ describe('local test database script guardrails', () => {
     expect(inventoryScript).toContain('legacyPlaywrightSpecs.length === 0')
     expect(inventoryScript).not.toContain("console.log('Legacy Cypress specs: 0')")
   })
+
+  it('keeps the GitHub workflow running an explicit Lighthouse mobile quality gate', () => {
+    const workflow = fs.readFileSync(path.join(projectRoot, '.github/workflows/ci.yml'), 'utf8')
+    const lighthouseConfig = fs.readFileSync(path.join(projectRoot, '.github/lighthouserc.json'), 'utf8')
+
+    expect(workflow).toContain('lighthouse-mobile-audit:')
+    expect(workflow).toContain('name: Mobile Quality & UX Gate')
+    expect(workflow).toContain('Run Lighthouse mobile audit and quality gate')
+    expect(workflow).toContain('npm run lighthouse:ci:ci')
+    expect(workflow).toContain('Verify Lighthouse mobile report artifact')
+    expect(workflow).toContain('npm run lighthouse:assert-report')
+    expect(packageJson.scripts['lighthouse:assert-report']).toContain('scripts/assert-lighthouse-mobile-report.js')
+    expect(lighthouseConfig).toContain('"formFactor": "mobile"')
+    expect(lighthouseConfig).toContain('"mobile": true')
+  })
+
 })
