@@ -3,13 +3,13 @@ const path = require('path')
 
 describe('browser test helper inventory', () => {
   const projectRoot = path.resolve(__dirname, '../..')
-  it('keeps retired DOM Cypress workflow helpers removed', () => {
+  it('keeps retired pre-React Cypress workflow helpers removed', () => {
     const retiredAdminWorkflowsPath = path.join(projectRoot, 'cypress/support/adminWorkflows.js')
 
     expect(fs.existsSync(retiredAdminWorkflowsPath)).toBe(false)
   })
 
-  it('keeps React admin journey coverage self-contained after DOM helper retirement', () => {
+  it('keeps React admin journey coverage self-contained after pre-React helper retirement', () => {
     const reactSpecs = [
       fs.readFileSync(path.join(projectRoot, 'cypress/react/reactApp.cy.js'), 'utf8'),
       fs.readFileSync(path.join(projectRoot, 'cypress/react/reactAdminHierarchy.cy.js'), 'utf8'),
@@ -45,11 +45,11 @@ describe('browser test helper inventory', () => {
     expect(spec).not.toContain('cy.findByText')
   })
 
-  it('keeps React Cypress isolated from retired DOM discovery', () => {
-    const legacySpecDir = path.join(projectRoot, 'cypress/e2e')
+  it('keeps React Cypress isolated from retired pre-React discovery', () => {
+    const retiredSpecDir = path.join(projectRoot, 'cypress/e2e')
     const reactSpecPath = path.join(projectRoot, 'cypress/react/reactApp.cy.js')
 
-    expect(fs.existsSync(legacySpecDir)).toBe(false)
+    expect(fs.existsSync(retiredSpecDir)).toBe(false)
     expect(fs.existsSync(reactSpecPath)).toBe(true)
   })
 

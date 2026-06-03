@@ -1,6 +1,6 @@
 const { reactBookings, selectDemoUserByVisibleRole, visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
-describe('React role dashboard parity', () => {
+describe('React role dashboard coverage', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
   })

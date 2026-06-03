@@ -36,41 +36,41 @@ describe('local test database script guardrails', () => {
     expect(packageJson.scripts.integrationTests).toContain('jest.integration.config.js')
   })
 
-  it('runs only React browser regression scripts after DOM retirement', () => {
+  it('runs only React browser regression scripts after pre-React retirement', () => {
     expect(packageJson.scripts['cypress:run']).toContain('cypress/react/**/*.cy.js')
     expect(packageJson.scripts['cypress:run:react']).toContain('cypress/react/**/*.cy.js')
     expect(packageJson.scripts['uiTests']).toContain('uiTests:react')
     expect(packageJson.scripts['uiTests:ci']).toContain('uiTests:react')
     expect(packageJson.scripts['uiTests:react']).toContain('http://localhost:8000')
-    expect(packageJson.scripts['playwright:mobile:react']).toContain('react-app-next-mobile.spec.js')
-    expect(packageJson.scripts['playwright:responsive:react']).toContain('react-app-next-responsive.spec.js')
+    expect(packageJson.scripts['playwright:mobile:react']).toContain('react-production-mobile.spec.js')
+    expect(packageJson.scripts['playwright:responsive:react']).toContain('react-production-responsive.spec.js')
     expect(packageJson.scripts['browserTests:react']).toContain('uiTests:react')
     expect(packageJson.scripts['test:react:all']).toContain('browserTests:react')
     expect(packageJson.scripts['react:production:complete']).toContain('verify-react-production-complete.js')
   })
 
-  it('removes legacy rollback and DOM test wiring from package scripts', () => {
+  it('removes retired rollback and pre-React test wiring from package scripts', () => {
     for (const retired of [
-      'start:legacy',
-      'start:legacy:ci',
-      'uiTests:legacy',
-      'uiTests:legacy:ci',
-      'browserTests:legacy',
-      'legacy:quarantine:audit',
-      'legacy:rollback:audit',
-      'legacy:rollback:audit:ci',
+      'start:retired',
+      'start:retired:ci',
+      'uiTests:retired',
+      'uiTests:retired:ci',
+      'browserTests:retired',
+      'retired:quarantine:audit',
+      'retired:rollback:audit',
+      'retired:rollback:audit:ci',
       'playwright:mobile:dom',
       'playwright:responsive:dom',
-      'playwright:mobile:legacy',
-      'playwright:responsive:legacy',
-      'playwright:mobile:legacy:ci',
-      'playwright:responsive:legacy:ci'
+      'playwright:mobile:retired',
+      'playwright:responsive:retired',
+      'playwright:mobile:retired:ci',
+      'playwright:responsive:retired:ci'
     ]) {
       expect(packageJson.scripts[retired]).toBeUndefined()
     }
 
-    expect(packageJson.scripts['test:all']).not.toContain('legacy')
-    expect(packageJson.scripts['portfolio:audit']).not.toContain('legacy')
+    expect(packageJson.scripts['test:all']).not.toContain('retired')
+    expect(packageJson.scripts['portfolio:audit']).not.toContain('retired')
   })
 
   it('keeps test all focused on the production React application gate', () => {
@@ -98,8 +98,8 @@ describe('local test database script guardrails', () => {
     expect(packageJson.scripts['playwright:mobile:ci']).toContain('npm run react:build &&')
     expect(packageJson.scripts['playwright:responsive:local']).toContain('playwright:responsive:react')
     expect(packageJson.scripts['playwright:responsive:ci']).toContain('npm run react:build &&')
-    expect(packageJson.scripts['playwright:mobile:react']).toContain('react-app-next-mobile.spec.js')
-    expect(packageJson.scripts['playwright:responsive:react']).toContain('react-app-next-responsive.spec.js')
+    expect(packageJson.scripts['playwright:mobile:react']).toContain('react-production-mobile.spec.js')
+    expect(packageJson.scripts['playwright:responsive:react']).toContain('react-production-responsive.spec.js')
   })
 
   it('audits test all against the React-only project test inventory before running the full gate', () => {
@@ -109,11 +109,11 @@ describe('local test database script guardrails', () => {
     expect(packageJson.scripts['test:inventory:audit']).toContain('scripts/verify-test-all-inventory.js')
     expect(packageJson.scripts['test:all']).toContain('npm run test:inventory:audit')
     expect(inventoryScript).toContain('cypress/react')
-    expect(inventoryScript).toContain('playwright/mobile/react-app-next-mobile.spec.js')
-    expect(inventoryScript).toContain('playwright/responsive/react-app-next-responsive.spec.js')
-    expect(inventoryScript).toContain('legacyCypressSpecs.length === 0')
-    expect(inventoryScript).toContain('legacyPlaywrightSpecs.length === 0')
-    expect(inventoryScript).not.toContain("console.log('Legacy Cypress specs: 0')")
+    expect(inventoryScript).toContain('playwright/mobile/react-production-mobile.spec.js')
+    expect(inventoryScript).toContain('playwright/responsive/react-production-responsive.spec.js')
+    expect(inventoryScript).toContain('retiredCypressSpecs.length === 0')
+    expect(inventoryScript).toContain('retiredPlaywrightSpecs.length === 0')
+    expect(inventoryScript).not.toContain("console.log('Retired Cypress specs: 0')")
   })
 
   it('keeps the GitHub workflow running an explicit Lighthouse mobile quality gate', () => {

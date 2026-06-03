@@ -1,6 +1,6 @@
 const { reactBookings, reactCustomers, selectDemoUserByVisibleRole, visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
-describe('React passenger self-service parity expansion', () => {
+describe('React passenger self-service coverage expansion', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
     selectDemoUserByVisibleRole('Passenger')

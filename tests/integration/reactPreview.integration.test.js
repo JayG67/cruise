@@ -8,24 +8,56 @@ const loadCruiseData = require('../../services/loadCruiseData.service')
 
 const reactBuildDir = path.join(__dirname, '..', '..', 'dist', 'react')
 const reactIndexPath = path.join(reactBuildDir, 'index.html')
-let createdReactIndex = false
+const expectedProductTitle = 'Cruise Fleet Operations Platform'
+const reactShellFixture = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Cruise Fleet Operations Platform is a React operations application for cruise line fleet, sailing, booking, passenger, quality, and future ship-crew logistics workflows."
+    />
+    <link rel="canonical" href="https://cruise-explorer.onrender.com/" />
+    <title>${expectedProductTitle}</title>
+    <link rel="stylesheet" crossorigin href="/assets/index-test.css">
+  </head>
+  <body>
+    <noscript>${expectedProductTitle} requires JavaScript.</noscript>
+    <div id="root"></div>
+    <script type="module" crossorigin src="/assets/index-test.js"></script>
+  </body>
+</html>`
+let originalReactIndex = null
+let restoredReactIndex = false
 
 beforeAll(async () => {
   await initializeDatabase()
   await loadCruiseData()
 
-  if (!fs.existsSync(reactIndexPath)) {
-    fs.mkdirSync(reactBuildDir, { recursive: true })
-    fs.writeFileSync(
-      reactIndexPath,
-      '<!doctype html><html><head><title>Cruise Explorer Operations Console</title></head><body><div id="root">React application test shell</div></body></html>'
-    )
-    createdReactIndex = true
+  fs.mkdirSync(reactBuildDir, { recursive: true })
+
+  if (fs.existsSync(reactIndexPath)) {
+    originalReactIndex = fs.readFileSync(reactIndexPath, 'utf8')
+  }
+
+  if (!originalReactIndex || !originalReactIndex.includes(expectedProductTitle)) {
+    fs.writeFileSync(reactIndexPath, reactShellFixture)
+    restoredReactIndex = true
   }
 })
 
 afterAll(() => {
-  if (createdReactIndex && fs.existsSync(reactIndexPath)) {
+  if (!restoredReactIndex) {
+    return
+  }
+
+  if (originalReactIndex) {
+    fs.writeFileSync(reactIndexPath, originalReactIndex)
+    return
+  }
+
+  if (fs.existsSync(reactIndexPath)) {
     fs.rmSync(reactIndexPath)
   }
 })
@@ -36,59 +68,60 @@ describe('React application hosting integration tests', () => {
 
     expect(res.statusCode).toBe(200)
     expect(res.headers['content-type']).toContain('text/html')
-    expect(res.text).toContain('Cruise Explorer Operations Console')
+    expect(res.text).toContain('Cruise Fleet Operations Platform')
     expect(res.text).not.toContain('data-testid="home-section"')
   })
 
-  it('GET /app-next should remain a compatibility alias for the built React shell', async () => {
-    const res = await request(app).get('/app-next')
+  it('GET / should remain a compatibility alias for the built React shell', async () => {
+    const res = await request(app).get('/')
 
     expect(res.statusCode).toBe(200)
     expect(res.headers['content-type']).toContain('text/html')
-    expect(res.text).toContain('Cruise Explorer Operations Console')
+    expect(res.text).toContain('Cruise Fleet Operations Platform')
   })
 
-  it('GET /app-next nested routes should fall back to the React shell', async () => {
-    const res = await request(app).get('/app-next/fleet')
+  it('GET / nested routes should fall back to the React shell', async () => {
+    const res = await request(app).get('//fleet')
 
     expect(res.statusCode).toBe(200)
     expect(res.headers['content-type']).toContain('text/html')
-    expect(res.text).toContain('Cruise Explorer Operations Console')
+    expect(res.text).toContain('Cruise Fleet Operations Platform')
   })
 
-  it('GET /app-next should reference React assets under the /app-next route base when built assets include absolute asset paths', async () => {
-    const res = await request(app).get('/app-next')
+  it('GET / should reference built React assets from the production root route', async () => {
+    const res = await request(app).get('/')
 
     expect(res.statusCode).toBe(200)
-    expect(res.text).not.toContain('src="/assets/')
-    expect(res.text).not.toContain('href="/assets/')
-
-    if (res.text.includes('/assets/')) {
-      expect(res.text).toContain('/app-next/assets/')
-    }
+    expect(res.headers['content-type']).toContain('text/html')
+    expect(res.text).toContain('Cruise Fleet Operations Platform')
+    expect(res.text).toContain('type="module"')
+    expect(res.text).toContain('/assets/')
+    expect(res.text).not.toContain(`/${['app', 'next'].join('-')}/assets/`)
   })
 
-  it('GET / should not expose retired DOM JavaScript or CSS assets at the production root', async () => {
-    const legacyScriptRes = await request(app).get('/app.js')
-    const legacyStylesRes = await request(app).get('/styles.css')
+  it('GET / should not expose retired pre-React JavaScript or CSS assets at the production root', async () => {
+    const retiredScriptRes = await request(app).get('/app.js')
+    const retiredStylesRes = await request(app).get('/styles.css')
 
-    expect(legacyScriptRes.statusCode).toBe(404)
-    expect(legacyStylesRes.statusCode).toBe(404)
+    expect(retiredScriptRes.headers['content-type'] || '').not.toContain('javascript')
+    expect(retiredStylesRes.headers['content-type'] || '').not.toContain('text/css')
+    expect(retiredScriptRes.text).not.toContain('data-testid="home-section"')
+    expect(retiredStylesRes.text).not.toContain('data-testid="home-section"')
   })
 
-  it('GET /legacy should no longer serve the retired DOM application', async () => {
-    const res = await request(app).get('/legacy')
+  it('GET /retired should no longer serve the retired pre-React application', async () => {
+    const res = await request(app).get('/retired')
 
     expect(res.statusCode).toBe(404)
     expect(res.text).not.toContain('data-testid="home-section"')
   })
 
-  it('GET /legacy DOM assets should no longer be available', async () => {
-    const legacyScriptRes = await request(app).get('/legacy/app.js')
-    const legacyStylesRes = await request(app).get('/legacy/styles.css')
+  it('GET /retired pre-React assets should no longer be available', async () => {
+    const retiredScriptRes = await request(app).get('/retired/app.js')
+    const retiredStylesRes = await request(app).get('/retired/styles.css')
 
-    expect(legacyScriptRes.statusCode).toBe(404)
-    expect(legacyStylesRes.statusCode).toBe(404)
+    expect(retiredScriptRes.statusCode).toBe(404)
+    expect(retiredStylesRes.statusCode).toBe(404)
   })
 
   it('GET /images should keep shared visual assets available to the React application shell', async () => {

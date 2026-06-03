@@ -1,6 +1,6 @@
 const { openFirstReactFleetShips,  openFirstReactSailingItinerary,  openFirstReactShipSailings,  reactItinerary,  reactSailings,  reactShips,  visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
-describe('React sailings and itinerary parity', () => {
+describe('React sailings and itinerary coverage', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
     openFirstReactFleetShips()

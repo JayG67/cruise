@@ -1,6 +1,6 @@
 const { reactCruiseLines, reactShips, visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
-describe('React create cruise line parity', () => {
+describe('React create cruise line coverage', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
   })

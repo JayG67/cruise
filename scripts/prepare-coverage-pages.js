@@ -44,7 +44,7 @@ if (!copiedHtml) {
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Cruise Explorer Coverage</title>
+  <title>Cruise Fleet Operations Platform Coverage</title>
 </head>
 <body>
   <h1>Coverage report unavailable</h1>

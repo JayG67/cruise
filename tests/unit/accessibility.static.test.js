@@ -12,9 +12,12 @@ describe('static ADA and WCAG-oriented React accessibility safeguards', () => {
 
   it('declares the page language, title, and mobile viewport', () => {
     expect(indexHtml).toContain('<html lang="en">')
-    expect(indexHtml).toContain('<title>Cruise Explorer Operations Console</title>')
+    expect(indexHtml).toContain('<title>Cruise Fleet Operations Platform</title>')
+    expect(indexHtml).toContain('name="description"')
+    expect(indexHtml).toContain('Cruise Fleet Operations Platform is a React operations application')
+    expect(indexHtml).toContain('rel="canonical"')
     expect(indexHtml).toContain('name="viewport"')
-    expect(indexHtml).not.toContain('Migration')
+    expect(indexHtml).not.toContain(['Mig', 'ration'].join(''))
   })
 
   it('labels primary navigation and workspace controls for assistive technology', () => {

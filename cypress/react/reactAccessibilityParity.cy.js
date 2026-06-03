@@ -1,6 +1,6 @@
 const { visitReactAppAsAdmin, selectDemoUserByVisibleRole, openFirstReactFleetShips, openFirstReactShipSailings, openFirstReactSailingItinerary } = require('./support/reactTestHelpers.js')
 
-describe('React accessibility and keyboard parity expansion', () => {
+describe('React accessibility and keyboard coverage expansion', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
   })

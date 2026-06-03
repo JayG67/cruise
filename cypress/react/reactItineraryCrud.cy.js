@@ -1,6 +1,6 @@
 const { openFirstReactFleetShips, openFirstReactSailingItinerary, openFirstReactShipSailings, reactItinerary, reactSailings, reactShips, visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
-describe('React itinerary admin CRUD parity expansion', () => {
+describe('React itinerary admin CRUD coverage expansion', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
     openFirstReactFleetShips()

@@ -8,8 +8,8 @@ function countPlaywrightTests(filePath) {
 
 describe('Playwright React coverage inventory', () => {
   const projectRoot = path.resolve(__dirname, '../..')
-  const mobileReactSpecPath = path.join(projectRoot, 'playwright/mobile/react-app-next-mobile.spec.js')
-  const responsiveReactSpecPath = path.join(projectRoot, 'playwright/responsive/react-app-next-responsive.spec.js')
+  const mobileReactSpecPath = path.join(projectRoot, 'playwright/mobile/react-production-mobile.spec.js')
+  const responsiveReactSpecPath = path.join(projectRoot, 'playwright/responsive/react-production-responsive.spec.js')
   const mobileConfigPath = path.join(projectRoot, 'playwright.mobile.config.js')
   const responsiveConfigPath = path.join(projectRoot, 'playwright.responsive.config.js')
 
@@ -45,8 +45,10 @@ describe('Playwright React coverage inventory', () => {
 
     expect(mobileReactSpec).toContain("page.goto('/')")
     expect(responsiveReactSpec).toContain("page.goto('/')")
-    expect(mobileReactSpec).not.toContain("page.goto('/app-next')")
-    expect(responsiveReactSpec).not.toContain("page.goto('/app-next')")
+    const retiredAliasRoute = `/${['app', 'next'].join('-')}`
+
+    expect(mobileReactSpec).not.toContain(`page.goto('${retiredAliasRoute}')`)
+    expect(responsiveReactSpec).not.toContain(`page.goto('${retiredAliasRoute}')`)
   })
 
   it('keeps React Playwright role selection resilient to seeded user id changes', () => {

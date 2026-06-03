@@ -9,13 +9,13 @@ const {
   visitReactAppAsAdmin
 } = require('./support/reactTestHelpers.js')
 
-describe('React cutover parity deep-dive coverage', () => {
+describe('React production deep-dive coverage', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
   })
 
-  it('keeps the product UI free of migration route controls and review-only panels', () => {
-    cy.getByTestId('react-migration-route-nav').should('not.exist')
+  it('keeps the product UI free of implementation-history route controls and review-only panels', () => {
+    cy.getByTestId('react-retired-route-nav').should('not.exist')
     cy.getByTestId('react-release-readiness-section').should('not.exist')
     cy.getByTestId('react-active-route-evidence-panel').should('not.exist')
     cy.contains('Portfolio evidence for cruise-line software engineering roles').should('not.exist')
@@ -39,7 +39,7 @@ describe('React cutover parity deep-dive coverage', () => {
   it('keeps the product hero focused on the React app and SQA console', () => {
     cy.getByTestId('react-production-hero').within(() => {
       cy.contains('Open SQA Console').should('have.attr', 'href', '#react-quality')
-      cy.contains('Open Legacy DOM App').should('not.exist')
+      cy.contains('Open Retired Pre-React App').should('not.exist')
     })
     cy.getByTestId('react-workspace-quality-button').click()
     cy.getByTestId('react-sqa-console').should('be.visible')

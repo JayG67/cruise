@@ -1,13 +1,13 @@
 const { visitReactAppAsAdmin, selectDemoUserByVisibleRole } = require('./support/reactTestHelpers.js')
 
-describe('React home and workspace parity', () => {
+describe('React home and workspace coverage', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
   })
 
   it('renders the production React shell at the root route', () => {
     cy.location('pathname').should('eq', '/')
-    cy.getByTestId('react-production-parity-shell').should('be.visible')
+    cy.getByTestId('react-production-shell').should('be.visible')
     cy.getByTestId('react-production-hero').should('contain.text', 'Manage cruise line and fleet operations')
     cy.getByTestId('react-top-navigation').within(() => {
       cy.contains('Dashboard').should('be.visible')
@@ -37,12 +37,12 @@ describe('React home and workspace parity', () => {
     cy.getByTestId('react-sqa-console').should('be.visible')
   })
 
-  it('keeps migration and legacy review panels out of the product UI', () => {
-    cy.getByTestId('react-migration-route-nav').should('not.exist')
+  it('keeps implementation-history review panels out of the product UI', () => {
+    cy.getByTestId('react-retired-route-nav').should('not.exist')
     cy.getByTestId('react-release-readiness-section').should('not.exist')
-    cy.getByTestId('react-pilot-launch-panel').should('not.exist')
-    cy.getByTestId('react-pilot-parity-panel').should('not.exist')
-    cy.getByTestId('react-migration-handoff-panel').should('not.exist')
+    cy.getByTestId('react-retired-launch-launch-panel').should('not.exist')
+    cy.getByTestId('react-retired-launch-evidence-panel').should('not.exist')
+    cy.getByTestId('react-retired-handoff-panel').should('not.exist')
   })
 
   it('shows query status metadata for the React admin data load', () => {

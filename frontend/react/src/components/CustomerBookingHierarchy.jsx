@@ -281,7 +281,7 @@ export default function CustomerBookingHierarchy({
 
         <section className="react-admin-mutation-panel" aria-label="React admin create and delete workflows" data-testid="react-admin-mutation-panel">
           <div>
-            <p className="eyebrow">Admin CRUD parity</p>
+            <p className="eyebrow">Admin CRUD coverage</p>
             <h4>Create and delete customer or booking records</h4>
             <p>These workflows exercise customer and booking mutation boundaries in the same place recruiters can review the operating model. Contextual row actions let admins delete records from the workflow they are already reviewing instead of copying IDs into a separate form.</p>
           </div>

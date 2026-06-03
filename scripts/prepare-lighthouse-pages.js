@@ -42,7 +42,7 @@ function writeFallbackReport(reason) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cruise Explorer Lighthouse Report</title>
+  <title>Cruise Fleet Operations Platform Lighthouse Report</title>
 </head>
 <body>
   <main>

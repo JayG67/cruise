@@ -1,6 +1,6 @@
 const { reactBookings, reactCustomers, visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
-describe('React admin hierarchy parity expansion', () => {
+describe('React admin hierarchy coverage expansion', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
   })

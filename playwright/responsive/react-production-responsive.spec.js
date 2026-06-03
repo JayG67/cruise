@@ -202,7 +202,7 @@ test.describe('React default desktop and tablet replacement checks', () => {
 
     for (const [width, height] of [[1440, 1000], [900, 1100]]) {
       await page.setViewportSize({ width, height })
-      await expect(page.getByTestId('react-migration-route-nav')).toHaveCount(0)
+      await expect(page.getByTestId('react-retired-route-nav')).toHaveCount(0)
       await page.getByTestId('react-workspace-fleet-button').click()
       await expect(page.getByTestId('react-fleet-directory')).toBeVisible()
       await page.getByTestId('react-workspace-quality-button').click()

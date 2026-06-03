@@ -1,6 +1,6 @@
 const { reactCruiseLines, visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
-describe('React fleet search parity', () => {
+describe('React fleet search coverage', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
   })

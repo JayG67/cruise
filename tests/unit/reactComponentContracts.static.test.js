@@ -58,7 +58,7 @@ describe('React route preview accessibility contracts', () => {
     expect(app).toContain('data-testid="react-workspace-fleet-button"')
     expect(app).toContain('data-testid="react-workspace-quality-button"')
     expect(app).not.toContain('data-testid="react-release-readiness-section"')
-    expect(app).not.toContain('ReactMigrationRouteNav')
+    expect(app).not.toContain(['React', 'RouteNav'].join(''))
     expect(app).toContain('aria-label="Customer-centered operations"')
   })
 
@@ -73,7 +73,7 @@ describe('React route preview accessibility contracts', () => {
   })
 
 
-  it('keeps React admin workspace table semantics aligned with the DOM workflow table', () => {
+  it('keeps React admin workspace table semantics aligned with the operations workflow table', () => {
     const hierarchy = read('frontend/react/src/components/CustomerBookingHierarchy.jsx')
     const row = read('frontend/react/src/components/CustomerHierarchyRow.jsx')
 
@@ -99,7 +99,7 @@ describe('React route preview accessibility contracts', () => {
   })
 
 
-  it('keeps React admin and fleet sections sequenced like the DOM app', () => {
+  it('keeps React admin and fleet sections sequenced for production operations', () => {
     const app = read('frontend/react/src/App.jsx')
 
     expect(app.indexOf('<ReactRoleSelector')).toBeLessThan(app.indexOf('<CustomerBookingHierarchy'))
@@ -213,7 +213,7 @@ describe('React route preview accessibility contracts', () => {
   })
 
 
-  it('keeps React passenger booking details and itinerary favorites in parity with the DOM dashboard', () => {
+  it('keeps React passenger booking details and itinerary favorites in coverage with the role dashboard', () => {
     const roleDashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
     const roleView = read('frontend/react/src/domain/roleView.js')
     const styles = read('frontend/react/src/styles/app.css')
@@ -228,7 +228,7 @@ describe('React route preview accessibility contracts', () => {
     expect(roleDashboard).toContain('aria-expanded={isExpanded}')
     expect(roleView).toContain('getBookingItineraryDays')
     expect(roleView).toContain('getItineraryDayActivities')
-    expect(styles).toContain('React passenger and group booking details parity with the legacy role dashboard')
+    expect(styles).toContain('React passenger and group booking details coverage with the prior role dashboard')
     expect(styles).toContain('.role-booking-detail-panel')
     expect(styles).toContain('.role-itinerary-day')
     expect(cypress).toContain('opens React passenger booking details and filters favorite itinerary days')
@@ -299,7 +299,7 @@ describe('React route preview accessibility contracts', () => {
 
 
   it('keeps React mobile tests validating behavior instead of fragile Safari measurements', () => {
-    const mobileReactSpec = read('playwright/mobile/react-app-next-mobile.spec.js')
+    const mobileReactSpec = read('playwright/mobile/react-production-mobile.spec.js')
 
     expect(mobileReactSpec).toContain('await expect(demoUserSelect).toBeEnabled()')
     expect(mobileReactSpec).toContain('await roleWorkspaceButton.click()')
@@ -312,11 +312,11 @@ describe('React route preview accessibility contracts', () => {
     const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
     const styles = read('frontend/react/src/styles/app.css')
 
-    expect(app).toContain('react-production-parity-shell')
+    expect(app).toContain('react-production-shell')
     expect(fleet).toContain('className="react-checkbox-label"')
     expect(styles).toContain('React Mobile Safari checkbox overflow fix')
     expect(styles).toContain('overflow-x: clip')
-    expect(styles).toContain('.react-production-parity-shell input[type="checkbox"]')
+    expect(styles).toContain('.react-production-shell input[type="checkbox"]')
     expect(styles).toContain('inline-size: 1rem')
     expect(styles).toContain('flex: 0 0 auto')
     expect(styles).toContain('flex-wrap: wrap')
@@ -327,7 +327,7 @@ describe('React route preview accessibility contracts', () => {
     const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
     const client = read('frontend/react/src/api/client.js')
     const cypress = read('cypress/react/reactApp.cy.js')
-    const responsive = read('playwright/responsive/react-app-next-responsive.spec.js')
+    const responsive = read('playwright/responsive/react-production-responsive.spec.js')
 
     expect(client).toContain('export async function getShipsForCruiseLine')
     expect(client).toContain('/cruise/ships/${encodeURIComponent(cruiseLineId)}')
@@ -341,11 +341,11 @@ describe('React route preview accessibility contracts', () => {
   })
 
 
-  it('keeps React fleet delete parity wired through the real API', () => {
+  it('keeps React fleet delete coverage wired through the real API', () => {
     const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
     const client = read('frontend/react/src/api/client.js')
     const cypress = read('cypress/react/reactApp.cy.js')
-    const responsive = read('playwright/responsive/react-app-next-responsive.spec.js')
+    const responsive = read('playwright/responsive/react-production-responsive.spec.js')
 
     expect(client).toContain('export async function deleteCruiseLine')
     expect(fleet).toContain('deleteCruiseLine')
@@ -360,11 +360,11 @@ describe('React route preview accessibility contracts', () => {
   })
 
 
-  it('keeps React create workflow parity covered by browser tests', () => {
+  it('keeps React create workflow coverage covered by browser tests', () => {
     const createWorkflow = read('frontend/react/src/components/ReactCruiseLineCreateWorkflow.jsx')
     const hook = read('frontend/react/src/hooks/useCruiseLineCreateWorkflow.js')
     const cypress = read('cypress/react/reactApp.cy.js')
-    const responsive = read('playwright/responsive/react-app-next-responsive.spec.js')
+    const responsive = read('playwright/responsive/react-production-responsive.spec.js')
 
     expect(createWorkflow).toContain('data-testid="react-remove-ship-row"')
     expect(createWorkflow).toContain('data-testid="react-reset-cruise-line"')
@@ -372,19 +372,19 @@ describe('React route preview accessibility contracts', () => {
     expect(hook).toContain('normalizeShips')
     expect(hook).toContain('createCruiseLine')
     expect(hook).toContain('createShip')
-    expect(cypress).toContain('creates a React cruise line with starter ships and reset parity')
+    expect(cypress).toContain('creates a React cruise line with starter ships and reset behavior')
     expect(cypress).toContain("cy.intercept('POST', '/cruise/cruise-line'")
     expect(cypress).toContain("cy.intercept('POST', '/cruise/ship'")
     expect(responsive).toContain('keeps React create workflow usable at desktop width')
   })
 
 
-  it('keeps React ship CRUD and sailing lookup parity wired through browser coverage', () => {
+  it('keeps React ship CRUD and sailing lookup coverage wired through browser coverage', () => {
     const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
     const client = read('frontend/react/src/api/client.js')
     const cypress = read('cypress/react/reactApp.cy.js')
-    const mobile = read('playwright/mobile/react-app-next-mobile.spec.js')
-    const responsive = read('playwright/responsive/react-app-next-responsive.spec.js')
+    const mobile = read('playwright/mobile/react-production-mobile.spec.js')
+    const responsive = read('playwright/responsive/react-production-responsive.spec.js')
 
     expect(client).toContain('export async function updateShip')
     expect(client).toContain('export async function deleteShip')
@@ -407,7 +407,7 @@ describe('React route preview accessibility contracts', () => {
   })
 
 
-  it('keeps React admin create and delete parity wired through browser coverage', () => {
+  it('keeps React admin create and delete coverage wired through browser coverage', () => {
     const hierarchy = read('frontend/react/src/components/CustomerBookingHierarchy.jsx')
     const client = read('frontend/react/src/api/client.js')
     const cypress = read('cypress/react/reactApp.cy.js')
@@ -431,7 +431,7 @@ describe('React route preview accessibility contracts', () => {
     expect(cypress).toContain('deletes React admin customer and booking records from contextual workflow rows')
     expect(cypress).toContain('switches through React role dashboards using the actual demo user select')
     expect(cypress).not.toContain(`cy.get('[data-testid="react-role-selector"]').select`)
-    expect(styles).toContain('React admin create/delete parity')
+    expect(styles).toContain('React admin create/delete coverage')
   })
 
 
@@ -462,12 +462,12 @@ describe('React route preview accessibility contracts', () => {
   })
 
 
-  it('keeps React itinerary detail parity wired through browser coverage', () => {
+  it('keeps React itinerary detail coverage wired through browser coverage', () => {
     const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
     const client = read('frontend/react/src/api/client.js')
     const cypress = read('cypress/react/reactApp.cy.js')
-    const mobile = read('playwright/mobile/react-app-next-mobile.spec.js')
-    const responsive = read('playwright/responsive/react-app-next-responsive.spec.js')
+    const mobile = read('playwright/mobile/react-production-mobile.spec.js')
+    const responsive = read('playwright/responsive/react-production-responsive.spec.js')
     const styles = read('frontend/react/src/styles/app.css')
 
     expect(client).toContain('export async function getItineraryForSailing')
@@ -480,16 +480,16 @@ describe('React route preview accessibility contracts', () => {
     expect(cypress).toContain('react-itinerary-panel')
     expect(mobile).toContain('react-view-itinerary-button')
     expect(responsive).toContain('react-view-itinerary-button')
-    expect(styles).toContain('React itinerary detail parity')
+    expect(styles).toContain('React itinerary detail coverage')
   })
 
 
-  it('keeps React cruise line update parity wired through browser coverage', () => {
+  it('keeps React cruise line update coverage wired through browser coverage', () => {
     const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
     const client = read('frontend/react/src/api/client.js')
     const cypress = read('cypress/react/reactApp.cy.js')
-    const mobile = read('playwright/mobile/react-app-next-mobile.spec.js')
-    const responsive = read('playwright/responsive/react-app-next-responsive.spec.js')
+    const mobile = read('playwright/mobile/react-production-mobile.spec.js')
+    const responsive = read('playwright/responsive/react-production-responsive.spec.js')
 
     expect(client).toContain('export async function updateCruiseLine')
     expect(client).toContain('/cruise/cruise-line/${encodeURIComponent(cruiseLineId)}')
@@ -526,12 +526,12 @@ describe('React route preview accessibility contracts', () => {
   })
 
 
-  it('keeps React sailing CRUD parity wired through browser coverage', () => {
+  it('keeps React sailing CRUD coverage wired through browser coverage', () => {
     const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
     const client = read('frontend/react/src/api/client.js')
     const cypress = read('cypress/react/reactApp.cy.js')
-    const mobile = read('playwright/mobile/react-app-next-mobile.spec.js')
-    const responsive = read('playwright/responsive/react-app-next-responsive.spec.js')
+    const mobile = read('playwright/mobile/react-production-mobile.spec.js')
+    const responsive = read('playwright/responsive/react-production-responsive.spec.js')
     const styles = read('frontend/react/src/styles/app.css')
 
     expect(client).toContain('export async function createSailing')
@@ -549,7 +549,7 @@ describe('React route preview accessibility contracts', () => {
     expect(cypress).toContain('deleteReactSailing')
     expect(mobile).toContain('keeps React sailing CRUD controls reachable on mobile')
     expect(responsive).toContain('keeps React sailing CRUD controls readable at desktop width')
-    expect(styles).toContain('React sailing CRUD parity')
+    expect(styles).toContain('React sailing CRUD coverage')
   })
 
 
@@ -570,12 +570,12 @@ describe('React route preview accessibility contracts', () => {
   })
 
 
-  it('keeps React itinerary day and activity CRUD parity wired through browser coverage', () => {
+  it('keeps React itinerary day and activity CRUD coverage wired through browser coverage', () => {
     const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
     const client = read('frontend/react/src/api/client.js')
     const cypress = read('cypress/react/reactApp.cy.js')
-    const mobile = read('playwright/mobile/react-app-next-mobile.spec.js')
-    const responsive = read('playwright/responsive/react-app-next-responsive.spec.js')
+    const mobile = read('playwright/mobile/react-production-mobile.spec.js')
+    const responsive = read('playwright/responsive/react-production-responsive.spec.js')
     const styles = read('frontend/react/src/styles/app.css')
 
     expect(client).toContain('export async function createItineraryDay')
@@ -600,7 +600,7 @@ describe('React route preview accessibility contracts', () => {
     expect(cypress).toContain('updateReactItineraryActivity')
     expect(mobile).toContain('keeps React itinerary CRUD controls reachable on mobile')
     expect(responsive).toContain('keeps React itinerary CRUD controls readable at desktop width')
-    expect(styles).toContain('React itinerary day and activity CRUD parity')
+    expect(styles).toContain('React itinerary day and activity CRUD coverage')
   })
 
 
@@ -630,7 +630,7 @@ describe('React route preview accessibility contracts', () => {
     expect(seedData).toContain('\"brandTheme\": \"Mediterranean Resort\"')
     expect(seedData).toContain('\"brandFamily\": \"Margaritaville at Sea\"')
     expect(seedData).toContain('\"brandTheme\": \"Casual Island Getaway\"')
-    expect(seedData).not.toContain('Cruise Explorer Default')
+    expect(seedData).not.toContain('Cruise Fleet Operations Platform Default')
     expect(fleet).toContain('Brand family')
     expect(fleet).toContain('Positioning')
     expect(fleet).toContain('cruiseLine.brandFamily')

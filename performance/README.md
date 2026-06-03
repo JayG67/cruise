@@ -1,6 +1,6 @@
 # Performance Smoke Testing
 
-This folder contains lightweight k6 performance smoke tests for the Cruise Explorer API.
+This folder contains lightweight k6 performance smoke tests for the Cruise Fleet Operations Platform API.
 
 The goal is not heavy load generation. The goal is CI-safe confidence that core API workflows continue to respond successfully and within reasonable timing thresholds.
 

@@ -1,6 +1,6 @@
 const { reactBookings, reactCustomers, visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
-describe('React admin mutation validation parity expansion', () => {
+describe('React admin mutation validation coverage expansion', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
   })

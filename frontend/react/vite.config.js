@@ -19,7 +19,7 @@ const apiProxy = {
 }
 
 export default defineConfig({
-  base: '/app-next/',
+  base: '/',
   root: 'frontend/react',
   plugins: [react()],
   server: {

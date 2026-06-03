@@ -70,8 +70,7 @@ app.use(securityHeaders)
 app.use(compression())
 
 app.use('/images', express.static(publicImagesDir, { redirect: false, setHeaders: setLongTermAssetCache }))
-app.use('/app-next', express.static(reactBuildDir, { redirect: false, setHeaders: setReactBuildCache }))
-app.get(/^\/app-next(?:\/.*)?$/, sendReactApp)
+app.use(express.static(reactBuildDir, { redirect: false, setHeaders: setReactBuildCache }))
 app.get('/', sendReactApp)
 
 app.use(express.json())
@@ -83,6 +82,8 @@ app.get('/health', (req, res) => {
 
 app.use('/cruise', cruiseRouter)
 app.use('/admin', adminRouter)
+
+app.get(/^\/(?!cruise|admin|health|images|retired)(?:.*)?$/, sendReactApp)
 
 app.use((err, req, res, next) => {
   console.error(err)

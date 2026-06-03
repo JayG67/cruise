@@ -1,6 +1,6 @@
 const { reactCruiseLines, reactShips, visitReactAppAsAdmin, openFirstReactFleetShips } = require('./support/reactTestHelpers.js')
 
-describe('React fleet error and confirmation parity expansion', () => {
+describe('React fleet error and confirmation coverage expansion', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
   })

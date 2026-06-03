@@ -24,7 +24,7 @@ test.describe('React default mobile replacement checks', () => {
   test('loads React shell and workspace controls on mobile', async ({ page }) => {
     await page.goto('/')
 
-    await expect(page.getByTestId('react-production-parity-shell')).toBeVisible()
+    await expect(page.getByTestId('react-production-shell')).toBeVisible()
     await expect(page.getByTestId('react-top-navigation')).toBeVisible()
     await expect(page.getByTestId('react-workspace-card-grid')).toBeVisible()
     await expect(page.getByTestId('react-demo-user-select')).toBeVisible()
@@ -215,7 +215,7 @@ test.describe('React default mobile replacement checks', () => {
   test('keeps product workspace shortcuts readable on mobile', async ({ page }) => {
     await page.goto('/')
 
-    await expect(page.getByTestId('react-migration-route-nav')).toHaveCount(0)
+    await expect(page.getByTestId('react-retired-route-nav')).toHaveCount(0)
     await page.getByTestId('react-workspace-quality-button').scrollIntoViewIfNeeded()
     await page.getByTestId('react-workspace-quality-button').click()
     await expect(page.getByTestId('react-sqa-console')).toBeVisible()

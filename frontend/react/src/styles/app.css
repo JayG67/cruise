@@ -543,7 +543,7 @@ dd {
 }
 
 
-.pilot-card {
+.launch-card {
   background: #ffffff;
   border: 1px solid #d7e1ef;
   border-radius: 1.25rem;
@@ -553,7 +553,7 @@ dd {
   padding: 1.25rem;
 }
 
-.pilot-summary {
+.launch-summary {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
@@ -561,7 +561,7 @@ dd {
   justify-content: flex-end;
 }
 
-.pilot-summary span {
+.launch-summary span {
   background: #eef7ff;
   border: 1px solid #c8dff5;
   border-radius: 999px;
@@ -570,7 +570,7 @@ dd {
   padding: 0.45rem 0.75rem;
 }
 
-.pilot-step-list {
+.launch-step-list {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -579,32 +579,32 @@ dd {
   padding: 0;
 }
 
-.pilot-step {
+.launch-step {
   background: #f8fbff;
   border: 1px solid #dfe9f5;
   border-radius: 1rem;
   padding: 1rem;
 }
 
-.pilot-step.ready {
+.launch-step.ready {
   border-color: #86efac;
 }
 
-.pilot-step.watch {
+.launch-step.watch {
   border-color: #fde68a;
 }
 
-.pilot-step.blocked {
+.launch-step.blocked {
   border-color: #fecaca;
 }
 
-.pilot-step small {
+.launch-step small {
   color: #52667a;
   font-weight: 700;
 }
 
 
-.parity-card {
+.coverage-card {
   background: #ffffff;
   border: 1px solid #d7e1ef;
   border-radius: 1.25rem;
@@ -614,7 +614,7 @@ dd {
   padding: 1.25rem;
 }
 
-.parity-summary {
+.coverage-summary {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
@@ -622,7 +622,7 @@ dd {
   justify-content: flex-end;
 }
 
-.parity-summary span {
+.coverage-summary span {
   background: #eefdf7;
   border: 1px solid #bbf7d0;
   border-radius: 999px;
@@ -631,7 +631,7 @@ dd {
   padding: 0.45rem 0.75rem;
 }
 
-.parity-check-list {
+.coverage-check-list {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -640,34 +640,34 @@ dd {
   padding: 0;
 }
 
-.parity-check {
+.coverage-check {
   background: #f8fbff;
   border: 1px solid #dfe9f5;
   border-radius: 1rem;
   padding: 1rem;
 }
 
-.parity-check.covered {
+.coverage-check.covered {
   border-color: #86efac;
 }
 
-.parity-check.watch {
+.coverage-check.watch {
   border-color: #fde68a;
 }
 
-.parity-check.gap {
+.coverage-check.gap {
   border-color: #fecaca;
 }
 
-.parity-check small {
+.coverage-check small {
   color: #52667a;
   font-weight: 700;
 }
 
 
 .handoff-summary,
-.parity-summary,
-.pilot-summary,
+.coverage-summary,
+.launch-summary,
 .quality-gate-summary {
   display: flex;
   flex-wrap: wrap;
@@ -675,8 +675,8 @@ dd {
 }
 
 .handoff-summary span,
-.parity-summary span,
-.pilot-summary span,
+.coverage-summary span,
+.launch-summary span,
 .quality-gate-summary span {
   border: 1px solid #d9e2ec;
   border-radius: 999px;
@@ -714,7 +714,7 @@ dd {
 }
 
 
-/* Production parity pass for the Express-hosted React route. */
+/* Production pass for the Express-hosted React route. */
 :root {
   --navy: #071827;
   --blue: #0b6fa4;
@@ -740,7 +740,7 @@ a {
   text-decoration: none;
 }
 
-.production-parity-shell {
+.production-shell {
   width: 100%;
   margin: 0;
   padding: 0 0 4rem;
@@ -1956,7 +1956,7 @@ a {
   }
 }
 
-/* React role switching parity pass: selected demo user changes the visible application workspace. */
+/* React role switching coverage pass: selected demo user changes the visible application workspace. */
 .react-role-dashboard {
   width: min(1120px, calc(100% - 2rem));
   margin: 1.5rem auto;
@@ -2066,7 +2066,7 @@ a {
 
 
 /* React workspace mobile touch target stabilization.
-   Keep /app-next workspace buttons above the 32px mobile touch-target contract in Safari. */
+   Keep / workspace buttons above the 32px mobile touch-target contract in Safari. */
 button.react-workspace-card,
 .react-workspace-card[data-testid^="react-workspace-"] {
   align-items: flex-start;
@@ -2191,7 +2191,7 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
 }
 
 
-/* React ship CRUD and sailings parity. */
+/* React ship CRUD and sailings coverage. */
 .react-ship-create-form,
 .react-sailings-panel {
   display: grid;
@@ -2269,7 +2269,7 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
 }
 
 
-/* React admin create/delete parity. */
+/* React admin create/delete coverage. */
 .react-admin-mutation-panel {
   background: #f8fbff;
   border: 1px solid #dfe9f5;
@@ -2309,7 +2309,7 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
 }
 
 
-/* React itinerary detail parity. */
+/* React itinerary detail coverage. */
 .react-itinerary-panel {
   display: grid;
   gap: 1rem;
@@ -2351,7 +2351,7 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
 }
 
 
-/* React sailing CRUD parity. */
+/* React sailing CRUD coverage. */
 .react-sailing-create-form {
   display: grid;
   gap: 1rem;
@@ -2411,7 +2411,7 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
 }
 
 
-/* React itinerary day and activity CRUD parity. */
+/* React itinerary day and activity CRUD coverage. */
 .react-itinerary-create-form {
   display: grid;
   gap: 1rem;
@@ -2594,52 +2594,52 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
 }
 
 
-/* React /app-next mobile overflow hardening.
+/* React root mobile overflow hardening.
    The GitHub CI WebKit run caught horizontal document overflow after opening the
    React ship/sailing and itinerary CRUD panels. Safari sizes flex/grid children
    from their min-content width more aggressively than Chromium, so long action
    labels, headings, and form controls must be allowed to shrink and wrap. */
-.react-production-parity-shell,
-.react-production-parity-shell *,
-.react-production-parity-shell *::before,
-.react-production-parity-shell *::after {
+.react-production-shell,
+.react-production-shell *,
+.react-production-shell *::before,
+.react-production-shell *::after {
   min-width: 0;
 }
 
-.react-production-parity-shell {
+.react-production-shell {
   max-width: 100%;
   overflow-wrap: anywhere;
   overflow-x: clip;
   width: 100%;
 }
 
-.react-production-parity-shell section,
-.react-production-parity-shell article,
-.react-production-parity-shell form,
-.react-production-parity-shell div,
-.react-production-parity-shell h1,
-.react-production-parity-shell h2,
-.react-production-parity-shell h3,
-.react-production-parity-shell h4,
-.react-production-parity-shell h5,
-.react-production-parity-shell p,
-.react-production-parity-shell li {
+.react-production-shell section,
+.react-production-shell article,
+.react-production-shell form,
+.react-production-shell div,
+.react-production-shell h1,
+.react-production-shell h2,
+.react-production-shell h3,
+.react-production-shell h4,
+.react-production-shell h5,
+.react-production-shell p,
+.react-production-shell li {
   max-width: 100%;
 }
 
-.react-production-parity-shell input,
-.react-production-parity-shell select,
-.react-production-parity-shell textarea {
+.react-production-shell input,
+.react-production-shell select,
+.react-production-shell textarea {
   max-width: 100%;
   min-width: 0;
   width: 100%;
 }
 
-.react-production-parity-shell button,
-.react-production-parity-shell .fleet-primary-action,
-.react-production-parity-shell .fleet-secondary-action,
-.react-production-parity-shell .fleet-danger-action,
-.react-production-parity-shell .primary-action-button {
+.react-production-shell button,
+.react-production-shell .fleet-primary-action,
+.react-production-shell .fleet-secondary-action,
+.react-production-shell .fleet-danger-action,
+.react-production-shell .primary-action-button {
   max-width: 100%;
   min-width: 0;
   overflow-wrap: anywhere;
@@ -2647,20 +2647,20 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
 }
 
 @media (max-width: 560px) {
-  .react-production-parity-shell .react-ship-card-actions,
-  .react-production-parity-shell .react-sailing-card-actions,
-  .react-production-parity-shell .react-itinerary-card-actions,
-  .react-production-parity-shell .react-inline-edit-actions,
-  .react-production-parity-shell .react-confirm-action-row {
+  .react-production-shell .react-ship-card-actions,
+  .react-production-shell .react-sailing-card-actions,
+  .react-production-shell .react-itinerary-card-actions,
+  .react-production-shell .react-inline-edit-actions,
+  .react-production-shell .react-confirm-action-row {
     align-items: stretch;
     display: grid;
     grid-template-columns: 1fr;
   }
 
-  .react-production-parity-shell .fleet-primary-action,
-  .react-production-parity-shell .fleet-secondary-action,
-  .react-production-parity-shell .fleet-danger-action,
-  .react-production-parity-shell .primary-action-button {
+  .react-production-shell .fleet-primary-action,
+  .react-production-shell .fleet-secondary-action,
+  .react-production-shell .fleet-danger-action,
+  .react-production-shell .primary-action-button {
     justify-content: center;
     text-align: center;
     width: 100%;
@@ -2671,9 +2671,9 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
    The global mobile overflow hardening intentionally makes text inputs fill
    their containers, but checkbox controls must keep intrinsic sizing inside
    flex labels. WebKit counts the full-width checkbox plus its label text as
-   document overflow in the /app-next ship/sailing and itinerary panels. */
-.react-production-parity-shell input[type="checkbox"],
-.react-production-parity-shell input[type="radio"] {
+   document overflow in the / ship/sailing and itinerary panels. */
+.react-production-shell input[type="checkbox"],
+.react-production-shell input[type="radio"] {
   flex: 0 0 auto;
   inline-size: 1rem;
   max-inline-size: 1rem;
@@ -2683,7 +2683,7 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
   width: 1rem;
 }
 
-.react-production-parity-shell .react-checkbox-label {
+.react-production-shell .react-checkbox-label {
   align-items: center;
   flex-wrap: wrap;
   max-width: 100%;
@@ -2723,8 +2723,8 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
 
 .react-release-readiness-section .roadmap-card,
 .react-release-readiness-section .readiness-card,
-.react-release-readiness-section .pilot-card,
-.react-release-readiness-section .parity-card,
+.react-release-readiness-section .launch-card,
+.react-release-readiness-section .coverage-card,
 .react-release-readiness-section .handoff-card {
   min-width: 0;
   overflow-wrap: anywhere;
@@ -2813,7 +2813,7 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
   padding: 0.85rem;
 }
 
-/* React passenger and group booking details parity with the legacy role dashboard. */
+/* React passenger and group booking details coverage with the prior role dashboard. */
 .role-booking-detail-panel {
   background: #f8fbff;
   border: 1px solid #dbe8f5;

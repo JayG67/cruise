@@ -1,6 +1,6 @@
 const { openFirstReactFleetShips, reactCruiseLines, reactShips, visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
-describe('React ship lookup and CRUD parity', () => {
+describe('React ship lookup and CRUD coverage', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
   })

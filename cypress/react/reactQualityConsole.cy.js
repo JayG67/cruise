@@ -1,6 +1,6 @@
 const { reactBookings, reactCruiseLines, reactCustomers, visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
-describe('React SQA console parity expansion', () => {
+describe('React SQA console coverage expansion', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
   })

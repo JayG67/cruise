@@ -5,9 +5,9 @@ describe('Cruise operations product surface coverage', () => {
     visitReactAppAsAdmin()
   })
 
-  it('keeps the product surface free of migration command-center panels', () => {
-    cy.getByTestId('react-production-parity-shell').should('be.visible')
-    cy.getByTestId('react-migration-route-nav').should('not.exist')
+  it('keeps the product surface free of development command-center panels', () => {
+    cy.getByTestId('react-production-shell').should('be.visible')
+    cy.getByTestId('react-retired-route-nav').should('not.exist')
     cy.getByTestId('react-release-readiness-section').should('not.exist')
     cy.getByTestId('react-active-route-evidence-panel').should('not.exist')
     cy.contains('Portfolio evidence for cruise-line software engineering roles').should('not.exist')
@@ -18,7 +18,7 @@ describe('Cruise operations product surface coverage', () => {
     cy.getByTestId('react-production-hero').within(() => {
       cy.contains('Review Operations').should('have.attr', 'href', '#react-hierarchy')
       cy.contains('Open SQA Console').should('have.attr', 'href', '#react-quality')
-      cy.get('a[href="/legacy"]').should('not.exist')
+      cy.get('a[href="/retired"]').should('not.exist')
     })
   })
 
@@ -78,13 +78,13 @@ describe('Cruise operations product surface coverage', () => {
     })
   })
 
-  it('keeps quality console reports reachable without migration language', () => {
+  it('keeps quality console reports reachable without implementation-history language', () => {
     cy.getByTestId('react-sqa-console').within(() => {
       cy.contains('View Quality Dashboard').should('be.visible')
       cy.contains('View Latest Lighthouse Mobile Report').should('be.visible')
       cy.contains('View Latest Jest Coverage Report').should('be.visible')
     })
-    cy.contains('cutover').should('not.exist')
+    cy.contains('production release').should('not.exist')
   })
 
   it('keeps live API status visible after the SQA console', () => {
@@ -93,9 +93,9 @@ describe('Cruise operations product surface coverage', () => {
     cy.getByTestId('react-refresh-query').should('be.enabled')
   })
 
-  it('keeps the hero free of legacy rollback links', () => {
+  it('keeps the hero free of retired rollback links', () => {
     cy.getByTestId('react-production-hero').within(() => {
-      cy.get('a[href="/legacy"]').should('not.exist')
+      cy.get('a[href="/retired"]').should('not.exist')
       cy.contains('Open SQA Console').should('have.attr', 'href', '#react-quality')
     })
   })
@@ -103,6 +103,6 @@ describe('Cruise operations product surface coverage', () => {
   it('keeps the application footer area focused on API status instead of review artifacts', () => {
     cy.getByTestId('react-query-status-panel').scrollIntoView().should('be.visible')
     cy.getByTestId('react-release-readiness-section').should('not.exist')
-    cy.getByTestId('react-migration-handoff-panel').should('not.exist')
+    cy.getByTestId('react-retired-handoff-panel').should('not.exist')
   })
 })

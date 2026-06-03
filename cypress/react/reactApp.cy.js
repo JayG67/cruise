@@ -25,12 +25,12 @@ describe('Cruise operations portfolio route', () => {
   })
 
   it('loads the cruise operations shell and core workspaces', () => {
-    cy.getByTestId('react-production-parity-shell').should('be.visible')
+    cy.getByTestId('react-production-shell').should('be.visible')
     cy.getByTestId('react-top-navigation').should('be.visible')
     cy.getByTestId('react-role-selector').should('be.visible')
     cy.getByTestId('react-demo-user-select').should('be.visible')
     cy.getByTestId('react-workspace-card-grid').should('be.visible')
-    cy.getByTestId('react-migration-route-nav').should('not.exist')
+    cy.getByTestId('react-retired-route-nav').should('not.exist')
     cy.getByTestId('react-release-readiness-section').should('not.exist')
     cy.contains('Cruise operations command center').should('not.exist')
     cy.getByTestId('react-active-route-operations').should('be.visible')
@@ -513,7 +513,7 @@ describe('Cruise operations portfolio route', () => {
   })
 
 
-  it('creates a React cruise line with starter ships and reset parity', () => {
+  it('creates a React cruise line with starter ships and reset behavior', () => {
     cy.intercept('POST', '/cruise/cruise-line', req => {
       expect(req.body).to.deep.equal({
         name: 'React Test Cruises',

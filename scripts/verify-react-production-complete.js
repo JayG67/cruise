@@ -58,39 +58,41 @@ assertScriptIncludes(packageJson, 'browserTests:react', 'playwright:mobile:react
 assertScriptIncludes(packageJson, 'browserTests:react', 'playwright:responsive:react')
 
 for (const retired of [
-  'start:legacy',
-  'start:legacy:ci',
-  'uiTests:legacy',
-  'uiTests:legacy:ci',
-  'browserTests:legacy',
-  'legacy:quarantine:audit',
-  'legacy:rollback:audit',
-  'legacy:rollback:audit:ci',
+  'start:retired',
+  'start:retired:ci',
+  'uiTests:retired',
+  'uiTests:retired:ci',
+  'browserTests:retired',
+  'retired:quarantine:audit',
+  'retired:rollback:audit',
+  'retired:rollback:audit:ci',
   'playwright:mobile:dom',
   'playwright:responsive:dom',
-  'playwright:mobile:legacy',
-  'playwright:responsive:legacy',
-  'playwright:mobile:legacy:ci',
-  'playwright:responsive:legacy:ci'
+  'playwright:mobile:retired',
+  'playwright:responsive:retired',
+  'playwright:mobile:retired:ci',
+  'playwright:responsive:retired:ci'
 ]) {
   assertNoScript(packageJson, retired)
 }
 
 assertIncludes(app, 'sendReactApp', 'Express app')
 assertIncludes(app, "app.get('/', sendReactApp)", 'Express app')
-assertIncludes(app, "app.use('/app-next', express.static(reactBuildDir, { redirect: false", 'Express compatibility alias')
+assertIncludes(app, "app.use(express.static(reactBuildDir, { redirect: false", 'Express React static assets')
 assertIncludes(app, "app.use('/images', express.static(publicImagesDir, { redirect: false", 'Express image assets')
 assertExcludes(app, 'CRUISE_DEFAULT_EXPERIENCE', 'Express app')
-assertExcludes(app, 'sendLegacyApp', 'Express app')
-assertExcludes(app, "app.use('/legacy'", 'Express app')
-assertExcludes(app, 'legacyPublicDir', 'Express app')
+assertExcludes(app, 'sendRetiredApp', 'Express app')
+assertExcludes(app, "app.use('/retired'", 'Express app')
+assertExcludes(app, 'retiredPublicDir', 'Express app')
 
 assertIncludes(cypressConfig, 'cypress/react/**/*.cy.js', 'Cypress config')
 assertExcludes(cypressConfig, 'cypress/e2e', 'Cypress config')
-assertExcludes(reactIndex, 'React Migration', 'React HTML title')
-assertExcludes(reactIndex, 'migration preview', 'React HTML noscript')
+assertExcludes(reactIndex, ['React ', 'Historical Rollout'].join(''), 'React HTML title')
+assertExcludes(reactIndex, 'implementation-history preview', 'React HTML noscript')
 assertIncludes(render, 'npm run react:build', 'Render deploy config')
 assertIncludes(workflow, 'Run React production Cypress tests', 'GitHub Actions workflow')
 assertIncludes(workflow, 'Run React production mobile tests', 'GitHub Actions workflow')
 
 console.log('React production completion audit passed.')
+
+assertExcludes(app, "app.use('/retired-route-placeholder'", 'Express app')

@@ -9,7 +9,7 @@ const {
   openFirstReactSailingItinerary
 } = require('./support/reactTestHelpers.js')
 
-describe('React fleet directory deep parity expansion', () => {
+describe('React fleet directory deep coverage expansion', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
   })

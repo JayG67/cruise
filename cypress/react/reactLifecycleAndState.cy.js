@@ -1,6 +1,6 @@
 const { reactCruiseLines, visitReactAppAsAdmin, selectDemoUserByVisibleRole, openFirstReactFleetShips } = require('./support/reactTestHelpers.js')
 
-describe('React lifecycle and state isolation parity expansion', () => {
+describe('React lifecycle and state isolation coverage expansion', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
   })
@@ -95,9 +95,9 @@ describe('React lifecycle and state isolation parity expansion', () => {
     cy.getByTestId('react-sqa-console').should('be.visible')
   })
 
-  it('keeps legacy rollback and migration panels out of the product hero', () => {
-    cy.get('a[href="/legacy"]').should('not.exist')
+  it('keeps retired rollback and implementation-history panels out of the product hero', () => {
+    cy.get('a[href="/retired"]').should('not.exist')
     cy.getByTestId('react-release-readiness-section').should('not.exist')
-    cy.getByTestId('react-migration-route-nav').should('not.exist')
+    cy.getByTestId('react-retired-route-nav').should('not.exist')
   })
 })

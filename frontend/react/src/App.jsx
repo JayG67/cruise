@@ -83,11 +83,11 @@ export default function App() {
   }
 
   return (
-    <main className="app-shell production-parity-shell react-production-parity-shell" data-testid="react-production-parity-shell">
+    <main className="app-shell production-shell react-production-shell" data-testid="react-production-shell">
       <section className="production-hero" id="react-dashboard" aria-labelledby="react-app-title" data-testid="react-production-hero">
         <nav className="react-top-nav" aria-label="Cruise application primary navigation" data-testid="react-top-navigation">
-          <a className="react-brand" href="/app-next" aria-label="Cruise Explorer home">
-            Cruise Explorer
+          <a className="react-brand" href="/" aria-label="Cruise Fleet Operations Platform home">
+            Cruise Fleet Operations Platform
           </a>
           <div className="react-nav-links">
             <a href="#react-dashboard">Dashboard</a>
