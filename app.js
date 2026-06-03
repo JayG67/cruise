@@ -15,12 +15,27 @@ const reactBuildDir = path.join(__dirname, 'dist', 'react')
 const reactIndexPath = path.join(reactBuildDir, 'index.html')
 const publicImagesDir = path.join(__dirname, 'public', 'images')
 
+function setLongTermAssetCache(res) {
+  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+}
+
+function setReactBuildCache(res, filePath) {
+  if (filePath.endsWith('index.html')) {
+    res.setHeader('Cache-Control', 'no-cache')
+    return
+  }
+
+  setLongTermAssetCache(res)
+}
+
 function sendReactApp(req, res, next) {
   if (!fs.existsSync(reactIndexPath)) {
     return res.status(404).type('text/plain').send(
       'React application build was not found. Run npm run react:build before opening the app.'
     )
   }
+
+  res.setHeader('Cache-Control', 'no-cache')
 
   return res.sendFile(reactIndexPath, (err) => {
     if (err) {
@@ -54,8 +69,8 @@ function securityHeaders(req, res, next) {
 app.use(securityHeaders)
 app.use(compression())
 
-app.use('/images', express.static(publicImagesDir, { redirect: false }))
-app.use('/app-next', express.static(reactBuildDir, { redirect: false }))
+app.use('/images', express.static(publicImagesDir, { redirect: false, setHeaders: setLongTermAssetCache }))
+app.use('/app-next', express.static(reactBuildDir, { redirect: false, setHeaders: setReactBuildCache }))
 app.get(/^\/app-next(?:\/.*)?$/, sendReactApp)
 app.get('/', sendReactApp)
 

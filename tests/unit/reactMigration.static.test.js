@@ -13,7 +13,7 @@ describe('Cruise operations product presentation guardrails', () => {
     const packageJson = require('../../package.json')
 
     expect(app).toContain("app.get('/', sendReactApp)")
-    expect(app).toContain("app.use('/app-next', express.static(reactBuildDir, { redirect: false }))")
+    expect(app).toContain("app.use('/app-next', express.static(reactBuildDir, { redirect: false")
     expect(app).not.toContain('sendDefaultExperience')
     expect(app).not.toContain('sendLegacyApp')
     expect(packageJson.scripts['test:all']).toContain('browserTests:react')

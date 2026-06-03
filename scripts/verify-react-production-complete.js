@@ -78,8 +78,8 @@ for (const retired of [
 
 assertIncludes(app, 'sendReactApp', 'Express app')
 assertIncludes(app, "app.get('/', sendReactApp)", 'Express app')
-assertIncludes(app, "app.use('/app-next', express.static(reactBuildDir, { redirect: false }))", 'Express compatibility alias')
-assertIncludes(app, "app.use('/images', express.static(publicImagesDir, { redirect: false }))", 'Express image assets')
+assertIncludes(app, "app.use('/app-next', express.static(reactBuildDir, { redirect: false", 'Express compatibility alias')
+assertIncludes(app, "app.use('/images', express.static(publicImagesDir, { redirect: false", 'Express image assets')
 assertExcludes(app, 'CRUISE_DEFAULT_EXPERIENCE', 'Express app')
 assertExcludes(app, 'sendLegacyApp', 'Express app')
 assertExcludes(app, "app.use('/legacy'", 'Express app')

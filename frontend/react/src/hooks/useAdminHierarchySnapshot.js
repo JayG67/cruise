@@ -3,7 +3,7 @@ import { getAdminHierarchySnapshot } from '../api/client.js'
 
 const EMPTY_SNAPSHOT = { customers: [], bookings: [] }
 
-export default function useAdminHierarchySnapshot() {
+export default function useAdminHierarchySnapshot({ enabled = true } = {}) {
   const [snapshot, setSnapshot] = useState(EMPTY_SNAPSHOT)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -17,6 +17,10 @@ export default function useAdminHierarchySnapshot() {
   const isRefreshing = isLoading && reloadCount > 0
 
   useEffect(() => {
+    if (!enabled) {
+      return undefined
+    }
+
     const controller = new AbortController()
     let isMounted = true
 
@@ -50,7 +54,7 @@ export default function useAdminHierarchySnapshot() {
       isMounted = false
       controller.abort()
     }
-  }, [reloadCount])
+  }, [enabled, reloadCount])
 
   return {
     snapshot,

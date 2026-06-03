@@ -30,7 +30,7 @@
     "perf:smoke:ci": "start-server-and-test start:ci http://localhost:8000/health perf:smoke",
     "lighthouse:mobile": "lighthouse http://localhost:8000 --form-factor=mobile --screenEmulation.mobile=true --only-categories=performance,accessibility,best-practices,seo --chrome-flags=\"--headless\" --output html --output json --output-path ./lighthouse-report --quiet --no-enable-error-reporting",
     "lighthouse:mobile:local": "start-server-and-test start http://localhost:8000 lighthouse:mobile",
-    "lighthouse:ci": "lhci autorun --config=.github/lighthouserc.json",
+    "lighthouse:ci": "node scripts/run-lighthouse-ci.js",
     "lighthouse:ci:local": "npm run react:build && start-server-and-test start http://localhost:8000/health lighthouse:ci",
     "lighthouse:ci:ci": "npm run react:build && start-server-and-test start:ci http://localhost:8000/health lighthouse:ci",
     "lighthouse:prepare-pages": "node scripts/prepare-lighthouse-pages.js",

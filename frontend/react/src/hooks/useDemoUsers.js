@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { getDemoUsers } from '../api/client.js'
 
-export default function useDemoUsers() {
+export default function useDemoUsers({ enabled = true } = {}) {
   const abortRef = useRef(null)
   const [demoUsers, setDemoUsers] = useState([])
   const [selectedDemoUserId, setSelectedDemoUserId] = useState('')
@@ -32,10 +32,14 @@ export default function useDemoUsers() {
   }, [])
 
   useEffect(() => {
+    if (!enabled) {
+      return undefined
+    }
+
     reload()
 
     return () => abortRef.current?.abort()
-  }, [reload])
+  }, [enabled, reload])
 
   const selectedDemoUser = demoUsers.find(user => user.id === selectedDemoUserId) || demoUsers[0]
 

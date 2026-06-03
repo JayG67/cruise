@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { getCruiseLines } from '../api/client.js'
 
-export default function useCruiseLines() {
+export default function useCruiseLines({ enabled = true } = {}) {
   const abortRef = useRef(null)
   const [cruiseLines, setCruiseLines] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -35,10 +35,14 @@ export default function useCruiseLines() {
   }, [])
 
   useEffect(() => {
+    if (!enabled) {
+      return undefined
+    }
+
     reload()
 
     return () => abortRef.current?.abort()
-  }, [reload])
+  }, [enabled, reload])
 
   return {
     cruiseLines,

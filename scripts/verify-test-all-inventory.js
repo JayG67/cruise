@@ -101,5 +101,3 @@ for (const forbidden of [
 console.log('Test-all inventory audit passed.')
 console.log(`Jest files: ${jestTests.length}`)
 console.log(`React Cypress specs: ${reactCypressSpecs.length}`)
-console.log('Legacy Cypress specs: 0')
-console.log('Legacy Playwright specs: 0')

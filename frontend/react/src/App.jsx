@@ -1,25 +1,64 @@
+import { lazy, Suspense, useEffect, useState } from 'react'
 import useAdminHierarchySnapshot from './hooks/useAdminHierarchySnapshot.js'
 import useCustomerProfileMutation from './hooks/useCustomerProfileMutation.js'
 import useBookingDetailsMutation from './hooks/useBookingDetailsMutation.js'
 import useCruiseLines from './hooks/useCruiseLines.js'
 import useDemoUsers from './hooks/useDemoUsers.js'
-import ReactFleetDirectory from './components/ReactFleetDirectory.jsx'
-import ReactCruiseLineCreateWorkflow from './components/ReactCruiseLineCreateWorkflow.jsx'
 import ReactRoleSelector from './components/ReactRoleSelector.jsx'
-import CustomerBookingHierarchy from './components/CustomerBookingHierarchy.jsx'
 import ReactQueryStatusPanel from './components/ReactQueryStatusPanel.jsx'
-import ReactSqaConsole from './components/ReactSqaConsole.jsx'
-import ReactRoleDashboard from './components/ReactRoleDashboard.jsx'
 import { getSelectedRoleView, getVisibleRoleBookings } from './domain/roleView.js'
 
+const CustomerBookingHierarchy = lazy(() => import('./components/CustomerBookingHierarchy.jsx'))
+const ReactCruiseLineCreateWorkflow = lazy(() => import('./components/ReactCruiseLineCreateWorkflow.jsx'))
+const ReactFleetDirectory = lazy(() => import('./components/ReactFleetDirectory.jsx'))
+const ReactRoleDashboard = lazy(() => import('./components/ReactRoleDashboard.jsx'))
+const ReactSqaConsole = lazy(() => import('./components/ReactSqaConsole.jsx'))
+
+function getIdleScheduler() {
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  return window.requestIdleCallback || null
+}
+
+function useDeferredApplicationData() {
+  const [isReady, setIsReady] = useState(false)
+
+  useEffect(() => {
+    const idleScheduler = getIdleScheduler()
+
+    if (idleScheduler) {
+      const idleId = idleScheduler(() => setIsReady(true), { timeout: 1600 })
+      return () => window.cancelIdleCallback?.(idleId)
+    }
+
+    const timerId = window.setTimeout(() => setIsReady(true), 250)
+    return () => window.clearTimeout(timerId)
+  }, [])
+
+  return isReady
+}
+
+function LazySectionFallback({ label }) {
+  return (
+    <section className="react-app-section lazy-section-fallback" aria-label={label}>
+      <p className="eyebrow">Loading</p>
+      <p>{label} is loading.</p>
+    </section>
+  )
+}
+
 export default function App() {
-  const { snapshot, isLoading, isRefreshing, error, reload, lastLoadedAt, requestId } = useAdminHierarchySnapshot()
-  const { cruiseLines, isLoading: fleetLoading, isRefreshing: fleetRefreshing, error: fleetError, reload: reloadFleet } = useCruiseLines()
-  const { demoUsers, selectedDemoUser, selectedDemoUserId, setSelectedDemoUserId, isLoading: demoUsersLoading, error: demoUsersError } = useDemoUsers()
+  const applicationDataReady = useDeferredApplicationData()
+  const { snapshot, isLoading, isRefreshing, error, reload, lastLoadedAt, requestId } = useAdminHierarchySnapshot({ enabled: applicationDataReady })
+  const { cruiseLines, isLoading: fleetLoading, isRefreshing: fleetRefreshing, error: fleetError, reload: reloadFleet } = useCruiseLines({ enabled: applicationDataReady })
+  const { demoUsers, selectedDemoUser, selectedDemoUserId, setSelectedDemoUserId, isLoading: demoUsersLoading, error: demoUsersError } = useDemoUsers({ enabled: applicationDataReady })
   const { saveCustomerProfile, savingCustomerId, mutationError } = useCustomerProfileMutation({ onSaved: reload })
   const { saveBookingDetails, savingBookingId, bookingMutationError } = useBookingDetailsMutation({ onSaved: reload })
-  const selectedRoleView = getSelectedRoleView(selectedDemoUser)
-  const visibleRoleBookings = getVisibleRoleBookings(selectedDemoUser, snapshot.bookings)
+  const effectiveSelectedDemoUser = selectedDemoUser || { role: 'Admin' }
+  const selectedRoleView = getSelectedRoleView(effectiveSelectedDemoUser)
+  const visibleRoleBookings = getVisibleRoleBookings(effectiveSelectedDemoUser, snapshot.bookings)
   const workspaceTouchTargetStyle = {
     WebkitAppearance: 'none',
     alignItems: 'flex-start',
@@ -160,9 +199,10 @@ export default function App() {
         visibleBookingCount={visibleRoleBookings.length}
       />
 
-      {selectedRoleView === 'admin' ? (
-        <>
-          <section
+      <Suspense fallback={<LazySectionFallback label="Cruise application workspace" />}>
+        {selectedRoleView === 'admin' ? (
+          <>
+            <section
             className="route-panel"
             id="react-hierarchy"
             aria-label="Customer-centered operations"
@@ -181,9 +221,9 @@ export default function App() {
               savingBookingId={savingBookingId}
               bookingMutationError={bookingMutationError}
             />
-          </section>
+            </section>
 
-          <ReactFleetDirectory
+            <ReactFleetDirectory
             cruiseLines={cruiseLines}
             isLoading={fleetLoading}
             isRefreshing={fleetRefreshing}
@@ -191,12 +231,12 @@ export default function App() {
             onRefresh={reloadFleet}
           />
 
-          <ReactCruiseLineCreateWorkflow onCreated={reloadFleet} />
+            <ReactCruiseLineCreateWorkflow onCreated={reloadFleet} />
 
-          <ReactSqaConsole onRefreshData={() => Promise.all([reload(), reloadFleet()])} />
-        </>
-      ) : (
-        <ReactRoleDashboard
+            <ReactSqaConsole onRefreshData={() => Promise.all([reload(), reloadFleet()])} />
+          </>
+        ) : (
+          <ReactRoleDashboard
           selectedDemoUser={selectedDemoUser}
           customers={snapshot.customers}
           bookings={snapshot.bookings}
@@ -204,8 +244,9 @@ export default function App() {
           onSavePassengerProfile={saveCustomerProfile}
           savingCustomerId={savingCustomerId}
           mutationError={mutationError}
-        />
-      )}
+          />
+        )}
+      </Suspense>
 
       <section id="react-quality" className="react-quality-section" aria-label="React API status">
         <ReactQueryStatusPanel
