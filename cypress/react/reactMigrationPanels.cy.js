@@ -1,78 +1,108 @@
 const { visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
-describe('React migration evidence and route panel parity', () => {
+describe('Cruise operations product surface coverage', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
   })
 
-  it('starts on hierarchy route evidence with visible evidence list and next step', () => {
-    cy.getByTestId('react-active-route-summary').should('contain.text', 'hierarchy')
-    cy.getByTestId('react-active-route-evidence-panel').should('be.visible')
-    cy.getByTestId('react-active-route-evidence-list').find('li').should('have.length.at.least', 3)
-    cy.getByTestId('react-active-route-next-step').should('be.visible')
+  it('keeps the product surface free of migration command-center panels', () => {
+    cy.getByTestId('react-production-parity-shell').should('be.visible')
+    cy.getByTestId('react-migration-route-nav').should('not.exist')
+    cy.getByTestId('react-release-readiness-section').should('not.exist')
+    cy.getByTestId('react-active-route-evidence-panel').should('not.exist')
+    cy.contains('Portfolio evidence for cruise-line software engineering roles').should('not.exist')
+    cy.contains('Cruise operations command center').should('not.exist')
   })
 
-  it('marks only one route tab active at a time', () => {
-    cy.getByTestId('react-route-readiness').click().should('have.attr', 'aria-pressed', 'true')
-    cy.getByTestId('react-route-hierarchy').should('have.attr', 'aria-pressed', 'false')
-    cy.getByTestId('react-route-roadmap').click().should('have.attr', 'aria-pressed', 'true')
-    cy.getByTestId('react-route-readiness').should('have.attr', 'aria-pressed', 'false')
-  })
-
-  it('shows the migration roadmap panel from the roadmap route', () => {
-    cy.getByTestId('react-route-roadmap').click()
-    cy.getByTestId('react-migration-roadmap-panel').should('be.visible').and('contain.text', 'Migration roadmap')
-    cy.getByTestId('react-active-route-summary').should('contain.text', 'roadmap')
-  })
-
-  it('shows the cutover readiness panel from the cutover route', () => {
-    cy.getByTestId('react-route-cutover').click()
-    cy.getByTestId('react-cutover-readiness-panel').should('be.visible')
-    cy.getByTestId('react-cutover-summary').should('be.visible')
-    cy.getByTestId('react-cutover-gates').should('contain.text', 'API contract parity')
-    cy.getByTestId('react-cutover-recommendation').should('be.visible')
-  })
-
-  it('shows the pilot launch route without leaking parity or handoff panels', () => {
-    cy.getByTestId('react-route-pilot').click()
-    cy.getByTestId('react-pilot-launch-panel').should('be.visible')
-    cy.getByTestId('react-pilot-summary').should('be.visible')
-    cy.getByTestId('react-pilot-steps').find('li').should('have.length.at.least', 3)
-    cy.getByTestId('react-pilot-parity-panel').should('not.exist')
-    cy.getByTestId('react-migration-handoff-panel').should('not.exist')
-  })
-
-  it('shows the parity route with checklist details', () => {
-    cy.getByTestId('react-route-parity').click()
-    cy.getByTestId('react-pilot-parity-panel').should('be.visible')
-    cy.getByTestId('react-parity-summary').should('be.visible')
-    cy.getByTestId('react-parity-checks').find('li').should('have.length.at.least', 3)
-    cy.getByTestId('react-parity-recommendation').should('be.visible')
-  })
-
-  it('shows the handoff route with handoff details', () => {
-    cy.getByTestId('react-route-handoff').click()
-    cy.getByTestId('react-migration-handoff-panel').should('be.visible')
-    cy.getByTestId('react-handoff-summary').should('be.visible')
-    cy.getByTestId('react-handoff-items').find('li').should('have.length.at.least', 3)
-    cy.getByTestId('react-handoff-recommendation').should('be.visible')
-  })
-
-  it('drives route state from recommended workflow controls', () => {
-    cy.getByTestId('react-workflow-role-button').click()
-    cy.getByTestId('react-active-route-summary').should('contain.text', 'readiness')
-    cy.getByTestId('react-workflow-operations-button').click()
-    cy.getByTestId('react-active-route-summary').should('contain.text', 'hierarchy')
-    cy.getByTestId('react-workflow-fleet-button').click()
-    cy.getByTestId('react-active-route-summary').should('contain.text', 'roadmap')
-    cy.getByTestId('react-workflow-quality-button').click()
-    cy.getByTestId('react-active-route-summary').should('contain.text', 'cutover')
-  })
-
-  it('keeps the legacy rollback link available but separate from React route state', () => {
+  it('keeps product shortcuts focused on real application sections', () => {
     cy.getByTestId('react-production-hero').within(() => {
-      cy.contains('Open Legacy DOM App').should('have.attr', 'href', '/legacy')
+      cy.contains('Review Operations').should('have.attr', 'href', '#react-hierarchy')
+      cy.contains('Open SQA Console').should('have.attr', 'href', '#react-quality')
+      cy.get('a[href="/legacy"]').should('not.exist')
     })
-    cy.getByTestId('react-active-route-summary').should('contain.text', 'hierarchy')
+  })
+
+  it('scrolls workspace controls to live application sections', () => {
+    cy.getByTestId('react-workspace-role-button').click()
+    cy.getByTestId('react-role-selector').should('be.visible')
+    cy.getByTestId('react-workspace-operations-button').click()
+    cy.getByTestId('react-active-route-operations').should('be.visible')
+    cy.getByTestId('react-workspace-fleet-button').click()
+    cy.getByTestId('react-fleet-directory').should('be.visible')
+    cy.getByTestId('react-workspace-quality-button').click()
+    cy.getByTestId('react-sqa-console').should('be.visible')
+  })
+
+  it('keeps recommended workflow controls wired to application sections', () => {
+    cy.getByTestId('react-workflow-role-button').click()
+    cy.getByTestId('react-role-selector').should('be.visible')
+    cy.getByTestId('react-workflow-operations-button').click()
+    cy.getByTestId('react-active-route-operations').should('be.visible')
+    cy.getByTestId('react-workflow-fleet-button').click()
+    cy.getByTestId('react-fleet-directory').should('be.visible')
+    cy.getByTestId('react-workflow-quality-button').click()
+    cy.getByTestId('react-sqa-console').should('be.visible')
+  })
+
+  it('keeps role selector, operations, fleet, and SQA in product order', () => {
+    cy.getByTestId('react-role-selector').then($roleSelector => {
+      cy.getByTestId('react-active-route-operations').then($operations => {
+        cy.getByTestId('react-fleet-directory').then($fleet => {
+          cy.getByTestId('react-sqa-console').then($sqa => {
+            const roleSelector = $roleSelector[0]
+            const operations = $operations[0]
+            const fleet = $fleet[0]
+            const sqa = $sqa[0]
+
+            expect(Boolean(roleSelector.compareDocumentPosition(operations) & Node.DOCUMENT_POSITION_FOLLOWING)).to.equal(true)
+            expect(Boolean(operations.compareDocumentPosition(fleet) & Node.DOCUMENT_POSITION_FOLLOWING)).to.equal(true)
+            expect(Boolean(fleet.compareDocumentPosition(sqa) & Node.DOCUMENT_POSITION_FOLLOWING)).to.equal(true)
+          })
+        })
+      })
+    })
+  })
+
+  it('keeps admin create/delete controls paired by customer and booking columns', () => {
+    cy.getByTestId('react-admin-mutation-panel').within(() => {
+      cy.getByTestId('react-admin-create-customer-form').then($createCustomer => {
+        cy.getByTestId('react-admin-delete-customer-form').then($deleteCustomer => {
+          cy.getByTestId('react-admin-create-booking-form').then($createBooking => {
+            cy.getByTestId('react-admin-delete-booking-form').then($deleteBooking => {
+              expect(Boolean($createCustomer[0].compareDocumentPosition($deleteCustomer[0]) & Node.DOCUMENT_POSITION_FOLLOWING)).to.equal(true)
+              expect(Boolean($createBooking[0].compareDocumentPosition($deleteBooking[0]) & Node.DOCUMENT_POSITION_FOLLOWING)).to.equal(true)
+            })
+          })
+        })
+      })
+    })
+  })
+
+  it('keeps quality console reports reachable without migration language', () => {
+    cy.getByTestId('react-sqa-console').within(() => {
+      cy.contains('View Quality Dashboard').should('be.visible')
+      cy.contains('View Latest Lighthouse Mobile Report').should('be.visible')
+      cy.contains('View Latest Jest Coverage Report').should('be.visible')
+    })
+    cy.contains('cutover').should('not.exist')
+  })
+
+  it('keeps live API status visible after the SQA console', () => {
+    cy.getByTestId('react-query-status-panel').should('be.visible')
+    cy.getByTestId('react-query-status-message').should('contain.text', 'Loaded')
+    cy.getByTestId('react-refresh-query').should('be.enabled')
+  })
+
+  it('keeps the hero free of legacy rollback links', () => {
+    cy.getByTestId('react-production-hero').within(() => {
+      cy.get('a[href="/legacy"]').should('not.exist')
+      cy.contains('Open SQA Console').should('have.attr', 'href', '#react-quality')
+    })
+  })
+
+  it('keeps the application footer area focused on API status instead of review artifacts', () => {
+    cy.getByTestId('react-query-status-panel').scrollIntoView().should('be.visible')
+    cy.getByTestId('react-release-readiness-section').should('not.exist')
+    cy.getByTestId('react-migration-handoff-panel').should('not.exist')
   })
 })

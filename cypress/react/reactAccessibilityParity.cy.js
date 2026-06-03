@@ -14,11 +14,11 @@ describe('React accessibility and keyboard parity expansion', () => {
     cy.getByTestId('react-sqa-console').should('be.visible')
   })
 
-  it('keeps route nav buttons keyboard focusable and active-state discoverable', () => {
-    cy.getByTestId('react-route-cutover').focus().should('have.focus').click()
-    cy.getByTestId('react-route-cutover').should('have.attr', 'aria-pressed', 'true')
-    cy.getByTestId('react-route-roadmap').focus().should('have.focus').click()
-    cy.getByTestId('react-route-roadmap').should('have.attr', 'aria-pressed', 'true')
+  it('keeps workspace buttons keyboard focusable and discoverable', () => {
+    cy.getByTestId('react-workspace-quality-button').focus().should('have.focus').click()
+    cy.getByTestId('react-sqa-console').should('be.visible')
+    cy.getByTestId('react-workspace-fleet-button').focus().should('have.focus').click()
+    cy.getByTestId('react-fleet-directory').should('be.visible')
   })
 
   it('keeps customer workflow toggle aria-expanded synchronized', () => {

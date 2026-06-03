@@ -6,6 +6,9 @@ const INITIAL_DRAFT = {
   name: '',
   country: '',
   website: '',
+  brandFamily: '',
+  brandTheme: '',
+  marketPositioning: '',
   ships: [{ name: '', currentPort: '' }]
 }
 
@@ -77,6 +80,9 @@ export default function useCruiseLineCreateWorkflow({ onCreated } = {}) {
     const name = draft.name.trim()
     const country = normalizeOptional(draft.country)
     const website = normalizeOptional(draft.website)
+    const brandFamily = normalizeOptional(draft.brandFamily)
+    const brandTheme = normalizeOptional(draft.brandTheme)
+    const marketPositioning = normalizeOptional(draft.marketPositioning)
     const ships = normalizeShips(draft.ships)
 
     if (!name) {
@@ -88,7 +94,7 @@ export default function useCruiseLineCreateWorkflow({ onCreated } = {}) {
     setMessage('Creating cruise line…')
 
     try {
-      const createdCruiseLine = await createCruiseLine({ name, country, website })
+      const createdCruiseLine = await createCruiseLine({ name, country, website, brandFamily, brandTheme, marketPositioning })
 
       for (const ship of ships) {
         await createShip({

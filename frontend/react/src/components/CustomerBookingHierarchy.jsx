@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { createBooking, createCustomer, deleteBooking, deleteCustomer } from '../api/client.js'
 import CustomerHierarchyRow from './CustomerHierarchyRow.jsx'
 import ConfirmActionPanel from './ConfirmActionPanel.jsx'
-import { getCustomerName } from '../domain/adminHierarchy.js'
+import { getCustomerDirectoryName } from '../domain/adminHierarchy.js'
 import { useAdminHierarchyViewState } from '../hooks/useAdminHierarchyViewState.js'
 import { useBookingDraftWorkflow } from '../hooks/useBookingDraftWorkflow.js'
 import { useCustomerDraftWorkflow } from '../hooks/useCustomerDraftWorkflow.js'
@@ -283,7 +283,7 @@ export default function CustomerBookingHierarchy({
           <div>
             <p className="eyebrow">Admin CRUD parity</p>
             <h4>Create and delete customer or booking records</h4>
-            <p>These workflows exercise the same customer and booking mutation boundaries that the DOM app owns today. Contextual row actions now let admins delete records from the workflow they are already reviewing instead of copying IDs into a separate form.</p>
+            <p>These workflows exercise customer and booking mutation boundaries in the same place recruiters can review the operating model. Contextual row actions let admins delete records from the workflow they are already reviewing instead of copying IDs into a separate form.</p>
           </div>
 
           {adminMutationMessage && (
@@ -326,16 +326,16 @@ export default function CustomerBookingHierarchy({
               <button type="submit" className="primary-button" data-testid="react-admin-create-booking-submit">Create Booking</button>
             </form>
 
-            <form className="draft-editor" onSubmit={handleDeleteBooking} data-testid="react-admin-delete-booking-form">
-              <h5>Delete Booking by ID</h5>
-              <label><span>Booking ID</span><input value={deleteBookingId} onChange={event => setDeleteBookingId(event.target.value)} data-testid="react-admin-delete-booking-id" /></label>
-              <button type="submit" className="fleet-danger-action" disabled={activeDeleteId === `booking:${deleteBookingId.trim()}`} data-testid="react-admin-delete-booking-submit">Delete Booking</button>
-            </form>
-
             <form className="draft-editor" onSubmit={handleDeleteCustomer} data-testid="react-admin-delete-customer-form">
               <h5>Delete Customer by ID</h5>
               <label><span>Customer ID</span><input value={deleteCustomerId} onChange={event => setDeleteCustomerId(event.target.value)} data-testid="react-admin-delete-customer-id" /></label>
               <button type="submit" className="fleet-danger-action" disabled={activeDeleteId === `customer:${deleteCustomerId.trim()}`} data-testid="react-admin-delete-customer-submit">Delete Customer</button>
+            </form>
+
+            <form className="draft-editor" onSubmit={handleDeleteBooking} data-testid="react-admin-delete-booking-form">
+              <h5>Delete Booking by ID</h5>
+              <label><span>Booking ID</span><input value={deleteBookingId} onChange={event => setDeleteBookingId(event.target.value)} data-testid="react-admin-delete-booking-id" /></label>
+              <button type="submit" className="fleet-danger-action" disabled={activeDeleteId === `booking:${deleteBookingId.trim()}`} data-testid="react-admin-delete-booking-submit">Delete Booking</button>
             </form>
           </div>
         </section>
@@ -411,7 +411,7 @@ export default function CustomerBookingHierarchy({
                   </thead>
                   <tbody>
                     {rows.map(({ customer, linkedBookings }) => {
-                      const customerName = getCustomerName(customer)
+                      const customerName = getCustomerDirectoryName(customer)
                       const isExpanded = expandedCustomerIds.has(customer.id)
 
                       return (

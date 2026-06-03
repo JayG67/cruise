@@ -90,4 +90,72 @@ describe('React sailings and itinerary parity', () => {
     cy.getByTestId('react-create-itinerary-activity-submit-button').click()
     cy.wait('@createReactActivity')
   })
+
+
+  it('blocks blank sailing creation before sending a network request', () => {
+    openFirstReactShipSailings()
+    cy.intercept('POST', `/cruise/ship/${reactShips[0].id}/sailings`).as('sailingCreateShouldNotRun')
+    cy.getByTestId('react-create-sailing-submit-button').click()
+    cy.getByTestId('react-sailing-action-message').should('contain.text', 'Departure date, ports, and a valid day count are required')
+    cy.get('@sailingCreateShouldNotRun.all').should('have.length', 0)
+  })
+
+  it('cancels sailing edits without sending a patch request', () => {
+    openFirstReactShipSailings()
+    cy.intercept('PATCH', `/cruise/sailings/${reactSailings[0].id}`).as('sailingPatchShouldNotRun')
+    cy.getByTestId('react-sailing-card').first().within(() => {
+      cy.getByTestId('react-update-sailing-button').click()
+      cy.getByTestId('react-edit-sailing-arrival-port').clear().type('Cancelled Port')
+      cy.getByTestId('react-cancel-sailing-edit').click()
+      cy.getByTestId('react-sailing-edit-form').should('not.exist')
+    })
+    cy.get('@sailingPatchShouldNotRun.all').should('have.length', 0)
+  })
+
+  it('includes repositioning changes in the sailing edit payload', () => {
+    openFirstReactShipSailings()
+    cy.intercept('PATCH', `/cruise/sailings/${reactSailings[0].id}`, req => {
+      expect(req.body).to.include({ isRepositioning: true })
+      req.reply({ statusCode: 200, body: { ...reactSailings[0], ...req.body } })
+    }).as('updateRepositioningSailing')
+    cy.intercept('GET', `/cruise/ship/${reactShips[0].id}/sailings`, [{ ...reactSailings[0], isRepositioning: true }, reactSailings[1]]).as('reloadRepositioningSailings')
+
+    cy.getByTestId('react-sailing-card').first().within(() => {
+      cy.getByTestId('react-update-sailing-button').click()
+      cy.getByTestId('react-edit-sailing-repositioning').check()
+      cy.getByTestId('react-save-sailing-edit').click()
+    })
+    cy.wait('@updateRepositioningSailing')
+    cy.wait('@reloadRepositioningSailings')
+  })
+
+  it('cancels sailing deletion without sending a delete request', () => {
+    openFirstReactShipSailings()
+    cy.intercept('DELETE', `/cruise/sailings/${reactSailings[0].id}`).as('sailingDeleteShouldNotRun')
+    cy.getByTestId('react-sailing-card').first().within(() => {
+      cy.getByTestId('react-delete-sailing-button').click()
+    })
+    cy.getByTestId('react-fleet-delete-confirmation').should('contain.text', `Delete sailing ${reactSailings[0].departureDate}`)
+    cy.getByTestId('react-fleet-delete-confirmation-cancel').click()
+    cy.get('@sailingDeleteShouldNotRun.all').should('have.length', 0)
+    cy.getByTestId('react-sailing-card').first().should('contain.text', reactSailings[0].departurePort)
+  })
+
+  it('confirms sailing deletion and reloads the remaining sailings', () => {
+    openFirstReactShipSailings()
+    cy.intercept('DELETE', `/cruise/sailings/${reactSailings[0].id}`, {
+      statusCode: 200,
+      body: { message: 'Sailing deleted successfully' }
+    }).as('deleteReactSailing')
+    cy.intercept('GET', `/cruise/ship/${reactShips[0].id}/sailings`, [reactSailings[1]]).as('reloadSailingsAfterDelete')
+
+    cy.getByTestId('react-sailing-card').first().within(() => {
+      cy.getByTestId('react-delete-sailing-button').click()
+    })
+    cy.getByTestId('react-fleet-delete-confirmation-confirm').click()
+    cy.wait('@deleteReactSailing')
+    cy.wait('@reloadSailingsAfterDelete')
+    cy.getByTestId('react-sailing-action-message').should('contain.text', 'sailing was deleted')
+    cy.getByTestId('react-sailing-card').should('have.length', 1).and('contain.text', reactSailings[1].departurePort)
+  })
 })

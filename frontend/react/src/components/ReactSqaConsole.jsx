@@ -198,9 +198,9 @@ export default function ReactSqaConsole({ onRefreshData }) {
       <div className="react-sqa-header">
         <div>
           <p className="eyebrow">SQA Test Control Panel</p>
-          <h2 id="react-sqa-heading">Manual validation tools for API-driven UI behavior</h2>
+          <h2 id="react-sqa-heading">Quality Console for API-driven UI behavior</h2>
           <p>
-            A portfolio-facing quality operations console for exercising API health, data contracts,
+            A quality operations console for exercising API health, data contracts,
             CRUD workflow safety, response timing, rendering consistency, seed integrity, deployment
             diagnostics, and public demo reset behavior.
           </p>
@@ -265,7 +265,7 @@ export default function ReactSqaConsole({ onRefreshData }) {
         <a href="/coverage/lcov-report/index.html">View Latest Jest Coverage Report</a>
       </div>
 
-      <pre className="react-sqa-output" role="status" aria-live="polite" data-testid="react-sqa-output">
+      <pre className="react-sqa-output" role="status" aria-live="polite" aria-label="SQA validation output" data-testid="react-sqa-output">
         {output}
       </pre>
     </section>

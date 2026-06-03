@@ -88,17 +88,16 @@ describe('React lifecycle and state isolation parity expansion', () => {
     cy.getByTestId('react-role-itinerary-day').should('have.length.at.least', 1)
   })
 
-  it('keeps migration route state independent from admin data refreshes', () => {
-    cy.getByTestId('react-route-cutover').click()
-    cy.getByTestId('react-active-route-summary').should('contain.text', 'cutover')
+  it('keeps quality console available after admin data refreshes', () => {
+    cy.getByTestId('react-workspace-quality-button').click()
+    cy.getByTestId('react-sqa-console').should('be.visible')
     cy.getByTestId('react-refresh-query').click()
-    cy.getByTestId('react-active-route-summary').should('contain.text', 'cutover')
+    cy.getByTestId('react-sqa-console').should('be.visible')
   })
 
-  it('keeps legacy rollback link outside root route navigation state', () => {
-    cy.get('a[href="/legacy"]').should('contain.text', 'Legacy')
-    cy.getByTestId('react-active-route-summary').invoke('text').then(summaryBefore => {
-      cy.getByTestId('react-active-route-summary').should('have.text', summaryBefore)
-    })
+  it('keeps legacy rollback and migration panels out of the product hero', () => {
+    cy.get('a[href="/legacy"]').should('not.exist')
+    cy.getByTestId('react-release-readiness-section').should('not.exist')
+    cy.getByTestId('react-migration-route-nav').should('not.exist')
   })
 })

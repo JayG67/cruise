@@ -32,7 +32,7 @@ export default function ReactCruiseLineCreateWorkflow({ onCreated }) {
         <div className="react-create-form-grid">
           <fieldset>
             <legend><span>1</span> Cruise Line Details</legend>
-            <p>Name is required. Country and website are optional.</p>
+            <p>Name is required. Country, website, brand family, theme, and positioning are stored in the database and managed through this form.</p>
 
             <label>
               <span>Cruise line name <strong aria-hidden="true">*</strong></span>
@@ -62,6 +62,36 @@ export default function ReactCruiseLineCreateWorkflow({ onCreated }) {
                 onChange={event => updateField('website', event.target.value)}
                 placeholder="https://www.hollandamerica.com"
                 data-testid="react-create-cruise-line-website"
+              />
+            </label>
+
+            <label>
+              <span>Brand family</span>
+              <input
+                value={draft.brandFamily}
+                onChange={event => updateField('brandFamily', event.target.value)}
+                placeholder="Carnival Corporation & plc"
+                data-testid="react-create-cruise-line-brand-family"
+              />
+            </label>
+
+            <label>
+              <span>Brand theme</span>
+              <input
+                value={draft.brandTheme}
+                onChange={event => updateField('brandTheme', event.target.value)}
+                placeholder="Premium destination"
+                data-testid="react-create-cruise-line-brand-theme"
+              />
+            </label>
+
+            <label>
+              <span>Market positioning</span>
+              <input
+                value={draft.marketPositioning}
+                onChange={event => updateField('marketPositioning', event.target.value)}
+                placeholder="Premium destination-led cruising with polished service"
+                data-testid="react-create-cruise-line-market-positioning"
               />
             </label>
           </fieldset>

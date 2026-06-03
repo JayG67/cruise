@@ -64,11 +64,15 @@ describe('React admin hierarchy parity expansion', () => {
   })
 
   it('saves a customer edit through the React admin table', () => {
-    cy.intercept('PATCH', `/cruise/customers/${reactCustomers[0].id}`, req => {
+    const firstSortedCustomer = reactCustomers[1]
+
+    cy.intercept('PATCH', `/cruise/customers/${firstSortedCustomer.id}`, req => {
       expect(req.body).to.include({ phone: '555-9191' })
-      req.reply({ statusCode: 200, body: { ...reactCustomers[0], ...req.body } })
+      req.reply({ statusCode: 200, body: { ...firstSortedCustomer, ...req.body } })
     }).as('saveReactCustomerDraft')
-    cy.intercept('GET', '/cruise/customers', [{ ...reactCustomers[0], phone: '555-9191' }, ...reactCustomers.slice(1)]).as('reloadCustomersAfterDraft')
+    cy.intercept('GET', '/cruise/customers', reactCustomers.map(customer => (
+      customer.id === firstSortedCustomer.id ? { ...customer, phone: '555-9191' } : customer
+    ))).as('reloadCustomersAfterDraft')
 
     openWorkflowTable()
     cy.getByTestId('react-customer-row').first().within(() => {

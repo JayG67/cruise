@@ -212,16 +212,15 @@ test.describe('React default mobile replacement checks', () => {
     await expectNoHorizontalOverflow(page)
   })
 
-  test('keeps React migration route panels readable on mobile', async ({ page }) => {
+  test('keeps product workspace shortcuts readable on mobile', async ({ page }) => {
     await page.goto('/')
 
-    const routeNav = page.getByTestId('react-migration-route-nav')
-    await routeNav.scrollIntoViewIfNeeded()
-    await expect(routeNav).toBeVisible()
-    await routeNav.getByRole('button', { name: /Cutover/i }).click()
-    await expect(page.getByTestId('react-cutover-readiness-panel')).toBeVisible()
-    await routeNav.getByRole('button', { name: /Handoff/i }).click()
-    await expect(page.getByTestId('react-migration-handoff-panel')).toBeVisible()
+    await expect(page.getByTestId('react-migration-route-nav')).toHaveCount(0)
+    await page.getByTestId('react-workspace-quality-button').scrollIntoViewIfNeeded()
+    await page.getByTestId('react-workspace-quality-button').click()
+    await expect(page.getByTestId('react-sqa-console')).toBeVisible()
+    await page.getByTestId('react-workspace-fleet-button').click()
+    await expect(page.getByTestId('react-fleet-directory')).toBeVisible()
     await expectNoHorizontalOverflow(page)
   })
 

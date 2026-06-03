@@ -37,6 +37,8 @@ describe('React component accessibility and presentation contracts', () => {
     expect(bookingCard).toContain('aria-label={`Details for booking ${booking.id}`}')
     expect(bookingCard).toContain('data-testid="react-booking-card"')
   })
+
+
 })
 
 
@@ -55,8 +57,8 @@ describe('React route preview accessibility contracts', () => {
     expect(app).toContain('data-testid="react-workspace-operations-button"')
     expect(app).toContain('data-testid="react-workspace-fleet-button"')
     expect(app).toContain('data-testid="react-workspace-quality-button"')
-    expect(app).toContain('data-testid="react-release-readiness-section"')
-    expect(app).toContain('ReactMigrationRouteNav')
+    expect(app).not.toContain('data-testid="react-release-readiness-section"')
+    expect(app).not.toContain('ReactMigrationRouteNav')
     expect(app).toContain('aria-label="Customer-centered operations"')
   })
 
@@ -81,6 +83,19 @@ describe('React route preview accessibility contracts', () => {
     expect(row).toContain('aria-expanded={isExpanded}')
     expect(row).toContain('aria-controls={bookingsRowId}')
     expect(row).toContain('td colSpan="6"')
+  })
+
+
+  it('keeps admin customer records sorted and displayed by last name first', () => {
+    const hierarchy = read('frontend/react/src/components/CustomerBookingHierarchy.jsx')
+    const adminHierarchyDomain = read('frontend/react/src/domain/adminHierarchy.js')
+
+    expect(hierarchy).toContain('getCustomerDirectoryName(customer)')
+    expect(adminHierarchyDomain).toContain('export function getCustomerDirectoryName')
+    expect(adminHierarchyDomain).toContain('return `${lastName}, ${firstName}`')
+    expect(adminHierarchyDomain).toContain('export function compareCustomersByDirectoryName')
+    expect(adminHierarchyDomain).toContain('[...customers].sort(compareCustomersByDirectoryName)')
+    expect(adminHierarchyDomain).toContain('getCustomerDirectoryName(customer)')
   })
 
 
@@ -599,6 +614,30 @@ describe('React route preview accessibility contracts', () => {
     expect(testBlock).toContain("React Dinner Show was deleted")
     expect(testBlock).toContain("cy.getByTestId('react-itinerary-day-grid').should('not.contain.text', 'React Dinner Show')")
     expect(testBlock).not.toContain("cy.getByTestId('react-delete-itinerary-activity-button').last().click()")
+  })
+
+
+  it('keeps cruise-line brand metadata professional, specific, and database seeded for every fleet card', () => {
+    const seedData = read('data/cruise.json')
+    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const createWorkflow = read('frontend/react/src/components/ReactCruiseLineCreateWorkflow.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(seedData).toContain('\"brandFamily\": \"Royal Caribbean Group\"')
+    expect(seedData).toContain('\"brandTheme\": \"Adventure Innovation\"')
+    expect(seedData).toContain('private-destination')
+    expect(seedData).toContain('\"brandFamily\": \"MSC Group\"')
+    expect(seedData).toContain('\"brandTheme\": \"Mediterranean Resort\"')
+    expect(seedData).toContain('\"brandFamily\": \"Margaritaville at Sea\"')
+    expect(seedData).toContain('\"brandTheme\": \"Casual Island Getaway\"')
+    expect(seedData).not.toContain('Cruise Explorer Default')
+    expect(fleet).toContain('Brand family')
+    expect(fleet).toContain('Positioning')
+    expect(fleet).toContain('cruiseLine.brandFamily')
+    expect(fleet).not.toContain('getCruiseLineBranding')
+    expect(createWorkflow).toContain('brandFamily')
+    expect(createWorkflow).toContain('marketPositioning')
+    expect(styles).toContain('.brand-theme-summary dt')
   })
 
 })

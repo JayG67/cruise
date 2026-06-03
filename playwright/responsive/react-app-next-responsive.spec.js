@@ -197,15 +197,16 @@ test.describe('React default desktop and tablet replacement checks', () => {
     await expectNoHorizontalOverflow(page)
   })
 
-  test('keeps React route panels stable at desktop and tablet widths', async ({ page }) => {
+  test('keeps product workspace sections stable at desktop and tablet widths', async ({ page }) => {
     await page.goto('/')
 
     for (const [width, height] of [[1440, 1000], [900, 1100]]) {
       await page.setViewportSize({ width, height })
-      await page.getByTestId('react-migration-route-nav').getByRole('button', { name: /Roadmap/i }).click()
-      await expect(page.getByTestId('react-migration-roadmap-panel')).toBeVisible()
-      await page.getByTestId('react-migration-route-nav').getByRole('button', { name: /Parity/i }).click()
-      await expect(page.getByTestId('react-pilot-parity-panel')).toBeVisible()
+      await expect(page.getByTestId('react-migration-route-nav')).toHaveCount(0)
+      await page.getByTestId('react-workspace-fleet-button').click()
+      await expect(page.getByTestId('react-fleet-directory')).toBeVisible()
+      await page.getByTestId('react-workspace-quality-button').click()
+      await expect(page.getByTestId('react-sqa-console')).toBeVisible()
       await expectNoHorizontalOverflow(page)
     }
   })

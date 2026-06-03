@@ -57,7 +57,10 @@ function buildSeedRows(cruiseData) {
       id: cruiseLineId,
       name: cruiseLine.name,
       country: cruiseLine.country,
-      website: cruiseLine.website
+      website: cruiseLine.website,
+      brandFamily: cruiseLine.brandFamily,
+      brandTheme: cruiseLine.brandTheme,
+      marketPositioning: cruiseLine.marketPositioning
     })
 
     for (const ship of cruiseLine.ships || []) {

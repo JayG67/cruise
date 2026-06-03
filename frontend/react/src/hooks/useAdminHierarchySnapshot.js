@@ -38,7 +38,7 @@ export default function useAdminHierarchySnapshot() {
         if (!isMounted || loadError.name === 'AbortError') return
 
         setSnapshot(EMPTY_SNAPSHOT)
-        setError(loadError.message || 'Unable to load the React migration snapshot.')
+        setError(loadError.message || 'Unable to load the cruise operations snapshot.')
       } finally {
         if (isMounted) setIsLoading(false)
       }

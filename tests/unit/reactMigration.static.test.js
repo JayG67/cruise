@@ -1,453 +1,66 @@
 const fs = require('fs')
 const path = require('path')
 
-describe('React migration readiness guardrails', () => {
-  const projectRoot = path.resolve(__dirname, '../..')
-  const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'))
+const projectRoot = path.resolve(__dirname, '..', '..')
 
-  function read(relativePath) {
-    return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
-  }
+function read(relativePath) {
+  return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
+}
 
-  it('keeps React as a real application workspace with a consolidated readiness audit', () => {
-    expect(fs.existsSync(path.join(projectRoot, 'frontend/react/src/App.jsx'))).toBe(true)
-    expect(fs.existsSync(path.join(projectRoot, 'frontend/react/vite.config.js'))).toBe(true)
-    expect(packageJson.scripts['react:dev']).toContain('vite --config frontend/react/vite.config.js')
-    expect(packageJson.scripts['react:build']).toContain('vite build --config frontend/react/vite.config.js')
-    expect(packageJson.scripts['react:readiness:audit']).toBe('node scripts/verify-react-readiness.js')
-    expect(packageJson.scripts['legacy:quarantine:audit']).toBe('node scripts/verify-legacy-quarantine.js')
-    expect(packageJson.scripts['react:migration:audit']).toBe('npm run react:readiness:audit')
-  })
-
-  it('removes numbered migration-stage scripts from the permanent npm workflow', () => {
-    const scriptNames = Object.keys(packageJson.scripts)
-
-    expect(scriptNames.some(scriptName => /^react:stage\d+:audit$/.test(scriptName))).toBe(false)
-    expect(scriptNames).not.toContain('react:scaffold:audit')
-    expect(scriptNames).not.toContain('react:cleanup:audit')
-  })
-
-  it('keeps the React preview architecture focused on the current app instead of historical stage checks', () => {
-    const app = read('frontend/react/src/App.jsx')
-    const hierarchy = read('frontend/react/src/components/CustomerBookingHierarchy.jsx')
-    const viewStateHook = read('frontend/react/src/hooks/useAdminHierarchyViewState.js')
-    const customerWorkflow = read('frontend/react/src/hooks/useCustomerDraftWorkflow.js')
-    const bookingWorkflow = read('frontend/react/src/hooks/useBookingDraftWorkflow.js')
-
-    expect(app).toContain('useAdminHierarchySnapshot')
-    expect(app).toContain('react-workspace-card-grid')
-    expect(hierarchy).toContain('useAdminHierarchyViewState')
-    expect(viewStateHook).toContain('createBookingExpansionKey')
-    expect(customerWorkflow).toContain('saveCustomerDraftFor')
-    expect(bookingWorkflow).toContain('saveBookingDraftFor')
-    expect(app).not.toContain('document.querySelector')
-    expect(hierarchy).not.toContain('document.querySelector')
-  })
-
-  it('keeps reviewer-facing documentation focused on cutover readiness instead of endless stages', () => {
-    const plan = read('docs/react-migration-plan.md')
-    const summary = read('docs/react-migration-review-summary.md')
-
-    expect(plan).toContain('React Cutover Plan')
-    expect(plan).toContain('Legacy DOM retirement')
-    expect(summary).toContain('No Stage 23 is planned by default')
-    expect(summary).toContain('Recommended next work')
-  })
-  it('keeps React local preview API calls wired through the Vite proxy', () => {
-    const viteConfig = read('frontend/react/vite.config.js')
-    const client = read('frontend/react/src/api/client.js')
-
-    expect(packageJson.scripts['react:dev:local']).toContain('start-server-and-test start http://localhost:8000 react:dev')
-    expect(packageJson.scripts['react:preview:local']).toContain('start-server-and-test start http://localhost:8000 react:preview')
-    expect(viteConfig).toContain("'/cruise'")
-    expect(viteConfig).toContain("'/health'")
-    expect(viteConfig).toContain("'/admin'")
-    expect(viteConfig).toContain('REACT_API_PROXY_TARGET')
-    expect(viteConfig).toContain('preview:')
-    expect(viteConfig).toContain("base: '/app-next/'")
-    expect(client).toContain('VITE_API_BASE_URL')
-    expect(client).toContain('Make sure the Express API is running on port 8000')
-  })
-
-
-
-  it('serves the React build from Express at /app-next before legacy DOM retirement', () => {
+describe('Cruise operations product presentation guardrails', () => {
+  it('serves the React operations application as the default product experience', () => {
     const app = read('app.js')
-    const integration = read('tests/integration/reactPreview.integration.test.js')
+    const packageJson = require('../../package.json')
 
-    expect(app).toContain("const reactBuildDir = path.join(__dirname, 'dist', 'react')")
+    expect(app).toContain("app.get('/', sendReactApp)")
     expect(app).toContain("app.use('/app-next', express.static(reactBuildDir, { redirect: false }))")
-    expect(app).toContain("app.get(/^\\/app-next(?:\\/.*)?$/, sendReactPreview)")
-    expect(app).toContain('Run npm run react:build before opening /app-next')
-    expect(app).toContain('CRUISE_DEFAULT_EXPERIENCE')
-    expect(app).toContain('isLegacyDefaultExperienceEnabled')
-    expect(app).toContain('sendDefaultExperience')
-    expect(app).toContain("app.get('/', sendDefaultExperience)")
-    expect(app).toContain("app.get(/^\\/legacy(?:\\/.*)?$/, sendLegacyApp)")
-    expect(integration).toContain('GET / should serve the React shell by default after cutover')
-    expect(integration).toContain('GET / should serve the legacy DOM app when legacy rollback mode is enabled')
-    expect(integration).toContain('GET /legacy should keep the DOM application available after React default cutover')
-    expect(integration).toContain('GET /app-next should serve the built React preview shell from Express')
-    expect(integration).toContain('GET /app-next nested routes should fall back to the React shell')
-    expect(app).toContain('serveLegacyRootStaticOnlyInRollbackMode')
-    expect(packageJson.scripts['react:production:audit']).toContain('legacy:quarantine:audit')
-    expect(app).toContain("app.use('/images', express.static(legacyImagesDir, { redirect: false }))")
-    expect(integration).toContain('GET / should not expose legacy DOM JavaScript or CSS assets at the production root after React default cutover')
-    expect(integration).toContain('GET /legacy should continue to serve legacy DOM assets for rollback mode')
-    expect(integration).toContain('GET / should restore legacy root assets only when rollback mode is enabled')
+    expect(app).not.toContain('sendDefaultExperience')
+    expect(app).not.toContain('sendLegacyApp')
+    expect(packageJson.scripts['test:all']).toContain('browserTests:react')
+    expect(packageJson.scripts['uiTests:ci']).toBe('npm run uiTests:react:ci')
   })
 
-
-  it('keeps the Express-hosted React route visually aligned with the production DOM shell', () => {
-    const app = read('frontend/react/src/App.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
-    const routes = read('frontend/react/src/domain/reactMigrationRoutes.js')
-
-    expect(app).toContain('production-parity-shell')
-    expect(app).toContain('react-top-navigation')
-    expect(app).toContain('Manage cruise line and fleet operations')
-    expect(app).toContain('Open Legacy DOM App')
-    expect(app).toContain('href="/legacy"')
-    expect(app).toContain('Operations console')
-    expect(styles).toContain("url('/images/cruise-background.png')")
-    expect(styles).toContain('.production-hero')
-    expect(styles).toContain('.react-top-nav')
-    expect(styles).toContain('min-height: 82vh')
-    expect(routes).toContain("label: 'Operations'")
-    expect(routes).toContain('Search and manage customer and booking workflows with progressive disclosure.')
-  })
-
-
-  it('keeps the React workspace aligned with the DOM operations console pattern', () => {
-    const app = read('frontend/react/src/App.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
-    const routeNav = read('frontend/react/src/components/ReactMigrationRouteNav.jsx')
-    const routes = read('frontend/react/src/domain/reactMigrationRoutes.js')
-
-    expect(app).toContain('operations-console-panel')
-    expect(app).toContain('Choose a workspace')
-    expect(app).toContain('Role Simulation')
-    expect(app).toContain('Admin Operations')
-    expect(app).toContain('Fleet Directory')
-    expect(app).toContain('Quality Console')
-    expect(app).toContain('react-recommended-workflow')
-    expect(styles).toContain('.react-workspace-card-grid')
-    expect(styles).toContain('.recommended-workflow-panel')
-    expect(styles).toContain('.workflow-step-list')
-    expect(routeNav).toContain('React app workspace sections')
-    expect(routes).toContain("label: 'Operations'")
-  })
-
-
-  it('keeps React guardrails focused on durable behavior instead of stale migration copy', () => {
-    const app = read('frontend/react/src/App.jsx')
-    const routes = read('frontend/react/src/domain/reactMigrationRoutes.js')
-
-    expect(app).toContain('react-workspace-card-grid')
-    expect(app).toContain('react-recommended-workflow')
-    expect(routes).toContain("label: 'Operations'")
-    expect(routes).toContain("label: 'Quality'")
-    expect(routes).not.toContain('Manage the highest-risk admin customer')
-  })
-
-
-  it('keeps the React route focused on production replacement sections', () => {
-    const app = read('frontend/react/src/App.jsx')
-    const client = read('frontend/react/src/api/client.js')
-    const roleSelector = read('frontend/react/src/components/ReactRoleSelector.jsx')
-    const fleetDirectory = read('frontend/react/src/components/ReactFleetDirectory.jsx')
-    const fleetHook = read('frontend/react/src/hooks/useCruiseLines.js')
-    const styles = read('frontend/react/src/styles/app.css')
-
-    expect(app).toContain('ReactRoleSelector')
-    expect(app).toContain('ReactFleetDirectory')
-    expect(app).toContain('Manage cruise line and fleet operations')
-    expect(app).toContain('Full React Route')
-    expect(client).toContain('getCruiseLines')
-    expect(roleSelector).toContain('View application as')
-    expect(roleSelector).toContain('demoUsers.map')
-    expect(roleSelector).toContain('formatDemoUserLabel(user)')
-    expect(roleSelector).toContain('react-demo-user-select')
-    expect(fleetDirectory).toContain('Cruise Line Directory')
-    expect(fleetDirectory).toContain('View Ships')
-    expect(fleetHook).toContain('useCruiseLines')
-    expect(styles).toContain('.react-app-section')
-    expect(styles).toContain('.fleet-card-grid')
-  })
-
-
-  it('keeps the React hero replacement-focused instead of migration-focused', () => {
+  it('removes user-facing legacy, DOM, and migration calls to action from the production React shell', () => {
     const app = read('frontend/react/src/App.jsx')
 
-    expect(app).toContain('Manage cruise line and fleet operations')
-    expect(app).toContain('A production-style React operations console')
-    expect(app).toContain('Full React Route')
-    expect(app).not.toContain('React migration preview')
+    expect(app).toContain('Open SQA Console')
+    expect(app).toContain('href="#react-quality"')
+    expect(app).not.toContain('Open Legacy DOM App')
+    expect(app).not.toContain('href="/legacy"')
+    expect(app).not.toContain('migration')
+    expect(app).not.toContain('Migration')
+    expect(app).not.toContain('cutover')
+    expect(app).not.toContain('Cutover')
+    expect(app).not.toContain('ReactMigrationRouteNav')
   })
 
+  it('removes retired migration panel source files from the React bundle source tree', () => {
+    const retiredFiles = [
+      'frontend/react/src/components/MigrationReadiness.jsx',
+      'frontend/react/src/components/MigrationRoadmapPanel.jsx',
+      'frontend/react/src/components/ReactMigrationRouteNav.jsx',
+      'frontend/react/src/components/ReactMigrationActiveRoutePanel.jsx',
+      'frontend/react/src/components/ReactMigrationHandoffPanel.jsx',
+      'frontend/react/src/components/ReactCutoverReadinessPanel.jsx',
+      'frontend/react/src/domain/reactMigrationRoutes.js',
+      'frontend/react/src/domain/reactMigrationRoadmap.js',
+      'frontend/react/src/domain/reactCutoverReadiness.js',
+      'frontend/react/src/hooks/useReactMigrationRoute.js'
+    ]
 
-  it('keeps workspace cards as clickable replacement-app controls', () => {
+    for (const relativePath of retiredFiles) {
+      expect(fs.existsSync(path.join(projectRoot, relativePath))).toBe(false)
+    }
+  })
+
+  it('keeps the SQA console visible as a first-class product feature', () => {
     const app = read('frontend/react/src/App.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
-    const roleSelector = read('frontend/react/src/components/ReactRoleSelector.jsx')
+    const sqaConsole = read('frontend/react/src/components/ReactSqaConsole.jsx')
 
-    expect(app).toContain('function scrollToSection')
-    expect(app).toContain('data-testid="react-workspace-role-button"')
-    expect(app).toContain('data-testid="react-workspace-operations-button"')
-    expect(app).toContain('data-testid="react-workspace-fleet-button"')
-    expect(app).toContain('data-testid="react-workspace-quality-button"')
-    expect(app).toContain('<ReactMigrationRouteNav')
-    expect(app).toContain('useReactMigrationRoute')
-    expect(app).toContain('<ReactPilotLaunchPanel')
-    expect(app).toContain('<ReactPilotParityPanel')
-    expect(app).toContain('<ReactMigrationHandoffPanel')
-    expect(app).toContain('<ReactMigrationActiveRoutePanel')
-    expect(roleSelector).toContain('id="react-role-selector"')
-    expect(styles).toContain('React replacement app workspace controls')
-    expect(styles).toContain('.operations-console-panel .react-route-nav')
-    expect(styles).toContain('grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr))')
-    expect(styles).not.toContain('.operations-console-panel .react-route-nav {\n  display: none;\n}')
+    expect(app).toContain('<ReactSqaConsole')
+    expect(app).toContain('Run quality checks')
+    expect(sqaConsole).toContain('Quality Console')
+    expect(sqaConsole).toContain('View Quality Dashboard')
+    expect(sqaConsole).toContain('Run Performance Check')
   })
-
-
-  it('keeps final React cutover evidence visible inside the replacement route', () => {
-    const app = read('frontend/react/src/App.jsx')
-    const cypress = read('cypress/react/reactApp.cy.js')
-    const styles = read('frontend/react/src/styles/app.css')
-
-    expect(app).toContain('react-release-readiness-section')
-    expect(app).toContain('Route-driven migration evidence for replacing the DOM app')
-    expect(app).toContain('react-active-route-summary')
-    expect(app).toContain('routeSectionMap')
-    expect(app).toContain('selectMigrationRoute')
-    expect(cypress).toContain('navigates React cutover evidence from the workspace route rail')
-    expect(cypress).toContain("cy.getByTestId('react-route-readiness').click()")
-    expect(cypress).toContain("cy.getByTestId('react-pilot-launch-panel').should('not.exist')")
-    expect(styles).toContain('React release readiness command center for final DOM replacement evidence.')
-    expect(styles).toContain('.react-release-readiness-section')
-    expect(styles).toContain('.active-route-evidence-card')
-  })
-
-
-  it('keeps route-driven migration evidence isolated to the selected React workspace', () => {
-    const app = read('frontend/react/src/App.jsx')
-    const activePanel = read('frontend/react/src/components/ReactMigrationActiveRoutePanel.jsx')
-    const cypress = read('cypress/react/reactApp.cy.js')
-
-    expect(activePanel).toContain('ACTIVE_ROUTE_COPY')
-    expect(activePanel).toContain('Operations workflow is the current React focus')
-    expect(activePanel).toContain('Role simulation is the current React focus')
-    expect(app).toContain("activeRouteKey === 'roadmap' && <MigrationRoadmapPanel />")
-    expect(app).toContain("activeRouteKey === 'pilot' && <ReactPilotLaunchPanel />")
-    expect(app).toContain("activeRouteKey === 'parity' && <ReactPilotParityPanel />")
-    expect(app).toContain("activeRouteKey === 'handoff' && <ReactMigrationHandoffPanel />")
-    expect(cypress).toContain("cy.getByTestId('react-active-route-summary').should('contain.text', 'pilot')")
-  })
-
-  it('keeps recommended workflow steps clickable like the DOM app', () => {
-    const app = read('frontend/react/src/App.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
-
-    expect(app).toContain('data-testid="react-workflow-role-button"')
-    expect(app).toContain('data-testid="react-workflow-operations-button"')
-    expect(app).toContain('data-testid="react-workflow-fleet-button"')
-    expect(app).toContain('data-testid="react-workflow-quality-button"')
-    expect(app).toContain('aria-label="Recommended workflow controls"')
-    expect(styles).toContain('.workflow-step-button')
-  })
-
-  it('keeps the React admin workspace functional behind an explicit workflow toggle', () => {
-    const hierarchy = read('frontend/react/src/components/CustomerBookingHierarchy.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
-
-    expect(hierarchy).toContain('useState(false)')
-    expect(hierarchy).toContain('Show Customer Workflows')
-    expect(hierarchy).toContain('Hide Customer Workflows')
-    expect(hierarchy).toContain('data-testid="react-toggle-customer-workflows"')
-    expect(hierarchy).toContain('data-testid="react-customer-workflow-table"')
-    expect(hierarchy).toContain('Customer-centered operations')
-    expect(hierarchy).not.toContain('Stage 17 migration slice')
-    expect(styles).toContain('.admin-workflow-summary-card')
-    expect(styles).toContain('.primary-action-button')
-  })
-
-
-  it('keeps React admin workspace visually and behaviorally aligned with the DOM admin workspace', () => {
-    const hierarchy = read('frontend/react/src/components/CustomerBookingHierarchy.jsx')
-    const row = read('frontend/react/src/components/CustomerHierarchyRow.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
-
-    expect(hierarchy).toContain('react-admin-workspace')
-    expect(hierarchy).toContain('Role-aware view')
-    expect(hierarchy).toContain('Admin Data Management')
-    expect(hierarchy).toContain('react-admin-stat-pills')
-    expect(hierarchy).toContain('Customer records with linked bookings')
-    expect(hierarchy).toContain('<th scope="col">Loyalty</th>')
-    expect(hierarchy).toContain('<th scope="col">Actions</th>')
-    expect(row).toContain('customer-disclosure-button')
-    expect(row).toContain('linked-booking-pill')
-    expect(row).toContain('compact-action-button')
-    expect(styles).toContain('React admin workspace parity pass')
-    expect(styles).toContain('.react-admin-management-card')
-    expect(styles).toContain('.react-admin-table-scroll')
-  })
-
-
-  it('keeps React application sections in the same operational order as the DOM app', () => {
-    const app = read('frontend/react/src/App.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
-
-    const roleIndex = app.indexOf('<ReactRoleSelector')
-    const adminIndex = app.indexOf('<CustomerBookingHierarchy')
-    const fleetIndex = app.indexOf('<ReactFleetDirectory')
-    const qualityIndex = app.indexOf('<ReactQueryStatusPanel')
-
-    expect(roleIndex).toBeGreaterThan(-1)
-    expect(adminIndex).toBeGreaterThan(roleIndex)
-    expect(fleetIndex).toBeGreaterThan(adminIndex)
-    expect(qualityIndex).toBeGreaterThan(fleetIndex)
-    expect(app).toContain('className="react-quality-section"')
-    expect(styles).toContain('DOM flow alignment pass')
-    expect(styles).toContain('.fleet-directory-section')
-  })
-
-
-  it('keeps React fleet cards and create workflow aligned with the DOM app', () => {
-    const app = read('frontend/react/src/App.jsx')
-    const client = read('frontend/react/src/api/client.js')
-    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
-    const createWorkflow = read('frontend/react/src/components/ReactCruiseLineCreateWorkflow.jsx')
-    const createHook = read('frontend/react/src/hooks/useCruiseLineCreateWorkflow.js')
-    const styles = read('frontend/react/src/styles/app.css')
-
-    expect(app).toContain('ReactCruiseLineCreateWorkflow')
-    expect(app.indexOf('<ReactFleetDirectory')).toBeLessThan(app.indexOf('<ReactCruiseLineCreateWorkflow'))
-    expect(app.indexOf('<ReactCruiseLineCreateWorkflow')).toBeLessThan(app.indexOf('<ReactQueryStatusPanel'))
-    expect(client).toContain('createCruiseLine')
-    expect(client).toContain('createShip')
-    expect(fleet).toContain('fleet-danger-action')
-    expect(fleet).toContain('Delete')
-    expect(createWorkflow).toContain('Add New Cruise Data')
-    expect(createWorkflow).toContain('Add a Cruise Line')
-    expect(createWorkflow).toContain('data-testid="react-save-cruise-line"')
-    expect(createHook).toContain('normalizeShips')
-    expect(styles).toContain('React fleet and create workflow parity pass')
-    expect(styles).toContain('React controlled edit forms replacing prompt-driven fleet edits')
-  })
-
-
-  it('keeps React SQA console aligned with the DOM manual validation dashboard', () => {
-    const app = read('frontend/react/src/App.jsx')
-    const client = read('frontend/react/src/api/client.js')
-    const sqa = read('frontend/react/src/components/ReactSqaConsole.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
-
-    expect(app).toContain('ReactSqaConsole')
-    expect(app.indexOf('<ReactCruiseLineCreateWorkflow')).toBeLessThan(app.indexOf('<ReactSqaConsole'))
-    expect(app.indexOf('<ReactSqaConsole')).toBeLessThan(app.indexOf('<ReactQueryStatusPanel'))
-    expect(client).toContain('getHealthStatus')
-    expect(client).toContain('resetDemoData')
-    expect(sqa).toContain('SQA Test Control Panel')
-    expect(sqa).toContain('Manual validation tools for API-driven UI behavior')
-    expect(sqa).toContain('Health Check')
-    expect(sqa).toContain('UI Smoke Check')
-    expect(sqa).toContain('Safe CRUD Workflow')
-    expect(sqa).toContain('Demo Data Recovery')
-    expect(sqa).toContain('react-sqa-output')
-    expect(styles).toContain('React SQA console parity pass')
-    expect(styles).toContain('.react-sqa-action-grid')
-  })
-
-
-  it('keeps React role selector backed by the live demo-user API', () => {
-    const app = read('frontend/react/src/App.jsx')
-    const client = read('frontend/react/src/api/client.js')
-    const hook = read('frontend/react/src/hooks/useDemoUsers.js')
-    const selector = read('frontend/react/src/components/ReactRoleSelector.jsx')
-
-    expect(app).toContain('useDemoUsers')
-    expect(app).toContain('demoUsers={demoUsers}')
-    expect(client).toContain('getDemoUsers')
-    expect(client).toContain('/cruise/demo-users')
-    expect(hook).toContain('setSelectedDemoUserId')
-    expect(selector).not.toContain('const DEMO_ROLES')
-    expect(selector).toContain('demoUsers.map')
-    expect(selector).toContain('react-demo-user-select')
-    expect(selector).toContain('demo users available')
-  })
-
-
-  it('keeps production replacement role selector API-backed instead of hard-coded', () => {
-    const client = read('frontend/react/src/api/client.js')
-    const hook = read('frontend/react/src/hooks/useDemoUsers.js')
-    const roleSelector = read('frontend/react/src/components/ReactRoleSelector.jsx')
-
-    expect(client).toContain('/cruise/demo-users')
-    expect(hook).toContain('getDemoUsers')
-    expect(hook).toContain('selectedDemoUser')
-    expect(roleSelector).toContain('demoUsers.map')
-    expect(roleSelector).toContain('formatDemoUserLabel(user)')
-    expect(roleSelector).not.toContain('const DEMO_ROLES')
-  })
-
-
-  it('keeps React demo user labels readable instead of ID-only', () => {
-    const selector = read('frontend/react/src/components/ReactRoleSelector.jsx')
-
-    expect(selector).toContain('user.displayName')
-    expect(selector).toContain('formatDemoUserRole')
-    expect(selector).toContain('formatDemoUserLabel(user)')
-    expect(selector).toContain('user.id')
-  })
-
-
-  it('keeps React role switching aligned with the DOM app', () => {
-    const app = read('frontend/react/src/App.jsx')
-    const roleDashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const roleView = read('frontend/react/src/domain/roleView.js')
-    const selector = read('frontend/react/src/components/ReactRoleSelector.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
-
-    expect(app).toContain('selectedRoleView')
-    expect(app).toContain('getVisibleRoleBookings')
-    expect(app).toContain("selectedRoleView === 'admin'")
-    expect(app).toContain('ReactRoleDashboard')
-    expect(roleView).toContain("if (roleView === 'group-leader') return 'Group booking dashboard'")
-    expect(roleView).toContain("return 'Passenger booking dashboard'")
-    expect(roleDashboard).toContain('getRoleDashboardTitle(roleView)')
-    expect(roleDashboard).toContain('My travel profile')
-    expect(roleDashboard).toContain('Visible passengers')
-    expect(roleView).toContain('getSelectedRoleView')
-    expect(roleView).toContain('getVisibleRoleBookings')
-    expect(selector).toContain('visibleBookingCount')
-    expect(styles).toContain('React role switching parity pass')
-  })
-
-
-  it('keeps React role summary safe before demo users load', () => {
-    const roleView = read('frontend/react/src/domain/roleView.js')
-
-    expect(roleView).toContain("selectedDemoUser?.displayName || 'the group leader'")
-    expect(roleView).toContain("selectedDemoUser?.displayName || 'the selected passenger'")
-    expect(roleView).toContain('getSelectedRoleView(selectedDemoUser)')
-  })
-
-
-  it('makes React the default live experience while preserving legacy rollback scripts', () => {
-    const app = read('app.js')
-    const renderYaml = read('render.yaml')
-
-    expect(app).toContain('function isLegacyDefaultExperienceEnabled()')
-    expect(app).toContain("['0', 'false', 'legacy', 'dom']")
-    expect(packageJson.scripts.start).toContain('npm run react:build')
-    expect(packageJson.scripts['start:legacy']).toContain('CRUISE_DEFAULT_EXPERIENCE=legacy')
-    expect(packageJson.scripts['start:legacy:ci']).toContain('CRUISE_DEFAULT_EXPERIENCE=legacy')
-    expect(packageJson.scripts['uiTests']).toContain('uiTests:react')
-    expect(packageJson.scripts['uiTests:ci']).toContain('uiTests:react')
-    expect(packageJson.scripts['legacy:rollback:audit']).toContain('uiTests:legacy')
-    expect(packageJson.scripts['legacy:rollback:audit']).toContain('browserTests:legacy')
-    expect(packageJson.scripts['react:default:audit']).toContain('browserTests:react')
-    expect(renderYaml).toContain('npm install && npm run react:build')
-  })
-
 })

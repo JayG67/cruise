@@ -19,49 +19,36 @@ function visitReactAppAsAdmin() {
   cy.getByTestId('react-demo-user-summary').should('contain.text', 'Admin')
 }
 
-describe('React default app replacement route', () => {
+describe('Cruise operations portfolio route', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
   })
 
-  it('loads the React replacement shell and core workspaces', () => {
+  it('loads the cruise operations shell and core workspaces', () => {
     cy.getByTestId('react-production-parity-shell').should('be.visible')
     cy.getByTestId('react-top-navigation').should('be.visible')
     cy.getByTestId('react-role-selector').should('be.visible')
     cy.getByTestId('react-demo-user-select').should('be.visible')
     cy.getByTestId('react-workspace-card-grid').should('be.visible')
-    cy.getByTestId('react-migration-route-nav').should('be.visible')
-    cy.getByTestId('react-release-readiness-section').should('be.visible')
-    cy.getByTestId('react-active-route-summary').should('contain.text', 'hierarchy')
-    cy.getByTestId('react-active-route-evidence-panel').should('contain.text', 'Operations workflow is the current React focus')
-    cy.getByTestId('react-pilot-launch-panel').should('not.exist')
-    cy.getByTestId('react-pilot-parity-panel').should('not.exist')
-    cy.getByTestId('react-migration-handoff-panel').should('not.exist')
+    cy.getByTestId('react-migration-route-nav').should('not.exist')
+    cy.getByTestId('react-release-readiness-section').should('not.exist')
+    cy.contains('Cruise operations command center').should('not.exist')
+    cy.getByTestId('react-active-route-operations').should('be.visible')
+    cy.getByTestId('react-fleet-directory').should('be.visible')
+    cy.getByTestId('react-sqa-console').should('be.visible')
   })
 
 
 
-  it('navigates React cutover evidence from the workspace route rail', () => {
-    cy.getByTestId('react-route-readiness').click()
-    cy.getByTestId('react-route-readiness').should('have.attr', 'aria-pressed', 'true')
-    cy.getByTestId('react-active-route-summary').should('contain.text', 'readiness')
-    cy.getByTestId('react-active-route-evidence-panel').should('contain.text', 'Role simulation is the current React focus')
-
-    cy.getByTestId('react-route-pilot').click()
-    cy.getByTestId('react-route-pilot').should('have.attr', 'aria-pressed', 'true')
-    cy.getByTestId('react-active-route-summary').should('contain.text', 'pilot')
-    cy.getByTestId('react-pilot-launch-panel').should('contain.text', 'React pilot launch checklist')
-    cy.getByTestId('react-active-route-evidence-panel').should('not.exist')
-
-    cy.getByTestId('react-route-parity').click()
-    cy.getByTestId('react-route-parity').should('have.attr', 'aria-pressed', 'true')
-    cy.getByTestId('react-pilot-launch-panel').should('not.exist')
-    cy.getByTestId('react-pilot-parity-panel').should('contain.text', 'React pilot parity evidence')
-
-    cy.getByTestId('react-route-handoff').click()
-    cy.getByTestId('react-route-handoff').should('have.attr', 'aria-pressed', 'true')
-    cy.getByTestId('react-pilot-parity-panel').should('not.exist')
-    cy.getByTestId('react-migration-handoff-panel').should('contain.text', 'React migration handoff summary')
+  it('navigates real application workspaces from the product controls', () => {
+    cy.getByTestId('react-workspace-role-button').click()
+    cy.getByTestId('react-role-selector').should('be.visible')
+    cy.getByTestId('react-workspace-operations-button').click()
+    cy.getByTestId('react-active-route-operations').should('be.visible')
+    cy.getByTestId('react-workspace-fleet-button').click()
+    cy.getByTestId('react-fleet-directory').should('be.visible')
+    cy.getByTestId('react-workspace-quality-button').click()
+    cy.getByTestId('react-sqa-console').should('be.visible')
   })
 
   it('switches from admin to passenger view when a passenger demo user is selected', () => {
@@ -415,7 +402,7 @@ describe('React default app replacement route', () => {
     cy.wait('@loadContextBookings')
 
     cy.getByTestId('react-toggle-customer-workflows').click()
-    cy.getByTestId('react-customer-workflow-table').should('contain.text', 'Context Admin')
+    cy.getByTestId('react-customer-workflow-table').should('contain.text', 'Admin, Context')
     cy.getByTestId('react-toggle-customer-bookings').click()
     cy.getByTestId('react-booking-card').should('contain.text', 'react-context-booking')
 
@@ -428,12 +415,12 @@ describe('React default app replacement route', () => {
     cy.getByTestId('react-admin-mutation-message').should('contain.text', 'react-context-booking booking was deleted')
 
     cy.getByTestId('react-delete-customer-row-button').click()
-    cy.getByTestId('react-admin-delete-confirmation').should('contain.text', 'Delete customer Context Admin?')
+    cy.getByTestId('react-admin-delete-confirmation').should('contain.text', 'Delete customer Admin, Context?')
     cy.getByTestId('react-admin-delete-confirmation-confirm').click()
     cy.wait('@deleteContextCustomer')
     cy.wait('@loadContextCustomers')
     cy.wait('@loadContextBookings')
-    cy.getByTestId('react-admin-mutation-message').should('contain.text', 'Context Admin customer was deleted')
+    cy.getByTestId('react-admin-mutation-message').should('contain.text', 'Admin, Context customer was deleted')
     cy.getByTestId('react-admin-delete-confirmation').should('not.exist')
   })
 
@@ -461,11 +448,14 @@ describe('React default app replacement route', () => {
     }
     cy.intercept('PATCH', '/cruise/cruise-line/*', req => {
       expect(req.url).to.match(/\/cruise\/cruise-line\/[0-9a-f-]{36}$/)
-      expect(req.body).to.deep.equal({
+      expect(req.body).to.include({
         name: 'Royal Caribbean React Updated',
         country: 'United States React',
-        website: 'https://react-updated.example.com'
+        website: 'https://react-updated.example.com',
+        brandFamily: 'Royal Caribbean Group',
+        brandTheme: 'Adventure Innovation'
       })
+      expect(req.body.marketPositioning).to.contain('innovation-led cruising')
 
       const cruiseLineId = req.url.split('/').pop()
 

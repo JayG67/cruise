@@ -12,6 +12,12 @@ const db = require('../db')
 const { and, eq, inArray } = require('drizzle-orm')
 
 
+function buildCruiseLinePayload({ name, country, website, brandFamily, brandTheme, marketPositioning }) {
+  return Object.fromEntries(
+    Object.entries({ name, country, website, brandFamily, brandTheme, marketPositioning })
+      .filter(([, value]) => value !== undefined)
+  )
+}
 
 function addDays(dateString, daysToAdd) {
   const date = new Date(`${dateString}T00:00:00.000Z`)
@@ -163,7 +169,7 @@ exports.getShipsByCruiseLine = async (req, res, next) => {
 
 exports.insertCruiseLine = async (req, res, next) => {
   try {
-    const { name, country, website } = req.body
+    const { name, country, website, brandFamily, brandTheme, marketPositioning } = req.body
 
     const existingRows = await db
       .select()
@@ -177,7 +183,7 @@ exports.insertCruiseLine = async (req, res, next) => {
 
     const insertedRows = await db
       .insert(cruiseLineTable)
-      .values({ name, country, website })
+      .values(buildCruiseLinePayload({ name, country, website, brandFamily, brandTheme, marketPositioning }))
       .returning({ id: cruiseLineTable.id })
 
     return res.status(201).json({
@@ -230,7 +236,7 @@ exports.insertShip = async (req, res, next) => {
 exports.updateCruiseLine = async (req, res, next) => {
   try {
     const { id } = req.params
-    const { name, country, website } = req.body
+    const { name, country, website, brandFamily, brandTheme, marketPositioning } = req.body
 
     if (!id) {
       return res.status(400).json({ message: 'Cruise line ID is required' })
@@ -258,7 +264,7 @@ exports.updateCruiseLine = async (req, res, next) => {
 
     await db
       .update(cruiseLineTable)
-      .set({ name, country, website })
+      .set(buildCruiseLinePayload({ name, country, website, brandFamily, brandTheme, marketPositioning }))
       .where(eq(cruiseLineTable.id, id))
 
     return res.status(200).json({ message: 'Cruise line updated successfully' })

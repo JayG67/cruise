@@ -102,8 +102,8 @@ async function createCruiseLine(overrides = {}) {
   createdCruiseLineIds.push(insertedRows[0].id)
 
   return {
-    id: insertedRows[0].id,
-    ...payload
+    ...payload,
+    id: insertedRows[0].id
   }
 }
 
@@ -123,21 +123,27 @@ async function createShip(cruiseLineId, overrides = {}) {
 
   expect(cruiseLineRows[0]).toBeDefined()
 
-  const insertedRows = await db
-    .insert(shipTable)
-    .values(payload)
-    .returning({ id: shipTable.id })
+  // Create ships through the public API instead of inserting directly. The
+  // ship integration suite exercises controller-level CRUD behavior, and using
+  // the same write path as the application prevents cleanup or pool timing from
+  // making a freshly inserted helper record invisible to a subsequent HTTP
+  // DELETE request in slower local or CI runs.
+  const res = await request(app)
+    .post('/cruise/ship')
+    .send(payload)
 
-  expect(insertedRows[0]).toEqual(
+  expect(res.statusCode).toBe(201)
+  expect(res.body).toEqual(
     expect.objectContaining({
-      id: expect.any(String)
+      id: expect.any(String),
+      message: 'Ship created successfully'
     })
   )
 
-  createdShipIds.push(insertedRows[0].id)
+  createdShipIds.push(res.body.id)
 
   return {
-    id: insertedRows[0].id,
+    id: res.body.id,
     ...payload
   }
 }

@@ -11,7 +11,7 @@ export default function ConfirmActionPanel({
   if (!message) return null
 
   return (
-    <section className="react-confirm-action-panel" role="alertdialog" aria-labelledby={`${testId}-title`} aria-describedby={`${testId}-message`} data-testid={testId}>
+    <section className="react-confirm-action-panel" role="alertdialog" aria-modal="true" aria-labelledby={`${testId}-title`} aria-describedby={`${testId}-message`} data-testid={testId}>
       <div>
         <p className="eyebrow">Confirmation required</p>
         <h4 id={`${testId}-title`}>{title}</h4>

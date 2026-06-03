@@ -26,29 +26,23 @@ describe('React home and workspace parity', () => {
     cy.getByTestId('react-workspace-quality-button').should('contain.text', 'Quality Console')
   })
 
-  it('drives route summary state from workspace shortcuts', () => {
+  it('drives workspace shortcuts to real application sections', () => {
     cy.getByTestId('react-workspace-role-button').click()
-    cy.getByTestId('react-active-route-summary').should('contain.text', 'readiness')
+    cy.getByTestId('react-role-selector').should('be.visible')
     cy.getByTestId('react-workspace-operations-button').click()
-    cy.getByTestId('react-active-route-summary').should('contain.text', 'hierarchy')
+    cy.getByTestId('react-active-route-operations').should('be.visible')
     cy.getByTestId('react-workspace-fleet-button').click()
-    cy.getByTestId('react-active-route-summary').should('contain.text', 'roadmap')
+    cy.getByTestId('react-fleet-directory').should('be.visible')
     cy.getByTestId('react-workspace-quality-button').click()
-    cy.getByTestId('react-active-route-summary').should('contain.text', 'cutover')
+    cy.getByTestId('react-sqa-console').should('be.visible')
   })
 
-  it('keeps migration route panels mutually exclusive', () => {
-    cy.getByTestId('react-route-pilot').click()
-    cy.getByTestId('react-pilot-launch-panel').should('be.visible')
-    cy.getByTestId('react-pilot-parity-panel').should('not.exist')
-
-    cy.getByTestId('react-route-parity').click()
+  it('keeps migration and legacy review panels out of the product UI', () => {
+    cy.getByTestId('react-migration-route-nav').should('not.exist')
+    cy.getByTestId('react-release-readiness-section').should('not.exist')
     cy.getByTestId('react-pilot-launch-panel').should('not.exist')
-    cy.getByTestId('react-pilot-parity-panel').should('be.visible')
-
-    cy.getByTestId('react-route-handoff').click()
     cy.getByTestId('react-pilot-parity-panel').should('not.exist')
-    cy.getByTestId('react-migration-handoff-panel').should('be.visible')
+    cy.getByTestId('react-migration-handoff-panel').should('not.exist')
   })
 
   it('shows query status metadata for the React admin data load', () => {

@@ -2,6 +2,33 @@ export function getCustomerName(customer = {}) {
   return [customer.firstName, customer.lastName].filter(Boolean).join(' ') || customer.name || customer.id || 'Unknown customer'
 }
 
+export function getCustomerDirectoryName(customer = {}) {
+  const firstName = customer.firstName?.trim()
+  const lastName = customer.lastName?.trim()
+
+  if (lastName && firstName) return `${lastName}, ${firstName}`
+  if (lastName) return lastName
+  if (firstName) return firstName
+
+  return customer.name || customer.id || 'Unknown customer'
+}
+
+export function compareCustomersByDirectoryName(left = {}, right = {}) {
+  const leftLastName = (left.lastName || '').trim().toLocaleLowerCase()
+  const rightLastName = (right.lastName || '').trim().toLocaleLowerCase()
+  const lastNameComparison = leftLastName.localeCompare(rightLastName)
+
+  if (lastNameComparison !== 0) return lastNameComparison
+
+  const leftFirstName = (left.firstName || '').trim().toLocaleLowerCase()
+  const rightFirstName = (right.firstName || '').trim().toLocaleLowerCase()
+  const firstNameComparison = leftFirstName.localeCompare(rightFirstName)
+
+  if (firstNameComparison !== 0) return firstNameComparison
+
+  return String(left.id || '').localeCompare(String(right.id || ''))
+}
+
 export function getPassengerName(passenger = {}) {
   return getCustomerName(passenger.customer || passenger)
 }
@@ -27,7 +54,7 @@ export function getBookingRoute(booking = {}) {
 }
 
 export function buildCustomerBookingRows(customers = [], bookings = []) {
-  return customers.map(customer => {
+  return [...customers].sort(compareCustomersByDirectoryName).map(customer => {
     const linkedBookings = bookings.filter(booking => bookingMatchesCustomer(booking, customer.id))
     return { customer, linkedBookings }
   })
@@ -36,6 +63,7 @@ export function buildCustomerBookingRows(customers = [], bookings = []) {
 export function buildHierarchySearchText(customer = {}, linkedBookings = []) {
   const customerText = [
     getCustomerName(customer),
+    getCustomerDirectoryName(customer),
     customer.email,
     customer.phone,
     customer.loyaltyNumber

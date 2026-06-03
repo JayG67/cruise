@@ -85,4 +85,68 @@ describe('React ship lookup and CRUD parity', () => {
     cy.wait('@reloadUpdatedReactShips')
     cy.getByTestId('react-ship-action-message').should('contain.text', 'React Icon Plus')
   })
+
+
+  it('blocks blank ship creation before sending a network request', () => {
+    openFirstReactFleetShips()
+    cy.intercept('POST', '/cruise/ship').as('shipCreateShouldNotRun')
+    cy.getByTestId('react-create-ship-submit-button').click()
+    cy.getByTestId('react-ship-action-message').should('contain.text', 'Ship name is required')
+    cy.get('@shipCreateShouldNotRun.all').should('have.length', 0)
+  })
+
+  it('trims ship create values before submitting the API payload', () => {
+    openFirstReactFleetShips()
+    cy.intercept('POST', '/cruise/ship', req => {
+      expect(req.body).to.include({
+        cruiseLineId: reactCruiseLines[0].id,
+        name: 'Trimmed Ship',
+        currentPort: 'Seattle, Washington'
+      })
+      req.reply({ statusCode: 201, body: { id: 'ship-trimmed', ...req.body } })
+    }).as('createTrimmedShip')
+    cy.intercept('GET', `/cruise/ships/${reactCruiseLines[0].id}`, [...reactShips, {
+      id: 'ship-trimmed',
+      cruiseLineId: reactCruiseLines[0].id,
+      name: 'Trimmed Ship',
+      currentPort: 'Seattle, Washington'
+    }]).as('reloadTrimmedShips')
+
+    cy.getByTestId('react-create-ship-name-input').type('  Trimmed Ship  ')
+    cy.getByTestId('react-create-ship-current-port-input').type('  Seattle, Washington  ')
+    cy.getByTestId('react-create-ship-submit-button').click()
+    cy.wait('@createTrimmedShip')
+    cy.wait('@reloadTrimmedShips')
+    cy.getByTestId('react-ship-action-message').should('contain.text', 'Trimmed Ship was added')
+  })
+
+  it('cancels ship deletion without calling the API', () => {
+    openFirstReactFleetShips()
+    cy.intercept('DELETE', `/cruise/ship/${reactShips[0].id}`).as('shipDeleteShouldNotRun')
+    cy.getByTestId('react-ship-card').first().within(() => {
+      cy.getByTestId('react-delete-ship-button').click()
+    })
+    cy.getByTestId('react-fleet-delete-confirmation').should('contain.text', reactShips[0].name)
+    cy.getByTestId('react-fleet-delete-confirmation-cancel').click()
+    cy.get('@shipDeleteShouldNotRun.all').should('have.length', 0)
+    cy.getByTestId('react-ship-card').first().should('contain.text', reactShips[0].name)
+  })
+
+  it('confirms ship deletion and refreshes the selected fleet panel', () => {
+    openFirstReactFleetShips()
+    cy.intercept('DELETE', `/cruise/ship/${reactShips[0].id}`, {
+      statusCode: 200,
+      body: { message: 'Ship deleted successfully' }
+    }).as('deleteReactShip')
+    cy.intercept('GET', `/cruise/ships/${reactCruiseLines[0].id}`, [reactShips[1]]).as('reloadShipsAfterDelete')
+
+    cy.getByTestId('react-ship-card').first().within(() => {
+      cy.getByTestId('react-delete-ship-button').click()
+    })
+    cy.getByTestId('react-fleet-delete-confirmation-confirm').click()
+    cy.wait('@deleteReactShip')
+    cy.wait('@reloadShipsAfterDelete')
+    cy.getByTestId('react-ship-action-message').should('contain.text', `${reactShips[0].name} was deleted`)
+    cy.getByTestId('react-ship-card').should('have.length', 1).and('contain.text', reactShips[1].name)
+  })
 })

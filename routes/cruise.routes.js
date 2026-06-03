@@ -208,7 +208,6 @@ router.post(
 
 router.patch(
   '/itinerary-days/:id',
-  validate(itineraryDaySchema),
   cruiseController.updateItineraryDay
 )
 
@@ -225,7 +224,6 @@ router.post(
 
 router.patch(
   '/activities/:id',
-  validate(activityScheduleSchema),
   cruiseController.updateActivitySchedule
 )
 

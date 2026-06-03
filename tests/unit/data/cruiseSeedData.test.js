@@ -82,12 +82,19 @@ describe('cruise seed data model integrity', () => {
         expect.objectContaining({
           name: expect.any(String),
           country: expect.any(String),
-          website: expect.stringMatching(/^https?:\/\//)
+          website: expect.stringMatching(/^https?:\/\//),
+          brandFamily: expect.any(String),
+          brandTheme: expect.any(String),
+          marketPositioning: expect.any(String)
         })
       )
 
       expect(cruiseLine.name.trim()).not.toBe('')
       expect(cruiseLine.country.trim()).not.toBe('')
+      expect(cruiseLine.brandFamily.trim()).not.toBe('')
+      expect(cruiseLine.brandTheme.trim()).not.toBe('')
+      expect(cruiseLine.marketPositioning.trim()).not.toBe('')
+      expect(cruiseLine.marketPositioning).not.toMatch(/default|cruise explorer/i)
       expect(cruiseLine.ships.length).toBeGreaterThan(0)
     })
   })

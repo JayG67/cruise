@@ -1,8 +1,6 @@
 import { useMemo, useState } from 'react'
 
 import ConfirmActionPanel from './ConfirmActionPanel.jsx'
-import { getCruiseLineBranding } from '../domain/cruiseLineBranding.js'
-
 import {
   createItineraryActivity,
   createItineraryDay,
@@ -31,14 +29,20 @@ const EMPTY_SHIP_DRAFT = {
 const EMPTY_CRUISE_LINE_DRAFT = {
   name: '',
   country: '',
-  website: ''
+  website: '',
+  brandFamily: '',
+  brandTheme: '',
+  marketPositioning: ''
 }
 
 function buildCruiseLineDraft(cruiseLine = {}) {
   return {
     name: cruiseLine.name || '',
     country: cruiseLine.country || '',
-    website: cruiseLine.website || ''
+    website: cruiseLine.website || '',
+    brandFamily: cruiseLine.brandFamily || '',
+    brandTheme: cruiseLine.brandTheme || '',
+    marketPositioning: cruiseLine.marketPositioning || ''
   }
 }
 
@@ -169,7 +173,6 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
   }, [cruiseLines, searchTerm])
 
   const visibleCruiseLines = filteredCruiseLines.slice(0, 8)
-  const selectedBranding = selectedCruiseLine ? getCruiseLineBranding(selectedCruiseLine) : null
 
   async function reloadSelectedShips(cruiseLine = selectedCruiseLine) {
     if (!cruiseLine?.id) {
@@ -348,6 +351,9 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
 
   async function handleViewSailings(ship) {
     setSelectedShipForSailings(ship)
+    window.setTimeout(() => {
+      document.getElementById('react-sailings-heading')?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    }, 0)
     setSailings([])
     setSailingsError('')
     setSailingActionMessage('')
@@ -741,7 +747,10 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
       const payload = {
         name: trimmedName,
         country: cruiseLineDraft.country.trim(),
-        website: cruiseLineDraft.website.trim()
+        website: cruiseLineDraft.website.trim(),
+        brandFamily: cruiseLineDraft.brandFamily.trim(),
+        brandTheme: cruiseLineDraft.brandTheme.trim(),
+        marketPositioning: cruiseLineDraft.marketPositioning.trim()
       }
 
       const updatedCruiseLine = await updateCruiseLine(cruiseLine.id, payload)
@@ -872,9 +881,20 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
             {cruiseLine.website && (
               <a href={cruiseLine.website} target="_blank" rel="noreferrer">Visit website</a>
             )}
-            <p className="brand-theme-summary" data-testid="react-fleet-brand-summary">
-              <strong>Brand theme:</strong> {getCruiseLineBranding(cruiseLine).themeName}
-            </p>
+            <dl className="brand-theme-summary" data-testid="react-fleet-brand-summary">
+              <div>
+                <dt>Brand family</dt>
+                <dd>{cruiseLine.brandFamily || 'Not provided'}</dd>
+              </div>
+              <div>
+                <dt>Theme</dt>
+                <dd>{cruiseLine.brandTheme || 'Not provided'}</dd>
+              </div>
+              <div>
+                <dt>Positioning</dt>
+                <dd>{cruiseLine.marketPositioning || 'Not provided'}</dd>
+              </div>
+            </dl>
             <div className="fleet-card-actions" aria-label={`Actions for ${cruiseLine.name}`}>
               <button
                 type="button"
@@ -906,7 +926,7 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
             {activeCruiseLineEditId === cruiseLine.id && (
               <form className="react-inline-edit-form" onSubmit={event => handleUpdateCruiseLine(event, cruiseLine)} data-testid="react-cruise-line-edit-form">
                 <h4>Edit cruise line</h4>
-                <div className="react-inline-edit-grid">
+                <div className="react-inline-edit-grid cruise-line-brand-edit-grid">
                   <label>
                     <span>Cruise line name</span>
                     <input
@@ -929,6 +949,30 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
                       value={cruiseLineDraft.website}
                       onChange={event => setCruiseLineDraft(current => ({ ...current, website: event.target.value }))}
                       data-testid="react-edit-cruise-line-website"
+                    />
+                  </label>
+                  <label>
+                    <span>Brand family</span>
+                    <input
+                      value={cruiseLineDraft.brandFamily}
+                      onChange={event => setCruiseLineDraft(current => ({ ...current, brandFamily: event.target.value }))}
+                      data-testid="react-edit-cruise-line-brand-family"
+                    />
+                  </label>
+                  <label>
+                    <span>Brand theme</span>
+                    <input
+                      value={cruiseLineDraft.brandTheme}
+                      onChange={event => setCruiseLineDraft(current => ({ ...current, brandTheme: event.target.value }))}
+                      data-testid="react-edit-cruise-line-brand-theme"
+                    />
+                  </label>
+                  <label className="wide-inline-field">
+                    <span>Market positioning</span>
+                    <input
+                      value={cruiseLineDraft.marketPositioning}
+                      onChange={event => setCruiseLineDraft(current => ({ ...current, marketPositioning: event.target.value }))}
+                      data-testid="react-edit-cruise-line-market-positioning"
                     />
                   </label>
                 </div>
@@ -1030,7 +1074,7 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
                 {activeShipEditId === ship.id && (
                   <form className="react-inline-edit-form" onSubmit={event => handleUpdateShip(event, ship)} data-testid="react-ship-edit-form">
                     <h5>Edit ship</h5>
-                    <div className="react-inline-edit-grid">
+                    <div className="react-inline-edit-grid react-ship-edit-grid">
                       <label>
                         <span>Ship name</span>
                         <input

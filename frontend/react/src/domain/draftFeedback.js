@@ -22,7 +22,7 @@ export function createNoChangesFeedback(entityLabel) {
 }
 
 export function createSaveUnavailableFeedback(entityLabel) {
-  return createDraftFeedback('error', `${entityLabel} save boundary is not available in this React migration shell.`)
+  return createDraftFeedback('error', `${entityLabel} save boundary is not available in this portfolio application.`)
 }
 
 export function createSaveSuccessFeedback(fallbackMessage) {

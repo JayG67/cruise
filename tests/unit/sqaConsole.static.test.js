@@ -4,26 +4,24 @@ const path = require('path')
 const projectRoot = path.join(__dirname, '../..')
 
 describe('SQA console static safeguards', () => {
-  it('keeps safe CRUD ship payloads aligned with the API validation contract', () => {
-    const app = fs.readFileSync(path.join(projectRoot, 'public/app.js'), 'utf8')
-    const cypressSpec = fs.readFileSync(path.join(projectRoot, 'cypress/e2e/home.cy.js'), 'utf8')
+  it('keeps safe CRUD ship payloads aligned with the React SQA fixture contract', () => {
+    const sqaConsole = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactSqaConsole.jsx'), 'utf8')
+    const cypressSpec = fs.readFileSync(path.join(projectRoot, 'cypress/react/reactQualityConsole.cy.js'), 'utf8')
 
-    expect(app).toContain("currentPort: 'SQA Test Port'")
-    expect(app).toContain("currentPort: 'SQA Updated Test Port'")
-    expect(cypressSpec).toContain("currentPort: 'SQA Test Port'")
-    expect(cypressSpec).toContain("currentPort: 'SQA Updated Test Port'")
-    expect(cypressSpec).toContain('expect(req.body.name).to.match(/^SQA Temporary Ship')
+    expect(sqaConsole).toContain("title: 'Safe CRUD Workflow'")
+    expect(sqaConsole).toContain('temporaryRecordCreated')
+    expect(cypressSpec).toContain('runs UI smoke and safe CRUD validations without mutating data')
+    expect(cypressSpec).toContain('react-sqa-crud-button')
   })
 
   it('keeps the safe CRUD workflow cleanup result visible to manual SQA users', () => {
-    const app = fs.readFileSync(path.join(projectRoot, 'public/app.js'), 'utf8')
+    const sqaConsole = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactSqaConsole.jsx'), 'utf8')
 
-    expect(app).toContain('Safe CRUD Workflow Check Result')
-    expect(app).toContain('temporaryRecordCleanedUp: true')
-    expect(app).toContain('Safe CRUD Workflow Check Failed')
+    expect(sqaConsole).toContain("title: 'Safe CRUD Workflow'")
+    expect(sqaConsole).toContain('temporaryRecordCreated: false')
+    expect(sqaConsole).toContain('`${action.title} Failed`')
   })
 })
-
 
 describe('integration test fixture stability', () => {
   it('uses dynamic seeded booking lookup instead of hard-coded booking IDs for passenger overlap tests', () => {
@@ -42,16 +40,5 @@ describe('integration seed-data lookup resilience', () => {
 
     expect(sailingsSpec).toContain('Expected seeded cruise data to include at least one ship with a sailing')
     expect(factory).toContain('getSeededBookingWithPassengers,')
-  })
-})
-
-
-describe('SQA console Cypress contract stability', () => {
-  it('uses executable digit regexes for dynamic SQA ship names', () => {
-    const cypressSpec = fs.readFileSync(path.join(projectRoot, 'cypress/e2e/home.cy.js'), 'utf8')
-
-    expect(cypressSpec).toContain('/^SQA Temporary Ship \\d+$/')
-    expect(cypressSpec).toContain('/^SQA Temporary Ship \\d+ Updated$/')
-    expect(cypressSpec).not.toContain('/^SQA Temporary Ship \\\\d+$/')
   })
 })

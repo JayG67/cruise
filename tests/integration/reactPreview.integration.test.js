@@ -9,7 +9,6 @@ const loadCruiseData = require('../../services/loadCruiseData.service')
 const reactBuildDir = path.join(__dirname, '..', '..', 'dist', 'react')
 const reactIndexPath = path.join(reactBuildDir, 'index.html')
 let createdReactIndex = false
-const originalDefaultExperience = process.env.CRUISE_DEFAULT_EXPERIENCE
 
 beforeAll(async () => {
   await initializeDatabase()
@@ -19,17 +18,9 @@ beforeAll(async () => {
     fs.mkdirSync(reactBuildDir, { recursive: true })
     fs.writeFileSync(
       reactIndexPath,
-      '<!doctype html><html><head><title>Cruise Portfolio React Migration</title></head><body><div id="root">React preview test shell</div></body></html>'
+      '<!doctype html><html><head><title>Cruise Explorer Operations Console</title></head><body><div id="root">React application test shell</div></body></html>'
     )
     createdReactIndex = true
-  }
-})
-
-afterEach(() => {
-  if (originalDefaultExperience === undefined) {
-    delete process.env.CRUISE_DEFAULT_EXPERIENCE
-  } else {
-    process.env.CRUISE_DEFAULT_EXPERIENCE = originalDefaultExperience
   }
 })
 
@@ -39,57 +30,33 @@ afterAll(() => {
   }
 })
 
-describe('React preview hosting integration tests', () => {
-
-  it('GET / should serve the React shell by default after cutover', async () => {
-    delete process.env.CRUISE_DEFAULT_EXPERIENCE
-
+describe('React application hosting integration tests', () => {
+  it('GET / should serve the React application shell', async () => {
     const res = await request(app).get('/')
 
     expect(res.statusCode).toBe(200)
     expect(res.headers['content-type']).toContain('text/html')
-    expect(res.text).toContain('Cruise Portfolio React Migration')
+    expect(res.text).toContain('Cruise Explorer Operations Console')
     expect(res.text).not.toContain('data-testid="home-section"')
   })
 
-  it('GET / should serve the legacy DOM app when legacy rollback mode is enabled', async () => {
-    process.env.CRUISE_DEFAULT_EXPERIENCE = 'legacy'
-
-    const res = await request(app).get('/')
-
-    expect(res.statusCode).toBe(200)
-    expect(res.headers['content-type']).toContain('text/html')
-    expect(res.text).toContain('<title>Cruise Explorer</title>')
-    expect(res.text).toContain('data-testid="home-section"')
-  })
-
-  it('GET /legacy should keep the DOM application available after React default cutover', async () => {
-    delete process.env.CRUISE_DEFAULT_EXPERIENCE
-
-    const res = await request(app).get('/legacy')
-
-    expect(res.statusCode).toBe(200)
-    expect(res.headers['content-type']).toContain('text/html')
-    expect(res.text).toContain('<title>Cruise Explorer</title>')
-    expect(res.text).toContain('data-testid="home-section"')
-  })
-  it('GET /app-next should serve the built React preview shell from Express', async () => {
+  it('GET /app-next should remain a compatibility alias for the built React shell', async () => {
     const res = await request(app).get('/app-next')
 
     expect(res.statusCode).toBe(200)
     expect(res.headers['content-type']).toContain('text/html')
-    expect(res.text).toContain('Cruise Portfolio React Migration')
+    expect(res.text).toContain('Cruise Explorer Operations Console')
   })
 
   it('GET /app-next nested routes should fall back to the React shell', async () => {
-    const res = await request(app).get('/app-next/readiness')
+    const res = await request(app).get('/app-next/fleet')
 
     expect(res.statusCode).toBe(200)
     expect(res.headers['content-type']).toContain('text/html')
-    expect(res.text).toContain('Cruise Portfolio React Migration')
+    expect(res.text).toContain('Cruise Explorer Operations Console')
   })
 
-  it('GET /app-next should reference React assets under the /app-next route base', async () => {
+  it('GET /app-next should reference React assets under the /app-next route base when built assets include absolute asset paths', async () => {
     const res = await request(app).get('/app-next')
 
     expect(res.statusCode).toBe(200)
@@ -101,11 +68,7 @@ describe('React preview hosting integration tests', () => {
     }
   })
 
-
-
-  it('GET / should not expose legacy DOM JavaScript or CSS assets at the production root after React default cutover', async () => {
-    delete process.env.CRUISE_DEFAULT_EXPERIENCE
-
+  it('GET / should not expose retired DOM JavaScript or CSS assets at the production root', async () => {
     const legacyScriptRes = await request(app).get('/app.js')
     const legacyStylesRes = await request(app).get('/styles.css')
 
@@ -113,38 +76,29 @@ describe('React preview hosting integration tests', () => {
     expect(legacyStylesRes.statusCode).toBe(404)
   })
 
-  it('GET /legacy should continue to serve legacy DOM assets for rollback mode', async () => {
-    delete process.env.CRUISE_DEFAULT_EXPERIENCE
+  it('GET /legacy should no longer serve the retired DOM application', async () => {
+    const res = await request(app).get('/legacy')
 
+    expect(res.statusCode).toBe(404)
+    expect(res.text).not.toContain('data-testid="home-section"')
+  })
+
+  it('GET /legacy DOM assets should no longer be available', async () => {
     const legacyScriptRes = await request(app).get('/legacy/app.js')
     const legacyStylesRes = await request(app).get('/legacy/styles.css')
 
-    expect(legacyScriptRes.statusCode).toBe(200)
-    expect(legacyScriptRes.headers['content-type']).toContain('javascript')
-    expect(legacyStylesRes.statusCode).toBe(200)
-    expect(legacyStylesRes.headers['content-type']).toContain('text/css')
+    expect(legacyScriptRes.statusCode).toBe(404)
+    expect(legacyStylesRes.statusCode).toBe(404)
   })
 
-  it('GET / should restore legacy root assets only when rollback mode is enabled', async () => {
-    process.env.CRUISE_DEFAULT_EXPERIENCE = 'legacy'
-
-    const legacyScriptRes = await request(app).get('/app.js')
-    const legacyStylesRes = await request(app).get('/styles.css')
-
-    expect(legacyScriptRes.statusCode).toBe(200)
-    expect(legacyStylesRes.statusCode).toBe(200)
-  })
-
-  it('GET /images should keep shared visual assets available to the React default shell', async () => {
-    delete process.env.CRUISE_DEFAULT_EXPERIENCE
-
+  it('GET /images should keep shared visual assets available to the React application shell', async () => {
     const res = await request(app).get('/images/cruise-background.png')
 
     expect(res.statusCode).toBe(200)
     expect(res.headers['content-type']).toContain('image/png')
   })
 
-  it('GET /health should remain a JSON API route after React preview hosting is added', async () => {
+  it('GET /health should remain a JSON API route after React application hosting', async () => {
     const res = await request(app).get('/health')
 
     expect(res.statusCode).toBe(200)
