@@ -179,8 +179,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: React Cutover Completion Audit
-        run: npm run react:cutover:complete
+      - name: React Production Completion Audit
+        run: npm run react:production:complete
 
       - name: Verify test database connection
         run: npm run db:verify:test
