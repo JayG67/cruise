@@ -298,6 +298,7 @@ export default function CustomerBookingHierarchy({
             onCancel={cancelPendingDelete}
             isWorking={Boolean(activeDeleteId)}
             testId="react-admin-delete-confirmation"
+            variant="modal"
           />
 
           <div className="react-admin-mutation-grid">

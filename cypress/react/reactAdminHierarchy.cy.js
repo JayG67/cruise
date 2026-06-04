@@ -124,6 +124,7 @@ describe('React admin hierarchy coverage expansion', () => {
     cy.getByTestId('react-customer-row').first().within(() => {
       cy.getByTestId('react-delete-customer-row-button').click()
     })
+    cy.getByTestId('react-admin-delete-confirmation-overlay').should('be.visible')
     cy.getByTestId('react-admin-delete-confirmation').should('be.visible')
     cy.getByTestId('react-admin-delete-confirmation-cancel').click()
     cy.getByTestId('react-admin-delete-confirmation').should('not.exist')
