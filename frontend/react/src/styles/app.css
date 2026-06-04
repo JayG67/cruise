@@ -2880,7 +2880,7 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
 }
 
 .role-favorites-filter,
-.role-favorite-day-toggle {
+.role-favorite-activity-toggle {
   flex: 0 1 auto;
   max-width: 100%;
   min-width: 0;
@@ -2906,16 +2906,29 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
 }
 
 .role-activity-list li {
-  align-items: flex-start;
+  align-items: center;
   background: #f7fafc;
   border: 1px solid #e5eef7;
   border-radius: 0.75rem;
   display: flex;
   gap: 0.65rem;
+  justify-content: space-between;
   max-width: 100%;
   min-width: 0;
   overflow-wrap: anywhere;
   padding: 0.65rem;
+}
+
+.role-activity-list li > div {
+  align-items: center;
+  display: flex;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.role-favorite-activity-toggle {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .role-activity-list strong {
@@ -2926,7 +2939,9 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
 @media (max-width: 48rem) {
   .role-itinerary-heading,
   .role-itinerary-day-heading,
-  .role-activity-list li {
+  .role-activity-list li,
+  .role-activity-list li > div {
+    align-items: flex-start;
     flex-direction: column;
   }
 }
@@ -3377,5 +3392,107 @@ button.react-workspace-card .workspace-card-title,
 
   .react-confirm-action-panel--modal {
     border-radius: 1.25rem 1.25rem 0.75rem 0.75rem;
+  }
+}
+
+.passenger-booking-workflow {
+  border-inline-start: 0.35rem solid #0f91b2;
+}
+
+.passenger-booking-form {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.booking-search-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+
+.booking-search-grid label,
+.passenger-cabin-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.booking-search-grid span,
+.passenger-cabin-field span {
+  color: #39516b;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.booking-search-grid input,
+.booking-search-grid select,
+.passenger-cabin-field input {
+  border: 1px solid #bcd0e4;
+  border-radius: 0.8rem;
+  font: inherit;
+  padding: 0.75rem 0.85rem;
+  width: 100%;
+}
+
+.passenger-booking-guests {
+  border: 1px solid #d4e5f5;
+  border-radius: 1rem;
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.section-heading-row {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.section-heading-row h4,
+.section-heading-row p {
+  margin: 0;
+}
+
+.passenger-booking-guest-card {
+  border: 1px solid #d4e5f5;
+  border-radius: 1rem;
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 1rem;
+}
+
+.passenger-booking-guest-card legend {
+  font-weight: 800;
+  padding-inline: 0.35rem;
+}
+
+.secondary-action-button,
+.danger-outline-button {
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 0.65rem 1rem;
+}
+
+.secondary-action-button {
+  background: #eef8fd;
+  border: 1px solid #b6dbef;
+  color: #075f8f;
+}
+
+.danger-outline-button {
+  background: #fff7f7;
+  border: 1px solid #ffb7b7;
+  color: #c62424;
+  justify-self: start;
+}
+
+@media (max-width: 720px) {
+  .section-heading-row {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

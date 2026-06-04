@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import PassengerCruiseBookingWorkflow from './PassengerCruiseBookingWorkflow.jsx'
 
 import {
   findDemoCustomer,
@@ -51,7 +52,9 @@ function PassengerProfile({
   visibleBookings = [],
   onSavePassengerProfile,
   savingCustomerId = '',
-  mutationError = ''
+  mutationError = '',
+  cruiseLines = [],
+  onBookingCreated
 }) {
   const [draft, setDraft] = useState(() => buildPassengerProfileDraft(selectedCustomer, selectedDemoUser, visibleBookings))
   const [message, setMessage] = useState('')
@@ -136,11 +139,18 @@ function PassengerProfile({
   )
 }
 
-function RoleBookingDetails({ booking, favoriteDayKeys, favoritesOnly, onToggleFavorite, onToggleFavoritesOnly }) {
+function getActivityFavoriteKey(dayKey, activity = {}) {
+  return `${dayKey}::${activity.id || activity.time || activity.activity || activity.name || 'activity'}`
+}
+
+function RoleBookingDetails({ booking, favoriteActivityKeys, favoritesOnly, onToggleFavorite, onToggleFavoritesOnly }) {
   const passengers = getVisiblePassengerRows(booking)
   const itineraryDays = getBookingItineraryDays(booking)
   const visibleItineraryDays = favoritesOnly
-    ? itineraryDays.filter(day => favoriteDayKeys.has(String(day.id || day.day || day.title)))
+    ? itineraryDays.filter(day => {
+      const dayKey = String(day.id || day.day || day.title)
+      return getItineraryDayActivities(day).some(activity => favoriteActivityKeys.has(getActivityFavoriteKey(dayKey, activity)))
+    })
     : itineraryDays
 
   return (
@@ -175,7 +185,7 @@ function RoleBookingDetails({ booking, favoriteDayKeys, favoritesOnly, onToggleF
         <div className="role-itinerary-heading">
           <div>
             <h4>Cruise itinerary</h4>
-            <p>Passengers can review port days, activities, and save favorite itinerary days in React.</p>
+            <p>Passengers can review port days, activities, and save favorite itinerary activities.</p>
           </div>
           <label className="react-checkbox-label role-favorites-filter">
             <input
@@ -191,12 +201,15 @@ function RoleBookingDetails({ booking, favoriteDayKeys, favoritesOnly, onToggleF
         {itineraryDays.length === 0 ? (
           <p className="status-card compact" data-testid="react-role-no-itinerary">No itinerary details are available for this booking yet.</p>
         ) : visibleItineraryDays.length === 0 ? (
-          <p className="status-card compact" data-testid="react-role-no-favorite-itinerary">No favorite itinerary days selected yet.</p>
+          <p className="status-card compact" data-testid="react-role-no-favorite-itinerary">No favorite itinerary activities selected yet.</p>
         ) : (
           <div className="role-itinerary-list">
             {visibleItineraryDays.map(day => {
               const dayKey = String(day.id || day.day || day.title)
               const activities = getItineraryDayActivities(day)
+              const visibleActivities = favoritesOnly
+                ? activities.filter(activity => favoriteActivityKeys.has(getActivityFavoriteKey(dayKey, activity)))
+                : activities
 
               return (
                 <article className="role-itinerary-day" key={`${booking.id}-${dayKey}`} data-testid="react-role-itinerary-day">
@@ -205,27 +218,33 @@ function RoleBookingDetails({ booking, favoriteDayKeys, favoritesOnly, onToggleF
                       <h5>Day {day.day || '?'} — {day.title || 'Itinerary day'}</h5>
                       <p>{day.port || 'Port to be announced'}</p>
                     </div>
-                    <label className="react-checkbox-label role-favorite-day-toggle">
-                      <input
-                        type="checkbox"
-                        checked={favoriteDayKeys.has(dayKey)}
-                        onChange={() => onToggleFavorite(dayKey)}
-                        data-testid="react-role-favorite-itinerary-toggle"
-                      />
-                      <span>Favorite</span>
-                    </label>
                   </div>
 
                   {activities.length === 0 ? (
                     <p>No scheduled activities yet.</p>
                   ) : (
                     <ul className="role-activity-list">
-                      {activities.map(activity => (
-                        <li key={`${dayKey}-${activity.id || activity.time || activity.activity}`}>
-                          <strong>{activity.time || 'Time TBD'}</strong>
-                          <span>{activity.activity || activity.name || 'Activity to be announced'}</span>
-                        </li>
-                      ))}
+                      {visibleActivities.map(activity => {
+                        const activityKey = getActivityFavoriteKey(dayKey, activity)
+
+                        return (
+                          <li key={`${dayKey}-${activity.id || activity.time || activity.activity}`} data-testid="react-role-itinerary-activity">
+                            <div>
+                              <strong>{activity.time || 'Time TBD'}</strong>
+                              <span>{activity.activity || activity.name || 'Activity to be announced'}</span>
+                            </div>
+                            <label className="react-checkbox-label role-favorite-activity-toggle">
+                              <input
+                                type="checkbox"
+                                checked={favoriteActivityKeys.has(activityKey)}
+                                onChange={() => onToggleFavorite(activityKey)}
+                                data-testid="react-role-favorite-itinerary-toggle"
+                              />
+                              <span>Favorite activity</span>
+                            </label>
+                          </li>
+                        )
+                      })}
                     </ul>
                   )}
                 </article>
@@ -238,7 +257,7 @@ function RoleBookingDetails({ booking, favoriteDayKeys, favoritesOnly, onToggleF
   )
 }
 
-function RoleBookingCard({ booking, roleView, isExpanded, favoriteDayKeys, favoritesOnly, onToggleDetails, onToggleFavorite, onToggleFavoritesOnly }) {
+function RoleBookingCard({ booking, roleView, isExpanded, favoriteActivityKeys, favoritesOnly, onToggleDetails, onToggleFavorite, onToggleFavoritesOnly }) {
   const passengers = getVisiblePassengerRows(booking)
 
   return (
@@ -285,7 +304,7 @@ function RoleBookingCard({ booking, roleView, isExpanded, favoriteDayKeys, favor
       {isExpanded && (
         <RoleBookingDetails
           booking={booking}
-          favoriteDayKeys={favoriteDayKeys}
+          favoriteActivityKeys={favoriteActivityKeys}
           favoritesOnly={favoritesOnly}
           onToggleFavorite={onToggleFavorite}
           onToggleFavoritesOnly={onToggleFavoritesOnly}
@@ -302,13 +321,15 @@ export default function ReactRoleDashboard({
   visibleBookings = [],
   onSavePassengerProfile,
   savingCustomerId = '',
-  mutationError = ''
+  mutationError = '',
+  cruiseLines = [],
+  onBookingCreated
 }) {
   const roleView = getSelectedRoleView(selectedDemoUser)
   const selectedCustomer = findDemoCustomer(selectedDemoUser, customers)
   const title = getRoleDashboardTitle(roleView)
   const [expandedBookingIds, setExpandedBookingIds] = useState(() => new Set())
-  const [favoriteItineraryDaysByBooking, setFavoriteItineraryDaysByBooking] = useState({})
+  const [favoriteItineraryActivitiesByBooking, setFavoriteItineraryActivitiesByBooking] = useState({})
   const [favoritesOnlyByBooking, setFavoritesOnlyByBooking] = useState({})
   const visibleBookingIds = useMemo(() => new Set(visibleBookings.map(booking => booking.id)), [visibleBookings])
 
@@ -325,12 +346,12 @@ export default function ReactRoleDashboard({
     })
   }
 
-  function toggleFavoriteItineraryDay(bookingId, dayKey) {
-    setFavoriteItineraryDaysByBooking(current => {
+  function toggleFavoriteItineraryActivity(bookingId, activityKey) {
+    setFavoriteItineraryActivitiesByBooking(current => {
       const nextFavorites = new Set(current[bookingId] || [])
 
-      if (nextFavorites.has(dayKey)) nextFavorites.delete(dayKey)
-      else nextFavorites.add(dayKey)
+      if (nextFavorites.has(activityKey)) nextFavorites.delete(activityKey)
+      else nextFavorites.add(activityKey)
 
       return {
         ...current,
@@ -364,14 +385,23 @@ export default function ReactRoleDashboard({
       </p>
 
       {roleView === 'passenger' && (
-        <PassengerProfile
-          selectedCustomer={selectedCustomer}
-          selectedDemoUser={selectedDemoUser}
-          visibleBookings={visibleBookings}
-          onSavePassengerProfile={onSavePassengerProfile}
-          savingCustomerId={savingCustomerId}
-          mutationError={mutationError}
-        />
+        <>
+          <PassengerProfile
+            selectedCustomer={selectedCustomer}
+            selectedDemoUser={selectedDemoUser}
+            visibleBookings={visibleBookings}
+            onSavePassengerProfile={onSavePassengerProfile}
+            savingCustomerId={savingCustomerId}
+            mutationError={mutationError}
+          />
+          <PassengerCruiseBookingWorkflow
+            cruiseLines={cruiseLines}
+            customers={customers}
+            selectedCustomer={selectedCustomer}
+            selectedDemoUser={selectedDemoUser}
+            onBookingCreated={onBookingCreated}
+          />
+        </>
       )}
 
       <div className="role-booking-list">
@@ -379,7 +409,7 @@ export default function ReactRoleDashboard({
           <p className="status-card compact">No bookings are visible for this selected demo user.</p>
         ) : visibleBookings.map(booking => {
           const bookingId = booking.id || booking.bookingId
-          const favoriteDayKeys = new Set(favoriteItineraryDaysByBooking[bookingId] || [])
+          const favoriteActivityKeys = new Set(favoriteItineraryActivitiesByBooking[bookingId] || [])
 
           return (
             <RoleBookingCard
@@ -387,10 +417,10 @@ export default function ReactRoleDashboard({
               booking={booking}
               roleView={roleView}
               isExpanded={expandedBookingIds.has(bookingId)}
-              favoriteDayKeys={favoriteDayKeys}
+              favoriteActivityKeys={favoriteActivityKeys}
               favoritesOnly={Boolean(favoritesOnlyByBooking[bookingId])}
               onToggleDetails={() => toggleBookingDetails(bookingId)}
-              onToggleFavorite={dayKey => toggleFavoriteItineraryDay(bookingId, dayKey)}
+              onToggleFavorite={activityKey => toggleFavoriteItineraryActivity(bookingId, activityKey)}
               onToggleFavoritesOnly={() => toggleFavoritesOnly(bookingId)}
             />
           )

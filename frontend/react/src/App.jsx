@@ -51,7 +51,7 @@ function LazySectionFallback({ label }) {
 
 export default function App() {
   const applicationDataReady = useDeferredApplicationData()
-  const { snapshot, isLoading, error, reload } = useAdminHierarchySnapshot({ enabled: applicationDataReady })
+  const { snapshot, isLoading, error, reload, reloadNow } = useAdminHierarchySnapshot({ enabled: applicationDataReady })
   const { cruiseLines, isLoading: fleetLoading, isRefreshing: fleetRefreshing, error: fleetError, reload: reloadFleet } = useCruiseLines({ enabled: applicationDataReady })
   const { demoUsers, selectedDemoUser, selectedDemoUserId, setSelectedDemoUserId, isLoading: demoUsersLoading, error: demoUsersError } = useDemoUsers({ enabled: applicationDataReady })
   const [roleSwitchRequest, setRoleSwitchRequest] = useState(null)
@@ -296,10 +296,12 @@ export default function App() {
           selectedDemoUser={selectedDemoUser}
           customers={snapshot.customers}
           bookings={snapshot.bookings}
+          cruiseLines={cruiseLines}
           visibleBookings={visibleRoleBookings}
           onSavePassengerProfile={saveCustomerProfile}
           savingCustomerId={savingCustomerId}
           mutationError={mutationError}
+          onBookingCreated={reloadNow}
           />
         )}
       </Suspense>

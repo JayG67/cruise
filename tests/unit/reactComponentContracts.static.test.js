@@ -232,7 +232,7 @@ describe('React route preview accessibility contracts', () => {
     expect(styles).toContain('React passenger and group booking details coverage with the prior role dashboard')
     expect(styles).toContain('.role-booking-detail-panel')
     expect(styles).toContain('.role-itinerary-day')
-    expect(cypress).toContain('opens React passenger booking details and filters favorite itinerary days')
+    expect(cypress).toContain('opens React passenger booking details and filters favorite itinerary activities')
   })
 
 
