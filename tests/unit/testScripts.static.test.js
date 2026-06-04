@@ -73,6 +73,17 @@ describe('local test database script guardrails', () => {
     expect(packageJson.scripts['portfolio:audit']).not.toContain('retired')
   })
 
+  it('keeps Render production startup resilient when dashboard build settings are stale', () => {
+    const renderYaml = fs.readFileSync(path.join(projectRoot, 'render.yaml'), 'utf8')
+
+    expect(packageJson.scripts['start:prod']).toContain('npm run react:build')
+    expect(packageJson.scripts['start:prod']).toContain('node index.js')
+    expect(packageJson.dependencies.vite).toBeDefined()
+    expect(packageJson.dependencies['@vitejs/plugin-react']).toBeDefined()
+    expect(renderYaml).toContain('buildCommand: npm install --include=dev && npm run react:build')
+    expect(renderYaml).toContain('startCommand: npm run start:prod')
+  })
+
   it('keeps test all focused on the production React application gate', () => {
     expect(packageJson.scripts['test:all']).toContain('npm run test:inventory:audit')
     expect(packageJson.scripts['test:all']).toContain('npm run react:production:complete')
