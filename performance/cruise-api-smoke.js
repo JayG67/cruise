@@ -1,7 +1,7 @@
 import http from 'k6/http'
-import { check, group, sleep } from 'k6'
+import { check, sleep } from 'k6'
 
-const baseUrl = __ENV.BASE_URL || 'http://localhost:8000'
+const BASE_URL = (__ENV.BASE_URL || 'http://localhost:8000').replace(/\/$/, '')
 
 export const options = {
   vus: 3,
@@ -9,63 +9,64 @@ export const options = {
   thresholds: {
     http_req_failed: ['rate<0.01'],
     http_req_duration: ['p(95)<500'],
-    checks: ['rate>0.99']
-  }
+    checks: ['rate>0.99'],
+  },
 }
 
-function expectJsonResponse(response, expectedStatus = 200) {
+function expectJson(response) {
   return check(response, {
-    [`status is ${expectedStatus}`]: (res) => res.status === expectedStatus,
-    'response is JSON': (res) =>
-      String(res.headers['Content-Type'] || '').includes('application/json')
+    'response is JSON': res => String(res.headers['Content-Type'] || '').includes('application/json'),
   })
 }
 
 export default function () {
-  let cruiseLineId
-
-  group('health endpoint', () => {
-    const response = http.get(`${baseUrl}/health`)
-    expectJsonResponse(response)
-    check(response, {
-      'health response includes status': (res) =>
-        String(res.body || '').includes('status')
-    })
+  const health = http.get(`${BASE_URL}/health`)
+  check(health, {
+    'status is 200': res => res.status === 200,
+    'health response includes status': res => {
+      try {
+        return Boolean(res.json('status'))
+      } catch (error) {
+        return false
+      }
+    },
   })
+  expectJson(health)
 
-  group('cruise line list endpoint', () => {
-    const response = http.get(`${baseUrl}/cruise`)
-    expectJsonResponse(response)
-
-    const cruiseLines = response.json()
-
-    check(cruiseLines, {
-      'cruise line response is an array': (body) => Array.isArray(body),
-      'cruise line response has records': (body) => Array.isArray(body) && body.length > 0
-    })
-
-    if (Array.isArray(cruiseLines) && cruiseLines.length > 0) {
-      cruiseLineId = cruiseLines[0].id
-    }
+  const cruiseLines = http.get(`${BASE_URL}/cruise`)
+  check(cruiseLines, {
+    'status is 200': res => res.status === 200,
+    'cruise line response is an array': res => {
+      try {
+        return Array.isArray(res.json())
+      } catch (error) {
+        return false
+      }
+    },
+    'cruise line response has records': res => {
+      try {
+        return res.json().length > 0
+      } catch (error) {
+        return false
+      }
+    },
   })
+  expectJson(cruiseLines)
 
-  group('ship lookup endpoint', () => {
-    if (!cruiseLineId) {
-      check(null, {
-        'ship lookup skipped because no cruise line id was available': () => false
-      })
-      return
-    }
+  let cruiseLineId = null
+  try {
+    cruiseLineId = cruiseLines.json('0.id')
+  } catch (error) {
+    cruiseLineId = null
+  }
 
-    const response = http.get(`${baseUrl}/cruise/ships/${cruiseLineId}`)
-
-    check(response, {
-      'ships endpoint returns successful or no-ships response': (res) =>
-        [200, 404].includes(res.status),
-      'ships response is JSON': (res) =>
-        String(res.headers['Content-Type'] || '').includes('application/json')
+  if (cruiseLineId) {
+    const ships = http.get(`${BASE_URL}/cruise/ships/${cruiseLineId}`)
+    check(ships, {
+      'ships endpoint returns successful or no-ships response': res => res.status === 200 || res.status === 404,
     })
-  })
+    expectJson(ships)
+  }
 
   sleep(1)
 }

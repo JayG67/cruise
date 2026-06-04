@@ -3,60 +3,95 @@ const path = require('path')
 
 describe('browser test helper inventory', () => {
   const projectRoot = path.resolve(__dirname, '../..')
-  const adminWorkflowsPath = path.join(projectRoot, 'cypress/support/adminWorkflows.js')
-  const demoRolesPath = path.join(projectRoot, 'cypress/e2e/demoRoles.cy.js')
-  const mobileRoleDashboardPath = path.join(projectRoot, 'playwright/mobile/role-dashboard-mobile.spec.js')
+  it('keeps retired pre-React Cypress workflow helpers removed', () => {
+    const retiredAdminWorkflowsPath = path.join(projectRoot, 'cypress/support/adminWorkflows.js')
 
-  it('keeps repeated admin customer workflow actions consolidated in Cypress support helpers', () => {
-    const helpers = fs.readFileSync(adminWorkflowsPath, 'utf8')
-
-    expect(helpers).toContain('export function openAdminCustomerWorkflows')
-    expect(helpers).toContain('export function openAdminCustomerWorkflowsFor')
-    expect(helpers).toContain('export function expandCustomerBookings')
-    expect(helpers).toContain('export function collapseCustomerBookings')
-    expect(helpers).toContain('export function openFirstBookingEditor')
-    expect(helpers).toContain('export function saveOpenBookingCabin')
-    expect(helpers).toContain(".filter(':visible')")
-    expect(helpers).toContain('admin-customer-bookings-row-${customerId}')
-    expect(helpers).toContain("cy.wrap($button).should('have.attr', 'aria-expanded', 'true')")
-    expect(helpers).toContain("if ($button.attr('aria-expanded') !== 'true')")
+    expect(fs.existsSync(retiredAdminWorkflowsPath)).toBe(false)
   })
 
-  it('uses admin workflow helpers in the role dashboard Cypress suite', () => {
-    const spec = fs.readFileSync(demoRolesPath, 'utf8')
+  it('keeps React admin journey coverage self-contained after pre-React helper retirement', () => {
+    const reactSpecs = [
+      fs.readFileSync(path.join(projectRoot, 'cypress/react/reactApp.cy.js'), 'utf8'),
+      fs.readFileSync(path.join(projectRoot, 'cypress/react/reactAdminHierarchy.cy.js'), 'utf8'),
+      fs.readFileSync(path.join(projectRoot, 'cypress/react/reactRoleJourneyPermissions.cy.js'), 'utf8')
+    ].join('\n')
 
-    expect(spec).toContain("../support/adminWorkflows")
-    expect(spec).toContain('openAdminCustomerWorkflowsFor')
-    expect(spec).toContain('expandCustomerBookings')
-    expect(spec).toContain('openFirstBookingEditor')
-    expect(spec).toContain('saveOpenBookingCabin')
+    expect(reactSpecs).toContain('react-toggle-customer-workflows')
+    expect(reactSpecs).toContain('react-toggle-customer-bookings')
+    expect(reactSpecs).toContain('react-edit-booking-button')
+    expect(reactSpecs).toContain('react-save-booking-draft')
+    expect(reactSpecs).not.toContain('../support/adminWorkflows')
+    expect(reactSpecs).not.toContain('[data-cy=')
   })
 
-  it('keeps repeated Playwright mobile role-dashboard actions consolidated in local helpers', () => {
-    const spec = fs.readFileSync(mobileRoleDashboardPath, 'utf8')
+  it('keeps React default Cypress replacement coverage present', () => {
+    const specPath = path.join(projectRoot, 'cypress/react/reactApp.cy.js')
+    const spec = fs.readFileSync(specPath, 'utf8')
 
-    expect(spec).toContain('async function openAdminCustomerWorkflows')
-    expect(spec).toContain('async function hideAdminCustomerWorkflows')
-    expect(spec).toContain('async function searchAdminRecords')
-    expect(spec).toContain('async function expandCustomerBookingsFor')
+    expect(fs.existsSync(specPath)).toBe(true)
+    expect(spec).toContain("cy.visit('/')")
+    expect(spec).toContain("selectDemoUserByVisibleRole('Passenger')")
+    expect(spec).toContain("selectDemoUserByVisibleRole('Admin')")
+    expect(spec).toContain('react-sqa-health-button')
   })
 
-  it('opens duplicate booking editors from the clicked row context instead of a hidden duplicate', () => {
-    const app = fs.readFileSync(path.join(projectRoot, 'public/app.js'), 'utf8')
-    const helpers = fs.readFileSync(adminWorkflowsPath, 'utf8')
+  it('keeps React Cypress spec self-contained without testing-library commands', () => {
+    const specPath = path.join(projectRoot, 'cypress/react/reactApp.cy.js')
+    const spec = fs.readFileSync(specPath, 'utf8')
 
-    expect(app).toContain('showAdminBookingEditForm(button.dataset.bookingId, button)')
-    expect(app).toContain(`triggerButton?.closest('[data-cy="admin-booking-row"]')`)
-    expect(helpers).toContain(".filter(':visible')")
+    expect(spec).toContain("Cypress.Commands.add('getByTestId'")
+    expect(spec).toContain('cy.getByTestId')
+    expect(spec).not.toContain('cy.findByTestId')
+    expect(spec).not.toContain('cy.findByText')
   })
 
-  it('toggles duplicate booking detail rows from the clicked row context', () => {
-    const app = fs.readFileSync(path.join(projectRoot, 'public/app.js'), 'utf8')
+  it('keeps React Cypress isolated from retired pre-React discovery', () => {
+    const retiredSpecDir = path.join(projectRoot, 'cypress/e2e')
+    const reactSpecPath = path.join(projectRoot, 'cypress/react/reactApp.cy.js')
 
-    expect(app).toContain('toggleAdminBookingDetails(button.dataset.bookingId, button)')
-    expect(app).toContain(`button?.closest('[data-cy="admin-booking-row"]')`)
-    expect(app).toContain('bookingRow?.nextElementSibling')
-    expect(app).toContain(`row?.querySelector('[data-cy="admin-booking-details-panel"]')`)
+    expect(fs.existsSync(retiredSpecDir)).toBe(false)
+    expect(fs.existsSync(reactSpecPath)).toBe(true)
   })
 
+  it('keeps React Cypress delete confirmation deterministic through React panels', () => {
+    const specPath = path.join(projectRoot, 'cypress/react/reactApp.cy.js')
+    const spec = fs.readFileSync(specPath, 'utf8')
+
+    expect(spec).toContain("cy.getByTestId('react-fleet-delete-confirmation-cancel')")
+    expect(spec).toContain("cy.getByTestId('react-fleet-delete-confirmation-confirm')")
+    expect(spec).toContain("cy.getByTestId('react-admin-delete-confirmation-confirm')")
+    expect(spec).toContain("cy.getByTestId('react-sqa-reset-confirmation-confirm')")
+    expect(spec).not.toContain("cy.on('window:confirm', () => true)")
+  })
+
+  it('keeps React Cypress specs starting from an admin baseline', () => {
+    const specPath = path.join(projectRoot, 'cypress/react/reactApp.cy.js')
+    const spec = fs.readFileSync(specPath, 'utf8')
+
+    expect(spec).toContain('function visitReactAppAsAdmin')
+    expect(spec).toContain('visitReactAppAsAdmin()')
+    expect(spec).toContain("selectDemoUserByVisibleRole('Admin')")
+    expect(spec).toContain("cy.getByTestId('react-active-route-operations').should('be.visible')")
+  })
+
+  it('keeps React role switching test targeting the select control', () => {
+    const specPath = path.join(projectRoot, 'cypress/react/reactApp.cy.js')
+    const spec = fs.readFileSync(specPath, 'utf8')
+
+    expect(spec).toContain('switches through React role dashboards using the actual demo user select')
+    expect(spec).toContain("selectDemoUserByVisibleRole('Passenger')")
+    expect(spec).toContain("selectDemoUserByVisibleRole('Group Leader')")
+    expect(spec).toContain("selectDemoUserByVisibleRole('Admin')")
+    expect(spec).not.toContain("cy.get('[data-testid=\"react-role-selector\"]').select")
+  })
+
+  it('keeps React group leader dashboard assertion aligned with normalized role view', () => {
+    const specPath = path.join(projectRoot, 'cypress/react/reactApp.cy.js')
+    const spec = fs.readFileSync(specPath, 'utf8')
+    const roleView = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/roleView.js'), 'utf8')
+
+    expect(roleView).toContain("return 'group-leader'")
+    expect(spec).toContain("cy.getByTestId('react-group-leader-dashboard').should('be.visible')")
+    expect(spec).not.toContain("cy.getByTestId('react-group-dashboard')")
+  })
 })

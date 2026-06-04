@@ -32,6 +32,24 @@ const cruiseLineSchema = z.object({
     .trim()
     .url('Website must be a valid URL')
     .max(255, 'Website URL is too long')
+    .optional(),
+
+  brandFamily: z
+    .string()
+    .trim()
+    .max(255, 'Brand family is too long')
+    .optional(),
+
+  brandTheme: z
+    .string()
+    .trim()
+    .max(255, 'Brand theme is too long')
+    .optional(),
+
+  marketPositioning: z
+    .string()
+    .trim()
+    .max(500, 'Market positioning is too long')
     .optional()
 }).strict()
 
@@ -160,7 +178,7 @@ const customerSchema = z.object({
     .optional()
 }).strict()
 
-const diningPreferenceValues = [
+const diningPreferenceOptions = [
   'Early seating',
   'Late seating',
   'Anytime dining',
@@ -172,10 +190,11 @@ const diningPreferenceValues = [
   'Kids menu'
 ]
 
-const diningPreferenceSchema = z.preprocess(
-  value => (typeof value === 'string' ? value.trim() : value),
-  z.enum(diningPreferenceValues).optional()
-)
+const diningPreferenceSchema = z
+  .string()
+  .trim()
+  .pipe(z.enum(diningPreferenceOptions))
+  .optional()
 
 const bookingPassengerSchema = z.object({
   customerId: customerIdSchema,

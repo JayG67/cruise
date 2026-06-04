@@ -11,7 +11,10 @@ async function initializeDatabase() {
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       name varchar(255) NOT NULL,
       country varchar(255),
-      website varchar(255)
+      website varchar(255),
+      "brandFamily" varchar(255),
+      "brandTheme" varchar(255),
+      "marketPositioning" varchar(500)
     );
   `)
 
@@ -111,6 +114,17 @@ async function initializeDatabase() {
     );
   `)
 
+  await db.execute(sql`
+    ALTER TABLE cruise_lines ADD COLUMN IF NOT EXISTS "brandFamily" varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE cruise_lines ADD COLUMN IF NOT EXISTS "brandTheme" varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE cruise_lines ADD COLUMN IF NOT EXISTS "marketPositioning" varchar(500);
+  `)
 
 
   await db.execute(sql`

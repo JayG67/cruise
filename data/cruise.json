@@ -55221,7 +55221,10 @@
           ],
           "currentPort": "Miami, Florida"
         }
-      ]
+      ],
+      "brandFamily": "Royal Caribbean Group",
+      "brandTheme": "Adventure Innovation",
+      "marketPositioning": "Contemporary family, adventure, private-destination, and innovation-led cruising"
     },
     {
       "name": "Carnival Cruise Line",
@@ -110444,7 +110447,10 @@
           ],
           "currentPort": "Galveston, Texas"
         }
-      ]
+      ],
+      "brandFamily": "Carnival Corporation & plc",
+      "brandTheme": "Funship Value",
+      "marketPositioning": "Accessible, high-energy, value-oriented family vacation cruising"
     },
     {
       "name": "MSC Cruises",
@@ -154243,7 +154249,10 @@
           ],
           "currentPort": "Miami, Florida"
         }
-      ]
+      ],
+      "brandFamily": "MSC Group",
+      "brandTheme": "Mediterranean Resort",
+      "marketPositioning": "Global resort-style cruising with Mediterranean roots and large-ship family amenities"
     },
     {
       "name": "Norwegian Cruise Line",
@@ -192330,7 +192339,10 @@
           ],
           "currentPort": "Seattle, Washington"
         }
-      ]
+      ],
+      "brandFamily": "Norwegian Cruise Line Holdings",
+      "brandTheme": "Freestyle Resort",
+      "marketPositioning": "Flexible contemporary cruising with casual dining, entertainment, and schedule choice"
     },
     {
       "name": "Disney Cruise Line",
@@ -205665,7 +205677,10 @@
           ],
           "currentPort": "Port Canaveral, Florida"
         }
-      ]
+      ],
+      "brandFamily": "The Walt Disney Company",
+      "brandTheme": "Family Storytelling",
+      "marketPositioning": "Family-focused premium cruising built around entertainment, character experiences, and service"
     },
     {
       "name": "Margaritaville at Sea",
@@ -211384,7 +211399,10 @@
           ],
           "currentPort": "Palm Beach, Florida"
         }
-      ]
+      ],
+      "brandFamily": "Margaritaville at Sea",
+      "brandTheme": "Casual Island Getaway",
+      "marketPositioning": "Short-break, relaxed, value-conscious island cruising with casual resort energy"
     },
     {
       "name": "Celebrity Cruises",
@@ -239951,7 +239969,10 @@
           ],
           "currentPort": "Fort Lauderdale, Florida"
         }
-      ]
+      ],
+      "brandFamily": "Royal Caribbean Group",
+      "brandTheme": "Modern Premium Luxury",
+      "marketPositioning": "Premium resort-style cruising for culinary, wellness, design, and destination-focused guests"
     },
     {
       "name": "Princess Cruises",
@@ -272326,7 +272347,10 @@
           ],
           "currentPort": "Fort Lauderdale, Florida"
         }
-      ]
+      ],
+      "brandFamily": "Carnival Corporation & plc",
+      "brandTheme": "Premium Destination",
+      "marketPositioning": "Premium destination-led cruising with polished service and longer itinerary appeal"
     }
   ],
   "customers": [

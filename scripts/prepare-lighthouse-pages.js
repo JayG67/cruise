@@ -24,7 +24,52 @@ function findNewestFile(dir, extension) {
         modifiedTime: fs.statSync(fullPath).mtimeMs
       }
     })
-    .sort((a, b) => b.modifiedTime - a.modifiedTime)[0]
+    .sort((a, b) => b.modifiedTime - a.modifiedTime)[0] || null
+}
+
+function writeFallbackReport(reason) {
+  const generatedAt = new Date().toISOString()
+  const escapedReason = String(reason).replace(/[&<>"']/g, character => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  }[character]))
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cruise Fleet Operations Platform Lighthouse Report</title>
+</head>
+<body>
+  <main>
+    <h1>Lighthouse report unavailable</h1>
+    <p>The CI job did not produce a Lighthouse HTML report for this run.</p>
+    <p>${escapedReason}</p>
+  </main>
+</body>
+</html>`
+
+  const json = {
+    generatedAt,
+    unavailable: true,
+    reason
+  }
+
+  fs.writeFileSync(latestHtml, html)
+  fs.writeFileSync(latestJson, JSON.stringify(json, null, 2))
+
+  return {
+    generatedAt,
+    sourceHtmlReport: null,
+    sourceJsonReport: null,
+    latestReport: 'index.html',
+    fallback: true,
+    reason
+  }
 }
 
 ensureDirectory(outputDir)
@@ -32,21 +77,24 @@ ensureDirectory(outputDir)
 const htmlReport = findNewestFile(sourceDir, '.html')
 const jsonReport = findNewestFile(sourceDir, '.json')
 
-if (!htmlReport) {
-  throw new Error(`No Lighthouse HTML report found in ${sourceDir}`)
-}
+let metadata
 
-fs.copyFileSync(htmlReport.fullPath, latestHtml)
+if (htmlReport) {
+  fs.copyFileSync(htmlReport.fullPath, latestHtml)
 
-if (jsonReport) {
-  fs.copyFileSync(jsonReport.fullPath, latestJson)
-}
+  if (jsonReport) {
+    fs.copyFileSync(jsonReport.fullPath, latestJson)
+  }
 
-const metadata = {
-  generatedAt: new Date().toISOString(),
-  sourceHtmlReport: htmlReport.file,
-  sourceJsonReport: jsonReport ? jsonReport.file : null,
-  latestReport: 'index.html'
+  metadata = {
+    generatedAt: new Date().toISOString(),
+    sourceHtmlReport: htmlReport.file,
+    sourceJsonReport: jsonReport ? jsonReport.file : null,
+    latestReport: 'index.html',
+    fallback: false
+  }
+} else {
+  metadata = writeFallbackReport(`No Lighthouse HTML report found in ${sourceDir}`)
 }
 
 fs.writeFileSync(

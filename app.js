@@ -1,6 +1,7 @@
 require('dotenv/config')
 
 const path = require('path')
+const fs = require('fs')
 const express = require('express')
 const compression = require('compression')
 
@@ -10,6 +11,38 @@ const { serverLogger } = require('./middleware/loggers')
 
 const app = express()
 
+const reactBuildDir = path.join(__dirname, 'dist', 'react')
+const reactIndexPath = path.join(reactBuildDir, 'index.html')
+const publicImagesDir = path.join(__dirname, 'public', 'images')
+
+function setLongTermAssetCache(res) {
+  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+}
+
+function setReactBuildCache(res, filePath) {
+  if (filePath.endsWith('index.html')) {
+    res.setHeader('Cache-Control', 'no-cache')
+    return
+  }
+
+  setLongTermAssetCache(res)
+}
+
+function sendReactApp(req, res, next) {
+  if (!fs.existsSync(reactIndexPath)) {
+    return res.status(404).type('text/plain').send(
+      'React application build was not found. Run npm run react:build before opening the app.'
+    )
+  }
+
+  res.setHeader('Cache-Control', 'no-cache')
+
+  return res.sendFile(reactIndexPath, (err) => {
+    if (err) {
+      next(err)
+    }
+  })
+}
 
 function securityHeaders(req, res, next) {
   res.setHeader('X-Content-Type-Options', 'nosniff')
@@ -36,7 +69,10 @@ function securityHeaders(req, res, next) {
 app.use(securityHeaders)
 app.use(compression())
 
-app.use(express.static(path.join(__dirname, 'public')))
+app.use('/images', express.static(publicImagesDir, { redirect: false, setHeaders: setLongTermAssetCache }))
+app.use(express.static(reactBuildDir, { redirect: false, setHeaders: setReactBuildCache }))
+app.get('/', sendReactApp)
+
 app.use(express.json())
 app.use(serverLogger)
 
@@ -47,9 +83,16 @@ app.get('/health', (req, res) => {
 app.use('/cruise', cruiseRouter)
 app.use('/admin', adminRouter)
 
+app.get(/^\/(?!cruise|admin|health|images|retired)(?:.*)?$/, sendReactApp)
+
 app.use((err, req, res, next) => {
   console.error(err)
-  res.status(500).json({
+
+  if (res.headersSent) {
+    return next(err)
+  }
+
+  return res.status(500).json({
     message: 'Internal server error',
     error: err.message
   })

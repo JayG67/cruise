@@ -5,7 +5,7 @@ services:
     plan: starter
     region: virginia
     branch: main
-    buildCommand: npm install
+    buildCommand: npm install && npm run react:build
     startCommand: npm run start:prod
     healthCheckPath: /health
     autoDeployTrigger: checksPass

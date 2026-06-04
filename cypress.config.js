@@ -4,7 +4,7 @@ module.exports = defineConfig({
   allowCypressEnv: false,
   e2e: {
     baseUrl: 'http://localhost:8000',
-    specPattern: 'cypress/e2e/**/*.cy.js',
+    specPattern: 'cypress/react/**/*.cy.js',
     supportFile: false
   }
 })

@@ -1,6 +1,6 @@
-# 🚢 Cruise Explorer
+# Cruise Fleet Operations Platform
 
-## Full-Stack Cruise Management Platform & SQA Engineering Portfolio
+## Full-Stack Cruise Operations Platform & Quality Engineering Portfolio
 
 [![Cruise CI](https://github.com/JayG67/cruise/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JayG67/cruise/actions/workflows/ci.yml)
 [![Production App](https://img.shields.io/badge/production-live-00b894)](https://cruise-explorer.onrender.com/)
@@ -16,355 +16,44 @@
 
 ---
 
-## 🔗 Live Links
+## Overview
 
-- **Production app:** https://cruise-explorer.onrender.com/
-- **Quality dashboard:** https://jayg67.github.io/cruise/
-- **Coverage report:** https://jayg67.github.io/cruise/coverage/
-- **Mobile Lighthouse report:** https://jayg67.github.io/cruise/lighthouse/
-- **GitHub Actions:** https://github.com/JayG67/cruise/actions/workflows/ci.yml
+Cruise Fleet Operations Platform is a full-stack React, Node.js, Express, and PostgreSQL application designed to model real-world cruise-line operations. The platform began as a cruise management application and has evolved into a broader operational platform covering passenger services, fleet management, quality engineering, and future shipboard operations domains.
 
----
+The React architecture is now the production UI. Migration work is complete and ongoing development is focused on expanding operational capabilities and enterprise-grade workflows.
 
-## 📖 Overview
-
-Cruise Explorer is a full-stack cruise management and Principal SQA engineering portfolio project. It is designed to show more than basic CRUD functionality: the application demonstrates role-aware UI behavior, relational data modeling, accessibility-focused frontend engineering, CI/CD quality gates, layered automated testing, mobile-first operational UX, and AI-enabled quality strategy.
-
-The project currently includes:
-
-- Cruise line, ship, sailing, itinerary, customer, booking, and passenger data workflows
-- Admin, passenger, and group-leader demo roles
-- Workspace-first navigation for faster movement through operational areas
-- A recommended operations path that turns the page from a long feature list into a guided console workflow
-- Principal SQA / AI-enabled quality positioning documented in the README instead of consuming functional application workspace
-- Admin customer-centered workflow management with inline expandable child bookings
-- Passenger self-service profile and booking preference updates
-- Itinerary activity browsing and favorite activity selection
-- Searchable customer workflows that also match linked booking, passenger, cabin, ship, route, status, and loyalty data
-- Progressive disclosure through expandable customer rows, linked booking rows, and booking detail panels
-- Mobile, tablet, and desktop responsive behavior
-- Accessibility-oriented HTML, CSS, and JavaScript patterns
-- Unit, integration, Cypress, Playwright, Lighthouse, and k6 validation
-
-This repository is intentionally maintained as a recruiter-facing engineering and testing showcase.
-
----
-
-## ✨ Application Features
-
-### Cruise Line Directory
-
-- Browse all cruise lines
-- Search cruise lines by name or country
-- View ships by cruise line
-- Create, update, and delete cruise lines
-- Create, update, and delete ships
-- Preserve clean startup state so hidden workflow panels do not appear until selected
-
-### Ship, Sailing, and Itinerary Workflows
-
-- View sailings by ship
-- View itinerary details by sailing
-- Manage sailing CRUD workflows
-- Manage itinerary days and activity CRUD workflows
-- Display expanded itinerary activity schedules
-- Include cruise-realistic itinerary activities, dress nights, onboard events, sea days, and disembarkation-focused final-day activities
-
-### Demo Role System
-
-The application supports demo personas without adding real authentication yet. This keeps the portfolio easy for recruiters and engineers to review while still demonstrating role-aware product behavior.
-
-Supported role perspectives include:
-
-- **Admin:** full operational visibility and management workflows
-- **Passenger:** limited access to personal bookings and profile preferences
-- **Group leader:** visibility into grouped passenger bookings
-
-Role switching resets selected workflow state so stale admin or cruise details are not accidentally carried into another perspective.
-
----
-
-
-## 🧭 Workspace-First Navigation
-
-The first phase of the UX redesign introduces a workspace navigation layer.
-
-The application now includes:
-
-- A dedicated workspace rail for moving between major operational regions
-- Direct links to role simulation, admin operations, fleet management, create workflows, ship/sailing/itinerary panels, and quality controls
-- Workspace overview cards that act as intentional entry points rather than disconnected decorative cards
-- Faster movement between role simulation, fleet management, admin operations, and quality controls
-- Accessible landmark and link structure for keyboard and screen-reader users
-- Layout-regression tests that verify the workspace rail can be brought fully into view at desktop, tablet, and mobile sizes without horizontal overflow
-- Scroll-offset protection so admin edit forms remain reachable without forced Cypress clicks
-- AI Quality workspace access from both primary navigation and workspace navigation
-
-This is the first step away from a purely vertical feature stack and toward a more realistic enterprise operations console. The current phase intentionally stabilizes navigation and admin edit reachability before larger Tier 1 roadmap work such as tabbed workspaces, sortable tables, pagination, filtering, and slide-out detail drawers.
-
-### Current UX Stabilization Batch
-
-The workspace navigation has been hardened for a cleaner mobile-first operations-console experience:
-
-- Workspace navigation now wraps instead of hiding actions behind horizontal rail scrolling.
-- The rail is constrained to the viewport with explicit max-width and overflow protection.
-- Primary navigation now wraps at tablet widths so long recruiter-facing labels do not widen the document and push the workspace rail offscreen.
-- In-page navigation uses deterministic scrolling so Cypress, keyboard users, and anchor links land predictably.
-- Cypress coverage now validates rail containment across desktop, tablet, narrow desktop, and mobile viewport sizes, including repeated anchor jumps after selecting workspace links.
-- The previous README-style Principal SQA / AI quality showcase was removed from the application because it did not provide user-facing workflow functionality. The README still carries that positioning; the application now reserves screen space for operational tasks.
-- Static coverage was updated to guard against reintroducing documentation-only content into the app chrome while keeping the quality controls reachable from the recommended workflow.
-
-
-## 🤖 Principal SQA / AI-Enabled Quality Positioning
-
-This repository still intentionally presents Principal SQA and AI-enabled quality thinking, but that story belongs primarily in the README, tests, and project structure rather than taking up application workspace with non-interactive marketing content.
-
-The portfolio positioning emphasizes:
-
-- **Release readiness:** quality-gate judgment instead of test-count-only reporting
-- **AI-assisted risk review:** hallucination safeguards, human review expectations, and source-backed acceptance criteria
-- **Healthcare-grade audit thinking:** traceability, high-risk data change validation, accessibility, and no-silent-failure behavior
-- **Automation architecture:** unit, integration, API, Cypress, Playwright, performance, Lighthouse, and CI/CD quality layers
-
-This is especially relevant for AI-enabled QA roles where the value is not simply using AI to generate tests. The value is knowing how to evaluate AI output, constrain risk, preserve auditability, and turn AI acceleration into reviewed engineering assets.
-
-## 🛠️ Admin Operations Dashboard
-
-The admin dashboard has been redesigned around scalable operational workflows.
-
-### Admin Search
-
-Admin search is visible immediately and works before any large table is opened. It searches across:
-
-- Customer names
-- Customer email
-- Phone
-- Loyalty number
-- Booking ID
-- Booking status
-- Cabin number
-- Fare code
-- Cruise line
-- Ship
-- Sailing date
-- Route
-- Passenger names
-
-### Customer-Centered Parent / Child Workflows
-
-The admin dashboard now uses customers as the operational parent record. Bookings are no longer displayed as a disconnected top-level table. Instead, admins open the customer workflow table, expand a customer row to view linked booking child rows, then expand an individual booking to view additional details.
-
-This better reflects the real relationship between customer records, bookings, passengers, and cruise operations while making better use of application space.
-
-### Edit Workflow Reachability
-
-Customer and booking edit workflows are still rendered inline for this phase, but they now appear in the correct hierarchy:
-
-- Customer edits open from the parent customer row.
-- Booking edits open from the expanded booking child row.
-- Booking details can be expanded and collapsed independently before choosing to edit.
-
-The layout and Cypress coverage treat reachability as part of the UX contract. Edit forms are scrolled into a usable workspace position before typing, and CSS scroll margins keep focused editor fields clear of sticky navigation.
-
-### Progressive Disclosure
-
-Large datasets are hidden by default. The admin can explicitly open or close the customer workflow table with:
-
-- **Show Customer Workflows → Hide Customer Workflows**
-
-Bookings are intentionally revealed only in the customer context, which reduces disconnected tables and makes the page more manageable when there are many customers or bookings.
-
-### Admin Tables
-
-The admin workflow table is:
-
-- Customer-centered
-- Parent/child expandable
-- Search-filtered across customer and booking fields
-- Accessible with captions and labeled regions
-- Designed for large operational datasets without forcing bookings into a separate unrelated table
-- Protected by Cypress, Playwright, and static accessibility tests
-
-### Admin Editing
-
-Admin users can:
-
-- Edit customer profile details
-- Edit booking details
-- Update cabin, fare, route, and booking metadata
-- Save changes through API-backed workflows
-
----
-
-## 🧳 Passenger Experience
-
-Passenger users can:
-
-- View only their authorized bookings
-- View cruise, ship, cabin, route, and sailing details
-- See visible passengers on their booking
-- Update limited personal profile fields
-- Select controlled dining preferences from a dropdown
-- Mark itinerary activities as favorites
-- Filter itinerary activities to show all items or only favorites
-- Open multiple booking detail panels at the same time
-- Hide individual booking detail panels
-
----
-
-## ♿ Accessibility Engineering
-
-Accessibility is treated as a core engineering requirement.
-
-The application includes:
-
-- Semantic landmarks
-- Skip navigation
-- Accessible form labels
-- ARIA live regions
-- ARIA expanded/collapsed states
-- ARIA hidden states for collapsed panels
-- Screen-reader-friendly status messages
-- Keyboard-focus visibility
-- Accessible star-style favorite controls
-- Semantic admin tables with captions
-- Hidden-panel checks so collapsed admin datasets are not exposed incorrectly
-
-Accessibility is validated through static unit tests, Cypress accessibility tests, and responsive Playwright checks.
-
----
-
-## 📱 Responsive and Mobile Engineering
-
-The application is tested across desktop, tablet, and mobile workflows.
-
-Responsive validation includes:
-
-- Mobile Chrome
-- Mobile Safari
-- Tablet Safari
-- Desktop Chrome
-- Desktop Safari
-- Tablet Chrome
-
-The tests verify:
-
-- No unexpected horizontal overflow
-- Touch targets remain usable
-- Admin tables remain manageable
-- Role dashboard remains readable
-- Passenger booking panels remain anchored correctly
-- Fleet, ship, sailing, and itinerary workflows remain usable across viewports
-
----
-
-## 🧪 Testing Strategy
-
-Testing is the centerpiece of this portfolio.
-
-The project intentionally includes both positive and negative testing. The goal is not only to prove that features work, but also to prove that incorrect UI states, stale data, unauthorized controls, and hidden panels do not appear when they should not.
-
-### Unit Tests
-
-Unit and static tests cover:
-
-- Controllers
-- Validation schemas
-- Middleware
-- Security headers
-- Seed data integrity
-- Accessibility markup safeguards
-- Playwright coverage inventory
-- Quality dashboard configuration
-- Admin progressive disclosure expectations
-- Hidden-state and ARIA-state safeguards
-
-### Integration Tests
-
-Integration tests validate API behavior against PostgreSQL-backed workflows, including:
+## Current Functional Areas
 
 - Cruise lines
+- Fleet management
 - Ships
 - Sailings
-- Itinerary days
-- Activities
+- Itineraries
 - Customers
 - Bookings
-- Demo roles
-- Admin reset
-- Accessibility payload support
-- Passenger booking preferences
-- Itinerary favorites
+- Passenger self-service workflows
+- Admin operational workflows
+- Role-aware application behavior
+- Quality engineering dashboards
+- Automated testing and CI/CD quality gates
 
-### Cypress E2E Tests
-
-Cypress validates real browser workflows, including:
-
-- Workspace navigation and operational overview cards
-- Workspace rail viewport containment and horizontal-overflow prevention
-- Cruise line CRUD
-- Ship CRUD
-- Sailing and itinerary workflows
-- Search
-- Reset demo data
-- SQA control panel
-- Accessibility checks
-- Role switching
-- Admin customer and booking search
-- Admin show/hide table behavior
-- Admin edit workflows
-- Passenger profile updates
-- Passenger itinerary favorites
-- Negative assertions for hidden and unauthorized UI
-
-### Playwright Tests
-
-Playwright validates:
-
-- Mobile role dashboard behavior
-- Workspace navigation usability across responsive layouts
-- Desktop and tablet workspace rail containment
-- Mobile Safari and Chrome workflows
-- Tablet behavior
-- Desktop responsive behavior
-- Keyboard navigation
-- Horizontal overflow protection
-- Admin progressive disclosure on mobile
-
-### Performance and Quality Gates
-
-The project includes:
-
-- Lighthouse CI
-- k6 performance smoke checks
-- Jest coverage reports
-- GitHub Pages quality dashboard publication
-- CI pipeline validation
-
----
-
-## 🧰 Tech Stack
+## Technology Stack
 
 ### Frontend
-
-- HTML5
+- React
+- Vite
 - CSS3
-- Vanilla JavaScript
 - Accessible responsive UI patterns
 
 ### Backend
-
 - Node.js
 - Express
-- RESTful APIs
 
 ### Database
-
 - PostgreSQL
 - Drizzle ORM
 
-### Testing and Quality
-
+### Quality Engineering
 - Jest
 - Supertest
 - Cypress
@@ -373,179 +62,71 @@ The project includes:
 - k6
 - GitHub Actions
 
-### Deployment
+## Future Roadmap
 
-- Render
-- GitHub Pages quality dashboard
+### Fleet Operations
+- Fleet-wide vessel dashboards
+- Fleet health monitoring
+- Fleet deployment planning
+- Dry dock scheduling
+- Fleet readiness reporting
+
+### Shipboard Operations
+- Hotel operations management
+- Housekeeping workflows
+- Laundry operations
+- Guest services management
+- Shore excursion operations
+
+### Food & Beverage Operations
+- Inventory management
+- Provision loading
+- Restaurant operations
+- Specialty dining management
+- Beverage logistics
+
+### Marine & Engineering Operations
+- Maintenance tracking
+- Engineering work orders
+- Equipment lifecycle management
+- Safety inspection workflows
+- Regulatory compliance tracking
+
+### Crew Operations
+- Crew manifests
+- Department assignments
+- Training records
+- Certifications
+- Crew scheduling
+
+### Turnaround-Day Operations
+- Embarkation planning
+- Debarkation planning
+- Cabin readiness tracking
+- Port logistics coordination
+- Vendor scheduling
+
+### Executive Operations
+- KPI dashboards
+- Revenue analytics
+- Occupancy forecasting
+- Customer satisfaction metrics
+- Operational risk management
+
+## Testing Strategy
+
+The platform uses layered quality validation:
+
+- Unit Testing
+- Integration Testing
+- Cypress End-to-End Testing
+- Playwright Mobile and Responsive Testing
+- Lighthouse Quality Gates
+- k6 Performance Validation
 - GitHub Actions CI/CD
 
----
-
-## 🚀 Getting Started
-
-### Install dependencies
-
-```bash
-npm install
-```
-
-### Start the app locally
-
-```bash
-npm start
-```
-
-The application runs locally at:
-
-```text
-http://localhost:8000
-```
-
----
-
-## 🧭 Current UX Direction
-
-The current UX direction is mobile-first and workflow-first. The application is being intentionally moved away from a long vertically stacked CRUD page toward an operations console that helps a reviewer understand the intended path through the system:
-
-1. choose a role,
-2. review the visible customer and booking context,
-3. manage fleet, ships, sailings, and itinerary data,
-4. run the quality control checks that verify health, contracts, CRUD safety, performance, rendering consistency, seed integrity, and deployment diagnostics.
-
-The recommended workflow guide near the top of the app is the first step in making the portfolio feel more like an enterprise operations platform and less like a collection of unrelated feature panels.
-
-
-
-### Unit tests
-
-```bash
-npm run unitTests
-```
-
-### Coverage
-
-```bash
-npm run coverage
-```
-
-### Integration tests
-
-```bash
-npm run integrationTests
-```
-
-### Cypress UI tests
-
-```bash
-npm run uiTests
-```
-
-### Playwright mobile tests
-
-```bash
-npm run playwright:mobile:local
-```
-
-### Playwright responsive tests
-
-```bash
-npm run playwright:responsive:local
-```
-
-### k6 performance smoke tests
-
-```bash
-npm run perf:smoke:local
-```
-
-### Lighthouse CI locally
-
-```bash
-npm run lighthouse:ci:local
-```
-
-### Full validation suite
-
-```bash
-npm run test:all
-```
-
----
-
-## 📊 Quality Dashboard
-
-The project publishes a GitHub Pages quality dashboard that links to:
-
-- Latest quality summary
-- Lighthouse report
-- Jest coverage report
-- CI evidence
-
-Dashboard:
-
-```text
-https://jayg67.github.io/cruise/
-```
-
----
-
-## 🧹 Repository Hygiene
-
-Generated artifacts should not be committed directly unless they are intentionally part of the repository.
-
-Examples of generated outputs that should stay out of normal commits include:
-
-- Local Lighthouse output
-- Playwright reports
-- Cypress screenshots/videos
-- Temporary test output
-- Local coverage artifacts unless intentionally published through CI
-
-The repository includes hygiene checks and documentation to keep the portfolio clean and reviewable.
-
----
-
-## 🎯 Portfolio Purpose
-
-This project is built to demonstrate complete project engineering, not just isolated coding ability.
-
-It highlights:
-
-- Senior and Principal SQA thinking
-- Workflow-first UX architecture for operational systems
-- Full-stack engineering capability
-- Test automation design
-- Accessibility engineering
-- CI/CD quality gates
-- Responsive UI validation
-- API and database validation
-- Negative-path testing
-- Production deployment awareness
-- Recruiter-friendly documentation
-
----
-
-## 🧭 Future Roadmap
-
-Potential next steps include:
-
-- Continue moving the UI from vertically stacked CRUD into a guided operations console
-- Workspace tabs for admin operations
-- Slide-out edit drawers for customer and booking management
-- Advanced filter controls for admin datasets
-- Real authentication after the demo experience remains easy to review
-- Pagination for admin customer and booking tables
-- Column sorting for admin tables
-- Larger simulated booking datasets
-- More granular admin permissions
-- Booking creation workflows
-- Role-specific audit history
-- Modularizing frontend JavaScript into smaller feature files
-
----
-
-## 👤 Author
+## Author
 
 **Jay Gallagher**
 
-Senior SQA / Automation Engineering Portfolio Project
+Full-Stack Cruise Operations Platform demonstrating enterprise software engineering, quality engineering, operational workflow design, accessibility, automation architecture, and AI-assisted quality strategy.

@@ -12,12 +12,62 @@ beforeAll(async () => {
 
 async function getSeededShipAndSailing() {
   const cruiseRes = await request(app).get('/cruise')
-  const shipsRes = await request(app).get(`/cruise/ships/${cruiseRes.body[0].id}`)
-  const sailingsRes = await request(app).get(`/cruise/ship/${shipsRes.body[0].id}/sailings`)
+  expect(cruiseRes.statusCode).toBe(200)
+  expect(Array.isArray(cruiseRes.body)).toBe(true)
+
+  for (const cruiseLine of cruiseRes.body) {
+    const shipsRes = await request(app).get(`/cruise/ships/${cruiseLine.id}`)
+
+    if (shipsRes.statusCode !== 200 || !Array.isArray(shipsRes.body) || shipsRes.body.length === 0) {
+      continue
+    }
+
+    for (const ship of shipsRes.body) {
+      const sailingsRes = await request(app).get(`/cruise/ship/${ship.id}/sailings`)
+
+      if (sailingsRes.statusCode === 200 && Array.isArray(sailingsRes.body) && sailingsRes.body.length > 0) {
+        return {
+          ship,
+          sailing: sailingsRes.body[0]
+        }
+      }
+    }
+  }
+
+  throw new Error('Expected seeded cruise data to include at least one ship with a sailing')
+}
+
+async function createIsolatedShipForSailingTest() {
+  const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`
+
+  const cruiseLineRes = await request(app)
+    .post('/cruise/cruise-line')
+    .send({
+      name: `Sailing QA Cruise ${suffix}`,
+      country: 'United States',
+      website: 'https://example.com',
+      brandFamily: 'Sailing QA Group',
+      brandTheme: 'Integration Test Fleet',
+      marketPositioning: 'Isolated cruise line used to verify sailing CRUD without relying on shared seed fleet state.'
+    })
+
+  expect(cruiseLineRes.statusCode).toBe(201)
+
+  const shipRes = await request(app)
+    .post('/cruise/ship')
+    .send({
+      name: `Sailing QA Ship ${suffix}`,
+      currentPort: 'Miami, Florida',
+      cruiseLineId: cruiseLineRes.body.id
+    })
+
+  expect(shipRes.statusCode).toBe(201)
 
   return {
-    ship: shipsRes.body[0],
-    sailing: sailingsRes.body[0]
+    id: shipRes.body.id,
+    name: `Sailing QA Ship ${suffix}`,
+    currentPort: 'Miami, Florida',
+    cruiseLineId: cruiseLineRes.body.id
   }
 }
 
@@ -43,7 +93,7 @@ describe('Sailing and itinerary API integration tests', () => {
   })
 
   it('creates, updates, and deletes sailing records', async () => {
-    const { ship } = await getSeededShipAndSailing()
+    const ship = await createIsolatedShipForSailingTest()
 
     const createRes = await request(app)
       .post(`/cruise/ship/${ship.id}/sailings`)
@@ -126,7 +176,7 @@ describe('Sailing and itinerary API integration tests', () => {
   })
 
   it('persists created sailing values and removes the sailing after delete', async () => {
-    const { ship } = await getSeededShipAndSailing()
+    const ship = await createIsolatedShipForSailingTest()
 
     const createRes = await request(app)
       .post(`/cruise/ship/${ship.id}/sailings`)
@@ -400,21 +450,20 @@ describe('Relational cascade and full hierarchy integrity', () => {
 
     expect(itineraryDayRes.statusCode).toBe(201)
 
-    const activityRes = await request(app)
-      .post(`/cruise/itinerary-days/${itineraryDayRes.body.id}/activities`)
-      .send({
-        time: '2:00 PM',
-        activity: 'Cascade safety briefing'
-      })
+    const itineraryRes = await request(app).get(`/cruise/sailings/${sailingRes.body.id}/itinerary`)
+    expect(itineraryRes.statusCode).toBe(200)
 
-    expect(activityRes.statusCode).toBe(201)
+    const createdDay = itineraryRes.body.find(day => day.id === itineraryDayRes.body.id)
+    const createdActivity = createdDay?.activitySchedule?.find(activity => activity.activity === 'Cascade boarding lunch')
+
+    expect(createdActivity).toBeDefined()
 
     return {
       cruiseLineId: cruiseLineRes.body.id,
       shipId: shipRes.body.id,
       sailingId: sailingRes.body.id,
       itineraryDayId: itineraryDayRes.body.id,
-      activityId: activityRes.body.id
+      activityId: createdActivity.id
     }
   }
 

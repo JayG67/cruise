@@ -6,27 +6,21 @@ function countPlaywrightTests(filePath) {
   return (source.match(/\btest\(/g) || []).length
 }
 
-describe('Playwright portfolio coverage inventory', () => {
+describe('Playwright React coverage inventory', () => {
   const projectRoot = path.resolve(__dirname, '../..')
-  const mobileSpecPath = path.join(projectRoot, 'playwright/mobile/mobile.spec.js')
-  const roleDashboardSpecPath = path.join(projectRoot, 'playwright/mobile/role-dashboard-mobile.spec.js')
-  const responsiveSpecPath = path.join(projectRoot, 'playwright/responsive/sailings-responsive.spec.js')
+  const mobileReactSpecPath = path.join(projectRoot, 'playwright/mobile/react-production-mobile.spec.js')
+  const responsiveReactSpecPath = path.join(projectRoot, 'playwright/responsive/react-production-responsive.spec.js')
   const mobileConfigPath = path.join(projectRoot, 'playwright.mobile.config.js')
   const responsiveConfigPath = path.join(projectRoot, 'playwright.responsive.config.js')
 
-  it('keeps the dedicated role dashboard mobile Playwright suite in the project', () => {
-    expect(fs.existsSync(roleDashboardSpecPath)).toBe(true)
-    expect(countPlaywrightTests(roleDashboardSpecPath)).toBeGreaterThanOrEqual(20)
+  it('keeps React mobile Playwright coverage broad', () => {
+    expect(fs.existsSync(mobileReactSpecPath)).toBe(true)
+    expect(countPlaywrightTests(mobileReactSpecPath)).toBeGreaterThanOrEqual(16)
   })
 
-  it('keeps the core mobile Playwright suite from shrinking unexpectedly', () => {
-    expect(fs.existsSync(mobileSpecPath)).toBe(true)
-    expect(countPlaywrightTests(mobileSpecPath)).toBeGreaterThanOrEqual(21)
-  })
-
-  it('keeps responsive desktop and tablet Playwright coverage present', () => {
-    expect(fs.existsSync(responsiveSpecPath)).toBe(true)
-    expect(countPlaywrightTests(responsiveSpecPath)).toBeGreaterThanOrEqual(4)
+  it('keeps React responsive desktop and tablet Playwright coverage present', () => {
+    expect(fs.existsSync(responsiveReactSpecPath)).toBe(true)
+    expect(countPlaywrightTests(responsiveReactSpecPath)).toBeGreaterThanOrEqual(7)
   })
 
   it('keeps mobile browser/device project coverage broad', () => {
@@ -44,12 +38,38 @@ describe('Playwright portfolio coverage inventory', () => {
     expect(config).toContain('Desktop Safari - 1280px')
     expect(config).toContain('Tablet Chrome - 900px')
   })
-  it('keeps mobile admin hierarchy checks scoped to visible child rows', () => {
-    const spec = fs.readFileSync(roleDashboardSpecPath, 'utf8')
 
-    expect(spec).toContain("const visibleBookingRow = page.locator('[data-testid=\"admin-booking-row\"]:visible').first()")
-    expect(spec).toContain("await visibleBookingRow.getByTestId('admin-toggle-booking-details-button').click()")
-    expect(spec).toContain("page.locator('[data-testid^=\"admin-booking-details-row-\"]:visible').first()")
+  it('keeps React Playwright specs on the production root route', () => {
+    const mobileReactSpec = fs.readFileSync(mobileReactSpecPath, 'utf8')
+    const responsiveReactSpec = fs.readFileSync(responsiveReactSpecPath, 'utf8')
+
+    expect(mobileReactSpec).toContain("page.goto('/')")
+    expect(responsiveReactSpec).toContain("page.goto('/')")
+    const retiredAliasRoute = `/${['app', 'next'].join('-')}`
+
+    expect(mobileReactSpec).not.toContain(`page.goto('${retiredAliasRoute}')`)
+    expect(responsiveReactSpec).not.toContain(`page.goto('${retiredAliasRoute}')`)
   })
 
+  it('keeps React Playwright role selection resilient to seeded user id changes', () => {
+    const mobileReactSpec = fs.readFileSync(mobileReactSpecPath, 'utf8')
+    const responsiveReactSpec = fs.readFileSync(responsiveReactSpecPath, 'utf8')
+
+    expect(mobileReactSpec).toContain('async function selectDemoUserByRole')
+    expect(mobileReactSpec).toContain("selectDemoUserByRole(page, 'Passenger')")
+    expect(mobileReactSpec).toContain("selectDemoUserByRole(page, 'Admin')")
+    expect(mobileReactSpec).not.toContain("selectOption('UPASS0001')")
+    expect(responsiveReactSpec).toContain('async function selectDemoUserByRole')
+    expect(responsiveReactSpec).not.toContain("selectOption('UPASS0001')")
+  })
+
+  it('protects React workspace mobile touch-target coverage', () => {
+    const mobileReactSpec = fs.readFileSync(mobileReactSpecPath, 'utf8')
+    const styles = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/styles/app.css'), 'utf8')
+
+    expect(mobileReactSpec).toContain('react-workspace-card-grid')
+    expect(mobileReactSpec).toContain('react-workspace-quality-button')
+    expect(styles).toContain('min-height')
+    expect(styles).toContain('.workflow-step-button')
+  })
 })

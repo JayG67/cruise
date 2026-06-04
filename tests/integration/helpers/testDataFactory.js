@@ -17,13 +17,26 @@ const createdShipIds = []
 const createdCustomerIds = []
 const createdBookingIds = []
 
+let uniqueCustomerSequence = 0
+let uniqueBookingSequence = 0
+
+function uniqueSeedSafeId(prefix, sequence) {
+  const timePart = (Date.now() % 1000000).toString().padStart(6, '0')
+  const sequencePart = (sequence % 46656).toString(36).toUpperCase().padStart(3, '0')
+
+  return `${prefix}${timePart}${sequencePart}`
+}
 
 function uniqueCustomerId() {
-  return `C${Math.floor(Math.random() * 1000000000).toString().padStart(9, '0')}`
+  uniqueCustomerSequence += 1
+
+  return uniqueSeedSafeId('C', uniqueCustomerSequence)
 }
 
 function uniqueBookingId() {
-  return `B${Math.floor(Math.random() * 1000000000).toString().padStart(9, '0')}`
+  uniqueBookingSequence += 1
+
+  return uniqueSeedSafeId('B', uniqueBookingSequence)
 }
 
 async function createCustomer(overrides = {}) {
@@ -89,8 +102,8 @@ async function createCruiseLine(overrides = {}) {
   createdCruiseLineIds.push(insertedRows[0].id)
 
   return {
-    id: insertedRows[0].id,
-    ...payload
+    ...payload,
+    id: insertedRows[0].id
   }
 }
 
@@ -110,21 +123,27 @@ async function createShip(cruiseLineId, overrides = {}) {
 
   expect(cruiseLineRows[0]).toBeDefined()
 
-  const insertedRows = await db
-    .insert(shipTable)
-    .values(payload)
-    .returning({ id: shipTable.id })
+  // Create ships through the public API instead of inserting directly. The
+  // ship integration suite exercises controller-level CRUD behavior, and using
+  // the same write path as the application prevents cleanup or pool timing from
+  // making a freshly inserted helper record invisible to a subsequent HTTP
+  // DELETE request in slower local or CI runs.
+  const res = await request(app)
+    .post('/cruise/ship')
+    .send(payload)
 
-  expect(insertedRows[0]).toEqual(
+  expect(res.statusCode).toBe(201)
+  expect(res.body).toEqual(
     expect.objectContaining({
-      id: expect.any(String)
+      id: expect.any(String),
+      message: 'Ship created successfully'
     })
   )
 
-  createdShipIds.push(insertedRows[0].id)
+  createdShipIds.push(res.body.id)
 
   return {
-    id: insertedRows[0].id,
+    id: res.body.id,
     ...payload
   }
 }
@@ -210,7 +229,26 @@ function removeTrackedCruiseLine(cruiseLineId) {
   }
 }
 
+async function getSeededBookingWithPassengers(request, app) {
+  const bookingsResponse = await request(app).get('/cruise/bookings')
+
+  expect(bookingsResponse.statusCode).toBe(200)
+  expect(Array.isArray(bookingsResponse.body)).toBe(true)
+
+  const seededBooking = bookingsResponse.body.find(booking => (
+    booking
+    && booking.id
+    && Array.isArray(booking.passengers)
+    && booking.passengers.length > 0
+  ))
+
+  expect(seededBooking).toBeDefined()
+
+  return seededBooking
+}
+
 module.exports = {
+  getSeededBookingWithPassengers,
   uniqueName,
   uniqueCustomerId,
   uniqueBookingId,

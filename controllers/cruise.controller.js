@@ -9,9 +9,15 @@ const bookingPassengerTable = require('../models/bookingPassenger.model')
 const demoUserTable = require('../models/demoUser.model')
 const customerItineraryFavoriteTable = require('../models/customerItineraryFavorite.model')
 const db = require('../db')
-const { eq, inArray } = require('drizzle-orm')
+const { and, eq, inArray } = require('drizzle-orm')
 
 
+function buildCruiseLinePayload({ name, country, website, brandFamily, brandTheme, marketPositioning }) {
+  return Object.fromEntries(
+    Object.entries({ name, country, website, brandFamily, brandTheme, marketPositioning })
+      .filter(([, value]) => value !== undefined)
+  )
+}
 
 function addDays(dateString, daysToAdd) {
   const date = new Date(`${dateString}T00:00:00.000Z`)
@@ -163,7 +169,7 @@ exports.getShipsByCruiseLine = async (req, res, next) => {
 
 exports.insertCruiseLine = async (req, res, next) => {
   try {
-    const { name, country, website } = req.body
+    const { name, country, website, brandFamily, brandTheme, marketPositioning } = req.body
 
     const existingRows = await db
       .select()
@@ -177,7 +183,7 @@ exports.insertCruiseLine = async (req, res, next) => {
 
     const insertedRows = await db
       .insert(cruiseLineTable)
-      .values({ name, country, website })
+      .values(buildCruiseLinePayload({ name, country, website, brandFamily, brandTheme, marketPositioning }))
       .returning({ id: cruiseLineTable.id })
 
     return res.status(201).json({
@@ -230,7 +236,7 @@ exports.insertShip = async (req, res, next) => {
 exports.updateCruiseLine = async (req, res, next) => {
   try {
     const { id } = req.params
-    const { name, country, website } = req.body
+    const { name, country, website, brandFamily, brandTheme, marketPositioning } = req.body
 
     if (!id) {
       return res.status(400).json({ message: 'Cruise line ID is required' })
@@ -258,7 +264,7 @@ exports.updateCruiseLine = async (req, res, next) => {
 
     await db
       .update(cruiseLineTable)
-      .set({ name, country, website })
+      .set(buildCruiseLinePayload({ name, country, website, brandFamily, brandTheme, marketPositioning }))
       .where(eq(cruiseLineTable.id, id))
 
     return res.status(200).json({ message: 'Cruise line updated successfully' })
@@ -444,16 +450,18 @@ exports.getSailingsByShip = async (req, res, next) => {
   try {
     const { shipId } = req.params
 
+    const ship = await findOne(shipTable, shipTable.id, shipId)
+
+    if (!ship) {
+      return res.status(404).json({ message: 'Ship not found' })
+    }
+
     const sailings = await db
       .select()
       .from(sailingTable)
       .where(eq(sailingTable.shipId, shipId))
 
-    if (!sailings || sailings.length === 0) {
-      return res.status(404).json({ message: 'No sailings found for the specified ship' })
-    }
-
-    return res.status(200).json(sailings)
+    return res.status(200).json(sailings || [])
   } catch (err) {
     next(err)
   }
@@ -744,6 +752,31 @@ async function getBookingPassengers(bookingId) {
   return passengers
 }
 
+async function getSailingItineraryDetails(sailingId) {
+  if (!sailingId) return []
+
+  const itineraryDays = await db
+    .select()
+    .from(itineraryDayTable)
+    .where(eq(itineraryDayTable.sailingId, sailingId))
+
+  const itineraryWithActivities = []
+
+  for (const itineraryDay of itineraryDays || []) {
+    const activities = await db
+      .select()
+      .from(activityScheduleTable)
+      .where(eq(activityScheduleTable.itineraryDayId, itineraryDay.id))
+
+    itineraryWithActivities.push({
+      ...itineraryDay,
+      activitySchedule: [...(activities || [])].sort((a, b) => String(a.time || '').localeCompare(String(b.time || '')))
+    })
+  }
+
+  return itineraryWithActivities.sort((a, b) => Number(a.day || 0) - Number(b.day || 0))
+}
+
 async function getBookingDetails(booking) {
   if (!booking) return null
 
@@ -778,13 +811,23 @@ async function getBookingDetails(booking) {
   }
 
   const passengers = await getBookingPassengers(booking.id)
+  const itineraryDays = await getSailingItineraryDetails(booking.sailingId)
+  const sailingWithItinerary = sailing
+    ? {
+        ...sailing,
+        itinerary: itineraryDays,
+        itineraryDays
+      }
+    : null
 
   return {
     ...booking,
-    sailing,
+    sailing: sailingWithItinerary,
     ship,
     cruiseLine,
-    passengers
+    passengers,
+    itinerary: itineraryDays,
+    itineraryDays
   }
 }
 
@@ -1481,7 +1524,12 @@ exports.addBookingPassenger = async (req, res, next) => {
     const existingPassengerRows = await db
       .select()
       .from(bookingPassengerTable)
-      .where(eq(bookingPassengerTable.id, `${bookingId}-${customerId}`))
+      .where(
+        and(
+          eq(bookingPassengerTable.bookingId, bookingId),
+          eq(bookingPassengerTable.customerId, customerId)
+        )
+      )
       .limit(1)
 
     if (existingPassengerRows[0]) {
