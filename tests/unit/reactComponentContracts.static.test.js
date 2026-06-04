@@ -99,12 +99,13 @@ describe('React route preview accessibility contracts', () => {
   })
 
 
-  it('keeps React admin and fleet sections sequenced for production operations', () => {
+  it('keeps React admin, fleet, create, and quality sections sequenced for production operations', () => {
     const app = read('frontend/react/src/App.jsx')
 
     expect(app.indexOf('<ReactRoleSelector')).toBeLessThan(app.indexOf('<CustomerBookingHierarchy'))
     expect(app.indexOf('<CustomerBookingHierarchy')).toBeLessThan(app.indexOf('<ReactFleetDirectory'))
-    expect(app.indexOf('<ReactFleetDirectory')).toBeLessThan(app.indexOf('<ReactQueryStatusPanel'))
+    expect(app.indexOf('<ReactFleetDirectory')).toBeLessThan(app.indexOf('<ReactCruiseLineCreateWorkflow'))
+    expect(app.indexOf('<ReactCruiseLineCreateWorkflow')).toBeLessThan(app.indexOf('<ReactSqaConsole'))
   })
 
 

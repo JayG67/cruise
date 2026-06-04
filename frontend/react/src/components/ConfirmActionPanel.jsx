@@ -6,12 +6,14 @@ export default function ConfirmActionPanel({
   onConfirm,
   onCancel,
   isWorking = false,
-  testId = 'react-confirm-action-panel'
+  testId = 'react-confirm-action-panel',
+  variant = 'inline'
 }) {
   if (!message) return null
 
-  return (
-    <section className="react-confirm-action-panel" role="alertdialog" aria-modal="true" aria-labelledby={`${testId}-title`} aria-describedby={`${testId}-message`} data-testid={testId}>
+  const isModal = variant === 'modal'
+  const panel = (
+    <section className={`react-confirm-action-panel ${isModal ? 'react-confirm-action-panel--modal' : ''}`} role="alertdialog" aria-modal="true" aria-labelledby={`${testId}-title`} aria-describedby={`${testId}-message`} data-testid={testId}>
       <div>
         <p className="eyebrow">Confirmation required</p>
         <h4 id={`${testId}-title`}>{title}</h4>
@@ -27,4 +29,15 @@ export default function ConfirmActionPanel({
       </div>
     </section>
   )
+
+  if (!isModal) {
+    return panel
+  }
+
+  return (
+    <div className="react-confirm-action-overlay" data-testid={`${testId}-overlay`}>
+      {panel}
+    </div>
+  )
 }
+

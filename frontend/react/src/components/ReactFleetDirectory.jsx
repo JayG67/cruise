@@ -839,7 +839,7 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
             Search, review, and manage the cruise lines currently available in the live application dataset.
           </p>
         </div>
-        <button type="button" className="button-link secondary light-action" onClick={onRefresh} disabled={isRefreshing}>
+        <button type="button" className="button-link secondary light-action" onClick={onRefresh} disabled={isRefreshing} data-testid="react-fleet-refresh-button">
           {isRefreshing ? 'Refreshing fleet…' : 'Refresh fleet'}
         </button>
       </div>

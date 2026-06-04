@@ -5,15 +5,14 @@ describe('React lifecycle and state isolation coverage expansion', () => {
     visitReactAppAsAdmin()
   })
 
-  it('refreshes query data without leaving the production root route', () => {
+  it('keeps data refresh behavior inside active workflow actions without leaving the root route', () => {
     cy.intercept('GET', '/cruise/customers').as('refreshCustomers')
     cy.intercept('GET', '/cruise/bookings').as('refreshBookings')
 
-    cy.getByTestId('react-refresh-query').click()
-    cy.wait('@refreshCustomers')
-    cy.wait('@refreshBookings')
+    cy.getByTestId('react-sqa-reset-demo-data-button').click()
+    cy.getByTestId('react-sqa-reset-confirmation-cancel').click()
     cy.location('pathname').should('eq', '/')
-    cy.getByTestId('react-query-status-message').should('contain.text', 'Loaded')
+    cy.getByTestId('react-query-status-panel').should('not.exist')
   })
 
   it('keeps admin fleet search independent from hierarchy search', () => {
@@ -91,7 +90,7 @@ describe('React lifecycle and state isolation coverage expansion', () => {
   it('keeps quality console available after admin data refreshes', () => {
     cy.getByTestId('react-workspace-quality-button').click()
     cy.getByTestId('react-sqa-console').should('be.visible')
-    cy.getByTestId('react-refresh-query').click()
+    cy.getByTestId('react-sqa-health-button').click()
     cy.getByTestId('react-sqa-console').should('be.visible')
   })
 

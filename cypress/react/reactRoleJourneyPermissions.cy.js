@@ -260,11 +260,28 @@ describe('React role journey permissions and validation coverage', () => {
   })
 
 
-  it('blocks passenger access to fleet and SQA controls after direct workspace shortcuts are used', () => {
+  it('asks before giving passenger users access to admin-only fleet and SQA shortcuts', () => {
     selectDemoUserByVisibleRole('Passenger')
-    cy.getByTestId('react-workspace-fleet-button').click()
+
+    cy.getByTestId('react-workspace-fleet-button').scrollIntoView().click()
+    cy.getByTestId('react-role-switch-confirmation-overlay').should('be.visible')
+    cy.getByTestId('react-role-switch-confirmation')
+      .should('be.visible')
+      .and('contain.text', 'Fleet Directory requires the Admin role')
+    cy.getByTestId('react-role-switch-confirmation-cancel').click()
+
+    cy.getByTestId('react-role-switch-confirmation').should('not.exist')
     cy.getByTestId('react-fleet-directory').should('not.exist')
-    cy.getByTestId('react-workspace-quality-button').click()
+    cy.getByTestId('react-demo-user-summary').should('contain.text', 'Passenger')
+
+    cy.getByTestId('react-workspace-quality-button').scrollIntoView().click()
+    cy.getByTestId('react-role-switch-confirmation-overlay').should('be.visible')
+    cy.getByTestId('react-role-switch-confirmation')
+      .should('be.visible')
+      .and('contain.text', 'Quality Console requires the Admin role')
+    cy.getByTestId('react-role-switch-confirmation-cancel').click()
+
+    cy.getByTestId('react-role-switch-confirmation').should('not.exist')
     cy.getByTestId('react-sqa-console').should('not.exist')
     cy.getByTestId('react-passenger-dashboard').should('be.visible')
     cy.getByTestId('react-passenger-self-service-panel').should('be.visible')

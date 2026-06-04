@@ -45,11 +45,45 @@ describe('React home and workspace coverage', () => {
     cy.getByTestId('react-retired-handoff-panel').should('not.exist')
   })
 
-  it('shows query status metadata for the React admin data load', () => {
-    cy.getByTestId('react-query-status-panel').should('be.visible')
-    cy.getByTestId('react-query-status-message').should('contain.text', 'Loaded 3 customers and 2 bookings')
-    cy.getByTestId('react-query-request-id').should('contain.text', '#')
-    cy.getByTestId('react-refresh-query').should('be.enabled')
+  it('keeps API loading and refresh behavior handled inside active workspaces', () => {
+    cy.getByTestId('react-query-status-panel').should('not.exist')
+    cy.getByTestId('react-refresh-query').should('not.exist')
+    cy.getByTestId('react-toggle-customer-workflows').click()
+    cy.getByTestId('react-admin-hierarchy').should('contain.text', 'Customer')
+    cy.getByTestId('react-fleet-directory').should('be.visible')
+    cy.getByTestId('react-sqa-console').should('be.visible')
+  })
+
+
+
+  it('asks passenger users before switching into an admin-only workspace and respects decline', () => {
+    selectDemoUserByVisibleRole('Passenger')
+    cy.getByTestId('react-passenger-dashboard').should('be.visible')
+
+    cy.getByTestId('react-workspace-fleet-button').click()
+    cy.getByTestId('react-role-switch-confirmation-overlay').should('be.visible')
+    cy.getByTestId('react-role-switch-confirmation')
+      .should('be.visible')
+      .and('contain.text', 'Fleet Directory requires the Admin role')
+      .and('have.class', 'react-confirm-action-panel--modal')
+
+    cy.getByTestId('react-role-switch-confirmation-cancel').click()
+    cy.getByTestId('react-role-switch-confirmation').should('not.exist')
+    cy.getByTestId('react-role-switch-confirmation-overlay').should('not.exist')
+    cy.getByTestId('react-demo-user-summary').should('contain.text', 'Passenger')
+    cy.getByTestId('react-fleet-directory').should('not.exist')
+  })
+
+  it('switches to admin and opens the requested workspace when a passenger accepts', () => {
+    selectDemoUserByVisibleRole('Passenger')
+    cy.getByTestId('react-workspace-quality-button').click()
+    cy.getByTestId('react-role-switch-confirmation-overlay').should('be.visible')
+    cy.getByTestId('react-role-switch-confirmation-confirm').click()
+
+    cy.getByTestId('react-demo-user-summary').should('contain.text', 'Admin')
+    cy.getByTestId('react-sqa-console').should('be.visible')
+    cy.getByTestId('react-role-switch-confirmation').should('not.exist')
+    cy.getByTestId('react-role-switch-confirmation-overlay').should('not.exist')
   })
 
   it('keeps admin-only operations out of passenger mode', () => {

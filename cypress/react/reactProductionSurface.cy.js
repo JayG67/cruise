@@ -16,8 +16,8 @@ describe('Cruise operations product surface coverage', () => {
 
   it('keeps product shortcuts focused on real application sections', () => {
     cy.getByTestId('react-production-hero').within(() => {
-      cy.contains('Review Operations').should('have.attr', 'href', '#react-hierarchy')
-      cy.contains('Open SQA Console').should('have.attr', 'href', '#react-quality')
+      cy.getByTestId('react-hero-operations-button').should('contain.text', 'Review Operations')
+      cy.getByTestId('react-hero-quality-button').should('contain.text', 'Open SQA Console')
       cy.get('a[href="/retired"]').should('not.exist')
     })
   })
@@ -87,21 +87,23 @@ describe('Cruise operations product surface coverage', () => {
     cy.contains('production release').should('not.exist')
   })
 
-  it('keeps live API status visible after the SQA console', () => {
-    cy.getByTestId('react-query-status-panel').should('be.visible')
-    cy.getByTestId('react-query-status-message').should('contain.text', 'Loaded')
-    cy.getByTestId('react-refresh-query').should('be.enabled')
+  it('keeps API refresh controls scoped to workspaces instead of a separate footer panel', () => {
+    cy.getByTestId('react-query-status-panel').should('not.exist')
+    cy.getByTestId('react-refresh-query').should('not.exist')
+    cy.getByTestId('react-sqa-console').should('be.visible')
+    cy.getByTestId('react-sqa-reset-demo-data-button').should('be.visible')
+    cy.getByTestId('react-fleet-refresh-button').should('be.visible')
   })
 
   it('keeps the hero free of retired rollback links', () => {
     cy.getByTestId('react-production-hero').within(() => {
       cy.get('a[href="/retired"]').should('not.exist')
-      cy.contains('Open SQA Console').should('have.attr', 'href', '#react-quality')
+      cy.getByTestId('react-hero-quality-button').should('contain.text', 'Open SQA Console')
     })
   })
 
-  it('keeps the application footer area focused on API status instead of review artifacts', () => {
-    cy.getByTestId('react-query-status-panel').scrollIntoView().should('be.visible')
+  it('keeps the application footer free of redundant API status chrome and review artifacts', () => {
+    cy.getByTestId('react-query-status-panel').should('not.exist')
     cy.getByTestId('react-release-readiness-section').should('not.exist')
     cy.getByTestId('react-retired-handoff-panel').should('not.exist')
   })

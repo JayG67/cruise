@@ -5,7 +5,7 @@ import useBookingDetailsMutation from './hooks/useBookingDetailsMutation.js'
 import useCruiseLines from './hooks/useCruiseLines.js'
 import useDemoUsers from './hooks/useDemoUsers.js'
 import ReactRoleSelector from './components/ReactRoleSelector.jsx'
-import ReactQueryStatusPanel from './components/ReactQueryStatusPanel.jsx'
+import ConfirmActionPanel from './components/ConfirmActionPanel.jsx'
 import { getSelectedRoleView, getVisibleRoleBookings } from './domain/roleView.js'
 
 const CustomerBookingHierarchy = lazy(() => import('./components/CustomerBookingHierarchy.jsx'))
@@ -51,9 +51,11 @@ function LazySectionFallback({ label }) {
 
 export default function App() {
   const applicationDataReady = useDeferredApplicationData()
-  const { snapshot, isLoading, isRefreshing, error, reload, lastLoadedAt, requestId } = useAdminHierarchySnapshot({ enabled: applicationDataReady })
+  const { snapshot, isLoading, error, reload } = useAdminHierarchySnapshot({ enabled: applicationDataReady })
   const { cruiseLines, isLoading: fleetLoading, isRefreshing: fleetRefreshing, error: fleetError, reload: reloadFleet } = useCruiseLines({ enabled: applicationDataReady })
   const { demoUsers, selectedDemoUser, selectedDemoUserId, setSelectedDemoUserId, isLoading: demoUsersLoading, error: demoUsersError } = useDemoUsers({ enabled: applicationDataReady })
+  const [roleSwitchRequest, setRoleSwitchRequest] = useState(null)
+  const [pendingNavigationSectionId, setPendingNavigationSectionId] = useState('')
   const { saveCustomerProfile, savingCustomerId, mutationError } = useCustomerProfileMutation({ onSaved: reload })
   const { saveBookingDetails, savingBookingId, bookingMutationError } = useBookingDetailsMutation({ onSaved: reload })
   const effectiveSelectedDemoUser = selectedDemoUser || { role: 'Admin' }
@@ -78,8 +80,47 @@ export default function App() {
     width: '100%'
   }
 
+  const adminDemoUser = demoUsers.find(user => getSelectedRoleView(user) === 'admin')
+
+  useEffect(() => {
+    if (selectedRoleView !== 'admin' || !pendingNavigationSectionId) {
+      return
+    }
+
+    const timerId = window.setTimeout(() => {
+      scrollToSection(pendingNavigationSectionId)
+      setPendingNavigationSectionId('')
+    }, 50)
+
+    return () => window.clearTimeout(timerId)
+  }, [pendingNavigationSectionId, selectedRoleView])
+
   function scrollToSection(sectionId) {
     document.getElementById(sectionId)?.scrollIntoView({ block: 'start' })
+  }
+
+  function openWorkspace(sectionId, workspaceLabel, requiredRole = null) {
+    if (!requiredRole || selectedRoleView === requiredRole) {
+      scrollToSection(sectionId)
+      return
+    }
+
+    setRoleSwitchRequest({ sectionId, workspaceLabel, requiredRole })
+  }
+
+  function confirmRoleSwitch() {
+    if (!roleSwitchRequest) return
+
+    if (roleSwitchRequest.requiredRole === 'admin' && adminDemoUser) {
+      setSelectedDemoUserId(adminDemoUser.id)
+      setPendingNavigationSectionId(roleSwitchRequest.sectionId)
+      setRoleSwitchRequest(null)
+    }
+  }
+
+  function cancelRoleSwitch() {
+    setRoleSwitchRequest(null)
+    setPendingNavigationSectionId('')
   }
 
   return (
@@ -92,10 +133,10 @@ export default function App() {
           <div className="react-nav-links">
             <a href="#react-dashboard">Dashboard</a>
             <a href="#react-workspaces">Workspaces</a>
-            <a href="#react-role-selector">Roles</a>
-            <a href="#react-hierarchy">Operations</a>
-            <a href="#react-fleet">Fleet</a>
-            <a href="#react-quality">Quality</a>
+            <button type="button" onClick={() => openWorkspace('react-role-selector', 'Role Simulation')}>Roles</button>
+            <button type="button" onClick={() => openWorkspace('react-hierarchy', 'Admin Operations', 'admin')}>Operations</button>
+            <button type="button" onClick={() => openWorkspace('react-fleet', 'Fleet Directory', 'admin')}>Fleet</button>
+            <button type="button" onClick={() => openWorkspace('react-quality', 'Quality Console', 'admin')}>Quality</button>
           </div>
         </nav>
 
@@ -108,8 +149,8 @@ export default function App() {
           </p>
 
           <div className="hero-cta-row" aria-label="Cruise application shortcuts">
-            <a className="button-link primary" href="#react-hierarchy">Review Operations</a>
-            <a className="button-link secondary" href="#react-quality">Open SQA Console</a>
+            <button type="button" className="button-link primary" onClick={() => openWorkspace('react-hierarchy', 'Admin Operations', 'admin')} data-testid="react-hero-operations-button">Review Operations</button>
+            <button type="button" className="button-link secondary" onClick={() => openWorkspace('react-quality', 'Quality Console', 'admin')} data-testid="react-hero-quality-button">Open SQA Console</button>
           </div>
 
           <div className="hero-status-pills" aria-label="Cruise application capabilities">
@@ -131,22 +172,22 @@ export default function App() {
         </div>
 
         <div className="react-workspace-card-grid" aria-label="React application workspaces" data-testid="react-workspace-card-grid">
-          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => scrollToSection('react-role-selector')} data-testid="react-workspace-role-button">
+          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => openWorkspace('react-role-selector', 'Role Simulation')} data-testid="react-workspace-role-button">
             <span className="workspace-icon" aria-hidden="true">👥</span>
             <span className="workspace-card-title">Role Simulation</span>
             <span>Switch between admin, passenger, and group leader views.</span>
           </button>
-          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => scrollToSection('react-hierarchy')} data-testid="react-workspace-operations-button">
+          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => openWorkspace('react-hierarchy', 'Admin Operations', 'admin')} data-testid="react-workspace-operations-button">
             <span className="workspace-icon" aria-hidden="true">🧾</span>
             <span className="workspace-card-title">Admin Operations</span>
             <span>Search and manage customer and booking datasets.</span>
           </button>
-          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => scrollToSection('react-fleet')} data-testid="react-workspace-fleet-button">
+          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => openWorkspace('react-fleet', 'Fleet Directory', 'admin')} data-testid="react-workspace-fleet-button">
             <span className="workspace-icon" aria-hidden="true">🚢</span>
             <span className="workspace-card-title">Fleet Directory</span>
             <span>Search cruise lines, manage fleets, ships, and sailings.</span>
           </button>
-          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => scrollToSection('react-quality')} data-testid="react-workspace-quality-button">
+          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => openWorkspace('react-quality', 'Quality Console', 'admin')} data-testid="react-workspace-quality-button">
             <span className="workspace-icon" aria-hidden="true">✅</span>
             <span className="workspace-card-title">Quality Console</span>
             <span>Run API health, data readiness, and deployment checks.</span>
@@ -164,28 +205,41 @@ export default function App() {
           </div>
           <ol className="workflow-step-list" aria-label="Recommended workflow controls">
             <li>
-              <button type="button" className="workflow-step-button" onClick={() => scrollToSection('react-role-selector')} data-testid="react-workflow-role-button">
+              <button type="button" className="workflow-step-button" onClick={() => openWorkspace('react-role-selector', 'Role Simulation')} data-testid="react-workflow-role-button">
                 <strong>01</strong><span>Choose role</span>
               </button>
             </li>
             <li>
-              <button type="button" className="workflow-step-button" onClick={() => scrollToSection('react-hierarchy')} data-testid="react-workflow-operations-button">
+              <button type="button" className="workflow-step-button" onClick={() => openWorkspace('react-hierarchy', 'Admin Operations', 'admin')} data-testid="react-workflow-operations-button">
                 <strong>02</strong><span>Review operations</span>
               </button>
             </li>
             <li>
-              <button type="button" className="workflow-step-button" onClick={() => scrollToSection('react-fleet')} data-testid="react-workflow-fleet-button">
+              <button type="button" className="workflow-step-button" onClick={() => openWorkspace('react-fleet', 'Fleet Directory', 'admin')} data-testid="react-workflow-fleet-button">
                 <strong>03</strong><span>Manage fleet</span>
               </button>
             </li>
             <li>
-              <button type="button" className="workflow-step-button" aria-label="Run quality checks" onClick={() => scrollToSection('react-quality')} data-testid="react-workflow-quality-button">
+              <button type="button" className="workflow-step-button" aria-label="Run quality checks" onClick={() => openWorkspace('react-quality', 'Quality Console', 'admin')} data-testid="react-workflow-quality-button">
                 <strong>04</strong><span>Quality checks</span>
               </button>
             </li>
           </ol>
         </div>
       </section>
+
+      {roleSwitchRequest && (
+        <ConfirmActionPanel
+          title="Switch to admin role?"
+          message={`${roleSwitchRequest.workspaceLabel} requires the Admin role. Switch to the Admin demo user and open this workspace?`}
+          confirmLabel="Switch to Admin"
+          cancelLabel="Stay in Current Role"
+          onConfirm={confirmRoleSwitch}
+          onCancel={cancelRoleSwitch}
+          testId="react-role-switch-confirmation"
+          variant="modal"
+        />
+      )}
 
       <ReactRoleSelector
         customerCount={snapshot.customers.length}
@@ -233,7 +287,9 @@ export default function App() {
 
             <ReactCruiseLineCreateWorkflow onCreated={reloadFleet} />
 
-            <ReactSqaConsole onRefreshData={() => Promise.all([reload(), reloadFleet()])} />
+            <section id="react-quality" className="react-quality-section" aria-label="Quality validation console">
+              <ReactSqaConsole onRefreshData={() => Promise.all([reload(), reloadFleet()])} />
+            </section>
           </>
         ) : (
           <ReactRoleDashboard
@@ -247,19 +303,6 @@ export default function App() {
           />
         )}
       </Suspense>
-
-      <section id="react-quality" className="react-quality-section" aria-label="React API status">
-        <ReactQueryStatusPanel
-          isLoading={isLoading}
-          isRefreshing={isRefreshing}
-          error={error}
-          lastLoadedAt={lastLoadedAt}
-          requestId={requestId}
-          customerCount={snapshot.customers.length}
-          bookingCount={snapshot.bookings.length}
-          onRefresh={reload}
-        />
-      </section>
     </main>
   )
 }

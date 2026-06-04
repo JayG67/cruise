@@ -24,7 +24,8 @@ describe('Cruise operations product presentation guardrails', () => {
     const app = read('frontend/react/src/App.jsx')
 
     expect(app).toContain('Open SQA Console')
-    expect(app).toContain('href="#react-quality"')
+    expect(app).toContain('data-testid="react-hero-quality-button"')
+    expect(app).toContain("openWorkspace('react-quality', 'Quality Console', 'admin')")
     expect(app).not.toContain('Open Retired Pre-React App')
     expect(app).not.toContain('href="/retired"')
     expect(app).not.toMatch(new RegExp(['migr', 'at'].join(''), 'i'))

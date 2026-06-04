@@ -38,7 +38,7 @@ describe('React production deep-dive coverage', () => {
 
   it('keeps the product hero focused on the React app and SQA console', () => {
     cy.getByTestId('react-production-hero').within(() => {
-      cy.contains('Open SQA Console').should('have.attr', 'href', '#react-quality')
+      cy.getByTestId('react-hero-quality-button').should('contain.text', 'Open SQA Console')
       cy.contains('Open Retired Pre-React App').should('not.exist')
     })
     cy.getByTestId('react-workspace-quality-button').click()
