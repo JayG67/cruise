@@ -1,76 +1,132 @@
-# Cruise Operations Platform
+# Cruise Fleet Operations Platform
 
-A React, Express, and PostgreSQL cruise-line operations application built as a production-style software engineering portfolio project.
+## Full-Stack Cruise Operations Platform & Quality Engineering Portfolio
 
-## Current application architecture
+[![Cruise CI](https://github.com/JayG67/cruise/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JayG67/cruise/actions/workflows/ci.yml)
+[![Production App](https://img.shields.io/badge/production-live-00b894)](https://cruise-explorer.onrender.com/)
+[![Quality Dashboard](https://img.shields.io/badge/quality-dashboard-0984e3)](https://jayg67.github.io/cruise/)
+[![Jest Coverage](https://img.shields.io/badge/jest-coverage%20report-C21325)](https://jayg67.github.io/cruise/coverage/)
+[![Lighthouse](https://img.shields.io/badge/lighthouse-mobile%20quality-f39c12)](https://jayg67.github.io/cruise/lighthouse/)
+![Accessibility](https://img.shields.io/badge/accessibility-tested-6c5ce7)
+![Cypress](https://img.shields.io/badge/cypress-e2e-17202C)
+![Playwright](https://img.shields.io/badge/playwright-mobile%20%2B%20responsive-2d3436)
+![k6](https://img.shields.io/badge/k6-performance%20smoke-7D3C98)
+![PostgreSQL](https://img.shields.io/badge/postgresql-integration%20tested-336791)
+![Node.js](https://img.shields.io/badge/node.js-express-43853D)
 
-- React/Vite front end served from the production root route `/`.
-- Express API for cruise lines, ships, sailings, itineraries, bookings, customers, demo roles, health checks, and admin reset workflows.
-- PostgreSQL persistence through Drizzle.
-- Cypress, Playwright, Jest, k6, and Lighthouse quality gates.
-- GitHub Actions publishes quality, Lighthouse, and coverage reports.
+---
 
-## Local setup
+## Overview
 
-```bash
-npm install
-npm run test:all
-```
+Cruise Fleet Operations Platform is a full-stack React, Node.js, Express, and PostgreSQL application designed to model real-world cruise-line operations. The platform began as a cruise management application and has evolved into a broader operational platform covering passenger services, fleet management, quality engineering, and future shipboard operations domains.
 
-Useful focused commands:
+The React architecture is now the production UI. Migration work is complete and ongoing development is focused on expanding operational capabilities and enterprise-grade workflows.
 
-```bash
-npm run react:build
-npm run react:production:complete
-npm run test:inventory:audit
-npm run jest:coverage:all
-npm run browserTests:react
-npm run lighthouse:ci:local
-```
+## Current Functional Areas
 
-## Application routes
+- Cruise lines
+- Fleet management
+- Ships
+- Sailings
+- Itineraries
+- Customers
+- Bookings
+- Passenger self-service workflows
+- Admin operational workflows
+- Role-aware application behavior
+- Quality engineering dashboards
+- Automated testing and CI/CD quality gates
 
-- `/` serves the React production application.
-- `/health` exposes the health endpoint.
-- `/cruise/*` exposes the cruise operations API.
-- `/admin/*` exposes admin utility APIs.
-- `/images/*` serves shared optimized image assets.
+## Technology Stack
 
-## Quality gates
+### Frontend
+- React
+- Vite
+- CSS3
+- Accessible responsive UI patterns
 
-`npm run test:all` runs the full local release gate:
+### Backend
+- Node.js
+- Express
 
-1. test inventory audit
-2. React production completion audit
-3. Jest coverage and integration coverage
-4. React Cypress browser tests
-5. React Playwright mobile and responsive tests
-6. k6 performance smoke test
-7. Lighthouse mobile quality gate
+### Database
+- PostgreSQL
+- Drizzle ORM
 
-## GitHub CI
+### Quality Engineering
+- Jest
+- Supertest
+- Cypress
+- Playwright
+- Lighthouse CI
+- k6
+- GitHub Actions
 
-The GitHub workflow runs the same production-focused gates in separate jobs:
+## Future Roadmap
 
-- Unit Tests
-- Jest Coverage Report
-- Integration Tests
-- Cypress UI Tests
-- Playwright Mobile Tests
-- k6 Performance Smoke Test
-- Mobile Quality & UX Gate
-- GitHub Pages quality dashboard publication
+### Fleet Operations
+- Fleet-wide vessel dashboards
+- Fleet health monitoring
+- Fleet deployment planning
+- Dry dock scheduling
+- Fleet readiness reporting
 
-## Repository hygiene
+### Shipboard Operations
+- Hotel operations management
+- Housekeeping workflows
+- Laundry operations
+- Guest services management
+- Shore excursion operations
 
-Generated artifacts should not be committed:
+### Food & Beverage Operations
+- Inventory management
+- Provision loading
+- Restaurant operations
+- Specialty dining management
+- Beverage logistics
 
-- `dist/`
-- `coverage/`
-- `lhci-report/`
-- `.lighthouseci/`
-- `github-pages/`
-- `playwright-report/`
-- `test-results/`
-- Cypress screenshots and videos
+### Marine & Engineering Operations
+- Maintenance tracking
+- Engineering work orders
+- Equipment lifecycle management
+- Safety inspection workflows
+- Regulatory compliance tracking
 
+### Crew Operations
+- Crew manifests
+- Department assignments
+- Training records
+- Certifications
+- Crew scheduling
+
+### Turnaround-Day Operations
+- Embarkation planning
+- Debarkation planning
+- Cabin readiness tracking
+- Port logistics coordination
+- Vendor scheduling
+
+### Executive Operations
+- KPI dashboards
+- Revenue analytics
+- Occupancy forecasting
+- Customer satisfaction metrics
+- Operational risk management
+
+## Testing Strategy
+
+The platform uses layered quality validation:
+
+- Unit Testing
+- Integration Testing
+- Cypress End-to-End Testing
+- Playwright Mobile and Responsive Testing
+- Lighthouse Quality Gates
+- k6 Performance Validation
+- GitHub Actions CI/CD
+
+## Author
+
+**Jay Gallagher**
+
+Full-Stack Cruise Operations Platform demonstrating enterprise software engineering, quality engineering, operational workflow design, accessibility, automation architecture, and AI-assisted quality strategy.
