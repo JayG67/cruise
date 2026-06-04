@@ -28,7 +28,7 @@ export async function parseJsonResponse(response) {
   }
 
   if (!response.ok) {
-    throw new Error(payload?.message || `Request failed with status ${response.status}.`)
+    throw new Error(payload?.message || `The server could not complete this request. Please review the request data and try again. HTTP ${response.status}.`)
   }
 
   return payload

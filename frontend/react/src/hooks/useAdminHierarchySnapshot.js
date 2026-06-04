@@ -10,9 +10,33 @@ export default function useAdminHierarchySnapshot({ enabled = true } = {}) {
   const [reloadCount, setReloadCount] = useState(0)
   const [lastLoadedAt, setLastLoadedAt] = useState('')
 
+  const applySnapshot = useCallback(data => {
+    setSnapshot({
+      customers: Array.isArray(data.customers) ? data.customers : [],
+      bookings: Array.isArray(data.bookings) ? data.bookings : []
+    })
+    setLastLoadedAt(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }))
+    setError('')
+  }, [])
+
   const reload = useCallback(() => {
     setReloadCount(current => current + 1)
   }, [])
+
+  const reloadNow = useCallback(async () => {
+    setIsLoading(true)
+
+    try {
+      const data = await getAdminHierarchySnapshot()
+      applySnapshot(data)
+      return data
+    } catch (loadError) {
+      setError(loadError.message || 'Unable to refresh the cruise operations snapshot. Existing data is still displayed.')
+      throw loadError
+    } finally {
+      setIsLoading(false)
+    }
+  }, [applySnapshot])
 
   const isRefreshing = isLoading && reloadCount > 0
 
@@ -32,16 +56,10 @@ export default function useAdminHierarchySnapshot({ enabled = true } = {}) {
 
         if (!isMounted) return
 
-        setSnapshot({
-          customers: Array.isArray(data.customers) ? data.customers : [],
-          bookings: Array.isArray(data.bookings) ? data.bookings : []
-        })
-        setLastLoadedAt(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }))
-        setError('')
+        applySnapshot(data)
       } catch (loadError) {
         if (!isMounted || loadError.name === 'AbortError') return
 
-        setSnapshot(EMPTY_SNAPSHOT)
         setError(loadError.message || 'Unable to load the cruise operations snapshot.')
       } finally {
         if (isMounted) setIsLoading(false)
@@ -54,13 +72,14 @@ export default function useAdminHierarchySnapshot({ enabled = true } = {}) {
       isMounted = false
       controller.abort()
     }
-  }, [enabled, reloadCount])
+  }, [applySnapshot, enabled, reloadCount])
 
   return {
     snapshot,
     isLoading,
     error,
     reload,
+    reloadNow,
     isRefreshing,
     lastLoadedAt,
     requestId: reloadCount + 1

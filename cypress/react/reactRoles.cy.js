@@ -29,13 +29,14 @@ describe('React role dashboard coverage', () => {
     })
   })
 
-  it('supports favorites-only itinerary filtering', () => {
+  it('supports favorites-only itinerary activity filtering', () => {
     selectDemoUserByVisibleRole('Passenger')
     cy.getByTestId('react-role-booking-card').first().within(() => {
       cy.getByTestId('react-role-booking-details-toggle').click()
       cy.getByTestId('react-role-favorite-itinerary-toggle').first().check()
       cy.getByTestId('react-role-favorites-only-toggle').check()
       cy.getByTestId('react-role-itinerary-day').should('have.length', 1).and('contain.text', 'Embarkation Day')
+      cy.getByTestId('react-role-itinerary-activity').should('have.length', 1)
       cy.getByTestId('react-role-favorites-only-toggle').uncheck()
       cy.getByTestId('react-role-itinerary-day').should('have.length', 2)
     })

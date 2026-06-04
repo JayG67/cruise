@@ -61,7 +61,7 @@ describe('Cruise operations portfolio route', () => {
   })
 
 
-  it('opens React passenger booking details and filters favorite itinerary days', () => {
+  it('opens React passenger booking details and filters favorite itinerary activities', () => {
     const demoUsers = [
       {
         id: 'react-admin-user',
