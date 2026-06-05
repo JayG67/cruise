@@ -75,13 +75,13 @@ describe('React SQA console failure-mode coverage expansion', () => {
   })
 
   it('keeps SQA console usable after switching away from and back to admin', () => {
-    cy.getByTestId('react-demo-user-select').find('option').contains('Passenger').invoke('val').then(value => {
-      cy.getByTestId('react-demo-user-select').select(value)
+    cy.getByTestId('react-role-type-select').find('option').contains('Passenger').invoke('val').then(value => {
+      cy.getByTestId('react-role-type-select').select(value)
     })
     cy.getByTestId('react-sqa-console').should('not.exist')
 
-    cy.getByTestId('react-demo-user-select').find('option').contains('Admin').invoke('val').then(value => {
-      cy.getByTestId('react-demo-user-select').select(value)
+    cy.getByTestId('react-role-type-select').find('option').contains('Administrator').invoke('val').then(value => {
+      cy.getByTestId('react-role-type-select').select(value)
     })
     cy.getByTestId('react-sqa-console').should('be.visible')
     runSqaButton('react-sqa-data-button', 'Data Verification Result')

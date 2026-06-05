@@ -60,6 +60,30 @@ async function initializeDatabase() {
   `)
 
   await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS turnaround_operations (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      "sailingId" uuid NOT NULL REFERENCES sailings(id) ON DELETE CASCADE,
+      title varchar(255) NOT NULL,
+      "turnaroundDate" varchar(20) NOT NULL,
+      port varchar(255) NOT NULL,
+      status varchar(50) NOT NULL,
+      "readinessLevel" varchar(100) NOT NULL,
+      notes varchar(500)
+    );
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS turnaround_tasks (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      "operationId" uuid NOT NULL REFERENCES turnaround_operations(id) ON DELETE CASCADE,
+      "departmentRole" varchar(50) NOT NULL,
+      "taskName" varchar(255) NOT NULL,
+      status varchar(50) NOT NULL,
+      "sortOrder" integer NOT NULL DEFAULT 0
+    );
+  `)
+
+  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS customers (
       id varchar(10) PRIMARY KEY,
       "firstName" varchar(100) NOT NULL,

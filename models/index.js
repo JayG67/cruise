@@ -8,6 +8,8 @@ const bookingTable = require('./booking.model')
 const bookingPassengerTable = require('./bookingPassenger.model')
 const demoUserTable = require('./demoUser.model')
 const customerItineraryFavoriteTable = require('./customerItineraryFavorite.model')
+const turnaroundOperationTable = require('./turnaroundOperation.model')
+const turnaroundTaskTable = require('./turnaroundTask.model')
 
 module.exports = {
   cruiseLineTable,
@@ -19,5 +21,7 @@ module.exports = {
   bookingTable,
   bookingPassengerTable,
   demoUserTable,
-  customerItineraryFavoriteTable
+  customerItineraryFavoriteTable,
+  turnaroundOperationTable,
+  turnaroundTaskTable
 }

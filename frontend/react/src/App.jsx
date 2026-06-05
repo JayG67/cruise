@@ -4,6 +4,7 @@ import useCustomerProfileMutation from './hooks/useCustomerProfileMutation.js'
 import useBookingDetailsMutation from './hooks/useBookingDetailsMutation.js'
 import useCruiseLines from './hooks/useCruiseLines.js'
 import useDemoUsers from './hooks/useDemoUsers.js'
+import useTurnaroundOperations from './hooks/useTurnaroundOperations.js'
 import ReactRoleSelector from './components/ReactRoleSelector.jsx'
 import ConfirmActionPanel from './components/ConfirmActionPanel.jsx'
 import { getSelectedRoleView, getVisibleRoleBookings } from './domain/roleView.js'
@@ -52,8 +53,9 @@ function LazySectionFallback({ label }) {
 export default function App() {
   const applicationDataReady = useDeferredApplicationData()
   const { snapshot, isLoading, error, reload, reloadNow } = useAdminHierarchySnapshot({ enabled: applicationDataReady })
+  const { turnaroundOperations, isLoading: turnaroundLoading, error: turnaroundError, reload: reloadTurnaroundOperations } = useTurnaroundOperations({ enabled: applicationDataReady })
   const { cruiseLines, isLoading: fleetLoading, isRefreshing: fleetRefreshing, error: fleetError, reload: reloadFleet } = useCruiseLines({ enabled: applicationDataReady })
-  const { demoUsers, selectedDemoUser, selectedDemoUserId, setSelectedDemoUserId, isLoading: demoUsersLoading, error: demoUsersError } = useDemoUsers({ enabled: applicationDataReady })
+  const { demoUsers, filteredDemoUsers, availableRoles, selectedRole, selectedDemoUser, selectedDemoUserId, setSelectedDemoUserId, setSelectedRole, isLoading: demoUsersLoading, error: demoUsersError } = useDemoUsers({ enabled: applicationDataReady })
   const [roleSwitchRequest, setRoleSwitchRequest] = useState(null)
   const [pendingNavigationSectionId, setPendingNavigationSectionId] = useState('')
   const { saveCustomerProfile, savingCustomerId, mutationError } = useCustomerProfileMutation({ onSaved: reload })
@@ -245,10 +247,14 @@ export default function App() {
         customerCount={snapshot.customers.length}
         bookingCount={snapshot.bookings.length}
         demoUsers={demoUsers}
+        filteredDemoUsers={filteredDemoUsers}
+        availableRoles={availableRoles}
+        selectedRole={selectedRole}
         selectedDemoUser={selectedDemoUser}
         selectedDemoUserId={selectedDemoUserId}
         isLoadingDemoUsers={demoUsersLoading}
         demoUserError={demoUsersError}
+        onSelectRole={setSelectedRole}
         onSelectDemoUser={setSelectedDemoUserId}
         visibleBookingCount={visibleRoleBookings.length}
       />
@@ -298,6 +304,10 @@ export default function App() {
           bookings={snapshot.bookings}
           cruiseLines={cruiseLines}
           visibleBookings={visibleRoleBookings}
+          turnaroundOperations={turnaroundOperations}
+          isLoadingTurnaroundOperations={turnaroundLoading}
+          turnaroundOperationsError={turnaroundError}
+          onRetryTurnaroundOperations={reloadTurnaroundOperations}
           onSavePassengerProfile={saveCustomerProfile}
           savingCustomerId={savingCustomerId}
           mutationError={mutationError}

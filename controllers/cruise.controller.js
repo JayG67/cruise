@@ -8,6 +8,8 @@ const bookingTable = require('../models/booking.model')
 const bookingPassengerTable = require('../models/bookingPassenger.model')
 const demoUserTable = require('../models/demoUser.model')
 const customerItineraryFavoriteTable = require('../models/customerItineraryFavorite.model')
+const turnaroundOperationTable = require('../models/turnaroundOperation.model')
+const turnaroundTaskTable = require('../models/turnaroundTask.model')
 const db = require('../db')
 const { and, eq, inArray } = require('drizzle-orm')
 
@@ -831,6 +833,92 @@ async function getBookingDetails(booking) {
   }
 }
 
+
+async function getPassengerCountForSailing(sailingId) {
+  const bookingRows = await db
+    .select()
+    .from(bookingTable)
+    .where(eq(bookingTable.sailingId, sailingId))
+
+  let passengerCount = 0
+
+  for (const booking of bookingRows || []) {
+    const passengerRows = await db
+      .select()
+      .from(bookingPassengerTable)
+      .where(eq(bookingPassengerTable.bookingId, booking.id))
+
+    passengerCount += passengerRows.length
+  }
+
+  return passengerCount
+}
+
+async function getTurnaroundOperationDetails(operation) {
+  const sailingRows = await db
+    .select()
+    .from(sailingTable)
+    .where(eq(sailingTable.id, operation.sailingId))
+    .limit(1)
+
+  const sailing = sailingRows[0] || null
+  let ship = null
+  let cruiseLine = null
+
+  if (sailing?.shipId) {
+    const shipRows = await db
+      .select()
+      .from(shipTable)
+      .where(eq(shipTable.id, sailing.shipId))
+      .limit(1)
+
+    ship = shipRows[0] || null
+
+    if (ship?.cruiseLineId) {
+      const cruiseLineRows = await db
+        .select()
+        .from(cruiseLineTable)
+        .where(eq(cruiseLineTable.id, ship.cruiseLineId))
+        .limit(1)
+
+      cruiseLine = cruiseLineRows[0] || null
+    }
+  }
+
+  const tasks = await db
+    .select()
+    .from(turnaroundTaskTable)
+    .where(eq(turnaroundTaskTable.operationId, operation.id))
+
+  return {
+    ...operation,
+    sailing,
+    ship,
+    cruiseLine,
+    passengerCount: await getPassengerCountForSailing(operation.sailingId),
+    tasks: [...(tasks || [])].sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0))
+  }
+}
+
+exports.getTurnaroundOperations = async (req, res, next) => {
+  try {
+    const operations = await db.select().from(turnaroundOperationTable)
+
+    if (!operations || operations.length === 0) {
+      return res.status(404).json({ message: 'No turnaround operations found' })
+    }
+
+    const operationDetails = []
+
+    for (const operation of operations) {
+      operationDetails.push(await getTurnaroundOperationDetails(operation))
+    }
+
+    return res.status(200).json(operationDetails.sort((a, b) => String(a.turnaroundDate).localeCompare(String(b.turnaroundDate))))
+  } catch (err) {
+    next(err)
+  }
+}
 
 exports.getDemoUsers = async (req, res, next) => {
   try {

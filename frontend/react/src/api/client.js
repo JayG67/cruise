@@ -56,6 +56,11 @@ export async function getBookings(options = {}) {
   return Array.isArray(bookings) ? bookings : []
 }
 
+export async function getTurnaroundOperations(options = {}) {
+  const operations = await requestJson('/cruise/turnaround-operations', options)
+  return Array.isArray(operations) ? operations : []
+}
+
 export async function getDemoUsers(options = {}) {
   const demoUsers = await requestJson('/cruise/demo-users', options)
   return Array.isArray(demoUsers) ? demoUsers : []

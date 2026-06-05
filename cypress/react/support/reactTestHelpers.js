@@ -178,6 +178,54 @@ const reactBookings = [
   }
 ]
 
+const reactTurnaroundOperations = [
+  {
+    id: 'turnaround-react-1',
+    title: 'Miami same-day turnaround readiness',
+    turnaroundDate: '2026-12-12',
+    port: 'Miami, Florida',
+    status: 'PLANNED',
+    readinessLevel: 'High coordination',
+    notes: 'Coordinate disembarkation, cabin reset, provisioning, and embarkation for the next Miami sailing.',
+    passengerCount: 2,
+    ship: { name: 'React Icon' },
+    sailing: {
+      departureDate: '2026-12-12',
+      departurePort: 'Miami, Florida',
+      arrivalPort: 'Nassau, Bahamas'
+    },
+    cruiseLine: { name: 'Royal Caribbean International' },
+    tasks: [
+      { id: 'turnaround-task-1', departmentRole: 'turnaround_manager', taskName: 'Coordinate department readiness standups', status: 'READY', sortOrder: 1 },
+      { id: 'turnaround-task-2', departmentRole: 'turnaround_manager', taskName: 'Sequence disembarkation, provisioning, cleaning, and embarkation', status: 'READY', sortOrder: 2 },
+      { id: 'turnaround-task-3', departmentRole: 'housekeeping_lead', taskName: 'Prioritize cabin strip and reset windows', status: 'READY', sortOrder: 1 },
+      { id: 'turnaround-task-4', departmentRole: 'engineering_lead', taskName: 'Confirm shore power, fuel, potable water, and waste windows', status: 'READY', sortOrder: 1 }
+    ]
+  },
+  {
+    id: 'turnaround-react-2',
+    title: 'San Juan repositioning turnaround readiness',
+    turnaroundDate: '2027-01-18',
+    port: 'San Juan, Puerto Rico',
+    status: 'PLANNED',
+    readinessLevel: 'Standard coordination',
+    notes: 'Monitor passenger volume and stateroom readiness for the next sailing.',
+    passengerCount: 2,
+    ship: { name: 'React Beyond' },
+    sailing: {
+      departureDate: '2027-01-18',
+      departurePort: 'San Juan, Puerto Rico',
+      arrivalPort: 'Miami, Florida'
+    },
+    cruiseLine: { name: 'Celebrity Cruises' },
+    tasks: [
+      { id: 'turnaround-task-5', departmentRole: 'turnaround_manager', taskName: 'Confirm arrival and next departure ports', status: 'READY', sortOrder: 1 },
+      { id: 'turnaround-task-6', departmentRole: 'housekeeping_lead', taskName: 'Confirm inspection checkpoints before guest boarding', status: 'READY', sortOrder: 1 },
+      { id: 'turnaround-task-7', departmentRole: 'engineering_lead', taskName: 'Confirm technical clearance checks before embarkation', status: 'READY', sortOrder: 1 }
+    ]
+  }
+]
+
 const reactDemoUsers = [
   {
     id: 'react-admin-user',
@@ -198,18 +246,56 @@ const reactDemoUsers = [
     role: 'Group Leader',
     customerId: 'react-customer-3',
     email: 'morgan.leader@example.com'
+  },
+  {
+    id: 'ops-turnaround',
+    displayName: 'Alex Turner',
+    role: 'turnaround_manager',
+    email: 'alex.turner@example.com'
+  },
+  {
+    id: 'ops-housekeeping',
+    displayName: 'Maria Rodriguez',
+    role: 'housekeeping_lead',
+    email: 'maria.rodriguez@example.com'
+  },
+  {
+    id: 'ops-guest-services',
+    displayName: 'Angela Brooks',
+    role: 'guest_services_lead',
+    email: 'angela.brooks@example.com'
+  },
+  {
+    id: 'ops-food-beverage',
+    displayName: 'Michael Chen',
+    role: 'food_beverage_lead',
+    email: 'michael.chen@example.com'
+  },
+  {
+    id: 'ops-engineering',
+    displayName: 'David Torres',
+    role: 'engineering_lead',
+    email: 'david.torres@example.com'
   }
 ]
 
 Cypress.Commands.add('getByTestId', testId => cy.get(`[data-testid="${testId}"]`))
 
 function selectDemoUserByVisibleRole(roleText) {
-  cy.getByTestId('react-demo-user-select')
+  cy.getByTestId('react-role-type-select')
     .find('option')
     .contains(roleText)
     .invoke('val')
-    .then(value => {
-      cy.getByTestId('react-demo-user-select').select(value)
+    .then(roleValue => {
+      cy.getByTestId('react-role-type-select').select(roleValue)
+    })
+
+  cy.getByTestId('react-demo-user-select')
+    .find('option')
+    .first()
+    .invoke('val')
+    .then(userValue => {
+      cy.getByTestId('react-demo-user-select').select(userValue)
     })
 }
 
@@ -217,6 +303,7 @@ function interceptReactCoreApis(overrides = {}) {
   cy.intercept('GET', '/cruise/demo-users', overrides.demoUsers || reactDemoUsers).as('reactDemoUsers')
   cy.intercept('GET', '/cruise/customers', overrides.customers || reactCustomers).as('reactCustomers')
   cy.intercept('GET', '/cruise/bookings', overrides.bookings || reactBookings).as('reactBookings')
+  cy.intercept('GET', '/cruise/turnaround-operations', overrides.turnaroundOperations || reactTurnaroundOperations).as('reactTurnaroundOperations')
   cy.intercept('GET', '/cruise', overrides.cruiseLines || reactCruiseLines).as('reactCruiseLines')
 }
 

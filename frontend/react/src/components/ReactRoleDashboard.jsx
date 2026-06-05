@@ -2,14 +2,17 @@ import { useEffect, useMemo, useState } from 'react'
 import PassengerCruiseBookingWorkflow from './PassengerCruiseBookingWorkflow.jsx'
 
 import {
+  buildTurnaroundOperationCards,
   findDemoCustomer,
   getBookingCardFields,
   getBookingCardTitle,
   getBookingItineraryDays,
   getItineraryDayActivities,
   getRoleDashboardTitle,
+  getOperationalRoleFocus,
   getRoleSummaryLine,
   getSelectedRoleView,
+  isOperationalRoleView,
   getVisiblePassengerRows
 } from '../domain/roleView.js'
 
@@ -50,6 +53,10 @@ function PassengerProfile({
   selectedCustomer,
   selectedDemoUser,
   visibleBookings = [],
+  turnaroundOperations = [],
+  isLoadingTurnaroundOperations = false,
+  turnaroundOperationsError = '',
+  onRetryTurnaroundOperations,
   onSavePassengerProfile,
   savingCustomerId = '',
   mutationError = '',
@@ -257,6 +264,94 @@ function RoleBookingDetails({ booking, favoriteActivityKeys, favoritesOnly, onTo
   )
 }
 
+function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaroundOperations = [], isLoading = false, error = '', onRetry }) {
+  const readinessOperations = useMemo(() => buildTurnaroundOperationCards(turnaroundOperations, roleView), [turnaroundOperations, roleView])
+  const highCoordinationCount = readinessOperations.filter(item => String(item.readinessLevel).toLowerCase().includes('high')).length
+  const passengerTotal = readinessOperations.reduce((sum, item) => sum + item.passengerCount, 0)
+  const firstOperation = readinessOperations[0]
+  const focusLine = firstOperation?.tasks?.[0]?.taskName || getOperationalRoleFocus(roleView)
+
+  return (
+    <section className="operational-turnaround-panel" aria-labelledby="operational-turnaround-heading" data-testid="react-operational-turnaround-panel">
+      <div className="operational-turnaround-hero">
+        <div>
+          <p className="eyebrow">Turnaround readiness</p>
+          <h3 id="operational-turnaround-heading">{focusLine}</h3>
+          <p>
+            {selectedDemoUser?.displayName || 'This operator'} is reviewing database-backed turnaround plans, readiness tasks, and sailing context without exposing admin-only mutation controls.
+          </p>
+        </div>
+        <dl className="operational-metric-grid" aria-label="Turnaround readiness metrics">
+          <div data-testid="react-operational-readiness-bookings">
+            <dt>Turnaround plans</dt>
+            <dd>{readinessOperations.length}</dd>
+          </div>
+          <div data-testid="react-operational-readiness-passengers">
+            <dt>Passengers visible</dt>
+            <dd>{passengerTotal}</dd>
+          </div>
+          <div data-testid="react-operational-readiness-alerts">
+            <dt>High coordination</dt>
+            <dd>{highCoordinationCount}</dd>
+          </div>
+        </dl>
+      </div>
+
+      {isLoading ? (
+        <p className="status-card compact" data-testid="react-operational-loading-state">Loading turnaround operations from the database...</p>
+      ) : error ? (
+        <div className="status-card compact" data-testid="react-operational-error-state">
+          <p>{error}</p>
+          <button type="button" className="secondary-action-button" onClick={onRetry}>Retry turnaround data</button>
+        </div>
+      ) : readinessOperations.length === 0 ? (
+        <p className="status-card compact" data-testid="react-operational-empty-state">No turnaround operation records are available yet.</p>
+      ) : (
+        <div className="operational-readiness-list" aria-label="Upcoming turnaround readiness list">
+          {readinessOperations.slice(0, 6).map(item => (
+            <article className="operational-readiness-card" key={item.id} data-testid="react-operational-readiness-card">
+              <div>
+                <p className="eyebrow">{item.status}</p>
+                <h4>{item.title}</h4>
+                <p>{item.shipName} · {item.route}</p>
+                {item.notes && <p>{item.notes}</p>}
+              </div>
+              <dl className="role-booking-fields compact-fields">
+                <div>
+                  <dt>Sailing date</dt>
+                  <dd>{item.sailingDate}</dd>
+                </div>
+                <div>
+                  <dt>Turnaround port</dt>
+                  <dd>{item.port || item.arrivalPort}</dd>
+                </div>
+                <div>
+                  <dt>Passenger load</dt>
+                  <dd>{item.passengerCount} passenger{item.passengerCount === 1 ? '' : 's'}</dd>
+                </div>
+                <div>
+                  <dt>Readiness level</dt>
+                  <dd>{item.readinessLevel}</dd>
+                </div>
+              </dl>
+
+              {item.tasks.length > 0 && (
+                <ul className="operational-checklist" data-testid="react-operational-role-checklist">
+                  {item.tasks.map(task => (
+                    <li key={task.id || `${item.id}-${task.taskName}`}>
+                      <strong>{task.status}</strong> — {task.taskName}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
 function RoleBookingCard({ booking, roleView, isExpanded, favoriteActivityKeys, favoritesOnly, onToggleDetails, onToggleFavorite, onToggleFavoritesOnly }) {
   const passengers = getVisiblePassengerRows(booking)
 
@@ -319,6 +414,10 @@ export default function ReactRoleDashboard({
   customers = [],
   bookings = [],
   visibleBookings = [],
+  turnaroundOperations = [],
+  isLoadingTurnaroundOperations = false,
+  turnaroundOperationsError = '',
+  onRetryTurnaroundOperations,
   onSavePassengerProfile,
   savingCustomerId = '',
   mutationError = '',
@@ -404,28 +503,41 @@ export default function ReactRoleDashboard({
         </>
       )}
 
-      <div className="role-booking-list">
-        {visibleBookings.length === 0 ? (
-          <p className="status-card compact">No bookings are visible for this selected demo user.</p>
-        ) : visibleBookings.map(booking => {
-          const bookingId = booking.id || booking.bookingId
-          const favoriteActivityKeys = new Set(favoriteItineraryActivitiesByBooking[bookingId] || [])
+      {isOperationalRoleView(roleView) && (
+        <OperationalTurnaroundDashboard
+          roleView={roleView}
+          selectedDemoUser={selectedDemoUser}
+          turnaroundOperations={turnaroundOperations}
+          isLoading={isLoadingTurnaroundOperations}
+          error={turnaroundOperationsError}
+          onRetry={onRetryTurnaroundOperations}
+        />
+      )}
 
-          return (
-            <RoleBookingCard
-              key={bookingId}
-              booking={booking}
-              roleView={roleView}
-              isExpanded={expandedBookingIds.has(bookingId)}
-              favoriteActivityKeys={favoriteActivityKeys}
-              favoritesOnly={Boolean(favoritesOnlyByBooking[bookingId])}
-              onToggleDetails={() => toggleBookingDetails(bookingId)}
-              onToggleFavorite={activityKey => toggleFavoriteItineraryActivity(bookingId, activityKey)}
-              onToggleFavoritesOnly={() => toggleFavoritesOnly(bookingId)}
-            />
-          )
-        })}
-      </div>
+      {!isOperationalRoleView(roleView) && (
+        <div className="role-booking-list">
+          {visibleBookings.length === 0 ? (
+            <p className="status-card compact">No bookings are visible for this selected demo user.</p>
+          ) : visibleBookings.map(booking => {
+            const bookingId = booking.id || booking.bookingId
+            const favoriteActivityKeys = new Set(favoriteItineraryActivitiesByBooking[bookingId] || [])
+
+            return (
+              <RoleBookingCard
+                key={bookingId}
+                booking={booking}
+                roleView={roleView}
+                isExpanded={expandedBookingIds.has(bookingId)}
+                favoriteActivityKeys={favoriteActivityKeys}
+                favoritesOnly={Boolean(favoritesOnlyByBooking[bookingId])}
+                onToggleDetails={() => toggleBookingDetails(bookingId)}
+                onToggleFavorite={activityKey => toggleFavoriteItineraryActivity(bookingId, activityKey)}
+                onToggleFavoritesOnly={() => toggleFavoritesOnly(bookingId)}
+              />
+            )
+          })}
+        </div>
+      )}
     </section>
   )
 }

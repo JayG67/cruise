@@ -34,6 +34,11 @@ router.get(
 
 
 router.get(
+  '/turnaround-operations',
+  cruiseController.getTurnaroundOperations
+)
+
+router.get(
   '/demo-users',
   cruiseController.getDemoUsers
 )

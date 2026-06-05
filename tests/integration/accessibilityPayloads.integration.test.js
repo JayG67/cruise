@@ -78,9 +78,20 @@ describe('Accessibility-supporting API payload integration tests', () => {
 
     expect(res.statusCode).toBe(200)
     expect(res.body.length).toBeGreaterThanOrEqual(10)
+    const accessibleRoleLabels = [
+      'ADMIN',
+      'PASSENGER',
+      'GROUP_LEADER',
+      'TURNAROUND_MANAGER',
+      'HOUSEKEEPING_LEAD',
+      'GUEST_SERVICES_LEAD',
+      'FOOD_BEVERAGE_LEAD',
+      'ENGINEERING_LEAD'
+    ]
+
     res.body.forEach(user => {
       expect(user.displayName.trim().length).toBeGreaterThan(0)
-      expect(['ADMIN', 'PASSENGER', 'GROUP_LEADER']).toContain(user.role)
+      expect(accessibleRoleLabels).toContain(user.role)
     })
   })
 

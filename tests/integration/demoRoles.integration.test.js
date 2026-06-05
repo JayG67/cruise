@@ -157,12 +157,38 @@ describe('Demo role and user context API integration tests', () => {
     expect(res.body.map(user => user.displayName).join(' ')).toContain('Kim Couple')
 
     const roles = new Set(res.body.map(user => user.role))
-    const customerLinkedUsers = res.body.filter(user => user.role !== 'ADMIN')
+    const customerLinkedUsers = res.body.filter(user =>
+      ['PASSENGER', 'GROUP_LEADER'].includes(user.role)
+    )
+    const operationalUsers = res.body.filter(user =>
+      [
+        'TURNAROUND_MANAGER',
+        'HOUSEKEEPING_LEAD',
+        'GUEST_SERVICES_LEAD',
+        'FOOD_BEVERAGE_LEAD',
+        'ENGINEERING_LEAD'
+      ].includes(user.role)
+    )
 
-    expect([...roles]).toEqual(expect.arrayContaining(['ADMIN', 'PASSENGER', 'GROUP_LEADER']))
+    expect([...roles]).toEqual(
+      expect.arrayContaining([
+        'ADMIN',
+        'PASSENGER',
+        'GROUP_LEADER',
+        'TURNAROUND_MANAGER',
+        'HOUSEKEEPING_LEAD',
+        'GUEST_SERVICES_LEAD',
+        'FOOD_BEVERAGE_LEAD',
+        'ENGINEERING_LEAD'
+      ])
+    )
     expect(customerLinkedUsers.length).toBeGreaterThanOrEqual(9)
     customerLinkedUsers.forEach(user => {
       expect(user.customerId).toMatch(/^C[A-Z0-9]{9}$/)
+    })
+    expect(operationalUsers.length).toBeGreaterThanOrEqual(5)
+    operationalUsers.forEach(user => {
+      expect(user.customerId).toBeNull()
     })
   })
 

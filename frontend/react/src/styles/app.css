@@ -3496,3 +3496,107 @@ button.react-workspace-card .workspace-card-title,
     flex-direction: column;
   }
 }
+
+.operational-turnaround-panel {
+  background: linear-gradient(135deg, rgba(239, 248, 253, 0.95), rgba(255, 255, 255, 0.98));
+  border: 1px solid #cfe3f2;
+  border-radius: 1.25rem;
+  box-shadow: 0 16px 40px rgba(17, 45, 78, 0.08);
+  display: grid;
+  gap: 1.25rem;
+  margin: 1.25rem 0;
+  padding: 1.25rem;
+}
+
+.operational-turnaround-hero {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.75fr);
+}
+
+.operational-turnaround-hero h3,
+.operational-turnaround-hero p {
+  margin: 0.25rem 0 0;
+}
+
+.operational-metric-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+}
+
+.operational-metric-grid div {
+  background: #ffffff;
+  border: 1px solid #d4e5f5;
+  border-radius: 1rem;
+  padding: 0.9rem;
+}
+
+.operational-metric-grid dt {
+  color: #39516b;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.operational-metric-grid dd {
+  color: #12324f;
+  font-size: 1.7rem;
+  font-weight: 900;
+  margin: 0.25rem 0 0;
+}
+
+.operational-dashboard-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.operational-checklist {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0.75rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.operational-checklist li {
+  padding-left: 0.15rem;
+}
+
+.operational-readiness-list {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+}
+
+.operational-readiness-card {
+  background: #ffffff;
+  border: 1px solid #d4e5f5;
+  border-radius: 1rem;
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.operational-readiness-card h4,
+.operational-readiness-card p {
+  margin: 0;
+}
+
+.operational-readiness-card p {
+  color: #39516b;
+}
+
+@media (max-width: 820px) {
+  .operational-turnaround-hero,
+  .operational-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .operational-metric-grid {
+    grid-template-columns: 1fr;
+  }
+}
