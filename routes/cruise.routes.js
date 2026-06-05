@@ -14,7 +14,11 @@ const {
   bookingPassengerCreateSchema,
   passengerCustomerUpdateSchema,
   bookingPreferenceUpdateSchema,
-  itineraryFavoriteSchema
+  itineraryFavoriteSchema,
+  turnaroundTaskStatusUpdateSchema,
+  turnaroundTaskDetailUpdateSchema,
+  turnaroundTaskUpdateSchema,
+  turnaroundSignoffUpdateSchema
 } = require('../validation/cruise.validation')
 
 const router = express.Router()
@@ -32,6 +36,36 @@ router.get(
 )
 
 
+
+router.get(
+  '/turnaround-operations',
+  cruiseController.getTurnaroundOperations
+)
+
+
+router.patch(
+  '/turnaround-operations/:id/signoffs/:departmentRole',
+  validate(turnaroundSignoffUpdateSchema),
+  cruiseController.updateTurnaroundSignoff
+)
+
+router.patch(
+  '/turnaround-tasks/:id/status',
+  validate(turnaroundTaskStatusUpdateSchema),
+  cruiseController.updateTurnaroundTaskStatus
+)
+
+router.patch(
+  '/turnaround-tasks/:id/details',
+  validate(turnaroundTaskDetailUpdateSchema),
+  cruiseController.updateTurnaroundTaskDetails
+)
+
+router.post(
+  '/turnaround-tasks/:id/updates',
+  validate(turnaroundTaskUpdateSchema),
+  cruiseController.createTurnaroundTaskUpdate
+)
 
 router.get(
   '/demo-users',

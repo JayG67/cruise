@@ -13,6 +13,10 @@ const bookingTable = require('../models/booking.model')
 const bookingPassengerTable = require('../models/bookingPassenger.model')
 const demoUserTable = require('../models/demoUser.model')
 const customerItineraryFavoriteTable = require('../models/customerItineraryFavorite.model')
+const turnaroundOperationTable = require('../models/turnaroundOperation.model')
+const turnaroundTaskTable = require('../models/turnaroundTask.model')
+const turnaroundTaskUpdateTable = require('../models/turnaroundTaskUpdate.model')
+const turnaroundSignoffTable = require('../models/turnaroundSignoff.model')
 
 const SEED_FILE_PATH = path.join(__dirname, '..', 'data', 'cruise.json')
 const INSERT_CHUNK_SIZE = 500
@@ -48,6 +52,10 @@ function buildSeedRows(cruiseData) {
   const bookingRows = []
   const bookingPassengerRows = []
   const demoUserRows = []
+  const turnaroundOperationRows = []
+  const turnaroundTaskRows = []
+  const turnaroundTaskUpdateRows = []
+  const turnaroundSignoffRows = []
   const sailingIdBySeedKey = new Map()
 
   for (const cruiseLine of cruiseData.cruiseLines || []) {
@@ -164,6 +172,66 @@ function buildSeedRows(cruiseData) {
     })
   }
 
+  for (const turnaroundOperation of cruiseData.turnaroundOperations || []) {
+    const operationId = randomUUID()
+    const sailingId = turnaroundOperation.sailingId || sailingIdBySeedKey.get(`${turnaroundOperation.shipName}|${turnaroundOperation.departureDate}`)
+
+    if (!sailingId) {
+      throw new Error(`Unable to resolve sailing for turnaround operation ${turnaroundOperation.title || turnaroundOperation.id || turnaroundOperation.shipName}`)
+    }
+
+    turnaroundOperationRows.push({
+      id: operationId,
+      sailingId,
+      title: turnaroundOperation.title,
+      turnaroundDate: turnaroundOperation.turnaroundDate || turnaroundOperation.departureDate,
+      port: turnaroundOperation.port,
+      status: turnaroundOperation.status,
+      readinessLevel: turnaroundOperation.readinessLevel,
+      notes: turnaroundOperation.notes
+    })
+
+    for (const signoff of turnaroundOperation.signoffs || []) {
+      turnaroundSignoffRows.push({
+        id: randomUUID(),
+        operationId,
+        departmentRole: signoff.departmentRole,
+        approverName: signoff.approverName,
+        status: signoff.status || 'PENDING',
+        notes: signoff.notes,
+        signedAt: signoff.signedAt
+      })
+    }
+
+    for (const [index, task] of (turnaroundOperation.tasks || []).entries()) {
+      const taskId = randomUUID()
+
+      turnaroundTaskRows.push({
+        id: taskId,
+        operationId,
+        departmentRole: task.departmentRole,
+        taskName: task.taskName,
+        ownerName: task.ownerName,
+        dueTime: task.dueTime,
+        location: task.location,
+        blockerReason: task.blockerReason,
+        status: task.status,
+        sortOrder: task.sortOrder ?? index + 1
+      })
+
+      for (const update of task.updates || []) {
+        turnaroundTaskUpdateRows.push({
+          id: randomUUID(),
+          taskId,
+          authorName: update.authorName,
+          updateType: update.updateType || 'NOTE',
+          message: update.message,
+          createdAt: update.createdAt || new Date().toISOString()
+        })
+      }
+    }
+  }
+
   return {
     cruiseLineRows,
     shipRows,
@@ -173,7 +241,11 @@ function buildSeedRows(cruiseData) {
     customerRows,
     bookingRows,
     bookingPassengerRows,
-    demoUserRows
+    demoUserRows,
+    turnaroundOperationRows,
+    turnaroundTaskRows,
+    turnaroundTaskUpdateRows,
+    turnaroundSignoffRows
   }
 }
 
@@ -183,6 +255,10 @@ async function loadCruiseData() {
 
   await db.transaction(async tx => {
     await tx.delete(demoUserTable)
+    await tx.delete(turnaroundTaskUpdateTable)
+    await tx.delete(turnaroundSignoffTable)
+    await tx.delete(turnaroundTaskTable)
+    await tx.delete(turnaroundOperationTable)
     await tx.delete(customerItineraryFavoriteTable)
     await tx.delete(bookingPassengerTable)
     await tx.delete(bookingTable)
@@ -202,6 +278,10 @@ async function loadCruiseData() {
     await insertRows(tx, bookingTable, rows.bookingRows)
     await insertRows(tx, bookingPassengerTable, rows.bookingPassengerRows)
     await insertRows(tx, demoUserTable, rows.demoUserRows)
+    await insertRows(tx, turnaroundOperationTable, rows.turnaroundOperationRows)
+    await insertRows(tx, turnaroundTaskTable, rows.turnaroundTaskRows)
+    await insertRows(tx, turnaroundTaskUpdateTable, rows.turnaroundTaskUpdateRows)
+    await insertRows(tx, turnaroundSignoffTable, rows.turnaroundSignoffRows)
   })
 
   if (process.env.NODE_ENV !== 'test' && process.env.SUPPRESS_DB_LOGS !== 'true') {
@@ -218,6 +298,10 @@ async function loadCruiseData() {
     bookingCount: rows.bookingRows.length,
     bookingPassengerCount: rows.bookingPassengerRows.length,
     demoUserCount: rows.demoUserRows.length,
+    turnaroundOperationCount: rows.turnaroundOperationRows.length,
+    turnaroundTaskCount: rows.turnaroundTaskRows.length,
+    turnaroundTaskUpdateCount: rows.turnaroundTaskUpdateRows.length,
+    turnaroundSignoffCount: rows.turnaroundSignoffRows.length,
     source: 'data/cruise.json'
   }
 }

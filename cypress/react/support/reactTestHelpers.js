@@ -178,6 +178,67 @@ const reactBookings = [
   }
 ]
 
+const reactTurnaroundOperations = [
+  {
+    id: 'turnaround-react-1',
+    title: 'Miami same-day turnaround readiness',
+    turnaroundDate: '2026-12-12',
+    port: 'Miami, Florida',
+    status: 'PLANNED',
+    readinessLevel: 'High coordination',
+    notes: 'Coordinate disembarkation, cabin reset, provisioning, and embarkation for the next Miami sailing.',
+    passengerCount: 2,
+    taskSummary: { totalTasks: 4, completeTasks: 0, blockedTasks: 0, inProgressTasks: 0, completionPercent: 0 },
+    signoffSummary: { totalSignoffs: 3, approvedSignoffs: 1, blockedSignoffs: 0, pendingSignoffs: 2, approvalPercent: 33 },
+    signoffs: [
+      { id: 'turnaround-signoff-1', operationId: 'turnaround-react-1', departmentRole: 'turnaround-manager', approverName: 'Alex Turner', status: 'APPROVED', notes: 'Command readiness accepted.', signedAt: '2026-12-12T07:25:00.000Z' },
+      { id: 'turnaround-signoff-2', operationId: 'turnaround-react-1', departmentRole: 'housekeeping-lead', approverName: '', status: 'PENDING', notes: 'Cabin readiness pending.', signedAt: null },
+      { id: 'turnaround-signoff-3', operationId: 'turnaround-react-1', departmentRole: 'engineering-lead', approverName: '', status: 'PENDING', notes: 'Engineering readiness pending.', signedAt: null }
+    ],
+    ship: { name: 'React Icon' },
+    sailing: {
+      departureDate: '2026-12-12',
+      departurePort: 'Miami, Florida',
+      arrivalPort: 'Nassau, Bahamas'
+    },
+    cruiseLine: { name: 'Royal Caribbean International' },
+    tasks: [
+      { id: 'turnaround-task-1', departmentRole: 'turnaround_manager', taskName: 'Coordinate department readiness standups', ownerName: 'Alex Turner', dueTime: '07:30', location: 'Port operations center', status: 'READY', sortOrder: 1, updates: [{ id: 'turnaround-update-1', authorName: 'Alex Turner', updateType: 'NOTE', message: 'Readiness huddle completed from the database update log.', createdAt: '2026-12-12T07:15:00.000Z' }] },
+      { id: 'turnaround-task-2', departmentRole: 'turnaround_manager', taskName: 'Sequence disembarkation, provisioning, cleaning, and embarkation', ownerName: 'Alex Turner', dueTime: '08:00', location: 'Port operations center', status: 'READY', sortOrder: 2, updates: [] },
+      { id: 'turnaround-task-3', departmentRole: 'housekeeping_lead', taskName: 'Prioritize cabin strip and reset windows', ownerName: 'Maria Rodriguez', dueTime: '10:45', location: 'Guest decks', status: 'READY', sortOrder: 1 },
+      { id: 'turnaround-task-4', departmentRole: 'engineering_lead', taskName: 'Confirm shore power, fuel, potable water, and waste windows', ownerName: 'David Torres', dueTime: '08:00', location: 'Engine control room', status: 'READY', sortOrder: 1 }
+    ]
+  },
+  {
+    id: 'turnaround-react-2',
+    title: 'San Juan repositioning turnaround readiness',
+    turnaroundDate: '2027-01-18',
+    port: 'San Juan, Puerto Rico',
+    status: 'PLANNED',
+    readinessLevel: 'Standard coordination',
+    notes: 'Monitor passenger volume and stateroom readiness for the next sailing.',
+    passengerCount: 2,
+    taskSummary: { totalTasks: 3, completeTasks: 0, blockedTasks: 0, inProgressTasks: 0, completionPercent: 0 },
+    signoffSummary: { totalSignoffs: 2, approvedSignoffs: 0, blockedSignoffs: 0, pendingSignoffs: 2, approvalPercent: 0 },
+    signoffs: [
+      { id: 'turnaround-signoff-4', operationId: 'turnaround-react-2', departmentRole: 'turnaround-manager', approverName: '', status: 'PENDING', notes: 'Command readiness pending.', signedAt: null },
+      { id: 'turnaround-signoff-5', operationId: 'turnaround-react-2', departmentRole: 'engineering-lead', approverName: '', status: 'PENDING', notes: 'Engineering readiness pending.', signedAt: null }
+    ],
+    ship: { name: 'React Beyond' },
+    sailing: {
+      departureDate: '2027-01-18',
+      departurePort: 'San Juan, Puerto Rico',
+      arrivalPort: 'Miami, Florida'
+    },
+    cruiseLine: { name: 'Celebrity Cruises' },
+    tasks: [
+      { id: 'turnaround-task-5', departmentRole: 'turnaround_manager', taskName: 'Confirm arrival and next departure ports', ownerName: 'Alex Turner', dueTime: '07:30', location: 'Port operations center', status: 'READY', sortOrder: 1 },
+      { id: 'turnaround-task-6', departmentRole: 'housekeeping_lead', taskName: 'Confirm inspection checkpoints before guest boarding', ownerName: 'Maria Rodriguez', dueTime: '10:45', location: 'Guest decks', status: 'READY', sortOrder: 1 },
+      { id: 'turnaround-task-7', departmentRole: 'engineering_lead', taskName: 'Confirm technical clearance checks before embarkation', ownerName: 'David Torres', dueTime: '08:00', location: 'Engine control room', status: 'READY', sortOrder: 1 }
+    ]
+  }
+]
+
 const reactDemoUsers = [
   {
     id: 'react-admin-user',
@@ -198,18 +259,56 @@ const reactDemoUsers = [
     role: 'Group Leader',
     customerId: 'react-customer-3',
     email: 'morgan.leader@example.com'
+  },
+  {
+    id: 'ops-turnaround',
+    displayName: 'Alex Turner',
+    role: 'turnaround_manager',
+    email: 'alex.turner@example.com'
+  },
+  {
+    id: 'ops-housekeeping',
+    displayName: 'Maria Rodriguez',
+    role: 'housekeeping_lead',
+    email: 'maria.rodriguez@example.com'
+  },
+  {
+    id: 'ops-guest-services',
+    displayName: 'Angela Brooks',
+    role: 'guest_services_lead',
+    email: 'angela.brooks@example.com'
+  },
+  {
+    id: 'ops-food-beverage',
+    displayName: 'Michael Chen',
+    role: 'food_beverage_lead',
+    email: 'michael.chen@example.com'
+  },
+  {
+    id: 'ops-engineering',
+    displayName: 'David Torres',
+    role: 'engineering_lead',
+    email: 'david.torres@example.com'
   }
 ]
 
 Cypress.Commands.add('getByTestId', testId => cy.get(`[data-testid="${testId}"]`))
 
 function selectDemoUserByVisibleRole(roleText) {
-  cy.getByTestId('react-demo-user-select')
+  cy.getByTestId('react-role-type-select')
     .find('option')
     .contains(roleText)
     .invoke('val')
-    .then(value => {
-      cy.getByTestId('react-demo-user-select').select(value)
+    .then(roleValue => {
+      cy.getByTestId('react-role-type-select').select(roleValue)
+    })
+
+  cy.getByTestId('react-demo-user-select')
+    .find('option')
+    .first()
+    .invoke('val')
+    .then(userValue => {
+      cy.getByTestId('react-demo-user-select').select(userValue)
     })
 }
 
@@ -217,8 +316,102 @@ function interceptReactCoreApis(overrides = {}) {
   cy.intercept('GET', '/cruise/demo-users', overrides.demoUsers || reactDemoUsers).as('reactDemoUsers')
   cy.intercept('GET', '/cruise/customers', overrides.customers || reactCustomers).as('reactCustomers')
   cy.intercept('GET', '/cruise/bookings', overrides.bookings || reactBookings).as('reactBookings')
+  cy.intercept('GET', '/cruise/turnaround-operations', overrides.turnaroundOperations || reactTurnaroundOperations).as('reactTurnaroundOperations')
+  cy.intercept('PATCH', '/cruise/turnaround-operations/*/signoffs/*', req => {
+    const [, routeRemainder] = req.url.split('/turnaround-operations/')
+    const [operationId, signoffPath] = routeRemainder.split('/signoffs/')
+    const departmentRole = decodeURIComponent(signoffPath)
+    const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
+      if (operation.id !== operationId) return operation
+
+      const existingSignoffs = operation.signoffs || []
+      const hasExistingSignoff = existingSignoffs.some(signoff => signoff.departmentRole === departmentRole)
+      const updatedSignoff = {
+        id: hasExistingSignoff ? existingSignoffs.find(signoff => signoff.departmentRole === departmentRole).id : 'turnaround-signoff-created',
+        operationId,
+        departmentRole,
+        approverName: req.body?.approverName || 'Operational lead',
+        status: req.body?.status || 'PENDING',
+        notes: req.body?.notes || '',
+        signedAt: req.body?.status === 'PENDING' ? null : '2026-12-12T10:30:00.000Z'
+      }
+      const signoffs = hasExistingSignoff
+        ? existingSignoffs.map(signoff => signoff.departmentRole === departmentRole ? updatedSignoff : signoff)
+        : [...existingSignoffs, updatedSignoff]
+      const approvedSignoffs = signoffs.filter(signoff => signoff.status === 'APPROVED').length
+      const blockedSignoffs = signoffs.filter(signoff => signoff.status === 'BLOCKED').length
+      const pendingSignoffs = signoffs.filter(signoff => signoff.status === 'PENDING').length
+
+      return {
+        ...operation,
+        signoffs,
+        signoffSummary: {
+          totalSignoffs: signoffs.length,
+          approvedSignoffs,
+          blockedSignoffs,
+          pendingSignoffs,
+          approvalPercent: signoffs.length === 0 ? 0 : Math.round((approvedSignoffs / signoffs.length) * 100)
+        }
+      }
+    })
+    const operation = updatedOperations.find(candidate => candidate.id === operationId)
+
+    req.reply({ statusCode: 200, body: { message: 'Turnaround readiness signoff updated successfully', operation } })
+  }).as('reactUpdateTurnaroundSignoff')
+  cy.intercept('PATCH', '/cruise/turnaround-tasks/*/status', req => {
+    const taskId = req.url.split('/turnaround-tasks/')[1].split('/status')[0]
+    const requestedStatus = req.body?.status || 'IN_PROGRESS'
+    const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
+      const tasks = operation.tasks.map(task => task.id === taskId ? { ...task, status: requestedStatus, blockerReason: req.body?.blockerReason || (requestedStatus === 'BLOCKED' ? 'Awaiting pier-side supervisor confirmation' : '') } : task)
+      const completeTasks = tasks.filter(task => task.status === 'COMPLETE').length
+      const blockedTasks = tasks.filter(task => task.status === 'BLOCKED').length
+      const inProgressTasks = tasks.filter(task => task.status === 'IN_PROGRESS').length
+      const taskSummary = {
+        totalTasks: tasks.length,
+        completeTasks,
+        blockedTasks,
+        inProgressTasks,
+        completionPercent: tasks.length === 0 ? 0 : Math.round((completeTasks / tasks.length) * 100)
+      }
+
+      return { ...operation, tasks, taskSummary, status: blockedTasks > 0 ? 'BLOCKED' : inProgressTasks > 0 ? 'IN_PROGRESS' : operation.status }
+    })
+    const operation = updatedOperations.find(candidate => candidate.tasks.some(task => task.id === taskId))
+
+    req.reply({ statusCode: 200, body: { message: 'Turnaround task status updated successfully', operation } })
+  }).as('reactUpdateTurnaroundTaskStatus')
+  cy.intercept('PATCH', '/cruise/turnaround-tasks/*/details', req => {
+    const taskId = req.url.split('/turnaround-tasks/')[1].split('/details')[0]
+    const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
+      const tasks = operation.tasks.map(task => task.id === taskId ? { ...task, ...req.body } : task)
+
+      return { ...operation, tasks }
+    })
+    const operation = updatedOperations.find(candidate => candidate.tasks.some(task => task.id === taskId))
+
+    req.reply({ statusCode: 200, body: { message: 'Turnaround task details updated successfully', operation } })
+  }).as('reactUpdateTurnaroundTaskDetails')
+  cy.intercept('POST', '/cruise/turnaround-tasks/*/updates', req => {
+    const taskId = req.url.split('/turnaround-tasks/')[1].split('/updates')[0]
+    const update = {
+      id: 'turnaround-update-created',
+      authorName: req.body?.authorName || 'Operational lead',
+      updateType: req.body?.updateType || 'NOTE',
+      message: req.body?.message || 'Update added',
+      createdAt: '2026-12-12T09:30:00.000Z'
+    }
+    const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
+      const tasks = operation.tasks.map(task => task.id === taskId ? { ...task, updates: [update, ...(task.updates || [])] } : task)
+
+      return { ...operation, tasks }
+    })
+    const operation = updatedOperations.find(candidate => candidate.tasks.some(task => task.id === taskId))
+
+    req.reply({ statusCode: 201, body: { message: 'Turnaround task update added successfully', operation } })
+  }).as('reactCreateTurnaroundTaskUpdate')
   cy.intercept('GET', '/cruise', overrides.cruiseLines || reactCruiseLines).as('reactCruiseLines')
 }
+
 
 function visitReactAppAsAdmin(overrides = {}) {
   interceptReactCoreApis(overrides)
@@ -269,6 +462,7 @@ module.exports = {
   reactItinerary,
   reactCustomers,
   reactBookings,
+  reactTurnaroundOperations,
   reactDemoUsers,
   selectDemoUserByVisibleRole,
   interceptReactCoreApis,

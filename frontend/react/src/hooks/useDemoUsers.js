@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { getDemoUsers } from '../api/client.js'
+import { normalizeRole } from '../domain/roleView.js'
 
 export default function useDemoUsers({ enabled = true } = {}) {
   const abortRef = useRef(null)
   const [demoUsers, setDemoUsers] = useState([])
   const [selectedDemoUserId, setSelectedDemoUserId] = useState('')
+  const [selectedRole, setSelectedRole] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -19,6 +21,7 @@ export default function useDemoUsers({ enabled = true } = {}) {
       const users = await getDemoUsers({ signal: controller.signal })
       setDemoUsers(users)
       setSelectedDemoUserId(currentId => currentId || users[0]?.id || '')
+      setSelectedRole(currentRole => currentRole)
       setError('')
     } catch (loadError) {
       if (loadError.name !== 'AbortError') {
@@ -41,13 +44,50 @@ export default function useDemoUsers({ enabled = true } = {}) {
     return () => abortRef.current?.abort()
   }, [enabled, reload])
 
-  const selectedDemoUser = demoUsers.find(user => user.id === selectedDemoUserId) || demoUsers[0]
+  const availableRoles = useMemo(() => {
+    const roles = demoUsers.map(user => normalizeRole(user.role || user.userType)).filter(Boolean)
+    return [...new Set(roles)]
+  }, [demoUsers])
+
+  const filteredDemoUsers = useMemo(() => {
+    if (!selectedRole) return demoUsers
+    return demoUsers.filter(user => normalizeRole(user.role || user.userType) === selectedRole)
+  }, [demoUsers, selectedRole])
+
+  function selectDemoUser(userId) {
+    setSelectedDemoUserId(userId)
+
+    const selectedUser = demoUsers.find(user => user.id === userId)
+    const selectedUserRole = normalizeRole(selectedUser?.role || selectedUser?.userType)
+
+    if (selectedRole && selectedUserRole !== selectedRole) {
+      setSelectedRole('')
+    }
+  }
+
+  function selectRole(role) {
+    setSelectedRole(role)
+
+    if (!role) {
+      setSelectedDemoUserId(demoUsers[0]?.id || '')
+      return
+    }
+
+    const firstUserForRole = demoUsers.find(user => normalizeRole(user.role || user.userType) === role)
+    setSelectedDemoUserId(firstUserForRole?.id || '')
+  }
+
+  const selectedDemoUser = demoUsers.find(user => user.id === selectedDemoUserId) || filteredDemoUsers[0] || demoUsers[0]
 
   return {
     demoUsers,
+    filteredDemoUsers,
+    availableRoles,
+    selectedRole,
     selectedDemoUser,
     selectedDemoUserId,
-    setSelectedDemoUserId,
+    setSelectedDemoUserId: selectDemoUser,
+    setSelectedRole: selectRole,
     isLoading,
     error,
     reload

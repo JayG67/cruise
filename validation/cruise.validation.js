@@ -289,6 +289,57 @@ const itineraryFavoriteSchema = z.object({
 }).strict()
 
 
+const turnaroundTaskStatusOptions = [
+  'READY',
+  'IN_PROGRESS',
+  'BLOCKED',
+  'COMPLETE'
+]
+
+const turnaroundTaskStatusUpdateSchema = z.object({
+  status: z
+    .string()
+    .trim()
+    .transform(value => value.toUpperCase().replace(/[ -]/g, '_'))
+    .pipe(z.enum(turnaroundTaskStatusOptions)),
+
+  blockerReason: z
+    .string()
+    .trim()
+    .max(500, 'Blocker reason is too long')
+    .optional()
+}).strict()
+
+const turnaroundTaskDetailUpdateSchema = z.object({
+  ownerName: z.string().trim().max(255, 'Owner name is too long').optional(),
+  dueTime: z.string().trim().max(20, 'Due time is too long').optional(),
+  location: z.string().trim().max(255, 'Location is too long').optional(),
+  blockerReason: z.string().trim().max(500, 'Blocker reason is too long').optional()
+}).strict()
+
+const turnaroundTaskUpdateSchema = z.object({
+  authorName: z.string().trim().min(1, 'Update author is required').max(255, 'Update author is too long'),
+  updateType: z.string().trim().max(50, 'Update type is too long').optional().default('NOTE'),
+  message: z.string().trim().min(1, 'Update message is required').max(500, 'Update message is too long')
+}).strict()
+
+const turnaroundSignoffStatusOptions = [
+  'PENDING',
+  'APPROVED',
+  'BLOCKED'
+]
+
+const turnaroundSignoffUpdateSchema = z.object({
+  approverName: z.string().trim().min(1, 'Signoff approver is required').max(255, 'Signoff approver is too long'),
+  status: z
+    .string()
+    .trim()
+    .transform(value => value.toUpperCase().replace(/[ -]/g, '_'))
+    .pipe(z.enum(turnaroundSignoffStatusOptions)),
+  notes: z.string().trim().max(500, 'Signoff notes are too long').optional()
+}).strict()
+
+
 module.exports = {
   cruiseLineSchema,
   shipSchema,
@@ -301,6 +352,10 @@ module.exports = {
   passengerCustomerUpdateSchema,
   bookingPreferenceUpdateSchema,
   itineraryFavoriteSchema,
+  turnaroundTaskStatusUpdateSchema,
+  turnaroundTaskDetailUpdateSchema,
+  turnaroundTaskUpdateSchema,
+  turnaroundSignoffUpdateSchema,
   customerIdSchema,
   bookingIdSchema
 }

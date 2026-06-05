@@ -273079,6 +273079,321 @@
       "displayName": "Harper Stone Passenger View",
       "role": "PASSENGER",
       "customerId": "C000000021"
+    },
+    {
+      "id": "UTURN0001",
+      "displayName": "Alex Turner Turnaround Manager",
+      "role": "TURNAROUND_MANAGER",
+      "customerId": null
+    },
+    {
+      "id": "UHOUS0001",
+      "displayName": "Maria Rodriguez Housekeeping Lead",
+      "role": "HOUSEKEEPING_LEAD",
+      "customerId": null
+    },
+    {
+      "id": "UGUEST001",
+      "displayName": "Angela Brooks Guest Services Lead",
+      "role": "GUEST_SERVICES_LEAD",
+      "customerId": null
+    },
+    {
+      "id": "UFOOD0001",
+      "displayName": "Michael Chen Food & Beverage Lead",
+      "role": "FOOD_BEVERAGE_LEAD",
+      "customerId": null
+    },
+    {
+      "id": "UENG00001",
+      "displayName": "David Torres Engineering Lead",
+      "role": "ENGINEERING_LEAD",
+      "customerId": null
+    }
+  ],
+  "turnaroundOperations": [
+    {
+      "shipName": "Adventure of the Seas",
+      "departureDate": "2026-07-05",
+      "title": "Miami same-day turnaround readiness",
+      "turnaroundDate": "2026-07-05",
+      "port": "Miami, Florida",
+      "status": "PLANNED",
+      "readinessLevel": "High coordination",
+      "notes": "Coordinate disembarkation, cabin reset, provisioning, and embarkation for the next Miami sailing.",
+      "tasks": [
+        {
+          "departmentRole": "turnaround-manager",
+          "taskName": "Coordinate department readiness standups",
+          "status": "READY",
+          "sortOrder": 1,
+          "ownerName": "Alex Turner",
+          "dueTime": "07:30",
+          "location": "Port operations center",
+          "updates": [
+            {
+              "authorName": "Alex Turner",
+              "updateType": "NOTE",
+              "message": "Coordinate department readiness standups confirmed in the turnaround huddle.",
+              "createdAt": "2026-07-05T07:15:00.000Z"
+            }
+          ]
+        },
+        {
+          "departmentRole": "turnaround-manager",
+          "taskName": "Sequence disembarkation, provisioning, cleaning, and embarkation",
+          "status": "READY",
+          "sortOrder": 2,
+          "ownerName": "Alex Turner",
+          "dueTime": "07:30",
+          "location": "Port operations center",
+          "updates": [
+            {
+              "authorName": "Alex Turner",
+              "updateType": "NOTE",
+              "message": "Sequence disembarkation, provisioning, cleaning, and embarkation confirmed in the turnaround huddle.",
+              "createdAt": "2026-07-05T07:15:00.000Z"
+            }
+          ]
+        },
+        {
+          "departmentRole": "turnaround-manager",
+          "taskName": "Validate ship-readiness handoff before embarkation",
+          "status": "WATCH",
+          "sortOrder": 3,
+          "ownerName": "Alex Turner",
+          "dueTime": "07:30",
+          "location": "Port operations center"
+        },
+        {
+          "departmentRole": "housekeeping-lead",
+          "taskName": "Prioritize cabin strip and reset windows",
+          "status": "READY",
+          "sortOrder": 1,
+          "ownerName": "Maria Rodriguez",
+          "dueTime": "10:45",
+          "location": "Guest decks"
+        },
+        {
+          "departmentRole": "housekeeping-lead",
+          "taskName": "Flag accessibility and special-service cabins",
+          "status": "WATCH",
+          "sortOrder": 2,
+          "ownerName": "Maria Rodriguez",
+          "dueTime": "10:45",
+          "location": "Guest decks"
+        },
+        {
+          "departmentRole": "guest-services-lead",
+          "taskName": "Stage disembarkation communication",
+          "status": "READY",
+          "sortOrder": 1,
+          "ownerName": "Angela Brooks",
+          "dueTime": "09:15",
+          "location": "Terminal and guest services desk"
+        },
+        {
+          "departmentRole": "guest-services-lead",
+          "taskName": "Prepare check-in exception handling",
+          "status": "WATCH",
+          "sortOrder": 2,
+          "ownerName": "Angela Brooks",
+          "dueTime": "09:15",
+          "location": "Terminal and guest services desk"
+        },
+        {
+          "departmentRole": "food-beverage-lead",
+          "taskName": "Confirm provisions and cold-chain delivery windows",
+          "status": "READY",
+          "sortOrder": 1,
+          "ownerName": "Michael Chen",
+          "dueTime": "08:30",
+          "location": "Provisioning dock and galley"
+        },
+        {
+          "departmentRole": "food-beverage-lead",
+          "taskName": "Review dining preference volume",
+          "status": "WATCH",
+          "sortOrder": 2,
+          "ownerName": "Michael Chen",
+          "dueTime": "08:30",
+          "location": "Provisioning dock and galley"
+        },
+        {
+          "departmentRole": "engineering-lead",
+          "taskName": "Confirm shore power, fuel, potable water, and waste windows",
+          "status": "READY",
+          "sortOrder": 1,
+          "ownerName": "David Torres",
+          "dueTime": "08:00",
+          "location": "Engine control room"
+        },
+        {
+          "departmentRole": "engineering-lead",
+          "taskName": "Review repositioning or route-risk notes",
+          "status": "WATCH",
+          "sortOrder": 2,
+          "ownerName": "David Torres",
+          "dueTime": "08:00",
+          "location": "Engine control room"
+        }
+      ],
+      "signoffs": [
+        {
+          "departmentRole": "turnaround-manager",
+          "approverName": "Alex Turner",
+          "status": "APPROVED",
+          "notes": "Initial turnaround command readiness accepted.",
+          "signedAt": "2026-07-05T07:25:00.000Z"
+        },
+        {
+          "departmentRole": "housekeeping-lead",
+          "approverName": "",
+          "status": "PENDING",
+          "notes": "Department readiness pending operational verification.",
+          "signedAt": null
+        },
+        {
+          "departmentRole": "guest-services-lead",
+          "approverName": "",
+          "status": "PENDING",
+          "notes": "Department readiness pending operational verification.",
+          "signedAt": null
+        },
+        {
+          "departmentRole": "food-beverage-lead",
+          "approverName": "",
+          "status": "PENDING",
+          "notes": "Department readiness pending operational verification.",
+          "signedAt": null
+        },
+        {
+          "departmentRole": "engineering-lead",
+          "approverName": "",
+          "status": "PENDING",
+          "notes": "Department readiness pending operational verification.",
+          "signedAt": null
+        }
+      ]
+    },
+    {
+      "shipName": "Adventure of the Seas",
+      "departureDate": "2026-07-19",
+      "title": "Miami extended weekend turnaround readiness",
+      "turnaroundDate": "2026-07-19",
+      "port": "Miami, Florida",
+      "status": "PLANNED",
+      "readinessLevel": "Standard coordination",
+      "notes": "Monitor passenger volume, provisioning windows, and stateroom readiness for the next short sailing.",
+      "tasks": [
+        {
+          "departmentRole": "turnaround-manager",
+          "taskName": "Confirm arrival and next departure ports",
+          "status": "READY",
+          "sortOrder": 1,
+          "ownerName": "Alex Turner",
+          "dueTime": "07:30",
+          "location": "Port operations center",
+          "updates": [
+            {
+              "authorName": "Alex Turner",
+              "updateType": "NOTE",
+              "message": "Confirm arrival and next departure ports confirmed in the turnaround huddle.",
+              "createdAt": "2026-07-19T07:15:00.000Z"
+            }
+          ]
+        },
+        {
+          "departmentRole": "turnaround-manager",
+          "taskName": "Review passenger count and manifest pressure",
+          "status": "READY",
+          "sortOrder": 2,
+          "ownerName": "Alex Turner",
+          "dueTime": "07:30",
+          "location": "Port operations center",
+          "updates": [
+            {
+              "authorName": "Alex Turner",
+              "updateType": "NOTE",
+              "message": "Review passenger count and manifest pressure confirmed in the turnaround huddle.",
+              "createdAt": "2026-07-19T07:15:00.000Z"
+            }
+          ]
+        },
+        {
+          "departmentRole": "housekeeping-lead",
+          "taskName": "Confirm inspection checkpoints before guest boarding",
+          "status": "READY",
+          "sortOrder": 1,
+          "ownerName": "Maria Rodriguez",
+          "dueTime": "10:45",
+          "location": "Guest decks"
+        },
+        {
+          "departmentRole": "guest-services-lead",
+          "taskName": "Confirm terminal queue and boarding group readiness",
+          "status": "READY",
+          "sortOrder": 1,
+          "ownerName": "Angela Brooks",
+          "dueTime": "09:15",
+          "location": "Terminal and guest services desk"
+        },
+        {
+          "departmentRole": "food-beverage-lead",
+          "taskName": "Confirm galley reset and dining team handoff readiness",
+          "status": "READY",
+          "sortOrder": 1,
+          "ownerName": "Michael Chen",
+          "dueTime": "08:30",
+          "location": "Provisioning dock and galley"
+        },
+        {
+          "departmentRole": "engineering-lead",
+          "taskName": "Confirm technical clearance checks before embarkation",
+          "status": "READY",
+          "sortOrder": 1,
+          "ownerName": "David Torres",
+          "dueTime": "08:00",
+          "location": "Engine control room"
+        }
+      ],
+      "signoffs": [
+        {
+          "departmentRole": "turnaround-manager",
+          "approverName": "Alex Turner",
+          "status": "APPROVED",
+          "notes": "Initial turnaround command readiness accepted.",
+          "signedAt": "2026-07-19T07:25:00.000Z"
+        },
+        {
+          "departmentRole": "housekeeping-lead",
+          "approverName": "",
+          "status": "PENDING",
+          "notes": "Department readiness pending operational verification.",
+          "signedAt": null
+        },
+        {
+          "departmentRole": "guest-services-lead",
+          "approverName": "",
+          "status": "PENDING",
+          "notes": "Department readiness pending operational verification.",
+          "signedAt": null
+        },
+        {
+          "departmentRole": "food-beverage-lead",
+          "approverName": "",
+          "status": "PENDING",
+          "notes": "Department readiness pending operational verification.",
+          "signedAt": null
+        },
+        {
+          "departmentRole": "engineering-lead",
+          "approverName": "",
+          "status": "PENDING",
+          "notes": "Department readiness pending operational verification.",
+          "signedAt": null
+        }
+      ]
     }
   ]
 }

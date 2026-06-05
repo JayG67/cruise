@@ -497,21 +497,26 @@ describe('demo user seed data integrity', () => {
     return cruiseSeedData.customers || []
   }
 
-  it('contains demo users for admin, passenger, and group leader role previews', () => {
+  it('contains demo users for admin, passenger, group leader, and operational role previews', () => {
     const demoUsers = getDemoUsers()
     const roles = new Set(demoUsers.map(user => user.role))
 
-    expect(demoUsers.length).toBeGreaterThanOrEqual(3)
+    expect(demoUsers.length).toBeGreaterThanOrEqual(8)
     expect(roles.has('ADMIN')).toBe(true)
     expect(roles.has('PASSENGER')).toBe(true)
     expect(roles.has('GROUP_LEADER')).toBe(true)
+    expect(roles.has('TURNAROUND_MANAGER')).toBe(true)
+    expect(roles.has('HOUSEKEEPING_LEAD')).toBe(true)
+    expect(roles.has('GUEST_SERVICES_LEAD')).toBe(true)
+    expect(roles.has('FOOD_BEVERAGE_LEAD')).toBe(true)
+    expect(roles.has('ENGINEERING_LEAD')).toBe(true)
   })
 
   it('links passenger and group leader demo users to seeded customers', () => {
     const customerIds = new Set(getCustomers().map(customer => customer.id))
 
     getDemoUsers()
-      .filter(user => user.role !== 'ADMIN')
+      .filter(user => ['PASSENGER', 'GROUP_LEADER'].includes(user.role))
       .forEach(user => {
         expect(user.customerId).toMatch(/^C[A-Z0-9]{9}$/)
         expect(customerIds.has(user.customerId)).toBe(true)
@@ -554,5 +559,61 @@ describe('demo user seed data integrity', () => {
       expect(user.passwordHash).toBeUndefined()
       expect(user.token).toBeUndefined()
     })
+  })
+})
+
+
+describe('turnaround operation seed data integrity', () => {
+  it('contains database-backed turnaround operation records with role-owned tasks', () => {
+    const operations = cruiseSeedData.turnaroundOperations || []
+    const taskRoles = new Set(operations.flatMap(operation => (operation.tasks || []).map(task => task.departmentRole)))
+    const signoffRoles = new Set(operations.flatMap(operation => (operation.signoffs || []).map(signoff => signoff.departmentRole)))
+
+    expect(operations.length).toBeGreaterThanOrEqual(2)
+    operations.forEach(operation => {
+      expect(operation.shipName).toEqual(expect.any(String))
+      expect(operation.departureDate).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      expect(operation.title).toEqual(expect.any(String))
+      expect(operation.port).toEqual(expect.any(String))
+      expect(operation.status).toEqual(expect.any(String))
+      expect(operation.readinessLevel).toEqual(expect.any(String))
+      expect(operation.tasks.length).toBeGreaterThan(0)
+      expect(operation.signoffs.length).toBeGreaterThan(0)
+      operation.signoffs.forEach(signoff => {
+        expect(signoff.departmentRole).toEqual(expect.any(String))
+        expect(['PENDING', 'APPROVED', 'BLOCKED']).toContain(signoff.status)
+        expect(signoff.notes).toEqual(expect.any(String))
+      })
+      operation.tasks.forEach(task => {
+        expect(task.ownerName).toEqual(expect.any(String))
+        expect(task.dueTime).toEqual(expect.any(String))
+        expect(task.location).toEqual(expect.any(String))
+        if (task.updates) {
+          task.updates.forEach(update => {
+            expect(update.authorName).toEqual(expect.any(String))
+            expect(update.message).toEqual(expect.any(String))
+            expect(update.createdAt).toEqual(expect.any(String))
+          })
+        }
+      })
+    })
+
+    expect(operations.flatMap(operation => operation.tasks || []).some(task => (task.updates || []).length > 0)).toBe(true)
+
+    expect([...taskRoles]).toEqual(expect.arrayContaining([
+      'turnaround-manager',
+      'housekeeping-lead',
+      'guest-services-lead',
+      'food-beverage-lead',
+      'engineering-lead'
+    ]))
+
+    expect([...signoffRoles]).toEqual(expect.arrayContaining([
+      'turnaround-manager',
+      'housekeeping-lead',
+      'guest-services-lead',
+      'food-beverage-lead',
+      'engineering-lead'
+    ]))
   })
 })

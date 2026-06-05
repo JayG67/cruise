@@ -1,11 +1,27 @@
 import { getCustomerName, getBookingPassengerNames, getBookingRoute } from './adminHierarchy.js'
 
 export function normalizeRole(role = '') {
-  const normalizedRole = role.toLowerCase()
+  const normalizedRole = String(role).toLowerCase()
 
   if (normalizedRole.includes('admin')) return 'admin'
   if (normalizedRole.includes('group')) return 'group-leader'
+  if (normalizedRole.includes('turnaround')) return 'turnaround-manager'
+  if (normalizedRole.includes('housekeeping')) return 'housekeeping-lead'
+  if (normalizedRole.includes('guest_services') || normalizedRole.includes('guest services')) return 'guest-services-lead'
+  if (normalizedRole.includes('food_beverage') || normalizedRole.includes('food beverage')) return 'food-beverage-lead'
+  if (normalizedRole.includes('engineering')) return 'engineering-lead'
+
   return 'passenger'
+}
+
+export function isOperationalRoleView(roleView = '') {
+  return [
+    'turnaround-manager',
+    'housekeeping-lead',
+    'guest-services-lead',
+    'food-beverage-lead',
+    'engineering-lead'
+  ].includes(roleView)
 }
 
 export function getSelectedRoleView(selectedDemoUser = {}) {
@@ -48,7 +64,7 @@ export function getGroupVisibleBookings(selectedDemoUser = {}, bookings = []) {
 export function getVisibleRoleBookings(selectedDemoUser = {}, bookings = []) {
   const roleView = getSelectedRoleView(selectedDemoUser)
 
-  if (roleView === 'admin') return bookings
+  if (roleView === 'admin' || isOperationalRoleView(roleView)) return bookings
   if (roleView === 'group-leader') return getGroupVisibleBookings(selectedDemoUser, bookings)
 
   return getBookingsForCustomer(selectedDemoUser.customerId, bookings)
@@ -57,6 +73,11 @@ export function getVisibleRoleBookings(selectedDemoUser = {}, bookings = []) {
 export function getRoleDashboardTitle(roleView) {
   if (roleView === 'admin') return 'Admin workspace'
   if (roleView === 'group-leader') return 'Group booking dashboard'
+  if (roleView === 'turnaround-manager') return 'Turnaround operations'
+  if (roleView === 'housekeeping-lead') return 'Housekeeping operations'
+  if (roleView === 'guest-services-lead') return 'Guest services operations'
+  if (roleView === 'food-beverage-lead') return 'Food & beverage operations'
+  if (roleView === 'engineering-lead') return 'Engineering operations'
   return 'Passenger booking dashboard'
 }
 
@@ -69,6 +90,10 @@ export function getRoleSummaryLine({ selectedDemoUser, selectedCustomer, visible
 
   if (roleView === 'group-leader') {
     return `Showing ${visibleBookings.length} bookings visible to ${selectedDemoUser?.displayName || 'the group leader'}.`
+  }
+
+  if (isOperationalRoleView(roleView)) {
+    return `${selectedDemoUser?.displayName || 'The selected operator'} is viewing the operational workspace for ${getRoleDashboardTitle(roleView).toLowerCase()} across ${visibleBookings.length} active booking${visibleBookings.length === 1 ? '' : 's'}.`
   }
 
   return `Showing ${visibleBookings.length} booking${visibleBookings.length === 1 ? '' : 's'} visible to ${selectedCustomer ? getCustomerName(selectedCustomer) : selectedDemoUser?.displayName || 'the selected passenger'}.`
@@ -99,7 +124,6 @@ export function getVisiblePassengerRows(booking = {}) {
   }).filter(passenger => passenger.name)
 }
 
-
 export function getBookingItineraryDays(booking = {}) {
   const possibleItineraries = [
     booking.itinerary,
@@ -125,6 +149,113 @@ export function getItineraryDayActivities(day = {}) {
 
 export function getSelectedCustomerName(selectedDemoUser = {}, customers = []) {
   return getCustomerName(findDemoCustomer(selectedDemoUser, customers) || { name: selectedDemoUser.displayName, id: selectedDemoUser.id })
+}
+
+export function getOperationalRoleFocus(roleView = '') {
+  if (roleView === 'housekeeping-lead') return 'Cabin turnover, stateroom readiness, and inspection checkpoints'
+  if (roleView === 'guest-services-lead') return 'Disembarkation flow, guest questions, and embarkation readiness'
+  if (roleView === 'food-beverage-lead') return 'Provisioning, galley reset, and dining team handoff readiness'
+  if (roleView === 'engineering-lead') return 'Fuel, water, safety systems, and technical clearance checks'
+  return 'Cross-team turnaround plan, port timing, and ship readiness'
+}
+
+export function getOperationalChecklist(roleView = '') {
+  const shared = ['Confirm arrival and next departure ports', 'Review passenger count and manifest pressure', 'Validate ship-readiness handoff before embarkation']
+
+  if (roleView === 'housekeeping-lead') {
+    return ['Prioritize cabin strip and reset windows', 'Flag accessibility and special-service cabins', ...shared]
+  }
+
+  if (roleView === 'guest-services-lead') {
+    return ['Stage disembarkation communication', 'Prepare check-in exception handling', ...shared]
+  }
+
+  if (roleView === 'food-beverage-lead') {
+    return ['Confirm provisions and cold-chain delivery windows', 'Review dining preference volume', ...shared]
+  }
+
+  if (roleView === 'engineering-lead') {
+    return ['Confirm shore power, fuel, potable water, and waste windows', 'Review repositioning or route-risk notes', ...shared]
+  }
+
+  return ['Coordinate department readiness standups', 'Sequence disembarkation, provisioning, cleaning, and embarkation', ...shared]
+}
+
+export function getOperationalTasksForRole(operation = {}, roleView = '') {
+  const tasks = Array.isArray(operation.tasks) ? operation.tasks : []
+
+  if (roleView === 'turnaround-manager') {
+    return tasks.filter(task => normalizeRole(task.departmentRole) === 'turnaround-manager')
+  }
+
+  return tasks.filter(task => normalizeRole(task.departmentRole) === roleView)
+}
+
+export function buildTurnaroundOperationCards(turnaroundOperations = [], roleView = '') {
+  return turnaroundOperations.map(operation => {
+    const tasks = getOperationalTasksForRole(operation, roleView)
+    const shipName = operation.ship?.name || 'Ship unavailable'
+    const sailingDate = operation.sailing?.departureDate || operation.turnaroundDate || 'Date unavailable'
+    const departurePort = operation.sailing?.departurePort || operation.port || 'Departure port unavailable'
+    const arrivalPort = operation.sailing?.arrivalPort || operation.port || 'Arrival port unavailable'
+
+    const taskSummary = operation.taskSummary || {
+      totalTasks: tasks.length,
+      completeTasks: tasks.filter(task => task.status === 'COMPLETE').length,
+      blockedTasks: tasks.filter(task => task.status === 'BLOCKED').length,
+      inProgressTasks: tasks.filter(task => task.status === 'IN_PROGRESS').length,
+      completionPercent: tasks.length === 0 ? 0 : Math.round((tasks.filter(task => task.status === 'COMPLETE').length / tasks.length) * 100)
+    }
+
+    return {
+      id: operation.id || `${shipName}-${sailingDate}`,
+      operation,
+      tasks,
+      taskSummary,
+      passengerCount: Number(operation.passengerCount || 0),
+      route: `${departurePort} → ${arrivalPort}`,
+      shipName,
+      sailingDate,
+      turnaroundDate: operation.turnaroundDate || sailingDate,
+      port: operation.port || arrivalPort,
+      departurePort,
+      arrivalPort,
+      readinessLevel: operation.readinessLevel || 'Readiness pending',
+      signoffs: Array.isArray(operation.signoffs) ? operation.signoffs : [],
+      signoffSummary: operation.signoffSummary || { totalSignoffs: 0, approvedSignoffs: 0, blockedSignoffs: 0, pendingSignoffs: 0, approvalPercent: 0 },
+      status: operation.status || 'PLANNED',
+      title: operation.title || 'Turnaround operation',
+      notes: operation.notes || ''
+    }
+  }).sort((a, b) => String(a.turnaroundDate).localeCompare(String(b.turnaroundDate)))
+}
+
+export function buildTurnaroundReadinessBookings(bookings = []) {
+  return bookings.map(booking => {
+    const passengerCount = (booking.passengers || []).length
+    const itineraryDays = getBookingItineraryDays(booking)
+    const firstDay = itineraryDays[0] || {}
+    const lastDay = itineraryDays[itineraryDays.length - 1] || {}
+    const route = getBookingRoute(booking)
+    const shipName = booking.ship?.name || 'Ship unavailable'
+    const sailingDate = booking.sailing?.departureDate || booking.departureDate || 'Date unavailable'
+    const departurePort = booking.embarkationPort || booking.sailing?.departurePort || firstDay.port || 'Departure port unavailable'
+    const arrivalPort = booking.debarkationPort || booking.sailing?.arrivalPort || lastDay.port || 'Arrival port unavailable'
+    const readinessLevel = passengerCount >= 2 || itineraryDays.length >= 3 ? 'High coordination' : 'Standard coordination'
+
+    return {
+      id: booking.id || booking.bookingId || `${shipName}-${sailingDate}`,
+      booking,
+      passengerCount,
+      itineraryDayCount: itineraryDays.length,
+      route,
+      shipName,
+      sailingDate,
+      departurePort,
+      arrivalPort,
+      readinessLevel
+    }
+  }).sort((a, b) => String(a.sailingDate).localeCompare(String(b.sailingDate)))
 }
 
 export { getBookingPassengerNames }

@@ -3,12 +3,20 @@ Cypress.Commands.add('getByTestId', testId => {
 })
 
 function selectDemoUserByVisibleRole(roleText) {
-  cy.getByTestId('react-demo-user-select')
+  cy.getByTestId('react-role-type-select')
     .find('option')
     .contains(roleText)
     .invoke('val')
-    .then(value => {
-      cy.getByTestId('react-demo-user-select').select(value)
+    .then(roleValue => {
+      cy.getByTestId('react-role-type-select').select(roleValue)
+    })
+
+  cy.getByTestId('react-demo-user-select')
+    .find('option')
+    .first()
+    .invoke('val')
+    .then(userValue => {
+      cy.getByTestId('react-demo-user-select').select(userValue)
     })
 }
 

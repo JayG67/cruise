@@ -56,6 +56,86 @@ export async function getBookings(options = {}) {
   return Array.isArray(bookings) ? bookings : []
 }
 
+export async function getTurnaroundOperations(options = {}) {
+  const operations = await requestJson('/cruise/turnaround-operations', options)
+  return Array.isArray(operations) ? operations : []
+}
+
+export async function updateTurnaroundTaskStatus(taskId, status, options = {}) {
+  if (!taskId) {
+    throw new Error('Turnaround task id is required.')
+  }
+
+  const { blockerReason, ...requestOptions } = options
+  const payload = { status }
+
+  if (blockerReason !== undefined) {
+    payload.blockerReason = blockerReason
+  }
+
+  return requestJson(`/cruise/turnaround-tasks/${encodeURIComponent(taskId)}/status`, {
+    ...requestOptions,
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(requestOptions.headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function updateTurnaroundTaskDetails(taskId, payload, options = {}) {
+  if (!taskId) {
+    throw new Error('Turnaround task id is required.')
+  }
+
+  return requestJson(`/cruise/turnaround-tasks/${encodeURIComponent(taskId)}/details`, {
+    ...options,
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function createTurnaroundTaskUpdate(taskId, payload, options = {}) {
+  if (!taskId) {
+    throw new Error('Turnaround task id is required.')
+  }
+
+  return requestJson(`/cruise/turnaround-tasks/${encodeURIComponent(taskId)}/updates`, {
+    ...options,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function updateTurnaroundSignoff(operationId, departmentRole, payload, options = {}) {
+  if (!operationId) {
+    throw new Error('Turnaround operation id is required.')
+  }
+
+  if (!departmentRole) {
+    throw new Error('Turnaround department role is required.')
+  }
+
+  return requestJson(`/cruise/turnaround-operations/${encodeURIComponent(operationId)}/signoffs/${encodeURIComponent(departmentRole)}`, {
+    ...options,
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
 export async function getDemoUsers(options = {}) {
   const demoUsers = await requestJson('/cruise/demo-users', options)
   return Array.isArray(demoUsers) ? demoUsers : []

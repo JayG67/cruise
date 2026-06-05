@@ -2,7 +2,10 @@ const {
   cruiseLineSchema,
   shipSchema,
   customerSchema,
-  bookingSchema
+  bookingSchema,
+  turnaroundTaskStatusUpdateSchema,
+  turnaroundTaskDetailUpdateSchema,
+  turnaroundSignoffUpdateSchema
 } = require('../../../validation/cruise.validation')
 
 describe('Cruise validation schemas', () => {
@@ -514,5 +517,82 @@ describe('Cruise validation schemas', () => {
 
       expect(result.success).toBe(false)
     })
+
+
+  describe('turnaroundTaskStatusUpdateSchema', () => {
+    it('normalizes supported operational task statuses', () => {
+      const result = turnaroundTaskStatusUpdateSchema.safeParse({ status: 'in progress' })
+
+      expect(result.success).toBe(true)
+      expect(result.data).toEqual({ status: 'IN_PROGRESS' })
+    })
+
+    it('accepts blocker notes alongside blocked status updates', () => {
+      const result = turnaroundTaskStatusUpdateSchema.safeParse({
+        status: 'blocked',
+        blockerReason: 'Waiting for pier-side clearance'
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.data).toEqual({
+        status: 'BLOCKED',
+        blockerReason: 'Waiting for pier-side clearance'
+      })
+    })
+
+    it('rejects unsupported operational task statuses', () => {
+      const result = turnaroundTaskStatusUpdateSchema.safeParse({ status: 'maybe later' })
+
+      expect(result.success).toBe(false)
+    })
+  })
+
+  describe('turnaroundTaskDetailUpdateSchema', () => {
+    it('accepts operational task ownership and timing details', () => {
+      const result = turnaroundTaskDetailUpdateSchema.safeParse({
+        ownerName: 'Jordan Pierce',
+        dueTime: '09:45',
+        location: 'Pier 4 command desk',
+        blockerReason: 'Waiting for terminal headcount reconciliation'
+      })
+
+      expect(result.success).toBe(true)
+    })
+
+    it('rejects overly long blocker notes', () => {
+      const result = turnaroundTaskDetailUpdateSchema.safeParse({
+        blockerReason: 'x'.repeat(501)
+      })
+
+      expect(result.success).toBe(false)
+    })
+  })
+
+
+  describe('turnaroundSignoffUpdateSchema', () => {
+    it('normalizes supported operational signoff statuses', () => {
+      const result = turnaroundSignoffUpdateSchema.safeParse({
+        approverName: 'Alex Turner',
+        status: 'approved',
+        notes: 'Department is ready for embarkation.'
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.data).toEqual({
+        approverName: 'Alex Turner',
+        status: 'APPROVED',
+        notes: 'Department is ready for embarkation.'
+      })
+    })
+
+    it('rejects unsupported operational signoff statuses', () => {
+      const result = turnaroundSignoffUpdateSchema.safeParse({
+        approverName: 'Alex Turner',
+        status: 'maybe'
+      })
+
+      expect(result.success).toBe(false)
+    })
+  })
 
 })
