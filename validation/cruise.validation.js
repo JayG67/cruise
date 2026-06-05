@@ -323,6 +323,22 @@ const turnaroundTaskUpdateSchema = z.object({
   message: z.string().trim().min(1, 'Update message is required').max(500, 'Update message is too long')
 }).strict()
 
+const turnaroundSignoffStatusOptions = [
+  'PENDING',
+  'APPROVED',
+  'BLOCKED'
+]
+
+const turnaroundSignoffUpdateSchema = z.object({
+  approverName: z.string().trim().min(1, 'Signoff approver is required').max(255, 'Signoff approver is too long'),
+  status: z
+    .string()
+    .trim()
+    .transform(value => value.toUpperCase().replace(/[ -]/g, '_'))
+    .pipe(z.enum(turnaroundSignoffStatusOptions)),
+  notes: z.string().trim().max(500, 'Signoff notes are too long').optional()
+}).strict()
+
 
 module.exports = {
   cruiseLineSchema,
@@ -339,6 +355,7 @@ module.exports = {
   turnaroundTaskStatusUpdateSchema,
   turnaroundTaskDetailUpdateSchema,
   turnaroundTaskUpdateSchema,
+  turnaroundSignoffUpdateSchema,
   customerIdSchema,
   bookingIdSchema
 }

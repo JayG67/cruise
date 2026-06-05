@@ -10,6 +10,8 @@ const demoUserTable = require('./demoUser.model')
 const customerItineraryFavoriteTable = require('./customerItineraryFavorite.model')
 const turnaroundOperationTable = require('./turnaroundOperation.model')
 const turnaroundTaskTable = require('./turnaroundTask.model')
+const turnaroundTaskUpdateTable = require('./turnaroundTaskUpdate.model')
+const turnaroundSignoffTable = require('./turnaroundSignoff.model')
 
 module.exports = {
   cruiseLineTable,
@@ -23,5 +25,7 @@ module.exports = {
   demoUserTable,
   customerItineraryFavoriteTable,
   turnaroundOperationTable,
-  turnaroundTaskTable
+  turnaroundTaskTable,
+  turnaroundTaskUpdateTable,
+  turnaroundSignoffTable
 }

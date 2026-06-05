@@ -221,6 +221,8 @@ export function buildTurnaroundOperationCards(turnaroundOperations = [], roleVie
       departurePort,
       arrivalPort,
       readinessLevel: operation.readinessLevel || 'Readiness pending',
+      signoffs: Array.isArray(operation.signoffs) ? operation.signoffs : [],
+      signoffSummary: operation.signoffSummary || { totalSignoffs: 0, approvedSignoffs: 0, blockedSignoffs: 0, pendingSignoffs: 0, approvalPercent: 0 },
       status: operation.status || 'PLANNED',
       title: operation.title || 'Turnaround operation',
       notes: operation.notes || ''

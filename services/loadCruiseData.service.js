@@ -16,6 +16,7 @@ const customerItineraryFavoriteTable = require('../models/customerItineraryFavor
 const turnaroundOperationTable = require('../models/turnaroundOperation.model')
 const turnaroundTaskTable = require('../models/turnaroundTask.model')
 const turnaroundTaskUpdateTable = require('../models/turnaroundTaskUpdate.model')
+const turnaroundSignoffTable = require('../models/turnaroundSignoff.model')
 
 const SEED_FILE_PATH = path.join(__dirname, '..', 'data', 'cruise.json')
 const INSERT_CHUNK_SIZE = 500
@@ -54,6 +55,7 @@ function buildSeedRows(cruiseData) {
   const turnaroundOperationRows = []
   const turnaroundTaskRows = []
   const turnaroundTaskUpdateRows = []
+  const turnaroundSignoffRows = []
   const sailingIdBySeedKey = new Map()
 
   for (const cruiseLine of cruiseData.cruiseLines || []) {
@@ -189,6 +191,18 @@ function buildSeedRows(cruiseData) {
       notes: turnaroundOperation.notes
     })
 
+    for (const signoff of turnaroundOperation.signoffs || []) {
+      turnaroundSignoffRows.push({
+        id: randomUUID(),
+        operationId,
+        departmentRole: signoff.departmentRole,
+        approverName: signoff.approverName,
+        status: signoff.status || 'PENDING',
+        notes: signoff.notes,
+        signedAt: signoff.signedAt
+      })
+    }
+
     for (const [index, task] of (turnaroundOperation.tasks || []).entries()) {
       const taskId = randomUUID()
 
@@ -230,7 +244,8 @@ function buildSeedRows(cruiseData) {
     demoUserRows,
     turnaroundOperationRows,
     turnaroundTaskRows,
-    turnaroundTaskUpdateRows
+    turnaroundTaskUpdateRows,
+    turnaroundSignoffRows
   }
 }
 
@@ -241,6 +256,7 @@ async function loadCruiseData() {
   await db.transaction(async tx => {
     await tx.delete(demoUserTable)
     await tx.delete(turnaroundTaskUpdateTable)
+    await tx.delete(turnaroundSignoffTable)
     await tx.delete(turnaroundTaskTable)
     await tx.delete(turnaroundOperationTable)
     await tx.delete(customerItineraryFavoriteTable)
@@ -265,6 +281,7 @@ async function loadCruiseData() {
     await insertRows(tx, turnaroundOperationTable, rows.turnaroundOperationRows)
     await insertRows(tx, turnaroundTaskTable, rows.turnaroundTaskRows)
     await insertRows(tx, turnaroundTaskUpdateTable, rows.turnaroundTaskUpdateRows)
+    await insertRows(tx, turnaroundSignoffTable, rows.turnaroundSignoffRows)
   })
 
   if (process.env.NODE_ENV !== 'test' && process.env.SUPPRESS_DB_LOGS !== 'true') {
@@ -284,6 +301,7 @@ async function loadCruiseData() {
     turnaroundOperationCount: rows.turnaroundOperationRows.length,
     turnaroundTaskCount: rows.turnaroundTaskRows.length,
     turnaroundTaskUpdateCount: rows.turnaroundTaskUpdateRows.length,
+    turnaroundSignoffCount: rows.turnaroundSignoffRows.length,
     source: 'data/cruise.json'
   }
 }

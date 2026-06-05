@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { createTurnaroundTaskUpdate, getTurnaroundOperations, updateTurnaroundTaskDetails, updateTurnaroundTaskStatus } from '../api/client.js'
+import { createTurnaroundTaskUpdate, getTurnaroundOperations, updateTurnaroundSignoff, updateTurnaroundTaskDetails, updateTurnaroundTaskStatus } from '../api/client.js'
 
 export default function useTurnaroundOperations({ enabled = true } = {}) {
   const abortRef = useRef(null)
@@ -12,6 +12,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
   const [updatingTaskId, setUpdatingTaskId] = useState('')
   const [updatingTaskDetailsId, setUpdatingTaskDetailsId] = useState('')
   const [creatingTaskUpdateId, setCreatingTaskUpdateId] = useState('')
+  const [updatingSignoffKey, setUpdatingSignoffKey] = useState('')
 
   const reload = useCallback(async () => {
     abortRef.current?.abort()
@@ -110,6 +111,31 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     }
   }, [reload])
 
+  const updateSignoff = useCallback(async (operationId, departmentRole, payload) => {
+    const signoffKey = `${operationId}:${departmentRole}`
+    setUpdatingSignoffKey(signoffKey)
+    setMutationStatus('')
+    setMutationError('')
+
+    try {
+      const response = await updateTurnaroundSignoff(operationId, departmentRole, payload)
+      if (response?.operation?.id) {
+        setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
+          operation.id === response.operation.id ? response.operation : operation
+        )))
+      } else {
+        await reload()
+      }
+      setMutationStatus(response?.message || 'Turnaround readiness signoff updated successfully')
+      return response
+    } catch (updateError) {
+      setMutationError(updateError.message || 'Unable to update turnaround readiness signoff.')
+      return null
+    } finally {
+      setUpdatingSignoffKey('')
+    }
+  }, [reload])
+
   useEffect(() => {
     if (!enabled) {
       setIsLoading(false)
@@ -129,9 +155,11 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     updateTaskStatus,
     updateTaskDetails,
     createTaskUpdate,
+    updateSignoff,
     updatingTaskId,
     updatingTaskDetailsId,
     creatingTaskUpdateId,
+    updatingSignoffKey,
     mutationStatus,
     mutationError
   }

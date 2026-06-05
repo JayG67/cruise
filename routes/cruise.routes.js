@@ -17,7 +17,8 @@ const {
   itineraryFavoriteSchema,
   turnaroundTaskStatusUpdateSchema,
   turnaroundTaskDetailUpdateSchema,
-  turnaroundTaskUpdateSchema
+  turnaroundTaskUpdateSchema,
+  turnaroundSignoffUpdateSchema
 } = require('../validation/cruise.validation')
 
 const router = express.Router()
@@ -39,6 +40,13 @@ router.get(
 router.get(
   '/turnaround-operations',
   cruiseController.getTurnaroundOperations
+)
+
+
+router.patch(
+  '/turnaround-operations/:id/signoffs/:departmentRole',
+  validate(turnaroundSignoffUpdateSchema),
+  cruiseController.updateTurnaroundSignoff
 )
 
 router.patch(

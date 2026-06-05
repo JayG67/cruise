@@ -3759,3 +3759,65 @@ button.react-workspace-card .workspace-card-title,
   font: inherit;
   padding: 0.55rem;
 }
+
+.operational-signoff-summary {
+  background: #f8fbff;
+  border: 1px solid #dbe9f5;
+  border-radius: 0.75rem;
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+}
+
+.operational-signoff-summary strong {
+  color: #12324f;
+}
+
+.operational-signoff-summary ul {
+  display: grid;
+  gap: 0.35rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.operational-signoff-summary li {
+  align-items: center;
+  border-block-start: 1px solid #dbe9f5;
+  display: grid;
+  gap: 0.35rem;
+  grid-template-columns: minmax(0, 1.1fr) auto minmax(0, 1fr);
+  padding-block-start: 0.35rem;
+}
+
+.operational-signoff-summary span {
+  color: #39516b;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.operational-signoff-form {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+.operational-signoff-form label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.operational-signoff-form span {
+  color: #45627e;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.operational-signoff-form input,
+.operational-signoff-form select {
+  border: 1px solid #c7d8e7;
+  border-radius: 0.65rem;
+  color: #12324f;
+  font: inherit;
+  padding: 0.55rem;
+}

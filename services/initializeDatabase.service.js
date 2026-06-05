@@ -99,6 +99,18 @@ async function initializeDatabase() {
   `)
 
   await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS turnaround_signoffs (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      "operationId" uuid NOT NULL REFERENCES turnaround_operations(id) ON DELETE CASCADE,
+      "departmentRole" varchar(50) NOT NULL,
+      "approverName" varchar(255),
+      status varchar(50) NOT NULL,
+      notes varchar(500),
+      "signedAt" varchar(40)
+    );
+  `)
+
+  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS customers (
       id varchar(10) PRIMARY KEY,
       "firstName" varchar(100) NOT NULL,
@@ -216,6 +228,22 @@ async function initializeDatabase() {
 
   await db.execute(sql`
     ALTER TABLE turnaround_task_updates ADD COLUMN IF NOT EXISTS "createdAt" varchar(40);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_signoffs ADD COLUMN IF NOT EXISTS "approverName" varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_signoffs ADD COLUMN IF NOT EXISTS status varchar(50);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_signoffs ADD COLUMN IF NOT EXISTS notes varchar(500);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_signoffs ADD COLUMN IF NOT EXISTS "signedAt" varchar(40);
   `)
 
   if (process.env.NODE_ENV !== 'test' && process.env.SUPPRESS_DB_LOGS !== 'true') {

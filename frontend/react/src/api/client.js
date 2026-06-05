@@ -116,6 +116,26 @@ export async function createTurnaroundTaskUpdate(taskId, payload, options = {}) 
   })
 }
 
+export async function updateTurnaroundSignoff(operationId, departmentRole, payload, options = {}) {
+  if (!operationId) {
+    throw new Error('Turnaround operation id is required.')
+  }
+
+  if (!departmentRole) {
+    throw new Error('Turnaround department role is required.')
+  }
+
+  return requestJson(`/cruise/turnaround-operations/${encodeURIComponent(operationId)}/signoffs/${encodeURIComponent(departmentRole)}`, {
+    ...options,
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
 export async function getDemoUsers(options = {}) {
   const demoUsers = await requestJson('/cruise/demo-users', options)
   return Array.isArray(demoUsers) ? demoUsers : []

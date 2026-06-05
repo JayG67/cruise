@@ -567,6 +567,7 @@ describe('turnaround operation seed data integrity', () => {
   it('contains database-backed turnaround operation records with role-owned tasks', () => {
     const operations = cruiseSeedData.turnaroundOperations || []
     const taskRoles = new Set(operations.flatMap(operation => (operation.tasks || []).map(task => task.departmentRole)))
+    const signoffRoles = new Set(operations.flatMap(operation => (operation.signoffs || []).map(signoff => signoff.departmentRole)))
 
     expect(operations.length).toBeGreaterThanOrEqual(2)
     operations.forEach(operation => {
@@ -577,6 +578,12 @@ describe('turnaround operation seed data integrity', () => {
       expect(operation.status).toEqual(expect.any(String))
       expect(operation.readinessLevel).toEqual(expect.any(String))
       expect(operation.tasks.length).toBeGreaterThan(0)
+      expect(operation.signoffs.length).toBeGreaterThan(0)
+      operation.signoffs.forEach(signoff => {
+        expect(signoff.departmentRole).toEqual(expect.any(String))
+        expect(['PENDING', 'APPROVED', 'BLOCKED']).toContain(signoff.status)
+        expect(signoff.notes).toEqual(expect.any(String))
+      })
       operation.tasks.forEach(task => {
         expect(task.ownerName).toEqual(expect.any(String))
         expect(task.dueTime).toEqual(expect.any(String))
@@ -594,6 +601,14 @@ describe('turnaround operation seed data integrity', () => {
     expect(operations.flatMap(operation => operation.tasks || []).some(task => (task.updates || []).length > 0)).toBe(true)
 
     expect([...taskRoles]).toEqual(expect.arrayContaining([
+      'turnaround-manager',
+      'housekeeping-lead',
+      'guest-services-lead',
+      'food-beverage-lead',
+      'engineering-lead'
+    ]))
+
+    expect([...signoffRoles]).toEqual(expect.arrayContaining([
       'turnaround-manager',
       'housekeeping-lead',
       'guest-services-lead',

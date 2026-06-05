@@ -4,7 +4,8 @@ const {
   customerSchema,
   bookingSchema,
   turnaroundTaskStatusUpdateSchema,
-  turnaroundTaskDetailUpdateSchema
+  turnaroundTaskDetailUpdateSchema,
+  turnaroundSignoffUpdateSchema
 } = require('../../../validation/cruise.validation')
 
 describe('Cruise validation schemas', () => {
@@ -561,6 +562,33 @@ describe('Cruise validation schemas', () => {
     it('rejects overly long blocker notes', () => {
       const result = turnaroundTaskDetailUpdateSchema.safeParse({
         blockerReason: 'x'.repeat(501)
+      })
+
+      expect(result.success).toBe(false)
+    })
+  })
+
+
+  describe('turnaroundSignoffUpdateSchema', () => {
+    it('normalizes supported operational signoff statuses', () => {
+      const result = turnaroundSignoffUpdateSchema.safeParse({
+        approverName: 'Alex Turner',
+        status: 'approved',
+        notes: 'Department is ready for embarkation.'
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.data).toEqual({
+        approverName: 'Alex Turner',
+        status: 'APPROVED',
+        notes: 'Department is ready for embarkation.'
+      })
+    })
+
+    it('rejects unsupported operational signoff statuses', () => {
+      const result = turnaroundSignoffUpdateSchema.safeParse({
+        approverName: 'Alex Turner',
+        status: 'maybe'
       })
 
       expect(result.success).toBe(false)

@@ -189,6 +189,12 @@ const reactTurnaroundOperations = [
     notes: 'Coordinate disembarkation, cabin reset, provisioning, and embarkation for the next Miami sailing.',
     passengerCount: 2,
     taskSummary: { totalTasks: 4, completeTasks: 0, blockedTasks: 0, inProgressTasks: 0, completionPercent: 0 },
+    signoffSummary: { totalSignoffs: 3, approvedSignoffs: 1, blockedSignoffs: 0, pendingSignoffs: 2, approvalPercent: 33 },
+    signoffs: [
+      { id: 'turnaround-signoff-1', operationId: 'turnaround-react-1', departmentRole: 'turnaround-manager', approverName: 'Alex Turner', status: 'APPROVED', notes: 'Command readiness accepted.', signedAt: '2026-12-12T07:25:00.000Z' },
+      { id: 'turnaround-signoff-2', operationId: 'turnaround-react-1', departmentRole: 'housekeeping-lead', approverName: '', status: 'PENDING', notes: 'Cabin readiness pending.', signedAt: null },
+      { id: 'turnaround-signoff-3', operationId: 'turnaround-react-1', departmentRole: 'engineering-lead', approverName: '', status: 'PENDING', notes: 'Engineering readiness pending.', signedAt: null }
+    ],
     ship: { name: 'React Icon' },
     sailing: {
       departureDate: '2026-12-12',
@@ -213,6 +219,11 @@ const reactTurnaroundOperations = [
     notes: 'Monitor passenger volume and stateroom readiness for the next sailing.',
     passengerCount: 2,
     taskSummary: { totalTasks: 3, completeTasks: 0, blockedTasks: 0, inProgressTasks: 0, completionPercent: 0 },
+    signoffSummary: { totalSignoffs: 2, approvedSignoffs: 0, blockedSignoffs: 0, pendingSignoffs: 2, approvalPercent: 0 },
+    signoffs: [
+      { id: 'turnaround-signoff-4', operationId: 'turnaround-react-2', departmentRole: 'turnaround-manager', approverName: '', status: 'PENDING', notes: 'Command readiness pending.', signedAt: null },
+      { id: 'turnaround-signoff-5', operationId: 'turnaround-react-2', departmentRole: 'engineering-lead', approverName: '', status: 'PENDING', notes: 'Engineering readiness pending.', signedAt: null }
+    ],
     ship: { name: 'React Beyond' },
     sailing: {
       departureDate: '2027-01-18',
@@ -306,6 +317,47 @@ function interceptReactCoreApis(overrides = {}) {
   cy.intercept('GET', '/cruise/customers', overrides.customers || reactCustomers).as('reactCustomers')
   cy.intercept('GET', '/cruise/bookings', overrides.bookings || reactBookings).as('reactBookings')
   cy.intercept('GET', '/cruise/turnaround-operations', overrides.turnaroundOperations || reactTurnaroundOperations).as('reactTurnaroundOperations')
+  cy.intercept('PATCH', '/cruise/turnaround-operations/*/signoffs/*', req => {
+    const [, routeRemainder] = req.url.split('/turnaround-operations/')
+    const [operationId, signoffPath] = routeRemainder.split('/signoffs/')
+    const departmentRole = decodeURIComponent(signoffPath)
+    const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
+      if (operation.id !== operationId) return operation
+
+      const existingSignoffs = operation.signoffs || []
+      const hasExistingSignoff = existingSignoffs.some(signoff => signoff.departmentRole === departmentRole)
+      const updatedSignoff = {
+        id: hasExistingSignoff ? existingSignoffs.find(signoff => signoff.departmentRole === departmentRole).id : 'turnaround-signoff-created',
+        operationId,
+        departmentRole,
+        approverName: req.body?.approverName || 'Operational lead',
+        status: req.body?.status || 'PENDING',
+        notes: req.body?.notes || '',
+        signedAt: req.body?.status === 'PENDING' ? null : '2026-12-12T10:30:00.000Z'
+      }
+      const signoffs = hasExistingSignoff
+        ? existingSignoffs.map(signoff => signoff.departmentRole === departmentRole ? updatedSignoff : signoff)
+        : [...existingSignoffs, updatedSignoff]
+      const approvedSignoffs = signoffs.filter(signoff => signoff.status === 'APPROVED').length
+      const blockedSignoffs = signoffs.filter(signoff => signoff.status === 'BLOCKED').length
+      const pendingSignoffs = signoffs.filter(signoff => signoff.status === 'PENDING').length
+
+      return {
+        ...operation,
+        signoffs,
+        signoffSummary: {
+          totalSignoffs: signoffs.length,
+          approvedSignoffs,
+          blockedSignoffs,
+          pendingSignoffs,
+          approvalPercent: signoffs.length === 0 ? 0 : Math.round((approvedSignoffs / signoffs.length) * 100)
+        }
+      }
+    })
+    const operation = updatedOperations.find(candidate => candidate.id === operationId)
+
+    req.reply({ statusCode: 200, body: { message: 'Turnaround readiness signoff updated successfully', operation } })
+  }).as('reactUpdateTurnaroundSignoff')
   cy.intercept('PATCH', '/cruise/turnaround-tasks/*/status', req => {
     const taskId = req.url.split('/turnaround-tasks/')[1].split('/status')[0]
     const requestedStatus = req.body?.status || 'IN_PROGRESS'
@@ -410,6 +462,7 @@ module.exports = {
   reactItinerary,
   reactCustomers,
   reactBookings,
+  reactTurnaroundOperations,
   reactDemoUsers,
   selectDemoUserByVisibleRole,
   interceptReactCoreApis,

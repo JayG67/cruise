@@ -123,4 +123,30 @@ describe('React operational role foundation', () => {
       .should('contain.text', 'Pier agent confirmed luggage hall release window.')
   })
 
+
+  it('lets operational leads approve database-backed department readiness signoffs', () => {
+    selectDemoUserByVisibleRole('Engineering Lead')
+
+    cy.getByTestId('react-operational-signoff-summary').first().should('contain.text', 'engineering-lead')
+    cy.getByTestId('react-operational-signoff-form').first().within(() => {
+      cy.get('select[aria-label="Miami same-day turnaround readiness readiness signoff status"]').select('APPROVED')
+      cy.get('input[aria-label="Miami same-day turnaround readiness readiness approver"]').clear().type('David Torres')
+      cy.get('input[aria-label="Miami same-day turnaround readiness readiness notes"]').clear().type('Engineering systems cleared for embarkation.')
+      cy.contains('button', 'Save readiness signoff').click()
+    })
+
+    cy.wait('@reactUpdateTurnaroundSignoff')
+      .its('request.body')
+      .should('deep.equal', {
+        approverName: 'David Torres',
+        status: 'APPROVED',
+        notes: 'Engineering systems cleared for embarkation.'
+      })
+
+    cy.getByTestId('react-operational-mutation-status').should('contain.text', 'Turnaround readiness signoff updated successfully')
+    cy.getByTestId('react-operational-signoff-summary').first()
+      .should('contain.text', 'APPROVED')
+      .and('contain.text', 'David Torres')
+  })
+
 })

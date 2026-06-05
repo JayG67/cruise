@@ -33,6 +33,56 @@ describe('Turnaround operations API integration tests', () => {
         expect.objectContaining({ departmentRole: 'turnaround-manager', taskName: expect.any(String), ownerName: expect.any(String), dueTime: expect.any(String), location: expect.any(String) })
       ])
     )
+    expect(firstOperation.signoffs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ departmentRole: 'turnaround-manager', status: expect.any(String) })
+      ])
+    )
+    expect(firstOperation.signoffSummary).toEqual(expect.objectContaining({
+      totalSignoffs: expect.any(Number),
+      approvedSignoffs: expect.any(Number),
+      approvalPercent: expect.any(Number)
+    }))
+  })
+
+
+
+  it('PATCH /cruise/turnaround-operations/:id/signoffs/:departmentRole updates department readiness signoff state', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const operation = operationsRes.body[0]
+
+    const res = await request(app)
+      .patch(`/cruise/turnaround-operations/${operation.id}/signoffs/engineering-lead`)
+      .send({
+        approverName: 'David Torres',
+        status: 'approved',
+        notes: 'Engineering systems are cleared for embarkation.'
+      })
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body.message).toBe('Turnaround readiness signoff updated successfully')
+    expect(res.body.operation.signoffs).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        departmentRole: 'engineering-lead',
+        approverName: 'David Torres',
+        status: 'APPROVED',
+        notes: 'Engineering systems are cleared for embarkation.',
+        signedAt: expect.any(String)
+      })
+    ]))
+    expect(res.body.operation.signoffSummary.approvedSignoffs).toBeGreaterThanOrEqual(1)
+  })
+
+  it('rejects unsupported turnaround signoff states before updating readiness', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const operation = operationsRes.body[0]
+
+    const res = await request(app)
+      .patch(`/cruise/turnaround-operations/${operation.id}/signoffs/engineering-lead`)
+      .send({ approverName: 'David Torres', status: 'almost ready' })
+
+    expect(res.statusCode).toBe(400)
+    expect(res.body.message).toBe('Validation failed')
   })
 
   it('PATCH /cruise/turnaround-tasks/:id/status updates a role task and returns refreshed operation progress', async () => {

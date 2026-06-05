@@ -273237,6 +273237,43 @@
           "dueTime": "08:00",
           "location": "Engine control room"
         }
+      ],
+      "signoffs": [
+        {
+          "departmentRole": "turnaround-manager",
+          "approverName": "Alex Turner",
+          "status": "APPROVED",
+          "notes": "Initial turnaround command readiness accepted.",
+          "signedAt": "2026-07-05T07:25:00.000Z"
+        },
+        {
+          "departmentRole": "housekeeping-lead",
+          "approverName": "",
+          "status": "PENDING",
+          "notes": "Department readiness pending operational verification.",
+          "signedAt": null
+        },
+        {
+          "departmentRole": "guest-services-lead",
+          "approverName": "",
+          "status": "PENDING",
+          "notes": "Department readiness pending operational verification.",
+          "signedAt": null
+        },
+        {
+          "departmentRole": "food-beverage-lead",
+          "approverName": "",
+          "status": "PENDING",
+          "notes": "Department readiness pending operational verification.",
+          "signedAt": null
+        },
+        {
+          "departmentRole": "engineering-lead",
+          "approverName": "",
+          "status": "PENDING",
+          "notes": "Department readiness pending operational verification.",
+          "signedAt": null
+        }
       ]
     },
     {
@@ -273318,6 +273355,43 @@
           "ownerName": "David Torres",
           "dueTime": "08:00",
           "location": "Engine control room"
+        }
+      ],
+      "signoffs": [
+        {
+          "departmentRole": "turnaround-manager",
+          "approverName": "Alex Turner",
+          "status": "APPROVED",
+          "notes": "Initial turnaround command readiness accepted.",
+          "signedAt": "2026-07-19T07:25:00.000Z"
+        },
+        {
+          "departmentRole": "housekeeping-lead",
+          "approverName": "",
+          "status": "PENDING",
+          "notes": "Department readiness pending operational verification.",
+          "signedAt": null
+        },
+        {
+          "departmentRole": "guest-services-lead",
+          "approverName": "",
+          "status": "PENDING",
+          "notes": "Department readiness pending operational verification.",
+          "signedAt": null
+        },
+        {
+          "departmentRole": "food-beverage-lead",
+          "approverName": "",
+          "status": "PENDING",
+          "notes": "Department readiness pending operational verification.",
+          "signedAt": null
+        },
+        {
+          "departmentRole": "engineering-lead",
+          "approverName": "",
+          "status": "PENDING",
+          "notes": "Department readiness pending operational verification.",
+          "signedAt": null
         }
       ]
     }

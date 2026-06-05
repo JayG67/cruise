@@ -60,9 +60,11 @@ function PassengerProfile({
   onUpdateTurnaroundTaskStatus,
   onUpdateTurnaroundTaskDetails,
   onCreateTurnaroundTaskUpdate,
+  onUpdateTurnaroundSignoff,
   updatingTurnaroundTaskId = '',
   updatingTurnaroundTaskDetailsId = '',
   creatingTurnaroundTaskUpdateId = '',
+  updatingTurnaroundSignoffKey = '',
   turnaroundMutationStatus = '',
   turnaroundMutationError = '',
   onSavePassengerProfile,
@@ -272,7 +274,7 @@ function RoleBookingDetails({ booking, favoriteActivityKeys, favoritesOnly, onTo
   )
 }
 
-function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaroundOperations = [], isLoading = false, error = '', onRetry, onUpdateTaskStatus, onUpdateTaskDetails, onCreateTaskUpdate, updatingTaskId = '', updatingTaskDetailsId = '', creatingTaskUpdateId = '', mutationStatus = '', mutationError = '' }) {
+function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaroundOperations = [], isLoading = false, error = '', onRetry, onUpdateTaskStatus, onUpdateTaskDetails, onCreateTaskUpdate, onUpdateSignoff, updatingTaskId = '', updatingTaskDetailsId = '', creatingTaskUpdateId = '', updatingSignoffKey = '', mutationStatus = '', mutationError = '' }) {
   const readinessOperations = useMemo(() => buildTurnaroundOperationCards(turnaroundOperations, roleView), [turnaroundOperations, roleView])
   const highCoordinationCount = readinessOperations.filter(item => String(item.readinessLevel).toLowerCase().includes('high')).length
   const passengerTotal = readinessOperations.reduce((sum, item) => sum + item.passengerCount, 0)
@@ -280,6 +282,50 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
   const focusLine = firstOperation?.tasks?.[0]?.taskName || getOperationalRoleFocus(roleView)
   const [taskDetailDrafts, setTaskDetailDrafts] = useState({})
   const [taskUpdateDrafts, setTaskUpdateDrafts] = useState({})
+  const [signoffDrafts, setSignoffDrafts] = useState({})
+
+
+  function getRoleSignoff(operationCard) {
+    return (operationCard.signoffs || []).find(signoff => signoff.departmentRole === roleView) || {
+      departmentRole: roleView,
+      approverName: selectedDemoUser?.displayName || '',
+      status: 'PENDING',
+      notes: ''
+    }
+  }
+
+  function getSignoffDraft(operationCard) {
+    const existingSignoff = getRoleSignoff(operationCard)
+
+    return signoffDrafts[operationCard.id] || {
+      approverName: existingSignoff.approverName || selectedDemoUser?.displayName || '',
+      status: existingSignoff.status || 'PENDING',
+      notes: existingSignoff.notes || ''
+    }
+  }
+
+  function updateSignoffDraft(operationCard, fieldName, value) {
+    setSignoffDrafts(current => ({
+      ...current,
+      [operationCard.id]: {
+        ...getSignoffDraft(operationCard),
+        [fieldName]: value
+      }
+    }))
+  }
+
+  async function saveSignoff(operationCard) {
+    const draft = getSignoffDraft(operationCard)
+    const response = await onUpdateSignoff?.(operationCard.id, roleView, draft)
+
+    if (response) {
+      setSignoffDrafts(current => {
+        const next = { ...current }
+        delete next[operationCard.id]
+        return next
+      })
+    }
+  }
 
   function getTaskDetailDraft(task) {
     return taskDetailDrafts[task.id] || {
@@ -427,9 +473,47 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
               {item.taskSummary && (
                 <div className="operational-progress-summary" data-testid="react-operational-progress-summary">
                   <span>{item.taskSummary.completeTasks} of {item.taskSummary.totalTasks} tasks complete</span>
-                  <span>{item.taskSummary.completionPercent}% ready</span>
+                  <span>{item.taskSummary.completionPercent}% task ready</span>
+                  {item.signoffSummary && <span>{item.signoffSummary.approvedSignoffs} of {item.signoffSummary.totalSignoffs} signoffs approved</span>}
                   {item.taskSummary.blockedTasks > 0 && <span>{item.taskSummary.blockedTasks} blocked</span>}
                 </div>
+              )}
+
+              {item.signoffs.length > 0 && (
+                <div className="operational-signoff-summary" data-testid="react-operational-signoff-summary">
+                  <strong>Department readiness signoffs</strong>
+                  <ul>
+                    {item.signoffs.map(signoff => (
+                      <li key={`${item.id}-${signoff.departmentRole}`}>
+                        <span>{signoff.departmentRole}</span>
+                        <span>{signoff.status}</span>
+                        <span>{signoff.approverName || 'Approver pending'}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {onUpdateSignoff && (
+                <form className="operational-signoff-form" onSubmit={event => { event.preventDefault(); saveSignoff(item) }} data-testid="react-operational-signoff-form">
+                  <label>
+                    <span>Readiness status</span>
+                    <select value={getSignoffDraft(item).status} onChange={event => updateSignoffDraft(item, 'status', event.target.value)} aria-label={`${item.title} readiness signoff status`}>
+                      <option value="PENDING">Pending</option>
+                      <option value="APPROVED">Approved</option>
+                      <option value="BLOCKED">Blocked</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>Approver</span>
+                    <input value={getSignoffDraft(item).approverName} onChange={event => updateSignoffDraft(item, 'approverName', event.target.value)} aria-label={`${item.title} readiness approver`} />
+                  </label>
+                  <label className="full-width-field">
+                    <span>Signoff notes</span>
+                    <input value={getSignoffDraft(item).notes} onChange={event => updateSignoffDraft(item, 'notes', event.target.value)} aria-label={`${item.title} readiness notes`} />
+                  </label>
+                  <button type="submit" className="secondary-action-button compact-button" disabled={updatingSignoffKey === `${item.id}:${roleView}` || !getSignoffDraft(item).approverName.trim()}>Save readiness signoff</button>
+                </form>
               )}
 
               {item.tasks.length > 0 && (
@@ -590,9 +674,11 @@ export default function ReactRoleDashboard({
   onUpdateTurnaroundTaskStatus,
   onUpdateTurnaroundTaskDetails,
   onCreateTurnaroundTaskUpdate,
+  onUpdateTurnaroundSignoff,
   updatingTurnaroundTaskId = '',
   updatingTurnaroundTaskDetailsId = '',
   creatingTurnaroundTaskUpdateId = '',
+  updatingTurnaroundSignoffKey = '',
   turnaroundMutationStatus = '',
   turnaroundMutationError = '',
   onSavePassengerProfile,
@@ -691,9 +777,11 @@ export default function ReactRoleDashboard({
           onUpdateTaskStatus={onUpdateTurnaroundTaskStatus}
           onUpdateTaskDetails={onUpdateTurnaroundTaskDetails}
           onCreateTaskUpdate={onCreateTurnaroundTaskUpdate}
+          onUpdateSignoff={onUpdateTurnaroundSignoff}
           updatingTaskId={updatingTurnaroundTaskId}
           updatingTaskDetailsId={updatingTurnaroundTaskDetailsId}
           creatingTaskUpdateId={creatingTurnaroundTaskUpdateId}
+          updatingSignoffKey={updatingTurnaroundSignoffKey}
           mutationStatus={turnaroundMutationStatus}
           mutationError={turnaroundMutationError}
         />
