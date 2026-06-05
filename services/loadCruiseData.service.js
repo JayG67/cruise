@@ -15,6 +15,7 @@ const demoUserTable = require('../models/demoUser.model')
 const customerItineraryFavoriteTable = require('../models/customerItineraryFavorite.model')
 const turnaroundOperationTable = require('../models/turnaroundOperation.model')
 const turnaroundTaskTable = require('../models/turnaroundTask.model')
+const turnaroundTaskUpdateTable = require('../models/turnaroundTaskUpdate.model')
 
 const SEED_FILE_PATH = path.join(__dirname, '..', 'data', 'cruise.json')
 const INSERT_CHUNK_SIZE = 500
@@ -52,6 +53,7 @@ function buildSeedRows(cruiseData) {
   const demoUserRows = []
   const turnaroundOperationRows = []
   const turnaroundTaskRows = []
+  const turnaroundTaskUpdateRows = []
   const sailingIdBySeedKey = new Map()
 
   for (const cruiseLine of cruiseData.cruiseLines || []) {
@@ -188,14 +190,31 @@ function buildSeedRows(cruiseData) {
     })
 
     for (const [index, task] of (turnaroundOperation.tasks || []).entries()) {
+      const taskId = randomUUID()
+
       turnaroundTaskRows.push({
-        id: randomUUID(),
+        id: taskId,
         operationId,
         departmentRole: task.departmentRole,
         taskName: task.taskName,
+        ownerName: task.ownerName,
+        dueTime: task.dueTime,
+        location: task.location,
+        blockerReason: task.blockerReason,
         status: task.status,
         sortOrder: task.sortOrder ?? index + 1
       })
+
+      for (const update of task.updates || []) {
+        turnaroundTaskUpdateRows.push({
+          id: randomUUID(),
+          taskId,
+          authorName: update.authorName,
+          updateType: update.updateType || 'NOTE',
+          message: update.message,
+          createdAt: update.createdAt || new Date().toISOString()
+        })
+      }
     }
   }
 
@@ -210,7 +229,8 @@ function buildSeedRows(cruiseData) {
     bookingPassengerRows,
     demoUserRows,
     turnaroundOperationRows,
-    turnaroundTaskRows
+    turnaroundTaskRows,
+    turnaroundTaskUpdateRows
   }
 }
 
@@ -220,6 +240,7 @@ async function loadCruiseData() {
 
   await db.transaction(async tx => {
     await tx.delete(demoUserTable)
+    await tx.delete(turnaroundTaskUpdateTable)
     await tx.delete(turnaroundTaskTable)
     await tx.delete(turnaroundOperationTable)
     await tx.delete(customerItineraryFavoriteTable)
@@ -243,6 +264,7 @@ async function loadCruiseData() {
     await insertRows(tx, demoUserTable, rows.demoUserRows)
     await insertRows(tx, turnaroundOperationTable, rows.turnaroundOperationRows)
     await insertRows(tx, turnaroundTaskTable, rows.turnaroundTaskRows)
+    await insertRows(tx, turnaroundTaskUpdateTable, rows.turnaroundTaskUpdateRows)
   })
 
   if (process.env.NODE_ENV !== 'test' && process.env.SUPPRESS_DB_LOGS !== 'true') {
@@ -261,6 +283,7 @@ async function loadCruiseData() {
     demoUserCount: rows.demoUserRows.length,
     turnaroundOperationCount: rows.turnaroundOperationRows.length,
     turnaroundTaskCount: rows.turnaroundTaskRows.length,
+    turnaroundTaskUpdateCount: rows.turnaroundTaskUpdateRows.length,
     source: 'data/cruise.json'
   }
 }

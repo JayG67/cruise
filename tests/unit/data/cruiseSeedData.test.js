@@ -577,7 +577,21 @@ describe('turnaround operation seed data integrity', () => {
       expect(operation.status).toEqual(expect.any(String))
       expect(operation.readinessLevel).toEqual(expect.any(String))
       expect(operation.tasks.length).toBeGreaterThan(0)
+      operation.tasks.forEach(task => {
+        expect(task.ownerName).toEqual(expect.any(String))
+        expect(task.dueTime).toEqual(expect.any(String))
+        expect(task.location).toEqual(expect.any(String))
+        if (task.updates) {
+          task.updates.forEach(update => {
+            expect(update.authorName).toEqual(expect.any(String))
+            expect(update.message).toEqual(expect.any(String))
+            expect(update.createdAt).toEqual(expect.any(String))
+          })
+        }
+      })
     })
+
+    expect(operations.flatMap(operation => operation.tasks || []).some(task => (task.updates || []).length > 0)).toBe(true)
 
     expect([...taskRoles]).toEqual(expect.arrayContaining([
       'turnaround-manager',

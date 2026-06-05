@@ -57,6 +57,14 @@ function PassengerProfile({
   isLoadingTurnaroundOperations = false,
   turnaroundOperationsError = '',
   onRetryTurnaroundOperations,
+  onUpdateTurnaroundTaskStatus,
+  onUpdateTurnaroundTaskDetails,
+  onCreateTurnaroundTaskUpdate,
+  updatingTurnaroundTaskId = '',
+  updatingTurnaroundTaskDetailsId = '',
+  creatingTurnaroundTaskUpdateId = '',
+  turnaroundMutationStatus = '',
+  turnaroundMutationError = '',
   onSavePassengerProfile,
   savingCustomerId = '',
   mutationError = '',
@@ -264,12 +272,90 @@ function RoleBookingDetails({ booking, favoriteActivityKeys, favoritesOnly, onTo
   )
 }
 
-function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaroundOperations = [], isLoading = false, error = '', onRetry }) {
+function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaroundOperations = [], isLoading = false, error = '', onRetry, onUpdateTaskStatus, onUpdateTaskDetails, onCreateTaskUpdate, updatingTaskId = '', updatingTaskDetailsId = '', creatingTaskUpdateId = '', mutationStatus = '', mutationError = '' }) {
   const readinessOperations = useMemo(() => buildTurnaroundOperationCards(turnaroundOperations, roleView), [turnaroundOperations, roleView])
   const highCoordinationCount = readinessOperations.filter(item => String(item.readinessLevel).toLowerCase().includes('high')).length
   const passengerTotal = readinessOperations.reduce((sum, item) => sum + item.passengerCount, 0)
   const firstOperation = readinessOperations[0]
   const focusLine = firstOperation?.tasks?.[0]?.taskName || getOperationalRoleFocus(roleView)
+  const [taskDetailDrafts, setTaskDetailDrafts] = useState({})
+  const [taskUpdateDrafts, setTaskUpdateDrafts] = useState({})
+
+  function getTaskDetailDraft(task) {
+    return taskDetailDrafts[task.id] || {
+      ownerName: task.ownerName || '',
+      dueTime: task.dueTime || '',
+      location: task.location || '',
+      blockerReason: task.blockerReason || ''
+    }
+  }
+
+  function updateTaskDetailDraft(task, fieldName, value) {
+    setTaskDetailDrafts(current => {
+      const existingDraft = current[task.id] || {
+        ownerName: task.ownerName || '',
+        dueTime: task.dueTime || '',
+        location: task.location || '',
+        blockerReason: task.blockerReason || ''
+      }
+
+      return {
+        ...current,
+        [task.id]: {
+          ...existingDraft,
+          [fieldName]: value
+        }
+      }
+    })
+  }
+
+  async function saveTaskDetails(task) {
+    const draft = getTaskDetailDraft(task)
+    const response = await onUpdateTaskDetails?.(task.id, draft)
+
+    if (response) {
+      setTaskDetailDrafts(current => {
+        const next = { ...current }
+        delete next[task.id]
+        return next
+      })
+    }
+  }
+
+  function updateStatus(task, status) {
+    const draft = getTaskDetailDraft(task)
+    return onUpdateTaskStatus?.(task.id, status, { blockerReason: draft.blockerReason })
+  }
+
+  function getTaskUpdateDraft(task) {
+    return taskUpdateDrafts[task.id] || ''
+  }
+
+  function updateTaskUpdateDraft(task, value) {
+    setTaskUpdateDrafts(current => ({
+      ...current,
+      [task.id]: value
+    }))
+  }
+
+  async function saveTaskUpdate(task) {
+    const message = getTaskUpdateDraft(task).trim()
+    if (!message) return
+
+    const response = await onCreateTaskUpdate?.(task.id, {
+      authorName: selectedDemoUser?.displayName || 'Operational lead',
+      updateType: 'NOTE',
+      message
+    })
+
+    if (response) {
+      setTaskUpdateDrafts(current => {
+        const next = { ...current }
+        delete next[task.id]
+        return next
+      })
+    }
+  }
 
   return (
     <section className="operational-turnaround-panel" aria-labelledby="operational-turnaround-heading" data-testid="react-operational-turnaround-panel">
@@ -296,6 +382,9 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
           </div>
         </dl>
       </div>
+
+      {mutationStatus && <p className="status-card compact" data-testid="react-operational-mutation-status">{mutationStatus}</p>}
+      {mutationError && <p className="status-card compact error" data-testid="react-operational-mutation-error">{mutationError}</p>}
 
       {isLoading ? (
         <p className="status-card compact" data-testid="react-operational-loading-state">Loading turnaround operations from the database...</p>
@@ -335,13 +424,93 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                 </div>
               </dl>
 
+              {item.taskSummary && (
+                <div className="operational-progress-summary" data-testid="react-operational-progress-summary">
+                  <span>{item.taskSummary.completeTasks} of {item.taskSummary.totalTasks} tasks complete</span>
+                  <span>{item.taskSummary.completionPercent}% ready</span>
+                  {item.taskSummary.blockedTasks > 0 && <span>{item.taskSummary.blockedTasks} blocked</span>}
+                </div>
+              )}
+
               {item.tasks.length > 0 && (
                 <ul className="operational-checklist" data-testid="react-operational-role-checklist">
-                  {item.tasks.map(task => (
-                    <li key={task.id || `${item.id}-${task.taskName}`}>
-                      <strong>{task.status}</strong> — {task.taskName}
-                    </li>
-                  ))}
+                  {item.tasks.map(task => {
+                    const isUpdating = updatingTaskId === task.id
+
+                    return (
+                      <li key={task.id || `${item.id}-${task.taskName}`}>
+                        <div>
+                          <strong>{task.status}</strong> — {task.taskName}
+                        </div>
+                        <dl className="operational-task-detail-list" data-testid="react-operational-task-details">
+                          <div>
+                            <dt>Owner</dt>
+                            <dd>{task.ownerName || 'Unassigned'}</dd>
+                          </div>
+                          <div>
+                            <dt>Due</dt>
+                            <dd>{task.dueTime || 'Timing pending'}</dd>
+                          </div>
+                          <div>
+                            <dt>Location</dt>
+                            <dd>{task.location || 'Location pending'}</dd>
+                          </div>
+                        </dl>
+                        {task.blockerReason && <p className="operational-blocker-note" data-testid="react-operational-blocker-note">Blocked: {task.blockerReason}</p>}
+                        {task.updates?.length > 0 && (
+                          <div className="operational-task-updates" data-testid="react-operational-task-updates">
+                            <strong>Shift updates</strong>
+                            <ul>
+                              {task.updates.slice(0, 3).map(update => (
+                                <li key={update.id}>
+                                  <span>{update.authorName}</span>
+                                  <span>{update.updateType || 'NOTE'}</span>
+                                  <span>{update.message}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {onCreateTaskUpdate && task.id && (
+                          <form className="operational-task-update-form" onSubmit={event => { event.preventDefault(); saveTaskUpdate(task) }} data-testid="react-operational-task-update-form">
+                            <label className="full-width-field">
+                              <span>Shift update</span>
+                              <input value={getTaskUpdateDraft(task)} onChange={event => updateTaskUpdateDraft(task, event.target.value)} aria-label={`${task.taskName} shift update`} />
+                            </label>
+                            <button type="submit" className="secondary-action-button compact-button" disabled={creatingTaskUpdateId === task.id || !getTaskUpdateDraft(task).trim()}>Add shift update</button>
+                          </form>
+                        )}
+                        {onUpdateTaskDetails && task.id && (
+                          <form className="operational-task-detail-form" onSubmit={event => { event.preventDefault(); saveTaskDetails(task) }} data-testid="react-operational-task-detail-form">
+                            <label>
+                              <span>Owner</span>
+                              <input value={getTaskDetailDraft(task).ownerName} onChange={event => updateTaskDetailDraft(task, 'ownerName', event.target.value)} aria-label={`${task.taskName} owner`} />
+                            </label>
+                            <label>
+                              <span>Due time</span>
+                              <input value={getTaskDetailDraft(task).dueTime} onChange={event => updateTaskDetailDraft(task, 'dueTime', event.target.value)} aria-label={`${task.taskName} due time`} />
+                            </label>
+                            <label>
+                              <span>Location</span>
+                              <input value={getTaskDetailDraft(task).location} onChange={event => updateTaskDetailDraft(task, 'location', event.target.value)} aria-label={`${task.taskName} location`} />
+                            </label>
+                            <label className="full-width-field">
+                              <span>Blocker reason</span>
+                              <input value={getTaskDetailDraft(task).blockerReason} onChange={event => updateTaskDetailDraft(task, 'blockerReason', event.target.value)} aria-label={`${task.taskName} blocker reason`} />
+                            </label>
+                            <button type="submit" className="secondary-action-button compact-button" disabled={updatingTaskDetailsId === task.id}>Save task details</button>
+                          </form>
+                        )}
+                        {onUpdateTaskStatus && task.id && (
+                          <div className="operational-task-actions" aria-label={`Update ${task.taskName} status`}>
+                            <button type="button" className="secondary-action-button compact-button" disabled={isUpdating || task.status === 'IN_PROGRESS'} onClick={() => updateStatus(task, 'IN_PROGRESS')}>Start</button>
+                            <button type="button" className="secondary-action-button compact-button" disabled={isUpdating || task.status === 'BLOCKED'} onClick={() => updateStatus(task, 'BLOCKED')}>Block</button>
+                            <button type="button" className="secondary-action-button compact-button" disabled={isUpdating || task.status === 'COMPLETE'} onClick={() => updateStatus(task, 'COMPLETE')}>Complete</button>
+                          </div>
+                        )}
+                      </li>
+                    )
+                  })}
                 </ul>
               )}
             </article>
@@ -418,6 +587,14 @@ export default function ReactRoleDashboard({
   isLoadingTurnaroundOperations = false,
   turnaroundOperationsError = '',
   onRetryTurnaroundOperations,
+  onUpdateTurnaroundTaskStatus,
+  onUpdateTurnaroundTaskDetails,
+  onCreateTurnaroundTaskUpdate,
+  updatingTurnaroundTaskId = '',
+  updatingTurnaroundTaskDetailsId = '',
+  creatingTurnaroundTaskUpdateId = '',
+  turnaroundMutationStatus = '',
+  turnaroundMutationError = '',
   onSavePassengerProfile,
   savingCustomerId = '',
   mutationError = '',
@@ -511,6 +688,14 @@ export default function ReactRoleDashboard({
           isLoading={isLoadingTurnaroundOperations}
           error={turnaroundOperationsError}
           onRetry={onRetryTurnaroundOperations}
+          onUpdateTaskStatus={onUpdateTurnaroundTaskStatus}
+          onUpdateTaskDetails={onUpdateTurnaroundTaskDetails}
+          onCreateTaskUpdate={onCreateTurnaroundTaskUpdate}
+          updatingTaskId={updatingTurnaroundTaskId}
+          updatingTaskDetailsId={updatingTurnaroundTaskDetailsId}
+          creatingTaskUpdateId={creatingTurnaroundTaskUpdateId}
+          mutationStatus={turnaroundMutationStatus}
+          mutationError={turnaroundMutationError}
         />
       )}
 

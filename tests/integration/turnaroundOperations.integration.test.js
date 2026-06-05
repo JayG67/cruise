@@ -30,8 +30,123 @@ describe('Turnaround operations API integration tests', () => {
     expect(firstOperation.cruiseLine).toEqual(expect.objectContaining({ id: firstOperation.ship.cruiseLineId }))
     expect(firstOperation.tasks).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ departmentRole: 'turnaround-manager', taskName: expect.any(String) })
+        expect.objectContaining({ departmentRole: 'turnaround-manager', taskName: expect.any(String), ownerName: expect.any(String), dueTime: expect.any(String), location: expect.any(String) })
       ])
     )
   })
+
+  it('PATCH /cruise/turnaround-tasks/:id/status updates a role task and returns refreshed operation progress', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const task = operationsRes.body[0].tasks.find(candidate => candidate.status !== 'COMPLETE')
+
+    const res = await request(app)
+      .patch(`/cruise/turnaround-tasks/${task.id}/status`)
+      .send({ status: 'complete' })
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body.message).toBe('Turnaround task status updated successfully')
+    expect(res.body.operation.tasks).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: task.id, status: 'COMPLETE' })
+    ]))
+    expect(res.body.operation.taskSummary).toEqual(expect.objectContaining({
+      totalTasks: expect.any(Number),
+      completeTasks: expect.any(Number),
+      completionPercent: expect.any(Number)
+    }))
+  })
+
+  it('PATCH /cruise/turnaround-tasks/:id/details updates task ownership, timing, location, and blocker metadata', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const task = operationsRes.body[0].tasks[0]
+
+    const res = await request(app)
+      .patch(`/cruise/turnaround-tasks/${task.id}/details`)
+      .send({
+        ownerName: 'Jordan Pierce',
+        dueTime: '09:45',
+        location: 'Pier 4 command desk',
+        blockerReason: 'Waiting for terminal headcount reconciliation'
+      })
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body.message).toBe('Turnaround task details updated successfully')
+    expect(res.body.operation.tasks).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: task.id,
+        ownerName: 'Jordan Pierce',
+        dueTime: '09:45',
+        location: 'Pier 4 command desk',
+        blockerReason: 'Waiting for terminal headcount reconciliation'
+      })
+    ]))
+  })
+
+  it('PATCH /cruise/turnaround-tasks/:id/status can save a blocker reason with a blocked status', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const task = operationsRes.body[0].tasks.find(candidate => candidate.status !== 'COMPLETE')
+
+    const res = await request(app)
+      .patch(`/cruise/turnaround-tasks/${task.id}/status`)
+      .send({ status: 'blocked', blockerReason: 'Waiting for luggage hall clearance' })
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body.operation.tasks).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: task.id, status: 'BLOCKED', blockerReason: 'Waiting for luggage hall clearance' })
+    ]))
+    expect(res.body.operation.taskSummary.blockedTasks).toBeGreaterThanOrEqual(1)
+  })
+
+  it('POST /cruise/turnaround-tasks/:id/updates adds a database-backed shift update', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const task = operationsRes.body[0].tasks[0]
+
+    const res = await request(app)
+      .post(`/cruise/turnaround-tasks/${task.id}/updates`)
+      .send({
+        authorName: 'Alex Turner',
+        updateType: 'NOTE',
+        message: 'Pier agent confirmed luggage hall release window.'
+      })
+
+    expect(res.statusCode).toBe(201)
+    expect(res.body.message).toBe('Turnaround task update added successfully')
+    expect(res.body.operation.tasks).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: task.id,
+        updates: expect.arrayContaining([
+          expect.objectContaining({
+            authorName: 'Alex Turner',
+            updateType: 'NOTE',
+            message: 'Pier agent confirmed luggage hall release window.',
+            createdAt: expect.any(String)
+          })
+        ])
+      })
+    ]))
+  })
+
+  it('rejects empty turnaround task update messages before writing the update log', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const task = operationsRes.body[0].tasks[0]
+
+    const res = await request(app)
+      .post(`/cruise/turnaround-tasks/${task.id}/updates`)
+      .send({ authorName: 'Alex Turner', updateType: 'NOTE', message: '' })
+
+    expect(res.statusCode).toBe(400)
+    expect(res.body.message).toBe('Validation failed')
+  })
+
+  it('rejects unsupported turnaround task statuses before updating the database', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const task = operationsRes.body[0].tasks[0]
+
+    const res = await request(app)
+      .patch(`/cruise/turnaround-tasks/${task.id}/status`)
+      .send({ status: 'maybe later' })
+
+    expect(res.statusCode).toBe(400)
+    expect(res.body.message).toBe('Validation failed')
+  })
+
 })

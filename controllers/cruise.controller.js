@@ -10,6 +10,7 @@ const demoUserTable = require('../models/demoUser.model')
 const customerItineraryFavoriteTable = require('../models/customerItineraryFavorite.model')
 const turnaroundOperationTable = require('../models/turnaroundOperation.model')
 const turnaroundTaskTable = require('../models/turnaroundTask.model')
+const turnaroundTaskUpdateTable = require('../models/turnaroundTaskUpdate.model')
 const db = require('../db')
 const { and, eq, inArray } = require('drizzle-orm')
 
@@ -854,6 +855,32 @@ async function getPassengerCountForSailing(sailingId) {
   return passengerCount
 }
 
+
+function getTurnaroundProgress(tasks = []) {
+  const totalTasks = tasks.length
+  const completeTasks = tasks.filter(task => task.status === 'COMPLETE').length
+  const blockedTasks = tasks.filter(task => task.status === 'BLOCKED').length
+  const inProgressTasks = tasks.filter(task => task.status === 'IN_PROGRESS').length
+
+  return {
+    totalTasks,
+    completeTasks,
+    blockedTasks,
+    inProgressTasks,
+    completionPercent: totalTasks === 0 ? 0 : Math.round((completeTasks / totalTasks) * 100)
+  }
+}
+
+function getDerivedTurnaroundStatus(tasks = []) {
+  const progress = getTurnaroundProgress(tasks)
+
+  if (progress.blockedTasks > 0) return 'BLOCKED'
+  if (progress.totalTasks > 0 && progress.completeTasks === progress.totalTasks) return 'COMPLETE'
+  if (progress.inProgressTasks > 0 || progress.completeTasks > 0) return 'IN_PROGRESS'
+
+  return 'PLANNED'
+}
+
 async function getTurnaroundOperationDetails(operation) {
   const sailingRows = await db
     .select()
@@ -890,13 +917,29 @@ async function getTurnaroundOperationDetails(operation) {
     .from(turnaroundTaskTable)
     .where(eq(turnaroundTaskTable.operationId, operation.id))
 
+  const sortedTasks = []
+
+  for (const task of [...(tasks || [])].sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0))) {
+    const updates = await db
+      .select()
+      .from(turnaroundTaskUpdateTable)
+      .where(eq(turnaroundTaskUpdateTable.taskId, task.id))
+
+    sortedTasks.push({
+      ...task,
+      updates: [...(updates || [])].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+    })
+  }
+
   return {
     ...operation,
+    status: getDerivedTurnaroundStatus(sortedTasks),
     sailing,
     ship,
     cruiseLine,
     passengerCount: await getPassengerCountForSailing(operation.sailingId),
-    tasks: [...(tasks || [])].sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0))
+    taskSummary: getTurnaroundProgress(sortedTasks),
+    tasks: sortedTasks
   }
 }
 
@@ -915,6 +958,152 @@ exports.getTurnaroundOperations = async (req, res, next) => {
     }
 
     return res.status(200).json(operationDetails.sort((a, b) => String(a.turnaroundDate).localeCompare(String(b.turnaroundDate))))
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.updateTurnaroundTaskStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const { status } = req.body
+
+    const existingTasks = await db
+      .select()
+      .from(turnaroundTaskTable)
+      .where(eq(turnaroundTaskTable.id, id))
+      .limit(1)
+
+    const existingTask = existingTasks[0]
+
+    if (!existingTask) {
+      return res.status(404).json({ message: 'Turnaround task not found' })
+    }
+
+    const nextTaskValues = { status }
+
+    if (Object.prototype.hasOwnProperty.call(req.body, 'blockerReason')) {
+      nextTaskValues.blockerReason = status === 'BLOCKED' ? req.body.blockerReason || 'Blocked pending operational follow-up' : req.body.blockerReason || null
+    } else if (status !== 'BLOCKED') {
+      nextTaskValues.blockerReason = null
+    }
+
+    await db
+      .update(turnaroundTaskTable)
+      .set(nextTaskValues)
+      .where(eq(turnaroundTaskTable.id, id))
+
+    const operationRows = await db
+      .select()
+      .from(turnaroundOperationTable)
+      .where(eq(turnaroundOperationTable.id, existingTask.operationId))
+      .limit(1)
+
+    const operation = operationRows[0]
+
+    if (!operation) {
+      return res.status(200).json({ message: 'Turnaround task status updated successfully' })
+    }
+
+    return res.status(200).json({
+      message: 'Turnaround task status updated successfully',
+      operation: await getTurnaroundOperationDetails(operation)
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+
+exports.createTurnaroundTaskUpdate = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const { authorName, updateType = 'NOTE', message } = req.body
+
+    const existingTasks = await db
+      .select()
+      .from(turnaroundTaskTable)
+      .where(eq(turnaroundTaskTable.id, id))
+      .limit(1)
+
+    const existingTask = existingTasks[0]
+
+    if (!existingTask) {
+      return res.status(404).json({ message: 'Turnaround task not found' })
+    }
+
+    await db
+      .insert(turnaroundTaskUpdateTable)
+      .values({
+        taskId: id,
+        authorName,
+        updateType,
+        message,
+        createdAt: new Date().toISOString()
+      })
+
+    const operationRows = await db
+      .select()
+      .from(turnaroundOperationTable)
+      .where(eq(turnaroundOperationTable.id, existingTask.operationId))
+      .limit(1)
+
+    const operation = operationRows[0]
+
+    return res.status(201).json({
+      message: 'Turnaround task update added successfully',
+      operation: operation ? await getTurnaroundOperationDetails(operation) : undefined
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.updateTurnaroundTaskDetails = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const allowedFields = ['ownerName', 'dueTime', 'location', 'blockerReason']
+    const taskUpdates = {}
+
+    for (const field of allowedFields) {
+      if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+        taskUpdates[field] = req.body[field] || null
+      }
+    }
+
+    const existingTasks = await db
+      .select()
+      .from(turnaroundTaskTable)
+      .where(eq(turnaroundTaskTable.id, id))
+      .limit(1)
+
+    const existingTask = existingTasks[0]
+
+    if (!existingTask) {
+      return res.status(404).json({ message: 'Turnaround task not found' })
+    }
+
+    if (Object.keys(taskUpdates).length === 0) {
+      return res.status(400).json({ message: 'At least one turnaround task detail is required' })
+    }
+
+    await db
+      .update(turnaroundTaskTable)
+      .set(taskUpdates)
+      .where(eq(turnaroundTaskTable.id, id))
+
+    const operationRows = await db
+      .select()
+      .from(turnaroundOperationTable)
+      .where(eq(turnaroundOperationTable.id, existingTask.operationId))
+      .limit(1)
+
+    const operation = operationRows[0]
+
+    return res.status(200).json({
+      message: 'Turnaround task details updated successfully',
+      operation: operation ? await getTurnaroundOperationDetails(operation) : undefined
+    })
   } catch (err) {
     next(err)
   }

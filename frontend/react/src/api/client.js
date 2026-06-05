@@ -61,6 +61,61 @@ export async function getTurnaroundOperations(options = {}) {
   return Array.isArray(operations) ? operations : []
 }
 
+export async function updateTurnaroundTaskStatus(taskId, status, options = {}) {
+  if (!taskId) {
+    throw new Error('Turnaround task id is required.')
+  }
+
+  const { blockerReason, ...requestOptions } = options
+  const payload = { status }
+
+  if (blockerReason !== undefined) {
+    payload.blockerReason = blockerReason
+  }
+
+  return requestJson(`/cruise/turnaround-tasks/${encodeURIComponent(taskId)}/status`, {
+    ...requestOptions,
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(requestOptions.headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function updateTurnaroundTaskDetails(taskId, payload, options = {}) {
+  if (!taskId) {
+    throw new Error('Turnaround task id is required.')
+  }
+
+  return requestJson(`/cruise/turnaround-tasks/${encodeURIComponent(taskId)}/details`, {
+    ...options,
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function createTurnaroundTaskUpdate(taskId, payload, options = {}) {
+  if (!taskId) {
+    throw new Error('Turnaround task id is required.')
+  }
+
+  return requestJson(`/cruise/turnaround-tasks/${encodeURIComponent(taskId)}/updates`, {
+    ...options,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
 export async function getDemoUsers(options = {}) {
   const demoUsers = await requestJson('/cruise/demo-users', options)
   return Array.isArray(demoUsers) ? demoUsers : []

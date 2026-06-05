@@ -78,8 +78,23 @@ async function initializeDatabase() {
       "operationId" uuid NOT NULL REFERENCES turnaround_operations(id) ON DELETE CASCADE,
       "departmentRole" varchar(50) NOT NULL,
       "taskName" varchar(255) NOT NULL,
+      "ownerName" varchar(255),
+      "dueTime" varchar(20),
+      location varchar(255),
+      "blockerReason" varchar(500),
       status varchar(50) NOT NULL,
       "sortOrder" integer NOT NULL DEFAULT 0
+    );
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS turnaround_task_updates (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      "taskId" uuid NOT NULL REFERENCES turnaround_tasks(id) ON DELETE CASCADE,
+      "authorName" varchar(255) NOT NULL,
+      "updateType" varchar(50) NOT NULL,
+      message varchar(500) NOT NULL,
+      "createdAt" varchar(40) NOT NULL
     );
   `)
 
@@ -169,6 +184,38 @@ async function initializeDatabase() {
 
   await db.execute(sql`
     ALTER TABLE itinerary_days ADD COLUMN IF NOT EXISTS port varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_tasks ADD COLUMN IF NOT EXISTS "ownerName" varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_tasks ADD COLUMN IF NOT EXISTS "dueTime" varchar(20);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_tasks ADD COLUMN IF NOT EXISTS location varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_tasks ADD COLUMN IF NOT EXISTS "blockerReason" varchar(500);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_task_updates ADD COLUMN IF NOT EXISTS "authorName" varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_task_updates ADD COLUMN IF NOT EXISTS "updateType" varchar(50);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_task_updates ADD COLUMN IF NOT EXISTS message varchar(500);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_task_updates ADD COLUMN IF NOT EXISTS "createdAt" varchar(40);
   `)
 
   if (process.env.NODE_ENV !== 'test' && process.env.SUPPRESS_DB_LOGS !== 'true') {

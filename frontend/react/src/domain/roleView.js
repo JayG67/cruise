@@ -199,10 +199,19 @@ export function buildTurnaroundOperationCards(turnaroundOperations = [], roleVie
     const departurePort = operation.sailing?.departurePort || operation.port || 'Departure port unavailable'
     const arrivalPort = operation.sailing?.arrivalPort || operation.port || 'Arrival port unavailable'
 
+    const taskSummary = operation.taskSummary || {
+      totalTasks: tasks.length,
+      completeTasks: tasks.filter(task => task.status === 'COMPLETE').length,
+      blockedTasks: tasks.filter(task => task.status === 'BLOCKED').length,
+      inProgressTasks: tasks.filter(task => task.status === 'IN_PROGRESS').length,
+      completionPercent: tasks.length === 0 ? 0 : Math.round((tasks.filter(task => task.status === 'COMPLETE').length / tasks.length) * 100)
+    }
+
     return {
       id: operation.id || `${shipName}-${sailingDate}`,
       operation,
       tasks,
+      taskSummary,
       passengerCount: Number(operation.passengerCount || 0),
       route: `${departurePort} → ${arrivalPort}`,
       shipName,
