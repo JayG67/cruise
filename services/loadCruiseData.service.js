@@ -17,6 +17,10 @@ const turnaroundOperationTable = require('../models/turnaroundOperation.model')
 const turnaroundTaskTable = require('../models/turnaroundTask.model')
 const turnaroundTaskUpdateTable = require('../models/turnaroundTaskUpdate.model')
 const turnaroundSignoffTable = require('../models/turnaroundSignoff.model')
+const turnaroundEscalationTable = require('../models/turnaroundEscalation.model')
+const turnaroundStaffingTable = require('../models/turnaroundStaffing.model')
+const turnaroundTaskDependencyTable = require('../models/turnaroundTaskDependency.model')
+const turnaroundHandoffTable = require('../models/turnaroundHandoff.model')
 
 const SEED_FILE_PATH = path.join(__dirname, '..', 'data', 'cruise.json')
 const INSERT_CHUNK_SIZE = 500
@@ -56,6 +60,10 @@ function buildSeedRows(cruiseData) {
   const turnaroundTaskRows = []
   const turnaroundTaskUpdateRows = []
   const turnaroundSignoffRows = []
+  const turnaroundEscalationRows = []
+  const turnaroundStaffingRows = []
+  const turnaroundTaskDependencyRows = []
+  const turnaroundHandoffRows = []
   const sailingIdBySeedKey = new Map()
 
   for (const cruiseLine of cruiseData.cruiseLines || []) {
@@ -203,8 +211,38 @@ function buildSeedRows(cruiseData) {
       })
     }
 
+    for (const staffing of turnaroundOperation.staffing || []) {
+      turnaroundStaffingRows.push({
+        id: randomUUID(),
+        operationId,
+        departmentRole: staffing.departmentRole,
+        plannedCount: Number(staffing.plannedCount || 0),
+        checkedInCount: Number(staffing.checkedInCount || 0),
+        leadName: staffing.leadName,
+        musterLocation: staffing.musterLocation,
+        notes: staffing.notes
+      })
+    }
+
+    for (const escalation of turnaroundOperation.escalations || []) {
+      turnaroundEscalationRows.push({
+        id: randomUUID(),
+        operationId,
+        departmentRole: escalation.departmentRole,
+        severity: escalation.severity || 'WATCH',
+        title: escalation.title,
+        ownerName: escalation.ownerName,
+        status: escalation.status || 'OPEN',
+        resolutionNotes: escalation.resolutionNotes,
+        createdAt: escalation.createdAt || new Date().toISOString()
+      })
+    }
+
+    const taskIdByName = new Map()
+
     for (const [index, task] of (turnaroundOperation.tasks || []).entries()) {
       const taskId = randomUUID()
+      taskIdByName.set(task.taskName, taskId)
 
       turnaroundTaskRows.push({
         id: taskId,
@@ -230,6 +268,40 @@ function buildSeedRows(cruiseData) {
         })
       }
     }
+
+    for (const dependency of turnaroundOperation.taskDependencies || []) {
+      const taskId = taskIdByName.get(dependency.taskName)
+      const dependsOnTaskId = taskIdByName.get(dependency.dependsOnTaskName)
+
+      if (!taskId || !dependsOnTaskId) {
+        throw new Error(`Unable to resolve turnaround task dependency for ${dependency.taskName || dependency.id || turnaroundOperation.title}`)
+      }
+
+      turnaroundTaskDependencyRows.push({
+        id: randomUUID(),
+        operationId,
+        taskId,
+        dependsOnTaskId,
+        dependencyType: dependency.dependencyType || 'BLOCKS',
+        status: dependency.status || 'ACTIVE',
+        notes: dependency.notes
+      })
+    }
+
+    for (const handoff of turnaroundOperation.handoffs || []) {
+      turnaroundHandoffRows.push({
+        id: randomUUID(),
+        operationId,
+        fromDepartmentRole: handoff.fromDepartmentRole,
+        toDepartmentRole: handoff.toDepartmentRole,
+        title: handoff.title,
+        status: handoff.status || 'PENDING',
+        ownerName: handoff.ownerName,
+        dueTime: handoff.dueTime,
+        notes: handoff.notes,
+        completedAt: handoff.completedAt
+      })
+    }
   }
 
   return {
@@ -245,7 +317,11 @@ function buildSeedRows(cruiseData) {
     turnaroundOperationRows,
     turnaroundTaskRows,
     turnaroundTaskUpdateRows,
-    turnaroundSignoffRows
+    turnaroundSignoffRows,
+    turnaroundEscalationRows,
+    turnaroundStaffingRows,
+    turnaroundTaskDependencyRows,
+    turnaroundHandoffRows
   }
 }
 
@@ -256,6 +332,10 @@ async function loadCruiseData() {
   await db.transaction(async tx => {
     await tx.delete(demoUserTable)
     await tx.delete(turnaroundTaskUpdateTable)
+    await tx.delete(turnaroundEscalationTable)
+    await tx.delete(turnaroundTaskDependencyTable)
+    await tx.delete(turnaroundHandoffTable)
+    await tx.delete(turnaroundStaffingTable)
     await tx.delete(turnaroundSignoffTable)
     await tx.delete(turnaroundTaskTable)
     await tx.delete(turnaroundOperationTable)
@@ -282,6 +362,10 @@ async function loadCruiseData() {
     await insertRows(tx, turnaroundTaskTable, rows.turnaroundTaskRows)
     await insertRows(tx, turnaroundTaskUpdateTable, rows.turnaroundTaskUpdateRows)
     await insertRows(tx, turnaroundSignoffTable, rows.turnaroundSignoffRows)
+    await insertRows(tx, turnaroundEscalationTable, rows.turnaroundEscalationRows)
+    await insertRows(tx, turnaroundStaffingTable, rows.turnaroundStaffingRows)
+    await insertRows(tx, turnaroundTaskDependencyTable, rows.turnaroundTaskDependencyRows)
+    await insertRows(tx, turnaroundHandoffTable, rows.turnaroundHandoffRows)
   })
 
   if (process.env.NODE_ENV !== 'test' && process.env.SUPPRESS_DB_LOGS !== 'true') {
@@ -302,6 +386,10 @@ async function loadCruiseData() {
     turnaroundTaskCount: rows.turnaroundTaskRows.length,
     turnaroundTaskUpdateCount: rows.turnaroundTaskUpdateRows.length,
     turnaroundSignoffCount: rows.turnaroundSignoffRows.length,
+    turnaroundEscalationCount: rows.turnaroundEscalationRows.length,
+    turnaroundStaffingCount: rows.turnaroundStaffingRows.length,
+    turnaroundTaskDependencyCount: rows.turnaroundTaskDependencyRows.length,
+    turnaroundHandoffCount: rows.turnaroundHandoffRows.length,
     source: 'data/cruise.json'
   }
 }

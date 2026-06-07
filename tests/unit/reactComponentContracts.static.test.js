@@ -141,14 +141,17 @@ describe('React route preview accessibility contracts', () => {
 
   it('keeps React SQA reset recovery guarded by a React confirmation panel', () => {
     const cypress = read('cypress/react/reactApp.cy.js')
+    const selectors = read('cypress/react/support/reactSelectors.js')
     const sqa = read('frontend/react/src/components/ReactSqaConsole.jsx')
 
     expect(sqa).toContain('requestResetDemoData')
     expect(sqa).toContain('cancelResetDemoData')
     expect(sqa).toContain('testId="react-sqa-reset-confirmation"')
     expect(cypress).toContain('resets React demo data through a native React confirmation panel')
-    expect(cypress).toContain("cy.getByTestId('react-sqa-reset-confirmation-cancel')")
-    expect(cypress).toContain("cy.getByTestId('react-sqa-reset-confirmation-confirm')")
+    expect(selectors).toContain("sqaResetConfirmationCancel: 'react-sqa-reset-confirmation-cancel'")
+    expect(selectors).toContain("sqaResetConfirmationConfirm: 'react-sqa-reset-confirmation-confirm'")
+    expect(cypress).toContain('cy.getByTestId(rs.sqaResetConfirmationCancel)')
+    expect(cypress).toContain('cy.getByTestId(rs.sqaResetConfirmationConfirm)')
     expect(cypress).not.toContain("cy.stub(win, 'confirm')")
   })
 
@@ -174,14 +177,31 @@ describe('React route preview accessibility contracts', () => {
   })
 
 
+  it('keeps passenger booking guest selection on searchable finder cards instead of a giant dropdown', () => {
+    const bookingWorkflow = read('frontend/react/src/components/PassengerCruiseBookingWorkflow.jsx')
+    const selectors = read('cypress/react/support/reactSelectors.js')
+    const cypress = read('cypress/react/reactPassengerSelfService.cy.js')
+
+    expect(bookingWorkflow).toContain('data-testid="react-booking-guest-finder"')
+    expect(bookingWorkflow).toContain('data-testid="react-booking-guest-search-input"')
+    expect(bookingWorkflow).toContain('data-testid="react-booking-guest-result-card"')
+    expect(bookingWorkflow).not.toContain('data-testid="react-booking-existing-customer-select"')
+    expect(selectors).toContain("bookingGuestResultCard: 'react-booking-guest-result-card'")
+    expect(cypress).toContain('searchable cards instead of a giant dropdown')
+  })
+
   it('keeps React demo user selector populated from API results', () => {
     const selector = read('frontend/react/src/components/ReactRoleSelector.jsx')
     const hook = read('frontend/react/src/hooks/useDemoUsers.js')
 
-    expect(selector).toContain('value={selectedDemoUserId}')
+    expect(selector).toContain("value={visibleDemoUsers.some(user => user.id === selectedDemoUserId) ? selectedDemoUserId : ''}")
     expect(selector).toContain('onChange={event => onSelectDemoUser?.(event.target.value)}')
     expect(selector).toContain('data-testid="react-demo-user-select"')
-    expect(selector).toContain('formatDemoUserLabel(user)')
+    expect(selector).toContain('data-testid="react-passenger-finder-panel"')
+    expect(selector).toContain('data-testid="react-passenger-search-input"')
+    expect(selector).toContain('data-testid="react-passenger-finder-results"')
+    expect(selector).toContain('data-testid="react-passenger-finder-result-card"')
+    expect(selector).toContain('formatDemoUserLabel(user, bookings)')
     expect(hook).toContain('getDemoUsers')
     expect(hook).toContain('selectedDemoUser')
   })
@@ -193,7 +213,7 @@ describe('React route preview accessibility contracts', () => {
     expect(selector).toContain('user.displayName')
     expect(selector).toContain('formatDemoUserRole')
     expect(selector).toContain("split('_')")
-    expect(selector).toContain('<option key={user.id} value={user.id}>{formatDemoUserLabel(user)}</option>')
+    expect(selector).toContain('<option key={user.id} value={user.id}>{formatDemoUserLabel(user, bookings)}</option>')
   })
 
 
@@ -384,6 +404,7 @@ describe('React route preview accessibility contracts', () => {
     const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
     const client = read('frontend/react/src/api/client.js')
     const cypress = read('cypress/react/reactApp.cy.js')
+    const selectors = read('cypress/react/support/reactSelectors.js')
     const mobile = read('playwright/mobile/react-production-mobile.spec.js')
     const responsive = read('playwright/responsive/react-production-responsive.spec.js')
 
@@ -440,11 +461,13 @@ describe('React route preview accessibility contracts', () => {
     const roleView = read('frontend/react/src/domain/roleView.js')
     const roleDashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
     const cypress = read('cypress/react/reactApp.cy.js')
+    const selectors = read('cypress/react/support/reactSelectors.js')
 
     expect(roleView).toContain("if (normalizedRole.includes('group')) return 'group-leader'")
     expect(roleDashboard).toContain('data-testid={`react-${roleView}-dashboard`}')
-    expect(cypress).toContain("react-group-leader-dashboard")
-    expect(cypress).not.toContain("react-group-dashboard")
+    expect(selectors).toContain("groupLeaderDashboard: 'react-group-leader-dashboard'")
+    expect(cypress).toContain('cy.getByTestId(rs.groupLeaderDashboard)')
+    expect(cypress).not.toContain('react-group-dashboard')
   })
 
 
@@ -467,6 +490,7 @@ describe('React route preview accessibility contracts', () => {
     const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
     const client = read('frontend/react/src/api/client.js')
     const cypress = read('cypress/react/reactApp.cy.js')
+    const selectors = read('cypress/react/support/reactSelectors.js')
     const mobile = read('playwright/mobile/react-production-mobile.spec.js')
     const responsive = read('playwright/responsive/react-production-responsive.spec.js')
     const styles = read('frontend/react/src/styles/app.css')
@@ -478,7 +502,8 @@ describe('React route preview accessibility contracts', () => {
     expect(fleet).toContain('data-testid="react-itinerary-day-card"')
     expect(fleet).toContain('data-testid="react-itinerary-activity"')
     expect(cypress).toContain('loadReactItinerary')
-    expect(cypress).toContain('react-itinerary-panel')
+    expect(selectors).toContain("itineraryPanel: 'react-itinerary-panel'")
+    expect(cypress).toContain('cy.getByTestId(rs.itineraryPanel)')
     expect(mobile).toContain('react-view-itinerary-button')
     expect(responsive).toContain('react-view-itinerary-button')
     expect(styles).toContain('React itinerary detail coverage')
@@ -509,9 +534,12 @@ describe('React route preview accessibility contracts', () => {
 
   it('keeps React cruise line update Cypress test from cancelling before PATCH', () => {
     const cypress = read('cypress/react/reactApp.cy.js')
+    const selectors = read('cypress/react/support/reactSelectors.js')
 
-    expect(cypress).toContain('react-cruise-line-edit-form')
-    expect(cypress).toContain('react-save-cruise-line-edit')
+    expect(selectors).toContain("cruiseLineEditForm: 'react-cruise-line-edit-form'")
+    expect(selectors).toContain("saveCruiseLineEdit: 'react-save-cruise-line-edit'")
+    expect(cypress).toContain('cy.getByTestId(rs.cruiseLineEditForm)')
+    expect(cypress).toContain('cy.getByTestId(rs.saveCruiseLineEdit)')
     expect(cypress).toContain("cy.intercept('PATCH', '/cruise/cruise-line/*'")
     expect(cypress).toContain('expect(req.url).to.match(/\\/cruise\\/cruise-line\\/[0-9a-f-]{36}$/)')
   })
@@ -564,9 +592,9 @@ describe('React route preview accessibility contracts', () => {
     expect(fleet).toContain('data-testid="react-sailing-edit-form"')
     expect(fleet).toContain('data-testid="react-edit-sailing-departure-date"')
     expect(fleet).toContain('openSailingEdit')
-    expect(testBlock).toContain("cy.getByTestId('react-sailing-edit-form').should('be.visible')")
+    expect(testBlock).toContain('cy.getByTestId(rs.sailingEditForm).should(\'be.visible\')')
     expect(testBlock.match(/cy\.stub\(win, 'prompt'\)/g) || []).toHaveLength(0)
-    expect(testBlock).toContain("cy.getByTestId('react-fleet-delete-confirmation-confirm')")
+    expect(testBlock).toContain('cy.getByTestId(rs.fleetDeleteConfirmationConfirm)')
     expect(testBlock.match(/cy\.stub\(win, 'confirm'\)/g) || []).toHaveLength(0)
   })
 
@@ -611,9 +639,9 @@ describe('React route preview accessibility contracts', () => {
     const testEnd = cypress.indexOf("runs a React SQA health check and writes output", testStart)
     const testBlock = cypress.slice(testStart, testEnd)
 
-    expect(testBlock).toContain(".find('[data-testid=\"react-delete-itinerary-activity-button\"]')")
+    expect(testBlock).toContain('find(byTestId(rs.deleteItineraryActivityButton))')
     expect(testBlock).toContain("React Dinner Show was deleted")
-    expect(testBlock).toContain("cy.getByTestId('react-itinerary-day-grid').should('not.contain.text', 'React Dinner Show')")
+    expect(testBlock).toContain("cy.getByTestId(rs.itineraryDayGrid).should('not.contain.text', 'React Dinner Show')")
     expect(testBlock).not.toContain("cy.getByTestId('react-delete-itinerary-activity-button').last().click()")
   })
 
@@ -640,5 +668,21 @@ describe('React route preview accessibility contracts', () => {
     expect(createWorkflow).toContain('marketPositioning')
     expect(styles).toContain('.brand-theme-summary dt')
   })
+
+  it('keeps operational directory cards available for cross-department coordination without large unbounded rendering', () => {
+    const roleDashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const selectors = read('cypress/react/support/reactSelectors.js')
+
+    expect(roleDashboard).toContain('function buildOperationalDirectory')
+    expect(roleDashboard).toContain('readinessOperations.slice(0, 6).map')
+    expect(roleDashboard).toContain('data-testid="react-operations-directory-panel"')
+    expect(roleDashboard).toContain('data-testid="react-operations-directory-card"')
+    expect(roleDashboard).toContain('activeEscalations')
+    expect(roleDashboard).toContain('blockedHandoffs')
+    expect(roleDashboard).toContain('staffingPercent')
+    expect(selectors).toContain("operationsDirectoryPanel: 'react-operations-directory-panel'")
+    expect(selectors).toContain("operationsDirectoryCard: 'react-operations-directory-card'")
+  })
+
 
 })

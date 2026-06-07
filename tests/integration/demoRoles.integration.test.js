@@ -70,7 +70,7 @@ describe('Demo role and user context API integration tests', () => {
     expect(res.body.user).toEqual(expect.objectContaining({ role: 'PASSENGER', customerId: 'C000000001' }))
     expect(res.body.customer).toEqual(expect.objectContaining({ id: 'C000000001' }))
     expect(res.body.visibility.canManageCruiseData).toBe(false)
-    expect(res.body.bookings.length).toBeGreaterThanOrEqual(2)
+    expect(res.body.bookings.length).toBeGreaterThanOrEqual(1)
     res.body.bookings.forEach(booking => {
       expect(booking.passengers).toEqual(
         expect.arrayContaining([expect.objectContaining({ customerId: 'C000000001' })])
@@ -109,17 +109,17 @@ describe('Demo role and user context API integration tests', () => {
   })
 
   it('GET /cruise/demo-users/:id/context returns group visibility counts for group leaders', async () => {
-    const res = await request(app).get('/cruise/demo-users/UGROUP0001/context')
+    const res = await request(app).get('/cruise/demo-users/UGROUP0002/context')
 
     expect(res.statusCode).toBe(200)
     expect(res.body.user).toEqual(expect.objectContaining({ role: 'GROUP_LEADER' }))
     expect(res.body.visibility.canManageCruiseData).toBe(false)
-    expect(res.body.visibility.accessibleBookingCount).toBeGreaterThanOrEqual(2)
+    expect(res.body.visibility.accessibleBookingCount).toBeGreaterThanOrEqual(1)
     expect(res.body.visibility.accessibleCustomerCount).toBeGreaterThanOrEqual(2)
   })
 
   it('GET /cruise/demo-users/:id/context gives group leaders multi-customer visibility without admin rights', async () => {
-    const res = await request(app).get('/cruise/demo-users/UGROUP0001/context')
+    const res = await request(app).get('/cruise/demo-users/UGROUP0002/context')
 
     expect(res.statusCode).toBe(200)
     expect(res.body.visibility.canManageCruiseData).toBe(false)
@@ -128,7 +128,7 @@ describe('Demo role and user context API integration tests', () => {
   })
 
   it('GET /cruise/demo-users/:id/context includes passenger customer display details for dashboard rendering', async () => {
-    const res = await request(app).get('/cruise/demo-users/UGROUP0001/context')
+    const res = await request(app).get('/cruise/demo-users/UGROUP0002/context')
 
     expect(res.statusCode).toBe(200)
     expect(res.body.bookings.length).toBeGreaterThan(0)

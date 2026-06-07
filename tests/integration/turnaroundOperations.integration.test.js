@@ -43,9 +43,107 @@ describe('Turnaround operations API integration tests', () => {
       approvedSignoffs: expect.any(Number),
       approvalPercent: expect.any(Number)
     }))
+    expect(firstOperation.staffing).toEqual(expect.arrayContaining([
+      expect.objectContaining({ departmentRole: 'turnaround-manager', plannedCount: expect.any(Number), checkedInCount: expect.any(Number) })
+    ]))
+    expect(firstOperation.staffingSummary).toEqual(expect.objectContaining({
+      totalDepartments: expect.any(Number),
+      plannedCount: expect.any(Number),
+      checkedInCount: expect.any(Number),
+      gapCount: expect.any(Number),
+      checkInPercent: expect.any(Number)
+    }))
   })
 
 
+
+
+  it('PATCH /cruise/turnaround-operations/:id updates command plan fields without losing derived workflow state', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const operation = operationsRes.body[0]
+
+    const res = await request(app)
+      .patch(`/cruise/turnaround-operations/${operation.id}`)
+      .send({
+        status: 'in progress',
+        readinessLevel: 'Pier command watch active',
+        port: 'Miami Terminal A',
+        notes: 'Terminal command center has accepted the revised handoff timeline.'
+      })
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body.message).toBe('Turnaround command plan updated successfully')
+    expect(res.body.operation).toEqual(expect.objectContaining({
+      id: operation.id,
+      commandStatus: 'IN_PROGRESS',
+      commandReadinessLevel: 'Pier command watch active',
+      port: 'Miami Terminal A',
+      notes: 'Terminal command center has accepted the revised handoff timeline.',
+      taskSummary: expect.any(Object),
+      signoffSummary: expect.any(Object)
+    }))
+    expect(res.body.operation.tasks.length).toBeGreaterThan(0)
+    expect(res.body.operation.signoffs.length).toBeGreaterThan(0)
+  })
+
+  it('rejects invalid turnaround command plan updates before writing operation fields', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const operation = operationsRes.body[0]
+
+    const res = await request(app)
+      .patch(`/cruise/turnaround-operations/${operation.id}`)
+      .send({ status: 'sort of ready' })
+
+    expect(res.statusCode).toBe(400)
+    expect(res.body.message).toBe('Validation failed')
+  })
+
+
+  it('PATCH /cruise/turnaround-operations/:id/staffing/:departmentRole updates department staffing from the database workflow', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const operation = operationsRes.body[0]
+
+    const res = await request(app)
+      .patch(`/cruise/turnaround-operations/${operation.id}/staffing/housekeeping-lead`)
+      .send({
+        plannedCount: 44,
+        checkedInCount: 41,
+        leadName: 'Maria Rodriguez',
+        musterLocation: 'Deck 9 service corridor',
+        notes: 'Three cabin teams are still moving from pier briefing to guest decks.'
+      })
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body.message).toBe('Turnaround staffing plan updated successfully')
+    expect(res.body.operation.staffing).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        departmentRole: 'housekeeping-lead',
+        plannedCount: 44,
+        checkedInCount: 41,
+        leadName: 'Maria Rodriguez',
+        musterLocation: 'Deck 9 service corridor',
+        notes: 'Three cabin teams are still moving from pier briefing to guest decks.'
+      })
+    ]))
+    expect(res.body.operation.staffingSummary).toEqual(expect.objectContaining({
+      plannedCount: expect.any(Number),
+      checkedInCount: expect.any(Number),
+      gapCount: expect.any(Number),
+      checkInPercent: expect.any(Number)
+    }))
+  })
+
+  it('rejects invalid turnaround staffing counts before updating staffing rows', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const operation = operationsRes.body[0]
+
+    const res = await request(app)
+      .patch(`/cruise/turnaround-operations/${operation.id}/staffing/housekeeping-lead`)
+      .send({ plannedCount: -1, checkedInCount: 0 })
+
+    expect(res.statusCode).toBe(400)
+    expect(res.body.message).toBe('Validation failed')
+  })
 
   it('PATCH /cruise/turnaround-operations/:id/signoffs/:departmentRole updates department readiness signoff state', async () => {
     const operationsRes = await request(app).get('/cruise/turnaround-operations')
@@ -146,6 +244,102 @@ describe('Turnaround operations API integration tests', () => {
     expect(res.body.operation.taskSummary.blockedTasks).toBeGreaterThanOrEqual(1)
   })
 
+  it('POST /cruise/turnaround-operations/:id/tasks creates a database-backed turnaround task and refreshes workflow progress', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const operation = operationsRes.body[0]
+    const existingTaskCount = operation.tasks.length
+    const expectedSortOrder = operation.tasks.reduce(
+      (maxSortOrder, task) => Math.max(maxSortOrder, Number(task.sortOrder || 0)),
+      0
+    ) + 1
+
+    const res = await request(app)
+      .post(`/cruise/turnaround-operations/${operation.id}/tasks`)
+      .send({
+        departmentRole: 'guest-services-lead',
+        taskName: 'Open late-arrival guest support desk',
+        ownerName: 'Angela Brooks',
+        dueTime: '11:15',
+        location: 'Terminal help desk',
+        blockerReason: 'Awaiting pier staffing confirmation',
+        status: 'ready'
+      })
+
+    expect(res.statusCode).toBe(201)
+    expect(res.body.message).toBe('Turnaround task created successfully')
+    expect(res.body.operation.tasks).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        departmentRole: 'guest-services-lead',
+        taskName: 'Open late-arrival guest support desk',
+        ownerName: 'Angela Brooks',
+        dueTime: '11:15',
+        location: 'Terminal help desk',
+        blockerReason: 'Awaiting pier staffing confirmation',
+        status: 'READY',
+        sortOrder: expectedSortOrder
+      })
+    ]))
+    expect(res.body.operation.taskSummary.totalTasks).toBe(existingTaskCount + 1)
+  })
+
+  it('rejects invalid turnaround task creation payloads before writing a new task', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const operation = operationsRes.body[0]
+
+    const res = await request(app)
+      .post(`/cruise/turnaround-operations/${operation.id}/tasks`)
+      .send({ departmentRole: 'guest-services-lead', taskName: '   ', status: 'ready' })
+
+    expect(res.statusCode).toBe(400)
+    expect(res.body.message).toBe('Validation failed')
+  })
+
+  it('DELETE /cruise/turnaround-tasks/:id removes a database-backed turnaround task and refreshes progress', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const operation = operationsRes.body[0]
+
+    const createRes = await request(app)
+      .post(`/cruise/turnaround-operations/${operation.id}/tasks`)
+      .send({
+        departmentRole: 'housekeeping-lead',
+        taskName: 'Remove test-only turnover staging task',
+        ownerName: 'Maria Rodriguez',
+        dueTime: '12:45',
+        location: 'Deck 8 service locker',
+        status: 'ready'
+      })
+
+    const createdTask = createRes.body.operation.tasks.find(task => task.taskName === 'Remove test-only turnover staging task')
+    expect(createdTask).toBeTruthy()
+
+    const updateRes = await request(app)
+      .post(`/cruise/turnaround-tasks/${createdTask.id}/updates`)
+      .send({
+        authorName: 'Maria Rodriguez',
+        updateType: 'NOTE',
+        message: 'Created only to verify task removal cleans related update rows.'
+      })
+
+    expect(updateRes.statusCode).toBe(201)
+
+    const res = await request(app).delete(`/cruise/turnaround-tasks/${createdTask.id}`)
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body.message).toBe('Turnaround task removed successfully')
+    expect(res.body.operation.tasks).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: createdTask.id })
+    ]))
+    expect(res.body.operation.taskSummary.totalTasks).toBe(createRes.body.operation.taskSummary.totalTasks - 1)
+  })
+
+  it('returns not found when removing a missing turnaround task', async () => {
+    const res = await request(app).delete('/cruise/turnaround-tasks/00000000-0000-4000-8000-000000000000')
+
+    expect(res.statusCode).toBe(404)
+    expect(res.body.message).toBe('Turnaround task not found')
+  })
+
+
   it('POST /cruise/turnaround-tasks/:id/updates adds a database-backed shift update', async () => {
     const operationsRes = await request(app).get('/cruise/turnaround-operations')
     const task = operationsRes.body[0].tasks[0]
@@ -194,6 +388,149 @@ describe('Turnaround operations API integration tests', () => {
     const res = await request(app)
       .patch(`/cruise/turnaround-tasks/${task.id}/status`)
       .send({ status: 'maybe later' })
+
+    expect(res.statusCode).toBe(400)
+    expect(res.body.message).toBe('Validation failed')
+  })
+
+  it('POST /cruise/turnaround-operations/:id/escalations creates a database-backed escalation and refreshes escalation summary', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const operation = operationsRes.body[0]
+    const existingEscalationCount = operation.escalations.length
+
+    const res = await request(app)
+      .post(`/cruise/turnaround-operations/${operation.id}/escalations`)
+      .send({
+        departmentRole: 'food-beverage-lead',
+        severity: 'critical',
+        title: 'Cold-chain reefer truck delay',
+        ownerName: 'Michael Chen',
+        status: 'open',
+        resolutionNotes: 'Second truck is being routed to the provisioning dock.'
+      })
+
+    expect(res.statusCode).toBe(201)
+    expect(res.body.message).toBe('Turnaround escalation created successfully')
+    expect(res.body.operation.escalations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        departmentRole: 'food-beverage-lead',
+        severity: 'CRITICAL',
+        title: 'Cold-chain reefer truck delay',
+        ownerName: 'Michael Chen',
+        status: 'OPEN',
+        resolutionNotes: 'Second truck is being routed to the provisioning dock.',
+        createdAt: expect.any(String)
+      })
+    ]))
+    expect(res.body.operation.escalationSummary.totalEscalations).toBe(existingEscalationCount + 1)
+    expect(res.body.operation.escalationSummary.criticalEscalations).toBeGreaterThanOrEqual(1)
+  })
+
+  it('PATCH /cruise/turnaround-escalations/:id resolves a database-backed escalation from the workflow log', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const operation = operationsRes.body[0]
+    const escalation = operation.escalations.find(candidate => candidate.status !== 'RESOLVED') || operation.escalations[0]
+
+    const res = await request(app)
+      .patch(`/cruise/turnaround-escalations/${escalation.id}`)
+      .send({
+        severity: 'watch',
+        status: 'resolved',
+        ownerName: 'Alex Turner',
+        resolutionNotes: 'Escalation cleared in the command huddle.'
+      })
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body.message).toBe('Turnaround escalation updated successfully')
+    expect(res.body.operation.escalations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: escalation.id,
+        severity: 'WATCH',
+        ownerName: 'Alex Turner',
+        status: 'RESOLVED',
+        resolutionNotes: 'Escalation cleared in the command huddle.'
+      })
+    ]))
+    expect(res.body.operation.escalationSummary.resolvedEscalations).toBeGreaterThanOrEqual(1)
+  })
+
+  it('rejects invalid turnaround escalation payloads before writing escalation rows', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const operation = operationsRes.body[0]
+
+    const res = await request(app)
+      .post(`/cruise/turnaround-operations/${operation.id}/escalations`)
+      .send({ departmentRole: 'engineering-lead', severity: 'emergency-ish', title: 'Bad severity' })
+
+    expect(res.statusCode).toBe(400)
+    expect(res.body.message).toBe('Validation failed')
+  })
+
+
+  it('GET /cruise/turnaround-operations returns database-backed dependency gates and department handoffs', async () => {
+    const res = await request(app).get('/cruise/turnaround-operations')
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body[0].taskDependencies).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        taskName: expect.any(String),
+        dependsOnTaskName: expect.any(String),
+        status: 'ACTIVE'
+      })
+    ]))
+    expect(res.body[0].dependencySummary).toEqual(expect.objectContaining({
+      totalDependencies: expect.any(Number),
+      activeDependencies: expect.any(Number)
+    }))
+    expect(res.body[0].handoffs).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        fromDepartmentRole: expect.any(String),
+        toDepartmentRole: expect.any(String),
+        title: expect.any(String),
+        status: expect.any(String)
+      })
+    ]))
+    expect(res.body[0].handoffSummary).toEqual(expect.objectContaining({
+      totalHandoffs: expect.any(Number),
+      openHandoffs: expect.any(Number)
+    }))
+  })
+
+  it('PATCH /cruise/turnaround-handoffs/:id updates a database-backed department handoff', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const handoff = operationsRes.body[0].handoffs[0]
+
+    const res = await request(app)
+      .patch(`/cruise/turnaround-handoffs/${handoff.id}`)
+      .send({
+        status: 'complete',
+        ownerName: 'Maria Rodriguez',
+        dueTime: '10:55',
+        notes: 'Cabin release was handed to terminal embarkation leads.'
+      })
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body.message).toBe('Turnaround handoff updated successfully')
+    expect(res.body.operation.handoffs).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: handoff.id,
+        status: 'COMPLETE',
+        ownerName: 'Maria Rodriguez',
+        dueTime: '10:55',
+        notes: 'Cabin release was handed to terminal embarkation leads.',
+        completedAt: expect.any(String)
+      })
+    ]))
+    expect(res.body.operation.handoffSummary.completedHandoffs).toBeGreaterThanOrEqual(1)
+  })
+
+  it('rejects invalid turnaround handoff status updates before writing handoff rows', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const handoff = operationsRes.body[0].handoffs[0]
+
+    const res = await request(app)
+      .patch(`/cruise/turnaround-handoffs/${handoff.id}`)
+      .send({ status: 'halfway maybe' })
 
     expect(res.statusCode).toBe(400)
     expect(res.body.message).toBe('Validation failed')

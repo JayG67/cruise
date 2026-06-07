@@ -72,4 +72,21 @@ describe('Playwright React coverage inventory', () => {
     expect(styles).toContain('min-height')
     expect(styles).toContain('.workflow-step-button')
   })
+
+  it('keeps mobile Playwright coverage on turnaround operational workflows', () => {
+    const mobileReactSpec = fs.readFileSync(mobileReactSpecPath, 'utf8')
+
+    expect(mobileReactSpec).toContain('keeps every operational role dashboard reachable and readable on mobile')
+    expect(mobileReactSpec).toContain('lets the turnaround manager run command planning and task creation workflows on mobile')
+    expect(mobileReactSpec).toContain('lets specialized operational leads verify status, detail, update, and signoff workflows on mobile')
+    expect(mobileReactSpec).toContain('react-operational-turnaround-panel')
+    expect(mobileReactSpec).toContain('Save command plan')
+    expect(mobileReactSpec).toContain('Add turnaround task')
+    expect(mobileReactSpec).toContain('Remove task')
+    expect(mobileReactSpec).toContain('Save escalation')
+    expect(mobileReactSpec).toContain('Add escalation')
+    expect(mobileReactSpec).toContain('Save staffing plan')
+    expect(mobileReactSpec).toContain('Save readiness signoff')
+  })
+
 })

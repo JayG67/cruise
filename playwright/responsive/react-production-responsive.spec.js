@@ -6,18 +6,38 @@ async function expectNoHorizontalOverflow(page) {
 }
 
 async function selectDemoUserByRole(page, roleText) {
-  const select = page.getByTestId('react-demo-user-select')
+  const roleSelect = page.getByTestId('react-role-type-select')
+  const personSelect = page.getByTestId('react-demo-user-select')
+  const roleValues = {
+    Admin: 'admin',
+    Administrator: 'admin',
+    Passenger: 'passenger',
+    'Group Leader': 'group-leader',
+    'Turnaround Manager': 'turnaround-manager',
+    'Housekeeping Lead': 'housekeeping-lead',
+    'Guest Services Lead': 'guest-services-lead',
+    'Food & Beverage Lead': 'food-beverage-lead',
+    'Engineering Lead': 'engineering-lead'
+  }
+  const roleValue = roleValues[roleText] || roleText.toLowerCase().replaceAll(' ', '-')
 
-  await expect(select).toBeVisible()
+  await expect(roleSelect).toBeVisible()
+  await roleSelect.selectOption(roleValue)
+
+  await expect(personSelect).toBeVisible()
   await expect.poll(async () => {
-    return select.locator('option').filter({ hasText: roleText }).count()
+    return personSelect.locator('option').count()
   }).toBeGreaterThan(0)
 
-  const matchingValue = await select.locator('option').filter({ hasText: roleText }).first().getAttribute('value')
+  const matchingOption = personSelect.locator('option').filter({ hasText: roleText }).first()
+  const matchingCount = await personSelect.locator('option').filter({ hasText: roleText }).count()
+  const fallbackOption = personSelect.locator('option').first()
+  const option = matchingCount > 0 ? matchingOption : fallbackOption
+  const matchingValue = await option.getAttribute('value')
 
   expect(matchingValue).toBeTruthy()
 
-  await select.selectOption(matchingValue)
+  await personSelect.selectOption(matchingValue)
 }
 
 test.describe('React default desktop and tablet replacement checks', () => {
@@ -57,6 +77,11 @@ test.describe('React default desktop and tablet replacement checks', () => {
 
     await selectDemoUserByRole(page, 'Admin')
     await expect(page.getByTestId('react-active-route-operations')).toBeVisible()
+    await expectNoHorizontalOverflow(page)
+
+    await selectDemoUserByRole(page, 'Turnaround Manager')
+    await expect(page.getByTestId('react-operations-directory-panel')).toBeVisible()
+    await expect(page.getByTestId('react-operations-directory-card').first()).toBeVisible()
     await expectNoHorizontalOverflow(page)
   })
   test('loads React fleet ships from the fleet directory at desktop width', async ({ page }) => {

@@ -5,19 +5,57 @@ async function expectNoHorizontalOverflow(page) {
   expect(overflow).toBe(false)
 }
 
+
+async function selectRoleAndPerson(page, roleValue, personText) {
+  const roleSelect = page.getByTestId('react-role-type-select')
+  const personSelect = page.getByTestId('react-demo-user-select')
+
+  await expect(roleSelect).toBeVisible()
+  await roleSelect.selectOption(roleValue)
+  await expect(personSelect).toBeVisible()
+
+  if (personText) {
+    await expect.poll(async () => {
+      return personSelect.locator('option').filter({ hasText: personText }).count()
+    }).toBeGreaterThan(0)
+
+    const matchingValue = await personSelect.locator('option').filter({ hasText: personText }).first().getAttribute('value')
+    expect(matchingValue).toBeTruthy()
+    await personSelect.selectOption(matchingValue)
+  }
+}
+
+function mobileRunSuffix(testInfo) {
+  return `${testInfo.project.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${Date.now()}`
+}
+
+async function expectOperationalDashboardReady(page, roleValue, personText, dashboardTestId) {
+  await selectRoleAndPerson(page, roleValue, personText)
+  await expect(page.getByTestId(dashboardTestId)).toBeVisible()
+  await expect(page.getByTestId('react-operational-turnaround-panel')).toBeVisible()
+  await expect(page.getByTestId('react-operations-directory-panel')).toBeVisible()
+  await expect(page.getByTestId('react-operations-directory-card').first()).toBeVisible()
+  const readinessCards = page.getByTestId('react-operational-readiness-card')
+  if (await readinessCards.count()) {
+    await expect(readinessCards.first()).toBeVisible()
+  }
+
+  const progressCards = page.getByTestId('react-operational-progress-summary')
+  if (await progressCards.count()) {
+    await expect(progressCards.first()).toBeVisible()
+  }
+
+  const signoffCards = page.getByTestId('react-operational-signoff-summary')
+  if (await signoffCards.count()) {
+    await expect(signoffCards.first()).toBeVisible()
+  }
+  await expect(page.getByTestId('react-active-route-operations')).toHaveCount(0)
+  await expect(page.getByTestId('react-admin-create-customer-form')).toHaveCount(0)
+}
+
 async function selectDemoUserByRole(page, roleText) {
-  const select = page.getByTestId('react-demo-user-select')
-
-  await expect(select).toBeVisible()
-  await expect.poll(async () => {
-    return select.locator('option').filter({ hasText: roleText }).count()
-  }).toBeGreaterThan(0)
-
-  const matchingValue = await select.locator('option').filter({ hasText: roleText }).first().getAttribute('value')
-
-  expect(matchingValue).toBeTruthy()
-
-  await select.selectOption(matchingValue)
+  const normalizedRole = roleText.toLowerCase().replace(/\s+/g, '-')
+  await selectRoleAndPerson(page, normalizedRole)
 }
 
 test.describe('React default mobile replacement checks', () => {
@@ -271,6 +309,148 @@ test.describe('React default mobile replacement checks', () => {
     await expect(page.getByTestId('react-fleet-delete-confirmation-confirm')).toBeVisible()
     await page.getByTestId('react-fleet-delete-confirmation-cancel').click()
     await expect(page.getByTestId('react-fleet-delete-confirmation')).toHaveCount(0)
+    await expectNoHorizontalOverflow(page)
+  })
+
+
+  test('keeps every operational role dashboard reachable and readable on mobile', async ({ page }) => {
+    await page.goto('/')
+
+    const operationalRoles = [
+      ['turnaround-manager', 'Alex Turner', 'react-turnaround-manager-dashboard'],
+      ['housekeeping-lead', 'Maria Rodriguez', 'react-housekeeping-lead-dashboard'],
+      ['guest-services-lead', 'Angela Brooks', 'react-guest-services-lead-dashboard'],
+      ['food-beverage-lead', 'Michael Chen', 'react-food-beverage-lead-dashboard'],
+      ['engineering-lead', 'David Torres', 'react-engineering-lead-dashboard']
+    ]
+
+    for (const [roleValue, personText, dashboardTestId] of operationalRoles) {
+      await expectOperationalDashboardReady(page, roleValue, personText, dashboardTestId)
+      await expect(page.getByTestId('react-demo-user-summary')).toContainText(personText)
+      await expectNoHorizontalOverflow(page)
+    }
+  })
+
+  test('lets the turnaround manager run command planning and task creation workflows on mobile', async ({ page }, testInfo) => {
+    await page.goto('/')
+    await expectOperationalDashboardReady(page, 'turnaround-manager', 'Alex Turner', 'react-turnaround-manager-dashboard')
+
+    const suffix = mobileRunSuffix(testInfo)
+    const firstCard = page.getByTestId('react-operational-readiness-card').first()
+    await firstCard.scrollIntoViewIfNeeded()
+
+    await firstCard.locator('select[aria-label$="command status"]').selectOption('IN_PROGRESS')
+    await firstCard.locator('select[aria-label$="command readiness"]').selectOption('Department handoff watch')
+    await firstCard.locator('input[aria-label$="turnaround port"]').fill(`Mobile Terminal ${suffix}`)
+    await firstCard.locator('textarea[aria-label$="command notes"]').fill(`Mobile command plan verified from ${suffix}`)
+    await firstCard.getByRole('button', { name: 'Save command plan' }).click()
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround command plan updated successfully')
+
+    const taskName = `Mobile command verification ${suffix}`
+    await firstCard.locator('select[aria-label$="new task department"]').selectOption('turnaround-manager')
+    await firstCard.locator('input[aria-label$="new task name"]').fill(taskName)
+    await firstCard.locator('input[aria-label$="new task owner"]').fill('Alex Turner')
+    await firstCard.locator('input[aria-label$="new task due time"]').fill('11:45')
+    await firstCard.locator('input[aria-label$="new task location"]').fill(`Mobile terminal desk ${suffix}`)
+    await firstCard.locator('input[aria-label$="new task blocker reason"]').fill(`Mobile staffing watch ${suffix}`)
+    await firstCard.getByRole('button', { name: 'Add turnaround task' }).click()
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task created successfully')
+    await expect(page.getByTestId('react-operational-readiness-card').first()).toContainText(taskName)
+
+    const createdTask = firstCard.getByTestId('react-operational-role-checklist').locator('li').filter({ hasText: taskName }).first()
+    await expect(createdTask).toBeVisible()
+    await createdTask.getByRole('button', { name: 'Remove task' }).click()
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task removed successfully')
+    await expect(firstCard).not.toContainText(taskName)
+
+    await expect(firstCard.getByTestId('react-operational-dependency-summary')).toContainText(/active|clear/i)
+    await expect(firstCard.getByTestId('react-operational-handoff-list')).toContainText(/handoff/i)
+    await expect(firstCard.getByTestId('react-operational-handoff-form').first()).toBeVisible()
+    const handoffForm = firstCard.getByTestId('react-operational-handoff-form').first()
+    await handoffForm.locator('select[aria-label$="handoff status"]').selectOption('COMPLETE')
+    await handoffForm.locator('input[aria-label$="handoff owner"]').fill(`Alex Turner ${suffix}`)
+    await handoffForm.locator('input[aria-label$="handoff due time"]').fill('10:50')
+    await handoffForm.locator('input[aria-label$="handoff notes"]').fill(`Mobile handoff completed ${suffix}`)
+    await handoffForm.getByRole('button', { name: 'Save handoff' }).click()
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround handoff updated successfully')
+    await expect(firstCard).toContainText(`Mobile handoff completed ${suffix}`)
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('lets specialized operational leads verify status, detail, update, and signoff workflows on mobile', async ({ page }, testInfo) => {
+    await page.goto('/')
+    await expectOperationalDashboardReady(page, 'engineering-lead', 'David Torres', 'react-engineering-lead-dashboard')
+
+    const suffix = mobileRunSuffix(testInfo)
+    const firstCard = page.getByTestId('react-operational-readiness-card').first()
+    await firstCard.scrollIntoViewIfNeeded()
+
+    const taskItem = firstCard.getByTestId('react-operational-role-checklist').locator('li').filter({ hasText: 'Confirm shore power' }).first()
+    await expect(taskItem).toBeVisible()
+
+    const blockButton = taskItem.getByRole('button', { name: 'Block' })
+    const completeButton = taskItem.getByRole('button', { name: 'Complete' })
+    const startButton = taskItem.getByRole('button', { name: 'Start' })
+
+    if (await blockButton.isEnabled()) {
+      await blockButton.click()
+      await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task status updated successfully')
+      await expect(firstCard).toContainText('BLOCKED')
+    } else if (await completeButton.isEnabled()) {
+      await completeButton.click()
+      await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task status updated successfully')
+      await expect(firstCard).toContainText('COMPLETE')
+    } else {
+      await startButton.click()
+      await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task status updated successfully')
+      await expect(firstCard).toContainText('IN_PROGRESS')
+    }
+
+    await taskItem.locator('input[aria-label$="owner"]').fill(`David Torres ${suffix}`)
+    await taskItem.locator('input[aria-label$="due time"]').fill('08:35')
+    await taskItem.locator('input[aria-label$="location"]').fill(`Mobile engine control ${suffix}`)
+    await taskItem.locator('input[aria-label$="blocker reason"]').fill(`Mobile shore-power check ${suffix}`)
+    await taskItem.getByRole('button', { name: 'Save task details' }).click()
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task details updated successfully')
+    await expect(firstCard).toContainText(`Mobile engine control ${suffix}`)
+
+    await firstCard.locator('input[aria-label$="planned staff"]').fill('13')
+    await firstCard.locator('input[aria-label$="checked in staff"]').fill('12')
+    await firstCard.locator('input[aria-label$="staffing lead"]').fill(`David Torres ${suffix}`)
+    await firstCard.locator('input[aria-label$="staffing muster location"]').fill(`Mobile engine muster ${suffix}`)
+    await firstCard.locator('input[aria-label$="staffing notes"]').fill(`Mobile staffing verified ${suffix}`)
+    await firstCard.getByRole('button', { name: 'Save staffing plan' }).click()
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround staffing plan updated successfully')
+    await expect(firstCard).toContainText(`Mobile engine muster ${suffix}`)
+
+    await taskItem.locator('input[aria-label$="shift update"]').fill(`Mobile technical update ${suffix}`)
+    await taskItem.getByRole('button', { name: 'Add shift update' }).click()
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task update added successfully')
+    await expect(firstCard).toContainText(`Mobile technical update ${suffix}`)
+
+    const escalationTitle = `Mobile engineering escalation ${suffix}`
+    await firstCard.locator('select[aria-label$="escalation department"]').selectOption('engineering-lead')
+    await firstCard.locator('select[aria-label$="escalation severity"]').selectOption('HIGH')
+    await firstCard.locator('input[aria-label$="escalation title"]').fill(escalationTitle)
+    await firstCard.locator('input[aria-label$="escalation owner"]').fill(`David Torres ${suffix}`)
+    await firstCard.locator('input[aria-label$="escalation notes"]').fill(`Mobile escalation opened ${suffix}`)
+    await firstCard.getByRole('button', { name: 'Add escalation' }).click()
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround escalation created successfully')
+    await expect(firstCard).toContainText(escalationTitle)
+
+    const escalationItem = firstCard.getByTestId('react-operational-escalation-list').locator('li').filter({ hasText: escalationTitle }).first()
+    await escalationItem.locator('select[aria-label$="escalation status"]').selectOption('RESOLVED')
+    await escalationItem.locator('input[aria-label$="escalation resolution notes"]').fill(`Mobile escalation resolved ${suffix}`)
+    await escalationItem.getByRole('button', { name: 'Save escalation' }).click()
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround escalation updated successfully')
+    await expect(firstCard).toContainText(`Mobile escalation resolved ${suffix}`)
+
+    await firstCard.locator('select[aria-label$="readiness signoff status"]').selectOption('APPROVED')
+    await firstCard.locator('input[aria-label$="readiness approver"]').fill(`David Torres ${suffix}`)
+    await firstCard.locator('input[aria-label$="readiness notes"]').fill(`Mobile engineering signoff ${suffix}`)
+    await firstCard.getByRole('button', { name: 'Save readiness signoff' }).click()
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround readiness signoff updated successfully')
+    await expect(firstCard).toContainText(`David Torres ${suffix}`)
     await expectNoHorizontalOverflow(page)
   })
 

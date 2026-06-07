@@ -111,6 +111,62 @@ async function initializeDatabase() {
   `)
 
   await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS turnaround_escalations (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      "operationId" uuid NOT NULL REFERENCES turnaround_operations(id) ON DELETE CASCADE,
+      "departmentRole" varchar(50) NOT NULL,
+      severity varchar(50) NOT NULL,
+      title varchar(255) NOT NULL,
+      "ownerName" varchar(255),
+      status varchar(50) NOT NULL,
+      "resolutionNotes" varchar(500),
+      "createdAt" varchar(40) NOT NULL
+    );
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS turnaround_staffing (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      "operationId" uuid NOT NULL REFERENCES turnaround_operations(id) ON DELETE CASCADE,
+      "departmentRole" varchar(50) NOT NULL,
+      "plannedCount" integer NOT NULL DEFAULT 0,
+      "checkedInCount" integer NOT NULL DEFAULT 0,
+      "leadName" varchar(255),
+      "musterLocation" varchar(255),
+      notes varchar(500)
+    );
+  `)
+
+
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS turnaround_task_dependencies (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      "operationId" uuid NOT NULL REFERENCES turnaround_operations(id) ON DELETE CASCADE,
+      "taskId" uuid NOT NULL REFERENCES turnaround_tasks(id) ON DELETE CASCADE,
+      "dependsOnTaskId" uuid NOT NULL REFERENCES turnaround_tasks(id) ON DELETE CASCADE,
+      "dependencyType" varchar(50) NOT NULL DEFAULT 'BLOCKS',
+      status varchar(50) NOT NULL DEFAULT 'ACTIVE',
+      notes varchar(500)
+    );
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS turnaround_handoffs (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      "operationId" uuid NOT NULL REFERENCES turnaround_operations(id) ON DELETE CASCADE,
+      "fromDepartmentRole" varchar(50) NOT NULL,
+      "toDepartmentRole" varchar(50) NOT NULL,
+      title varchar(255) NOT NULL,
+      status varchar(50) NOT NULL DEFAULT 'PENDING',
+      "ownerName" varchar(255),
+      "dueTime" varchar(20),
+      notes varchar(500),
+      "completedAt" varchar(40)
+    );
+  `)
+
+  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS customers (
       id varchar(10) PRIMARY KEY,
       "firstName" varchar(100) NOT NULL,
@@ -244,6 +300,106 @@ async function initializeDatabase() {
 
   await db.execute(sql`
     ALTER TABLE turnaround_signoffs ADD COLUMN IF NOT EXISTS "signedAt" varchar(40);
+  `)
+
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_escalations ADD COLUMN IF NOT EXISTS "departmentRole" varchar(50);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_escalations ADD COLUMN IF NOT EXISTS severity varchar(50);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_escalations ADD COLUMN IF NOT EXISTS title varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_escalations ADD COLUMN IF NOT EXISTS "ownerName" varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_escalations ADD COLUMN IF NOT EXISTS status varchar(50);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_escalations ADD COLUMN IF NOT EXISTS "resolutionNotes" varchar(500);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_escalations ADD COLUMN IF NOT EXISTS "createdAt" varchar(40);
+  `)
+
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_staffing ADD COLUMN IF NOT EXISTS "departmentRole" varchar(50);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_staffing ADD COLUMN IF NOT EXISTS "plannedCount" integer NOT NULL DEFAULT 0;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_staffing ADD COLUMN IF NOT EXISTS "checkedInCount" integer NOT NULL DEFAULT 0;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_staffing ADD COLUMN IF NOT EXISTS "leadName" varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_staffing ADD COLUMN IF NOT EXISTS "musterLocation" varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_staffing ADD COLUMN IF NOT EXISTS notes varchar(500);
+  `)
+
+
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_task_dependencies ADD COLUMN IF NOT EXISTS "dependencyType" varchar(50);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_task_dependencies ADD COLUMN IF NOT EXISTS status varchar(50);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_task_dependencies ADD COLUMN IF NOT EXISTS notes varchar(500);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_handoffs ADD COLUMN IF NOT EXISTS "fromDepartmentRole" varchar(50);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_handoffs ADD COLUMN IF NOT EXISTS "toDepartmentRole" varchar(50);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_handoffs ADD COLUMN IF NOT EXISTS title varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_handoffs ADD COLUMN IF NOT EXISTS status varchar(50);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_handoffs ADD COLUMN IF NOT EXISTS "ownerName" varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_handoffs ADD COLUMN IF NOT EXISTS "dueTime" varchar(20);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_handoffs ADD COLUMN IF NOT EXISTS notes varchar(500);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_handoffs ADD COLUMN IF NOT EXISTS "completedAt" varchar(40);
   `)
 
   if (process.env.NODE_ENV !== 'test' && process.env.SUPPRESS_DB_LOGS !== 'true') {

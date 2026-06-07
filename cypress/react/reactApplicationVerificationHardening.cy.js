@@ -1,3 +1,4 @@
+const { reactSelectorKeys: rs } = require('./support/reactSelectors')
 const {
   openFirstReactFleetShips,
   openFirstReactSailingItinerary,
@@ -17,8 +18,8 @@ describe('React application mutation verification hardening', () => {
   })
 
   function openCustomerWorkflows() {
-    cy.getByTestId('react-toggle-customer-workflows').click()
-    cy.getByTestId('react-customer-workflow-table').should('be.visible')
+    cy.getByTestId(rs.toggleCustomerWorkflows).click()
+    cy.getByTestId(rs.customerWorkflowTable).should('be.visible')
   }
 
   it('verifies a created customer appears in the visible admin workflow table, not only the API response', () => {
@@ -41,20 +42,20 @@ describe('React application mutation verification hardening', () => {
     }).as('createVisibleCustomer')
     cy.intercept('GET', '/cruise/customers', [...reactCustomers, createdCustomer]).as('reloadCustomersWithVisibleCustomer')
 
-    cy.getByTestId('react-admin-create-customer-first-name').type(createdCustomer.firstName)
-    cy.getByTestId('react-admin-create-customer-last-name').type(createdCustomer.lastName)
-    cy.getByTestId('react-admin-create-customer-email').type(createdCustomer.email)
-    cy.getByTestId('react-admin-create-customer-phone').type(createdCustomer.phone)
-    cy.getByTestId('react-admin-create-customer-loyalty').type(createdCustomer.loyaltyNumber)
-    cy.getByTestId('react-admin-create-customer-submit').click()
+    cy.getByTestId(rs.adminCreateCustomerFirstName).type(createdCustomer.firstName)
+    cy.getByTestId(rs.adminCreateCustomerLastName).type(createdCustomer.lastName)
+    cy.getByTestId(rs.adminCreateCustomerEmail).type(createdCustomer.email)
+    cy.getByTestId(rs.adminCreateCustomerPhone).type(createdCustomer.phone)
+    cy.getByTestId(rs.adminCreateCustomerLoyalty).type(createdCustomer.loyaltyNumber)
+    cy.getByTestId(rs.adminCreateCustomerSubmit).click()
 
     cy.wait('@createVisibleCustomer')
     cy.wait('@reloadCustomersWithVisibleCustomer')
-    cy.getByTestId('react-admin-mutation-message').should('contain.text', 'Visible Customer')
+    cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'Visible Customer')
 
     openCustomerWorkflows()
-    cy.getByTestId('react-hierarchy-search-input').type('visible.customer@example.com')
-    cy.getByTestId('react-customer-workflow-table')
+    cy.getByTestId(rs.hierarchySearchInput).type('visible.customer@example.com')
+    cy.getByTestId(rs.customerWorkflowTable)
       .should('contain.text', 'Customer, Visible')
       .and('contain.text', createdCustomer.email)
   })
@@ -67,16 +68,16 @@ describe('React application mutation verification hardening', () => {
     cy.intercept('GET', '/cruise/bookings', [reactBookings[1]]).as('reloadBookingsWithoutDeletedBooking')
 
     openCustomerWorkflows()
-    cy.getByTestId('react-expand-visible-customers').click()
-    cy.getByTestId('react-customer-workflow-table').should('contain.text', reactBookings[0].id)
-    cy.getByTestId('react-admin-delete-booking-id').type(reactBookings[0].id)
-    cy.getByTestId('react-admin-delete-booking-submit').click()
-    cy.getByTestId('react-admin-delete-confirmation-confirm').click()
+    cy.getByTestId(rs.expandVisibleCustomers).click()
+    cy.getByTestId(rs.customerWorkflowTable).should('contain.text', reactBookings[0].id)
+    cy.getByTestId(rs.adminDeleteBookingId).type(reactBookings[0].id)
+    cy.getByTestId(rs.adminDeleteBookingSubmit).click()
+    cy.getByTestId(rs.adminDeleteConfirmationConfirm).click()
 
     cy.wait('@deleteBookingForUiVerification')
     cy.wait('@reloadBookingsWithoutDeletedBooking')
-    cy.getByTestId('react-hierarchy-search-input').clear().type(reactBookings[0].id)
-    cy.getByTestId('react-customer-workflow-table')
+    cy.getByTestId(rs.hierarchySearchInput).clear().type(reactBookings[0].id)
+    cy.getByTestId(rs.customerWorkflowTable)
       .should('contain.text', `No customer or linked booking records match “${reactBookings[0].id}”.`)
       .and('not.contain.text', reactBookings[0].id.replace('react-booking-', 'Booking '))
   })
@@ -96,13 +97,13 @@ describe('React application mutation verification hardening', () => {
     }).as('createShipForUiVerification')
     cy.intercept('GET', `/cruise/ships/${reactCruiseLines[0].id}`, [...reactShips, createdShip]).as('reloadShipsWithCreatedShip')
 
-    cy.getByTestId('react-create-ship-name-input').type(createdShip.name)
-    cy.getByTestId('react-create-ship-current-port-input').type(createdShip.currentPort)
-    cy.getByTestId('react-create-ship-submit-button').click()
+    cy.getByTestId(rs.createShipNameInput).type(createdShip.name)
+    cy.getByTestId(rs.createShipCurrentPortInput).type(createdShip.currentPort)
+    cy.getByTestId(rs.createShipSubmitButton).click()
 
     cy.wait('@createShipForUiVerification')
     cy.wait('@reloadShipsWithCreatedShip')
-    cy.getByTestId('react-ship-card-grid')
+    cy.getByTestId(rs.shipCardGrid)
       .should('contain.text', createdShip.name)
       .and('contain.text', createdShip.currentPort)
   })
@@ -117,16 +118,16 @@ describe('React application mutation verification hardening', () => {
     }).as('updateShipForUiVerification')
     cy.intercept('GET', `/cruise/ships/${reactCruiseLines[0].id}`, [updatedShip, reactShips[1]]).as('reloadShipsWithUpdatedShip')
 
-    cy.getByTestId('react-ship-card').first().within(() => {
-      cy.getByTestId('react-update-ship-button').click()
-      cy.getByTestId('react-edit-ship-name').clear().type(updatedShip.name)
-      cy.getByTestId('react-edit-ship-current-port').clear().type(updatedShip.currentPort)
-      cy.getByTestId('react-save-ship-edit').click()
+    cy.getByTestId(rs.shipCard).first().within(() => {
+      cy.getByTestId(rs.updateShipButton).click()
+      cy.getByTestId(rs.editShipName).clear().type(updatedShip.name)
+      cy.getByTestId(rs.editShipCurrentPort).clear().type(updatedShip.currentPort)
+      cy.getByTestId(rs.saveShipEdit).click()
     })
 
     cy.wait('@updateShipForUiVerification')
     cy.wait('@reloadShipsWithUpdatedShip')
-    cy.getByTestId('react-ship-card-grid')
+    cy.getByTestId(rs.shipCardGrid)
       .should('contain.text', updatedShip.name)
       .and('contain.text', updatedShip.currentPort)
       .and('not.contain.text', reactShips[0].currentPort)
@@ -151,15 +152,15 @@ describe('React application mutation verification hardening', () => {
     }).as('createSailingForUiVerification')
     cy.intercept('GET', `/cruise/ship/${reactShips[0].id}/sailings`, [...reactSailings, createdSailing]).as('reloadSailingsWithCreatedSailing')
 
-    cy.getByTestId('react-create-sailing-departure-date').type(createdSailing.departureDate)
-    cy.getByTestId('react-create-sailing-departure-port').type(createdSailing.departurePort)
-    cy.getByTestId('react-create-sailing-arrival-port').type(createdSailing.arrivalPort)
-    cy.getByTestId('react-create-sailing-days').type(String(createdSailing.days))
-    cy.getByTestId('react-create-sailing-submit-button').click()
+    cy.getByTestId(rs.createSailingDepartureDate).type(createdSailing.departureDate)
+    cy.getByTestId(rs.createSailingDeparturePort).type(createdSailing.departurePort)
+    cy.getByTestId(rs.createSailingArrivalPort).type(createdSailing.arrivalPort)
+    cy.getByTestId(rs.createSailingDays).type(String(createdSailing.days))
+    cy.getByTestId(rs.createSailingSubmitButton).click()
 
     cy.wait('@createSailingForUiVerification')
     cy.wait('@reloadSailingsWithCreatedSailing')
-    cy.getByTestId('react-sailing-card-grid')
+    cy.getByTestId(rs.sailingCardGrid)
       .should('contain.text', createdSailing.departureDate)
       .and('contain.text', createdSailing.arrivalPort)
   })
@@ -184,14 +185,14 @@ describe('React application mutation verification hardening', () => {
     }).as('createActivityForUiVerification')
     cy.intercept('GET', `/cruise/sailings/${reactSailings[0].id}/itinerary`, reloadedItinerary).as('reloadItineraryWithCreatedActivity')
 
-    cy.getByTestId('react-create-itinerary-activity-day-select').select(reactItinerary[0].id)
-    cy.getByTestId('react-create-itinerary-activity-time').type(createdActivity.time)
-    cy.getByTestId('react-create-itinerary-activity-name').type(createdActivity.activity)
-    cy.getByTestId('react-create-itinerary-activity-submit-button').click()
+    cy.getByTestId(rs.createItineraryActivityDaySelect).select(reactItinerary[0].id)
+    cy.getByTestId(rs.createItineraryActivityTime).type(createdActivity.time)
+    cy.getByTestId(rs.createItineraryActivityName).type(createdActivity.activity)
+    cy.getByTestId(rs.createItineraryActivitySubmitButton).click()
 
     cy.wait('@createActivityForUiVerification')
     cy.wait('@reloadItineraryWithCreatedActivity')
-    cy.getByTestId('react-itinerary-activity-list')
+    cy.getByTestId(rs.itineraryActivityList)
       .should('contain.text', createdActivity.time)
       .and('contain.text', createdActivity.activity)
   })

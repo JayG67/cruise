@@ -16,10 +16,10 @@ describe('browser test helper inventory', () => {
       fs.readFileSync(path.join(projectRoot, 'cypress/react/reactRoleJourneyPermissions.cy.js'), 'utf8')
     ].join('\n')
 
-    expect(reactSpecs).toContain('react-toggle-customer-workflows')
-    expect(reactSpecs).toContain('react-toggle-customer-bookings')
-    expect(reactSpecs).toContain('react-edit-booking-button')
-    expect(reactSpecs).toContain('react-save-booking-draft')
+    expect(reactSpecs).toContain('rs.toggleCustomerWorkflows')
+    expect(reactSpecs).toContain('rs.toggleCustomerBookings')
+    expect(reactSpecs).toContain('rs.editBookingButton')
+    expect(reactSpecs).toContain('rs.saveBookingDraft')
     expect(reactSpecs).not.toContain('../support/adminWorkflows')
     expect(reactSpecs).not.toContain('[data-cy=')
   })
@@ -32,15 +32,15 @@ describe('browser test helper inventory', () => {
     expect(spec).toContain("cy.visit('/')")
     expect(spec).toContain("selectDemoUserByVisibleRole('Passenger')")
     expect(spec).toContain("selectDemoUserByVisibleRole('Admin')")
-    expect(spec).toContain('react-sqa-health-button')
+    expect(spec).toContain('rs.sqaHealthButton')
   })
 
   it('keeps React Cypress spec self-contained without testing-library commands', () => {
     const specPath = path.join(projectRoot, 'cypress/react/reactApp.cy.js')
     const spec = fs.readFileSync(specPath, 'utf8')
 
-    expect(spec).toContain("Cypress.Commands.add('getByTestId'")
-    expect(spec).toContain('cy.getByTestId')
+    expect(spec).toContain("cy.getByTestId(rs.")
+    expect(spec).toContain('reactSelectorKeys: rs')
     expect(spec).not.toContain('cy.findByTestId')
     expect(spec).not.toContain('cy.findByText')
   })
@@ -57,10 +57,10 @@ describe('browser test helper inventory', () => {
     const specPath = path.join(projectRoot, 'cypress/react/reactApp.cy.js')
     const spec = fs.readFileSync(specPath, 'utf8')
 
-    expect(spec).toContain("cy.getByTestId('react-fleet-delete-confirmation-cancel')")
-    expect(spec).toContain("cy.getByTestId('react-fleet-delete-confirmation-confirm')")
-    expect(spec).toContain("cy.getByTestId('react-admin-delete-confirmation-confirm')")
-    expect(spec).toContain("cy.getByTestId('react-sqa-reset-confirmation-confirm')")
+    expect(spec).toContain('rs.fleetDeleteConfirmationCancel')
+    expect(spec).toContain('rs.fleetDeleteConfirmationConfirm')
+    expect(spec).toContain('rs.adminDeleteConfirmationConfirm')
+    expect(spec).toContain('rs.sqaResetConfirmationConfirm')
     expect(spec).not.toContain("cy.on('window:confirm', () => true)")
   })
 
@@ -71,7 +71,7 @@ describe('browser test helper inventory', () => {
     expect(spec).toContain('function visitReactAppAsAdmin')
     expect(spec).toContain('visitReactAppAsAdmin()')
     expect(spec).toContain("selectDemoUserByVisibleRole('Admin')")
-    expect(spec).toContain("cy.getByTestId('react-active-route-operations').should('be.visible')")
+    expect(spec).toContain("cy.getByTestId(rs.activeRouteOperations).should('be.visible')")
   })
 
   it('keeps React role switching test targeting the select control', () => {
@@ -82,7 +82,7 @@ describe('browser test helper inventory', () => {
     expect(spec).toContain("selectDemoUserByVisibleRole('Passenger')")
     expect(spec).toContain("selectDemoUserByVisibleRole('Group Leader')")
     expect(spec).toContain("selectDemoUserByVisibleRole('Admin')")
-    expect(spec).not.toContain("cy.get('[data-testid=\"react-role-selector\"]').select")
+    expect(spec).not.toContain("cy.get('[data-testid=")
   })
 
   it('keeps React group leader dashboard assertion aligned with normalized role view', () => {
@@ -91,7 +91,37 @@ describe('browser test helper inventory', () => {
     const roleView = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/roleView.js'), 'utf8')
 
     expect(roleView).toContain("return 'group-leader'")
-    expect(spec).toContain("cy.getByTestId('react-group-leader-dashboard').should('be.visible')")
-    expect(spec).not.toContain("cy.getByTestId('react-group-dashboard')")
+    expect(spec).toContain("cy.getByTestId(rs.groupLeaderDashboard).should('be.visible')")
+    expect(spec).not.toContain('react-group-dashboard')
+  })
+
+
+  it('keeps React Cypress selectors centralized behind one authoritative selector map', () => {
+    const selectorMapPath = path.join(projectRoot, 'cypress/react/support/reactSelectors.js')
+    const duplicateSelectorMapPath = path.join(projectRoot, 'cypress/react/reactSelectors.js')
+    const helperPath = path.join(projectRoot, 'cypress/react/support/reactTestHelpers.js')
+    const selectorMap = fs.readFileSync(selectorMapPath, 'utf8')
+    const helper = fs.readFileSync(helperPath, 'utf8')
+
+    expect(fs.existsSync(selectorMapPath)).toBe(true)
+    expect(fs.existsSync(duplicateSelectorMapPath)).toBe(false)
+    expect(selectorMap).toContain('const reactSelectors = Object.freeze')
+    expect(selectorMap).toContain('const reactSelectorKeys = Object.freeze')
+    expect(helper).toContain("Cypress.Commands.add('getByTestId', selectorKey => cy.get(byTestId(selectorKey)))")
+  })
+
+  it('keeps React Cypress specs free of hard-coded data-testid selectors', () => {
+    const reactSpecDir = path.join(projectRoot, 'cypress/react')
+    const specFiles = fs.readdirSync(reactSpecDir)
+      .filter(file => file.endsWith('.cy.js'))
+      .map(file => path.join(reactSpecDir, file))
+
+    for (const specPath of specFiles) {
+      const spec = fs.readFileSync(specPath, 'utf8')
+
+      expect(spec).not.toMatch(/cy\.getByTestId\(['"]/)
+      expect(spec).not.toContain('[data-testid')
+      expect(spec).toContain('reactSelectorKeys: rs')
+    }
   })
 })

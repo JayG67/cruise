@@ -12,6 +12,10 @@ const turnaroundOperationTable = require('./turnaroundOperation.model')
 const turnaroundTaskTable = require('./turnaroundTask.model')
 const turnaroundTaskUpdateTable = require('./turnaroundTaskUpdate.model')
 const turnaroundSignoffTable = require('./turnaroundSignoff.model')
+const turnaroundEscalationTable = require('./turnaroundEscalation.model')
+const turnaroundStaffingTable = require('./turnaroundStaffing.model')
+const turnaroundTaskDependencyTable = require('./turnaroundTaskDependency.model')
+const turnaroundHandoffTable = require('./turnaroundHandoff.model')
 
 module.exports = {
   cruiseLineTable,
@@ -27,5 +31,9 @@ module.exports = {
   turnaroundOperationTable,
   turnaroundTaskTable,
   turnaroundTaskUpdateTable,
-  turnaroundSignoffTable
+  turnaroundSignoffTable,
+  turnaroundEscalationTable,
+  turnaroundStaffingTable,
+  turnaroundTaskDependencyTable,
+  turnaroundHandoffTable
 }

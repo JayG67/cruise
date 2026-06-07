@@ -56,7 +56,7 @@ function buildPrimaryGuestDraft(selectedCustomer, selectedDemoUser) {
 
 function buildGuestDraft() {
   return {
-    customerMode: 'new',
+    customerMode: 'existing',
     customerId: '',
     firstName: '',
     lastName: '',
@@ -95,9 +95,88 @@ function getSailingLabel(sailing) {
   return `${sailing.departureDate} — ${sailing.departurePort} to ${sailing.arrivalPort} (${sailing.days} nights)`
 }
 
+function getBookingPassengerIds(booking = {}) {
+  return new Set((booking.passengers || []).map(passenger => passenger.customerId || passenger.customer?.id).filter(Boolean))
+}
+
+function getBookingCruiseLineName(booking = {}) {
+  return booking.cruiseLine?.name || booking.cruiseLineName || 'Cruise line unavailable'
+}
+
+function getBookingShipName(booking = {}) {
+  return booking.ship?.name || booking.shipName || 'Ship unavailable'
+}
+
+function getBookingSailingDate(booking = {}) {
+  return booking.sailing?.departureDate || booking.departureDate || 'Date unavailable'
+}
+
+function getBookingRoute(booking = {}) {
+  const departure = booking.sailing?.departurePort || booking.departurePort || booking.embarkationPort
+  const arrival = booking.sailing?.arrivalPort || booking.arrivalPort || booking.debarkationPort
+
+  if (departure && arrival) return `${departure} to ${arrival}`
+  return departure || arrival || ''
+}
+
+function getCustomerBookingContexts(customer = {}, bookings = []) {
+  if (!customer.id) return []
+
+  return bookings.filter(booking => getBookingPassengerIds(booking).has(customer.id) || booking.createdByCustomerId === customer.id)
+    .map(booking => ({
+      bookingId: booking.id,
+      cruiseLine: getBookingCruiseLineName(booking),
+      ship: getBookingShipName(booking),
+      sailingDate: getBookingSailingDate(booking),
+      route: getBookingRoute(booking),
+      cabinNumber: booking.cabinNumber || 'Cabin pending'
+    }))
+}
+
+function buildCustomerFinderOption(customer = {}, bookings = []) {
+  const name = getCustomerDisplayName(customer)
+  const contexts = getCustomerBookingContexts(customer, bookings)
+  const primaryContext = contexts[0]
+
+  return {
+    customer,
+    name,
+    contexts,
+    detail: primaryContext
+      ? `${primaryContext.cruiseLine} · ${primaryContext.ship} · ${primaryContext.sailingDate}`
+      : 'No active booking context yet',
+    searchText: [
+      name,
+      customer.email,
+      customer.id,
+      customer.phone,
+      customer.loyaltyNumber,
+      ...contexts.flatMap(context => [context.bookingId, context.cruiseLine, context.ship, context.sailingDate, context.route, context.cabinNumber])
+    ].filter(Boolean).join(' ').toLowerCase()
+  }
+}
+
+function getFinderFilterOptions(options = [], key) {
+  const values = new Set()
+
+  options.forEach(option => {
+    option.contexts.forEach(context => {
+      if (context[key]) values.add(context[key])
+    })
+  })
+
+  return [...values].sort((a, b) => String(a).localeCompare(String(b)))
+}
+
+function finderOptionMatchesFilter(option, filterKey, value) {
+  if (!value) return true
+  return option.contexts.some(context => context[filterKey] === value)
+}
+
 export default function PassengerCruiseBookingWorkflow({
   cruiseLines = [],
   customers = [],
+  bookings = [],
   selectedCustomer,
   selectedDemoUser,
   onBookingCreated
@@ -111,6 +190,8 @@ export default function PassengerCruiseBookingWorkflow({
   const [isLoadingSailings, setIsLoadingSailings] = useState(false)
   const [searchFilters, setSearchFilters] = useState({ destination: '', departurePort: '', duration: '', cruiseLine: '' })
   const [guestDrafts, setGuestDrafts] = useState(() => [buildPrimaryGuestDraft(selectedCustomer, selectedDemoUser)])
+  const [guestSearches, setGuestSearches] = useState({})
+  const [guestFinderFilters, setGuestFinderFilters] = useState({ cruiseLine: '', ship: '', sailingDate: '' })
   const [cabinNumber, setCabinNumber] = useState('To be assigned')
   const [fareCode, setFareCode] = useState('STANDARD')
   const [statusMessage, setStatusMessage] = useState('Select a cruise line, ship, and sailing to start a new booking.')
@@ -140,6 +221,15 @@ export default function PassengerCruiseBookingWorkflow({
       return destinationMatches && departureMatches && durationMatches
     })
   }, [sailingOptions, searchFilters.destination, searchFilters.departurePort, searchFilters.duration])
+
+
+  const customerFinderOptions = useMemo(() => customers
+    .map(customer => buildCustomerFinderOption(customer, bookings))
+    .sort((a, b) => a.name.localeCompare(b.name)), [customers, bookings])
+
+  const guestCruiseLineOptions = useMemo(() => getFinderFilterOptions(customerFinderOptions, 'cruiseLine'), [customerFinderOptions])
+  const guestShipOptions = useMemo(() => getFinderFilterOptions(customerFinderOptions, 'ship'), [customerFinderOptions])
+  const guestSailingDateOptions = useMemo(() => getFinderFilterOptions(customerFinderOptions, 'sailingDate'), [customerFinderOptions])
 
   async function handleCruiseLineChange(value) {
     setSelectedCruiseLineId(value)
@@ -203,6 +293,40 @@ export default function PassengerCruiseBookingWorkflow({
 
   function removeGuest(index) {
     setGuestDrafts(current => current.filter((_, guestIndex) => guestIndex !== index))
+    setGuestSearches(current => {
+      const next = { ...current }
+      delete next[index]
+      return next
+    })
+  }
+
+  function updateGuestSearch(index, value) {
+    setGuestSearches(current => ({ ...current, [index]: value }))
+  }
+
+  function updateGuestFinderFilter(fieldName, value) {
+    setGuestFinderFilters(current => ({ ...current, [fieldName]: value }))
+  }
+
+  function getVisibleCustomerFinderOptions(index) {
+    const search = normalizeText(guestSearches[index] || '')
+
+    return customerFinderOptions.filter(option => {
+      if (option.customer.id === selectedCustomer?.id || option.customer.id === selectedDemoUser?.customerId) return false
+
+      const matchesSearch = !search || option.searchText.includes(search)
+      const matchesCruiseLine = finderOptionMatchesFilter(option, 'cruiseLine', guestFinderFilters.cruiseLine)
+      const matchesShip = finderOptionMatchesFilter(option, 'ship', guestFinderFilters.ship)
+      const matchesSailingDate = finderOptionMatchesFilter(option, 'sailingDate', guestFinderFilters.sailingDate)
+
+      return matchesSearch && matchesCruiseLine && matchesShip && matchesSailingDate
+    }).slice(0, 8)
+  }
+
+  function selectExistingGuest(index, customerId) {
+    updateGuest(index, 'customerId', customerId)
+    const selectedOption = customerFinderOptions.find(option => option.customer.id === customerId)
+    if (selectedOption) updateGuestSearch(index, selectedOption.name)
   }
 
   function validateBookingDraft() {
@@ -398,13 +522,86 @@ export default function PassengerCruiseBookingWorkflow({
                 </label>
 
                 {guest.customerMode === 'existing' ? (
-                  <label>
-                    <span>Customer</span>
-                    <select value={guest.customerId} disabled={index === 0} onChange={event => updateGuest(index, 'customerId', event.target.value)} data-testid="react-booking-existing-customer-select">
-                      <option value="">Select customer</option>
-                      {customers.map(customer => <option key={customer.id} value={customer.id}>{getCustomerDisplayName(customer)}</option>)}
-                    </select>
-                  </label>
+                  <div className="booking-guest-finder" data-testid="react-booking-guest-finder">
+                    {index === 0 ? (
+                      <div className="booking-selected-guest-card" data-testid="react-booking-selected-guest-card">
+                        <span className="eyebrow">Selected profile</span>
+                        <strong>{getGuestLabel(guest)}</strong>
+                        <span>{guest.email || 'Primary passenger profile'}</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="booking-guest-finder-controls">
+                          <label className="booking-guest-search-field">
+                            <span>Find existing guest</span>
+                            <input
+                              type="search"
+                              value={guestSearches[index] || ''}
+                              onChange={event => updateGuestSearch(index, event.target.value)}
+                              placeholder="Search by name, email, cruise line, ship, sailing date, or cabin"
+                              data-testid="react-booking-guest-search-input"
+                            />
+                          </label>
+                          <label>
+                            <span>Cruise line</span>
+                            <select value={guestFinderFilters.cruiseLine} onChange={event => updateGuestFinderFilter('cruiseLine', event.target.value)} data-testid="react-booking-guest-cruise-line-filter">
+                              <option value="">All cruise lines</option>
+                              {guestCruiseLineOptions.map(cruiseLine => <option key={cruiseLine} value={cruiseLine}>{cruiseLine}</option>)}
+                            </select>
+                          </label>
+                          <label>
+                            <span>Ship</span>
+                            <select value={guestFinderFilters.ship} onChange={event => updateGuestFinderFilter('ship', event.target.value)} data-testid="react-booking-guest-ship-filter">
+                              <option value="">All ships</option>
+                              {guestShipOptions.map(ship => <option key={ship} value={ship}>{ship}</option>)}
+                            </select>
+                          </label>
+                          <label>
+                            <span>Sailing date</span>
+                            <select value={guestFinderFilters.sailingDate} onChange={event => updateGuestFinderFilter('sailingDate', event.target.value)} data-testid="react-booking-guest-sailing-date-filter">
+                              <option value="">All sailing dates</option>
+                              {guestSailingDateOptions.map(sailingDate => <option key={sailingDate} value={sailingDate}>{sailingDate}</option>)}
+                            </select>
+                          </label>
+                        </div>
+
+                        {guest.customerId && (
+                          <div className="booking-selected-guest-card" data-testid="react-booking-selected-guest-card">
+                            <span className="eyebrow">Selected guest</span>
+                            <strong>{getCustomerDisplayName(customers.find(customer => customer.id === guest.customerId) || {})}</strong>
+                            <span>{customers.find(customer => customer.id === guest.customerId)?.email || 'Existing customer profile'}</span>
+                          </div>
+                        )}
+
+                        <div className="booking-guest-results" data-testid="react-booking-guest-results">
+                          {getVisibleCustomerFinderOptions(index).length === 0 ? (
+                            <p className="empty-state compact" data-testid="react-booking-guest-finder-empty">No existing guests match the current search.</p>
+                          ) : getVisibleCustomerFinderOptions(index).map(option => (
+                            <button
+                              key={option.customer.id}
+                              type="button"
+                              className={`booking-guest-result-card${guest.customerId === option.customer.id ? ' selected' : ''}`}
+                              onClick={() => selectExistingGuest(index, option.customer.id)}
+                              data-testid="react-booking-guest-result-card"
+                            >
+                              <span className="booking-guest-result-main">
+                                <strong>{option.name}</strong>
+                                <span>{option.customer.email || 'No email on file'}</span>
+                              </span>
+                              <span className="booking-guest-result-context">{option.detail}</span>
+                              {option.contexts.length > 0 && (
+                                <span className="booking-guest-result-chips">
+                                  {option.contexts.slice(0, 2).map(context => (
+                                    <span key={`${option.customer.id}-${context.bookingId}`}>{context.ship} · {context.sailingDate}</span>
+                                  ))}
+                                </span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
                 ) : (
                   <>
                     <label><span>First name</span><input value={guest.firstName} onChange={event => updateGuest(index, 'firstName', event.target.value)} data-testid="react-booking-new-guest-first-name" /></label>
@@ -435,3 +632,4 @@ export default function PassengerCruiseBookingWorkflow({
     </section>
   )
 }
+

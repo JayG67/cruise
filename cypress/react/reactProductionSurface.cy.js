@@ -1,3 +1,4 @@
+const { reactSelectorKeys: rs } = require('./support/reactSelectors')
 const { visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
 describe('Cruise operations product surface coverage', () => {
@@ -6,49 +7,49 @@ describe('Cruise operations product surface coverage', () => {
   })
 
   it('keeps the product surface free of development command-center panels', () => {
-    cy.getByTestId('react-production-shell').should('be.visible')
-    cy.getByTestId('react-retired-route-nav').should('not.exist')
-    cy.getByTestId('react-release-readiness-section').should('not.exist')
-    cy.getByTestId('react-active-route-evidence-panel').should('not.exist')
+    cy.getByTestId(rs.productionShell).should('be.visible')
+    cy.getByTestId(rs.retiredRouteNav).should('not.exist')
+    cy.getByTestId(rs.releaseReadinessSection).should('not.exist')
+    cy.getByTestId(rs.activeRouteEvidencePanel).should('not.exist')
     cy.contains('Portfolio evidence for cruise-line software engineering roles').should('not.exist')
     cy.contains('Cruise operations command center').should('not.exist')
   })
 
   it('keeps product shortcuts focused on real application sections', () => {
-    cy.getByTestId('react-production-hero').within(() => {
-      cy.getByTestId('react-hero-operations-button').should('contain.text', 'Review Operations')
-      cy.getByTestId('react-hero-quality-button').should('contain.text', 'Open SQA Console')
+    cy.getByTestId(rs.productionHero).within(() => {
+      cy.getByTestId(rs.heroOperationsButton).should('contain.text', 'Review Operations')
+      cy.getByTestId(rs.heroQualityButton).should('contain.text', 'Open SQA Console')
       cy.get('a[href="/retired"]').should('not.exist')
     })
   })
 
   it('scrolls workspace controls to live application sections', () => {
-    cy.getByTestId('react-workspace-role-button').click()
-    cy.getByTestId('react-role-selector').should('be.visible')
-    cy.getByTestId('react-workspace-operations-button').click()
-    cy.getByTestId('react-active-route-operations').should('be.visible')
-    cy.getByTestId('react-workspace-fleet-button').click()
-    cy.getByTestId('react-fleet-directory').should('be.visible')
-    cy.getByTestId('react-workspace-quality-button').click()
-    cy.getByTestId('react-sqa-console').should('be.visible')
+    cy.getByTestId(rs.workspaceRoleButton).click()
+    cy.getByTestId(rs.roleSelector).should('be.visible')
+    cy.getByTestId(rs.workspaceOperationsButton).click()
+    cy.getByTestId(rs.activeRouteOperations).should('be.visible')
+    cy.getByTestId(rs.workspaceFleetButton).click()
+    cy.getByTestId(rs.fleetDirectory).should('be.visible')
+    cy.getByTestId(rs.workspaceQualityButton).click()
+    cy.getByTestId(rs.sqaConsole).should('be.visible')
   })
 
   it('keeps recommended workflow controls wired to application sections', () => {
-    cy.getByTestId('react-workflow-role-button').click()
-    cy.getByTestId('react-role-selector').should('be.visible')
-    cy.getByTestId('react-workflow-operations-button').click()
-    cy.getByTestId('react-active-route-operations').should('be.visible')
-    cy.getByTestId('react-workflow-fleet-button').click()
-    cy.getByTestId('react-fleet-directory').should('be.visible')
-    cy.getByTestId('react-workflow-quality-button').click()
-    cy.getByTestId('react-sqa-console').should('be.visible')
+    cy.getByTestId(rs.workflowRoleButton).click()
+    cy.getByTestId(rs.roleSelector).should('be.visible')
+    cy.getByTestId(rs.workflowOperationsButton).click()
+    cy.getByTestId(rs.activeRouteOperations).should('be.visible')
+    cy.getByTestId(rs.workflowFleetButton).click()
+    cy.getByTestId(rs.fleetDirectory).should('be.visible')
+    cy.getByTestId(rs.workflowQualityButton).click()
+    cy.getByTestId(rs.sqaConsole).should('be.visible')
   })
 
   it('keeps role selector, operations, fleet, and SQA in product order', () => {
-    cy.getByTestId('react-role-selector').then($roleSelector => {
-      cy.getByTestId('react-active-route-operations').then($operations => {
-        cy.getByTestId('react-fleet-directory').then($fleet => {
-          cy.getByTestId('react-sqa-console').then($sqa => {
+    cy.getByTestId(rs.roleSelector).then($roleSelector => {
+      cy.getByTestId(rs.activeRouteOperations).then($operations => {
+        cy.getByTestId(rs.fleetDirectory).then($fleet => {
+          cy.getByTestId(rs.sqaConsole).then($sqa => {
             const roleSelector = $roleSelector[0]
             const operations = $operations[0]
             const fleet = $fleet[0]
@@ -64,11 +65,11 @@ describe('Cruise operations product surface coverage', () => {
   })
 
   it('keeps admin create/delete controls paired by customer and booking columns', () => {
-    cy.getByTestId('react-admin-mutation-panel').within(() => {
-      cy.getByTestId('react-admin-create-customer-form').then($createCustomer => {
-        cy.getByTestId('react-admin-delete-customer-form').then($deleteCustomer => {
-          cy.getByTestId('react-admin-create-booking-form').then($createBooking => {
-            cy.getByTestId('react-admin-delete-booking-form').then($deleteBooking => {
+    cy.getByTestId(rs.adminMutationPanel).within(() => {
+      cy.getByTestId(rs.adminCreateCustomerForm).then($createCustomer => {
+        cy.getByTestId(rs.adminDeleteCustomerForm).then($deleteCustomer => {
+          cy.getByTestId(rs.adminCreateBookingForm).then($createBooking => {
+            cy.getByTestId(rs.adminDeleteBookingForm).then($deleteBooking => {
               expect(Boolean($createCustomer[0].compareDocumentPosition($deleteCustomer[0]) & Node.DOCUMENT_POSITION_FOLLOWING)).to.equal(true)
               expect(Boolean($createBooking[0].compareDocumentPosition($deleteBooking[0]) & Node.DOCUMENT_POSITION_FOLLOWING)).to.equal(true)
             })
@@ -79,7 +80,7 @@ describe('Cruise operations product surface coverage', () => {
   })
 
   it('keeps quality console reports reachable without implementation-history language', () => {
-    cy.getByTestId('react-sqa-console').within(() => {
+    cy.getByTestId(rs.sqaConsole).within(() => {
       cy.contains('View Quality Dashboard').should('be.visible')
       cy.contains('View Latest Lighthouse Mobile Report').should('be.visible')
       cy.contains('View Latest Jest Coverage Report').should('be.visible')
@@ -88,23 +89,23 @@ describe('Cruise operations product surface coverage', () => {
   })
 
   it('keeps API refresh controls scoped to workspaces instead of a separate footer panel', () => {
-    cy.getByTestId('react-query-status-panel').should('not.exist')
-    cy.getByTestId('react-refresh-query').should('not.exist')
-    cy.getByTestId('react-sqa-console').should('be.visible')
-    cy.getByTestId('react-sqa-reset-demo-data-button').should('be.visible')
-    cy.getByTestId('react-fleet-refresh-button').should('be.visible')
+    cy.getByTestId(rs.queryStatusPanel).should('not.exist')
+    cy.getByTestId(rs.refreshQuery).should('not.exist')
+    cy.getByTestId(rs.sqaConsole).should('be.visible')
+    cy.getByTestId(rs.sqaResetDemoDataButton).should('be.visible')
+    cy.getByTestId(rs.fleetRefreshButton).should('be.visible')
   })
 
   it('keeps the hero free of retired rollback links', () => {
-    cy.getByTestId('react-production-hero').within(() => {
+    cy.getByTestId(rs.productionHero).within(() => {
       cy.get('a[href="/retired"]').should('not.exist')
-      cy.getByTestId('react-hero-quality-button').should('contain.text', 'Open SQA Console')
+      cy.getByTestId(rs.heroQualityButton).should('contain.text', 'Open SQA Console')
     })
   })
 
   it('keeps the application footer free of redundant API status chrome and review artifacts', () => {
-    cy.getByTestId('react-query-status-panel').should('not.exist')
-    cy.getByTestId('react-release-readiness-section').should('not.exist')
-    cy.getByTestId('react-retired-handoff-panel').should('not.exist')
+    cy.getByTestId(rs.queryStatusPanel).should('not.exist')
+    cy.getByTestId(rs.releaseReadinessSection).should('not.exist')
+    cy.getByTestId(rs.retiredHandoffPanel).should('not.exist')
   })
 })

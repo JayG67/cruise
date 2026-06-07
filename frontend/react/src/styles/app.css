@@ -1270,7 +1270,7 @@ a {
 
 .operations-console-panel .route-tab {
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   width: 100%;
 }
 
@@ -2617,7 +2617,7 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
 
 .react-production-shell {
   max-width: 100%;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   overflow-x: clip;
   width: 100%;
 }
@@ -2651,7 +2651,7 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
 .react-production-shell .primary-action-button {
   max-width: 100%;
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   white-space: normal;
 }
 
@@ -2697,7 +2697,7 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
   flex-wrap: wrap;
   max-width: 100%;
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 
@@ -2736,7 +2736,7 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
 .react-release-readiness-section .coverage-card,
 .react-release-readiness-section .handoff-card {
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 @media (max-width: 720px) {
@@ -2767,7 +2767,7 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
 }
 
 .active-route-summary strong {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .active-route-evidence-card {
@@ -2809,7 +2809,7 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
   color: #173047;
   font-weight: 700;
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   padding: 0.85rem;
 }
 
@@ -2915,7 +2915,7 @@ button.react-workspace-card[data-testid^="react-workspace-"] {
   justify-content: space-between;
   max-width: 100%;
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   padding: 0.65rem;
 }
 
@@ -3820,4 +3820,890 @@ button.react-workspace-card .workspace-card-title,
   color: #12324f;
   font: inherit;
   padding: 0.55rem;
+}
+
+.operational-command-form {
+  background: #f8fbff;
+  border: 1px solid #dbe9f5;
+  border-radius: 0.85rem;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  padding: 0.75rem;
+}
+
+.operational-command-form label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.operational-command-form span {
+  color: #45627e;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.operational-command-form input,
+.operational-command-form select {
+  border: 1px solid #c7d8e7;
+  border-radius: 0.65rem;
+  color: #12324f;
+  font: inherit;
+  padding: 0.55rem;
+}
+
+
+.operational-escalation-summary {
+  align-items: center;
+  background: #fffaf0;
+  border: 1px solid #f6d7a8;
+  border-radius: 0.85rem;
+  color: #12324f;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.operational-escalation-summary strong {
+  color: #12324f;
+  font-weight: 900;
+}
+
+.operational-escalation-summary span {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 999px;
+  color: #7c2d12;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 0.32rem 0.6rem;
+}
+
+.operational-escalation-create-form,
+.operational-escalation-update-form {
+  background: #f8fbff;
+  border: 1px solid #dbe9f5;
+  border-radius: 0.85rem;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  padding: 0.75rem;
+}
+
+.operational-escalation-create-form label,
+.operational-escalation-update-form label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.operational-escalation-create-form span,
+.operational-escalation-update-form span {
+  color: #45627e;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.operational-escalation-create-form input,
+.operational-escalation-create-form select,
+.operational-escalation-update-form input,
+.operational-escalation-update-form select {
+  appearance: none;
+  background: #fff;
+  border: 1px solid #c7d8e7;
+  border-radius: 0.65rem;
+  box-shadow: 0 1px 0 rgba(18, 50, 79, 0.03);
+  color: #12324f;
+  font: inherit;
+  min-height: 2.45rem;
+  padding: 0.55rem 0.7rem;
+  width: 100%;
+}
+
+.operational-escalation-create-form select,
+.operational-escalation-update-form select {
+  background-image: linear-gradient(45deg, transparent 50%, #45627e 50%), linear-gradient(135deg, #45627e 50%, transparent 50%);
+  background-position: calc(100% - 1rem) 50%, calc(100% - 0.7rem) 50%;
+  background-repeat: no-repeat;
+  background-size: 0.35rem 0.35rem, 0.35rem 0.35rem;
+  padding-inline-end: 2rem;
+}
+
+.operational-escalation-create-form input:focus,
+.operational-escalation-create-form select:focus,
+.operational-escalation-update-form input:focus,
+.operational-escalation-update-form select:focus {
+  border-color: #0e7490;
+  box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.15);
+  outline: none;
+}
+
+.operational-escalation-list {
+  background: #f8fbff;
+  border: 1px solid #dbe9f5;
+  border-radius: 0.85rem;
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.75rem;
+}
+
+.operational-escalation-list > strong {
+  color: #12324f;
+  font-weight: 900;
+}
+
+.operational-escalation-list ul {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.operational-escalation-list li {
+  background: #fff;
+  border: 1px solid #dbe9f5;
+  border-radius: 0.85rem;
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.75rem;
+}
+
+.operational-escalation-list li > div {
+  color: #12324f;
+  font-weight: 800;
+}
+
+.operational-escalation-list p {
+  color: #39516b;
+  margin: 0;
+}
+
+/* Operational workflow polish: every turnaround form control should match the app UI. */
+.operational-command-form,
+.operational-signoff-form,
+.operational-staffing-form,
+.operational-task-create-form,
+.operational-task-detail-form,
+.operational-task-update-form,
+.operational-staffing-form,
+.operational-escalation-create-form,
+.operational-escalation-update-form {
+  background: #f8fbff;
+  border: 1px solid #dbe9f5;
+  border-radius: 0.9rem;
+  box-shadow: 0 1px 0 rgba(18, 50, 79, 0.03);
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.75rem;
+}
+
+.operational-command-form,
+.operational-signoff-form,
+.operational-staffing-form,
+.operational-task-create-form,
+.operational-task-detail-form,
+.operational-escalation-create-form,
+.operational-escalation-update-form {
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+.operational-command-form label,
+.operational-signoff-form label,
+.operational-task-create-form label,
+.operational-task-detail-form label,
+.operational-task-update-form label,
+.operational-staffing-form label,
+.operational-escalation-create-form label,
+.operational-escalation-update-form label {
+  color: #45627e;
+  display: grid;
+  font-size: 0.78rem;
+  font-weight: 800;
+  gap: 0.25rem;
+  letter-spacing: 0.01em;
+}
+
+.operational-command-form label > span,
+.operational-signoff-form label > span,
+.operational-task-create-form label > span,
+.operational-task-detail-form label > span,
+.operational-task-update-form label > span,
+.operational-staffing-form label > span,
+.operational-escalation-create-form label > span,
+.operational-escalation-update-form label > span {
+  color: #45627e;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.operational-command-form input:not([type="checkbox"]),
+.operational-command-form select,
+.operational-signoff-form input:not([type="checkbox"]),
+.operational-signoff-form select,
+.operational-task-create-form input:not([type="checkbox"]),
+.operational-task-create-form select,
+.operational-task-detail-form input:not([type="checkbox"]),
+.operational-task-detail-form select,
+.operational-task-update-form input:not([type="checkbox"]),
+.operational-task-update-form select,
+.operational-staffing-form input:not([type="checkbox"]),
+.operational-staffing-form select,
+.operational-escalation-create-form input:not([type="checkbox"]),
+.operational-escalation-create-form select,
+.operational-escalation-update-form input:not([type="checkbox"]),
+.operational-escalation-update-form select {
+  appearance: none;
+  background-color: #fff;
+  border: 1px solid #c7d8e7;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 0 rgba(18, 50, 79, 0.03);
+  color: #12324f;
+  font: inherit;
+  line-height: 1.25;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.75rem;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+  width: 100%;
+}
+
+.operational-command-form select,
+.operational-signoff-form select,
+.operational-task-create-form select,
+.operational-task-detail-form select,
+.operational-task-update-form select,
+.operational-staffing-form select,
+.operational-escalation-create-form select,
+.operational-escalation-update-form select {
+  background-image: linear-gradient(45deg, transparent 50%, #45627e 50%), linear-gradient(135deg, #45627e 50%, transparent 50%);
+  background-position: calc(100% - 1.05rem) 50%, calc(100% - 0.72rem) 50%;
+  background-repeat: no-repeat;
+  background-size: 0.36rem 0.36rem, 0.36rem 0.36rem;
+  padding-inline-end: 2.15rem;
+}
+
+.operational-command-form input:not([type="checkbox"]):focus,
+.operational-command-form select:focus,
+.operational-signoff-form input:not([type="checkbox"]):focus,
+.operational-signoff-form select:focus,
+.operational-task-create-form input:not([type="checkbox"]):focus,
+.operational-task-create-form select:focus,
+.operational-task-detail-form input:not([type="checkbox"]):focus,
+.operational-task-detail-form select:focus,
+.operational-task-update-form input:not([type="checkbox"]):focus,
+.operational-task-update-form select:focus,
+.operational-staffing-form input:not([type="checkbox"]):focus,
+.operational-staffing-form select:focus,
+.operational-escalation-create-form input:not([type="checkbox"]):focus,
+.operational-escalation-create-form select:focus,
+.operational-escalation-update-form input:not([type="checkbox"]):focus,
+.operational-escalation-update-form select:focus {
+  background-color: #ffffff;
+  border-color: #0e7490;
+  box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.15);
+  outline: none;
+}
+
+.operational-task-create-form {
+  margin-block: 0.25rem 0.75rem;
+}
+
+.operational-task-create-form .secondary-action-button,
+.operational-task-update-form .secondary-action-button,
+.operational-task-detail-form .secondary-action-button,
+.operational-signoff-form .secondary-action-button,
+.operational-staffing-form .secondary-action-button,
+.operational-command-form .secondary-action-button,
+.operational-escalation-create-form .secondary-action-button,
+.operational-escalation-update-form .secondary-action-button {
+  justify-self: start;
+}
+
+.operational-escalation-summary {
+  gap: 0.55rem;
+}
+
+.operational-escalation-summary strong,
+.operational-escalation-summary span {
+  display: inline-flex;
+  align-items: center;
+}
+
+.operational-staffing-summary {
+  gap: 0.55rem;
+}
+
+.operational-staffing-summary strong,
+.operational-staffing-summary span {
+  align-items: center;
+  display: inline-flex;
+}
+
+.operational-staffing-list {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid #d7e6f2;
+  border-radius: 0.85rem;
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem;
+}
+
+.operational-staffing-list ul {
+  display: grid;
+  gap: 0.45rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.operational-staffing-list li {
+  align-items: center;
+  border-block-start: 1px solid #dbe8f3;
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: 1.2fr 0.65fr 1fr 1fr;
+  padding-block-start: 0.45rem;
+}
+
+.operational-staffing-list span {
+  color: #12324f;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .operational-staffing-list li {
+    grid-template-columns: 1fr;
+  }
+}
+
+.operational-dependency-summary,
+.operational-handoff-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+  margin-block: 0.85rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 16px;
+  background: rgba(248, 250, 252, 0.92);
+}
+
+.operational-dependency-summary span,
+.operational-handoff-summary span {
+  border-radius: 999px;
+  background: rgba(14, 165, 233, 0.12);
+  color: #0f172a;
+  font-weight: 700;
+  padding: 0.35rem 0.7rem;
+}
+
+.operational-dependency-list,
+.operational-handoff-list {
+  margin-block: 0.9rem;
+  padding: 1rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.96));
+}
+
+.operational-dependency-list ul,
+.operational-handoff-list ul {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0.8rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.operational-dependency-list li,
+.operational-handoff-list li {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.92);
+}
+
+.operational-handoff-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+}
+
+.operational-handoff-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 700;
+}
+
+.operational-handoff-form input,
+.operational-handoff-form select {
+  width: 100%;
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  border-radius: 12px;
+  background: #fff;
+  color: #0f172a;
+  font: inherit;
+  padding: 0.7rem 0.85rem;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+/* Turnaround operational layout polish: keep card controls uniform and readable. */
+.operational-readiness-list {
+  align-items: start;
+}
+
+.operational-readiness-card {
+  align-self: start;
+}
+
+.operational-command-form,
+.operational-signoff-form,
+.operational-staffing-form,
+.operational-task-create-form,
+.operational-task-detail-form,
+.operational-escalation-create-form,
+.operational-escalation-update-form,
+.operational-handoff-form {
+  align-items: start;
+}
+
+.operational-command-form textarea,
+.operational-signoff-form textarea,
+.operational-task-create-form textarea,
+.operational-task-detail-form textarea,
+.operational-task-update-form textarea,
+.operational-staffing-form textarea,
+.operational-escalation-create-form textarea,
+.operational-escalation-update-form textarea,
+.operational-handoff-form textarea {
+  appearance: none;
+  background-color: #fff;
+  border: 1px solid #c7d8e7;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 0 rgba(18, 50, 79, 0.03);
+  color: #12324f;
+  font: inherit;
+  line-height: 1.35;
+  min-height: 5.8rem;
+  overflow-wrap: break-word;
+  padding: 0.65rem 0.75rem;
+  resize: vertical;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+  white-space: pre-wrap;
+  width: 100%;
+  word-break: normal;
+}
+
+.operational-command-form textarea:focus,
+.operational-signoff-form textarea:focus,
+.operational-task-create-form textarea:focus,
+.operational-task-detail-form textarea:focus,
+.operational-task-update-form textarea:focus,
+.operational-staffing-form textarea:focus,
+.operational-escalation-create-form textarea:focus,
+.operational-escalation-update-form textarea:focus,
+.operational-handoff-form textarea:focus {
+  background-color: #fff;
+  border-color: #0e7490;
+  box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.15);
+  outline: none;
+}
+
+.operational-readiness-card > div:first-child p,
+.role-booking-fields dd,
+.operational-dependency-list li,
+.operational-handoff-list li,
+.operational-task-updates li,
+.operational-staffing-list li,
+.operational-signoff-summary li {
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.operational-progress-summary,
+.operational-escalation-summary,
+.operational-dependency-summary,
+.operational-handoff-summary,
+.operational-staffing-summary {
+  align-items: flex-start;
+  line-height: 1.25;
+}
+
+.operational-progress-summary strong,
+.operational-escalation-summary strong,
+.operational-dependency-summary strong,
+.operational-handoff-summary strong,
+.operational-staffing-summary strong {
+  margin-inline-end: 0.15rem;
+}
+
+.operational-progress-summary span,
+.operational-escalation-summary span,
+.operational-dependency-summary span,
+.operational-handoff-summary span,
+.operational-staffing-summary span {
+  line-height: 1.1;
+  white-space: normal;
+}
+
+/* Role selector refinement for larger passenger datasets. */
+.role-selector-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.role-selector-field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.role-selector-field + .role-selector-field {
+  margin-top: 0.15rem;
+}
+
+.react-input,
+.person-select {
+  width: 100%;
+}
+
+.passenger-finder-panel {
+  background: linear-gradient(145deg, #f8fbff, #ffffff);
+  border: 1px solid #d8e8f7;
+  border-radius: 1rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
+.passenger-finder-heading {
+  align-items: start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.passenger-finder-heading h3 {
+  color: #0b1f33;
+  font-size: 1.05rem;
+  margin: 0.15rem 0 0;
+}
+
+.passenger-finder-heading span {
+  background: #eaf6ff;
+  border: 1px solid #c2def3;
+  border-radius: 999px;
+  color: #0f5e9c;
+  font-size: 0.82rem;
+  font-weight: 900;
+  padding: 0.35rem 0.65rem;
+  white-space: nowrap;
+}
+
+.passenger-finder-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.passenger-search-field {
+  grid-column: 1 / -1;
+}
+
+.role-summary-card {
+  line-height: 1.45;
+}
+
+@media (max-width: 860px) {
+  .passenger-finder-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .passenger-finder-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .passenger-finder-heading span {
+    justify-self: start;
+    width: fit-content;
+  }
+}
+
+/* Universal finder cards for passenger-scale workflows. */
+.passenger-finder-results,
+.booking-guest-results {
+  display: grid;
+  gap: 0.75rem;
+  max-height: 28rem;
+  overflow: auto;
+  padding: 0.15rem 0.2rem 0.25rem;
+}
+
+.passenger-finder-card,
+.booking-guest-result-card {
+  background: #ffffff;
+  border: 1px solid #cfe0f1;
+  border-radius: 1rem;
+  box-shadow: 0 10px 24px rgba(15, 41, 67, 0.07);
+  color: #15324f;
+  cursor: pointer;
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.9rem 1rem;
+  text-align: left;
+  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+  width: 100%;
+}
+
+.passenger-finder-card:hover,
+.booking-guest-result-card:hover,
+.passenger-finder-card:focus-visible,
+.booking-guest-result-card:focus-visible {
+  border-color: #0e7490;
+  box-shadow: 0 14px 30px rgba(14, 116, 144, 0.16);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.passenger-finder-card.selected,
+.booking-guest-result-card.selected {
+  background: linear-gradient(145deg, #ecfeff, #ffffff);
+  border-color: #0e7490;
+  box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.13);
+}
+
+.passenger-finder-card-main,
+.booking-guest-result-main {
+  align-items: start;
+  display: flex;
+  gap: 0.65rem;
+  justify-content: space-between;
+}
+
+.passenger-finder-card-main strong,
+.booking-guest-result-main strong {
+  color: #081f33;
+  font-size: 1rem;
+}
+
+.passenger-finder-card-main span,
+.booking-guest-result-main span,
+.passenger-finder-card-detail,
+.booking-guest-result-context {
+  color: #536b82;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.passenger-finder-card-chips,
+.booking-guest-result-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.passenger-finder-card-chips span,
+.booking-guest-result-chips span {
+  background: #eef6ff;
+  border: 1px solid #cce2f6;
+  border-radius: 999px;
+  color: #215d89;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 0.28rem 0.55rem;
+}
+
+.booking-guest-finder {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.booking-guest-finder-controls {
+  background: #f8fbff;
+  border: 1px solid #d9e8f6;
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 0.9rem;
+}
+
+.booking-guest-search-field {
+  grid-column: 1 / -1;
+}
+
+.booking-selected-guest-card {
+  background: linear-gradient(145deg, #f0f9ff, #ffffff);
+  border: 1px solid #cce2f6;
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem 1rem;
+}
+
+.booking-selected-guest-card strong {
+  color: #0b1f33;
+}
+
+.booking-selected-guest-card span:last-child {
+  color: #536b82;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 860px) {
+  .booking-guest-finder-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .passenger-finder-card-main,
+  .booking-guest-result-main {
+    align-items: start;
+    flex-direction: column;
+  }
+}
+
+
+.operations-directory-panel {
+  background: linear-gradient(135deg, #ffffff, #f5faff);
+  border: 1px solid #d7e5f4;
+  border-radius: 1.25rem;
+  box-shadow: 0 1rem 2rem rgba(16, 32, 51, 0.08);
+  margin: 1rem 0 1.25rem;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+.operations-directory-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.operations-directory-heading h4,
+.operations-directory-card h5 {
+  margin: 0 0 0.35rem;
+}
+
+.operations-directory-heading p {
+  margin: 0;
+  max-width: 54rem;
+}
+
+.operations-directory-count {
+  background: #eaf4ff;
+  border: 1px solid #bcd6ee;
+  border-radius: 999px;
+  color: #1761a0;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 0.45rem 0.75rem;
+  white-space: nowrap;
+}
+
+.operations-directory-grid {
+  align-items: start;
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.operations-directory-card {
+  align-self: start;
+  background: #ffffff;
+  border: 1px solid #d8e2ef;
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
+.operations-directory-card.active {
+  border-color: #1761a0;
+  box-shadow: inset 0 0 0 1px #1761a0, 0 0.75rem 1.5rem rgba(23, 97, 160, 0.12);
+}
+
+.operations-directory-card-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.operations-directory-card-header > span {
+  background: #f0f6fc;
+  border-radius: 999px;
+  color: #164e7a;
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 0.35rem 0.65rem;
+  white-space: nowrap;
+}
+
+.operations-directory-metrics {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+}
+
+.operations-directory-metrics div {
+  background: #f7fbff;
+  border: 1px solid #e0ebf5;
+  border-radius: 0.8rem;
+  padding: 0.55rem;
+}
+
+.operations-directory-metrics dt {
+  color: #5f7185;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.operations-directory-metrics dd {
+  color: #102033;
+  font-size: 1.1rem;
+  font-weight: 900;
+  margin: 0.1rem 0 0;
+}
+
+.operations-directory-contact {
+  background: #fbfdff;
+  border: 1px solid #e4edf7;
+  border-radius: 0.85rem;
+  padding: 0.7rem;
+}
+
+.operations-directory-contact strong {
+  color: #1761a0;
+  display: block;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+}
+
+.operations-directory-contact p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 720px) {
+  .operations-directory-heading,
+  .operations-directory-card-header {
+    display: grid;
+  }
+
+  .operations-directory-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

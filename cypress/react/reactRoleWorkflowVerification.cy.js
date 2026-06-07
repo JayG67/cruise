@@ -1,3 +1,4 @@
+const { byTestId, reactSelectorKeys: rs } = require('./support/reactSelectors')
 const {
   interceptReactCoreApis,
   selectDemoUserByVisibleRole,
@@ -132,12 +133,12 @@ function bootWorkflowApp(overrides = {}) {
 }
 
 function findOperationalTask(taskName) {
-  return cy.contains('[data-testid="react-operational-role-checklist"] > li', taskName)
+  return cy.contains(`${byTestId(rs.operationalRoleChecklist)} > li`, taskName)
 }
 
 function completeVisibleOperationalTask(taskName, expectedAuthor) {
   findOperationalTask(taskName).within(() => {
-    cy.getByTestId('react-operational-task-details').should('be.visible')
+    cy.getByTestId(rs.operationalTaskDetails).should('be.visible')
     cy.get('input[aria-label$="shift update"]').clear().type(`${expectedAuthor} verified ${taskName}.`)
     cy.contains('button', 'Add shift update').click()
   })
@@ -169,9 +170,9 @@ function completeVisibleOperationalTask(taskName, expectedAuthor) {
 }
 
 function approveVisibleSignoff({ operationTitle, approverName, notes }) {
-  cy.contains('[data-testid="react-operational-readiness-card"]', operationTitle)
+  cy.contains(byTestId(rs.operationalReadinessCard), operationTitle)
     .within(() => {
-      cy.getByTestId('react-operational-signoff-form').within(() => {
+      cy.getByTestId(rs.operationalSignoffForm).within(() => {
         cy.get('select[aria-label$="readiness signoff status"]').select('APPROVED')
         cy.get('input[aria-label$="readiness approver"]').clear().type(approverName)
         cy.get('input[aria-label$="readiness notes"]').clear().type(notes)
@@ -187,7 +188,7 @@ function approveVisibleSignoff({ operationTitle, approverName, notes }) {
       notes
     })
 
-  cy.contains('[data-testid="react-operational-readiness-card"]', operationTitle)
+  cy.contains(byTestId(rs.operationalReadinessCard), operationTitle)
     .should('contain.text', 'APPROVED')
     .and('contain.text', approverName)
     .within(() => {
@@ -203,21 +204,21 @@ describe('React role workflow UI verification', () => {
   it('verifies the admin route exposes management workflows and not role-only dashboards', () => {
     selectDemoUserByVisibleRole('Admin')
 
-    cy.getByTestId('react-demo-user-summary').should('contain.text', 'React Admin').and('contain.text', 'Admin')
-    cy.getByTestId('react-admin-hierarchy').should('be.visible')
-    cy.getByTestId('react-fleet-directory').should('be.visible')
-    cy.getByTestId('react-sqa-console').should('be.visible')
-    cy.getByTestId('react-passenger-dashboard').should('not.exist')
-    cy.getByTestId('react-operational-turnaround-panel').should('not.exist')
+    cy.getByTestId(rs.demoUserSummary).should('contain.text', 'React Admin').and('contain.text', 'Admin')
+    cy.getByTestId(rs.adminHierarchy).should('be.visible')
+    cy.getByTestId(rs.fleetDirectory).should('be.visible')
+    cy.getByTestId(rs.sqaConsole).should('be.visible')
+    cy.getByTestId(rs.passengerDashboard).should('not.exist')
+    cy.getByTestId(rs.operationalTurnaroundPanel).should('not.exist')
 
-    cy.getByTestId('react-toggle-customer-workflows').click()
-    cy.getByTestId('react-customer-workflow-table').should('be.visible')
-    cy.getByTestId('react-customer-workflow-table')
+    cy.getByTestId(rs.toggleCustomerWorkflows).click()
+    cy.getByTestId(rs.customerWorkflowTable).should('be.visible')
+    cy.getByTestId(rs.customerWorkflowTable)
       .should('contain.text', 'jay.react@example.com')
       .and('contain.text', 'RG-100')
 
-    cy.getByTestId('react-expand-visible-customers').click()
-    cy.getByTestId('react-customer-bookings-row')
+    cy.getByTestId(rs.expandVisibleCustomers).click()
+    cy.getByTestId(rs.customerBookingsRow)
       .should('contain.text', 'react-booking-1')
       .and('contain.text', 'P101')
   })
@@ -225,58 +226,58 @@ describe('React role workflow UI verification', () => {
   it('verifies the passenger route can complete profile and itinerary workflows through visible UI data', () => {
     selectDemoUserByVisibleRole('Passenger')
 
-    cy.getByTestId('react-passenger-dashboard').should('be.visible')
-    cy.getByTestId('react-passenger-self-service-panel').should('be.visible')
-    cy.getByTestId('react-passenger-profile-first-name').should('have.value', 'Jay')
-    cy.getByTestId('react-passenger-profile-last-name').should('have.value', 'Gallagher')
-    cy.getByTestId('react-passenger-profile-email').should('have.value', 'jay.react@example.com')
+    cy.getByTestId(rs.passengerDashboard).should('be.visible')
+    cy.getByTestId(rs.passengerSelfServicePanel).should('be.visible')
+    cy.getByTestId(rs.passengerProfileFirstName).should('have.value', 'Jay')
+    cy.getByTestId(rs.passengerProfileLastName).should('have.value', 'Gallagher')
+    cy.getByTestId(rs.passengerProfileEmail).should('have.value', 'jay.react@example.com')
 
-    cy.getByTestId('react-role-booking-card').first().within(() => {
+    cy.getByTestId(rs.roleBookingCard).first().within(() => {
       cy.contains('Royal Caribbean International').should('be.visible')
       cy.contains('React Icon').should('be.visible')
       cy.contains('Jay Gallagher').should('be.visible')
-      cy.getByTestId('react-role-booking-details-toggle').click()
+      cy.getByTestId(rs.roleBookingDetailsToggle).click()
     })
 
-    cy.getByTestId('react-role-booking-details').should('be.visible')
-    cy.getByTestId('react-role-detail-passenger-row').should('contain.text', 'Alisa Gallagher')
-    cy.getByTestId('react-role-itinerary-day').should('contain.text', 'Embarkation Day')
-    cy.contains('[data-testid="react-role-itinerary-activity"]', 'Terminal arrival')
-      .find('[data-testid="react-role-favorite-itinerary-toggle"]')
+    cy.getByTestId(rs.roleBookingDetails).should('be.visible')
+    cy.getByTestId(rs.roleDetailPassengerRow).should('contain.text', 'Alisa Gallagher')
+    cy.getByTestId(rs.roleItineraryDay).should('contain.text', 'Embarkation Day')
+    cy.contains(byTestId(rs.roleItineraryActivity), 'Terminal arrival')
+      .find(byTestId(rs.roleFavoriteItineraryToggle))
       .check()
-    cy.getByTestId('react-role-favorites-only-toggle').check()
-    cy.getByTestId('react-role-itinerary-activity').should('have.length', 1)
-    cy.getByTestId('react-role-itinerary-activity').should('contain.text', 'Terminal arrival')
+    cy.getByTestId(rs.roleFavoritesOnlyToggle).check()
+    cy.getByTestId(rs.roleItineraryActivity).should('have.length', 1)
+    cy.getByTestId(rs.roleItineraryActivity).should('contain.text', 'Terminal arrival')
   })
 
   it('verifies the group leader route only exposes group-visible booking and manifest data through the UI', () => {
     selectDemoUserByVisibleRole('Group Leader')
 
-    cy.getByTestId('react-group-leader-dashboard').should('be.visible')
-    cy.getByTestId('react-passenger-dashboard').should('contain.text', 'Group leader dashboard loaded')
-    cy.getByTestId('react-role-booking-card').should('have.length', 1)
-    cy.getByTestId('react-role-booking-card').last().within(() => {
+    cy.getByTestId(rs.groupLeaderDashboard).should('be.visible')
+    cy.getByTestId(rs.passengerDashboard).should('contain.text', 'Group leader dashboard loaded')
+    cy.getByTestId(rs.roleBookingCard).should('have.length', 1)
+    cy.getByTestId(rs.roleBookingCard).last().within(() => {
       cy.contains('Celebrity Cruises').should('be.visible')
       cy.contains('Morgan Leader').should('be.visible')
-      cy.getByTestId('react-role-booking-details-toggle').click()
+      cy.getByTestId(rs.roleBookingDetailsToggle).click()
     })
 
-    cy.getByTestId('react-role-booking-details').last().within(() => {
-      cy.getByTestId('react-role-detail-passenger-row').should('contain.text', 'Morgan Leader')
+    cy.getByTestId(rs.roleBookingDetails).last().within(() => {
+      cy.getByTestId(rs.roleDetailPassengerRow).should('contain.text', 'Morgan Leader')
       cy.contains('Cruise itinerary').should('be.visible')
       cy.contains('Perfect Day').should('be.visible')
     })
 
-    cy.getByTestId('react-admin-hierarchy').should('not.exist')
-    cy.getByTestId('react-operational-turnaround-panel').should('not.exist')
+    cy.getByTestId(rs.adminHierarchy).should('not.exist')
+    cy.getByTestId(rs.operationalTurnaroundPanel).should('not.exist')
   })
 
   it('verifies the turnaround manager can drive the command workflow and see every result in the UI', () => {
     selectDemoUserByVisibleRole('Turnaround Manager')
 
-    cy.getByTestId('react-turnaround-manager-dashboard').should('be.visible')
-    cy.getByTestId('react-operational-readiness-card').should('have.length', 2)
-    cy.getByTestId('react-operational-readiness-passengers').should('contain.text', '4')
+    cy.getByTestId(rs.turnaroundManagerDashboard).should('be.visible')
+    cy.getByTestId(rs.operationalReadinessCard).should('have.length', 2)
+    cy.getByTestId(rs.operationalReadinessPassengers).should('contain.text', '4')
     cy.contains('Miami same-day turnaround readiness').should('be.visible')
     cy.contains('React Icon').should('be.visible')
     cy.contains('Miami, Florida').should('be.visible')
@@ -292,11 +293,11 @@ describe('React role workflow UI verification', () => {
   it('verifies the housekeeping lead can update cabin-readiness workflow data through the UI', () => {
     selectDemoUserByVisibleRole('Housekeeping Lead')
 
-    cy.getByTestId('react-housekeeping-lead-dashboard').should('be.visible')
+    cy.getByTestId(rs.housekeepingLeadDashboard).should('be.visible')
     cy.contains('Housekeeping operations').should('be.visible')
     cy.contains('Prioritize cabin strip and reset windows').should('be.visible')
     cy.contains('Confirm inspection checkpoints before guest boarding').should('be.visible')
-    cy.contains('Coordinate department readiness standups').should('not.exist')
+    cy.getByTestId(rs.operationalRoleChecklist).should('not.contain.text', 'Coordinate department readiness standups')
 
     completeVisibleOperationalTask('Prioritize cabin strip and reset windows', 'Maria Rodriguez')
     approveVisibleSignoff({
@@ -309,7 +310,7 @@ describe('React role workflow UI verification', () => {
   it('verifies the guest services lead can update embarkation-support workflow data through the UI', () => {
     selectDemoUserByVisibleRole('Guest Services Lead')
 
-    cy.getByTestId('react-guest-services-lead-dashboard').should('be.visible')
+    cy.getByTestId(rs.guestServicesLeadDashboard).should('be.visible')
     cy.contains('Guest services operations').should('be.visible')
     cy.contains('Stage disembarkation communication and late-flight guest support').should('be.visible')
     cy.contains('Prepare check-in exception handling for repositioning guests').should('be.visible')
@@ -326,7 +327,7 @@ describe('React role workflow UI verification', () => {
   it('verifies the food and beverage lead can update provisioning workflow data through the UI', () => {
     selectDemoUserByVisibleRole('Food & Beverage Lead')
 
-    cy.getByTestId('react-food-beverage-lead-dashboard').should('be.visible')
+    cy.getByTestId(rs.foodBeverageLeadDashboard).should('be.visible')
     cy.contains('Food & beverage operations').should('be.visible')
     cy.contains('Confirm provisions and cold-chain delivery windows').should('be.visible')
     cy.contains('Verify dining team handoff for embarkation lunch').should('be.visible')
@@ -343,7 +344,7 @@ describe('React role workflow UI verification', () => {
   it('verifies the engineering lead can block, explain, complete, and sign off technical workflow data through the UI', () => {
     selectDemoUserByVisibleRole('Engineering Lead')
 
-    cy.getByTestId('react-engineering-lead-dashboard').should('be.visible')
+    cy.getByTestId(rs.engineeringLeadDashboard).should('be.visible')
     cy.contains('Engineering operations').should('be.visible')
     cy.contains('Confirm shore power, fuel, potable water, and waste windows').should('be.visible')
     cy.contains('Confirm technical clearance checks before embarkation').should('be.visible')
@@ -363,7 +364,7 @@ describe('React role workflow UI verification', () => {
     findOperationalTask('Confirm shore power, fuel, potable water, and waste windows')
       .should('contain.text', 'BLOCKED')
       .and('contain.text', 'Awaiting shore power handoff from pier team')
-    cy.getByTestId('react-operational-progress-summary').first().should('contain.text', '1 blocked')
+    cy.getByTestId(rs.operationalProgressSummary).first().should('contain.text', '1 blocked')
 
     findOperationalTask('Confirm shore power, fuel, potable water, and waste windows').within(() => {
       cy.contains('button', 'Complete').click()

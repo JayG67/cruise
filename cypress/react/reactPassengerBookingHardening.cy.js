@@ -1,3 +1,4 @@
+const { reactSelectorKeys: rs } = require('./support/reactSelectors')
 const {
   reactBookings,
   reactCustomers,
@@ -25,21 +26,21 @@ const passengerBookingSailing = {
 function visitAsPassenger() {
   visitReactAppAsAdmin()
   selectDemoUserByVisibleRole('Passenger')
-  cy.getByTestId('react-passenger-booking-workflow').should('be.visible')
+  cy.getByTestId(rs.passengerBookingWorkflow).should('be.visible')
 }
 
 function loadTripOptions({ ships = [passengerBookingShip], sailings = [passengerBookingSailing] } = {}) {
   cy.intercept('GET', `/cruise/ships/${royalCaribbeanId}`, ships).as('bookingShips')
   cy.intercept('GET', `/cruise/ship/${passengerBookingShip.id}/sailings`, sailings).as('bookingSailings')
-  cy.getByTestId('react-booking-cruise-line-select').select('Royal Caribbean International')
+  cy.getByTestId(rs.bookingCruiseLineSelect).select('Royal Caribbean International')
   cy.wait('@bookingShips')
-  cy.getByTestId('react-booking-ship-select').select(passengerBookingShip.name)
+  cy.getByTestId(rs.bookingShipSelect).select(passengerBookingShip.name)
   cy.wait('@bookingSailings')
 }
 
 function selectDefaultPassengerSailing() {
   loadTripOptions()
-  cy.getByTestId('react-booking-sailing-select').select(passengerBookingSailing.id)
+  cy.getByTestId(rs.bookingSailingSelect).select(passengerBookingSailing.id)
 }
 
 describe('Passenger booking workflow hardening', () => {
@@ -53,23 +54,23 @@ describe('Passenger booking workflow hardening', () => {
       body: { message: 'Ship inventory service unavailable' }
     }).as('shipLoadFailure')
 
-    cy.getByTestId('react-booking-cruise-line-select').select('Royal Caribbean International')
+    cy.getByTestId(rs.bookingCruiseLineSelect).select('Royal Caribbean International')
     cy.wait('@shipLoadFailure')
 
-    cy.getByTestId('react-booking-status-message')
+    cy.getByTestId(rs.bookingStatusMessage)
       .should('contain.text', 'Could not load ships for the selected cruise line.')
       .and('contain.text', 'Ship inventory service unavailable')
-    cy.getByTestId('react-booking-ship-select').should('have.value', '')
-    cy.getByTestId('react-booking-sailing-select').should('have.value', '')
+    cy.getByTestId(rs.bookingShipSelect).should('have.value', '')
+    cy.getByTestId(rs.bookingSailingSelect).should('have.value', '')
   })
 
   it('shows a useful ship sailing loading error and does not leave stale sailing choices available', () => {
     loadTripOptions({ ships: [passengerBookingShip], sailings: { statusCode: 503, body: { message: 'Sailing schedule unavailable' } } })
 
-    cy.getByTestId('react-booking-status-message')
+    cy.getByTestId(rs.bookingStatusMessage)
       .should('contain.text', 'Could not load sailing dates for the selected ship.')
       .and('contain.text', 'Sailing schedule unavailable')
-    cy.getByTestId('react-booking-sailing-select').should('have.value', '')
+    cy.getByTestId(rs.bookingSailingSelect).should('have.value', '')
   })
 
   it('filters loaded sailings by destination, departure port, and duration before booking', () => {
@@ -87,13 +88,13 @@ describe('Passenger booking workflow hardening', () => {
       ]
     })
 
-    cy.getByTestId('react-booking-destination-search').type('Coco')
-    cy.getByTestId('react-booking-departure-port-search').type('Miami')
-    cy.getByTestId('react-booking-duration-filter').select('4')
+    cy.getByTestId(rs.bookingDestinationSearch).type('Coco')
+    cy.getByTestId(rs.bookingDeparturePortSearch).type('Miami')
+    cy.getByTestId(rs.bookingDurationFilter).select('4')
 
-    cy.getByTestId('react-booking-sailing-select').find('option').should('have.length', 2)
-    cy.getByTestId('react-booking-sailing-select').should('contain.text', 'CocoCay')
-    cy.getByTestId('react-booking-sailing-select').should('not.contain.text', 'Nassau')
+    cy.getByTestId(rs.bookingSailingSelect).find('option').should('have.length', 2)
+    cy.getByTestId(rs.bookingSailingSelect).should('contain.text', 'CocoCay')
+    cy.getByTestId(rs.bookingSailingSelect).should('not.contain.text', 'Nassau')
   })
 
   it('blocks malformed new guest email before any customer or booking request is sent', () => {
@@ -101,16 +102,16 @@ describe('Passenger booking workflow hardening', () => {
     cy.intercept('POST', '/cruise/bookings').as('bookingShouldNotCreate')
 
     selectDefaultPassengerSailing()
-    cy.getByTestId('react-booking-add-guest-button').click()
-    cy.getByTestId('react-booking-guest-card').eq(1).within(() => {
-      cy.getByTestId('react-booking-guest-mode-select').select('New guest')
-      cy.getByTestId('react-booking-new-guest-first-name').type('Taylor')
-      cy.getByTestId('react-booking-new-guest-last-name').type('Guest')
-      cy.getByTestId('react-booking-new-guest-email').type('not-an-email')
+    cy.getByTestId(rs.bookingAddGuestButton).click()
+    cy.getByTestId(rs.bookingGuestCard).eq(1).within(() => {
+      cy.getByTestId(rs.bookingGuestModeSelect).select('New guest')
+      cy.getByTestId(rs.bookingNewGuestFirstName).type('Taylor')
+      cy.getByTestId(rs.bookingNewGuestLastName).type('Guest')
+      cy.getByTestId(rs.bookingNewGuestEmail).type('not-an-email')
     })
 
-    cy.getByTestId('react-booking-submit-button').click()
-    cy.getByTestId('react-booking-status-message').should('contain.text', 'New guest email must be a valid email address before booking.')
+    cy.getByTestId(rs.bookingSubmitButton).click()
+    cy.getByTestId(rs.bookingStatusMessage).should('contain.text', 'New guest email must be a valid email address before booking.')
     cy.get('@customerShouldNotCreate.all').should('have.length', 0)
     cy.get('@bookingShouldNotCreate.all').should('have.length', 0)
   })
@@ -123,22 +124,22 @@ describe('Passenger booking workflow hardening', () => {
     cy.intercept('POST', '/cruise/bookings').as('bookingShouldNotCreate')
 
     selectDefaultPassengerSailing()
-    cy.getByTestId('react-booking-add-guest-button').click()
-    cy.getByTestId('react-booking-guest-card').eq(1).within(() => {
-      cy.getByTestId('react-booking-guest-mode-select').select('New guest')
-      cy.getByTestId('react-booking-new-guest-first-name').type('Taylor')
-      cy.getByTestId('react-booking-new-guest-last-name').type('Guest')
-      cy.getByTestId('react-booking-new-guest-email').type('taylor.guest@example.com')
+    cy.getByTestId(rs.bookingAddGuestButton).click()
+    cy.getByTestId(rs.bookingGuestCard).eq(1).within(() => {
+      cy.getByTestId(rs.bookingGuestModeSelect).select('New guest')
+      cy.getByTestId(rs.bookingNewGuestFirstName).type('Taylor')
+      cy.getByTestId(rs.bookingNewGuestLastName).type('Guest')
+      cy.getByTestId(rs.bookingNewGuestEmail).type('taylor.guest@example.com')
     })
 
-    cy.getByTestId('react-booking-submit-button').click()
+    cy.getByTestId(rs.bookingSubmitButton).click()
     cy.wait('@customerCreateFailure')
-    cy.getByTestId('react-booking-status-message')
+    cy.getByTestId(rs.bookingStatusMessage)
       .should('contain.text', 'Could not create guest profile for Taylor Guest.')
       .and('contain.text', 'A customer with this email already exists')
     cy.get('@bookingShouldNotCreate.all').should('have.length', 0)
-    cy.getByTestId('react-booking-guest-card').eq(1).within(() => {
-      cy.getByTestId('react-booking-new-guest-email').should('have.value', 'taylor.guest@example.com')
+    cy.getByTestId(rs.bookingGuestCard).eq(1).within(() => {
+      cy.getByTestId(rs.bookingNewGuestEmail).should('have.value', 'taylor.guest@example.com')
     })
   })
 
@@ -149,13 +150,13 @@ describe('Passenger booking workflow hardening', () => {
     }).as('bookingCreateFailure')
 
     selectDefaultPassengerSailing()
-    cy.getByTestId('react-role-booking-card').should('have.length', 2)
-    cy.getByTestId('react-booking-submit-button').click()
+    cy.getByTestId(rs.roleBookingCard).should('have.length', 2)
+    cy.getByTestId(rs.bookingSubmitButton).click()
     cy.wait('@bookingCreateFailure')
-    cy.getByTestId('react-booking-status-message')
+    cy.getByTestId(rs.bookingStatusMessage)
       .should('contain.text', 'Booking request was not created.')
       .and('contain.text', 'Selected sailing no longer has available inventory')
-    cy.getByTestId('react-role-booking-card').should('have.length', 2)
+    cy.getByTestId(rs.roleBookingCard).should('have.length', 2)
   })
 
   it('warns when the API accepts a booking but the UI cannot refresh to verify it', () => {
@@ -170,13 +171,13 @@ describe('Passenger booking workflow hardening', () => {
     cy.intercept('GET', '/cruise/bookings', reactBookings).as('bookingReloadBookingsAfterFailure')
 
     selectDefaultPassengerSailing()
-    cy.getByTestId('react-role-booking-card').should('have.length', 2)
-    cy.getByTestId('react-booking-submit-button').click()
+    cy.getByTestId(rs.roleBookingCard).should('have.length', 2)
+    cy.getByTestId(rs.bookingSubmitButton).click()
     cy.wait('@bookingCreateSuccess')
     cy.wait('@bookingReloadCustomersFailure')
-    cy.getByTestId('react-booking-status-message')
+    cy.getByTestId(rs.bookingStatusMessage)
       .should('contain.text', 'was created, but the booking list could not refresh')
       .and('contain.text', 'Customer reload failed')
-    cy.getByTestId('react-role-booking-card').should('have.length', 2)
+    cy.getByTestId(rs.roleBookingCard).should('have.length', 2)
   })
 })

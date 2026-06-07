@@ -20,6 +20,7 @@ export default function CustomerBookingHierarchy({
   savingBookingId = '',
   bookingMutationError = ''
 }) {
+  const [workflowsVisible, setWorkflowsVisible] = useState(false)
   const {
     searchTerm,
     rows,
@@ -31,7 +32,7 @@ export default function CustomerBookingHierarchy({
     toggleBooking,
     expandAllVisibleCustomers,
     collapseAllVisibleCustomers
-  } = useAdminHierarchyViewState(customers, bookings)
+  } = useAdminHierarchyViewState(customers, bookings, { enabled: workflowsVisible })
 
   const {
     customerDrafts,
@@ -53,7 +54,6 @@ export default function CustomerBookingHierarchy({
     cancelBookingDraft
   } = useBookingDraftWorkflow({ onSaveBookingDraft, bookingMutationError })
 
-  const [workflowsVisible, setWorkflowsVisible] = useState(false)
   const [adminMutationMessage, setAdminMutationMessage] = useState('')
   const [createCustomerDraft, setCreateCustomerDraft] = useState({
     firstName: '',

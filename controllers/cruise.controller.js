@@ -12,6 +12,10 @@ const turnaroundOperationTable = require('../models/turnaroundOperation.model')
 const turnaroundTaskTable = require('../models/turnaroundTask.model')
 const turnaroundTaskUpdateTable = require('../models/turnaroundTaskUpdate.model')
 const turnaroundSignoffTable = require('../models/turnaroundSignoff.model')
+const turnaroundEscalationTable = require('../models/turnaroundEscalation.model')
+const turnaroundStaffingTable = require('../models/turnaroundStaffing.model')
+const turnaroundTaskDependencyTable = require('../models/turnaroundTaskDependency.model')
+const turnaroundHandoffTable = require('../models/turnaroundHandoff.model')
 const db = require('../db')
 const { and, eq, inArray } = require('drizzle-orm')
 
@@ -732,6 +736,102 @@ exports.deleteActivitySchedule = async (req, res, next) => {
   }
 }
 
+
+function groupRowsBy(rows, keyName) {
+  return (rows || []).reduce((groups, row) => {
+    const key = row[keyName]
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key).push(row)
+    return groups
+  }, new Map())
+}
+
+function indexRowsBy(rows, keyName) {
+  return new Map((rows || []).map(row => [row[keyName], row]))
+}
+
+async function selectByIds(table, column, ids) {
+  const uniqueIds = [...new Set((ids || []).filter(Boolean))]
+  if (uniqueIds.length === 0) return []
+  return db.select().from(table).where(inArray(column, uniqueIds))
+}
+
+async function getBookingDetailsBatch(bookings) {
+  if (!bookings || bookings.length === 0) return []
+
+  const bookingIds = bookings.map(booking => booking.id)
+  const sailingIds = bookings.map(booking => booking.sailingId)
+
+  const [passengerRows, sailingRows] = await Promise.all([
+    selectByIds(bookingPassengerTable, bookingPassengerTable.bookingId, bookingIds),
+    selectByIds(sailingTable, sailingTable.id, sailingIds)
+  ])
+
+  const customerRows = await selectByIds(
+    customerTable,
+    customerTable.id,
+    passengerRows.map(passenger => passenger.customerId)
+  )
+  const shipRows = await selectByIds(
+    shipTable,
+    shipTable.id,
+    sailingRows.map(sailing => sailing.shipId)
+  )
+  const cruiseLineRows = await selectByIds(
+    cruiseLineTable,
+    cruiseLineTable.id,
+    shipRows.map(ship => ship.cruiseLineId)
+  )
+  const itineraryDayRows = await selectByIds(itineraryDayTable, itineraryDayTable.sailingId, sailingIds)
+  const activityRows = await selectByIds(
+    activityScheduleTable,
+    activityScheduleTable.itineraryDayId,
+    itineraryDayRows.map(day => day.id)
+  )
+
+  const passengersByBooking = groupRowsBy(passengerRows, 'bookingId')
+  const customersById = indexRowsBy(customerRows, 'id')
+  const sailingsById = indexRowsBy(sailingRows, 'id')
+  const shipsById = indexRowsBy(shipRows, 'id')
+  const cruiseLinesById = indexRowsBy(cruiseLineRows, 'id')
+  const itineraryDaysBySailing = groupRowsBy(itineraryDayRows, 'sailingId')
+  const activitiesByDay = groupRowsBy(activityRows, 'itineraryDayId')
+
+  return bookings.map(booking => {
+    const sailing = sailingsById.get(booking.sailingId) || null
+    const ship = sailing?.shipId ? shipsById.get(sailing.shipId) || null : null
+    const cruiseLine = ship?.cruiseLineId ? cruiseLinesById.get(ship.cruiseLineId) || null : null
+    const passengers = (passengersByBooking.get(booking.id) || []).map(passenger => ({
+      ...passenger,
+      customer: customersById.get(passenger.customerId) || null
+    }))
+    const itineraryDays = (itineraryDaysBySailing.get(booking.sailingId) || [])
+      .map(day => ({
+        ...day,
+        activitySchedule: [...(activitiesByDay.get(day.id) || [])]
+          .sort((a, b) => String(a.time || '').localeCompare(String(b.time || '')))
+      }))
+      .sort((a, b) => Number(a.day || 0) - Number(b.day || 0))
+    const sailingWithItinerary = sailing
+      ? {
+          ...sailing,
+          itinerary: itineraryDays,
+          itineraryDays
+        }
+      : null
+
+    return {
+      ...booking,
+      sailing: sailingWithItinerary,
+      ship,
+      cruiseLine,
+      passengers,
+      itinerary: itineraryDays,
+      itineraryDays
+    }
+  })
+}
+
 async function getBookingPassengers(bookingId) {
   const passengerRows = await db
     .select()
@@ -888,25 +988,81 @@ function getTurnaroundSignoffSummary(signoffs = []) {
   }
 }
 
-function getDerivedTurnaroundReadinessLevel(tasks = [], signoffs = []) {
+function getTurnaroundEscalationSummary(escalations = []) {
+  const totalEscalations = escalations.length
+  const openEscalations = escalations.filter(escalation => escalation.status === 'OPEN').length
+  const monitoringEscalations = escalations.filter(escalation => escalation.status === 'MONITORING').length
+  const resolvedEscalations = escalations.filter(escalation => escalation.status === 'RESOLVED').length
+  const criticalEscalations = escalations.filter(escalation => escalation.severity === 'CRITICAL' && escalation.status !== 'RESOLVED').length
+
+  return {
+    totalEscalations,
+    openEscalations,
+    monitoringEscalations,
+    resolvedEscalations,
+    criticalEscalations
+  }
+}
+
+
+function getTurnaroundStaffingSummary(staffing = []) {
+  const plannedCount = staffing.reduce((sum, row) => sum + Number(row.plannedCount || 0), 0)
+  const checkedInCount = staffing.reduce((sum, row) => sum + Number(row.checkedInCount || 0), 0)
+  const gapCount = Math.max(plannedCount - checkedInCount, 0)
+
+  return {
+    totalDepartments: staffing.length,
+    plannedCount,
+    checkedInCount,
+    gapCount,
+    checkInPercent: plannedCount === 0 ? 0 : Math.round((checkedInCount / plannedCount) * 100)
+  }
+}
+
+function getDerivedTurnaroundReadinessLevel(tasks = [], signoffs = [], escalations = []) {
   const progress = getTurnaroundProgress(tasks)
   const signoffSummary = getTurnaroundSignoffSummary(signoffs)
+  const escalationSummary = getTurnaroundEscalationSummary(escalations)
 
-  if (progress.blockedTasks > 0 || signoffSummary.blockedSignoffs > 0) return 'Blocked'
+  if (progress.blockedTasks > 0 || signoffSummary.blockedSignoffs > 0 || escalationSummary.criticalEscalations > 0) return 'Blocked'
   if (progress.totalTasks > 0 && progress.completeTasks === progress.totalTasks && signoffSummary.totalSignoffs > 0 && signoffSummary.approvedSignoffs === signoffSummary.totalSignoffs) return 'Ready for embarkation'
   if (progress.inProgressTasks > 0 || progress.completeTasks > 0 || signoffSummary.approvedSignoffs > 0) return 'In progress'
 
   return 'Planning'
 }
 
-function getDerivedTurnaroundStatus(tasks = []) {
+function getDerivedTurnaroundStatus(tasks = [], escalations = []) {
   const progress = getTurnaroundProgress(tasks)
+  const escalationSummary = getTurnaroundEscalationSummary(escalations)
 
-  if (progress.blockedTasks > 0) return 'BLOCKED'
+  if (progress.blockedTasks > 0 || escalationSummary.criticalEscalations > 0) return 'BLOCKED'
   if (progress.totalTasks > 0 && progress.completeTasks === progress.totalTasks) return 'COMPLETE'
   if (progress.inProgressTasks > 0 || progress.completeTasks > 0) return 'IN_PROGRESS'
 
   return 'PLANNED'
+}
+
+function getTurnaroundDependencySummary(dependencies = []) {
+  const activeDependencies = dependencies.filter(dependency => dependency.status !== 'CLEARED').length
+  const clearedDependencies = dependencies.filter(dependency => dependency.status === 'CLEARED').length
+
+  return {
+    totalDependencies: dependencies.length,
+    activeDependencies,
+    clearedDependencies
+  }
+}
+
+function getTurnaroundHandoffSummary(handoffs = []) {
+  const completedHandoffs = handoffs.filter(handoff => handoff.status === 'COMPLETE').length
+  const blockedHandoffs = handoffs.filter(handoff => handoff.status === 'BLOCKED').length
+
+  return {
+    totalHandoffs: handoffs.length,
+    completedHandoffs,
+    blockedHandoffs,
+    openHandoffs: Math.max(handoffs.length - completedHandoffs, 0)
+  }
 }
 
 async function getTurnaroundOperationDetails(operation) {
@@ -950,7 +1106,31 @@ async function getTurnaroundOperationDetails(operation) {
     .from(turnaroundSignoffTable)
     .where(eq(turnaroundSignoffTable.operationId, operation.id))
 
+  const escalations = await db
+    .select()
+    .from(turnaroundEscalationTable)
+    .where(eq(turnaroundEscalationTable.operationId, operation.id))
+
+  const staffing = await db
+    .select()
+    .from(turnaroundStaffingTable)
+    .where(eq(turnaroundStaffingTable.operationId, operation.id))
+
+  const taskDependencies = await db
+    .select()
+    .from(turnaroundTaskDependencyTable)
+    .where(eq(turnaroundTaskDependencyTable.operationId, operation.id))
+
+  const handoffs = await db
+    .select()
+    .from(turnaroundHandoffTable)
+    .where(eq(turnaroundHandoffTable.operationId, operation.id))
+
   const sortedSignoffs = [...(signoffs || [])].sort((a, b) => String(a.departmentRole).localeCompare(String(b.departmentRole)))
+  const sortedEscalations = [...(escalations || [])].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+  const sortedStaffing = [...(staffing || [])].sort((a, b) => String(a.departmentRole).localeCompare(String(b.departmentRole)))
+  const sortedTaskDependencies = [...(taskDependencies || [])].sort((a, b) => String(a.status).localeCompare(String(b.status)))
+  const sortedHandoffs = [...(handoffs || [])].sort((a, b) => String(a.dueTime || '').localeCompare(String(b.dueTime || '')))
 
   const sortedTasks = []
 
@@ -966,12 +1146,29 @@ async function getTurnaroundOperationDetails(operation) {
     })
   }
 
+  const taskNameById = new Map(sortedTasks.map(task => [task.id, task.taskName]))
+  const enrichedDependencies = sortedTaskDependencies.map(dependency => ({
+    ...dependency,
+    taskName: taskNameById.get(dependency.taskId) || 'Unknown task',
+    dependsOnTaskName: taskNameById.get(dependency.dependsOnTaskId) || 'Unknown prerequisite'
+  }))
+
   return {
     ...operation,
-    status: getDerivedTurnaroundStatus(sortedTasks),
-    readinessLevel: getDerivedTurnaroundReadinessLevel(sortedTasks, sortedSignoffs),
+    commandStatus: operation.status,
+    commandReadinessLevel: operation.readinessLevel,
+    status: getDerivedTurnaroundStatus(sortedTasks, sortedEscalations),
+    readinessLevel: getDerivedTurnaroundReadinessLevel(sortedTasks, sortedSignoffs, sortedEscalations),
     signoffs: sortedSignoffs,
     signoffSummary: getTurnaroundSignoffSummary(sortedSignoffs),
+    escalations: sortedEscalations,
+    escalationSummary: getTurnaroundEscalationSummary(sortedEscalations),
+    staffing: sortedStaffing,
+    staffingSummary: getTurnaroundStaffingSummary(sortedStaffing),
+    taskDependencies: enrichedDependencies,
+    dependencySummary: getTurnaroundDependencySummary(enrichedDependencies),
+    handoffs: sortedHandoffs,
+    handoffSummary: getTurnaroundHandoffSummary(sortedHandoffs),
     sailing,
     ship,
     cruiseLine,
@@ -1001,6 +1198,204 @@ exports.getTurnaroundOperations = async (req, res, next) => {
   }
 }
 
+
+
+exports.updateTurnaroundOperationCommand = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const allowedFields = ['status', 'readinessLevel', 'port', 'notes']
+    const operationUpdates = {}
+
+    for (const field of allowedFields) {
+      if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+        operationUpdates[field] = req.body[field] || null
+      }
+    }
+
+    const operationRows = await db
+      .select()
+      .from(turnaroundOperationTable)
+      .where(eq(turnaroundOperationTable.id, id))
+      .limit(1)
+
+    const operation = operationRows[0]
+
+    if (!operation) {
+      return res.status(404).json({ message: 'Turnaround operation not found' })
+    }
+
+    if (Object.keys(operationUpdates).length === 0) {
+      return res.status(400).json({ message: 'At least one turnaround command field is required' })
+    }
+
+    await db
+      .update(turnaroundOperationTable)
+      .set(operationUpdates)
+      .where(eq(turnaroundOperationTable.id, id))
+
+    const refreshedOperationRows = await db
+      .select()
+      .from(turnaroundOperationTable)
+      .where(eq(turnaroundOperationTable.id, id))
+      .limit(1)
+
+    return res.status(200).json({
+      message: 'Turnaround command plan updated successfully',
+      operation: await getTurnaroundOperationDetails(refreshedOperationRows[0] || operation)
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+
+exports.createTurnaroundEscalation = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const { departmentRole, severity = 'WATCH', title, ownerName, status = 'OPEN', resolutionNotes } = req.body
+
+    const operationRows = await db
+      .select()
+      .from(turnaroundOperationTable)
+      .where(eq(turnaroundOperationTable.id, id))
+      .limit(1)
+
+    const operation = operationRows[0]
+
+    if (!operation) {
+      return res.status(404).json({ message: 'Turnaround operation not found' })
+    }
+
+    await db
+      .insert(turnaroundEscalationTable)
+      .values({
+        operationId: id,
+        departmentRole,
+        severity,
+        title,
+        ownerName: ownerName || null,
+        status,
+        resolutionNotes: resolutionNotes || null,
+        createdAt: new Date().toISOString()
+      })
+
+    return res.status(201).json({
+      message: 'Turnaround escalation created successfully',
+      operation: await getTurnaroundOperationDetails(operation)
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.updateTurnaroundEscalation = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const allowedFields = ['severity', 'title', 'ownerName', 'status', 'resolutionNotes']
+    const escalationUpdates = {}
+
+    for (const field of allowedFields) {
+      if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+        escalationUpdates[field] = req.body[field] || null
+      }
+    }
+
+    const escalationRows = await db
+      .select()
+      .from(turnaroundEscalationTable)
+      .where(eq(turnaroundEscalationTable.id, id))
+      .limit(1)
+
+    const escalation = escalationRows[0]
+
+    if (!escalation) {
+      return res.status(404).json({ message: 'Turnaround escalation not found' })
+    }
+
+    if (Object.keys(escalationUpdates).length === 0) {
+      return res.status(400).json({ message: 'At least one turnaround escalation field is required' })
+    }
+
+    await db
+      .update(turnaroundEscalationTable)
+      .set(escalationUpdates)
+      .where(eq(turnaroundEscalationTable.id, id))
+
+    const operationRows = await db
+      .select()
+      .from(turnaroundOperationTable)
+      .where(eq(turnaroundOperationTable.id, escalation.operationId))
+      .limit(1)
+
+    const operation = operationRows[0]
+
+    return res.status(200).json({
+      message: 'Turnaround escalation updated successfully',
+      operation: operation ? await getTurnaroundOperationDetails(operation) : undefined
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+
+exports.updateTurnaroundStaffing = async (req, res, next) => {
+  try {
+    const { id, departmentRole } = req.params
+    const { plannedCount, checkedInCount, leadName, musterLocation, notes } = req.body
+
+    const operationRows = await db
+      .select()
+      .from(turnaroundOperationTable)
+      .where(eq(turnaroundOperationTable.id, id))
+      .limit(1)
+
+    const operation = operationRows[0]
+
+    if (!operation) {
+      return res.status(404).json({ message: 'Turnaround operation not found' })
+    }
+
+    const staffingValues = {
+      plannedCount: Number(plannedCount || 0),
+      checkedInCount: Number(checkedInCount || 0),
+      leadName: leadName || null,
+      musterLocation: musterLocation || null,
+      notes: notes || null
+    }
+
+    const existingStaffing = await db
+      .select()
+      .from(turnaroundStaffingTable)
+      .where(and(
+        eq(turnaroundStaffingTable.operationId, id),
+        eq(turnaroundStaffingTable.departmentRole, departmentRole)
+      ))
+      .limit(1)
+
+    if (existingStaffing[0]) {
+      await db
+        .update(turnaroundStaffingTable)
+        .set(staffingValues)
+        .where(eq(turnaroundStaffingTable.id, existingStaffing[0].id))
+    } else {
+      await db
+        .insert(turnaroundStaffingTable)
+        .values({
+          operationId: id,
+          departmentRole,
+          ...staffingValues
+        })
+    }
+
+    return res.status(200).json({
+      message: 'Turnaround staffing plan updated successfully',
+      operation: await getTurnaroundOperationDetails(operation)
+    })
+  } catch (err) {
+    next(err)
+  }
+}
 
 exports.updateTurnaroundSignoff = async (req, res, next) => {
   try {
@@ -1111,6 +1506,54 @@ exports.updateTurnaroundTaskStatus = async (req, res, next) => {
 }
 
 
+
+exports.createTurnaroundTask = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const { departmentRole, taskName, ownerName, dueTime, location, blockerReason, status = 'READY' } = req.body
+
+    const operationRows = await db
+      .select()
+      .from(turnaroundOperationTable)
+      .where(eq(turnaroundOperationTable.id, id))
+      .limit(1)
+
+    const operation = operationRows[0]
+
+    if (!operation) {
+      return res.status(404).json({ message: 'Turnaround operation not found' })
+    }
+
+    const existingTasks = await db
+      .select()
+      .from(turnaroundTaskTable)
+      .where(eq(turnaroundTaskTable.operationId, id))
+
+    const nextSortOrder = existingTasks.reduce((maxSortOrder, task) => Math.max(maxSortOrder, Number(task.sortOrder || 0)), 0) + 1
+
+    await db
+      .insert(turnaroundTaskTable)
+      .values({
+        operationId: id,
+        departmentRole,
+        taskName,
+        ownerName: ownerName || null,
+        dueTime: dueTime || null,
+        location: location || null,
+        blockerReason: blockerReason || null,
+        status,
+        sortOrder: nextSortOrder
+      })
+
+    return res.status(201).json({
+      message: 'Turnaround task created successfully',
+      operation: await getTurnaroundOperationDetails(operation)
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
 exports.createTurnaroundTaskUpdate = async (req, res, next) => {
   try {
     const { id } = req.params
@@ -1148,6 +1591,56 @@ exports.createTurnaroundTaskUpdate = async (req, res, next) => {
 
     return res.status(201).json({
       message: 'Turnaround task update added successfully',
+      operation: operation ? await getTurnaroundOperationDetails(operation) : undefined
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+
+exports.deleteTurnaroundTask = async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    const existingTasks = await db
+      .select()
+      .from(turnaroundTaskTable)
+      .where(eq(turnaroundTaskTable.id, id))
+      .limit(1)
+
+    const existingTask = existingTasks[0]
+
+    if (!existingTask) {
+      return res.status(404).json({ message: 'Turnaround task not found' })
+    }
+
+    const operationRows = await db
+      .select()
+      .from(turnaroundOperationTable)
+      .where(eq(turnaroundOperationTable.id, existingTask.operationId))
+      .limit(1)
+
+    await db
+      .delete(turnaroundTaskDependencyTable)
+      .where(eq(turnaroundTaskDependencyTable.taskId, id))
+
+    await db
+      .delete(turnaroundTaskDependencyTable)
+      .where(eq(turnaroundTaskDependencyTable.dependsOnTaskId, id))
+
+    await db
+      .delete(turnaroundTaskUpdateTable)
+      .where(eq(turnaroundTaskUpdateTable.taskId, id))
+
+    await db
+      .delete(turnaroundTaskTable)
+      .where(eq(turnaroundTaskTable.id, id))
+
+    const operation = operationRows[0]
+
+    return res.status(200).json({
+      message: 'Turnaround task removed successfully',
       operation: operation ? await getTurnaroundOperationDetails(operation) : undefined
     })
   } catch (err) {
@@ -1198,6 +1691,63 @@ exports.updateTurnaroundTaskDetails = async (req, res, next) => {
 
     return res.status(200).json({
       message: 'Turnaround task details updated successfully',
+      operation: operation ? await getTurnaroundOperationDetails(operation) : undefined
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+
+exports.updateTurnaroundHandoff = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const allowedFields = ['status', 'ownerName', 'dueTime', 'notes']
+    const handoffUpdates = {}
+
+    for (const field of allowedFields) {
+      if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+        handoffUpdates[field] = req.body[field] || null
+      }
+    }
+
+    if (handoffUpdates.status === 'COMPLETE') {
+      handoffUpdates.completedAt = new Date().toISOString()
+    } else if (Object.prototype.hasOwnProperty.call(handoffUpdates, 'status')) {
+      handoffUpdates.completedAt = null
+    }
+
+    const handoffRows = await db
+      .select()
+      .from(turnaroundHandoffTable)
+      .where(eq(turnaroundHandoffTable.id, id))
+      .limit(1)
+
+    const handoff = handoffRows[0]
+
+    if (!handoff) {
+      return res.status(404).json({ message: 'Turnaround handoff not found' })
+    }
+
+    if (Object.keys(handoffUpdates).length === 0) {
+      return res.status(400).json({ message: 'At least one turnaround handoff field is required' })
+    }
+
+    await db
+      .update(turnaroundHandoffTable)
+      .set(handoffUpdates)
+      .where(eq(turnaroundHandoffTable.id, id))
+
+    const operationRows = await db
+      .select()
+      .from(turnaroundOperationTable)
+      .where(eq(turnaroundOperationTable.id, handoff.operationId))
+      .limit(1)
+
+    const operation = operationRows[0]
+
+    return res.status(200).json({
+      message: 'Turnaround handoff updated successfully',
       operation: operation ? await getTurnaroundOperationDetails(operation) : undefined
     })
   } catch (err) {
@@ -1458,13 +2008,7 @@ exports.getBookings = async (req, res, next) => {
       return res.status(404).json({ message: 'No bookings found' })
     }
 
-    const bookingDetails = []
-
-    for (const booking of bookings) {
-      bookingDetails.push(await getBookingDetails(booking))
-    }
-
-    return res.status(200).json(bookingDetails)
+    return res.status(200).json(await getBookingDetailsBatch(bookings))
   } catch (err) {
     next(err)
   }
@@ -1513,21 +2057,13 @@ exports.getBookingsByCustomer = async (req, res, next) => {
       return res.status(404).json({ message: 'No bookings found for the specified customer' })
     }
 
-    const bookings = []
+    const bookingRows = await selectByIds(
+      bookingTable,
+      bookingTable.id,
+      passengerRows.map(passengerRow => passengerRow.bookingId)
+    )
 
-    for (const passengerRow of passengerRows) {
-      const bookingRows = await db
-        .select()
-        .from(bookingTable)
-        .where(eq(bookingTable.id, passengerRow.bookingId))
-        .limit(1)
-
-      if (bookingRows[0]) {
-        bookings.push(await getBookingDetails(bookingRows[0]))
-      }
-    }
-
-    return res.status(200).json(bookings)
+    return res.status(200).json(await getBookingDetailsBatch(bookingRows))
   } catch (err) {
     next(err)
   }

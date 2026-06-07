@@ -1,3 +1,4 @@
+const { reactSelectorKeys: rs } = require('./support/reactSelectors')
 const { reactBookings, reactCustomers, selectDemoUserByVisibleRole, visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
 describe('React passenger self-service coverage expansion', () => {
@@ -7,17 +8,17 @@ describe('React passenger self-service coverage expansion', () => {
   })
 
   it('renders passenger-only profile fields prefilled from the selected customer', () => {
-    cy.getByTestId('react-passenger-self-service-panel').should('be.visible')
-    cy.getByTestId('react-passenger-profile-first-name').should('have.value', 'Jay')
-    cy.getByTestId('react-passenger-profile-last-name').should('have.value', 'Gallagher')
-    cy.getByTestId('react-passenger-profile-email').should('have.value', 'jay.react@example.com')
-    cy.getByTestId('react-passenger-profile-phone').should('have.value', '555-0101')
+    cy.getByTestId(rs.passengerSelfServicePanel).should('be.visible')
+    cy.getByTestId(rs.passengerProfileFirstName).should('have.value', 'Jay')
+    cy.getByTestId(rs.passengerProfileLastName).should('have.value', 'Gallagher')
+    cy.getByTestId(rs.passengerProfileEmail).should('have.value', 'jay.react@example.com')
+    cy.getByTestId(rs.passengerProfilePhone).should('have.value', '555-0101')
   })
 
   it('blocks invalid passenger profile email before API mutation', () => {
     cy.intercept('PATCH', '/cruise/customers/react-customer-1/passenger-profile').as('profileShouldNotSave')
-    cy.getByTestId('react-passenger-profile-email').clear().type('not-an-email')
-    cy.getByTestId('react-passenger-profile-submit-button').click()
+    cy.getByTestId(rs.passengerProfileEmail).clear().type('not-an-email')
+    cy.getByTestId(rs.passengerProfileSubmitButton).click()
     cy.get('@profileShouldNotSave.all').should('have.length', 0)
   })
 
@@ -36,59 +37,73 @@ describe('React passenger self-service coverage expansion', () => {
     cy.intercept('GET', '/cruise/customers', reactCustomers).as('reloadPassengerCustomers')
     cy.intercept('GET', '/cruise/bookings', reactBookings).as('reloadPassengerBookings')
 
-    cy.getByTestId('react-passenger-profile-email').clear().type('jay.updated@example.com')
-    cy.getByTestId('react-passenger-profile-phone').clear().type('555-1212')
-    cy.getByTestId('react-dining-preference-select').select('Early seating')
-    cy.getByTestId('react-passenger-profile-accessibility-notes').clear().type('Close to elevators')
-    cy.getByTestId('react-passenger-profile-submit-button').click()
+    cy.getByTestId(rs.passengerProfileEmail).clear().type('jay.updated@example.com')
+    cy.getByTestId(rs.passengerProfilePhone).clear().type('555-1212')
+    cy.getByTestId(rs.diningPreferenceSelect).select('Early seating')
+    cy.getByTestId(rs.passengerProfileAccessibilityNotes).clear().type('Close to elevators')
+    cy.getByTestId(rs.passengerProfileSubmitButton).click()
     cy.wait('@savePassengerProfileFull')
-    cy.getByTestId('react-passenger-profile-message').should('contain.text', 'Passenger profile updated successfully')
+    cy.getByTestId(rs.passengerProfileMessage).should('contain.text', 'Passenger profile updated successfully')
   })
 
   it('surfaces passenger profile API errors and keeps the form editable', () => {
     cy.intercept('PATCH', '/cruise/customers/react-customer-1/passenger-profile', { statusCode: 500, body: { message: 'Profile unavailable' } }).as('profileSaveFailure')
-    cy.getByTestId('react-passenger-profile-phone').clear().type('555-3434')
-    cy.getByTestId('react-passenger-profile-submit-button').click()
+    cy.getByTestId(rs.passengerProfilePhone).clear().type('555-3434')
+    cy.getByTestId(rs.passengerProfileSubmitButton).click()
     cy.wait('@profileSaveFailure')
-    cy.getByTestId('react-passenger-profile-message').should('contain.text', 'Profile unavailable')
-    cy.getByTestId('react-passenger-profile-phone').should('have.value', '555-3434')
+    cy.getByTestId(rs.passengerProfileMessage).should('contain.text', 'Profile unavailable')
+    cy.getByTestId(rs.passengerProfilePhone).should('have.value', '555-3434')
   })
 
   it('opens and closes booking detail panels independently', () => {
-    cy.getByTestId('react-role-booking-card').eq(0).within(() => {
-      cy.getByTestId('react-role-booking-details-toggle').click()
-      cy.getByTestId('react-role-booking-details').should('be.visible')
+    cy.getByTestId(rs.roleBookingCard).eq(0).within(() => {
+      cy.getByTestId(rs.roleBookingDetailsToggle).click()
+      cy.getByTestId(rs.roleBookingDetails).should('be.visible')
     })
-    cy.getByTestId('react-role-booking-card').eq(1).within(() => {
-      cy.getByTestId('react-role-booking-details-toggle').click()
-      cy.getByTestId('react-role-booking-details').should('be.visible')
+    cy.getByTestId(rs.roleBookingCard).eq(1).within(() => {
+      cy.getByTestId(rs.roleBookingDetailsToggle).click()
+      cy.getByTestId(rs.roleBookingDetails).should('be.visible')
     })
-    cy.getByTestId('react-role-booking-details').should('have.length', 2)
-    cy.getByTestId('react-role-booking-card').eq(1).within(() => {
-      cy.getByTestId('react-role-booking-details-toggle').click()
-      cy.getByTestId('react-role-booking-details').should('not.exist')
+    cy.getByTestId(rs.roleBookingDetails).should('have.length', 2)
+    cy.getByTestId(rs.roleBookingCard).eq(1).within(() => {
+      cy.getByTestId(rs.roleBookingDetailsToggle).click()
+      cy.getByTestId(rs.roleBookingDetails).should('not.exist')
     })
-    cy.getByTestId('react-role-booking-details').should('have.length', 1)
+    cy.getByTestId(rs.roleBookingDetails).should('have.length', 1)
   })
 
   it('shows empty favorite itinerary activity state before selecting favorites', () => {
-    cy.getByTestId('react-role-booking-card').first().within(() => {
-      cy.getByTestId('react-role-booking-details-toggle').click()
-      cy.getByTestId('react-role-favorites-only-toggle').check()
-      cy.getByTestId('react-role-no-favorite-itinerary').should('be.visible')
+    cy.getByTestId(rs.roleBookingCard).first().within(() => {
+      cy.getByTestId(rs.roleBookingDetailsToggle).click()
+      cy.getByTestId(rs.roleFavoritesOnlyToggle).check()
+      cy.getByTestId(rs.roleNoFavoriteItinerary).should('be.visible')
     })
   })
 
   it('shows all itinerary activities again after clearing favorites-only filter', () => {
-    cy.getByTestId('react-role-booking-card').first().within(() => {
-      cy.getByTestId('react-role-booking-details-toggle').click()
-      cy.getByTestId('react-role-favorite-itinerary-toggle').eq(1).check()
-      cy.getByTestId('react-role-favorites-only-toggle').check()
-      cy.getByTestId('react-role-itinerary-day').should('have.length.at.least', 1)
-      cy.getByTestId('react-role-itinerary-activity').should('have.length', 1)
-      cy.getByTestId('react-role-favorites-only-toggle').uncheck()
-      cy.getByTestId('react-role-itinerary-day').should('have.length', 2)
-      cy.getByTestId('react-role-itinerary-activity').should('have.length.greaterThan', 1)
+    cy.getByTestId(rs.roleBookingCard).first().within(() => {
+      cy.getByTestId(rs.roleBookingDetailsToggle).click()
+      cy.getByTestId(rs.roleFavoriteItineraryToggle).eq(1).check()
+      cy.getByTestId(rs.roleFavoritesOnlyToggle).check()
+      cy.getByTestId(rs.roleItineraryDay).should('have.length.at.least', 1)
+      cy.getByTestId(rs.roleItineraryActivity).should('have.length', 1)
+      cy.getByTestId(rs.roleFavoritesOnlyToggle).uncheck()
+      cy.getByTestId(rs.roleItineraryDay).should('have.length', 2)
+      cy.getByTestId(rs.roleItineraryActivity).should('have.length.greaterThan', 1)
+    })
+  })
+
+  it('lets passengers find and select an existing guest from searchable cards instead of a giant dropdown', () => {
+    cy.getByTestId(rs.passengerBookingWorkflow).should('be.visible')
+    cy.getByTestId(rs.bookingAddGuestButton).click()
+
+    cy.getByTestId(rs.bookingGuestCard).eq(1).within(() => {
+      cy.getByTestId(rs.bookingGuestFinder).should('be.visible')
+      cy.getByTestId(rs.bookingGuestSearchInput).type('Alisa')
+      cy.getByTestId(rs.bookingGuestResultCard).should('have.length', 1).and('contain.text', 'Alisa Gallagher')
+      cy.getByTestId(rs.bookingGuestResultCard).first().click()
+      cy.getByTestId(rs.bookingSelectedGuestCard).should('contain.text', 'Alisa Gallagher')
+      cy.getByTestId(rs.bookingGuestResults).should('contain.text', 'React Icon')
     })
   })
 
@@ -170,46 +185,46 @@ describe('React passenger self-service coverage expansion', () => {
       }])
     }).as('passengerBookingReloadBookings')
 
-    cy.getByTestId('react-passenger-booking-workflow').should('be.visible')
-    cy.getByTestId('react-booking-cruise-line-search').type('Royal')
-    cy.getByTestId('react-booking-cruise-line-select').select('Royal Caribbean International')
+    cy.getByTestId(rs.passengerBookingWorkflow).should('be.visible')
+    cy.getByTestId(rs.bookingCruiseLineSearch).type('Royal')
+    cy.getByTestId(rs.bookingCruiseLineSelect).select('Royal Caribbean International')
     cy.wait('@passengerBookingShips')
-    cy.getByTestId('react-booking-ship-select').select('React Icon')
+    cy.getByTestId(rs.bookingShipSelect).select('React Icon')
     cy.wait('@passengerBookingSailings')
-    cy.getByTestId('react-booking-destination-search').type('CocoCay')
-    cy.getByTestId('react-booking-duration-filter').select('4')
-    cy.getByTestId('react-booking-sailing-select').select('2027-03-14 — Miami, Florida to CocoCay (4 nights)')
-    cy.getByTestId('react-booking-fare-code-select').select('Balcony')
-    cy.getByTestId('react-booking-cabin-input').clear().type('Balcony near elevators')
-    cy.getByTestId('react-booking-add-guest-button').click()
-    cy.getByTestId('react-booking-guest-card').eq(1).within(() => {
-      cy.getByTestId('react-booking-guest-mode-select').select('New guest')
-      cy.getByTestId('react-booking-new-guest-first-name').type('Taylor')
-      cy.getByTestId('react-booking-new-guest-last-name').type('Guest')
-      cy.getByTestId('react-booking-new-guest-email').type('taylor.guest@example.com')
-      cy.getByTestId('react-booking-new-guest-phone').type('555-3333')
-      cy.getByTestId('react-booking-guest-dining-select').select('Early seating')
+    cy.getByTestId(rs.bookingDestinationSearch).type('CocoCay')
+    cy.getByTestId(rs.bookingDurationFilter).select('4')
+    cy.getByTestId(rs.bookingSailingSelect).select('2027-03-14 — Miami, Florida to CocoCay (4 nights)')
+    cy.getByTestId(rs.bookingFareCodeSelect).select('Balcony')
+    cy.getByTestId(rs.bookingCabinInput).clear().type('Balcony near elevators')
+    cy.getByTestId(rs.bookingAddGuestButton).click()
+    cy.getByTestId(rs.bookingGuestCard).eq(1).within(() => {
+      cy.getByTestId(rs.bookingGuestModeSelect).select('New guest')
+      cy.getByTestId(rs.bookingNewGuestFirstName).type('Taylor')
+      cy.getByTestId(rs.bookingNewGuestLastName).type('Guest')
+      cy.getByTestId(rs.bookingNewGuestEmail).type('taylor.guest@example.com')
+      cy.getByTestId(rs.bookingNewGuestPhone).type('555-3333')
+      cy.getByTestId(rs.bookingGuestDiningSelect).select('Early seating')
     })
-    cy.getByTestId('react-booking-submit-button').click()
+    cy.getByTestId(rs.bookingSubmitButton).click()
     cy.wait('@passengerBookingCreateGuest')
     cy.wait('@passengerBookingCreateBooking')
     cy.wait('@passengerBookingReloadCustomers')
     cy.wait('@passengerBookingReloadBookings')
-    cy.getByTestId('react-booking-status-message').should('contain.text', 'Booking request')
-    cy.getByTestId('react-role-booking-card').should('have.length', 3)
-    cy.getByTestId('react-role-booking-card').last().should('contain.text', 'REQUESTED').and('contain.text', 'React Icon').and('contain.text', 'Balcony near elevators')
+    cy.getByTestId(rs.bookingStatusMessage).should('contain.text', 'Booking request')
+    cy.getByTestId(rs.roleBookingCard).should('have.length', 3)
+    cy.getByTestId(rs.roleBookingCard).last().should('contain.text', 'REQUESTED').and('contain.text', 'React Icon').and('contain.text', 'Balcony near elevators')
   })
 
   it('validates passenger booking selections and new guest required fields before API submission', () => {
     cy.intercept('POST', '/cruise/bookings').as('bookingShouldNotPost')
-    cy.getByTestId('react-booking-submit-button').click()
-    cy.getByTestId('react-booking-status-message').should('contain.text', 'Cruise line, ship, and sailing date are required')
+    cy.getByTestId(rs.bookingSubmitButton).click()
+    cy.getByTestId(rs.bookingStatusMessage).should('contain.text', 'Cruise line, ship, and sailing date are required')
     cy.get('@bookingShouldNotPost.all').should('have.length', 0)
   })
 
   it('removes passenger self-service when switching back to admin', () => {
     selectDemoUserByVisibleRole('Admin')
-    cy.getByTestId('react-passenger-self-service-panel').should('not.exist')
-    cy.getByTestId('react-admin-hierarchy').should('be.visible')
+    cy.getByTestId(rs.passengerSelfServicePanel).should('not.exist')
+    cy.getByTestId(rs.adminHierarchy).should('be.visible')
   })
 })

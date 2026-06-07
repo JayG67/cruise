@@ -1,3 +1,4 @@
+const { reactSelectorKeys: rs } = require('./support/reactSelectors')
 const {
   openFirstReactFleetShips,
   openFirstReactSailingItinerary,
@@ -15,77 +16,77 @@ describe('React production deep-dive coverage', () => {
   })
 
   it('keeps the product UI free of implementation-history route controls and review-only panels', () => {
-    cy.getByTestId('react-retired-route-nav').should('not.exist')
-    cy.getByTestId('react-release-readiness-section').should('not.exist')
-    cy.getByTestId('react-active-route-evidence-panel').should('not.exist')
+    cy.getByTestId(rs.retiredRouteNav).should('not.exist')
+    cy.getByTestId(rs.releaseReadinessSection).should('not.exist')
+    cy.getByTestId(rs.activeRouteEvidencePanel).should('not.exist')
     cy.contains('Portfolio evidence for cruise-line software engineering roles').should('not.exist')
     cy.contains('Cruise operations command center').should('not.exist')
   })
 
   it('drives every primary workspace button to a working application area', () => {
-    cy.getByTestId('react-workspace-role-button').click()
-    cy.getByTestId('react-role-selector').should('be.visible')
+    cy.getByTestId(rs.workspaceRoleButton).click()
+    cy.getByTestId(rs.roleSelector).should('be.visible')
 
-    cy.getByTestId('react-workspace-operations-button').click()
-    cy.getByTestId('react-active-route-operations').should('be.visible')
+    cy.getByTestId(rs.workspaceOperationsButton).click()
+    cy.getByTestId(rs.activeRouteOperations).should('be.visible')
 
-    cy.getByTestId('react-workspace-fleet-button').click()
-    cy.getByTestId('react-fleet-directory').should('be.visible')
+    cy.getByTestId(rs.workspaceFleetButton).click()
+    cy.getByTestId(rs.fleetDirectory).should('be.visible')
 
-    cy.getByTestId('react-workspace-quality-button').click()
-    cy.getByTestId('react-sqa-console').should('be.visible')
+    cy.getByTestId(rs.workspaceQualityButton).click()
+    cy.getByTestId(rs.sqaConsole).should('be.visible')
   })
 
   it('keeps the product hero focused on the React app and SQA console', () => {
-    cy.getByTestId('react-production-hero').within(() => {
-      cy.getByTestId('react-hero-quality-button').should('contain.text', 'Open SQA Console')
+    cy.getByTestId(rs.productionHero).within(() => {
+      cy.getByTestId(rs.heroQualityButton).should('contain.text', 'Open SQA Console')
       cy.contains('Open Retired Pre-React App').should('not.exist')
     })
-    cy.getByTestId('react-workspace-quality-button').click()
-    cy.getByTestId('react-sqa-console').should('be.visible')
+    cy.getByTestId(rs.workspaceQualityButton).click()
+    cy.getByTestId(rs.sqaConsole).should('be.visible')
   })
 
   it('removes passenger detail state when returning to admin operations', () => {
     selectDemoUserByVisibleRole('Passenger')
-    cy.getByTestId('react-role-booking-card').first().within(() => {
-      cy.getByTestId('react-role-booking-details-toggle').click()
-      cy.getByTestId('react-role-booking-details').should('be.visible')
+    cy.getByTestId(rs.roleBookingCard).first().within(() => {
+      cy.getByTestId(rs.roleBookingDetailsToggle).click()
+      cy.getByTestId(rs.roleBookingDetails).should('be.visible')
     })
 
     selectDemoUserByVisibleRole('Admin')
-    cy.getByTestId('react-role-booking-details').should('not.exist')
-    cy.getByTestId('react-active-route-operations').should('be.visible')
-    cy.getByTestId('react-sqa-console').should('be.visible')
+    cy.getByTestId(rs.roleBookingDetails).should('not.exist')
+    cy.getByTestId(rs.activeRouteOperations).should('be.visible')
+    cy.getByTestId(rs.sqaConsole).should('be.visible')
   })
 
   it('limits the group leader dashboard to group-visible bookings and manifest rows', () => {
     selectDemoUserByVisibleRole('Group Leader')
-    cy.getByTestId('react-passenger-dashboard')
+    cy.getByTestId(rs.passengerDashboard)
       .should('contain.text', 'Group leader dashboard loaded with passenger-manifest visibility.')
     cy.get('#react-role-dashboard-heading').should('contain.text', 'Group booking dashboard')
-    cy.getByTestId('react-role-booking-card').should('have.length', 1)
-    cy.getByTestId('react-role-booking-card').first()
+    cy.getByTestId(rs.roleBookingCard).should('have.length', 1)
+    cy.getByTestId(rs.roleBookingCard).first()
       .should('contain.text', 'react-booking-2')
       .and('contain.text', 'Group Leader')
       .and('not.contain.text', 'react-booking-1')
 
-    cy.getByTestId('react-role-booking-details-toggle').click()
-    cy.getByTestId('react-role-detail-passenger-row').should('contain.text', 'Morgan Leader')
+    cy.getByTestId(rs.roleBookingDetailsToggle).click()
+    cy.getByTestId(rs.roleDetailPassengerRow).should('contain.text', 'Morgan Leader')
   })
 
   it('cancels ship deletion without calling the API or losing selected fleet context', () => {
     openFirstReactFleetShips()
     cy.intercept('DELETE', `/cruise/ship/${reactShips[0].id}`).as('shipDeleteShouldNotRun')
 
-    cy.getByTestId('react-ship-card').first().within(() => {
-      cy.getByTestId('react-delete-ship-button').click()
+    cy.getByTestId(rs.shipCard).first().within(() => {
+      cy.getByTestId(rs.deleteShipButton).click()
     })
-    cy.getByTestId('react-fleet-delete-confirmation').should('contain.text', 'React Icon')
-    cy.getByTestId('react-fleet-delete-confirmation-cancel').click()
-    cy.getByTestId('react-fleet-delete-confirmation').should('not.exist')
+    cy.getByTestId(rs.fleetDeleteConfirmation).should('contain.text', 'React Icon')
+    cy.getByTestId(rs.fleetDeleteConfirmationCancel).click()
+    cy.getByTestId(rs.fleetDeleteConfirmation).should('not.exist')
     cy.get('@shipDeleteShouldNotRun.all').should('have.length', 0)
-    cy.getByTestId('react-selected-ships-panel').should('contain.text', 'Royal Caribbean International')
-    cy.getByTestId('react-ship-card').should('have.length', 2)
+    cy.getByTestId(rs.selectedShipsPanel).should('contain.text', 'Royal Caribbean International')
+    cy.getByTestId(rs.shipCard).should('have.length', 2)
   })
 
   it('deletes a sailing through confirmation and refreshes the selected ship sailings', () => {
@@ -98,13 +99,13 @@ describe('React production deep-dive coverage', () => {
     }).as('deleteReactSailing')
     cy.intercept('GET', `/cruise/ship/${reactShips[0].id}/sailings`, [reactSailings[1]]).as('reloadReactSailingsAfterDelete')
 
-    cy.getByTestId('react-sailing-card').first().within(() => {
-      cy.getByTestId('react-delete-sailing-button').click()
+    cy.getByTestId(rs.sailingCard).first().within(() => {
+      cy.getByTestId(rs.deleteSailingButton).click()
     })
-    cy.getByTestId('react-fleet-delete-confirmation-confirm').click()
+    cy.getByTestId(rs.fleetDeleteConfirmationConfirm).click()
     cy.wait('@deleteReactSailing')
     cy.wait('@reloadReactSailingsAfterDelete')
-    cy.getByTestId('react-sailing-card').should('have.length', 1).and('contain.text', reactSailings[1].departureDate)
+    cy.getByTestId(rs.sailingCard).should('have.length', 1).and('contain.text', reactSailings[1].departureDate)
   })
 
   it('cancels itinerary activity deletion before the destructive request is sent', () => {
@@ -113,13 +114,13 @@ describe('React production deep-dive coverage', () => {
     openFirstReactSailingItinerary()
 
     cy.intercept('DELETE', `/cruise/activities/${reactItinerary[0].activitySchedule[0].id}`).as('activityDeleteShouldNotRun')
-    cy.getByTestId('react-itinerary-activity').first().within(() => {
-      cy.getByTestId('react-delete-itinerary-activity-button').click()
+    cy.getByTestId(rs.itineraryActivity).first().within(() => {
+      cy.getByTestId(rs.deleteItineraryActivityButton).click()
     })
-    cy.getByTestId('react-fleet-delete-confirmation').should('contain.text', 'Terminal arrival')
-    cy.getByTestId('react-fleet-delete-confirmation-cancel').click()
+    cy.getByTestId(rs.fleetDeleteConfirmation).should('contain.text', 'Terminal arrival')
+    cy.getByTestId(rs.fleetDeleteConfirmationCancel).click()
     cy.get('@activityDeleteShouldNotRun.all').should('have.length', 0)
-    cy.getByTestId('react-itinerary-activity').should('have.length', 3)
+    cy.getByTestId(rs.itineraryActivity).should('have.length', 3)
   })
 
   it('deletes an itinerary activity and reloads the itinerary detail panel', () => {
@@ -142,14 +143,14 @@ describe('React production deep-dive coverage', () => {
     }).as('deleteReactActivity')
     cy.intercept('GET', `/cruise/sailings/${reactSailings[0].id}/itinerary`, updatedItinerary).as('reloadReactItineraryAfterActivityDelete')
 
-    cy.getByTestId('react-itinerary-activity').first().within(() => {
-      cy.getByTestId('react-delete-itinerary-activity-button').click()
+    cy.getByTestId(rs.itineraryActivity).first().within(() => {
+      cy.getByTestId(rs.deleteItineraryActivityButton).click()
     })
-    cy.getByTestId('react-fleet-delete-confirmation-confirm').click()
+    cy.getByTestId(rs.fleetDeleteConfirmationConfirm).click()
     cy.wait('@deleteReactActivity')
     cy.wait('@reloadReactItineraryAfterActivityDelete')
-    cy.getByTestId('react-itinerary-activity').should('have.length', 2)
-    cy.getByTestId('react-itinerary-activity').should('not.contain.text', 'Terminal arrival')
+    cy.getByTestId(rs.itineraryActivity).should('have.length', 2)
+    cy.getByTestId(rs.itineraryActivity).should('not.contain.text', 'Terminal arrival')
   })
 
   it('keeps SQA reset confirmation explicit and refreshes app data after success', () => {
@@ -161,14 +162,14 @@ describe('React production deep-dive coverage', () => {
     cy.intercept('GET', '/cruise/bookings', []).as('reloadBookingsAfterReset')
     cy.intercept('GET', '/cruise', []).as('reloadCruiseLinesAfterReset')
 
-    cy.getByTestId('react-sqa-reset-demo-data-button').click()
-    cy.getByTestId('react-sqa-reset-confirmation').should('be.visible')
-    cy.getByTestId('react-sqa-reset-confirmation-confirm').click()
+    cy.getByTestId(rs.sqaResetDemoDataButton).click()
+    cy.getByTestId(rs.sqaResetConfirmation).should('be.visible')
+    cy.getByTestId(rs.sqaResetConfirmationConfirm).click()
     cy.wait('@resetDemoData')
     cy.wait('@reloadCustomersAfterReset')
     cy.wait('@reloadBookingsAfterReset')
     cy.wait('@reloadCruiseLinesAfterReset')
-    cy.getByTestId('react-sqa-output').should('contain.text', 'Demo Data Recovery Result')
-    cy.getByTestId('react-sqa-status').should('contain.text', 'Ready for validation')
+    cy.getByTestId(rs.sqaOutput).should('contain.text', 'Demo Data Recovery Result')
+    cy.getByTestId(rs.sqaStatus).should('contain.text', 'Ready for validation')
   })
 })

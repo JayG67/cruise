@@ -53,7 +53,7 @@ function LazySectionFallback({ label }) {
 export default function App() {
   const applicationDataReady = useDeferredApplicationData()
   const { snapshot, isLoading, error, reload, reloadNow } = useAdminHierarchySnapshot({ enabled: applicationDataReady })
-  const { turnaroundOperations, isLoading: turnaroundLoading, error: turnaroundError, reload: reloadTurnaroundOperations, updateTaskStatus: updateTurnaroundTaskStatus, updateTaskDetails: updateTurnaroundTaskDetails, createTaskUpdate: createTurnaroundTaskUpdate, updateSignoff: updateTurnaroundSignoff, updatingTaskId: updatingTurnaroundTaskId, updatingTaskDetailsId: updatingTurnaroundTaskDetailsId, creatingTaskUpdateId: creatingTurnaroundTaskUpdateId, updatingSignoffKey: updatingTurnaroundSignoffKey, mutationStatus: turnaroundMutationStatus, mutationError: turnaroundMutationError } = useTurnaroundOperations({ enabled: applicationDataReady })
+  const { turnaroundOperations, isLoading: turnaroundLoading, error: turnaroundError, reload: reloadTurnaroundOperations, updateOperationCommand: updateTurnaroundOperationCommand, updateTaskStatus: updateTurnaroundTaskStatus, updateTaskDetails: updateTurnaroundTaskDetails, createTask: createTurnaroundTask, createTaskUpdate: createTurnaroundTaskUpdate, deleteTask: deleteTurnaroundTask, updateStaffing: updateTurnaroundStaffing, updateSignoff: updateTurnaroundSignoff, createEscalation: createTurnaroundEscalation, updateEscalation: updateTurnaroundEscalation, updateHandoff: updateTurnaroundHandoff, updatingOperationId: updatingTurnaroundOperationId, updatingTaskId: updatingTurnaroundTaskId, updatingTaskDetailsId: updatingTurnaroundTaskDetailsId, creatingTaskId: creatingTurnaroundTaskId, creatingTaskUpdateId: creatingTurnaroundTaskUpdateId, deletingTaskId: deletingTurnaroundTaskId, updatingStaffingKey: updatingTurnaroundStaffingKey, updatingSignoffKey: updatingTurnaroundSignoffKey, creatingEscalationId: creatingTurnaroundEscalationId, updatingEscalationId: updatingTurnaroundEscalationId, updatingHandoffId: updatingTurnaroundHandoffId, mutationStatus: turnaroundMutationStatus, mutationError: turnaroundMutationError } = useTurnaroundOperations({ enabled: applicationDataReady })
   const { cruiseLines, isLoading: fleetLoading, isRefreshing: fleetRefreshing, error: fleetError, reload: reloadFleet } = useCruiseLines({ enabled: applicationDataReady })
   const { demoUsers, filteredDemoUsers, availableRoles, selectedRole, selectedDemoUser, selectedDemoUserId, setSelectedDemoUserId, setSelectedRole, isLoading: demoUsersLoading, error: demoUsersError } = useDemoUsers({ enabled: applicationDataReady })
   const [roleSwitchRequest, setRoleSwitchRequest] = useState(null)
@@ -248,6 +248,7 @@ export default function App() {
         bookingCount={snapshot.bookings.length}
         demoUsers={demoUsers}
         filteredDemoUsers={filteredDemoUsers}
+        bookings={snapshot.bookings}
         availableRoles={availableRoles}
         selectedRole={selectedRole}
         selectedDemoUser={selectedDemoUser}
@@ -308,14 +309,28 @@ export default function App() {
           isLoadingTurnaroundOperations={turnaroundLoading}
           turnaroundOperationsError={turnaroundError}
           onRetryTurnaroundOperations={reloadTurnaroundOperations}
+          onUpdateTurnaroundOperationCommand={updateTurnaroundOperationCommand}
           onUpdateTurnaroundTaskStatus={updateTurnaroundTaskStatus}
           onUpdateTurnaroundTaskDetails={updateTurnaroundTaskDetails}
+          onCreateTurnaroundTask={createTurnaroundTask}
           onCreateTurnaroundTaskUpdate={createTurnaroundTaskUpdate}
+          onDeleteTurnaroundTask={deleteTurnaroundTask}
+          onUpdateTurnaroundStaffing={updateTurnaroundStaffing}
           onUpdateTurnaroundSignoff={updateTurnaroundSignoff}
+          onCreateTurnaroundEscalation={createTurnaroundEscalation}
+          onUpdateTurnaroundEscalation={updateTurnaroundEscalation}
+          onUpdateTurnaroundHandoff={updateTurnaroundHandoff}
+          updatingTurnaroundOperationId={updatingTurnaroundOperationId}
           updatingTurnaroundTaskId={updatingTurnaroundTaskId}
           updatingTurnaroundTaskDetailsId={updatingTurnaroundTaskDetailsId}
+          creatingTurnaroundTaskId={creatingTurnaroundTaskId}
           creatingTurnaroundTaskUpdateId={creatingTurnaroundTaskUpdateId}
+          deletingTurnaroundTaskId={deletingTurnaroundTaskId}
+          updatingTurnaroundStaffingKey={updatingTurnaroundStaffingKey}
           updatingTurnaroundSignoffKey={updatingTurnaroundSignoffKey}
+          creatingTurnaroundEscalationId={creatingTurnaroundEscalationId}
+          updatingTurnaroundEscalationId={updatingTurnaroundEscalationId}
+          updatingTurnaroundHandoffId={updatingTurnaroundHandoffId}
           turnaroundMutationStatus={turnaroundMutationStatus}
           turnaroundMutationError={turnaroundMutationError}
           onSavePassengerProfile={saveCustomerProfile}
