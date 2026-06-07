@@ -235,7 +235,9 @@ export default function CustomerBookingHierarchy({
   }
 
 
-  if (isLoading) {
+  const isInitialLoading = isLoading && customers.length === 0 && bookings.length === 0
+
+  if (isInitialLoading) {
     return <p role="status" className="status-card">Loading customer and booking workspace…</p>
   }
 
@@ -285,6 +287,10 @@ export default function CustomerBookingHierarchy({
             <h4>Create and delete customer or booking records</h4>
             <p>These workflows exercise customer and booking mutation boundaries in the same place recruiters can review the operating model. Contextual row actions let admins delete records from the workflow they are already reviewing instead of copying IDs into a separate form.</p>
           </div>
+
+          {isLoading && (
+            <p className="draft-message" role="status" data-testid="react-admin-refresh-status">Refreshing customer and booking workspace…</p>
+          )}
 
           {adminMutationMessage && (
             <p className="draft-message" role="status" data-testid="react-admin-mutation-message">{adminMutationMessage}</p>

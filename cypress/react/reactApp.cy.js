@@ -280,6 +280,9 @@ describe('Cruise operations portfolio route', () => {
 
 
   it('creates and deletes React admin customers and bookings', () => {
+    cy.intercept('GET', '/cruise/customers').as('refreshAdminCrudCustomers')
+    cy.intercept('GET', '/cruise/bookings').as('refreshAdminCrudBookings')
+
     cy.intercept('POST', '/cruise/customers', req => {
       expect(req.body).to.include({
         firstName: 'React',
