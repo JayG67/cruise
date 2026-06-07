@@ -329,8 +329,9 @@ describe('Cruise operations portfolio route', () => {
     cy.getByTestId(rs.adminCreateCustomerSubmit).click()
     cy.wait('@createReactCustomer')
     cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'React Admin was created')
+    cy.getByTestId(rs.adminCreateBookingForm).should('be.visible')
 
-    cy.getByTestId(rs.adminCreateBookingCustomerId).clear().type('react-customer-created')
+    cy.getByTestId(rs.adminCreateBookingCustomerId).should('be.enabled').clear().type('react-customer-created')
     cy.getByTestId(rs.adminCreateBookingStatus).clear().type('CONFIRMED')
     cy.getByTestId(rs.adminCreateBookingCabin).clear().type('R100')
     cy.getByTestId(rs.adminCreateBookingFare).clear().type('RX')

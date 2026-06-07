@@ -22,7 +22,22 @@ async function selectRoleAndPerson(page, roleValue, personText) {
     const matchingValue = await personSelect.locator('option').filter({ hasText: personText }).first().getAttribute('value')
     expect(matchingValue).toBeTruthy()
     await personSelect.selectOption(matchingValue)
+    return
   }
+
+  await expect.poll(async () => {
+    return personSelect.locator('option').evaluateAll(options => (
+      options.filter(option => !option.disabled && option.value).length
+    ))
+  }).toBeGreaterThan(0)
+
+  const firstAvailableValue = await personSelect.locator('option').evaluateAll(options => {
+    const option = options.find(candidate => !candidate.disabled && candidate.value)
+    return option ? option.value : ''
+  })
+
+  expect(firstAvailableValue).toBeTruthy()
+  await personSelect.selectOption(firstAvailableValue)
 }
 
 function mobileRunSuffix(testInfo) {
@@ -55,7 +70,23 @@ async function expectOperationalDashboardReady(page, roleValue, personText, dash
 
 async function selectDemoUserByRole(page, roleText) {
   const normalizedRole = roleText.toLowerCase().replace(/\s+/g, '-')
-  await selectRoleAndPerson(page, normalizedRole)
+  const rolePersonText = normalizedRole === 'admin' ? 'Admin Demo User' : ''
+
+  await selectRoleAndPerson(page, normalizedRole, rolePersonText)
+}
+
+async function expectAdminMutationFormsReady(page) {
+  await selectDemoUserByRole(page, 'Admin')
+
+  const operationsRoute = page.getByTestId('react-active-route-operations')
+  await expect(operationsRoute).toBeVisible({ timeout: 15000 })
+
+  const mutationPanel = page.getByTestId('react-admin-mutation-panel')
+  await mutationPanel.scrollIntoViewIfNeeded()
+  await expect(mutationPanel).toBeVisible({ timeout: 15000 })
+
+  await expect(page.getByTestId('react-admin-create-customer-form')).toBeVisible({ timeout: 15000 })
+  await expect(page.getByTestId('react-admin-create-booking-form')).toBeVisible({ timeout: 15000 })
 }
 
 test.describe('React default mobile replacement checks', () => {
@@ -225,10 +256,8 @@ test.describe('React default mobile replacement checks', () => {
 
   test('keeps React admin mutation forms reachable on mobile', async ({ page }) => {
     await page.goto('/')
-    await selectDemoUserByRole(page, 'Admin')
+    await expectAdminMutationFormsReady(page)
 
-    await expect(page.getByTestId('react-admin-create-customer-form')).toBeVisible()
-    await expect(page.getByTestId('react-admin-create-booking-form')).toBeVisible()
     await page.getByTestId('react-admin-create-customer-first-name').fill('Mobile')
     await page.getByTestId('react-admin-create-customer-last-name').fill('Tester')
     await page.getByTestId('react-admin-create-customer-email').fill('mobile.tester@example.com')

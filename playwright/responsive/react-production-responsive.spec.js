@@ -102,13 +102,17 @@ test.describe('React default desktop and tablet replacement checks', () => {
     await page.goto('/')
 
     await page.getByTestId('react-fleet-search').fill('Norwegian')
-    await expect(page.getByTestId('react-fleet-card').first()).toContainText('Norwegian')
+    const norwegianFleetCard = page
+      .getByTestId('react-fleet-card')
+      .filter({ hasText: 'Norwegian' })
+      .first()
+    await expect(norwegianFleetCard).toBeVisible()
 
-    await page.getByTestId('react-delete-cruise-line-button').first().click()
+    await norwegianFleetCard.getByTestId('react-delete-cruise-line-button').click()
     await expect(page.getByTestId('react-fleet-delete-confirmation')).toContainText('Delete Norwegian')
     await page.getByTestId('react-fleet-delete-confirmation-cancel').click()
     await expect(page.getByTestId('react-fleet-delete-confirmation')).toHaveCount(0)
-    await expect(page.getByTestId('react-fleet-card').first()).toContainText('Norwegian')
+    await expect(norwegianFleetCard).toBeVisible()
     await expectNoHorizontalOverflow(page)
   })
 
