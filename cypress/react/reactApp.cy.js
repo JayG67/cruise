@@ -19,6 +19,15 @@ function selectDemoUserByVisibleRole(roleText) {
     })
 }
 
+
+function fillReactInput(selectorKey, value) {
+  cy.getByTestId(selectorKey).should('be.visible').and('not.be.disabled')
+  cy.getByTestId(selectorKey).clear()
+  cy.getByTestId(selectorKey).should('be.visible').and('not.be.disabled')
+  cy.getByTestId(selectorKey).type(value)
+  cy.getByTestId(selectorKey).should('have.value', value)
+}
+
 function visitReactAppAsAdmin() {
   cy.visit('/')
   cy.getByTestId(rs.demoUserSelect).should('be.visible')
@@ -321,34 +330,34 @@ describe('Cruise operations portfolio route', () => {
       body: { deleted: true }
     }).as('deleteReactBooking')
 
-    cy.getByTestId(rs.adminCreateCustomerFirstName).type('React')
-    cy.getByTestId(rs.adminCreateCustomerLastName).type('Admin')
-    cy.getByTestId(rs.adminCreateCustomerEmail).type('react.admin@example.com')
-    cy.getByTestId(rs.adminCreateCustomerPhone).type('555-0101')
-    cy.getByTestId(rs.adminCreateCustomerLoyalty).type('RX-100')
+    fillReactInput(rs.adminCreateCustomerFirstName, 'React')
+    fillReactInput(rs.adminCreateCustomerLastName, 'Admin')
+    fillReactInput(rs.adminCreateCustomerEmail, 'react.admin@example.com')
+    fillReactInput(rs.adminCreateCustomerPhone, '555-0101')
+    fillReactInput(rs.adminCreateCustomerLoyalty, 'RX-100')
     cy.getByTestId(rs.adminCreateCustomerSubmit).click()
     cy.wait('@createReactCustomer')
     cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'React Admin was created')
     cy.getByTestId(rs.adminCreateBookingForm).should('be.visible')
 
-    cy.getByTestId(rs.adminCreateBookingCustomerId).should('be.enabled').clear().type('react-customer-created')
-    cy.getByTestId(rs.adminCreateBookingStatus).clear().type('CONFIRMED')
-    cy.getByTestId(rs.adminCreateBookingCabin).clear().type('R100')
-    cy.getByTestId(rs.adminCreateBookingFare).clear().type('RX')
-    cy.getByTestId(rs.adminCreateBookingEmbarkation).clear().type('Miami')
-    cy.getByTestId(rs.adminCreateBookingDebarkation).clear().type('Nassau')
+    fillReactInput(rs.adminCreateBookingCustomerId, 'react-customer-created')
+    fillReactInput(rs.adminCreateBookingStatus, 'CONFIRMED')
+    fillReactInput(rs.adminCreateBookingCabin, 'R100')
+    fillReactInput(rs.adminCreateBookingFare, 'RX')
+    fillReactInput(rs.adminCreateBookingEmbarkation, 'Miami')
+    fillReactInput(rs.adminCreateBookingDebarkation, 'Nassau')
     cy.getByTestId(rs.adminCreateBookingSubmit).click()
     cy.wait('@createReactBooking')
     cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'react-booking-created booking was created')
 
-    cy.getByTestId(rs.adminDeleteBookingId).clear().type('react-booking-created')
+    fillReactInput(rs.adminDeleteBookingId, 'react-booking-created')
     cy.getByTestId(rs.adminDeleteBookingSubmit).click()
     cy.getByTestId(rs.adminDeleteConfirmation).should('contain.text', 'Delete booking react-booking-created?')
     cy.getByTestId(rs.adminDeleteConfirmationConfirm).click()
     cy.wait('@deleteReactBooking')
     cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'react-booking-created booking was deleted')
 
-    cy.getByTestId(rs.adminDeleteCustomerId).clear().type('react-customer-created')
+    fillReactInput(rs.adminDeleteCustomerId, 'react-customer-created')
     cy.getByTestId(rs.adminDeleteCustomerSubmit).click()
     cy.getByTestId(rs.adminDeleteConfirmation).should('contain.text', 'Delete customer react-customer-created?')
     cy.getByTestId(rs.adminDeleteConfirmationConfirm).click()

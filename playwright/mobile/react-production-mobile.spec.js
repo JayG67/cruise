@@ -89,6 +89,33 @@ async function expectAdminMutationFormsReady(page) {
   await expect(page.getByTestId('react-admin-create-booking-form')).toBeVisible({ timeout: 15000 })
 }
 
+async function openCustomerWorkflowTable(page) {
+  const operationsRoute = page.getByTestId('react-active-route-operations')
+  await expect(operationsRoute).toBeVisible({ timeout: 15000 })
+
+  const toggle = page.getByTestId('react-toggle-customer-workflows')
+  await toggle.scrollIntoViewIfNeeded()
+  await expect(toggle).toBeVisible({ timeout: 15000 })
+  await expect(toggle).toBeEnabled({ timeout: 15000 })
+
+  const expanded = await toggle.getAttribute('aria-expanded')
+  if (expanded !== 'true') {
+    await toggle.click()
+  }
+
+  await expect.poll(async () => {
+    return page.getByTestId('react-customer-workflow-table').count()
+  }, {
+    timeout: 15000,
+    message: 'customer workflow table should render after opening admin workflows'
+  }).toBeGreaterThan(0)
+
+  const table = page.getByTestId('react-customer-workflow-table')
+  await table.scrollIntoViewIfNeeded()
+  await expect(table).toBeVisible({ timeout: 15000 })
+  return table
+}
+
 test.describe('React default mobile replacement checks', () => {
   test('loads React shell and workspace controls on mobile', async ({ page }) => {
     await page.goto('/')
@@ -242,15 +269,12 @@ test.describe('React default mobile replacement checks', () => {
     await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
-    const toggle = page.getByTestId('react-toggle-customer-workflows')
-    await toggle.scrollIntoViewIfNeeded()
-    await expect(toggle).toBeVisible()
-    await toggle.click()
+    const table = await openCustomerWorkflowTable(page)
 
-    await expect(page.getByTestId('react-customer-workflow-table')).toBeVisible()
-    await expect(page.getByTestId('react-hierarchy-search-input')).toBeVisible()
-    await page.getByTestId('react-hierarchy-search-input').fill('jay')
-    await expect(page.getByTestId('react-customer-workflow-table')).toContainText(/Jay/i)
+    const searchInput = page.getByTestId('react-hierarchy-search-input')
+    await expect(searchInput).toBeVisible({ timeout: 15000 })
+    await searchInput.fill('jay')
+    await expect(table).toContainText(/Jay/i, { timeout: 15000 })
     await expectNoHorizontalOverflow(page)
   })
 
