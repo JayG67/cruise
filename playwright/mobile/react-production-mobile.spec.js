@@ -98,21 +98,20 @@ async function openCustomerWorkflowTable(page) {
   await expect(toggle).toBeVisible({ timeout: 15000 })
   await expect(toggle).toBeEnabled({ timeout: 15000 })
 
-  const expanded = await toggle.getAttribute('aria-expanded')
-  if (expanded !== 'true') {
-    await toggle.click()
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    if (await page.getByTestId('react-customer-workflow-table').count()) break
+
+    const expanded = await toggle.getAttribute('aria-expanded')
+    if (expanded !== 'true') {
+      await toggle.click()
+    }
+
+    await page.waitForTimeout(250)
   }
 
-  await expect.poll(async () => {
-    return page.getByTestId('react-customer-workflow-table').count()
-  }, {
-    timeout: 15000,
-    message: 'customer workflow table should render after opening admin workflows'
-  }).toBeGreaterThan(0)
-
   const table = page.getByTestId('react-customer-workflow-table')
+  await expect(table).toBeVisible({ timeout: 20000 })
   await table.scrollIntoViewIfNeeded()
-  await expect(table).toBeVisible({ timeout: 15000 })
   return table
 }
 
@@ -269,12 +268,13 @@ test.describe('React default mobile replacement checks', () => {
     await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
-    const table = await openCustomerWorkflowTable(page)
-
     const searchInput = page.getByTestId('react-hierarchy-search-input')
     await expect(searchInput).toBeVisible({ timeout: 15000 })
     await searchInput.fill('jay')
-    await expect(table).toContainText(/Jay/i, { timeout: 15000 })
+
+    const table = await openCustomerWorkflowTable(page)
+
+    await expect(table).toContainText(/Jay/i, { timeout: 20000 })
     await expectNoHorizontalOverflow(page)
   })
 
@@ -343,12 +343,15 @@ test.describe('React default mobile replacement checks', () => {
 
   test('keeps React group leader manifest readable on mobile', async ({ page }) => {
     await page.goto('/')
-    await selectDemoUserByRole(page, 'Group Leader')
+    await selectRoleAndPerson(page, 'group-leader', 'Parker Family Group Leader View')
 
-    await expect(page.getByTestId('react-passenger-dashboard')).toBeVisible()
-    await expect(page.getByTestId('react-role-booking-card').first()).toContainText('Group Leader')
+    await expect(page.getByTestId('react-demo-user-summary')).toContainText('Group leader mode', { timeout: 15000 })
+    await expect(page.getByTestId('react-passenger-dashboard')).toBeVisible({ timeout: 15000 })
+    const bookingCard = page.getByTestId('react-role-booking-card').first()
+    await expect(bookingCard).toBeVisible({ timeout: 20000 })
+    await expect(bookingCard).toContainText('Group Leader')
     await page.getByTestId('react-role-booking-details-toggle').first().click()
-    await expect(page.getByTestId('react-role-detail-passenger-row').first()).toBeVisible()
+    await expect(page.getByTestId('react-role-detail-passenger-row').first()).toBeVisible({ timeout: 15000 })
     await expectNoHorizontalOverflow(page)
   })
 

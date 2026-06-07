@@ -1,6 +1,12 @@
 const { byTestId, reactSelectorKeys: rs } = require('./support/reactSelectors')
 const { interceptReactCoreApis, selectDemoUserByVisibleRole } = require('./support/reactTestHelpers')
 
+
+function selectOperationalDemoUserByVisibleRole(roleText) {
+  selectDemoUserByVisibleRole(roleText)
+  cy.wait('@reactTurnaroundOperations')
+}
+
 describe('React operational role foundation', () => {
   beforeEach(() => {
     interceptReactCoreApis()
@@ -8,12 +14,11 @@ describe('React operational role foundation', () => {
     cy.wait('@reactDemoUsers')
     cy.wait('@reactCustomers')
     cy.wait('@reactBookings')
-    cy.wait('@reactTurnaroundOperations')
     cy.wait('@reactCruiseLines')
   })
 
   it('renders a turnaround readiness dashboard for operational users without admin CRUD controls', () => {
-    selectDemoUserByVisibleRole('Turnaround Manager')
+    selectOperationalDemoUserByVisibleRole('Turnaround Manager')
 
     cy.getByTestId(rs.turnaroundManagerDashboard).should('be.visible')
     cy.getByTestId(rs.operationalTurnaroundPanel).should('be.visible')
@@ -29,7 +34,7 @@ describe('React operational role foundation', () => {
   })
 
   it('shows a cross-department operations directory without rendering an oversized operational dataset', () => {
-    selectDemoUserByVisibleRole('Turnaround Manager')
+    selectOperationalDemoUserByVisibleRole('Turnaround Manager')
 
     cy.getByTestId(rs.operationsDirectoryPanel).should('be.visible')
     cy.getByTestId(rs.operationsDirectoryCount).should('contain.text', '5 departments')
@@ -45,7 +50,7 @@ describe('React operational role foundation', () => {
   })
 
   it('changes checklist focus for specialized operational leads', () => {
-    selectDemoUserByVisibleRole('Housekeeping Lead')
+    selectOperationalDemoUserByVisibleRole('Housekeeping Lead')
     cy.getByTestId(rs.housekeepingLeadDashboard).should('be.visible')
     cy.contains('Prioritize cabin strip and reset windows').should('be.visible')
     cy.getByTestId(rs.operationalRoleChecklist).should('contain.text', 'Prioritize cabin strip and reset windows')
@@ -58,7 +63,7 @@ describe('React operational role foundation', () => {
 
 
   it('lets turnaround managers update database-backed command plan fields through the visible dashboard', () => {
-    selectDemoUserByVisibleRole('Turnaround Manager')
+    selectOperationalDemoUserByVisibleRole('Turnaround Manager')
 
     cy.getByTestId(rs.operationalCommandForm).first().within(() => {
       cy.get('select[aria-label="Miami same-day turnaround readiness command status"]').select('IN_PROGRESS')
@@ -88,7 +93,7 @@ describe('React operational role foundation', () => {
   })
 
   it('keeps turnaround command controls uniform and readable in the UI', () => {
-    selectDemoUserByVisibleRole('Turnaround Manager')
+    selectOperationalDemoUserByVisibleRole('Turnaround Manager')
 
     cy.getByTestId(rs.operationalReadinessCard).then(cards => {
       const firstTop = Math.round(cards[0].getBoundingClientRect().top)
@@ -121,7 +126,7 @@ describe('React operational role foundation', () => {
   })
 
   it('lets operational leads update database-backed turnaround task status from the dashboard', () => {
-    selectDemoUserByVisibleRole('Turnaround Manager')
+    selectOperationalDemoUserByVisibleRole('Turnaround Manager')
 
     cy.getByTestId(rs.operationalProgressSummary).first().should('contain.text', '0 of 4 tasks complete')
     cy.contains(`${byTestId('operationalRoleChecklist')} li`, 'Sequence disembarkation')
@@ -140,7 +145,7 @@ describe('React operational role foundation', () => {
   })
 
   it('lets operational leads maintain database-backed task owner, timing, location, and blocker notes', () => {
-    selectDemoUserByVisibleRole('Turnaround Manager')
+    selectOperationalDemoUserByVisibleRole('Turnaround Manager')
 
     cy.contains(`${byTestId('operationalRoleChecklist')} li`, 'Sequence disembarkation')
       .as('sequencingTask')
@@ -182,7 +187,7 @@ describe('React operational role foundation', () => {
 
 
   it('lets operational leads update database-backed staffing plans from the visible dashboard', () => {
-    selectDemoUserByVisibleRole('Housekeeping Lead')
+    selectOperationalDemoUserByVisibleRole('Housekeeping Lead')
 
     cy.getByTestId(rs.operationalStaffingSummary).first()
       .should('contain.text', '103 of 114 crew checked in')
@@ -219,7 +224,7 @@ describe('React operational role foundation', () => {
 
 
   it('lets operational leads complete database-backed dependency and handoff workflows from the visible dashboard', () => {
-    selectDemoUserByVisibleRole('Housekeeping Lead')
+    selectOperationalDemoUserByVisibleRole('Housekeeping Lead')
 
     cy.getByTestId(rs.operationalDependencySummary).first()
       .should('contain.text', '0 of 2 clear')
@@ -261,7 +266,7 @@ describe('React operational role foundation', () => {
   })
 
   it('lets operational leads create database-backed follow-up tasks from the visible dashboard', () => {
-    selectDemoUserByVisibleRole('Guest Services Lead')
+    selectOperationalDemoUserByVisibleRole('Guest Services Lead')
 
     cy.getByTestId(rs.operationalTaskCreateForm).first().within(() => {
       cy.get('select[aria-label="Miami same-day turnaround readiness new task department"]').select('guest-services-lead')
@@ -296,7 +301,7 @@ describe('React operational role foundation', () => {
 
 
   it('lets operational leads remove database-backed follow-up tasks from the visible dashboard', () => {
-    selectDemoUserByVisibleRole('Housekeeping Lead')
+    selectOperationalDemoUserByVisibleRole('Housekeeping Lead')
 
     cy.contains(`${byTestId('operationalRoleChecklist')} li`, 'Prioritize cabin strip and reset windows')
       .as('guestTask')
@@ -313,7 +318,7 @@ describe('React operational role foundation', () => {
 
 
   it('lets operational leads add database-backed shift updates to turnaround tasks', () => {
-    selectDemoUserByVisibleRole('Turnaround Manager')
+    selectOperationalDemoUserByVisibleRole('Turnaround Manager')
 
     cy.contains(`${byTestId('operationalRoleChecklist')} li`, 'Coordinate department readiness standups')
       .as('standupTask')
@@ -338,7 +343,7 @@ describe('React operational role foundation', () => {
 
 
   it('lets operational leads create and resolve database-backed escalation log items from the visible dashboard', () => {
-    selectDemoUserByVisibleRole('Guest Services Lead')
+    selectOperationalDemoUserByVisibleRole('Guest Services Lead')
 
     cy.getByTestId(rs.operationalEscalationSummary).first().should('contain.text', '1 open')
     cy.getByTestId(rs.operationalEscalationCreateForm).first().within(() => {
@@ -390,7 +395,7 @@ describe('React operational role foundation', () => {
 
 
   it('lets operational leads approve database-backed department readiness signoffs', () => {
-    selectDemoUserByVisibleRole('Engineering Lead')
+    selectOperationalDemoUserByVisibleRole('Engineering Lead')
 
     cy.getByTestId(rs.operationalSignoffSummary).first().should('contain.text', 'engineering-lead')
     cy.getByTestId(rs.operationalSignoffForm).first().within(() => {

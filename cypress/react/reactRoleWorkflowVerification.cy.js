@@ -128,8 +128,15 @@ function bootWorkflowApp(overrides = {}) {
   cy.wait('@reactDemoUsers')
   cy.wait('@reactCustomers')
   cy.wait('@reactBookings')
-  cy.wait('@reactTurnaroundOperations')
   cy.wait('@reactCruiseLines')
+}
+
+
+function selectWorkflowDemoUserByVisibleRole(roleText) {
+  selectDemoUserByVisibleRole(roleText)
+  if (['Turnaround Manager', 'Housekeeping Lead', 'Guest Services Lead', 'Food & Beverage Lead', 'Engineering Lead'].includes(roleText)) {
+    cy.wait('@reactTurnaroundOperations')
+  }
 }
 
 function findOperationalTask(taskName) {
@@ -202,7 +209,7 @@ describe('React role workflow UI verification', () => {
   })
 
   it('verifies the admin route exposes management workflows and not role-only dashboards', () => {
-    selectDemoUserByVisibleRole('Admin')
+    selectWorkflowDemoUserByVisibleRole('Admin')
 
     cy.getByTestId(rs.demoUserSummary).should('contain.text', 'React Admin').and('contain.text', 'Admin')
     cy.getByTestId(rs.adminHierarchy).should('be.visible')
@@ -224,7 +231,7 @@ describe('React role workflow UI verification', () => {
   })
 
   it('verifies the passenger route can complete profile and itinerary workflows through visible UI data', () => {
-    selectDemoUserByVisibleRole('Passenger')
+    selectWorkflowDemoUserByVisibleRole('Passenger')
 
     cy.getByTestId(rs.passengerDashboard).should('be.visible')
     cy.getByTestId(rs.passengerSelfServicePanel).should('be.visible')
@@ -251,7 +258,7 @@ describe('React role workflow UI verification', () => {
   })
 
   it('verifies the group leader route only exposes group-visible booking and manifest data through the UI', () => {
-    selectDemoUserByVisibleRole('Group Leader')
+    selectWorkflowDemoUserByVisibleRole('Group Leader')
 
     cy.getByTestId(rs.groupLeaderDashboard).should('be.visible')
     cy.getByTestId(rs.passengerDashboard).should('contain.text', 'Group leader dashboard loaded')
@@ -273,7 +280,7 @@ describe('React role workflow UI verification', () => {
   })
 
   it('verifies the turnaround manager can drive the command workflow and see every result in the UI', () => {
-    selectDemoUserByVisibleRole('Turnaround Manager')
+    selectWorkflowDemoUserByVisibleRole('Turnaround Manager')
 
     cy.getByTestId(rs.turnaroundManagerDashboard).should('be.visible')
     cy.getByTestId(rs.operationalReadinessCard).should('have.length', 2)
@@ -291,7 +298,7 @@ describe('React role workflow UI verification', () => {
   })
 
   it('verifies the housekeeping lead can update cabin-readiness workflow data through the UI', () => {
-    selectDemoUserByVisibleRole('Housekeeping Lead')
+    selectWorkflowDemoUserByVisibleRole('Housekeeping Lead')
 
     cy.getByTestId(rs.housekeepingLeadDashboard).should('be.visible')
     cy.contains('Housekeeping operations').should('be.visible')
@@ -308,7 +315,7 @@ describe('React role workflow UI verification', () => {
   })
 
   it('verifies the guest services lead can update embarkation-support workflow data through the UI', () => {
-    selectDemoUserByVisibleRole('Guest Services Lead')
+    selectWorkflowDemoUserByVisibleRole('Guest Services Lead')
 
     cy.getByTestId(rs.guestServicesLeadDashboard).should('be.visible')
     cy.contains('Guest services operations').should('be.visible')
@@ -325,7 +332,7 @@ describe('React role workflow UI verification', () => {
   })
 
   it('verifies the food and beverage lead can update provisioning workflow data through the UI', () => {
-    selectDemoUserByVisibleRole('Food & Beverage Lead')
+    selectWorkflowDemoUserByVisibleRole('Food & Beverage Lead')
 
     cy.getByTestId(rs.foodBeverageLeadDashboard).should('be.visible')
     cy.contains('Food & beverage operations').should('be.visible')
@@ -342,7 +349,7 @@ describe('React role workflow UI verification', () => {
   })
 
   it('verifies the engineering lead can block, explain, complete, and sign off technical workflow data through the UI', () => {
-    selectDemoUserByVisibleRole('Engineering Lead')
+    selectWorkflowDemoUserByVisibleRole('Engineering Lead')
 
     cy.getByTestId(rs.engineeringLeadDashboard).should('be.visible')
     cy.contains('Engineering operations').should('be.visible')

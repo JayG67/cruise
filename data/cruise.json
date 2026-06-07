@@ -431791,8 +431791,8 @@
           "taskName": "Validate ship-readiness handoff before embarkation",
           "dependsOnTaskName": "Sequence disembarkation, provisioning, cleaning, and embarkation",
           "dependencyType": "BLOCKS",
-          "status": "CLEARED",
-          "notes": "Embarkation opens after sequencing confirms disembarkation, provisioning, and cabin reset windows."
+          "status": "ACTIVE",
+          "notes": "Embarkation remains active until sequencing confirms disembarkation, provisioning, and cabin reset windows."
         },
         {
           "taskName": "Prepare check-in exception handling",

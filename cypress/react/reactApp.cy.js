@@ -280,8 +280,15 @@ describe('Cruise operations portfolio route', () => {
 
 
   it('creates and deletes React admin customers and bookings', () => {
-    cy.intercept('GET', '/cruise/customers').as('refreshAdminCrudCustomers')
-    cy.intercept('GET', '/cruise/bookings').as('refreshAdminCrudBookings')
+    const adminCrudCustomers = []
+    const adminCrudBookings = []
+
+    cy.intercept('GET', '/cruise/customers', req => {
+      req.reply({ statusCode: 200, body: adminCrudCustomers })
+    }).as('refreshAdminCrudCustomers')
+    cy.intercept('GET', '/cruise/bookings', req => {
+      req.reply({ statusCode: 200, body: adminCrudBookings })
+    }).as('refreshAdminCrudBookings')
 
     cy.intercept('POST', '/cruise/customers', req => {
       expect(req.body).to.include({
@@ -290,22 +297,28 @@ describe('Cruise operations portfolio route', () => {
         email: 'react.admin@example.com'
       })
 
+      const createdCustomer = {
+        id: 'react-customer-created',
+        firstName: 'React',
+        lastName: 'Admin',
+        email: 'react.admin@example.com',
+        phone: '555-0101',
+        loyaltyNumber: 'RX-100'
+      }
+
+      adminCrudCustomers.push(createdCustomer)
       req.reply({
         statusCode: 201,
-        body: {
-          id: 'react-customer-created',
-          firstName: 'React',
-          lastName: 'Admin',
-          email: 'react.admin@example.com',
-          phone: '555-0101',
-          loyaltyNumber: 'RX-100'
-        }
+        body: createdCustomer
       })
     }).as('createReactCustomer')
 
-    cy.intercept('DELETE', '/cruise/customers/react-customer-created', {
-      statusCode: 200,
-      body: { deleted: true }
+    cy.intercept('DELETE', '/cruise/customers/react-customer-created', req => {
+      adminCrudCustomers.splice(0, adminCrudCustomers.length)
+      req.reply({
+        statusCode: 200,
+        body: { deleted: true }
+      })
     }).as('deleteReactCustomer')
 
     cy.intercept('POST', '/cruise/bookings', req => {
@@ -315,22 +328,36 @@ describe('Cruise operations portfolio route', () => {
         cabinNumber: 'R100'
       })
 
+      const createdBooking = {
+        id: 'react-booking-created',
+        bookingStatus: 'CONFIRMED',
+        cabinNumber: 'R100',
+        fareCode: 'RX',
+        embarkationPort: 'Miami',
+        debarkationPort: 'Nassau',
+        createdByCustomerId: 'react-customer-created',
+        passengers: [
+          {
+            customerId: 'react-customer-created',
+            passengerType: 'Primary',
+            customer: adminCrudCustomers[0]
+          }
+        ]
+      }
+
+      adminCrudBookings.push(createdBooking)
       req.reply({
         statusCode: 201,
-        body: {
-          id: 'react-booking-created',
-          bookingStatus: 'CONFIRMED',
-          cabinNumber: 'R100',
-          fareCode: 'RX',
-          embarkationPort: 'Miami',
-          debarkationPort: 'Nassau'
-        }
+        body: createdBooking
       })
     }).as('createReactBooking')
 
-    cy.intercept('DELETE', '/cruise/bookings/react-booking-created', {
-      statusCode: 200,
-      body: { deleted: true }
+    cy.intercept('DELETE', '/cruise/bookings/react-booking-created', req => {
+      adminCrudBookings.splice(0, adminCrudBookings.length)
+      req.reply({
+        statusCode: 200,
+        body: { deleted: true }
+      })
     }).as('deleteReactBooking')
 
     fillReactInput(rs.adminCreateCustomerFirstName, 'React')

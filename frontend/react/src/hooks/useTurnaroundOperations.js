@@ -320,6 +320,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
 
   useEffect(() => {
     if (!enabled) {
+      abortRef.current?.abort()
       setIsLoading(false)
       return undefined
     }

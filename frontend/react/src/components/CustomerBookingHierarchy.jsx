@@ -236,6 +236,9 @@ export default function CustomerBookingHierarchy({
 
 
   const isInitialLoading = isLoading && customers.length === 0 && bookings.length === 0
+  const hasActiveHierarchySearch = Boolean(searchTerm.trim())
+  const visibleWorkflowRows = hasActiveHierarchySearch ? rows : rows.slice(0, 50)
+  const hiddenWorkflowRowCount = Math.max(rows.length - visibleWorkflowRows.length, 0)
 
   if (isInitialLoading) {
     return <p role="status" className="status-card">Loading customer and booking workspace…</p>
@@ -398,12 +401,18 @@ export default function CustomerBookingHierarchy({
               </div>
             </div>
 
-            {rows.length === 0 ? (
+            {visibleWorkflowRows.length === 0 ? (
               <p className="status-card compact" role="status">
                 No customer or linked booking records match “{searchTerm.trim()}”.
               </p>
             ) : (
-              <div className="table-scroll react-admin-table-scroll" tabIndex="0">
+              <>
+                {!hasActiveHierarchySearch && hiddenWorkflowRowCount > 0 && (
+                  <p className="result-summary compact" role="status" data-testid="react-customer-workflow-render-limit">
+                    Showing the first {visibleWorkflowRows.length} customer workflows. Use search to load a specific customer quickly.
+                  </p>
+                )}
+                <div className="table-scroll react-admin-table-scroll" tabIndex="0">
                 <table className="react-admin-table">
                   <caption>Admin-visible customers with expandable linked bookings and booking details</caption>
                   <thead>
@@ -417,7 +426,7 @@ export default function CustomerBookingHierarchy({
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.map(({ customer, linkedBookings }) => {
+                    {visibleWorkflowRows.map(({ customer, linkedBookings }) => {
                       const customerName = getCustomerDirectoryName(customer)
                       const isExpanded = expandedCustomerIds.has(customer.id)
 
@@ -456,7 +465,8 @@ export default function CustomerBookingHierarchy({
                     })}
                   </tbody>
                 </table>
-              </div>
+                </div>
+              </>
             )}
           </div>
         )}

@@ -218,7 +218,7 @@ export default function ReactRoleSelector({
       .slice(0, hasActiveFinderCriteria ? 50 : 12)
       .map(option => option.user)
 
-    if (selectedPassenger && !resultUsers.some(user => user.id === selectedPassenger.id)) {
+    if (!hasActiveFinderCriteria && selectedPassenger && !resultUsers.some(user => user.id === selectedPassenger.id)) {
       return [selectedPassenger, ...resultUsers]
     }
 
