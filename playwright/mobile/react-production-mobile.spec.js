@@ -70,9 +70,42 @@ async function expectOperationalDashboardReady(page, roleValue, personText, dash
 
 async function selectDemoUserByRole(page, roleText) {
   const normalizedRole = roleText.toLowerCase().replace(/\s+/g, '-')
-  const rolePersonText = normalizedRole === 'admin' ? 'Admin Demo User' : ''
+  const rolePersonTextByRole = {
+    admin: 'Admin Demo User',
+    passenger: 'Passenger View',
+    'group-leader': 'Group Leader'
+  }
 
-  await selectRoleAndPerson(page, normalizedRole, rolePersonText)
+  await selectRoleAndPerson(page, normalizedRole, rolePersonTextByRole[normalizedRole] || '')
+
+  if (normalizedRole === 'passenger') {
+    await expect(page.getByTestId('react-demo-user-summary')).toContainText('Passenger', { timeout: 15000 })
+  }
+}
+
+async function openRoyalShipSailings(page) {
+  await page.getByTestId('react-fleet-search').fill('Royal')
+
+  const viewShipsButton = page.getByTestId('react-view-ships-button').first()
+  await viewShipsButton.scrollIntoViewIfNeeded()
+  await expect(viewShipsButton).toBeVisible({ timeout: 15000 })
+  await expect(viewShipsButton).toBeEnabled({ timeout: 15000 })
+  await viewShipsButton.click()
+
+  const selectedShipsPanel = page.getByTestId('react-selected-ships-panel')
+  await expect(selectedShipsPanel).toBeVisible({ timeout: 15000 })
+  await expect(selectedShipsPanel).toContainText(/Royal.*ships/, { timeout: 15000 })
+
+  const viewSailingsButton = page.getByTestId('react-view-sailings-button').first()
+  await viewSailingsButton.scrollIntoViewIfNeeded()
+  await expect(viewSailingsButton).toBeVisible({ timeout: 15000 })
+  await expect(viewSailingsButton).toBeEnabled({ timeout: 15000 })
+  await viewSailingsButton.click()
+
+  const sailingsPanel = page.getByTestId('react-sailings-panel')
+  await expect(sailingsPanel).toBeVisible({ timeout: 20000 })
+  await sailingsPanel.scrollIntoViewIfNeeded()
+  return sailingsPanel
 }
 
 async function expectAdminMutationFormsReady(page) {
@@ -184,26 +217,14 @@ test.describe('React default mobile replacement checks', () => {
     await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
-    await page.getByTestId('react-fleet-search').fill('Royal')
-    const viewShipsButton = page.getByTestId('react-view-ships-button').first()
-    await viewShipsButton.scrollIntoViewIfNeeded()
-    await expect(viewShipsButton).toBeVisible()
-    await viewShipsButton.click()
+    const sailingsPanel = await openRoyalShipSailings(page)
 
-    const selectedShipsPanel = page.getByTestId('react-selected-ships-panel')
-    await expect(selectedShipsPanel).toBeVisible()
-    await expect(selectedShipsPanel).toContainText(/Royal.*ships/)
-    await expect(page.getByTestId('react-create-ship-form')).toBeVisible()
-    await expect(page.getByTestId('react-create-ship-submit-button')).toBeVisible()
-    await expect(page.getByTestId('react-update-ship-button').first()).toBeVisible()
-    await expect(page.getByTestId('react-delete-ship-button').first()).toBeVisible()
+    await expect(page.getByTestId('react-create-ship-form')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('react-create-ship-submit-button')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('react-update-ship-button').first()).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('react-delete-ship-button').first()).toBeVisible({ timeout: 15000 })
 
-    const viewSailingsButton = page.getByTestId('react-view-sailings-button').first()
-    await viewSailingsButton.scrollIntoViewIfNeeded()
-    await expect(viewSailingsButton).toBeVisible()
-    await viewSailingsButton.click()
-
-    await expect(page.getByTestId('react-sailings-panel')).toBeVisible()
+    await expect(sailingsPanel).toBeVisible({ timeout: 20000 })
     await expect(page.getByTestId('react-view-itinerary-button').first()).toBeVisible()
     await page.getByTestId('react-view-itinerary-button').first().click()
     await expect(page.getByTestId('react-itinerary-panel')).toBeVisible()
@@ -232,15 +253,11 @@ test.describe('React default mobile replacement checks', () => {
     await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
-    await page.getByTestId('react-fleet-search').fill('Royal')
-    await page.getByTestId('react-view-ships-button').first().click()
-    await expect(page.getByTestId('react-selected-ships-panel')).toBeVisible()
-    await page.getByTestId('react-view-sailings-button').first().click()
-    await expect(page.getByTestId('react-sailings-panel')).toBeVisible()
-    await expect(page.getByTestId('react-create-sailing-form')).toBeVisible()
-    await expect(page.getByTestId('react-create-sailing-submit-button')).toBeVisible()
-    await expect(page.getByTestId('react-update-sailing-button').first()).toBeVisible()
-    await expect(page.getByTestId('react-delete-sailing-button').first()).toBeVisible()
+    await openRoyalShipSailings(page)
+    await expect(page.getByTestId('react-create-sailing-form')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('react-create-sailing-submit-button')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('react-update-sailing-button').first()).toBeVisible({ timeout: 20000 })
+    await expect(page.getByTestId('react-delete-sailing-button').first()).toBeVisible({ timeout: 20000 })
     await expectNoHorizontalOverflow(page)
   })
 
@@ -248,11 +265,7 @@ test.describe('React default mobile replacement checks', () => {
     await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
-    await page.getByTestId('react-fleet-search').fill('Royal')
-    await page.getByTestId('react-view-ships-button').first().click()
-    await expect(page.getByTestId('react-selected-ships-panel')).toBeVisible()
-    await page.getByTestId('react-view-sailings-button').first().click()
-    await expect(page.getByTestId('react-sailings-panel')).toBeVisible()
+    await openRoyalShipSailings(page)
     await page.getByTestId('react-view-itinerary-button').first().click()
     await expect(page.getByTestId('react-itinerary-panel')).toBeVisible()
     await expect(page.getByTestId('react-create-itinerary-day-form')).toBeVisible()

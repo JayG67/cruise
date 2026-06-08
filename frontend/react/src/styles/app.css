@@ -3566,6 +3566,92 @@ button.react-workspace-card .workspace-card-title,
   padding-left: 0.15rem;
 }
 
+
+.turnaround-selector-panel {
+  align-items: stretch;
+  background: linear-gradient(135deg, #ffffff 0%, #f4fbff 100%);
+  border: 1px solid #cfe3f2;
+  border-radius: 1rem;
+  box-shadow: 0 16px 36px rgba(18, 50, 79, 0.08);
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.4fr) minmax(17rem, 0.8fr) minmax(18rem, 1fr);
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+.turnaround-selector-panel h4,
+.turnaround-selector-panel p,
+.turnaround-selector-summary {
+  margin: 0;
+}
+
+.turnaround-selector-panel p {
+  color: #39516b;
+}
+
+.turnaround-selector-control {
+  display: grid;
+  gap: 0.45rem;
+  font-weight: 800;
+}
+
+.turnaround-selector-control span {
+  color: #17456f;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.turnaround-selector-control select {
+  appearance: none;
+  background: #ffffff;
+  border: 1px solid #b9d4eb;
+  border-radius: 0.85rem;
+  color: #12324f;
+  font: inherit;
+  min-height: 3rem;
+  overflow: hidden;
+  padding: 0.75rem 2.5rem 0.75rem 0.9rem;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.turnaround-selector-summary {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.turnaround-selector-summary div {
+  background: #ffffff;
+  border: 1px solid #d7e8f5;
+  border-radius: 0.85rem;
+  padding: 0.7rem;
+}
+
+.turnaround-selector-summary dt {
+  color: #5c7288;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.turnaround-selector-summary dd {
+  color: #12324f;
+  font-size: 1rem;
+  font-weight: 900;
+  margin: 0.2rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 980px) {
+  .turnaround-selector-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
 .operational-readiness-list {
   display: grid;
   gap: 1rem;
@@ -4704,6 +4790,809 @@ button.react-workspace-card .workspace-card-title,
   }
 
   .operations-directory-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Slice 2 operations workspace shell: give turnaround operations a navigable command-center structure. */
+.operations-workspace-shell {
+  align-items: start;
+  background: linear-gradient(135deg, #ffffff, #f5faff);
+  border: 1px solid #cfe3f2;
+  border-radius: 1.1rem;
+  box-shadow: 0 14px 34px rgba(18, 50, 79, 0.07);
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(14rem, 0.55fr) minmax(0, 1fr) minmax(16rem, 0.65fr);
+  margin: 0.25rem 0 0.75rem;
+  padding: 1rem;
+}
+
+.operations-workspace-heading h4,
+.operations-workspace-heading p {
+  margin: 0.25rem 0 0;
+}
+
+.operations-workspace-heading p,
+.operations-workspace-active-summary span {
+  color: #39516b;
+  line-height: 1.45;
+}
+
+.operations-workspace-nav {
+  align-items: stretch;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+}
+
+.operations-workspace-nav-button {
+  appearance: none;
+  background: #ffffff;
+  border: 1px solid #c8def1;
+  border-radius: 999px;
+  color: #17456f;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  min-height: 2.65rem;
+  padding: 0.65rem 0.9rem;
+  text-align: center;
+  transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.operations-workspace-nav-button:hover,
+.operations-workspace-nav-button:focus-visible,
+.operations-workspace-nav-button.active {
+  background: #0f5e9c;
+  border-color: #0f5e9c;
+  box-shadow: 0 10px 24px rgba(15, 94, 156, 0.2);
+  color: #ffffff;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.operations-workspace-active-summary {
+  background: #eef8ff;
+  border: 1px solid #c5def3;
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem;
+}
+
+.operations-workspace-active-summary strong {
+  color: #12324f;
+  font-size: 1rem;
+}
+
+.operational-command-form input,
+.operational-command-form select,
+.operational-signoff-form input,
+.operational-signoff-form select,
+.operational-staffing-form input,
+.operational-task-create-form input,
+.operational-task-create-form select,
+.operational-task-detail-form input,
+.operational-escalation-create-form input,
+.operational-escalation-create-form select,
+.operational-escalation-update-form input,
+.operational-escalation-update-form select,
+.operational-handoff-form input,
+.operational-handoff-form select {
+  min-height: 2.85rem;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+@media (max-width: 980px) {
+  .operations-workspace-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .operations-workspace-nav {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .operations-workspace-nav-button {
+    border-radius: 0.85rem;
+  }
+}
+
+/* Slice 3 task workspace: replace the crowded all-at-once task cards with a focused queue + detail panel. */
+.operations-task-workspace {
+  background: linear-gradient(135deg, #ffffff, #f6fbff);
+  border: 1px solid #cfe3f2;
+  border-radius: 1.15rem;
+  box-shadow: 0 16px 38px rgba(18, 50, 79, 0.08);
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.operations-task-workspace-header {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.55fr);
+}
+
+.operations-task-workspace-header h4,
+.operations-task-workspace-header p,
+.operations-task-quick-add h5,
+.operations-task-list-heading h5,
+.operations-task-detail-header h5 {
+  margin: 0.25rem 0 0;
+}
+
+.operations-task-workspace-header p {
+  color: #39516b;
+  line-height: 1.5;
+}
+
+.operations-task-workspace-metrics {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+}
+
+.operations-task-workspace-metrics div {
+  background: #eef8ff;
+  border: 1px solid #c5def3;
+  border-radius: 0.9rem;
+  padding: 0.75rem;
+}
+
+.operations-task-workspace-metrics dt {
+  color: #5f7185;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.operations-task-workspace-metrics dd {
+  color: #102033;
+  font-size: 1.25rem;
+  font-weight: 900;
+  margin: 0.15rem 0 0;
+}
+
+.operations-task-quick-add {
+  align-items: end;
+  background: #fbfdff;
+  border: 1px solid #d8e6f2;
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(12rem, 0.7fr) minmax(10rem, 0.6fr) minmax(16rem, 1fr) minmax(10rem, 0.6fr) auto;
+  padding: 0.85rem;
+}
+
+.operations-task-quick-add label,
+.operations-task-detail-edit-form label,
+.operational-task-update-form label {
+  min-width: 0;
+}
+
+.operations-task-quick-add input,
+.operations-task-quick-add select,
+.operations-task-detail-edit-form input,
+.operations-task-detail-edit-form textarea,
+.operational-task-update-form textarea {
+  min-height: 2.85rem;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
+  width: 100%;
+}
+
+.operations-task-layout {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(18rem, 0.8fr) minmax(0, 1.2fr);
+}
+
+.operations-task-list-panel,
+.operations-task-detail-panel {
+  background: #ffffff;
+  border: 1px solid #d8e6f2;
+  border-radius: 1rem;
+  box-shadow: 0 10px 24px rgba(18, 50, 79, 0.06);
+  padding: 1rem;
+}
+
+.operations-task-list-heading,
+.operations-task-detail-header {
+  align-items: start;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.operations-task-list-heading span {
+  background: #eef8ff;
+  border-radius: 999px;
+  color: #17456f;
+  font-weight: 900;
+  padding: 0.35rem 0.7rem;
+  white-space: nowrap;
+}
+
+.operations-task-list {
+  display: grid;
+  gap: 0.65rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.operations-task-list-item {
+  appearance: none;
+  background: #fbfdff;
+  border: 1px solid #d8e6f2;
+  border-radius: 0.95rem;
+  color: #102033;
+  cursor: pointer;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem;
+  text-align: left;
+  width: 100%;
+}
+
+.operations-task-list-item strong,
+.operations-task-list-item span,
+.operations-task-list-item small {
+  overflow-wrap: anywhere;
+}
+
+.operations-task-list-item.active,
+.operations-task-list-item:hover,
+.operations-task-list-item:focus-visible {
+  border-color: #0f5e9c;
+  box-shadow: 0 0 0 3px rgba(15, 94, 156, 0.14);
+  outline: none;
+}
+
+.operations-task-list-item.blocked {
+  background: #fff8f2;
+  border-color: #f4c08b;
+}
+
+.operations-task-status-pill {
+  align-self: start;
+  background: #e8f4ff;
+  border-radius: 999px;
+  color: #17456f;
+  display: inline-flex;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.55rem;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+.operations-task-status-pill.blocked {
+  background: #fff0e5;
+  color: #9a3d00;
+}
+
+.operations-task-status-pill.complete {
+  background: #e8f8ed;
+  color: #166a2f;
+}
+
+.operations-task-status-pill.in_progress,
+.operations-task-status-pill.ready {
+  background: #e8f4ff;
+  color: #17456f;
+}
+
+.operations-task-detail-panel {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.operations-task-detail-edit-form,
+.operational-task-update-form {
+  background: #f8fbff;
+  border: 1px solid #e0ebf5;
+  border-radius: 0.95rem;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 0.85rem;
+}
+
+.operations-task-detail-edit-form .full-width-field,
+.operational-task-update-form .full-width-field {
+  grid-column: 1 / -1;
+}
+
+.operations-task-detail-edit-form button,
+.operational-task-update-form button {
+  justify-self: start;
+}
+
+@media (max-width: 980px) {
+  .operations-task-workspace-header,
+  .operations-task-layout,
+  .operations-task-quick-add,
+  .operations-task-detail-edit-form,
+  .operational-task-update-form {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-task-workspace-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Slice 4 dependency workspace: show release gates as a focused queue + detail panel instead of burying them in the overview. */
+.operations-dependency-workspace {
+  background: linear-gradient(135deg, #ffffff, #fffaf4);
+  border: 1px solid #f1d8b8;
+  border-radius: 1.15rem;
+  box-shadow: 0 16px 38px rgba(84, 53, 16, 0.08);
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.operations-dependency-workspace-header {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.45fr);
+}
+
+.operations-dependency-workspace-header h4,
+.operations-dependency-workspace-header p,
+.operations-dependency-list-heading h5,
+.operations-dependency-detail-header h5 {
+  margin: 0.25rem 0 0;
+}
+
+.operations-dependency-workspace-header p {
+  color: #604c35;
+  line-height: 1.5;
+}
+
+.operations-dependency-workspace-metrics {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+}
+
+.operations-dependency-workspace-metrics div {
+  background: #fff5e8;
+  border: 1px solid #efd4b0;
+  border-radius: 0.9rem;
+  padding: 0.75rem;
+}
+
+.operations-dependency-workspace-metrics dt {
+  color: #76604a;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.operations-dependency-workspace-metrics dd {
+  color: #2d2117;
+  font-size: 1.25rem;
+  font-weight: 900;
+  margin: 0.15rem 0 0;
+}
+
+.operations-dependency-layout {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(18rem, 0.85fr) minmax(0, 1.15fr);
+}
+
+.operations-dependency-list-panel,
+.operations-dependency-detail-panel {
+  background: #ffffff;
+  border: 1px solid #ecdcc9;
+  border-radius: 1rem;
+  box-shadow: 0 10px 24px rgba(84, 53, 16, 0.06);
+  padding: 1rem;
+}
+
+.operations-dependency-list-heading,
+.operations-dependency-detail-header {
+  align-items: start;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.operations-dependency-list-heading span {
+  background: #fff5e8;
+  border-radius: 999px;
+  color: #7a4710;
+  font-weight: 900;
+  padding: 0.35rem 0.7rem;
+  white-space: nowrap;
+}
+
+.operations-dependency-list {
+  display: grid;
+  gap: 0.65rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.operations-dependency-list-item {
+  appearance: none;
+  background: #fffdf9;
+  border: 1px solid #ecdcc9;
+  border-radius: 0.95rem;
+  color: #2d2117;
+  cursor: pointer;
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.85rem;
+  text-align: left;
+  width: 100%;
+}
+
+.operations-dependency-list-item strong,
+.operations-dependency-list-item span,
+.operations-dependency-list-item small,
+.operations-dependency-detail-list dd,
+.operations-dependency-note p {
+  overflow-wrap: anywhere;
+}
+
+.operations-dependency-list-item.active,
+.operations-dependency-list-item:hover,
+.operations-dependency-list-item:focus-visible {
+  border-color: #bd6b10;
+  box-shadow: 0 0 0 3px rgba(189, 107, 16, 0.14);
+  outline: none;
+}
+
+.operations-dependency-list-item.active-gate {
+  background: #fff8f0;
+  border-color: #efc28d;
+}
+
+.operations-dependency-status-pill {
+  align-self: start;
+  background: #f1f7ee;
+  border-radius: 999px;
+  color: #286217;
+  display: inline-flex;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.55rem;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+.operations-dependency-status-pill.active {
+  background: #fff0df;
+  color: #9a3d00;
+}
+
+.operations-dependency-status-pill.cleared {
+  background: #e8f8ed;
+  color: #166a2f;
+}
+
+.operations-dependency-detail-panel {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.operations-dependency-detail-list {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.operations-dependency-detail-list div,
+.operations-dependency-note {
+  background: #fffaf4;
+  border: 1px solid #f1dfc8;
+  border-radius: 0.9rem;
+  padding: 0.75rem;
+}
+
+.operations-dependency-detail-list dt {
+  color: #76604a;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.operations-dependency-detail-list dd {
+  color: #2d2117;
+  font-weight: 800;
+  line-height: 1.45;
+  margin: 0.25rem 0 0;
+}
+
+.operations-dependency-note strong {
+  color: #7a4710;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.operations-dependency-note p {
+  line-height: 1.55;
+  margin: 0;
+}
+
+@media (max-width: 980px) {
+  .operations-dependency-workspace-header,
+  .operations-dependency-layout,
+  .operations-dependency-detail-list {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-dependency-workspace-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Slice 5 handoff workspace: focus department release workflows into one selected handoff queue + detail panel. */
+.operations-handoff-workspace {
+  background: linear-gradient(135deg, #ffffff, #f6fbff);
+  border: 1px solid #cddfed;
+  border-radius: 1.15rem;
+  box-shadow: 0 16px 38px rgba(19, 63, 97, 0.08);
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.operations-handoff-workspace-header {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.5fr);
+}
+
+.operations-handoff-workspace-header h4,
+.operations-handoff-workspace-header p,
+.operations-handoff-list-heading h5,
+.operations-handoff-detail-header h5 {
+  margin: 0.25rem 0 0;
+}
+
+.operations-handoff-workspace-header p {
+  color: #385a72;
+  line-height: 1.5;
+}
+
+.operations-handoff-workspace-metrics {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+}
+
+.operations-handoff-workspace-metrics div {
+  background: #eef7ff;
+  border: 1px solid #c9dff0;
+  border-radius: 0.9rem;
+  padding: 0.75rem;
+}
+
+.operations-handoff-workspace-metrics dt {
+  color: #3f627a;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.operations-handoff-workspace-metrics dd {
+  color: #14344a;
+  font-size: 1.25rem;
+  font-weight: 900;
+  margin: 0.15rem 0 0;
+}
+
+.operations-handoff-layout {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(18rem, 0.85fr) minmax(0, 1.15fr);
+}
+
+.operations-handoff-list-panel,
+.operations-handoff-detail-panel {
+  background: #ffffff;
+  border: 1px solid #d7e7f2;
+  border-radius: 1rem;
+  box-shadow: 0 10px 24px rgba(19, 63, 97, 0.06);
+  padding: 1rem;
+}
+
+.operations-handoff-list-heading,
+.operations-handoff-detail-header {
+  align-items: start;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.operations-handoff-list-heading span {
+  background: #eef7ff;
+  border-radius: 999px;
+  color: #285c83;
+  font-weight: 900;
+  padding: 0.35rem 0.7rem;
+  white-space: nowrap;
+}
+
+.operations-handoff-list-focused {
+  display: grid;
+  gap: 0.65rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.operations-handoff-list-item {
+  appearance: none;
+  background: #fbfdff;
+  border: 1px solid #d7e7f2;
+  border-radius: 0.95rem;
+  color: #14344a;
+  cursor: pointer;
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.85rem;
+  text-align: left;
+  width: 100%;
+}
+
+.operations-handoff-list-item strong,
+.operations-handoff-list-item span,
+.operations-handoff-list-item small,
+.operations-handoff-detail-list dd,
+.operations-handoff-note p {
+  overflow-wrap: anywhere;
+}
+
+.operations-handoff-list-item.active,
+.operations-handoff-list-item:hover,
+.operations-handoff-list-item:focus-visible {
+  border-color: #2f78a8;
+  box-shadow: 0 0 0 3px rgba(47, 120, 168, 0.14);
+  outline: none;
+}
+
+.operations-handoff-list-item.blocked {
+  background: #fff7f5;
+  border-color: #f0b7ad;
+}
+
+.operations-handoff-status-pill {
+  align-self: start;
+  background: #edf7ed;
+  border-radius: 999px;
+  color: #286217;
+  display: inline-flex;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.55rem;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+.operations-handoff-status-pill.pending,
+.operations-handoff-status-pill.in_review {
+  background: #eef7ff;
+  color: #285c83;
+}
+
+.operations-handoff-status-pill.blocked {
+  background: #ffece8;
+  color: #a53420;
+}
+
+.operations-handoff-status-pill.complete {
+  background: #e8f8ed;
+  color: #166a2f;
+}
+
+.operations-handoff-detail-panel {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.operations-handoff-detail-list {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.operations-handoff-detail-list div,
+.operations-handoff-note {
+  background: #f6fbff;
+  border: 1px solid #d7e7f2;
+  border-radius: 0.9rem;
+  padding: 0.75rem;
+}
+
+.operations-handoff-detail-list dt {
+  color: #3f627a;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.operations-handoff-detail-list dd {
+  color: #14344a;
+  font-weight: 800;
+  line-height: 1.45;
+  margin: 0.25rem 0 0;
+}
+
+.operations-handoff-note strong {
+  color: #285c83;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.operations-handoff-note p {
+  line-height: 1.55;
+  margin: 0;
+}
+
+.operations-handoff-detail-form {
+  background: #f8fbff;
+  border: 1px solid #d7e7f2;
+  border-radius: 0.95rem;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 0.85rem;
+}
+
+.operations-handoff-detail-form .full-width-field {
+  grid-column: 1 / -1;
+}
+
+.operations-handoff-detail-form button {
+  justify-self: start;
+}
+
+@media (max-width: 980px) {
+  .operations-handoff-workspace-header,
+  .operations-handoff-layout,
+  .operations-handoff-detail-list,
+  .operations-handoff-detail-form {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-handoff-workspace-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

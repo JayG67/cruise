@@ -26,11 +26,185 @@ describe('React operational role foundation', () => {
     cy.contains('database-backed turnaround plans').should('be.visible')
     cy.contains('Miami same-day turnaround readiness').should('be.visible')
     cy.getByTestId(rs.operationalReadinessBookings).should('contain.text', '2')
-    cy.getByTestId(rs.operationalReadinessPassengers).should('contain.text', '4')
-    cy.getByTestId(rs.operationalReadinessCard).should('have.length', 2)
+    cy.getByTestId(rs.operationalReadinessPassengers).should('contain.text', '2')
+    cy.getByTestId(rs.turnaroundSelectorPanel).should('be.visible')
+    cy.getByTestId(rs.turnaroundSelector).should('contain.text', 'Miami same-day turnaround readiness').and('contain.text', 'San Juan repositioning turnaround readiness')
+    cy.getByTestId(rs.operationalReadinessCard).should('have.length', 1)
     cy.getByTestId(rs.operationalRoleChecklist).should('contain.text', 'Sequence disembarkation')
     cy.getByTestId(rs.customerHierarchy).should('not.exist')
     cy.getByTestId(rs.fleetDirectory).should('not.exist')
+  })
+
+  it('lets operational users switch the selected turnaround sailing without rendering every operation at once', () => {
+    selectOperationalDemoUserByVisibleRole('Turnaround Manager')
+
+    cy.getByTestId(rs.operationalReadinessCard).should('have.length', 1)
+    cy.getByTestId(rs.operationalReadinessCard).should('contain.text', 'Miami same-day turnaround readiness')
+    cy.getByTestId(rs.operationalReadinessCard).should('not.contain.text', 'San Juan repositioning turnaround readiness')
+    cy.getByTestId(rs.turnaroundSelectorSummary)
+      .should('contain.text', 'Miami, Florida')
+      .and('contain.text', 'Tasks')
+      .and('contain.text', '2')
+
+    cy.getByTestId(rs.turnaroundSelector).select('turnaround-react-2')
+
+    cy.getByTestId(rs.operationalReadinessCard).should('have.length', 1)
+    cy.getByTestId(rs.operationalReadinessCard).should('contain.text', 'San Juan repositioning turnaround readiness')
+    cy.getByTestId(rs.operationalReadinessCard).should('not.contain.text', 'Miami same-day turnaround readiness')
+    cy.getByTestId(rs.operationalReadinessPassengers).should('contain.text', '2')
+    cy.getByTestId(rs.turnaroundSelectorSummary)
+      .should('contain.text', 'San Juan, Puerto Rico')
+      .and('contain.text', 'Tasks')
+      .and('contain.text', '1')
+  })
+
+  it('renders the slice 2 operations workspace navigation shell and updates active workstream guidance', () => {
+    selectOperationalDemoUserByVisibleRole('Turnaround Manager')
+
+    cy.getByTestId(rs.operationsWorkspaceShell).should('be.visible')
+    cy.getByTestId(rs.operationsWorkspaceNav).within(() => {
+      cy.contains('button', 'Overview').should('have.attr', 'aria-pressed', 'true')
+      cy.contains('button', 'Tasks').should('be.visible')
+      cy.contains('button', 'Dependencies').should('be.visible')
+      cy.contains('button', 'Handoffs').should('be.visible')
+      cy.contains('button', 'Escalations').should('be.visible')
+      cy.contains('button', 'Staffing').should('be.visible')
+      cy.contains('button', 'Readiness').should('be.visible')
+    })
+
+    cy.getByTestId(rs.operationsWorkspaceActiveSummary)
+      .should('contain.text', 'Overview')
+      .and('contain.text', 'Command plan')
+
+    cy.getByTestId(rs.operationsWorkspaceHandoffsButton).click()
+    cy.getByTestId(rs.operationsWorkspaceHandoffsButton).should('have.attr', 'aria-pressed', 'true')
+    cy.getByTestId(rs.operationsWorkspaceActiveSummary)
+      .should('contain.text', 'Handoffs')
+      .and('contain.text', 'Department-to-department release workflow')
+
+    cy.getByTestId(rs.operationsWorkspaceTasksButton).click()
+    cy.getByTestId(rs.operationsWorkspaceTasksButton).should('have.attr', 'aria-pressed', 'true')
+    cy.getByTestId(rs.operationsWorkspaceActiveSummary)
+      .should('contain.text', 'Tasks')
+      .and('contain.text', 'Role-focused task checklist')
+  })
+
+  it('renders the slice 3 task workspace as a focused queue with one editable task detail panel', () => {
+    selectOperationalDemoUserByVisibleRole('Turnaround Manager')
+
+    cy.getByTestId(rs.operationsWorkspaceTasksButton).click()
+    cy.getByTestId(rs.operationsTaskWorkspace).should('be.visible')
+    cy.getByTestId(rs.operationsTaskWorkspaceSummary)
+      .should('contain.text', 'Total')
+      .and('contain.text', '2')
+      .and('contain.text', 'Blocked')
+    cy.getByTestId(rs.operationsTaskList).should('be.visible')
+    cy.getByTestId(rs.operationsTaskListItem).should('have.length', 2)
+    cy.getByTestId(rs.operationsTaskListItem).first().should('have.attr', 'aria-pressed', 'true')
+    cy.getByTestId(rs.operationsTaskDetailPanel)
+      .should('be.visible')
+      .and('contain.text', 'Coordinate department readiness standups')
+      .and('contain.text', 'Owner')
+      .and('contain.text', 'Due')
+      .and('contain.text', 'Location')
+
+    cy.contains(`${byTestId('operationsTaskListItem')}`, 'Sequence disembarkation, provisioning, cleaning, and embarkation').click()
+    cy.getByTestId(rs.operationsTaskDetailPanel)
+      .should('contain.text', 'Sequence disembarkation, provisioning, cleaning, and embarkation')
+      .and('contain.text', 'READY')
+
+    cy.getByTestId(rs.operationsTaskDetailPanel).within(() => {
+      cy.get('textarea[aria-label="Sequence disembarkation, provisioning, cleaning, and embarkation blocker reason"]')
+        .should('be.visible')
+        .and($textarea => {
+          expect($textarea[0].getBoundingClientRect().height).to.be.greaterThan(70)
+        })
+    })
+  })
+
+  it('renders the slice 4 dependency workspace as a focused gate queue with one selected dependency detail panel', () => {
+    selectOperationalDemoUserByVisibleRole('Turnaround Manager')
+
+    cy.getByTestId(rs.operationsWorkspaceDependenciesButton).click()
+    cy.getByTestId(rs.operationsDependencyWorkspace).should('be.visible')
+    cy.getByTestId(rs.operationsDependencyWorkspaceSummary)
+      .should('contain.text', 'Total')
+      .and('contain.text', '2')
+      .and('contain.text', 'Active')
+      .and('contain.text', '2')
+      .and('contain.text', 'Cleared')
+    cy.getByTestId(rs.operationsDependencyList).should('be.visible')
+    cy.getByTestId(rs.operationsDependencyListItem).should('have.length', 2)
+    cy.getByTestId(rs.operationsDependencyListItem).first().should('have.attr', 'aria-pressed', 'true')
+    cy.getByTestId(rs.operationsDependencyDetailPanel)
+      .should('be.visible')
+      .and('contain.text', 'Prioritize cabin strip and reset windows')
+      .and('contain.text', 'Required first')
+      .and('contain.text', 'Sequence disembarkation, provisioning, cleaning, and embarkation')
+      .and('contain.text', 'ACTIVE')
+    cy.getByTestId(rs.operationsDependencyNote)
+      .should('contain.text', 'Cabin work depends on command sequencing.')
+
+    cy.contains(`${byTestId('operationsDependencyListItem')}`, 'Confirm shore power, fuel, potable water, and waste windows').click()
+    cy.getByTestId(rs.operationsDependencyDetailPanel)
+      .should('contain.text', 'Confirm shore power, fuel, potable water, and waste windows')
+      .and('contain.text', 'Coordinate department readiness standups')
+      .and('contain.text', 'Technical clearance follows the readiness huddle.')
+
+    cy.getByTestId(rs.operationsDependencyDetailList).within(() => {
+      cy.contains('dt', 'Blocked task').should('be.visible')
+      cy.contains('dt', 'Required first').should('be.visible')
+      cy.contains('dt', 'Gate type').should('be.visible')
+      cy.contains('dt', 'Gate status').should('be.visible')
+    })
+  })
+
+  it('renders the slice 5 handoff workspace as a focused release queue with one editable detail panel', () => {
+    selectOperationalDemoUserByVisibleRole('Turnaround Manager')
+
+    cy.getByTestId(rs.operationsWorkspaceHandoffsButton).click()
+    cy.getByTestId(rs.operationsHandoffWorkspace).should('be.visible')
+    cy.getByTestId(rs.operationsHandoffWorkspaceSummary)
+      .should('contain.text', 'Total')
+      .and('contain.text', '2')
+      .and('contain.text', 'Complete')
+      .and('contain.text', 'Blocked')
+      .and('contain.text', 'Open')
+    cy.getByTestId(rs.operationsHandoffList).should('be.visible')
+    cy.getByTestId(rs.operationsHandoffListItem).should('have.length', 2)
+    cy.getByTestId(rs.operationsHandoffListItem).first().should('have.attr', 'aria-pressed', 'true')
+    cy.getByTestId(rs.operationsHandoffDetailPanel)
+      .should('be.visible')
+      .and('contain.text', 'Cabin readiness to embarkation desk handoff')
+      .and('contain.text', 'housekeeping-lead')
+      .and('contain.text', 'guest-services-lead')
+      .and('contain.text', 'Maria Rodriguez')
+      .and('contain.text', '11:00')
+    cy.getByTestId(rs.operationsHandoffNote)
+      .should('contain.text', 'Guest services needs cabin readiness confirmation')
+
+    cy.contains(`${byTestId('operationsHandoffListItem')}`, 'Technical clearance to command center handoff').click()
+    cy.getByTestId(rs.operationsHandoffDetailPanel)
+      .should('contain.text', 'Technical clearance to command center handoff')
+      .and('contain.text', 'engineering-lead')
+      .and('contain.text', 'turnaround-manager')
+      .and('contain.text', 'David Torres')
+      .and('contain.text', 'IN_REVIEW')
+
+    cy.getByTestId(rs.operationsHandoffDetailList).within(() => {
+      cy.contains('dt', 'From').should('be.visible')
+      cy.contains('dt', 'To').should('be.visible')
+      cy.contains('dt', 'Owner').should('be.visible')
+      cy.contains('dt', 'Due time').should('be.visible')
+    })
+
+    cy.getByTestId(rs.operationsHandoffDetailPanel).within(() => {
+      cy.get('textarea[aria-label="Technical clearance to command center handoff handoff notes"]')
+        .should('be.visible')
+        .and($textarea => {
+          expect($textarea[0].getBoundingClientRect().height).to.be.greaterThan(70)
+        })
+    })
   })
 
   it('shows a cross-department operations directory without rendering an oversized operational dataset', () => {
@@ -95,11 +269,8 @@ describe('React operational role foundation', () => {
   it('keeps turnaround command controls uniform and readable in the UI', () => {
     selectOperationalDemoUserByVisibleRole('Turnaround Manager')
 
-    cy.getByTestId(rs.operationalReadinessCard).then(cards => {
-      const firstTop = Math.round(cards[0].getBoundingClientRect().top)
-      const secondTop = Math.round(cards[1].getBoundingClientRect().top)
-      expect(secondTop).to.equal(firstTop)
-    })
+    cy.getByTestId(rs.operationalReadinessCard).should('have.length', 1)
+    cy.getByTestId(rs.turnaroundSelectorPanel).should('be.visible')
 
     cy.getByTestId(rs.operationalCommandForm).first().within(() => {
       cy.get('select[aria-label="Miami same-day turnaround readiness command readiness"]')
@@ -128,7 +299,7 @@ describe('React operational role foundation', () => {
   it('lets operational leads update database-backed turnaround task status from the dashboard', () => {
     selectOperationalDemoUserByVisibleRole('Turnaround Manager')
 
-    cy.getByTestId(rs.operationalProgressSummary).first().should('contain.text', '0 of 4 tasks complete')
+    cy.getByTestId(rs.operationalProgressSummary).first().should('contain.text', '0 of 2 tasks complete')
     cy.contains(`${byTestId('operationalRoleChecklist')} li`, 'Sequence disembarkation')
       .within(() => {
         cy.contains('button', 'Complete').click()
@@ -141,7 +312,7 @@ describe('React operational role foundation', () => {
     cy.getByTestId(rs.operationalMutationStatus).should('contain.text', 'Turnaround task status updated successfully')
     cy.contains(`${byTestId('operationalRoleChecklist')} li`, 'Sequence disembarkation')
       .should('contain.text', 'COMPLETE')
-    cy.getByTestId(rs.operationalProgressSummary).first().should('contain.text', '1 of 4 tasks complete')
+    cy.getByTestId(rs.operationalProgressSummary).first().should('contain.text', '1 of 2 tasks complete')
   })
 
   it('lets operational leads maintain database-backed task owner, timing, location, and blocker notes', () => {
@@ -291,7 +462,7 @@ describe('React operational role foundation', () => {
       })
 
     cy.getByTestId(rs.operationalMutationStatus).should('contain.text', 'Turnaround task created successfully')
-    cy.getByTestId(rs.operationalProgressSummary).first().should('contain.text', '0 of 5 tasks complete')
+    cy.getByTestId(rs.operationalProgressSummary).first().should('contain.text', '0 of 1 tasks complete')
     cy.contains(`${byTestId('operationalRoleChecklist')} li`, 'Open late-arrival guest support desk')
       .should('contain.text', 'Angela Brooks')
       .and('contain.text', '11:15')
@@ -312,7 +483,7 @@ describe('React operational role foundation', () => {
     cy.wait('@reactDeleteTurnaroundTask')
 
     cy.getByTestId(rs.operationalMutationStatus).should('contain.text', 'Turnaround task removed successfully')
-    cy.getByTestId(rs.operationalProgressSummary).first().should('contain.text', '0 of 3 tasks complete')
+    cy.getByTestId(rs.operationalProgressSummary).first().should('contain.text', '0 of 0 tasks complete')
     cy.contains(`${byTestId('operationalRoleChecklist')} li`, 'Prioritize cabin strip and reset windows').should('not.exist')
   })
 

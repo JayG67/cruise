@@ -283,8 +283,9 @@ describe('React role workflow UI verification', () => {
     selectWorkflowDemoUserByVisibleRole('Turnaround Manager')
 
     cy.getByTestId(rs.turnaroundManagerDashboard).should('be.visible')
-    cy.getByTestId(rs.operationalReadinessCard).should('have.length', 2)
-    cy.getByTestId(rs.operationalReadinessPassengers).should('contain.text', '4')
+    cy.getByTestId(rs.operationalReadinessCard).should('have.length', 1)
+    cy.getByTestId(rs.turnaroundSelectorPanel).should('be.visible')
+    cy.getByTestId(rs.operationalReadinessPassengers).should('contain.text', '2')
     cy.contains('Miami same-day turnaround readiness').should('be.visible')
     cy.contains('React Icon').should('be.visible')
     cy.contains('Miami, Florida').should('be.visible')
@@ -303,7 +304,7 @@ describe('React role workflow UI verification', () => {
     cy.getByTestId(rs.housekeepingLeadDashboard).should('be.visible')
     cy.contains('Housekeeping operations').should('be.visible')
     cy.contains('Prioritize cabin strip and reset windows').should('be.visible')
-    cy.contains('Confirm inspection checkpoints before guest boarding').should('be.visible')
+    cy.contains('Confirm inspection checkpoints before guest boarding').should('not.exist')
     cy.getByTestId(rs.operationalRoleChecklist).should('not.contain.text', 'Coordinate department readiness standups')
 
     completeVisibleOperationalTask('Prioritize cabin strip and reset windows', 'Maria Rodriguez')
@@ -320,7 +321,7 @@ describe('React role workflow UI verification', () => {
     cy.getByTestId(rs.guestServicesLeadDashboard).should('be.visible')
     cy.contains('Guest services operations').should('be.visible')
     cy.contains('Stage disembarkation communication and late-flight guest support').should('be.visible')
-    cy.contains('Prepare check-in exception handling for repositioning guests').should('be.visible')
+    cy.contains('Prepare check-in exception handling for repositioning guests').should('not.exist')
     cy.contains('Confirm provisions and cold-chain delivery windows').should('not.exist')
 
     completeVisibleOperationalTask('Stage disembarkation communication and late-flight guest support', 'Angela Brooks')
@@ -354,7 +355,7 @@ describe('React role workflow UI verification', () => {
     cy.getByTestId(rs.engineeringLeadDashboard).should('be.visible')
     cy.contains('Engineering operations').should('be.visible')
     cy.contains('Confirm shore power, fuel, potable water, and waste windows').should('be.visible')
-    cy.contains('Confirm technical clearance checks before embarkation').should('be.visible')
+    cy.contains('Confirm technical clearance checks before embarkation').should('not.exist')
 
     findOperationalTask('Confirm shore power, fuel, potable water, and waste windows').within(() => {
       cy.get('input[aria-label="Confirm shore power, fuel, potable water, and waste windows blocker reason"]').clear().type('Awaiting shore power handoff from pier team')
