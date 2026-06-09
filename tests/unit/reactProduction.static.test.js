@@ -63,4 +63,23 @@ describe('Cruise operations product presentation guardrails', () => {
     expect(sqaConsole).toContain('View Quality Dashboard')
     expect(sqaConsole).toContain('Run Performance Check')
   })
+
+  it('keeps the live React client resilient when a static host returns HTML for API routes', () => {
+    const client = read('frontend/react/src/api/client.js')
+    const bundledDataPath = path.join(projectRoot, 'frontend/react/public/data/cruise.json')
+    const bundledData = JSON.parse(fs.readFileSync(bundledDataPath, 'utf8'))
+
+    expect(client).toContain('class ApiResponseFormatError extends Error')
+    expect(client).toContain("const STATIC_DATA_URL = '/data/cruise.json'")
+    expect(client).toContain('requestStaticFallback(path, options)')
+    expect(client).toContain("path === '/cruise/bookings'")
+    expect(client).toContain('normalizeStaticBookings(seedData)')
+    expect(client).toContain('normalizeStaticCruiseLines(seedData)')
+    expect(client).toContain('getStaticShipsForCruiseLine(seedData')
+    expect(client).not.toContain('React Vite proxy is configured for local preview')
+    expect(bundledData.customers.length).toBeGreaterThan(0)
+    expect(bundledData.bookings.length).toBeGreaterThan(0)
+    expect(bundledData.demoUsers.length).toBeGreaterThan(0)
+  })
+
 })
