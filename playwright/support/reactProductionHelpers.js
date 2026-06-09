@@ -67,6 +67,14 @@ async function selectDemoUserByRole(page, roleText) {
 }
 
 
+
+async function selectPassengerProfileUser(page) {
+  await selectRoleAndPerson(page, 'passenger', 'Ryan Parker Passenger View')
+  await expect(page.getByTestId('react-demo-user-summary')).toContainText('Passenger', { timeout: 15000 })
+  await expect(page.getByTestId('react-passenger-dashboard')).toBeVisible({ timeout: 15000 })
+  await expect(page.getByTestId('react-passenger-profile-form')).toBeVisible({ timeout: 20000 })
+}
+
 async function openFleetShipsBySearch(page, searchText, expectedHeadingPattern = null) {
   const fleetSearch = page.getByTestId('react-fleet-search')
   await expect(fleetSearch).toBeVisible({ timeout: 15000 })
@@ -154,6 +162,7 @@ module.exports = {
   openFleetShipsBySearch,
   openFleetSailingsBySearch,
   selectDemoUserByRole,
+  selectPassengerProfileUser,
   selectRoleAndPerson,
   waitForRolePicker
 }
