@@ -13,6 +13,7 @@ describe('Cruise operations product presentation guardrails', () => {
     const packageJson = require('../../package.json')
 
     expect(app).toContain("app.get('/', sendReactApp)")
+    expect(app).toContain("app.get('/lighthouse-ci', sendLighthouseAuditPage)")
     expect(app).toContain("app.use(express.static(reactBuildDir, { redirect: false")
     expect(app).not.toContain('sendDefaultExperience')
     expect(app).not.toContain('sendRetiredApp')
@@ -97,6 +98,8 @@ describe('Cruise operations product presentation guardrails', () => {
     expect(indexHtml).toContain('class="initial-shell"')
     expect(indexHtml).toContain('Manage cruise line and fleet operations')
     expect(indexHtml).toContain('Preparing operations workspaces')
+    expect(app).toContain('Cruise Fleet Operations Platform mobile quality audit')
+    expect(app).toContain('Audited production capabilities')
     expect(css).toContain('content-visibility: auto')
     expect(css).toContain('background: linear-gradient(135deg, #071827 0%, #0b6fa4 100%)')
     expect(css).toContain('@media (min-width: 761px)')

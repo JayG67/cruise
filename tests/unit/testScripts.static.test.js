@@ -140,6 +140,9 @@ describe('local test database script guardrails', () => {
     expect(packageJson.scripts['lighthouse:assert-report']).toContain('scripts/assert-lighthouse-mobile-report.js')
     expect(lighthouseConfig).toContain('"formFactor": "mobile"')
     expect(lighthouseConfig).toContain('"mobile": true')
+    expect(lighthouseConfig).toContain('http://localhost:8000/lighthouse-ci')
+    expect(lighthouseConfig).toContain('"throttlingMethod": "provided"')
+    expect(lighthouseConfig).toContain('"minScore": 0.85')
   })
 
 })
