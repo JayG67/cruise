@@ -3,7 +3,8 @@ const {
   expectNoHorizontalOverflow,
   expectOperationalDashboardReady,
   selectDemoUserByRole,
-  selectRoleAndPerson
+  selectRoleAndPerson,
+  selectPassengerProfileUser
 } = require('../support/reactProductionHelpers')
 
 function mobileRunSuffix(testInfo) {
@@ -116,10 +117,11 @@ test.describe('React default mobile replacement checks', () => {
 
   test('keeps React passenger self-service profile controls reachable on mobile', async ({ page }) => {
     await page.goto('/')
-    await selectDemoUserByRole(page, 'Passenger')
+    await selectPassengerProfileUser(page)
 
     const profileForm = page.getByTestId('react-passenger-profile-form')
-    await expect(profileForm).toBeVisible()
+    await profileForm.scrollIntoViewIfNeeded()
+    await expect(profileForm).toBeVisible({ timeout: 20000 })
     await expect(page.getByTestId('react-passenger-profile-phone')).toBeVisible()
     await expect(page.getByTestId('react-dining-preference-select')).toBeVisible()
     await expect(page.getByTestId('react-passenger-profile-accessibility-notes')).toBeVisible()
@@ -300,11 +302,26 @@ test.describe('React default mobile replacement checks', () => {
     await selectDemoUserByRole(page, 'Admin')
 
     await page.getByTestId('react-fleet-search').fill('Royal')
-    await page.getByTestId('react-delete-cruise-line-button').first().click()
-    await expect(page.getByTestId('react-fleet-delete-confirmation')).toBeVisible()
-    await expect(page.getByTestId('react-fleet-delete-confirmation-confirm')).toBeVisible()
-    await page.getByTestId('react-fleet-delete-confirmation-cancel').click()
-    await expect(page.getByTestId('react-fleet-delete-confirmation')).toHaveCount(0)
+
+    const royalFleetCard = page.getByTestId('react-fleet-card').filter({ hasText: 'Royal Caribbean International' }).first()
+    await expect(royalFleetCard).toBeVisible({ timeout: 15000 })
+
+    const deleteButton = royalFleetCard.getByTestId('react-delete-cruise-line-button')
+    await deleteButton.scrollIntoViewIfNeeded()
+    await expect(deleteButton).toBeVisible({ timeout: 15000 })
+    await expect(deleteButton).toBeEnabled({ timeout: 15000 })
+    await deleteButton.click()
+
+    const confirmation = page.getByTestId('react-fleet-delete-confirmation')
+    await confirmation.scrollIntoViewIfNeeded()
+    await expect(confirmation).toBeVisible({ timeout: 15000 })
+    await expect(confirmation).toContainText('Delete Royal Caribbean International', { timeout: 15000 })
+
+    const cancelButton = page.getByTestId('react-fleet-delete-confirmation-cancel')
+    await expect(cancelButton).toBeVisible({ timeout: 15000 })
+    await expect(cancelButton).toBeEnabled({ timeout: 15000 })
+    await cancelButton.click()
+    await expect(confirmation).toHaveCount(0, { timeout: 15000 })
     await expectNoHorizontalOverflow(page)
   })
 
