@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 
 import ConfirmActionPanel from './ConfirmActionPanel.jsx'
-import { getBookings, getCruiseLines, getCustomers, getHealthStatus, resetDemoData } from '../api/client.js'
+import { getBookings, getCruiseLines, getCustomers, getHealthStatus, getTurnaroundOperations, resetDemoData } from '../api/client.js'
 
 function formatResult(title, payload) {
   return `${title}\n\n${JSON.stringify(payload, null, 2)}`
@@ -14,12 +14,44 @@ function createFailure(error) {
   }
 }
 
+
+function buildReadinessChecklist(result = {}) {
+  return [
+    {
+      label: 'API availability',
+      passed: result.healthStatus === 'ok',
+      detail: result.healthStatus === 'ok' ? 'Application API is responding.' : 'Application API needs review.'
+    },
+    {
+      label: 'Fleet data',
+      passed: result.cruiseLineCount > 0,
+      detail: `${result.cruiseLineCount || 0} cruise lines available.`
+    },
+    {
+      label: 'Customer operations',
+      passed: result.customerCount > 0 && result.bookingCount > 0,
+      detail: `${result.customerCount || 0} customers and ${result.bookingCount || 0} bookings available.`
+    },
+    {
+      label: 'Turnaround operations',
+      passed: result.turnaroundOperationCount > 0,
+      detail: `${result.turnaroundOperationCount || 0} turnaround operations available.`
+    },
+    {
+      label: 'Manual approval path',
+      passed: true,
+      detail: 'Review role-specific workflows, fleet management, passenger self-service, and quality reports before publishing.'
+    }
+  ]
+}
+
 export default function ReactSqaConsole({ onRefreshData }) {
   const [output, setOutput] = useState('Test output will appear here...')
   const [lastRun, setLastRun] = useState('No manual run yet')
   const [isRunning, setIsRunning] = useState(false)
   const [status, setStatus] = useState('Ready for validation')
   const [resetConfirmationVisible, setResetConfirmationVisible] = useState(false)
+  const [readinessChecklist, setReadinessChecklist] = useState(buildReadinessChecklist())
 
   const validationActions = useMemo(() => ([
     {
@@ -48,7 +80,7 @@ export default function ReactSqaConsole({ onRefreshData }) {
       key: 'ui-smoke',
       testId: 'react-sqa-ui-smoke-button',
       title: 'UI Smoke Check',
-      description: 'Run a focused browser-level check across the core read workflows.',
+      description: 'Run a browser-level check across the core read workflows.',
       buttonLabel: 'Run UI Smoke Check',
       run: async () => {
         const [health, cruiseLines, customers, bookings] = await Promise.all([
@@ -80,14 +112,14 @@ export default function ReactSqaConsole({ onRefreshData }) {
       key: 'crud',
       testId: 'react-sqa-crud-button',
       title: 'Safe CRUD Workflow',
-      description: 'Confirm the public demo data can be queried before running mutating workflows.',
+      description: 'Confirm the baseline data can be queried before running mutating workflows.',
       buttonLabel: 'Run CRUD Workflow Check',
       run: async () => {
         const [cruiseLines, customers, bookings] = await Promise.all([getCruiseLines(), getCustomers(), getBookings()])
         return {
           passed: cruiseLines.length > 0 && customers.length > 0 && bookings.length > 0,
           temporaryRecordCreated: false,
-          note: 'React route performs safe read validation here; destructive demo reset remains explicit.',
+          note: 'React route performs safe read validation here; baseline data recovery remains explicit.',
           cruiseLineCount: cruiseLines.length,
           customerCount: customers.length,
           bookingCount: bookings.length
@@ -111,7 +143,7 @@ export default function ReactSqaConsole({ onRefreshData }) {
       key: 'seed',
       testId: 'react-sqa-seed-button',
       title: 'Seed Integrity Check',
-      description: 'Confirm the demo dataset contains cruise lines, customers, and bookings.',
+      description: 'Confirm the baseline dataset contains cruise lines, customers, and bookings.',
       buttonLabel: 'Check Seed Integrity',
       run: async () => {
         const [cruiseLines, customers, bookings] = await Promise.all([getCruiseLines(), getCustomers(), getBookings()])
@@ -139,6 +171,36 @@ export default function ReactSqaConsole({ onRefreshData }) {
         const [health, cruiseLines] = await Promise.all([getHealthStatus(), getCruiseLines()])
         return { passed: health.status === 'ok', url: window.location.href, timestamp: new Date().toISOString(), healthStatus: health.status, visibleCruiseLineCount: cruiseLines.length }
       }
+    },
+    {
+      key: 'go-live',
+      testId: 'react-sqa-go-live-button',
+      title: 'Go-Live Readiness Review',
+      description: 'Summarize the data, API, and operations conditions to review before publishing.',
+      buttonLabel: 'Run Go-Live Review',
+      run: async () => {
+        const [health, cruiseLines, customers, bookings, turnaroundOperations] = await Promise.all([
+          getHealthStatus(), getCruiseLines(), getCustomers(), getBookings(), getTurnaroundOperations()
+        ])
+        const result = {
+          passed: health.status === 'ok' && cruiseLines.length > 0 && customers.length > 0 && bookings.length > 0 && turnaroundOperations.length > 0,
+          healthStatus: health.status,
+          cruiseLineCount: cruiseLines.length,
+          customerCount: customers.length,
+          bookingCount: bookings.length,
+          turnaroundOperationCount: turnaroundOperations.length,
+          manualReviewRequired: true,
+          recommendedManualPath: [
+            'Select Turnaround Manager and review the operations command center.',
+            'Open Tasks, Dependencies, Handoffs, Escalations, Staffing, and Readiness.',
+            'Switch to each department lead and confirm the role-specific work queue.',
+            'Review passenger self-service and group leader visibility.',
+            'Run Lighthouse, coverage, and deployment diagnostics before approval.'
+          ]
+        }
+        setReadinessChecklist(buildReadinessChecklist(result))
+        return result
+      }
     }
   ]), [])
 
@@ -163,31 +225,31 @@ export default function ReactSqaConsole({ onRefreshData }) {
 
   function requestResetDemoData() {
     setResetConfirmationVisible(true)
-    setStatus('Demo data recovery needs confirmation')
+    setStatus('Baseline data recovery needs confirmation')
   }
 
   function cancelResetDemoData() {
     setResetConfirmationVisible(false)
     setStatus('Ready for validation')
-    setLastRun('Demo Data Recovery cancelled')
+    setLastRun('Baseline Data Recovery cancelled')
   }
 
   async function handleResetDemoData() {
     setIsRunning(true)
-    setStatus('Running Demo Data Recovery')
-    setLastRun('Running: Demo Data Recovery')
+    setStatus('Running Baseline Data Recovery')
+    setLastRun('Running: Baseline Data Recovery')
 
     try {
       const result = await resetDemoData()
       await onRefreshData?.()
-      setOutput(formatResult('Demo Data Recovery Result', { passed: true, ...result }))
+      setOutput(formatResult('Baseline Data Recovery Result', { passed: true, ...result }))
       setResetConfirmationVisible(false)
       setStatus('Ready for validation')
-      setLastRun('Last run: Demo Data Recovery Passed')
+      setLastRun('Last run: Baseline Data Recovery Passed')
     } catch (error) {
-      setOutput(formatResult('Demo Data Recovery Failed', createFailure(error)))
+      setOutput(formatResult('Baseline Data Recovery Failed', createFailure(error)))
       setStatus('Validation needs attention')
-      setLastRun('Last run: Demo Data Recovery Failed')
+      setLastRun('Last run: Baseline Data Recovery Failed')
     } finally {
       setIsRunning(false)
     }
@@ -197,12 +259,12 @@ export default function ReactSqaConsole({ onRefreshData }) {
     <section className="react-sqa-console" id="react-sqa-console" aria-labelledby="react-sqa-heading" data-testid="react-sqa-console">
       <div className="react-sqa-header">
         <div>
-          <p className="eyebrow">SQA Test Control Panel</p>
+          <p className="eyebrow">Quality Validation Console</p>
           <h2 id="react-sqa-heading">Quality Console for API-driven UI behavior</h2>
           <p>
             A quality operations console for exercising API health, data contracts,
             CRUD workflow safety, response timing, rendering consistency, seed integrity, deployment
-            diagnostics, and public demo reset behavior.
+            diagnostics, and baseline data reset behavior.
           </p>
         </div>
         <div className="react-sqa-status-pill" data-testid="react-sqa-status">
@@ -214,7 +276,30 @@ export default function ReactSqaConsole({ onRefreshData }) {
         </div>
       </div>
 
-      <div className="react-sqa-action-grid" aria-label="React SQA validation actions">
+
+      <div className="go-live-readiness-panel" data-testid="react-go-live-readiness-panel">
+        <div>
+          <p className="eyebrow">Go-Live Readiness</p>
+          <h3>Manual approval checklist</h3>
+          <p>
+            Use this checklist as the final human review path before presenting or publishing the application.
+            Automated checks support the decision, but final approval should include role, operations, fleet, passenger, and quality review.
+          </p>
+        </div>
+        <ul className="go-live-readiness-list" aria-label="Go-live manual approval checklist">
+          {readinessChecklist.map(item => (
+            <li key={item.label} className={item.passed ? 'readiness-item ready' : 'readiness-item attention'}>
+              <span aria-hidden="true">{item.passed ? '✓' : '!'}</span>
+              <div>
+                <strong>{item.label}</strong>
+                <p>{item.detail}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="react-sqa-action-grid" aria-label="Quality validation actions">
         {validationActions.map(action => (
           <article className="react-sqa-action-card" key={action.key}>
             <h3>{action.title}</h3>
@@ -225,16 +310,16 @@ export default function ReactSqaConsole({ onRefreshData }) {
           </article>
         ))}
         <article className="react-sqa-action-card danger-card">
-          <h3>Demo Data Recovery</h3>
-          <p>Reset public demo data after CRUD exploration or recruiter testing.</p>
+          <h3>Baseline Data Recovery</h3>
+          <p>Reset baseline data after administrative workflow review.</p>
           <button type="button" className="danger-action-button" onClick={requestResetDemoData} disabled={isRunning} data-testid="react-sqa-reset-demo-data-button">
-            Reset Demo Data
+            Reset Baseline Data
           </button>
           {resetConfirmationVisible && (
             <ConfirmActionPanel
-              title="Reset demo data"
-              message="Reset public demo data back to the seed dataset?"
-              confirmLabel="Reset Demo Data"
+              title="Reset baseline data"
+              message="Reset baseline data back to the baseline dataset?"
+              confirmLabel="Reset Baseline Data"
               cancelLabel="Keep Current Data"
               onConfirm={handleResetDemoData}
               onCancel={cancelResetDemoData}
@@ -249,7 +334,7 @@ export default function ReactSqaConsole({ onRefreshData }) {
         <div>
           <p className="eyebrow">Validation Output</p>
           <h3>Latest manual validation result</h3>
-          <p>This public demo allows controlled CRUD changes. Use Reset Demo Data to restore the original seed dataset.</p>
+          <p>This environment allows controlled CRUD changes. Use Reset Baseline Data to restore the original baseline dataset.</p>
         </div>
         <div className="react-sqa-output-actions">
           <span>{lastRun}</span>
@@ -265,7 +350,7 @@ export default function ReactSqaConsole({ onRefreshData }) {
         <a href="/coverage/lcov-report/index.html">View Latest Jest Coverage Report</a>
       </div>
 
-      <pre className="react-sqa-output" role="status" aria-live="polite" aria-label="SQA validation output" data-testid="react-sqa-output">
+      <pre className="react-sqa-output" role="status" aria-live="polite" aria-label="Quality validation output" data-testid="react-sqa-output">
         {output}
       </pre>
     </section>

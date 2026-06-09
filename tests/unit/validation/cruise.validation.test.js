@@ -5,7 +5,11 @@ const {
   bookingSchema,
   turnaroundTaskStatusUpdateSchema,
   turnaroundTaskDetailUpdateSchema,
-  turnaroundSignoffUpdateSchema
+  turnaroundTaskCreateSchema,
+  turnaroundSignoffUpdateSchema,
+  turnaroundStaffingUpdateSchema,
+  turnaroundEscalationCreateSchema,
+  turnaroundEscalationUpdateSchema
 } = require('../../../validation/cruise.validation')
 
 describe('Cruise validation schemas', () => {
@@ -519,6 +523,41 @@ describe('Cruise validation schemas', () => {
     })
 
 
+  describe('turnaroundTaskCreateSchema', () => {
+    it('trims and normalizes valid turnaround task creation payloads', () => {
+      const result = turnaroundTaskCreateSchema.safeParse({
+        departmentRole: ' guest-services-lead ',
+        taskName: ' Open late-arrival guest support desk ',
+        ownerName: ' Angela Brooks ',
+        dueTime: ' 11:15 ',
+        location: ' Terminal help desk ',
+        blockerReason: ' Awaiting pier staffing confirmation ',
+        status: 'in progress'
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.data).toEqual({
+        departmentRole: 'guest-services-lead',
+        taskName: 'Open late-arrival guest support desk',
+        ownerName: 'Angela Brooks',
+        dueTime: '11:15',
+        location: 'Terminal help desk',
+        blockerReason: 'Awaiting pier staffing confirmation',
+        status: 'IN_PROGRESS'
+      })
+    })
+
+    it('rejects blank turnaround task names', () => {
+      const result = turnaroundTaskCreateSchema.safeParse({
+        departmentRole: 'guest-services-lead',
+        taskName: '   '
+      })
+
+      expect(result.success).toBe(false)
+    })
+  })
+
+
   describe('turnaroundTaskStatusUpdateSchema', () => {
     it('normalizes supported operational task statuses', () => {
       const result = turnaroundTaskStatusUpdateSchema.safeParse({ status: 'in progress' })
@@ -569,6 +608,37 @@ describe('Cruise validation schemas', () => {
   })
 
 
+
+  describe('turnaroundStaffingUpdateSchema', () => {
+    it('accepts database-backed department staffing counts and handoff notes', () => {
+      const result = turnaroundStaffingUpdateSchema.safeParse({
+        plannedCount: 42,
+        checkedInCount: 38,
+        leadName: 'Maria Rodriguez',
+        musterLocation: 'Guest decks',
+        notes: 'Deck teams staged by zone.'
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.data).toEqual({
+        plannedCount: 42,
+        checkedInCount: 38,
+        leadName: 'Maria Rodriguez',
+        musterLocation: 'Guest decks',
+        notes: 'Deck teams staged by zone.'
+      })
+    })
+
+    it('rejects negative staffing counts', () => {
+      const result = turnaroundStaffingUpdateSchema.safeParse({
+        plannedCount: -1,
+        checkedInCount: 0
+      })
+
+      expect(result.success).toBe(false)
+    })
+  })
+
   describe('turnaroundSignoffUpdateSchema', () => {
     it('normalizes supported operational signoff statuses', () => {
       const result = turnaroundSignoffUpdateSchema.safeParse({
@@ -594,5 +664,56 @@ describe('Cruise validation schemas', () => {
       expect(result.success).toBe(false)
     })
   })
+
+  describe('turnaroundEscalation schemas', () => {
+    it('normalizes supported escalation create payloads', () => {
+      const result = turnaroundEscalationCreateSchema.safeParse({
+        departmentRole: ' guest-services-lead ',
+        severity: 'critical',
+        title: ' Terminal queue risk ',
+        ownerName: ' Angela Brooks ',
+        status: 'open',
+        resolutionNotes: ' Auxiliary lane opening. '
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.data).toEqual({
+        departmentRole: 'guest-services-lead',
+        severity: 'CRITICAL',
+        title: 'Terminal queue risk',
+        ownerName: 'Angela Brooks',
+        status: 'OPEN',
+        resolutionNotes: 'Auxiliary lane opening.'
+      })
+    })
+
+    it('normalizes supported escalation update payloads', () => {
+      const result = turnaroundEscalationUpdateSchema.safeParse({
+        severity: 'watch',
+        status: 'resolved',
+        ownerName: 'Alex Turner',
+        resolutionNotes: 'Cleared by command center.'
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.data).toEqual({
+        severity: 'WATCH',
+        status: 'RESOLVED',
+        ownerName: 'Alex Turner',
+        resolutionNotes: 'Cleared by command center.'
+      })
+    })
+
+    it('rejects unsupported escalation severity values', () => {
+      const result = turnaroundEscalationCreateSchema.safeParse({
+        departmentRole: 'engineering-lead',
+        severity: 'emergency-ish',
+        title: 'Bad escalation'
+      })
+
+      expect(result.success).toBe(false)
+    })
+  })
+
 
 })

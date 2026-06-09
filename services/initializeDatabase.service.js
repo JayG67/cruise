@@ -79,6 +79,7 @@ async function initializeDatabase() {
       "departmentRole" varchar(50) NOT NULL,
       "taskName" varchar(255) NOT NULL,
       "ownerName" varchar(255),
+      "ownerUserId" varchar(40),
       "dueTime" varchar(20),
       location varchar(255),
       "blockerReason" varchar(500),
@@ -92,6 +93,7 @@ async function initializeDatabase() {
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       "taskId" uuid NOT NULL REFERENCES turnaround_tasks(id) ON DELETE CASCADE,
       "authorName" varchar(255) NOT NULL,
+      "authorUserId" varchar(40),
       "updateType" varchar(50) NOT NULL,
       message varchar(500) NOT NULL,
       "createdAt" varchar(40) NOT NULL
@@ -104,9 +106,68 @@ async function initializeDatabase() {
       "operationId" uuid NOT NULL REFERENCES turnaround_operations(id) ON DELETE CASCADE,
       "departmentRole" varchar(50) NOT NULL,
       "approverName" varchar(255),
+      "approverUserId" varchar(40),
       status varchar(50) NOT NULL,
       notes varchar(500),
       "signedAt" varchar(40)
+    );
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS turnaround_escalations (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      "operationId" uuid NOT NULL REFERENCES turnaround_operations(id) ON DELETE CASCADE,
+      "departmentRole" varchar(50) NOT NULL,
+      severity varchar(50) NOT NULL,
+      title varchar(255) NOT NULL,
+      "ownerName" varchar(255),
+      "ownerUserId" varchar(40),
+      status varchar(50) NOT NULL,
+      "resolutionNotes" varchar(500),
+      "createdAt" varchar(40) NOT NULL
+    );
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS turnaround_staffing (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      "operationId" uuid NOT NULL REFERENCES turnaround_operations(id) ON DELETE CASCADE,
+      "departmentRole" varchar(50) NOT NULL,
+      "plannedCount" integer NOT NULL DEFAULT 0,
+      "checkedInCount" integer NOT NULL DEFAULT 0,
+      "leadName" varchar(255),
+      "musterLocation" varchar(255),
+      notes varchar(500)
+    );
+  `)
+
+
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS turnaround_task_dependencies (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      "operationId" uuid NOT NULL REFERENCES turnaround_operations(id) ON DELETE CASCADE,
+      "taskId" uuid NOT NULL REFERENCES turnaround_tasks(id) ON DELETE CASCADE,
+      "dependsOnTaskId" uuid NOT NULL REFERENCES turnaround_tasks(id) ON DELETE CASCADE,
+      "dependencyType" varchar(50) NOT NULL DEFAULT 'BLOCKS',
+      status varchar(50) NOT NULL DEFAULT 'ACTIVE',
+      notes varchar(500)
+    );
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS turnaround_handoffs (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      "operationId" uuid NOT NULL REFERENCES turnaround_operations(id) ON DELETE CASCADE,
+      "fromDepartmentRole" varchar(50) NOT NULL,
+      "toDepartmentRole" varchar(50) NOT NULL,
+      title varchar(255) NOT NULL,
+      status varchar(50) NOT NULL DEFAULT 'PENDING',
+      "ownerName" varchar(255),
+      "ownerUserId" varchar(40),
+      "dueTime" varchar(20),
+      notes varchar(500),
+      "completedAt" varchar(40)
     );
   `)
 
@@ -134,13 +195,44 @@ async function initializeDatabase() {
     );
   `)
 
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS app_roles (
+      id varchar(50) PRIMARY KEY,
+      "displayName" varchar(255) NOT NULL,
+      "roleType" varchar(50) NOT NULL,
+      description varchar(500)
+    );
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS app_users (
+      id varchar(40) PRIMARY KEY,
+      "displayName" varchar(255) NOT NULL,
+      email varchar(255) NOT NULL,
+      "userType" varchar(50) NOT NULL,
+      "primaryCustomerId" varchar(10) REFERENCES customers(id) ON DELETE SET NULL,
+      status varchar(50) NOT NULL DEFAULT 'ACTIVE'
+    );
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS app_user_roles (
+      id varchar(100) PRIMARY KEY,
+      "userId" varchar(40) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+      "roleId" varchar(50) NOT NULL REFERENCES app_roles(id) ON DELETE CASCADE,
+      "assignmentScope" varchar(50) NOT NULL DEFAULT 'GLOBAL',
+      status varchar(50) NOT NULL DEFAULT 'ACTIVE'
+    );
+  `)
 
   await db.execute(sql`
     CREATE TABLE IF NOT EXISTS demo_users (
       id varchar(20) PRIMARY KEY,
       "displayName" varchar(255) NOT NULL,
       role varchar(50) NOT NULL,
-      "customerId" varchar(10) REFERENCES customers(id) ON DELETE SET NULL
+      "customerId" varchar(10) REFERENCES customers(id) ON DELETE SET NULL,
+      "normalizedUserId" varchar(40) REFERENCES app_users(id) ON DELETE SET NULL,
+      "normalizedRoleId" varchar(50) REFERENCES app_roles(id) ON DELETE SET NULL
     );
   `)
 
@@ -244,6 +336,719 @@ async function initializeDatabase() {
 
   await db.execute(sql`
     ALTER TABLE turnaround_signoffs ADD COLUMN IF NOT EXISTS "signedAt" varchar(40);
+  `)
+
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_escalations ADD COLUMN IF NOT EXISTS "departmentRole" varchar(50);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_escalations ADD COLUMN IF NOT EXISTS severity varchar(50);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_escalations ADD COLUMN IF NOT EXISTS title varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_escalations ADD COLUMN IF NOT EXISTS "ownerName" varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_escalations ADD COLUMN IF NOT EXISTS status varchar(50);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_escalations ADD COLUMN IF NOT EXISTS "resolutionNotes" varchar(500);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_escalations ADD COLUMN IF NOT EXISTS "createdAt" varchar(40);
+  `)
+
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_staffing ADD COLUMN IF NOT EXISTS "departmentRole" varchar(50);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_staffing ADD COLUMN IF NOT EXISTS "plannedCount" integer NOT NULL DEFAULT 0;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_staffing ADD COLUMN IF NOT EXISTS "checkedInCount" integer NOT NULL DEFAULT 0;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_staffing ADD COLUMN IF NOT EXISTS "leadName" varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_staffing ADD COLUMN IF NOT EXISTS "musterLocation" varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_staffing ADD COLUMN IF NOT EXISTS notes varchar(500);
+  `)
+
+
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_task_dependencies ADD COLUMN IF NOT EXISTS "dependencyType" varchar(50);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_task_dependencies ADD COLUMN IF NOT EXISTS status varchar(50);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_task_dependencies ADD COLUMN IF NOT EXISTS notes varchar(500);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_handoffs ADD COLUMN IF NOT EXISTS "fromDepartmentRole" varchar(50);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_handoffs ADD COLUMN IF NOT EXISTS "toDepartmentRole" varchar(50);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_handoffs ADD COLUMN IF NOT EXISTS title varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_handoffs ADD COLUMN IF NOT EXISTS status varchar(50);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_handoffs ADD COLUMN IF NOT EXISTS "ownerName" varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_handoffs ADD COLUMN IF NOT EXISTS "dueTime" varchar(20);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_handoffs ADD COLUMN IF NOT EXISTS notes varchar(500);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_handoffs ADD COLUMN IF NOT EXISTS "completedAt" varchar(40);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE demo_users ADD COLUMN IF NOT EXISTS "normalizedUserId" varchar(40) REFERENCES app_users(id) ON DELETE SET NULL;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE demo_users ADD COLUMN IF NOT EXISTS "normalizedRoleId" varchar(50) REFERENCES app_roles(id) ON DELETE SET NULL;
+  `)
+
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_tasks ADD COLUMN IF NOT EXISTS "ownerUserId" varchar(40);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_task_updates ADD COLUMN IF NOT EXISTS "authorUserId" varchar(40);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_signoffs ADD COLUMN IF NOT EXISTS "approverUserId" varchar(40);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_escalations ADD COLUMN IF NOT EXISTS "ownerUserId" varchar(40);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_handoffs ADD COLUMN IF NOT EXISTS "ownerUserId" varchar(40);
+  `)
+
+  await db.execute(sql`
+    INSERT INTO app_roles (id, "displayName", "roleType", description)
+    SELECT DISTINCT
+      lower(replace(role, '_', '-')) AS id,
+      initcap(lower(replace(role, '_', ' '))) AS "displayName",
+      CASE
+        WHEN upper(replace(role, '-', '_')) IN ('ADMIN', 'PASSENGER', 'GROUP_LEADER') THEN upper(replace(role, '-', '_'))
+        ELSE 'OPERATIONS'
+      END AS "roleType",
+      'Normalized access role migrated from existing demo user data' AS description
+    FROM demo_users
+    WHERE role IS NOT NULL
+    ON CONFLICT (id) DO NOTHING;
+  `)
+
+  await db.execute(sql`
+    INSERT INTO app_users (id, "displayName", email, "userType", "primaryCustomerId", status)
+    SELECT
+      id,
+      "displayName",
+      id || '@cruise-explorer.local',
+      CASE WHEN role = 'ADMIN' THEN 'EMPLOYEE' ELSE 'PASSENGER' END,
+      "customerId",
+      'ACTIVE'
+    FROM demo_users
+    ON CONFLICT (id) DO NOTHING;
+  `)
+
+  await db.execute(sql`
+    INSERT INTO app_user_roles (id, "userId", "roleId", "assignmentScope", status)
+    SELECT
+      demo_users.id || '-' || lower(replace(demo_users.role, '_', '-')),
+      demo_users.id,
+      lower(replace(demo_users.role, '_', '-')),
+      CASE WHEN demo_users."customerId" IS NULL THEN 'GLOBAL' ELSE 'CUSTOMER' END,
+      'ACTIVE'
+    FROM demo_users
+    WHERE demo_users.role IS NOT NULL
+    ON CONFLICT (id) DO NOTHING;
+  `)
+
+  await db.execute(sql`
+    UPDATE demo_users
+    SET
+      "normalizedUserId" = id,
+      "normalizedRoleId" = lower(replace(role, '_', '-'))
+    WHERE "normalizedUserId" IS NULL OR "normalizedRoleId" IS NULL;
+  `)
+
+
+  await db.execute(sql`
+    UPDATE turnaround_tasks
+    SET "ownerUserId" = matched_users.id
+    FROM (
+      SELECT DISTINCT ON (source_name) source_name, id
+      FROM (
+        SELECT "displayName" AS source_name, id, 1 AS match_rank FROM app_users
+        UNION ALL
+        SELECT split_part("displayName", ' — ', 1) AS source_name, id, 2 AS match_rank FROM app_users WHERE "displayName" LIKE '% — %'
+      ) candidate_users
+      WHERE source_name IS NOT NULL AND source_name <> ''
+      ORDER BY source_name, match_rank, id
+    ) matched_users
+    WHERE turnaround_tasks."ownerUserId" IS NULL
+      AND turnaround_tasks."ownerName" = matched_users.source_name;
+  `)
+
+  await db.execute(sql`
+    UPDATE turnaround_task_updates
+    SET "authorUserId" = matched_users.id
+    FROM (
+      SELECT DISTINCT ON (source_name) source_name, id
+      FROM (
+        SELECT "displayName" AS source_name, id, 1 AS match_rank FROM app_users
+        UNION ALL
+        SELECT split_part("displayName", ' — ', 1) AS source_name, id, 2 AS match_rank FROM app_users WHERE "displayName" LIKE '% — %'
+      ) candidate_users
+      WHERE source_name IS NOT NULL AND source_name <> ''
+      ORDER BY source_name, match_rank, id
+    ) matched_users
+    WHERE turnaround_task_updates."authorUserId" IS NULL
+      AND turnaround_task_updates."authorName" = matched_users.source_name;
+  `)
+
+  await db.execute(sql`
+    UPDATE turnaround_signoffs
+    SET "approverUserId" = matched_users.id
+    FROM (
+      SELECT DISTINCT ON (source_name) source_name, id
+      FROM (
+        SELECT "displayName" AS source_name, id, 1 AS match_rank FROM app_users
+        UNION ALL
+        SELECT split_part("displayName", ' — ', 1) AS source_name, id, 2 AS match_rank FROM app_users WHERE "displayName" LIKE '% — %'
+      ) candidate_users
+      WHERE source_name IS NOT NULL AND source_name <> ''
+      ORDER BY source_name, match_rank, id
+    ) matched_users
+    WHERE turnaround_signoffs."approverUserId" IS NULL
+      AND turnaround_signoffs."approverName" = matched_users.source_name;
+  `)
+
+  await db.execute(sql`
+    UPDATE turnaround_escalations
+    SET "ownerUserId" = matched_users.id
+    FROM (
+      SELECT DISTINCT ON (source_name) source_name, id
+      FROM (
+        SELECT "displayName" AS source_name, id, 1 AS match_rank FROM app_users
+        UNION ALL
+        SELECT split_part("displayName", ' — ', 1) AS source_name, id, 2 AS match_rank FROM app_users WHERE "displayName" LIKE '% — %'
+      ) candidate_users
+      WHERE source_name IS NOT NULL AND source_name <> ''
+      ORDER BY source_name, match_rank, id
+    ) matched_users
+    WHERE turnaround_escalations."ownerUserId" IS NULL
+      AND turnaround_escalations."ownerName" = matched_users.source_name;
+  `)
+
+  await db.execute(sql`
+    UPDATE turnaround_handoffs
+    SET "ownerUserId" = matched_users.id
+    FROM (
+      SELECT DISTINCT ON (source_name) source_name, id
+      FROM (
+        SELECT "displayName" AS source_name, id, 1 AS match_rank FROM app_users
+        UNION ALL
+        SELECT split_part("displayName", ' — ', 1) AS source_name, id, 2 AS match_rank FROM app_users WHERE "displayName" LIKE '% — %'
+      ) candidate_users
+      WHERE source_name IS NOT NULL AND source_name <> ''
+      ORDER BY source_name, match_rank, id
+    ) matched_users
+    WHERE turnaround_handoffs."ownerUserId" IS NULL
+      AND turnaround_handoffs."ownerName" = matched_users.source_name;
+  `)
+
+  for (const operationalUserConstraint of [
+    ['fk_turnaround_tasks_owner_user', 'turnaround_tasks', 'ownerUserId'],
+    ['fk_turnaround_task_updates_author_user', 'turnaround_task_updates', 'authorUserId'],
+    ['fk_turnaround_signoffs_approver_user', 'turnaround_signoffs', 'approverUserId'],
+    ['fk_turnaround_escalations_owner_user', 'turnaround_escalations', 'ownerUserId'],
+    ['fk_turnaround_handoffs_owner_user', 'turnaround_handoffs', 'ownerUserId']
+  ]) {
+    const [constraintName, tableName, columnName] = operationalUserConstraint
+    await db.execute(sql.raw(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = '${constraintName}') THEN
+          ALTER TABLE ${tableName} ADD CONSTRAINT ${constraintName} FOREIGN KEY ("${columnName}") REFERENCES app_users(id) ON DELETE SET NULL;
+        END IF;
+      END $$;
+    `))
+  }
+
+
+  await db.execute(sql`
+    ALTER TABLE bookings DROP CONSTRAINT IF EXISTS chk_bookings_booking_status;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE bookings ADD CONSTRAINT chk_bookings_booking_status CHECK ("bookingStatus" IN ('CONFIRMED', 'DEPOSIT_PAID', 'PAID_IN_FULL', 'WAITLISTED', 'CHECKED_IN'));
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE app_roles DROP CONSTRAINT IF EXISTS chk_app_roles_role_type;
+  `)
+
+  await db.execute(sql`
+    UPDATE app_roles
+    SET "roleType" = CASE
+      WHEN upper(replace("roleType", '-', '_')) IN ('ADMIN', 'PASSENGER', 'GROUP_LEADER', 'OPERATIONS') THEN upper(replace("roleType", '-', '_'))
+      WHEN id IN ('turnaround-manager', 'housekeeping-lead', 'guest-services-lead', 'food-beverage-lead', 'engineering-lead') THEN 'OPERATIONS'
+      ELSE 'OPERATIONS'
+    END
+    WHERE "roleType" IS NULL
+       OR upper(replace("roleType", '-', '_')) NOT IN ('ADMIN', 'PASSENGER', 'GROUP_LEADER', 'OPERATIONS');
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE app_roles ADD CONSTRAINT chk_app_roles_role_type CHECK ("roleType" IN ('ADMIN', 'PASSENGER', 'GROUP_LEADER', 'OPERATIONS'));
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE app_users DROP CONSTRAINT IF EXISTS chk_app_users_status;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE app_users ADD CONSTRAINT chk_app_users_status CHECK (status IN ('ACTIVE', 'INACTIVE'));
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE app_users DROP CONSTRAINT IF EXISTS chk_app_users_user_type;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE app_users ADD CONSTRAINT chk_app_users_user_type CHECK ("userType" IN ('EMPLOYEE', 'PASSENGER', 'PARTNER', 'SYSTEM'));
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE app_user_roles DROP CONSTRAINT IF EXISTS chk_app_user_roles_status;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE app_user_roles ADD CONSTRAINT chk_app_user_roles_status CHECK (status IN ('ACTIVE', 'INACTIVE'));
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE app_user_roles DROP CONSTRAINT IF EXISTS chk_app_user_roles_assignment_scope;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE app_user_roles ADD CONSTRAINT chk_app_user_roles_assignment_scope CHECK ("assignmentScope" IN ('GLOBAL', 'CUSTOMER', 'BOOKING', 'SAILING', 'TURNAROUND_OPERATION'));
+  `)
+
+  await db.execute(sql`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_turnaround_operations_status') THEN
+        ALTER TABLE turnaround_operations ADD CONSTRAINT chk_turnaround_operations_status CHECK (status IN ('PLANNED', 'IN_PROGRESS', 'READY', 'WATCH', 'BLOCKED', 'COMPLETE'));
+      END IF;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_turnaround_tasks_status') THEN
+        ALTER TABLE turnaround_tasks ADD CONSTRAINT chk_turnaround_tasks_status CHECK (status IN ('READY', 'IN_PROGRESS', 'BLOCKED', 'WATCH', 'COMPLETE'));
+      END IF;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_turnaround_task_dependencies_status') THEN
+        ALTER TABLE turnaround_task_dependencies ADD CONSTRAINT chk_turnaround_task_dependencies_status CHECK (status IN ('ACTIVE', 'CLEARED'));
+      END IF;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$
+    BEGIN
+      IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_turnaround_handoffs_status') THEN
+        ALTER TABLE turnaround_handoffs DROP CONSTRAINT chk_turnaround_handoffs_status;
+      END IF;
+
+      ALTER TABLE turnaround_handoffs ADD CONSTRAINT chk_turnaround_handoffs_status CHECK (status IN ('PENDING', 'READY', 'IN_REVIEW', 'BLOCKED', 'COMPLETE'));
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_turnaround_escalations_severity') THEN
+        ALTER TABLE turnaround_escalations ADD CONSTRAINT chk_turnaround_escalations_severity CHECK (severity IN ('WATCH', 'HIGH', 'CRITICAL'));
+      END IF;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_turnaround_escalations_status') THEN
+        ALTER TABLE turnaround_escalations ADD CONSTRAINT chk_turnaround_escalations_status CHECK (status IN ('OPEN', 'MONITORING', 'RESOLVED'));
+      END IF;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_turnaround_signoffs_status') THEN
+        ALTER TABLE turnaround_signoffs ADD CONSTRAINT chk_turnaround_signoffs_status CHECK (status IN ('PENDING', 'APPROVED', 'BLOCKED'));
+      END IF;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_turnaround_staffing_counts') THEN
+        ALTER TABLE turnaround_staffing ADD CONSTRAINT chk_turnaround_staffing_counts CHECK ("plannedCount" >= 0 AND "checkedInCount" >= 0 AND "checkedInCount" <= "plannedCount");
+      END IF;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_turnaround_dependencies_no_self_reference') THEN
+        ALTER TABLE turnaround_task_dependencies ADD CONSTRAINT chk_turnaround_dependencies_no_self_reference CHECK ("taskId" <> "dependsOnTaskId");
+      END IF;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_turnaround_task_roles') THEN
+        ALTER TABLE turnaround_tasks ADD CONSTRAINT chk_turnaround_task_roles CHECK ("departmentRole" IN ('turnaround-manager', 'housekeeping-lead', 'guest-services-lead', 'food-beverage-lead', 'engineering-lead'));
+      END IF;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_turnaround_staffing_roles') THEN
+        ALTER TABLE turnaround_staffing ADD CONSTRAINT chk_turnaround_staffing_roles CHECK ("departmentRole" IN ('turnaround-manager', 'housekeeping-lead', 'guest-services-lead', 'food-beverage-lead', 'engineering-lead'));
+      END IF;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_turnaround_handoff_roles') THEN
+        ALTER TABLE turnaround_handoffs ADD CONSTRAINT chk_turnaround_handoff_roles CHECK (
+          "fromDepartmentRole" IN ('turnaround-manager', 'housekeeping-lead', 'guest-services-lead', 'food-beverage-lead', 'engineering-lead')
+          AND "toDepartmentRole" IN ('turnaround-manager', 'housekeeping-lead', 'guest-services-lead', 'food-beverage-lead', 'engineering-lead')
+        );
+      END IF;
+    END $$;
+  `)
+
+
+  await db.execute(sql`
+    ALTER TABLE sailings ADD COLUMN IF NOT EXISTS "departureDateValue" date;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE activity_schedules ADD COLUMN IF NOT EXISTS "activityTimeValue" time;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_operations ADD COLUMN IF NOT EXISTS "turnaroundDateValue" date;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_tasks ADD COLUMN IF NOT EXISTS "dueTimeValue" time;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_task_updates ADD COLUMN IF NOT EXISTS "createdAtTimestamp" timestamptz;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_signoffs ADD COLUMN IF NOT EXISTS "signedAtTimestamp" timestamptz;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_escalations ADD COLUMN IF NOT EXISTS "createdAtTimestamp" timestamptz;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_handoffs ADD COLUMN IF NOT EXISTS "dueTimeValue" time;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE turnaround_handoffs ADD COLUMN IF NOT EXISTS "completedAtTimestamp" timestamptz;
+  `)
+
+  await db.execute(sql`
+    UPDATE sailings
+    SET "departureDateValue" = "departureDate"::date
+    WHERE "departureDateValue" IS NULL
+      AND "departureDate" ~ '^\\d{4}-\\d{2}-\\d{2}$';
+  `)
+
+  await db.execute(sql`
+    UPDATE activity_schedules
+    SET "activityTimeValue" = time::time
+    WHERE "activityTimeValue" IS NULL
+      AND time ~ '^([01]?[0-9]|2[0-3]):[0-5][0-9]$';
+  `)
+
+  await db.execute(sql`
+    UPDATE turnaround_operations
+    SET "turnaroundDateValue" = "turnaroundDate"::date
+    WHERE "turnaroundDateValue" IS NULL
+      AND "turnaroundDate" ~ '^\\d{4}-\\d{2}-\\d{2}$';
+  `)
+
+  await db.execute(sql`
+    UPDATE turnaround_tasks
+    SET "dueTimeValue" = "dueTime"::time
+    WHERE "dueTimeValue" IS NULL
+      AND "dueTime" ~ '^([01]?[0-9]|2[0-3]):[0-5][0-9]$';
+  `)
+
+  await db.execute(sql`
+    UPDATE turnaround_task_updates
+    SET "createdAtTimestamp" = "createdAt"::timestamptz
+    WHERE "createdAtTimestamp" IS NULL
+      AND "createdAt" ~ '^\\d{4}-\\d{2}-\\d{2}T';
+  `)
+
+  await db.execute(sql`
+    UPDATE turnaround_signoffs
+    SET "signedAtTimestamp" = "signedAt"::timestamptz
+    WHERE "signedAtTimestamp" IS NULL
+      AND "signedAt" ~ '^\\d{4}-\\d{2}-\\d{2}T';
+  `)
+
+  await db.execute(sql`
+    UPDATE turnaround_escalations
+    SET "createdAtTimestamp" = "createdAt"::timestamptz
+    WHERE "createdAtTimestamp" IS NULL
+      AND "createdAt" ~ '^\\d{4}-\\d{2}-\\d{2}T';
+  `)
+
+  await db.execute(sql`
+    UPDATE turnaround_handoffs
+    SET "dueTimeValue" = "dueTime"::time
+    WHERE "dueTimeValue" IS NULL
+      AND "dueTime" ~ '^([01]?[0-9]|2[0-3]):[0-5][0-9]$';
+  `)
+
+  await db.execute(sql`
+    UPDATE turnaround_handoffs
+    SET "completedAtTimestamp" = "completedAt"::timestamptz
+    WHERE "completedAtTimestamp" IS NULL
+      AND "completedAt" ~ '^\\d{4}-\\d{2}-\\d{2}T';
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_sailings_departure_date_value ON sailings("departureDateValue");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_operations_date_value_status ON turnaround_operations("turnaroundDateValue", status);
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_tasks_due_time_value ON turnaround_tasks("operationId", "dueTimeValue");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_task_updates_created_timestamp ON turnaround_task_updates("taskId", "createdAtTimestamp");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_escalations_created_timestamp ON turnaround_escalations("operationId", "createdAtTimestamp");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_handoffs_due_time_value ON turnaround_handoffs("operationId", "dueTimeValue");
+  `)
+
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_app_users_primary_customer ON app_users("primaryCustomerId");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_app_users_type_status ON app_users("userType", status);
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_app_user_roles_user_status ON app_user_roles("userId", status);
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_app_user_roles_role_scope ON app_user_roles("roleId", "assignmentScope");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_demo_users_normalized_user_role ON demo_users("normalizedUserId", "normalizedRoleId");
+  `)
+
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_tasks_owner_user ON turnaround_tasks("ownerUserId");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_task_updates_author_user ON turnaround_task_updates("authorUserId");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_signoffs_approver_user ON turnaround_signoffs("approverUserId");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_escalations_owner_user ON turnaround_escalations("ownerUserId");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_handoffs_owner_user ON turnaround_handoffs("ownerUserId");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_ships_cruise_line_id ON ships("cruiseLineId");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_sailings_ship_id_departure_date ON sailings("shipId", "departureDate");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_sailings_departure_route ON sailings("departureDate", "departurePort", "arrivalPort");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_itinerary_days_sailing_day ON itinerary_days("sailingId", day);
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_activity_schedules_itinerary_day ON activity_schedules("itineraryDayId");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_bookings_sailing_status ON bookings("sailingId", "bookingStatus");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_bookings_created_by_customer ON bookings("createdByCustomerId");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_booking_passengers_booking_id ON booking_passengers("bookingId");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_booking_passengers_customer_id ON booking_passengers("customerId");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_customer_itinerary_favorites_customer_id ON customer_itinerary_favorites("customerId");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_operations_sailing_status ON turnaround_operations("sailingId", status);
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_operations_date_status ON turnaround_operations("turnaroundDate", status);
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_tasks_operation_role_status ON turnaround_tasks("operationId", "departmentRole", status);
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_tasks_operation_sort ON turnaround_tasks("operationId", "sortOrder");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_task_updates_task_created_at ON turnaround_task_updates("taskId", "createdAt");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_task_dependencies_operation_status ON turnaround_task_dependencies("operationId", status);
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_task_dependencies_task_ids ON turnaround_task_dependencies("taskId", "dependsOnTaskId");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_handoffs_operation_status ON turnaround_handoffs("operationId", status);
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_handoffs_departments ON turnaround_handoffs("fromDepartmentRole", "toDepartmentRole");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_escalations_operation_status_severity ON turnaround_escalations("operationId", status, severity);
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_escalations_department_status ON turnaround_escalations("departmentRole", status);
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_staffing_operation_role ON turnaround_staffing("operationId", "departmentRole");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_turnaround_signoffs_operation_role_status ON turnaround_signoffs("operationId", "departmentRole", status);
   `)
 
   if (process.env.NODE_ENV !== 'test' && process.env.SUPPRESS_DB_LOGS !== 'true') {

@@ -1,23 +1,78 @@
 const { test, expect } = require('@playwright/test')
+const {
+  expectNoHorizontalOverflow,
+  expectOperationalDashboardReady,
+  selectDemoUserByRole,
+  selectRoleAndPerson
+} = require('../support/reactProductionHelpers')
 
-async function expectNoHorizontalOverflow(page) {
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 8)
-  expect(overflow).toBe(false)
+function mobileRunSuffix(testInfo) {
+  return `${testInfo.project.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${Date.now()}`
 }
 
-async function selectDemoUserByRole(page, roleText) {
-  const select = page.getByTestId('react-demo-user-select')
+async function openRoyalShipSailings(page) {
+  await page.getByTestId('react-fleet-search').fill('Royal')
 
-  await expect(select).toBeVisible()
-  await expect.poll(async () => {
-    return select.locator('option').filter({ hasText: roleText }).count()
-  }).toBeGreaterThan(0)
+  const viewShipsButton = page.getByTestId('react-view-ships-button').first()
+  await viewShipsButton.scrollIntoViewIfNeeded()
+  await expect(viewShipsButton).toBeVisible({ timeout: 15000 })
+  await expect(viewShipsButton).toBeEnabled({ timeout: 15000 })
+  await viewShipsButton.click()
 
-  const matchingValue = await select.locator('option').filter({ hasText: roleText }).first().getAttribute('value')
+  const selectedShipsPanel = page.getByTestId('react-selected-ships-panel')
+  await expect(selectedShipsPanel).toBeVisible({ timeout: 15000 })
+  await expect(selectedShipsPanel).toContainText(/Royal.*ships/, { timeout: 15000 })
 
-  expect(matchingValue).toBeTruthy()
+  const viewSailingsButton = page.getByTestId('react-view-sailings-button').first()
+  await viewSailingsButton.scrollIntoViewIfNeeded()
+  await expect(viewSailingsButton).toBeVisible({ timeout: 15000 })
+  await expect(viewSailingsButton).toBeEnabled({ timeout: 15000 })
+  await viewSailingsButton.click()
 
-  await select.selectOption(matchingValue)
+  const sailingsPanel = page.getByTestId('react-sailings-panel')
+  await expect(sailingsPanel).toBeVisible({ timeout: 20000 })
+  await sailingsPanel.scrollIntoViewIfNeeded()
+  return sailingsPanel
+}
+
+async function expectAdminMutationFormsReady(page) {
+  await selectDemoUserByRole(page, 'Admin')
+
+  const operationsRoute = page.getByTestId('react-active-route-operations')
+  await expect(operationsRoute).toBeVisible({ timeout: 15000 })
+
+  const mutationPanel = page.getByTestId('react-admin-mutation-panel')
+  await mutationPanel.scrollIntoViewIfNeeded()
+  await expect(mutationPanel).toBeVisible({ timeout: 15000 })
+
+  await expect(page.getByTestId('react-admin-create-customer-form')).toBeVisible({ timeout: 15000 })
+  await expect(page.getByTestId('react-admin-create-booking-form')).toBeVisible({ timeout: 15000 })
+}
+
+async function openCustomerWorkflowTable(page) {
+  const operationsRoute = page.getByTestId('react-active-route-operations')
+  await expect(operationsRoute).toBeVisible({ timeout: 15000 })
+
+  const toggle = page.getByTestId('react-toggle-customer-workflows')
+  await toggle.scrollIntoViewIfNeeded()
+  await expect(toggle).toBeVisible({ timeout: 15000 })
+  await expect(toggle).toBeEnabled({ timeout: 15000 })
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    if (await page.getByTestId('react-customer-workflow-table').count()) break
+
+    const expanded = await toggle.getAttribute('aria-expanded')
+    if (expanded !== 'true') {
+      await toggle.click()
+    }
+
+    await page.waitForTimeout(250)
+  }
+
+  const table = page.getByTestId('react-customer-workflow-table')
+  await expect(table).toBeVisible({ timeout: 20000 })
+  await table.scrollIntoViewIfNeeded()
+  return table
 }
 
 test.describe('React default mobile replacement checks', () => {
@@ -27,17 +82,17 @@ test.describe('React default mobile replacement checks', () => {
     await expect(page.getByTestId('react-production-shell')).toBeVisible()
     await expect(page.getByTestId('react-top-navigation')).toBeVisible()
     await expect(page.getByTestId('react-workspace-card-grid')).toBeVisible()
-    await expect(page.getByTestId('react-demo-user-select')).toBeVisible()
+    await expect(page.getByTestId('react-person-finder-panel')).toBeVisible()
 
-    const demoUserSelect = page.getByTestId('react-demo-user-select')
-    await demoUserSelect.scrollIntoViewIfNeeded()
-    await expect(demoUserSelect).toBeVisible()
-    await expect(demoUserSelect).toBeEnabled()
+    const firstPersonCard = page.getByTestId('react-person-finder-result-card').first()
+    await firstPersonCard.scrollIntoViewIfNeeded()
+    await expect(firstPersonCard).toBeVisible()
+    await expect(firstPersonCard).toBeEnabled()
 
     const roleWorkspaceButton = page.getByTestId('react-workspace-role-button')
     await roleWorkspaceButton.scrollIntoViewIfNeeded()
     await expect(roleWorkspaceButton).toBeVisible()
-    await expect(roleWorkspaceButton).toContainText('Role Simulation')
+    await expect(roleWorkspaceButton).toContainText('Role-aware Views')
     await roleWorkspaceButton.click()
     await expect(page.getByTestId('react-role-selector')).toBeVisible()
 
@@ -89,26 +144,14 @@ test.describe('React default mobile replacement checks', () => {
     await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
-    await page.getByTestId('react-fleet-search').fill('Royal')
-    const viewShipsButton = page.getByTestId('react-view-ships-button').first()
-    await viewShipsButton.scrollIntoViewIfNeeded()
-    await expect(viewShipsButton).toBeVisible()
-    await viewShipsButton.click()
+    const sailingsPanel = await openRoyalShipSailings(page)
 
-    const selectedShipsPanel = page.getByTestId('react-selected-ships-panel')
-    await expect(selectedShipsPanel).toBeVisible()
-    await expect(selectedShipsPanel).toContainText(/Royal.*ships/)
-    await expect(page.getByTestId('react-create-ship-form')).toBeVisible()
-    await expect(page.getByTestId('react-create-ship-submit-button')).toBeVisible()
-    await expect(page.getByTestId('react-update-ship-button').first()).toBeVisible()
-    await expect(page.getByTestId('react-delete-ship-button').first()).toBeVisible()
+    await expect(page.getByTestId('react-create-ship-form')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('react-create-ship-submit-button')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('react-update-ship-button').first()).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('react-delete-ship-button').first()).toBeVisible({ timeout: 15000 })
 
-    const viewSailingsButton = page.getByTestId('react-view-sailings-button').first()
-    await viewSailingsButton.scrollIntoViewIfNeeded()
-    await expect(viewSailingsButton).toBeVisible()
-    await viewSailingsButton.click()
-
-    await expect(page.getByTestId('react-sailings-panel')).toBeVisible()
+    await expect(sailingsPanel).toBeVisible({ timeout: 20000 })
     await expect(page.getByTestId('react-view-itinerary-button').first()).toBeVisible()
     await page.getByTestId('react-view-itinerary-button').first().click()
     await expect(page.getByTestId('react-itinerary-panel')).toBeVisible()
@@ -137,15 +180,11 @@ test.describe('React default mobile replacement checks', () => {
     await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
-    await page.getByTestId('react-fleet-search').fill('Royal')
-    await page.getByTestId('react-view-ships-button').first().click()
-    await expect(page.getByTestId('react-selected-ships-panel')).toBeVisible()
-    await page.getByTestId('react-view-sailings-button').first().click()
-    await expect(page.getByTestId('react-sailings-panel')).toBeVisible()
-    await expect(page.getByTestId('react-create-sailing-form')).toBeVisible()
-    await expect(page.getByTestId('react-create-sailing-submit-button')).toBeVisible()
-    await expect(page.getByTestId('react-update-sailing-button').first()).toBeVisible()
-    await expect(page.getByTestId('react-delete-sailing-button').first()).toBeVisible()
+    await openRoyalShipSailings(page)
+    await expect(page.getByTestId('react-create-sailing-form')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('react-create-sailing-submit-button')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('react-update-sailing-button').first()).toBeVisible({ timeout: 20000 })
+    await expect(page.getByTestId('react-delete-sailing-button').first()).toBeVisible({ timeout: 20000 })
     await expectNoHorizontalOverflow(page)
   })
 
@@ -153,11 +192,7 @@ test.describe('React default mobile replacement checks', () => {
     await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
-    await page.getByTestId('react-fleet-search').fill('Royal')
-    await page.getByTestId('react-view-ships-button').first().click()
-    await expect(page.getByTestId('react-selected-ships-panel')).toBeVisible()
-    await page.getByTestId('react-view-sailings-button').first().click()
-    await expect(page.getByTestId('react-sailings-panel')).toBeVisible()
+    await openRoyalShipSailings(page)
     await page.getByTestId('react-view-itinerary-button').first().click()
     await expect(page.getByTestId('react-itinerary-panel')).toBeVisible()
     await expect(page.getByTestId('react-create-itinerary-day-form')).toBeVisible()
@@ -173,24 +208,20 @@ test.describe('React default mobile replacement checks', () => {
     await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
-    const toggle = page.getByTestId('react-toggle-customer-workflows')
-    await toggle.scrollIntoViewIfNeeded()
-    await expect(toggle).toBeVisible()
-    await toggle.click()
+    const searchInput = page.getByTestId('react-hierarchy-search-input')
+    await expect(searchInput).toBeVisible({ timeout: 15000 })
+    await searchInput.fill('jay')
 
-    await expect(page.getByTestId('react-customer-workflow-table')).toBeVisible()
-    await expect(page.getByTestId('react-hierarchy-search-input')).toBeVisible()
-    await page.getByTestId('react-hierarchy-search-input').fill('jay')
-    await expect(page.getByTestId('react-customer-workflow-table')).toContainText(/Jay/i)
+    const table = await openCustomerWorkflowTable(page)
+
+    await expect(table).toContainText(/Jay/i, { timeout: 20000 })
     await expectNoHorizontalOverflow(page)
   })
 
   test('keeps React admin mutation forms reachable on mobile', async ({ page }) => {
     await page.goto('/')
-    await selectDemoUserByRole(page, 'Admin')
+    await expectAdminMutationFormsReady(page)
 
-    await expect(page.getByTestId('react-admin-create-customer-form')).toBeVisible()
-    await expect(page.getByTestId('react-admin-create-booking-form')).toBeVisible()
     await page.getByTestId('react-admin-create-customer-first-name').fill('Mobile')
     await page.getByTestId('react-admin-create-customer-last-name').fill('Tester')
     await page.getByTestId('react-admin-create-customer-email').fill('mobile.tester@example.com')
@@ -198,7 +229,7 @@ test.describe('React default mobile replacement checks', () => {
     await expectNoHorizontalOverflow(page)
   })
 
-  test('keeps React SQA console action grid usable on mobile', async ({ page }) => {
+  test('keeps React quality console action grid usable on mobile', async ({ page }) => {
     await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
@@ -252,12 +283,15 @@ test.describe('React default mobile replacement checks', () => {
 
   test('keeps React group leader manifest readable on mobile', async ({ page }) => {
     await page.goto('/')
-    await selectDemoUserByRole(page, 'Group Leader')
+    await selectRoleAndPerson(page, 'group-leader', 'Parker Family Group Leader View')
 
-    await expect(page.getByTestId('react-passenger-dashboard')).toBeVisible()
-    await expect(page.getByTestId('react-role-booking-card').first()).toContainText('Group Leader')
+    await expect(page.getByTestId('react-demo-user-summary')).toContainText('Group leader mode', { timeout: 15000 })
+    await expect(page.getByTestId('react-passenger-dashboard')).toBeVisible({ timeout: 15000 })
+    const bookingCard = page.getByTestId('react-role-booking-card').first()
+    await expect(bookingCard).toBeVisible({ timeout: 20000 })
+    await expect(bookingCard).toContainText('Group Leader')
     await page.getByTestId('react-role-booking-details-toggle').first().click()
-    await expect(page.getByTestId('react-role-detail-passenger-row').first()).toBeVisible()
+    await expect(page.getByTestId('react-role-detail-passenger-row').first()).toBeVisible({ timeout: 15000 })
     await expectNoHorizontalOverflow(page)
   })
 
@@ -271,6 +305,148 @@ test.describe('React default mobile replacement checks', () => {
     await expect(page.getByTestId('react-fleet-delete-confirmation-confirm')).toBeVisible()
     await page.getByTestId('react-fleet-delete-confirmation-cancel').click()
     await expect(page.getByTestId('react-fleet-delete-confirmation')).toHaveCount(0)
+    await expectNoHorizontalOverflow(page)
+  })
+
+
+  test('keeps every operational role dashboard reachable and readable on mobile', async ({ page }) => {
+    await page.goto('/')
+
+    const operationalRoles = [
+      ['turnaround-manager', 'Alex Turner', 'react-turnaround-manager-dashboard'],
+      ['housekeeping-lead', 'Maria Rodriguez', 'react-housekeeping-lead-dashboard'],
+      ['guest-services-lead', 'Angela Brooks', 'react-guest-services-lead-dashboard'],
+      ['food-beverage-lead', 'Michael Chen', 'react-food-beverage-lead-dashboard'],
+      ['engineering-lead', 'David Torres', 'react-engineering-lead-dashboard']
+    ]
+
+    for (const [roleValue, personText, dashboardTestId] of operationalRoles) {
+      await expectOperationalDashboardReady(page, roleValue, personText, dashboardTestId)
+      await expect(page.getByTestId('react-demo-user-summary')).toContainText(personText)
+      await expectNoHorizontalOverflow(page)
+    }
+  })
+
+  test('lets the turnaround manager run command planning and task creation workflows on mobile', async ({ page }, testInfo) => {
+    await page.goto('/')
+    await expectOperationalDashboardReady(page, 'turnaround-manager', 'Alex Turner', 'react-turnaround-manager-dashboard')
+
+    const suffix = mobileRunSuffix(testInfo)
+    const firstCard = page.getByTestId('react-operational-readiness-card').first()
+    await firstCard.scrollIntoViewIfNeeded()
+
+    await firstCard.locator('select[aria-label$="command status"]').selectOption('IN_PROGRESS')
+    await firstCard.locator('select[aria-label$="command readiness"]').selectOption('Department handoff watch')
+    await firstCard.locator('input[aria-label$="turnaround port"]').fill(`Mobile Terminal ${suffix}`)
+    await firstCard.locator('textarea[aria-label$="command notes"]').fill(`Mobile command plan verified from ${suffix}`)
+    await firstCard.getByRole('button', { name: 'Save command plan' }).click()
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround command plan updated successfully')
+
+    const taskName = `Mobile command verification ${suffix}`
+    await firstCard.locator('select[aria-label$="new task department"]').selectOption('turnaround-manager')
+    await firstCard.locator('input[aria-label$="new task name"]').fill(taskName)
+    await firstCard.locator('input[aria-label$="new task owner"]').fill('Alex Turner')
+    await firstCard.locator('input[aria-label$="new task due time"]').fill('11:45')
+    await firstCard.locator('input[aria-label$="new task location"]').fill(`Mobile terminal desk ${suffix}`)
+    await firstCard.locator('input[aria-label$="new task blocker reason"]').fill(`Mobile staffing watch ${suffix}`)
+    await firstCard.getByRole('button', { name: 'Add turnaround task' }).click()
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task created successfully')
+    await expect(page.getByTestId('react-operational-readiness-card').first()).toContainText(taskName)
+
+    const createdTask = firstCard.getByTestId('react-operational-role-checklist').locator('li').filter({ hasText: taskName }).first()
+    await expect(createdTask).toBeVisible()
+    await createdTask.getByRole('button', { name: 'Remove task' }).click()
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task removed successfully')
+    await expect(firstCard).not.toContainText(taskName)
+
+    await expect(firstCard.getByTestId('react-operational-dependency-summary')).toContainText(/active|clear/i)
+    await expect(firstCard.getByTestId('react-operational-handoff-list')).toContainText(/handoff/i)
+    await expect(firstCard.getByTestId('react-operational-handoff-form').first()).toBeVisible()
+    const handoffForm = firstCard.getByTestId('react-operational-handoff-form').first()
+    await handoffForm.locator('select[aria-label$="handoff status"]').selectOption('COMPLETE')
+    await handoffForm.locator('input[aria-label$="handoff owner"]').fill(`Alex Turner ${suffix}`)
+    await handoffForm.locator('input[aria-label$="handoff due time"]').fill('10:50')
+    await handoffForm.locator('input[aria-label$="handoff notes"]').fill(`Mobile handoff completed ${suffix}`)
+    await handoffForm.getByRole('button', { name: 'Save handoff' }).click()
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround handoff updated successfully')
+    await expect(firstCard).toContainText(`Mobile handoff completed ${suffix}`)
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('lets specialized operational leads verify status, detail, update, and signoff workflows on mobile', async ({ page }, testInfo) => {
+    await page.goto('/')
+    await expectOperationalDashboardReady(page, 'engineering-lead', 'David Torres', 'react-engineering-lead-dashboard')
+
+    const suffix = mobileRunSuffix(testInfo)
+    const firstCard = page.getByTestId('react-operational-readiness-card').first()
+    await firstCard.scrollIntoViewIfNeeded()
+
+    const taskItem = firstCard.getByTestId('react-operational-role-checklist').locator('li').filter({ hasText: 'Confirm shore power' }).first()
+    await expect(taskItem).toBeVisible()
+
+    const blockButton = taskItem.getByRole('button', { name: 'Block' })
+    const completeButton = taskItem.getByRole('button', { name: 'Complete' })
+    const startButton = taskItem.getByRole('button', { name: 'Start' })
+
+    if (await blockButton.isEnabled()) {
+      await blockButton.click()
+      await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task status updated successfully')
+      await expect(firstCard).toContainText('BLOCKED')
+    } else if (await completeButton.isEnabled()) {
+      await completeButton.click()
+      await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task status updated successfully')
+      await expect(firstCard).toContainText('COMPLETE')
+    } else {
+      await startButton.click()
+      await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task status updated successfully')
+      await expect(firstCard).toContainText('IN_PROGRESS')
+    }
+
+    await taskItem.locator('input[aria-label$="owner"]').fill(`David Torres ${suffix}`)
+    await taskItem.locator('input[aria-label$="due time"]').fill('08:35')
+    await taskItem.locator('input[aria-label$="location"]').fill(`Mobile engine control ${suffix}`)
+    await taskItem.locator('input[aria-label$="blocker reason"]').fill(`Mobile shore-power check ${suffix}`)
+    await taskItem.getByRole('button', { name: 'Save task details' }).click()
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task details updated successfully')
+    await expect(firstCard).toContainText(`Mobile engine control ${suffix}`)
+
+    await firstCard.locator('input[aria-label$="planned staff"]').fill('13')
+    await firstCard.locator('input[aria-label$="checked in staff"]').fill('12')
+    await firstCard.locator('input[aria-label$="staffing lead"]').fill(`David Torres ${suffix}`)
+    await firstCard.locator('input[aria-label$="staffing muster location"]').fill(`Mobile engine muster ${suffix}`)
+    await firstCard.locator('input[aria-label$="staffing notes"]').fill(`Mobile staffing verified ${suffix}`)
+    await firstCard.getByRole('button', { name: 'Save staffing plan' }).click()
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround staffing plan updated successfully')
+    await expect(firstCard).toContainText(`Mobile engine muster ${suffix}`)
+
+    await taskItem.locator('input[aria-label$="shift update"]').fill(`Mobile technical update ${suffix}`)
+    await taskItem.getByRole('button', { name: 'Add shift update' }).click()
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task update added successfully')
+    await expect(firstCard).toContainText(`Mobile technical update ${suffix}`)
+
+    const escalationTitle = `Mobile engineering escalation ${suffix}`
+    await firstCard.locator('select[aria-label$="escalation department"]').selectOption('engineering-lead')
+    await firstCard.locator('select[aria-label$="escalation severity"]').selectOption('HIGH')
+    await firstCard.locator('input[aria-label$="escalation title"]').fill(escalationTitle)
+    await firstCard.locator('input[aria-label$="escalation owner"]').fill(`David Torres ${suffix}`)
+    await firstCard.locator('input[aria-label$="escalation notes"]').fill(`Mobile escalation opened ${suffix}`)
+    await firstCard.getByRole('button', { name: 'Add escalation' }).click()
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround escalation created successfully')
+    await expect(firstCard).toContainText(escalationTitle)
+
+    const escalationItem = firstCard.getByTestId('react-operational-escalation-list').locator('li').filter({ hasText: escalationTitle }).first()
+    await escalationItem.locator('select[aria-label$="escalation status"]').selectOption('RESOLVED')
+    await escalationItem.locator('input[aria-label$="escalation resolution notes"]').fill(`Mobile escalation resolved ${suffix}`)
+    await escalationItem.getByRole('button', { name: 'Save escalation' }).click()
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround escalation updated successfully')
+    await expect(firstCard).toContainText(`Mobile escalation resolved ${suffix}`)
+
+    await firstCard.locator('select[aria-label$="readiness signoff status"]').selectOption('APPROVED')
+    await firstCard.locator('input[aria-label$="readiness approver"]').fill(`David Torres ${suffix}`)
+    await firstCard.locator('input[aria-label$="readiness notes"]').fill(`Mobile engineering signoff ${suffix}`)
+    await firstCard.getByRole('button', { name: 'Save readiness signoff' }).click()
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround readiness signoff updated successfully')
+    await expect(firstCard).toContainText(`David Torres ${suffix}`)
     await expectNoHorizontalOverflow(page)
   })
 

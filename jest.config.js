@@ -12,7 +12,8 @@ module.exports = {
   ],
 
   testPathIgnorePatterns: [
-    '<rootDir>/playwright/'
+    '<rootDir>/playwright/',
+    '<rootDir>/validation/.*\\.test\\.js$'
   ],
 
   coveragePathIgnorePatterns: [

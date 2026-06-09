@@ -24,7 +24,7 @@ export default function ReactCruiseLineCreateWorkflow({ onCreated }) {
           <div>
             <p className="eyebrow">Create workflow</p>
             <h3>Add a Cruise Line</h3>
-            <p>Create a cruise line and add starter ships in one focused workflow.</p>
+            <p>Create a cruise line and add starter ships in one guided workflow.</p>
           </div>
           <span className="create-workflow-pill">Create Workflow</span>
         </div>

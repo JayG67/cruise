@@ -12,14 +12,27 @@ import {
   toggleExpandedId
 } from '../domain/hierarchyExpansionState.js'
 
-export function useAdminHierarchyViewState(customers = [], bookings = []) {
+export function useAdminHierarchyViewState(customers = [], bookings = [], { enabled = true } = {}) {
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedCustomerIds, setExpandedCustomerIds] = useState(() => new Set())
   const [expandedBookingIds, setExpandedBookingIds] = useState(() => new Set())
 
-  const allRows = useMemo(() => buildCustomerBookingRows(customers, bookings), [customers, bookings])
-  const rows = useMemo(() => filterCustomerBookingRows(allRows, searchTerm), [allRows, searchTerm])
-  const summary = useMemo(() => summarizeHierarchyRows(rows), [rows])
+  const allRows = useMemo(() => (
+    enabled ? buildCustomerBookingRows(customers, bookings) : []
+  ), [customers, bookings, enabled])
+  const rows = useMemo(() => (
+    enabled ? filterCustomerBookingRows(allRows, searchTerm) : []
+  ), [allRows, enabled, searchTerm])
+  const summary = useMemo(() => {
+    if (!enabled) {
+      return {
+        customerCount: customers.length,
+        uniqueBookingCount: bookings.length
+      }
+    }
+
+    return summarizeHierarchyRows(rows)
+  }, [bookings.length, customers.length, enabled, rows])
 
   function updateSearchTerm(value) {
     setSearchTerm(value)

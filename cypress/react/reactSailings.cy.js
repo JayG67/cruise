@@ -1,3 +1,4 @@
+const { reactSelectorKeys: rs } = require('./support/reactSelectors')
 const { openFirstReactFleetShips,  openFirstReactSailingItinerary,  openFirstReactShipSailings,  reactItinerary,  reactSailings,  reactShips,  visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
 describe('React sailings and itinerary coverage', () => {
@@ -8,9 +9,9 @@ describe('React sailings and itinerary coverage', () => {
 
   it('loads sailings for a selected ship', () => {
     openFirstReactShipSailings()
-    cy.getByTestId('react-sailings-panel').should('contain.text', 'React Icon Sailings')
-    cy.getByTestId('react-sailing-card').first().should('contain.text', 'Miami').and('contain.text', 'Nassau')
-    cy.getByTestId('react-sailing-card').eq(1).should('contain.text', 'Repositioning')
+    cy.getByTestId(rs.sailingsPanel).should('contain.text', 'React Icon Sailings')
+    cy.getByTestId(rs.sailingCard).first().should('contain.text', 'Miami').and('contain.text', 'Nassau')
+    cy.getByTestId(rs.sailingCard).eq(1).should('contain.text', 'Repositioning')
   })
 
   it('creates a sailing and reloads the selected ship sailings', () => {
@@ -27,15 +28,15 @@ describe('React sailings and itinerary coverage', () => {
     }).as('createReactSailing')
     cy.intercept('GET', `/cruise/ship/${reactShips[0].id}/sailings`, [...reactSailings, { id: 'sailing-react-new', departureDate: '2027-02-14', departurePort: 'Miami', arrivalPort: 'Key West', days: 3, isRepositioning: true }]).as('reloadReactSailingsAfterCreate')
 
-    cy.getByTestId('react-create-sailing-departure-date').type('2027-02-14')
-    cy.getByTestId('react-create-sailing-departure-port').type('Miami')
-    cy.getByTestId('react-create-sailing-arrival-port').type('Key West')
-    cy.getByTestId('react-create-sailing-days').type('3')
-    cy.getByTestId('react-create-sailing-repositioning').check()
-    cy.getByTestId('react-create-sailing-submit-button').click()
+    cy.getByTestId(rs.createSailingDepartureDate).type('2027-02-14')
+    cy.getByTestId(rs.createSailingDeparturePort).type('Miami')
+    cy.getByTestId(rs.createSailingArrivalPort).type('Key West')
+    cy.getByTestId(rs.createSailingDays).type('3')
+    cy.getByTestId(rs.createSailingRepositioning).check()
+    cy.getByTestId(rs.createSailingSubmitButton).click()
     cy.wait('@createReactSailing')
     cy.wait('@reloadReactSailingsAfterCreate')
-    cy.getByTestId('react-sailing-action-message').should('contain.text', 'sailing was created')
+    cy.getByTestId(rs.sailingActionMessage).should('contain.text', 'sailing was created')
   })
 
   it('updates sailing details with a controlled edit form', () => {
@@ -46,13 +47,13 @@ describe('React sailings and itinerary coverage', () => {
     }).as('updateReactSailing')
     cy.intercept('GET', `/cruise/ship/${reactShips[0].id}/sailings`, [{ ...reactSailings[0], departurePort: 'Updated Miami', arrivalPort: 'Updated Nassau', days: 5 }, reactSailings[1]]).as('reloadReactSailingsAfterUpdate')
 
-    cy.getByTestId('react-sailing-card').first().within(() => {
-      cy.getByTestId('react-update-sailing-button').click()
-      cy.getByTestId('react-sailing-edit-form').should('be.visible')
-      cy.getByTestId('react-edit-sailing-departure-port').clear().type('Updated Miami')
-      cy.getByTestId('react-edit-sailing-arrival-port').clear().type('Updated Nassau')
-      cy.getByTestId('react-edit-sailing-days').clear().type('5')
-      cy.getByTestId('react-save-sailing-edit').click()
+    cy.getByTestId(rs.sailingCard).first().within(() => {
+      cy.getByTestId(rs.updateSailingButton).click()
+      cy.getByTestId(rs.sailingEditForm).should('be.visible')
+      cy.getByTestId(rs.editSailingDeparturePort).clear().type('Updated Miami')
+      cy.getByTestId(rs.editSailingArrivalPort).clear().type('Updated Nassau')
+      cy.getByTestId(rs.editSailingDays).clear().type('5')
+      cy.getByTestId(rs.saveSailingEdit).click()
     })
     cy.wait('@updateReactSailing')
     cy.wait('@reloadReactSailingsAfterUpdate')
@@ -61,8 +62,8 @@ describe('React sailings and itinerary coverage', () => {
   it('loads itinerary details and activity rows', () => {
     openFirstReactShipSailings()
     openFirstReactSailingItinerary()
-    cy.getByTestId('react-itinerary-panel').should('contain.text', 'Embarkation Day')
-    cy.getByTestId('react-itinerary-activity').should('have.length', 3)
+    cy.getByTestId(rs.itineraryPanel).should('contain.text', 'Embarkation Day')
+    cy.getByTestId(rs.itineraryActivity).should('have.length', 3)
   })
 
   it('creates itinerary days and activities', () => {
@@ -78,16 +79,16 @@ describe('React sailings and itinerary coverage', () => {
     }).as('createReactActivity')
     cy.intercept('GET', `/cruise/sailings/${reactSailings[0].id}/itinerary`, reactItinerary).as('reloadReactItinerary')
 
-    cy.getByTestId('react-create-itinerary-day-number').type('3')
-    cy.getByTestId('react-create-itinerary-day-title').type('React Sea Day')
-    cy.getByTestId('react-create-itinerary-day-port').type('At Sea')
-    cy.getByTestId('react-create-itinerary-day-submit-button').click()
+    cy.getByTestId(rs.createItineraryDayNumber).type('3')
+    cy.getByTestId(rs.createItineraryDayTitle).type('React Sea Day')
+    cy.getByTestId(rs.createItineraryDayPort).type('At Sea')
+    cy.getByTestId(rs.createItineraryDaySubmitButton).click()
     cy.wait('@createReactItineraryDay')
 
-    cy.getByTestId('react-create-itinerary-activity-day-select').select(reactItinerary[0].id)
-    cy.getByTestId('react-create-itinerary-activity-time').type('02:00 PM')
-    cy.getByTestId('react-create-itinerary-activity-name').type('React trivia')
-    cy.getByTestId('react-create-itinerary-activity-submit-button').click()
+    cy.getByTestId(rs.createItineraryActivityDaySelect).select(reactItinerary[0].id)
+    cy.getByTestId(rs.createItineraryActivityTime).type('02:00 PM')
+    cy.getByTestId(rs.createItineraryActivityName).type('React trivia')
+    cy.getByTestId(rs.createItineraryActivitySubmitButton).click()
     cy.wait('@createReactActivity')
   })
 
@@ -95,19 +96,19 @@ describe('React sailings and itinerary coverage', () => {
   it('blocks blank sailing creation before sending a network request', () => {
     openFirstReactShipSailings()
     cy.intercept('POST', `/cruise/ship/${reactShips[0].id}/sailings`).as('sailingCreateShouldNotRun')
-    cy.getByTestId('react-create-sailing-submit-button').click()
-    cy.getByTestId('react-sailing-action-message').should('contain.text', 'Departure date, ports, and a valid day count are required')
+    cy.getByTestId(rs.createSailingSubmitButton).click()
+    cy.getByTestId(rs.sailingActionMessage).should('contain.text', 'Departure date, ports, and a valid day count are required')
     cy.get('@sailingCreateShouldNotRun.all').should('have.length', 0)
   })
 
   it('cancels sailing edits without sending a patch request', () => {
     openFirstReactShipSailings()
     cy.intercept('PATCH', `/cruise/sailings/${reactSailings[0].id}`).as('sailingPatchShouldNotRun')
-    cy.getByTestId('react-sailing-card').first().within(() => {
-      cy.getByTestId('react-update-sailing-button').click()
-      cy.getByTestId('react-edit-sailing-arrival-port').clear().type('Cancelled Port')
-      cy.getByTestId('react-cancel-sailing-edit').click()
-      cy.getByTestId('react-sailing-edit-form').should('not.exist')
+    cy.getByTestId(rs.sailingCard).first().within(() => {
+      cy.getByTestId(rs.updateSailingButton).click()
+      cy.getByTestId(rs.editSailingArrivalPort).clear().type('Cancelled Port')
+      cy.getByTestId(rs.cancelSailingEdit).click()
+      cy.getByTestId(rs.sailingEditForm).should('not.exist')
     })
     cy.get('@sailingPatchShouldNotRun.all').should('have.length', 0)
   })
@@ -120,10 +121,10 @@ describe('React sailings and itinerary coverage', () => {
     }).as('updateRepositioningSailing')
     cy.intercept('GET', `/cruise/ship/${reactShips[0].id}/sailings`, [{ ...reactSailings[0], isRepositioning: true }, reactSailings[1]]).as('reloadRepositioningSailings')
 
-    cy.getByTestId('react-sailing-card').first().within(() => {
-      cy.getByTestId('react-update-sailing-button').click()
-      cy.getByTestId('react-edit-sailing-repositioning').check()
-      cy.getByTestId('react-save-sailing-edit').click()
+    cy.getByTestId(rs.sailingCard).first().within(() => {
+      cy.getByTestId(rs.updateSailingButton).click()
+      cy.getByTestId(rs.editSailingRepositioning).check()
+      cy.getByTestId(rs.saveSailingEdit).click()
     })
     cy.wait('@updateRepositioningSailing')
     cy.wait('@reloadRepositioningSailings')
@@ -132,13 +133,13 @@ describe('React sailings and itinerary coverage', () => {
   it('cancels sailing deletion without sending a delete request', () => {
     openFirstReactShipSailings()
     cy.intercept('DELETE', `/cruise/sailings/${reactSailings[0].id}`).as('sailingDeleteShouldNotRun')
-    cy.getByTestId('react-sailing-card').first().within(() => {
-      cy.getByTestId('react-delete-sailing-button').click()
+    cy.getByTestId(rs.sailingCard).first().within(() => {
+      cy.getByTestId(rs.deleteSailingButton).click()
     })
-    cy.getByTestId('react-fleet-delete-confirmation').should('contain.text', `Delete sailing ${reactSailings[0].departureDate}`)
-    cy.getByTestId('react-fleet-delete-confirmation-cancel').click()
+    cy.getByTestId(rs.fleetDeleteConfirmation).should('contain.text', `Delete sailing ${reactSailings[0].departureDate}`)
+    cy.getByTestId(rs.fleetDeleteConfirmationCancel).click()
     cy.get('@sailingDeleteShouldNotRun.all').should('have.length', 0)
-    cy.getByTestId('react-sailing-card').first().should('contain.text', reactSailings[0].departurePort)
+    cy.getByTestId(rs.sailingCard).first().should('contain.text', reactSailings[0].departurePort)
   })
 
   it('confirms sailing deletion and reloads the remaining sailings', () => {
@@ -149,13 +150,13 @@ describe('React sailings and itinerary coverage', () => {
     }).as('deleteReactSailing')
     cy.intercept('GET', `/cruise/ship/${reactShips[0].id}/sailings`, [reactSailings[1]]).as('reloadSailingsAfterDelete')
 
-    cy.getByTestId('react-sailing-card').first().within(() => {
-      cy.getByTestId('react-delete-sailing-button').click()
+    cy.getByTestId(rs.sailingCard).first().within(() => {
+      cy.getByTestId(rs.deleteSailingButton).click()
     })
-    cy.getByTestId('react-fleet-delete-confirmation-confirm').click()
+    cy.getByTestId(rs.fleetDeleteConfirmationConfirm).click()
     cy.wait('@deleteReactSailing')
     cy.wait('@reloadSailingsAfterDelete')
-    cy.getByTestId('react-sailing-action-message').should('contain.text', 'sailing was deleted')
-    cy.getByTestId('react-sailing-card').should('have.length', 1).and('contain.text', reactSailings[1].departurePort)
+    cy.getByTestId(rs.sailingActionMessage).should('contain.text', 'sailing was deleted')
+    cy.getByTestId(rs.sailingCard).should('have.length', 1).and('contain.text', reactSailings[1].departurePort)
   })
 })

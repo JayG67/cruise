@@ -1,7 +1,7 @@
 import { getCustomerName, getBookingPassengerNames, getBookingRoute } from './adminHierarchy.js'
 
 export function normalizeRole(role = '') {
-  const normalizedRole = String(role).toLowerCase()
+  const normalizedRole = String(role).toLowerCase().replace(/-/g, '_')
 
   if (normalizedRole.includes('admin')) return 'admin'
   if (normalizedRole.includes('group')) return 'group-leader'
@@ -199,12 +199,15 @@ export function buildTurnaroundOperationCards(turnaroundOperations = [], roleVie
     const departurePort = operation.sailing?.departurePort || operation.port || 'Departure port unavailable'
     const arrivalPort = operation.sailing?.arrivalPort || operation.port || 'Arrival port unavailable'
 
-    const taskSummary = operation.taskSummary || {
+    const completeTasks = tasks.filter(task => task.status === 'COMPLETE').length
+    const blockedTasks = tasks.filter(task => task.status === 'BLOCKED').length
+    const inProgressTasks = tasks.filter(task => task.status === 'IN_PROGRESS').length
+    const taskSummary = {
       totalTasks: tasks.length,
-      completeTasks: tasks.filter(task => task.status === 'COMPLETE').length,
-      blockedTasks: tasks.filter(task => task.status === 'BLOCKED').length,
-      inProgressTasks: tasks.filter(task => task.status === 'IN_PROGRESS').length,
-      completionPercent: tasks.length === 0 ? 0 : Math.round((tasks.filter(task => task.status === 'COMPLETE').length / tasks.length) * 100)
+      completeTasks,
+      blockedTasks,
+      inProgressTasks,
+      completionPercent: tasks.length === 0 ? 0 : Math.round((completeTasks / tasks.length) * 100)
     }
 
     return {
@@ -221,8 +224,18 @@ export function buildTurnaroundOperationCards(turnaroundOperations = [], roleVie
       departurePort,
       arrivalPort,
       readinessLevel: operation.readinessLevel || 'Readiness pending',
+      commandStatus: operation.commandStatus || operation.status || 'PLANNED',
+      commandReadinessLevel: operation.commandReadinessLevel || operation.readinessLevel || 'Readiness pending',
       signoffs: Array.isArray(operation.signoffs) ? operation.signoffs : [],
       signoffSummary: operation.signoffSummary || { totalSignoffs: 0, approvedSignoffs: 0, blockedSignoffs: 0, pendingSignoffs: 0, approvalPercent: 0 },
+      escalations: Array.isArray(operation.escalations) ? operation.escalations : [],
+      staffing: Array.isArray(operation.staffing) ? operation.staffing : [],
+      staffingSummary: operation.staffingSummary || { totalDepartments: 0, plannedCount: 0, checkedInCount: 0, gapCount: 0, checkInPercent: 0 },
+      taskDependencies: Array.isArray(operation.taskDependencies) ? operation.taskDependencies : [],
+      dependencySummary: operation.dependencySummary || { totalDependencies: 0, activeDependencies: 0, clearedDependencies: 0 },
+      handoffs: Array.isArray(operation.handoffs) ? operation.handoffs : [],
+      handoffSummary: operation.handoffSummary || { totalHandoffs: 0, completedHandoffs: 0, blockedHandoffs: 0, openHandoffs: 0 },
+      escalationSummary: operation.escalationSummary || { totalEscalations: 0, openEscalations: 0, monitoringEscalations: 0, resolvedEscalations: 0, criticalEscalations: 0 },
       status: operation.status || 'PLANNED',
       title: operation.title || 'Turnaround operation',
       notes: operation.notes || ''

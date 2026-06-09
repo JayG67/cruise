@@ -1,4 +1,15 @@
 const { z } = require('zod')
+const {
+  BOOKING_STATUS_OPTIONS,
+  TURNAROUND_OPERATION_STATUS_OPTIONS,
+  TURNAROUND_TASK_STATUS_OPTIONS,
+  TURNAROUND_HANDOFF_STATUS_OPTIONS,
+  TURNAROUND_ESCALATION_SEVERITY_OPTIONS,
+  TURNAROUND_ESCALATION_STATUS_OPTIONS,
+  TURNAROUND_SIGNOFF_STATUS_OPTIONS,
+  TASK_UPDATE_TYPE_OPTIONS,
+  normalizeReferenceValue
+} = require('../domain/cruiseReferenceData')
 
 const uuidSchema = z
   .string()
@@ -233,8 +244,8 @@ const bookingSchema = z.object({
   bookingStatus: z
     .string()
     .trim()
-    .min(1, 'Booking status is required')
-    .max(50, 'Booking status is too long'),
+    .transform(normalizeReferenceValue)
+    .pipe(z.enum(BOOKING_STATUS_OPTIONS)),
 
   cabinNumber: z
     .string()
@@ -289,19 +300,24 @@ const itineraryFavoriteSchema = z.object({
 }).strict()
 
 
-const turnaroundTaskStatusOptions = [
-  'READY',
-  'IN_PROGRESS',
-  'BLOCKED',
-  'COMPLETE'
-]
+const turnaroundOperationCommandUpdateSchema = z.object({
+  status: z
+    .string()
+    .trim()
+    .transform(normalizeReferenceValue)
+    .pipe(z.enum(TURNAROUND_OPERATION_STATUS_OPTIONS))
+    .optional(),
+  readinessLevel: z.string().trim().min(1, 'Readiness level is required').max(100, 'Readiness level is too long').optional(),
+  port: z.string().trim().min(1, 'Turnaround port is required').max(255, 'Turnaround port is too long').optional(),
+  notes: z.string().trim().max(500, 'Turnaround notes are too long').optional()
+}).strict()
 
 const turnaroundTaskStatusUpdateSchema = z.object({
   status: z
     .string()
     .trim()
-    .transform(value => value.toUpperCase().replace(/[ -]/g, '_'))
-    .pipe(z.enum(turnaroundTaskStatusOptions)),
+    .transform(normalizeReferenceValue)
+    .pipe(z.enum(TURNAROUND_TASK_STATUS_OPTIONS)),
 
   blockerReason: z
     .string()
@@ -319,24 +335,102 @@ const turnaroundTaskDetailUpdateSchema = z.object({
 
 const turnaroundTaskUpdateSchema = z.object({
   authorName: z.string().trim().min(1, 'Update author is required').max(255, 'Update author is too long'),
-  updateType: z.string().trim().max(50, 'Update type is too long').optional().default('NOTE'),
+  updateType: z
+    .string()
+    .trim()
+    .transform(normalizeReferenceValue)
+    .pipe(z.enum(TASK_UPDATE_TYPE_OPTIONS))
+    .optional()
+    .default('NOTE'),
   message: z.string().trim().min(1, 'Update message is required').max(500, 'Update message is too long')
 }).strict()
 
-const turnaroundSignoffStatusOptions = [
-  'PENDING',
-  'APPROVED',
-  'BLOCKED'
-]
+const turnaroundTaskCreateSchema = z.object({
+  departmentRole: z.string().trim().min(1, 'Department role is required').max(50, 'Department role is too long'),
+  taskName: z.string().trim().min(1, 'Task name is required').max(255, 'Task name is too long'),
+  ownerName: z.string().trim().max(255, 'Owner name is too long').optional(),
+  dueTime: z.string().trim().max(20, 'Due time is too long').optional(),
+  location: z.string().trim().max(255, 'Location is too long').optional(),
+  blockerReason: z.string().trim().max(500, 'Blocker reason is too long').optional(),
+  status: z
+    .string()
+    .trim()
+    .transform(normalizeReferenceValue)
+    .pipe(z.enum(TURNAROUND_TASK_STATUS_OPTIONS))
+    .optional()
+    .default('READY')
+}).strict()
+
+
+const turnaroundStaffingUpdateSchema = z.object({
+  plannedCount: z.number().int('Planned staffing count must be a whole number').min(0, 'Planned staffing count cannot be negative').max(999, 'Planned staffing count is too large'),
+  checkedInCount: z.number().int('Checked-in staffing count must be a whole number').min(0, 'Checked-in staffing count cannot be negative').max(999, 'Checked-in staffing count is too large'),
+  leadName: z.string().trim().max(255, 'Staffing lead is too long').optional(),
+  musterLocation: z.string().trim().max(255, 'Muster location is too long').optional(),
+  notes: z.string().trim().max(500, 'Staffing notes are too long').optional()
+}).strict()
 
 const turnaroundSignoffUpdateSchema = z.object({
   approverName: z.string().trim().min(1, 'Signoff approver is required').max(255, 'Signoff approver is too long'),
   status: z
     .string()
     .trim()
-    .transform(value => value.toUpperCase().replace(/[ -]/g, '_'))
-    .pipe(z.enum(turnaroundSignoffStatusOptions)),
+    .transform(normalizeReferenceValue)
+    .pipe(z.enum(TURNAROUND_SIGNOFF_STATUS_OPTIONS)),
   notes: z.string().trim().max(500, 'Signoff notes are too long').optional()
+}).strict()
+
+
+
+const turnaroundHandoffUpdateSchema = z.object({
+  status: z
+    .string()
+    .trim()
+    .transform(normalizeReferenceValue)
+    .pipe(z.enum(TURNAROUND_HANDOFF_STATUS_OPTIONS))
+    .optional(),
+  ownerName: z.string().trim().max(255, 'Handoff owner is too long').optional(),
+  dueTime: z.string().trim().max(20, 'Handoff due time is too long').optional(),
+  notes: z.string().trim().max(500, 'Handoff notes are too long').optional()
+}).strict()
+
+const turnaroundEscalationCreateSchema = z.object({
+  departmentRole: z.string().trim().min(1, 'Department role is required').max(50, 'Department role is too long'),
+  severity: z
+    .string()
+    .trim()
+    .transform(normalizeReferenceValue)
+    .pipe(z.enum(TURNAROUND_ESCALATION_SEVERITY_OPTIONS))
+    .optional()
+    .default('WATCH'),
+  title: z.string().trim().min(1, 'Escalation title is required').max(255, 'Escalation title is too long'),
+  ownerName: z.string().trim().max(255, 'Escalation owner is too long').optional(),
+  status: z
+    .string()
+    .trim()
+    .transform(normalizeReferenceValue)
+    .pipe(z.enum(TURNAROUND_ESCALATION_STATUS_OPTIONS))
+    .optional()
+    .default('OPEN'),
+  resolutionNotes: z.string().trim().max(500, 'Escalation notes are too long').optional()
+}).strict()
+
+const turnaroundEscalationUpdateSchema = z.object({
+  severity: z
+    .string()
+    .trim()
+    .transform(normalizeReferenceValue)
+    .pipe(z.enum(TURNAROUND_ESCALATION_SEVERITY_OPTIONS))
+    .optional(),
+  title: z.string().trim().min(1, 'Escalation title is required').max(255, 'Escalation title is too long').optional(),
+  ownerName: z.string().trim().max(255, 'Escalation owner is too long').optional(),
+  status: z
+    .string()
+    .trim()
+    .transform(normalizeReferenceValue)
+    .pipe(z.enum(TURNAROUND_ESCALATION_STATUS_OPTIONS))
+    .optional(),
+  resolutionNotes: z.string().trim().max(500, 'Escalation notes are too long').optional()
 }).strict()
 
 
@@ -352,10 +446,16 @@ module.exports = {
   passengerCustomerUpdateSchema,
   bookingPreferenceUpdateSchema,
   itineraryFavoriteSchema,
+  turnaroundOperationCommandUpdateSchema,
   turnaroundTaskStatusUpdateSchema,
   turnaroundTaskDetailUpdateSchema,
   turnaroundTaskUpdateSchema,
+  turnaroundTaskCreateSchema,
   turnaroundSignoffUpdateSchema,
+  turnaroundStaffingUpdateSchema,
+  turnaroundEscalationCreateSchema,
+  turnaroundEscalationUpdateSchema,
+  turnaroundHandoffUpdateSchema,
   customerIdSchema,
   bookingIdSchema
 }

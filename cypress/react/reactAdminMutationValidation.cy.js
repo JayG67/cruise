@@ -1,3 +1,4 @@
+const { byTestId, reactSelectorKeys: rs } = require('./support/reactSelectors')
 const { reactBookings, reactCustomers, visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
 describe('React admin mutation validation coverage expansion', () => {
@@ -6,21 +7,21 @@ describe('React admin mutation validation coverage expansion', () => {
   })
 
   function openWorkflowTable() {
-    cy.getByTestId('react-toggle-customer-workflows').click()
-    cy.getByTestId('react-customer-workflow-table').should('be.visible')
+    cy.getByTestId(rs.toggleCustomerWorkflows).click()
+    cy.getByTestId(rs.customerWorkflowTable).should('be.visible')
   }
 
   it('keeps create customer validation client-side when required fields are missing', () => {
     cy.intercept('POST', '/cruise/customers').as('unexpectedCustomerCreate')
-    cy.getByTestId('react-admin-create-customer-submit').click()
-    cy.getByTestId('react-admin-mutation-message').should('contain.text', 'First name, last name, and email are required')
+    cy.getByTestId(rs.adminCreateCustomerSubmit).click()
+    cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'First name, last name, and email are required')
     cy.get('@unexpectedCustomerCreate.all').should('have.length', 0)
   })
 
   it('keeps create booking validation client-side when required fields are missing', () => {
     cy.intercept('POST', '/cruise/bookings').as('unexpectedBookingCreate')
-    cy.getByTestId('react-admin-create-booking-submit').click()
-    cy.getByTestId('react-admin-mutation-message').should('contain.text', 'Customer ID, booking status, and cabin number are required')
+    cy.getByTestId(rs.adminCreateBookingSubmit).click()
+    cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'Customer ID, booking status, and cabin number are required')
     cy.get('@unexpectedBookingCreate.all').should('have.length', 0)
   })
 
@@ -44,15 +45,15 @@ describe('React admin mutation validation coverage expansion', () => {
       loyaltyNumber: 'TRIM-1'
     }]).as('reloadAfterTrimmedCustomer')
 
-    cy.getByTestId('react-admin-create-customer-first-name').type('  Trimmed  ')
-    cy.getByTestId('react-admin-create-customer-last-name').type('  Customer  ')
-    cy.getByTestId('react-admin-create-customer-email').type('  trimmed.react@example.com  ')
-    cy.getByTestId('react-admin-create-customer-phone').type('  555-2222  ')
-    cy.getByTestId('react-admin-create-customer-loyalty').type('  TRIM-1  ')
-    cy.getByTestId('react-admin-create-customer-submit').click()
+    cy.getByTestId(rs.adminCreateCustomerFirstName).type('  Trimmed  ')
+    cy.getByTestId(rs.adminCreateCustomerLastName).type('  Customer  ')
+    cy.getByTestId(rs.adminCreateCustomerEmail).type('  trimmed.react@example.com  ')
+    cy.getByTestId(rs.adminCreateCustomerPhone).type('  555-2222  ')
+    cy.getByTestId(rs.adminCreateCustomerLoyalty).type('  TRIM-1  ')
+    cy.getByTestId(rs.adminCreateCustomerSubmit).click()
 
     cy.wait('@createTrimmedCustomer')
-    cy.getByTestId('react-admin-mutation-message').should('contain.text', 'Trimmed Customer was created through the React admin workspace.')
+    cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'Trimmed Customer was created through the React admin workspace.')
   })
 
   it('trims create booking values before sending the API payload', () => {
@@ -69,16 +70,16 @@ describe('React admin mutation validation coverage expansion', () => {
     }).as('createTrimmedBooking')
     cy.intercept('GET', '/cruise/bookings', reactBookings).as('reloadBookingsAfterTrimmedCreate')
 
-    cy.getByTestId('react-admin-create-booking-customer-id').type(`  ${reactCustomers[0].id}  `)
-    cy.getByTestId('react-admin-create-booking-status').clear().type('  CONFIRMED  ')
-    cy.getByTestId('react-admin-create-booking-cabin').type('  T505  ')
-    cy.getByTestId('react-admin-create-booking-fare').type('  SUITE  ')
-    cy.getByTestId('react-admin-create-booking-embarkation').type('  Miami  ')
-    cy.getByTestId('react-admin-create-booking-debarkation').type('  Nassau  ')
-    cy.getByTestId('react-admin-create-booking-submit').click()
+    cy.getByTestId(rs.adminCreateBookingCustomerId).type(`  ${reactCustomers[0].id}  `)
+    cy.getByTestId(rs.adminCreateBookingStatus).clear().type('  CONFIRMED  ')
+    cy.getByTestId(rs.adminCreateBookingCabin).type('  T505  ')
+    cy.getByTestId(rs.adminCreateBookingFare).type('  SUITE  ')
+    cy.getByTestId(rs.adminCreateBookingEmbarkation).type('  Miami  ')
+    cy.getByTestId(rs.adminCreateBookingDebarkation).type('  Nassau  ')
+    cy.getByTestId(rs.adminCreateBookingSubmit).click()
 
     cy.wait('@createTrimmedBooking')
-    cy.getByTestId('react-admin-mutation-message')
+    cy.getByTestId(rs.adminMutationMessage)
       .invoke('text')
       .should('match', /Booking react-booking-trimmed was created|react-booking-trimmed booking was created/)
   })
@@ -89,14 +90,14 @@ describe('React admin mutation validation coverage expansion', () => {
       body: { message: 'Customer create failed from test' }
     }).as('createCustomerFailure')
 
-    cy.getByTestId('react-admin-create-customer-first-name').type('Failure')
-    cy.getByTestId('react-admin-create-customer-last-name').type('Case')
-    cy.getByTestId('react-admin-create-customer-email').type('failure.case@example.com')
-    cy.getByTestId('react-admin-create-customer-submit').click()
+    cy.getByTestId(rs.adminCreateCustomerFirstName).type('Failure')
+    cy.getByTestId(rs.adminCreateCustomerLastName).type('Case')
+    cy.getByTestId(rs.adminCreateCustomerEmail).type('failure.case@example.com')
+    cy.getByTestId(rs.adminCreateCustomerSubmit).click()
 
     cy.wait('@createCustomerFailure')
-    cy.getByTestId('react-admin-mutation-message').should('contain.text', 'Customer create failed from test')
-    cy.getByTestId('react-admin-create-customer-email').should('have.value', 'failure.case@example.com')
+    cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'Customer create failed from test')
+    cy.getByTestId(rs.adminCreateCustomerEmail).should('have.value', 'failure.case@example.com')
   })
 
   it('surfaces booking create API failures without clearing draft inputs', () => {
@@ -105,21 +106,21 @@ describe('React admin mutation validation coverage expansion', () => {
       body: { message: 'Booking create failed from test' }
     }).as('createBookingFailure')
 
-    cy.getByTestId('react-admin-create-booking-customer-id').type(reactCustomers[0].id)
-    cy.getByTestId('react-admin-create-booking-status').type('PENDING')
-    cy.getByTestId('react-admin-create-booking-cabin').type('ERR1')
-    cy.getByTestId('react-admin-create-booking-fare').type('TEST')
-    cy.getByTestId('react-admin-create-booking-submit').click()
+    cy.getByTestId(rs.adminCreateBookingCustomerId).type(reactCustomers[0].id)
+    cy.getByTestId(rs.adminCreateBookingStatus).type('PENDING')
+    cy.getByTestId(rs.adminCreateBookingCabin).type('ERR1')
+    cy.getByTestId(rs.adminCreateBookingFare).type('TEST')
+    cy.getByTestId(rs.adminCreateBookingSubmit).click()
 
     cy.wait('@createBookingFailure')
-    cy.getByTestId('react-admin-mutation-message').should('contain.text', 'Booking create failed from test')
-    cy.getByTestId('react-admin-create-booking-cabin').should('have.value', 'ERR1')
+    cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'Booking create failed from test')
+    cy.getByTestId(rs.adminCreateBookingCabin).should('have.value', 'ERR1')
   })
 
   it('validates direct customer delete form before API submission', () => {
     cy.intercept('DELETE', '/cruise/customers/*').as('unexpectedCustomerDelete')
-    cy.getByTestId('react-admin-delete-customer-submit').click()
-    cy.getByTestId('react-admin-mutation-message')
+    cy.getByTestId(rs.adminDeleteCustomerSubmit).click()
+    cy.getByTestId(rs.adminMutationMessage)
       .invoke('text')
       .should('match', /Customer id is required|Customer ID is required/)
     cy.get('@unexpectedCustomerDelete.all').should('have.length', 0)
@@ -127,8 +128,8 @@ describe('React admin mutation validation coverage expansion', () => {
 
   it('validates direct booking delete form before API submission', () => {
     cy.intercept('DELETE', '/cruise/bookings/*').as('unexpectedBookingDelete')
-    cy.getByTestId('react-admin-delete-booking-submit').click()
-    cy.getByTestId('react-admin-mutation-message')
+    cy.getByTestId(rs.adminDeleteBookingSubmit).click()
+    cy.getByTestId(rs.adminMutationMessage)
       .invoke('text')
       .should('match', /Booking id is required|Booking ID is required/)
     cy.get('@unexpectedBookingDelete.all').should('have.length', 0)
@@ -141,13 +142,13 @@ describe('React admin mutation validation coverage expansion', () => {
     }).as('deleteBookingById')
     cy.intercept('GET', '/cruise/bookings', [reactBookings[1]]).as('reloadBookingsAfterDeleteById')
 
-    cy.getByTestId('react-admin-delete-booking-id').type(reactBookings[0].id)
-    cy.getByTestId('react-admin-delete-booking-submit').click()
-    cy.getByTestId('react-admin-delete-confirmation').should('contain.text', reactBookings[0].id)
-    cy.getByTestId('react-admin-delete-confirmation-confirm').click()
+    cy.getByTestId(rs.adminDeleteBookingId).type(reactBookings[0].id)
+    cy.getByTestId(rs.adminDeleteBookingSubmit).click()
+    cy.getByTestId(rs.adminDeleteConfirmation).should('contain.text', reactBookings[0].id)
+    cy.getByTestId(rs.adminDeleteConfirmationConfirm).click()
 
     cy.wait('@deleteBookingById')
-    cy.getByTestId('react-admin-mutation-message')
+    cy.getByTestId(rs.adminMutationMessage)
       .invoke('text')
       .should('match', new RegExp(`Booking ${reactBookings[0].id} was deleted|${reactBookings[0].id} booking was deleted`))
   })
@@ -155,26 +156,26 @@ describe('React admin mutation validation coverage expansion', () => {
   it('keeps customer delete cancellation scoped to the explicit id form', () => {
     cy.intercept('DELETE', `/cruise/customers/${reactCustomers[0].id}`).as('unexpectedCustomerDeleteAfterCancel')
 
-    cy.getByTestId('react-admin-delete-customer-id').type(reactCustomers[0].id)
-    cy.getByTestId('react-admin-delete-customer-submit').click()
-    cy.getByTestId('react-admin-delete-confirmation').should('contain.text', reactCustomers[0].id)
-    cy.getByTestId('react-admin-delete-confirmation-cancel').click()
-    cy.getByTestId('react-admin-delete-confirmation').should('not.exist')
+    cy.getByTestId(rs.adminDeleteCustomerId).type(reactCustomers[0].id)
+    cy.getByTestId(rs.adminDeleteCustomerSubmit).click()
+    cy.getByTestId(rs.adminDeleteConfirmation).should('contain.text', reactCustomers[0].id)
+    cy.getByTestId(rs.adminDeleteConfirmationCancel).click()
+    cy.getByTestId(rs.adminDeleteConfirmation).should('not.exist')
     cy.get('@unexpectedCustomerDeleteAfterCancel.all').should('have.length', 0)
   })
 
   it('keeps edit validation isolated inside the expanded customer workflow', () => {
     openWorkflowTable()
-    cy.getByTestId('react-customer-row').first().within(() => {
-      cy.getByTestId('react-edit-customer-button').click()
+    cy.getByTestId(rs.customerRow).first().within(() => {
+      cy.getByTestId(rs.editCustomerButton).click()
     })
-    cy.getByTestId('react-customer-draft-form').within(() => {
+    cy.getByTestId(rs.customerDraftForm).within(() => {
       cy.get('input').first().clear()
-      cy.getByTestId('react-validate-customer-draft').click()
+      cy.getByTestId(rs.validateCustomerDraft).click()
       cy.root().should('contain.text', 'First name is required')
     })
     cy.get('body').then($body => {
-      const adminMessage = $body.find('[data-testid="react-admin-mutation-message"]')
+      const adminMessage = $body.find(byTestId(rs.adminMutationMessage))
       if (adminMessage.length) {
         cy.wrap(adminMessage).should('not.contain.text', 'First name is required')
       }

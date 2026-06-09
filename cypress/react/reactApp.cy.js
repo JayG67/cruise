@@ -1,30 +1,41 @@
-Cypress.Commands.add('getByTestId', testId => {
-  return cy.get(`[data-testid="${testId}"]`)
-})
+const { byTestId, reactSelectorKeys: rs } = require('./support/reactSelectors')
+Cypress.Commands.add('getByTestId', selectorKey => cy.get(byTestId(selectorKey)))
 
-function selectDemoUserByVisibleRole(roleText) {
-  cy.getByTestId('react-role-type-select')
+function selectDemoUserByVisibleRole(roleText, personText = '') {
+  cy.getByTestId(rs.roleTypeSelect)
     .find('option')
     .contains(roleText)
     .invoke('val')
     .then(roleValue => {
-      cy.getByTestId('react-role-type-select').select(roleValue)
+      cy.getByTestId(rs.roleTypeSelect).select(roleValue)
     })
 
-  cy.getByTestId('react-demo-user-select')
-    .find('option')
-    .first()
-    .invoke('val')
-    .then(userValue => {
-      cy.getByTestId('react-demo-user-select').select(userValue)
-    })
+  cy.getByTestId(rs.personFinderPanel).should('be.visible')
+  cy.getByTestId(rs.personFinderResultCard).should('have.length.greaterThan', 0)
+
+  if (personText) {
+    cy.getByTestId(rs.personSearchInput).clear().type(personText)
+    cy.getByTestId(rs.personFinderResultCard).contains(personText).click()
+    return
+  }
+
+  cy.getByTestId(rs.personFinderResultCard).first().click()
+}
+
+
+function fillReactInput(selectorKey, value) {
+  cy.getByTestId(selectorKey).should('be.visible').and('not.be.disabled')
+  cy.getByTestId(selectorKey).clear()
+  cy.getByTestId(selectorKey).should('be.visible').and('not.be.disabled')
+  cy.getByTestId(selectorKey).type(value)
+  cy.getByTestId(selectorKey).should('have.value', value)
 }
 
 function visitReactAppAsAdmin() {
   cy.visit('/')
-  cy.getByTestId('react-demo-user-select').should('be.visible')
+  cy.getByTestId(rs.personFinderPanel).should('be.visible')
   selectDemoUserByVisibleRole('Admin')
-  cy.getByTestId('react-demo-user-summary').should('contain.text', 'Admin')
+  cy.getByTestId(rs.demoUserSummary).should('contain.text', 'Admin')
 }
 
 describe('Cruise operations portfolio route', () => {
@@ -33,39 +44,39 @@ describe('Cruise operations portfolio route', () => {
   })
 
   it('loads the cruise operations shell and core workspaces', () => {
-    cy.getByTestId('react-production-shell').should('be.visible')
-    cy.getByTestId('react-top-navigation').should('be.visible')
-    cy.getByTestId('react-role-selector').should('be.visible')
-    cy.getByTestId('react-demo-user-select').should('be.visible')
-    cy.getByTestId('react-workspace-card-grid').should('be.visible')
-    cy.getByTestId('react-retired-route-nav').should('not.exist')
-    cy.getByTestId('react-release-readiness-section').should('not.exist')
+    cy.getByTestId(rs.productionShell).should('be.visible')
+    cy.getByTestId(rs.topNavigation).should('be.visible')
+    cy.getByTestId(rs.roleSelector).should('be.visible')
+    cy.getByTestId(rs.personFinderPanel).should('be.visible')
+    cy.getByTestId(rs.workspaceCardGrid).should('be.visible')
+    cy.getByTestId(rs.retiredRouteNav).should('not.exist')
+    cy.getByTestId(rs.releaseReadinessSection).should('not.exist')
     cy.contains('Cruise operations command center').should('not.exist')
-    cy.getByTestId('react-active-route-operations').should('be.visible')
-    cy.getByTestId('react-fleet-directory').should('be.visible')
-    cy.getByTestId('react-sqa-console').should('be.visible')
+    cy.getByTestId(rs.activeRouteOperations).should('be.visible')
+    cy.getByTestId(rs.fleetDirectory).should('be.visible')
+    cy.getByTestId(rs.sqaConsole).should('be.visible')
   })
 
 
 
   it('navigates real application workspaces from the product controls', () => {
-    cy.getByTestId('react-workspace-role-button').click()
-    cy.getByTestId('react-role-selector').should('be.visible')
-    cy.getByTestId('react-workspace-operations-button').click()
-    cy.getByTestId('react-active-route-operations').should('be.visible')
-    cy.getByTestId('react-workspace-fleet-button').click()
-    cy.getByTestId('react-fleet-directory').should('be.visible')
-    cy.getByTestId('react-workspace-quality-button').click()
-    cy.getByTestId('react-sqa-console').should('be.visible')
+    cy.getByTestId(rs.workspaceRoleButton).click()
+    cy.getByTestId(rs.roleSelector).should('be.visible')
+    cy.getByTestId(rs.workspaceOperationsButton).click()
+    cy.getByTestId(rs.activeRouteOperations).should('be.visible')
+    cy.getByTestId(rs.workspaceFleetButton).click()
+    cy.getByTestId(rs.fleetDirectory).should('be.visible')
+    cy.getByTestId(rs.workspaceQualityButton).click()
+    cy.getByTestId(rs.sqaConsole).should('be.visible')
   })
 
   it('switches from admin to passenger view when a passenger demo user is selected', () => {
     selectDemoUserByVisibleRole('Passenger')
-    cy.getByTestId('react-demo-user-summary').should('contain.text', 'Passenger')
-    cy.getByTestId('react-passenger-dashboard').should('be.visible')
+    cy.getByTestId(rs.demoUserSummary).should('contain.text', 'Passenger')
+    cy.getByTestId(rs.passengerDashboard).should('be.visible')
     cy.contains('Passenger booking dashboard').should('be.visible')
     cy.contains('My travel profile').should('be.visible')
-    cy.getByTestId('react-active-route-operations').should('not.exist')
+    cy.getByTestId(rs.activeRouteOperations).should('not.exist')
   })
 
 
@@ -148,17 +159,17 @@ describe('Cruise operations portfolio route', () => {
     cy.wait('@loadReactBookingsForPassengerDetails')
 
     selectDemoUserByVisibleRole('Passenger')
-    cy.getByTestId('react-passenger-dashboard').should('be.visible')
-    cy.getByTestId('react-role-booking-card').should('contain.text', 'react-passenger-booking')
-    cy.getByTestId('react-role-booking-details-toggle').click()
-    cy.getByTestId('react-role-booking-details').should('contain.text', 'Booking details')
-    cy.getByTestId('react-role-detail-passenger-row').should('contain.text', 'React Passenger')
-    cy.getByTestId('react-role-itinerary-day').should('have.length', 2)
-    cy.getByTestId('react-role-favorite-itinerary-toggle').first().check()
-    cy.getByTestId('react-role-favorites-only-toggle').check()
-    cy.getByTestId('react-role-itinerary-day').should('have.length', 1).and('contain.text', 'React Embarkation')
-    cy.getByTestId('react-role-booking-details-toggle').click()
-    cy.getByTestId('react-role-booking-details').should('not.exist')
+    cy.getByTestId(rs.passengerDashboard).should('be.visible')
+    cy.getByTestId(rs.roleBookingCard).should('contain.text', 'react-passenger-booking')
+    cy.getByTestId(rs.roleBookingDetailsToggle).click()
+    cy.getByTestId(rs.roleBookingDetails).should('contain.text', 'Booking details')
+    cy.getByTestId(rs.roleDetailPassengerRow).should('contain.text', 'React Passenger')
+    cy.getByTestId(rs.roleItineraryDay).should('have.length', 2)
+    cy.getByTestId(rs.roleFavoriteItineraryToggle).first().check()
+    cy.getByTestId(rs.roleFavoritesOnlyToggle).check()
+    cy.getByTestId(rs.roleItineraryDay).should('have.length', 1).and('contain.text', 'React Embarkation')
+    cy.getByTestId(rs.roleBookingDetailsToggle).click()
+    cy.getByTestId(rs.roleBookingDetails).should('not.exist')
   })
 
 
@@ -235,43 +246,53 @@ describe('Cruise operations portfolio route', () => {
     cy.wait('@loadReactBookingsForPassengerProfile')
 
     selectDemoUserByVisibleRole('Passenger')
-    cy.getByTestId('react-passenger-profile-form').should('be.visible').within(() => {
-      cy.getByTestId('react-passenger-profile-phone').clear().type('555-9191')
-      cy.getByTestId('react-dining-preference-select').select('Late seating')
-      cy.getByTestId('react-passenger-profile-accessibility-notes').type('Prefers elevators near dining room')
-      cy.getByTestId('react-passenger-profile-submit-button').click()
+    cy.getByTestId(rs.passengerProfileForm).should('be.visible').within(() => {
+      cy.getByTestId(rs.passengerProfilePhone).clear().type('555-9191')
+      cy.getByTestId(rs.diningPreferenceSelect).select('Late seating')
+      cy.getByTestId(rs.passengerProfileAccessibilityNotes).type('Prefers elevators near dining room')
+      cy.getByTestId(rs.passengerProfileSubmitButton).click()
     })
 
     cy.wait('@saveReactPassengerProfile')
-    cy.getByTestId('react-passenger-profile-message').should('contain.text', 'Passenger profile updated successfully')
+    cy.getByTestId(rs.passengerProfileMessage).should('contain.text', 'Passenger profile updated successfully')
   })
 
 
   it('switches through React role dashboards using the actual demo user select', () => {
     selectDemoUserByVisibleRole('Passenger')
-    cy.getByTestId('react-passenger-dashboard').should('be.visible')
-    cy.getByTestId('react-active-route-operations').should('not.exist')
+    cy.getByTestId(rs.passengerDashboard).should('be.visible')
+    cy.getByTestId(rs.activeRouteOperations).should('not.exist')
 
     selectDemoUserByVisibleRole('Group Leader')
-    cy.getByTestId('react-group-leader-dashboard').should('be.visible')
+    cy.getByTestId(rs.groupLeaderDashboard).should('be.visible')
 
     selectDemoUserByVisibleRole('Admin')
-    cy.getByTestId('react-active-route-operations').should('be.visible')
-    cy.getByTestId('react-demo-user-summary').should('contain.text', 'Admin')
+    cy.getByTestId(rs.activeRouteOperations).should('be.visible')
+    cy.getByTestId(rs.demoUserSummary).should('contain.text', 'Admin')
   })
 
   it('switches back to admin view and exposes admin replacement workflows', () => {
     selectDemoUserByVisibleRole('Admin')
-    cy.getByTestId('react-demo-user-summary').should('contain.text', 'Admin')
-    cy.getByTestId('react-active-route-operations').should('be.visible')
-    cy.getByTestId('react-fleet-directory').should('be.visible')
-    cy.getByTestId('react-create-cruise-line-workflow').should('be.visible')
-    cy.getByTestId('react-sqa-console').should('be.visible')
+    cy.getByTestId(rs.demoUserSummary).should('contain.text', 'Admin')
+    cy.getByTestId(rs.activeRouteOperations).should('be.visible')
+    cy.getByTestId(rs.fleetDirectory).should('be.visible')
+    cy.getByTestId(rs.createCruiseLineWorkflow).should('be.visible')
+    cy.getByTestId(rs.sqaConsole).should('be.visible')
   })
 
 
 
   it('creates and deletes React admin customers and bookings', () => {
+    const adminCrudCustomers = []
+    const adminCrudBookings = []
+
+    cy.intercept('GET', '/cruise/customers', req => {
+      req.reply({ statusCode: 200, body: adminCrudCustomers })
+    }).as('refreshAdminCrudCustomers')
+    cy.intercept('GET', '/cruise/bookings', req => {
+      req.reply({ statusCode: 200, body: adminCrudBookings })
+    }).as('refreshAdminCrudBookings')
+
     cy.intercept('POST', '/cruise/customers', req => {
       expect(req.body).to.include({
         firstName: 'React',
@@ -279,22 +300,28 @@ describe('Cruise operations portfolio route', () => {
         email: 'react.admin@example.com'
       })
 
+      const createdCustomer = {
+        id: 'react-customer-created',
+        firstName: 'React',
+        lastName: 'Admin',
+        email: 'react.admin@example.com',
+        phone: '555-0101',
+        loyaltyNumber: 'RX-100'
+      }
+
+      adminCrudCustomers.push(createdCustomer)
       req.reply({
         statusCode: 201,
-        body: {
-          id: 'react-customer-created',
-          firstName: 'React',
-          lastName: 'Admin',
-          email: 'react.admin@example.com',
-          phone: '555-0101',
-          loyaltyNumber: 'RX-100'
-        }
+        body: createdCustomer
       })
     }).as('createReactCustomer')
 
-    cy.intercept('DELETE', '/cruise/customers/react-customer-created', {
-      statusCode: 200,
-      body: { deleted: true }
+    cy.intercept('DELETE', '/cruise/customers/react-customer-created', req => {
+      adminCrudCustomers.splice(0, adminCrudCustomers.length)
+      req.reply({
+        statusCode: 200,
+        body: { deleted: true }
+      })
     }).as('deleteReactCustomer')
 
     cy.intercept('POST', '/cruise/bookings', req => {
@@ -304,57 +331,72 @@ describe('Cruise operations portfolio route', () => {
         cabinNumber: 'R100'
       })
 
+      const createdBooking = {
+        id: 'react-booking-created',
+        bookingStatus: 'CONFIRMED',
+        cabinNumber: 'R100',
+        fareCode: 'RX',
+        embarkationPort: 'Miami',
+        debarkationPort: 'Nassau',
+        createdByCustomerId: 'react-customer-created',
+        passengers: [
+          {
+            customerId: 'react-customer-created',
+            passengerType: 'Primary',
+            customer: adminCrudCustomers[0]
+          }
+        ]
+      }
+
+      adminCrudBookings.push(createdBooking)
       req.reply({
         statusCode: 201,
-        body: {
-          id: 'react-booking-created',
-          bookingStatus: 'CONFIRMED',
-          cabinNumber: 'R100',
-          fareCode: 'RX',
-          embarkationPort: 'Miami',
-          debarkationPort: 'Nassau'
-        }
+        body: createdBooking
       })
     }).as('createReactBooking')
 
-    cy.intercept('DELETE', '/cruise/bookings/react-booking-created', {
-      statusCode: 200,
-      body: { deleted: true }
+    cy.intercept('DELETE', '/cruise/bookings/react-booking-created', req => {
+      adminCrudBookings.splice(0, adminCrudBookings.length)
+      req.reply({
+        statusCode: 200,
+        body: { deleted: true }
+      })
     }).as('deleteReactBooking')
 
-    cy.getByTestId('react-admin-create-customer-first-name').type('React')
-    cy.getByTestId('react-admin-create-customer-last-name').type('Admin')
-    cy.getByTestId('react-admin-create-customer-email').type('react.admin@example.com')
-    cy.getByTestId('react-admin-create-customer-phone').type('555-0101')
-    cy.getByTestId('react-admin-create-customer-loyalty').type('RX-100')
-    cy.getByTestId('react-admin-create-customer-submit').click()
+    fillReactInput(rs.adminCreateCustomerFirstName, 'React')
+    fillReactInput(rs.adminCreateCustomerLastName, 'Admin')
+    fillReactInput(rs.adminCreateCustomerEmail, 'react.admin@example.com')
+    fillReactInput(rs.adminCreateCustomerPhone, '555-0101')
+    fillReactInput(rs.adminCreateCustomerLoyalty, 'RX-100')
+    cy.getByTestId(rs.adminCreateCustomerSubmit).click()
     cy.wait('@createReactCustomer')
-    cy.getByTestId('react-admin-mutation-message').should('contain.text', 'React Admin was created')
+    cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'React Admin was created')
+    cy.getByTestId(rs.adminCreateBookingForm).should('be.visible')
 
-    cy.getByTestId('react-admin-create-booking-customer-id').clear().type('react-customer-created')
-    cy.getByTestId('react-admin-create-booking-status').clear().type('CONFIRMED')
-    cy.getByTestId('react-admin-create-booking-cabin').clear().type('R100')
-    cy.getByTestId('react-admin-create-booking-fare').clear().type('RX')
-    cy.getByTestId('react-admin-create-booking-embarkation').clear().type('Miami')
-    cy.getByTestId('react-admin-create-booking-debarkation').clear().type('Nassau')
-    cy.getByTestId('react-admin-create-booking-submit').click()
+    fillReactInput(rs.adminCreateBookingCustomerId, 'react-customer-created')
+    fillReactInput(rs.adminCreateBookingStatus, 'CONFIRMED')
+    fillReactInput(rs.adminCreateBookingCabin, 'R100')
+    fillReactInput(rs.adminCreateBookingFare, 'RX')
+    fillReactInput(rs.adminCreateBookingEmbarkation, 'Miami')
+    fillReactInput(rs.adminCreateBookingDebarkation, 'Nassau')
+    cy.getByTestId(rs.adminCreateBookingSubmit).click()
     cy.wait('@createReactBooking')
-    cy.getByTestId('react-admin-mutation-message').should('contain.text', 'react-booking-created booking was created')
+    cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'react-booking-created booking was created')
 
-    cy.getByTestId('react-admin-delete-booking-id').clear().type('react-booking-created')
-    cy.getByTestId('react-admin-delete-booking-submit').click()
-    cy.getByTestId('react-admin-delete-confirmation').should('contain.text', 'Delete booking react-booking-created?')
-    cy.getByTestId('react-admin-delete-confirmation-confirm').click()
+    fillReactInput(rs.adminDeleteBookingId, 'react-booking-created')
+    cy.getByTestId(rs.adminDeleteBookingSubmit).click()
+    cy.getByTestId(rs.adminDeleteConfirmation).should('contain.text', 'Delete booking react-booking-created?')
+    cy.getByTestId(rs.adminDeleteConfirmationConfirm).click()
     cy.wait('@deleteReactBooking')
-    cy.getByTestId('react-admin-mutation-message').should('contain.text', 'react-booking-created booking was deleted')
+    cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'react-booking-created booking was deleted')
 
-    cy.getByTestId('react-admin-delete-customer-id').clear().type('react-customer-created')
-    cy.getByTestId('react-admin-delete-customer-submit').click()
-    cy.getByTestId('react-admin-delete-confirmation').should('contain.text', 'Delete customer react-customer-created?')
-    cy.getByTestId('react-admin-delete-confirmation-confirm').click()
+    fillReactInput(rs.adminDeleteCustomerId, 'react-customer-created')
+    cy.getByTestId(rs.adminDeleteCustomerSubmit).click()
+    cy.getByTestId(rs.adminDeleteConfirmation).should('contain.text', 'Delete customer react-customer-created?')
+    cy.getByTestId(rs.adminDeleteConfirmationConfirm).click()
     cy.wait('@deleteReactCustomer')
-    cy.getByTestId('react-admin-mutation-message').should('contain.text', 'react-customer-created customer was deleted')
-    cy.getByTestId('react-admin-delete-confirmation').should('not.exist')
+    cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'react-customer-created customer was deleted')
+    cy.getByTestId(rs.adminDeleteConfirmation).should('not.exist')
   })
 
 
@@ -409,40 +451,40 @@ describe('Cruise operations portfolio route', () => {
     cy.wait('@loadContextCustomers')
     cy.wait('@loadContextBookings')
 
-    cy.getByTestId('react-toggle-customer-workflows').click()
-    cy.getByTestId('react-customer-workflow-table').should('contain.text', 'Admin, Context')
-    cy.getByTestId('react-toggle-customer-bookings').click()
-    cy.getByTestId('react-booking-card').should('contain.text', 'react-context-booking')
+    cy.getByTestId(rs.toggleCustomerWorkflows).click()
+    cy.getByTestId(rs.customerWorkflowTable).should('contain.text', 'Admin, Context')
+    cy.getByTestId(rs.toggleCustomerBookings).click()
+    cy.getByTestId(rs.bookingCard).should('contain.text', 'react-context-booking')
 
-    cy.getByTestId('react-delete-booking-row-button').click()
-    cy.getByTestId('react-admin-delete-confirmation').should('contain.text', 'Delete booking react-context-booking?')
-    cy.getByTestId('react-admin-delete-confirmation-confirm').click()
+    cy.getByTestId(rs.deleteBookingRowButton).click()
+    cy.getByTestId(rs.adminDeleteConfirmation).should('contain.text', 'Delete booking react-context-booking?')
+    cy.getByTestId(rs.adminDeleteConfirmationConfirm).click()
     cy.wait('@deleteContextBooking')
     cy.wait('@loadContextCustomers')
     cy.wait('@loadContextBookings')
-    cy.getByTestId('react-admin-mutation-message').should('contain.text', 'react-context-booking booking was deleted')
+    cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'react-context-booking booking was deleted')
 
-    cy.getByTestId('react-delete-customer-row-button').click()
-    cy.getByTestId('react-admin-delete-confirmation').should('contain.text', 'Delete customer Admin, Context?')
-    cy.getByTestId('react-admin-delete-confirmation-confirm').click()
+    cy.getByTestId(rs.deleteCustomerRowButton).click()
+    cy.getByTestId(rs.adminDeleteConfirmation).should('contain.text', 'Delete customer Admin, Context?')
+    cy.getByTestId(rs.adminDeleteConfirmationConfirm).click()
     cy.wait('@deleteContextCustomer')
     cy.wait('@loadContextCustomers')
     cy.wait('@loadContextBookings')
-    cy.getByTestId('react-admin-mutation-message').should('contain.text', 'Admin, Context customer was deleted')
-    cy.getByTestId('react-admin-delete-confirmation').should('not.exist')
+    cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'Admin, Context customer was deleted')
+    cy.getByTestId(rs.adminDeleteConfirmation).should('not.exist')
   })
 
   it('searches the React fleet directory and loads ships for a selected cruise line', () => {
-    cy.getByTestId('react-active-route-operations').should('be.visible')
-    cy.getByTestId('react-fleet-search').type('Royal')
-    cy.getByTestId('react-fleet-count').should('contain.text', 'matching cruise lines')
-    cy.getByTestId('react-fleet-card').first().should('contain.text', 'Royal')
+    cy.getByTestId(rs.activeRouteOperations).should('be.visible')
+    cy.getByTestId(rs.fleetSearch).type('Royal')
+    cy.getByTestId(rs.fleetCount).should('contain.text', 'matching cruise lines')
+    cy.getByTestId(rs.fleetCard).first().should('contain.text', 'Royal')
 
-    cy.getByTestId('react-view-ships-button').first().click()
-    cy.getByTestId('react-selected-ships-panel').should('be.visible')
-    cy.getByTestId('react-selected-ships-panel').should('contain.text', 'Royal')
-    cy.getByTestId('react-ship-card').should('have.length.greaterThan', 0)
-    cy.getByTestId('react-ship-card').first().should('contain.text', 'Current port:')
+    cy.getByTestId(rs.viewShipsButton).first().click()
+    cy.getByTestId(rs.selectedShipsPanel).should('be.visible')
+    cy.getByTestId(rs.selectedShipsPanel).should('contain.text', 'Royal')
+    cy.getByTestId(rs.shipCard).should('have.length.greaterThan', 0)
+    cy.getByTestId(rs.shipCard).first().should('contain.text', 'Current port:')
   })
 
 
@@ -481,43 +523,43 @@ describe('Cruise operations portfolio route', () => {
 
     cy.intercept('GET', '/cruise').as('reloadFleetAfterUpdate')
 
-    cy.getByTestId('react-fleet-search').type('Royal')
-    cy.getByTestId('react-view-ships-button').first().click()
-    cy.getByTestId('react-selected-ships-panel').should('contain.text', 'Royal Caribbean International ships')
+    cy.getByTestId(rs.fleetSearch).type('Royal')
+    cy.getByTestId(rs.viewShipsButton).first().click()
+    cy.getByTestId(rs.selectedShipsPanel).should('contain.text', 'Royal Caribbean International ships')
 
-    cy.getByTestId('react-update-cruise-line-button').first().should('be.visible').click()
-    cy.getByTestId('react-cruise-line-edit-form').should('be.visible')
-    cy.getByTestId('react-edit-cruise-line-name').clear().type(' Royal Caribbean React Updated ')
-    cy.getByTestId('react-edit-cruise-line-country').clear().type(' United States React ')
-    cy.getByTestId('react-edit-cruise-line-website').clear().type(' https://react-updated.example.com ')
-    cy.getByTestId('react-save-cruise-line-edit').click()
+    cy.getByTestId(rs.updateCruiseLineButton).first().should('be.visible').click()
+    cy.getByTestId(rs.cruiseLineEditForm).should('be.visible')
+    cy.getByTestId(rs.editCruiseLineName).clear().type(' Royal Caribbean React Updated ')
+    cy.getByTestId(rs.editCruiseLineCountry).clear().type(' United States React ')
+    cy.getByTestId(rs.editCruiseLineWebsite).clear().type(' https://react-updated.example.com ')
+    cy.getByTestId(rs.saveCruiseLineEdit).click()
     cy.wait('@updateReactCruiseLine')
     cy.wait('@reloadFleetAfterUpdate')
-    cy.getByTestId('react-fleet-action-message').should('contain.text', 'Royal Caribbean React Updated was updated')
-    cy.getByTestId('react-selected-ships-panel').should('contain.text', 'Royal Caribbean React Updated ships')
+    cy.getByTestId(rs.fleetActionMessage).should('contain.text', 'Royal Caribbean React Updated was updated')
+    cy.getByTestId(rs.selectedShipsPanel).should('contain.text', 'Royal Caribbean React Updated ships')
   })
 
   it('supports React fleet delete cancellation and confirmed deletion', () => {
-    cy.getByTestId('react-active-route-operations').should('be.visible')
+    cy.getByTestId(rs.activeRouteOperations).should('be.visible')
     cy.intercept('DELETE', '/cruise/cruise-line/*', {
       statusCode: 200,
       body: { deleted: true }
     }).as('deleteCruiseLine')
     cy.intercept('GET', '/cruise').as('loadCruiseLines')
 
-    cy.getByTestId('react-fleet-search').type('Norwegian')
-    cy.getByTestId('react-fleet-card').first().should('contain.text', 'Norwegian')
+    cy.getByTestId(rs.fleetSearch).type('Norwegian')
+    cy.getByTestId(rs.fleetCard).first().should('contain.text', 'Norwegian')
 
-    cy.getByTestId('react-delete-cruise-line-button').first().click()
-    cy.getByTestId('react-fleet-delete-confirmation').should('contain.text', 'Delete Norwegian')
-    cy.getByTestId('react-fleet-delete-confirmation-cancel').click()
+    cy.getByTestId(rs.deleteCruiseLineButton).first().click()
+    cy.getByTestId(rs.fleetDeleteConfirmation).should('contain.text', 'Delete Norwegian')
+    cy.getByTestId(rs.fleetDeleteConfirmationCancel).click()
     cy.get('@deleteCruiseLine.all').should('have.length', 0)
 
-    cy.getByTestId('react-delete-cruise-line-button').first().click()
-    cy.getByTestId('react-fleet-delete-confirmation-confirm').click()
+    cy.getByTestId(rs.deleteCruiseLineButton).first().click()
+    cy.getByTestId(rs.fleetDeleteConfirmationConfirm).click()
     cy.wait('@deleteCruiseLine')
     cy.wait('@loadCruiseLines')
-    cy.getByTestId('react-fleet-action-message').should('contain.text', 'was deleted')
+    cy.getByTestId(rs.fleetActionMessage).should('contain.text', 'was deleted')
   })
 
 
@@ -556,35 +598,35 @@ describe('Cruise operations portfolio route', () => {
 
     cy.intercept('GET', '/cruise').as('reloadFleetAfterCreate')
 
-    cy.getByTestId('react-create-cruise-line-name').clear().type('  React Test Cruises  ')
-    cy.getByTestId('react-create-cruise-line-country').clear().type('  United States  ')
-    cy.getByTestId('react-create-cruise-line-website').clear().type('  https://react-test-cruises.example.com  ')
-    cy.getByTestId('react-create-ship-name').first().clear().type('  React Ship One  ')
-    cy.getByTestId('react-create-ship-port').first().clear().type('  Tampa  ')
+    cy.getByTestId(rs.createCruiseLineName).clear().type('  React Test Cruises  ')
+    cy.getByTestId(rs.createCruiseLineCountry).clear().type('  United States  ')
+    cy.getByTestId(rs.createCruiseLineWebsite).clear().type('  https://react-test-cruises.example.com  ')
+    cy.getByTestId(rs.createShipName).first().clear().type('  React Ship One  ')
+    cy.getByTestId(rs.createShipPort).first().clear().type('  Tampa  ')
 
-    cy.getByTestId('react-add-ship-row').click()
-    cy.getByTestId('react-create-ship-name').last().type('  React Ship Two  ')
-    cy.getByTestId('react-create-ship-port').last().type('  Port Canaveral  ')
+    cy.getByTestId(rs.addShipRow).click()
+    cy.getByTestId(rs.createShipName).last().type('  React Ship Two  ')
+    cy.getByTestId(rs.createShipPort).last().type('  Port Canaveral  ')
 
-    cy.getByTestId('react-add-ship-row').click()
-    cy.getByTestId('react-create-ship-name').last().type('  ')
-    cy.getByTestId('react-remove-ship-row').last().click()
+    cy.getByTestId(rs.addShipRow).click()
+    cy.getByTestId(rs.createShipName).last().type('  ')
+    cy.getByTestId(rs.removeShipRow).last().click()
 
-    cy.getByTestId('react-save-cruise-line').click()
+    cy.getByTestId(rs.saveCruiseLine).click()
 
     cy.wait('@createReactCruiseLine')
     cy.wait('@createReactShip')
     cy.wait('@createReactShip')
     cy.wait('@reloadFleetAfterCreate')
-    cy.getByTestId('react-create-cruise-line-message').should('contain.text', 'React Test Cruises created successfully with 2 starter ships')
+    cy.getByTestId(rs.createCruiseLineMessage).should('contain.text', 'React Test Cruises created successfully with 2 starter ships')
 
-    cy.getByTestId('react-create-cruise-line-name').should('have.value', '')
-    cy.getByTestId('react-create-ship-name').should('have.length', 1)
+    cy.getByTestId(rs.createCruiseLineName).should('have.value', '')
+    cy.getByTestId(rs.createShipName).should('have.length', 1)
 
-    cy.getByTestId('react-create-cruise-line-name').type('Temporary React Cruise')
-    cy.getByTestId('react-reset-cruise-line').click()
-    cy.getByTestId('react-create-cruise-line-name').should('have.value', '')
-    cy.getByTestId('react-create-cruise-line-message').should('contain.text', 'Ready to create cruise line data.')
+    cy.getByTestId(rs.createCruiseLineName).type('Temporary React Cruise')
+    cy.getByTestId(rs.resetCruiseLine).click()
+    cy.getByTestId(rs.createCruiseLineName).should('have.value', '')
+    cy.getByTestId(rs.createCruiseLineMessage).should('contain.text', 'Ready to create cruise line data.')
   })
 
 
@@ -769,169 +811,169 @@ describe('Cruise operations portfolio route', () => {
       req.reply({ statusCode: 200, body: { deleted: true } })
     }).as('deleteReactItineraryActivity')
 
-    cy.getByTestId('react-fleet-search').type('Royal')
-    cy.getByTestId('react-view-ships-button').first().click()
+    cy.getByTestId(rs.fleetSearch).type('Royal')
+    cy.getByTestId(rs.viewShipsButton).first().click()
     cy.wait('@loadReactShips')
-    cy.getByTestId('react-ship-card').should('have.length', 2)
+    cy.getByTestId(rs.shipCard).should('have.length', 2)
 
-    cy.getByTestId('react-create-ship-name-input').type(' React Test Ship ')
-    cy.getByTestId('react-create-ship-current-port-input').type(' Tampa ')
-    cy.getByTestId('react-create-ship-submit-button').click()
+    cy.getByTestId(rs.createShipNameInput).type(' React Test Ship ')
+    cy.getByTestId(rs.createShipCurrentPortInput).type(' Tampa ')
+    cy.getByTestId(rs.createShipSubmitButton).click()
     cy.wait('@createReactShip')
-    cy.getByTestId('react-ship-action-message').should('contain.text', 'React Test Ship was added')
-    cy.getByTestId('react-ship-card').should('have.length', 3)
+    cy.getByTestId(rs.shipActionMessage).should('contain.text', 'React Test Ship was added')
+    cy.getByTestId(rs.shipCard).should('have.length', 3)
 
-    cy.getByTestId('react-update-ship-button').first().click()
-    cy.getByTestId('react-ship-edit-form').should('be.visible')
-    cy.getByTestId('react-edit-ship-name').clear().type(' React Wonder Updated ')
-    cy.getByTestId('react-edit-ship-current-port').clear().type(' Nassau ')
-    cy.getByTestId('react-save-ship-edit').click()
+    cy.getByTestId(rs.updateShipButton).first().click()
+    cy.getByTestId(rs.shipEditForm).should('be.visible')
+    cy.getByTestId(rs.editShipName).clear().type(' React Wonder Updated ')
+    cy.getByTestId(rs.editShipCurrentPort).clear().type(' Nassau ')
+    cy.getByTestId(rs.saveShipEdit).click()
     cy.wait('@updateReactShip')
-    cy.getByTestId('react-ship-action-message').should('contain.text', 'React Wonder Updated was updated')
-    cy.getByTestId('react-ship-card').first().should('contain.text', 'React Wonder Updated')
+    cy.getByTestId(rs.shipActionMessage).should('contain.text', 'React Wonder Updated was updated')
+    cy.getByTestId(rs.shipCard).first().should('contain.text', 'React Wonder Updated')
 
-    cy.getByTestId('react-view-sailings-button').first().click()
+    cy.getByTestId(rs.viewSailingsButton).first().click()
     cy.wait('@loadReactSailings')
-    cy.getByTestId('react-sailings-panel').should('be.visible')
-    cy.getByTestId('react-create-sailing-form').should('be.visible')
-    cy.getByTestId('react-create-sailing-departure-date').type('2026-11-02')
-    cy.getByTestId('react-create-sailing-departure-port').type('Tampa')
-    cy.getByTestId('react-create-sailing-arrival-port').type('Cozumel')
-    cy.getByTestId('react-create-sailing-days').type('5')
-    cy.getByTestId('react-create-sailing-repositioning').check()
-    cy.getByTestId('react-create-sailing-submit-button').click()
+    cy.getByTestId(rs.sailingsPanel).should('be.visible')
+    cy.getByTestId(rs.createSailingForm).should('be.visible')
+    cy.getByTestId(rs.createSailingDepartureDate).type('2026-11-02')
+    cy.getByTestId(rs.createSailingDeparturePort).type('Tampa')
+    cy.getByTestId(rs.createSailingArrivalPort).type('Cozumel')
+    cy.getByTestId(rs.createSailingDays).type('5')
+    cy.getByTestId(rs.createSailingRepositioning).check()
+    cy.getByTestId(rs.createSailingSubmitButton).click()
     cy.wait('@createReactSailing')
     cy.wait('@loadReactSailings')
-    cy.getByTestId('react-sailing-action-message').should('contain.text', '2026-11-02 sailing was created')
-    cy.getByTestId('react-sailing-card').should('have.length', 2)
+    cy.getByTestId(rs.sailingActionMessage).should('contain.text', '2026-11-02 sailing was created')
+    cy.getByTestId(rs.sailingCard).should('have.length', 2)
 
-    cy.getByTestId('react-update-sailing-button').first().click()
-    cy.getByTestId('react-sailing-edit-form').should('be.visible')
-    cy.getByTestId('react-edit-sailing-departure-date').clear().type('2026-12-03')
-    cy.getByTestId('react-edit-sailing-departure-port').clear().type('Port Canaveral')
-    cy.getByTestId('react-edit-sailing-arrival-port').clear().type('Key West')
-    cy.getByTestId('react-edit-sailing-days').clear().type('3')
-    cy.getByTestId('react-edit-sailing-repositioning').should('not.be.checked')
-    cy.getByTestId('react-save-sailing-edit').click()
+    cy.getByTestId(rs.updateSailingButton).first().click()
+    cy.getByTestId(rs.sailingEditForm).should('be.visible')
+    cy.getByTestId(rs.editSailingDepartureDate).clear().type('2026-12-03')
+    cy.getByTestId(rs.editSailingDeparturePort).clear().type('Port Canaveral')
+    cy.getByTestId(rs.editSailingArrivalPort).clear().type('Key West')
+    cy.getByTestId(rs.editSailingDays).clear().type('3')
+    cy.getByTestId(rs.editSailingRepositioning).should('not.be.checked')
+    cy.getByTestId(rs.saveSailingEdit).click()
     cy.wait('@updateReactSailing')
     cy.wait('@loadReactSailings')
-    cy.getByTestId('react-sailing-action-message').should('contain.text', '2026-12-03 sailing was updated')
-    cy.getByTestId('react-sailing-card').first().should('contain.text', '2026-12-03')
+    cy.getByTestId(rs.sailingActionMessage).should('contain.text', '2026-12-03 sailing was updated')
+    cy.getByTestId(rs.sailingCard).first().should('contain.text', '2026-12-03')
 
-    cy.getByTestId('react-delete-sailing-button').last().click()
-    cy.getByTestId('react-fleet-delete-confirmation').should('contain.text', 'Delete sailing 2026-11-02?')
-    cy.getByTestId('react-fleet-delete-confirmation-confirm').scrollIntoView().click()
+    cy.getByTestId(rs.deleteSailingButton).last().click()
+    cy.getByTestId(rs.fleetDeleteConfirmation).should('contain.text', 'Delete sailing 2026-11-02?')
+    cy.getByTestId(rs.fleetDeleteConfirmationConfirm).scrollIntoView().click()
     cy.wait('@deleteReactSailing')
     cy.wait('@loadReactSailings')
-    cy.getByTestId('react-sailing-action-message').should('contain.text', '2026-11-02 sailing was deleted')
-    cy.getByTestId('react-sailing-card').should('have.length', 1)
+    cy.getByTestId(rs.sailingActionMessage).should('contain.text', '2026-11-02 sailing was deleted')
+    cy.getByTestId(rs.sailingCard).should('have.length', 1)
 
-    cy.getByTestId('react-sailing-card').first().should('contain.text', '2026-12-03')
-    cy.getByTestId('react-sailing-card').first().should('contain.text', 'Round-Trip / Regional Sailing')
-    cy.getByTestId('react-view-itinerary-button').first().click()
+    cy.getByTestId(rs.sailingCard).first().should('contain.text', '2026-12-03')
+    cy.getByTestId(rs.sailingCard).first().should('contain.text', 'Round-Trip / Regional Sailing')
+    cy.getByTestId(rs.viewItineraryButton).first().click()
     cy.wait('@loadReactItinerary')
-    cy.getByTestId('react-itinerary-panel').should('be.visible')
-    cy.getByTestId('react-itinerary-day-card').should('have.length', 2)
-    cy.getByTestId('react-itinerary-activity').should('have.length', 3)
-    cy.getByTestId('react-itinerary-panel').should('contain.text', 'Embarkation Day')
-    cy.getByTestId('react-itinerary-panel').should('contain.text', 'Sail away celebration')
+    cy.getByTestId(rs.itineraryPanel).should('be.visible')
+    cy.getByTestId(rs.itineraryDayCard).should('have.length', 2)
+    cy.getByTestId(rs.itineraryActivity).should('have.length', 3)
+    cy.getByTestId(rs.itineraryPanel).should('contain.text', 'Embarkation Day')
+    cy.getByTestId(rs.itineraryPanel).should('contain.text', 'Sail away celebration')
 
-    cy.getByTestId('react-create-itinerary-day-number').type('3')
-    cy.getByTestId('react-create-itinerary-day-title').type('React Sea Day')
-    cy.getByTestId('react-create-itinerary-day-port').type('At Sea')
-    cy.getByTestId('react-create-itinerary-day-submit-button').click()
+    cy.getByTestId(rs.createItineraryDayNumber).type('3')
+    cy.getByTestId(rs.createItineraryDayTitle).type('React Sea Day')
+    cy.getByTestId(rs.createItineraryDayPort).type('At Sea')
+    cy.getByTestId(rs.createItineraryDaySubmitButton).click()
     cy.wait('@createReactItineraryDay')
     cy.wait('@loadReactItinerary')
-    cy.getByTestId('react-itinerary-action-message').should('contain.text', 'Day 3 was created')
-    cy.getByTestId('react-itinerary-day-card').should('have.length', 3)
+    cy.getByTestId(rs.itineraryActionMessage).should('contain.text', 'Day 3 was created')
+    cy.getByTestId(rs.itineraryDayCard).should('have.length', 3)
 
-    cy.getByTestId('react-create-itinerary-activity-day-select').select('react-day-1')
-    cy.getByTestId('react-create-itinerary-activity-time').type('7:30 PM')
-    cy.getByTestId('react-create-itinerary-activity-name').type('React Dinner Show')
-    cy.getByTestId('react-create-itinerary-activity-submit-button').click()
+    cy.getByTestId(rs.createItineraryActivityDaySelect).select('react-day-1')
+    cy.getByTestId(rs.createItineraryActivityTime).type('7:30 PM')
+    cy.getByTestId(rs.createItineraryActivityName).type('React Dinner Show')
+    cy.getByTestId(rs.createItineraryActivitySubmitButton).click()
     cy.wait('@createReactItineraryActivity')
     cy.wait('@loadReactItinerary')
-    cy.getByTestId('react-itinerary-action-message').should('contain.text', 'React Dinner Show was added')
-    cy.getByTestId('react-itinerary-panel').should('contain.text', 'React Dinner Show')
+    cy.getByTestId(rs.itineraryActionMessage).should('contain.text', 'React Dinner Show was added')
+    cy.getByTestId(rs.itineraryPanel).should('contain.text', 'React Dinner Show')
 
-    cy.getByTestId('react-update-itinerary-day-button').first().click()
-    cy.getByTestId('react-itinerary-day-edit-form').should('be.visible')
-    cy.getByTestId('react-edit-itinerary-day-number').clear().type('1')
-    cy.getByTestId('react-edit-itinerary-day-title').clear().type('React Embarkation Updated')
-    cy.getByTestId('react-edit-itinerary-day-port').clear().type('Miami Updated')
-    cy.getByTestId('react-save-itinerary-day-edit').click()
+    cy.getByTestId(rs.updateItineraryDayButton).first().click()
+    cy.getByTestId(rs.itineraryDayEditForm).should('be.visible')
+    cy.getByTestId(rs.editItineraryDayNumber).clear().type('1')
+    cy.getByTestId(rs.editItineraryDayTitle).clear().type('React Embarkation Updated')
+    cy.getByTestId(rs.editItineraryDayPort).clear().type('Miami Updated')
+    cy.getByTestId(rs.saveItineraryDayEdit).click()
     cy.wait('@updateReactItineraryDay')
     cy.wait('@loadReactItinerary')
-    cy.getByTestId('react-itinerary-action-message').should('contain.text', 'Day 1 was updated')
-    cy.getByTestId('react-itinerary-panel').should('contain.text', 'React Embarkation Updated')
+    cy.getByTestId(rs.itineraryActionMessage).should('contain.text', 'Day 1 was updated')
+    cy.getByTestId(rs.itineraryPanel).should('contain.text', 'React Embarkation Updated')
 
-    cy.getByTestId('react-update-itinerary-activity-button').first().click()
-    cy.getByTestId('react-itinerary-activity-edit-form').should('be.visible')
-    cy.getByTestId('react-edit-itinerary-activity-time').clear().type('8:00 AM')
-    cy.getByTestId('react-edit-itinerary-activity-name').clear().type('React Terminal Arrival Updated')
-    cy.getByTestId('react-save-itinerary-activity-edit').click()
+    cy.getByTestId(rs.updateItineraryActivityButton).first().click()
+    cy.getByTestId(rs.itineraryActivityEditForm).should('be.visible')
+    cy.getByTestId(rs.editItineraryActivityTime).clear().type('8:00 AM')
+    cy.getByTestId(rs.editItineraryActivityName).clear().type('React Terminal Arrival Updated')
+    cy.getByTestId(rs.saveItineraryActivityEdit).click()
     cy.wait('@updateReactItineraryActivity')
     cy.wait('@loadReactItinerary')
-    cy.getByTestId('react-itinerary-action-message').should('contain.text', 'React Terminal Arrival Updated was updated')
-    cy.getByTestId('react-itinerary-panel').should('contain.text', 'React Terminal Arrival Updated')
+    cy.getByTestId(rs.itineraryActionMessage).should('contain.text', 'React Terminal Arrival Updated was updated')
+    cy.getByTestId(rs.itineraryPanel).should('contain.text', 'React Terminal Arrival Updated')
 
-    cy.getByTestId('react-itinerary-day-card')
+    cy.getByTestId(rs.itineraryDayCard)
       .first()
-      .find('[data-testid="react-delete-itinerary-activity-button"]')
+      .find(byTestId(rs.deleteItineraryActivityButton))
       .last()
       .click()
-    cy.getByTestId('react-fleet-delete-confirmation').should('contain.text', 'Delete activity React Dinner Show?')
-    cy.getByTestId('react-fleet-delete-confirmation-confirm').scrollIntoView().click()
+    cy.getByTestId(rs.fleetDeleteConfirmation).should('contain.text', 'Delete activity React Dinner Show?')
+    cy.getByTestId(rs.fleetDeleteConfirmationConfirm).scrollIntoView().click()
     cy.wait('@deleteReactItineraryActivity')
     cy.wait('@loadReactItinerary')
-    cy.getByTestId('react-itinerary-action-message').should('contain.text', 'React Dinner Show was deleted')
-    cy.getByTestId('react-itinerary-day-grid').should('not.contain.text', 'React Dinner Show')
+    cy.getByTestId(rs.itineraryActionMessage).should('contain.text', 'React Dinner Show was deleted')
+    cy.getByTestId(rs.itineraryDayGrid).should('not.contain.text', 'React Dinner Show')
 
-    cy.getByTestId('react-itinerary-day-card').last().find('[data-testid="react-delete-itinerary-day-button"]').click()
-    cy.getByTestId('react-fleet-delete-confirmation').should('contain.text', 'Delete itinerary day 3?')
-    cy.getByTestId('react-fleet-delete-confirmation-confirm').scrollIntoView().click()
+    cy.getByTestId(rs.itineraryDayCard).last().find(byTestId(rs.deleteItineraryDayButton)).click()
+    cy.getByTestId(rs.fleetDeleteConfirmation).should('contain.text', 'Delete itinerary day 3?')
+    cy.getByTestId(rs.fleetDeleteConfirmationConfirm).scrollIntoView().click()
     cy.wait('@deleteReactItineraryDay')
     cy.wait('@loadReactItinerary')
-    cy.getByTestId('react-itinerary-action-message').should('contain.text', 'Day 3 was deleted')
-    cy.getByTestId('react-itinerary-day-card').should('have.length', 2)
+    cy.getByTestId(rs.itineraryActionMessage).should('contain.text', 'Day 3 was deleted')
+    cy.getByTestId(rs.itineraryDayCard).should('have.length', 2)
 
-    cy.getByTestId('react-delete-ship-button').eq(1).click()
-    cy.getByTestId('react-fleet-delete-confirmation').should('contain.text', 'Delete React Utopia?')
-    cy.getByTestId('react-fleet-delete-confirmation-confirm').scrollIntoView().click()
+    cy.getByTestId(rs.deleteShipButton).eq(1).click()
+    cy.getByTestId(rs.fleetDeleteConfirmation).should('contain.text', 'Delete React Utopia?')
+    cy.getByTestId(rs.fleetDeleteConfirmationConfirm).scrollIntoView().click()
     cy.wait('@deleteReactShip')
-    cy.getByTestId('react-ship-action-message').should('contain.text', 'React Utopia was deleted')
-    cy.getByTestId('react-ship-card').should('have.length', 2)
+    cy.getByTestId(rs.shipActionMessage).should('contain.text', 'React Utopia was deleted')
+    cy.getByTestId(rs.shipCard).should('have.length', 2)
   })
 
 
-  it('resets React demo data through a native React confirmation panel', () => {
+  it('resets React baseline data through a native React confirmation panel', () => {
     cy.intercept('POST', '/admin/reset-demo-data', {
       statusCode: 200,
       body: { reset: true, customers: 24, bookings: 12 }
     }).as('resetReactDemoData')
 
-    cy.getByTestId('react-sqa-console').should('be.visible')
-    cy.getByTestId('react-sqa-reset-demo-data-button').scrollIntoView().click()
-    cy.getByTestId('react-sqa-reset-confirmation')
+    cy.getByTestId(rs.sqaConsole).should('be.visible')
+    cy.getByTestId(rs.sqaResetDemoDataButton).scrollIntoView().click()
+    cy.getByTestId(rs.sqaResetConfirmation)
       .should('be.visible')
-      .and('contain.text', 'Reset public demo data back to the seed dataset?')
+      .and('contain.text', 'Reset baseline data back to the baseline dataset?')
 
-    cy.getByTestId('react-sqa-reset-confirmation-cancel').click()
-    cy.getByTestId('react-sqa-reset-confirmation').should('not.exist')
-    cy.getByTestId('react-sqa-status').should('contain.text', 'Ready for validation')
+    cy.getByTestId(rs.sqaResetConfirmationCancel).click()
+    cy.getByTestId(rs.sqaResetConfirmation).should('not.exist')
+    cy.getByTestId(rs.sqaStatus).should('contain.text', 'Ready for validation')
 
-    cy.getByTestId('react-sqa-reset-demo-data-button').click()
-    cy.getByTestId('react-sqa-reset-confirmation-confirm').click()
+    cy.getByTestId(rs.sqaResetDemoDataButton).click()
+    cy.getByTestId(rs.sqaResetConfirmationConfirm).click()
     cy.wait('@resetReactDemoData')
-    cy.getByTestId('react-sqa-output').should('contain.text', 'Demo Data Recovery Result')
-    cy.getByTestId('react-sqa-output').should('contain.text', '"passed": true')
-    cy.getByTestId('react-sqa-reset-confirmation').should('not.exist')
+    cy.getByTestId(rs.sqaOutput).should('contain.text', 'Baseline Data Recovery Result')
+    cy.getByTestId(rs.sqaOutput).should('contain.text', '"passed": true')
+    cy.getByTestId(rs.sqaResetConfirmation).should('not.exist')
   })
 
-  it('runs a React SQA health check and writes output', () => {
-    cy.getByTestId('react-active-route-operations').should('be.visible')
-    cy.getByTestId('react-sqa-health-button').scrollIntoView().click()
-    cy.getByTestId('react-sqa-output').should('contain.text', 'Health Check Result')
-    cy.getByTestId('react-sqa-output').should('contain.text', '"passed": true')
+  it('runs a React quality health check and writes output', () => {
+    cy.getByTestId(rs.activeRouteOperations).should('be.visible')
+    cy.getByTestId(rs.sqaHealthButton).scrollIntoView().click()
+    cy.getByTestId(rs.sqaOutput).should('contain.text', 'Health Check Result')
+    cy.getByTestId(rs.sqaOutput).should('contain.text', '"passed": true')
   })
 })

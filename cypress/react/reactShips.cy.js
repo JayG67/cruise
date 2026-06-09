@@ -1,3 +1,4 @@
+const { reactSelectorKeys: rs } = require('./support/reactSelectors')
 const { openFirstReactFleetShips, reactCruiseLines, reactShips, visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
 describe('React ship lookup and CRUD coverage', () => {
@@ -6,24 +7,24 @@ describe('React ship lookup and CRUD coverage', () => {
   })
 
   it('keeps the selected ships panel in its initial empty guidance state', () => {
-    cy.getByTestId('react-selected-ships-panel').should('contain.text', 'Select a cruise line to view ships')
-    cy.getByTestId('react-ship-card').should('not.exist')
+    cy.getByTestId(rs.selectedShipsPanel).should('contain.text', 'Select a cruise line to view ships')
+    cy.getByTestId(rs.shipCard).should('not.exist')
   })
 
   it('loads ships for the selected cruise line', () => {
     openFirstReactFleetShips()
-    cy.getByTestId('react-selected-ships-panel').should('contain.text', 'Royal Caribbean International ships')
-    cy.getByTestId('react-selected-ships-count').should('contain.text', '2 ships')
-    cy.getByTestId('react-ship-card').first().should('contain.text', 'React Icon').and('contain.text', 'Miami')
+    cy.getByTestId(rs.selectedShipsPanel).should('contain.text', 'Royal Caribbean International ships')
+    cy.getByTestId(rs.selectedShipsCount).should('contain.text', '2 ships')
+    cy.getByTestId(rs.shipCard).first().should('contain.text', 'React Icon').and('contain.text', 'Miami')
   })
 
   it('renders an empty state when a cruise line has no ships', () => {
     cy.intercept('GET', `/cruise/ships/${reactCruiseLines[1].id}`, []).as('reactEmptyShips')
-    cy.getByTestId('react-fleet-card').eq(1).within(() => {
-      cy.getByTestId('react-view-ships-button').click()
+    cy.getByTestId(rs.fleetCard).eq(1).within(() => {
+      cy.getByTestId(rs.viewShipsButton).click()
     })
     cy.wait('@reactEmptyShips')
-    cy.getByTestId('react-selected-ships-panel').should('contain.text', 'No ships are currently listed')
+    cy.getByTestId(rs.selectedShipsPanel).should('contain.text', 'No ships are currently listed')
   })
 
   it('surfaces ship API failures without clearing the selected fleet title', () => {
@@ -31,11 +32,11 @@ describe('React ship lookup and CRUD coverage', () => {
       statusCode: 500,
       body: { message: 'React ships unavailable' }
     }).as('reactShipsFailure')
-    cy.getByTestId('react-fleet-card').first().within(() => {
-      cy.getByTestId('react-view-ships-button').click()
+    cy.getByTestId(rs.fleetCard).first().within(() => {
+      cy.getByTestId(rs.viewShipsButton).click()
     })
     cy.wait('@reactShipsFailure')
-    cy.getByTestId('react-selected-ships-panel').should('contain.text', 'Royal Caribbean International ships')
+    cy.getByTestId(rs.selectedShipsPanel).should('contain.text', 'Royal Caribbean International ships')
     cy.contains('React ships unavailable').should('be.visible')
   })
 
@@ -51,22 +52,22 @@ describe('React ship lookup and CRUD coverage', () => {
     }).as('createReactShip')
     cy.intercept('GET', `/cruise/ships/${reactCruiseLines[0].id}`, [...reactShips, { id: 'ship-react-wonder', name: 'React Wonder', currentPort: 'Tampa, Florida' }]).as('reloadReactShips')
 
-    cy.getByTestId('react-create-ship-name-input').type('React Wonder')
-    cy.getByTestId('react-create-ship-current-port-input').type('Tampa, Florida')
-    cy.getByTestId('react-create-ship-submit-button').click()
+    cy.getByTestId(rs.createShipNameInput).type('React Wonder')
+    cy.getByTestId(rs.createShipCurrentPortInput).type('Tampa, Florida')
+    cy.getByTestId(rs.createShipSubmitButton).click()
     cy.wait('@createReactShip')
     cy.wait('@reloadReactShips')
-    cy.getByTestId('react-ship-action-message').should('contain.text', 'React Wonder')
+    cy.getByTestId(rs.shipActionMessage).should('contain.text', 'React Wonder')
   })
 
   it('updates and cancels ship edits through controlled React forms', () => {
     openFirstReactFleetShips()
-    cy.getByTestId('react-ship-card').first().within(() => {
-      cy.getByTestId('react-update-ship-button').click()
-      cy.getByTestId('react-ship-edit-form').should('be.visible')
-      cy.getByTestId('react-edit-ship-current-port').clear().type('Updated Port')
-      cy.getByTestId('react-cancel-ship-edit').click()
-      cy.getByTestId('react-ship-edit-form').should('not.exist')
+    cy.getByTestId(rs.shipCard).first().within(() => {
+      cy.getByTestId(rs.updateShipButton).click()
+      cy.getByTestId(rs.shipEditForm).should('be.visible')
+      cy.getByTestId(rs.editShipCurrentPort).clear().type('Updated Port')
+      cy.getByTestId(rs.cancelShipEdit).click()
+      cy.getByTestId(rs.shipEditForm).should('not.exist')
     })
 
     cy.intercept('PATCH', `/cruise/ship/${reactShips[0].id}`, req => {
@@ -75,23 +76,23 @@ describe('React ship lookup and CRUD coverage', () => {
     }).as('updateReactShip')
     cy.intercept('GET', `/cruise/ships/${reactCruiseLines[0].id}`, [{ ...reactShips[0], name: 'React Icon Plus', currentPort: 'Updated Port' }, reactShips[1]]).as('reloadUpdatedReactShips')
 
-    cy.getByTestId('react-ship-card').first().within(() => {
-      cy.getByTestId('react-update-ship-button').click()
-      cy.getByTestId('react-edit-ship-name').clear().type('React Icon Plus')
-      cy.getByTestId('react-edit-ship-current-port').clear().type('Updated Port')
-      cy.getByTestId('react-save-ship-edit').click()
+    cy.getByTestId(rs.shipCard).first().within(() => {
+      cy.getByTestId(rs.updateShipButton).click()
+      cy.getByTestId(rs.editShipName).clear().type('React Icon Plus')
+      cy.getByTestId(rs.editShipCurrentPort).clear().type('Updated Port')
+      cy.getByTestId(rs.saveShipEdit).click()
     })
     cy.wait('@updateReactShip')
     cy.wait('@reloadUpdatedReactShips')
-    cy.getByTestId('react-ship-action-message').should('contain.text', 'React Icon Plus')
+    cy.getByTestId(rs.shipActionMessage).should('contain.text', 'React Icon Plus')
   })
 
 
   it('blocks blank ship creation before sending a network request', () => {
     openFirstReactFleetShips()
     cy.intercept('POST', '/cruise/ship').as('shipCreateShouldNotRun')
-    cy.getByTestId('react-create-ship-submit-button').click()
-    cy.getByTestId('react-ship-action-message').should('contain.text', 'Ship name is required')
+    cy.getByTestId(rs.createShipSubmitButton).click()
+    cy.getByTestId(rs.shipActionMessage).should('contain.text', 'Ship name is required')
     cy.get('@shipCreateShouldNotRun.all').should('have.length', 0)
   })
 
@@ -112,24 +113,24 @@ describe('React ship lookup and CRUD coverage', () => {
       currentPort: 'Seattle, Washington'
     }]).as('reloadTrimmedShips')
 
-    cy.getByTestId('react-create-ship-name-input').type('  Trimmed Ship  ')
-    cy.getByTestId('react-create-ship-current-port-input').type('  Seattle, Washington  ')
-    cy.getByTestId('react-create-ship-submit-button').click()
+    cy.getByTestId(rs.createShipNameInput).type('  Trimmed Ship  ')
+    cy.getByTestId(rs.createShipCurrentPortInput).type('  Seattle, Washington  ')
+    cy.getByTestId(rs.createShipSubmitButton).click()
     cy.wait('@createTrimmedShip')
     cy.wait('@reloadTrimmedShips')
-    cy.getByTestId('react-ship-action-message').should('contain.text', 'Trimmed Ship was added')
+    cy.getByTestId(rs.shipActionMessage).should('contain.text', 'Trimmed Ship was added')
   })
 
   it('cancels ship deletion without calling the API', () => {
     openFirstReactFleetShips()
     cy.intercept('DELETE', `/cruise/ship/${reactShips[0].id}`).as('shipDeleteShouldNotRun')
-    cy.getByTestId('react-ship-card').first().within(() => {
-      cy.getByTestId('react-delete-ship-button').click()
+    cy.getByTestId(rs.shipCard).first().within(() => {
+      cy.getByTestId(rs.deleteShipButton).click()
     })
-    cy.getByTestId('react-fleet-delete-confirmation').should('contain.text', reactShips[0].name)
-    cy.getByTestId('react-fleet-delete-confirmation-cancel').click()
+    cy.getByTestId(rs.fleetDeleteConfirmation).should('contain.text', reactShips[0].name)
+    cy.getByTestId(rs.fleetDeleteConfirmationCancel).click()
     cy.get('@shipDeleteShouldNotRun.all').should('have.length', 0)
-    cy.getByTestId('react-ship-card').first().should('contain.text', reactShips[0].name)
+    cy.getByTestId(rs.shipCard).first().should('contain.text', reactShips[0].name)
   })
 
   it('confirms ship deletion and refreshes the selected fleet panel', () => {
@@ -140,13 +141,13 @@ describe('React ship lookup and CRUD coverage', () => {
     }).as('deleteReactShip')
     cy.intercept('GET', `/cruise/ships/${reactCruiseLines[0].id}`, [reactShips[1]]).as('reloadShipsAfterDelete')
 
-    cy.getByTestId('react-ship-card').first().within(() => {
-      cy.getByTestId('react-delete-ship-button').click()
+    cy.getByTestId(rs.shipCard).first().within(() => {
+      cy.getByTestId(rs.deleteShipButton).click()
     })
-    cy.getByTestId('react-fleet-delete-confirmation-confirm').click()
+    cy.getByTestId(rs.fleetDeleteConfirmationConfirm).click()
     cy.wait('@deleteReactShip')
     cy.wait('@reloadShipsAfterDelete')
-    cy.getByTestId('react-ship-action-message').should('contain.text', `${reactShips[0].name} was deleted`)
-    cy.getByTestId('react-ship-card').should('have.length', 1).and('contain.text', reactShips[1].name)
+    cy.getByTestId(rs.shipActionMessage).should('contain.text', `${reactShips[0].name} was deleted`)
+    cy.getByTestId(rs.shipCard).should('have.length', 1).and('contain.text', reactShips[1].name)
   })
 })

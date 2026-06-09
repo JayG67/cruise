@@ -7,7 +7,7 @@ export default function useDemoUsers({ enabled = true } = {}) {
   const abortRef = useRef(null)
   const [demoUsers, setDemoUsers] = useState([])
   const [selectedDemoUserId, setSelectedDemoUserId] = useState('')
-  const [selectedRole, setSelectedRole] = useState('')
+  const [selectedRole, setSelectedRole] = useState('admin')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -20,8 +20,11 @@ export default function useDemoUsers({ enabled = true } = {}) {
     try {
       const users = await getDemoUsers({ signal: controller.signal })
       setDemoUsers(users)
-      setSelectedDemoUserId(currentId => currentId || users[0]?.id || '')
-      setSelectedRole(currentRole => currentRole)
+      setSelectedRole(currentRole => currentRole || 'admin')
+      setSelectedDemoUserId(currentId => {
+        if (currentId) return currentId
+        return users.find(user => normalizeRole(user.role || user.userType) === 'admin')?.id || users[0]?.id || ''
+      })
       setError('')
     } catch (loadError) {
       if (loadError.name !== 'AbortError') {

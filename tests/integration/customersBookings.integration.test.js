@@ -220,8 +220,8 @@ describe('Customer and booking API integration tests', () => {
     expect(res.body).toEqual({ message: 'Booking not found' })
   })
 
-  it('GET /cruise/customers/:customerId/bookings should support customers with multiple bookings', async () => {
-    const res = await request(app).get('/cruise/customers/C000000001/bookings')
+  it('GET /cruise/customers/:customerId/bookings should support rare repeat customers with multiple bookings', async () => {
+    const res = await request(app).get('/cruise/customers/C000005349/bookings')
 
     expect(res.statusCode).toBe(200)
     expect(res.body.length).toBeGreaterThanOrEqual(2)
@@ -230,7 +230,7 @@ describe('Customer and booking API integration tests', () => {
       expect(booking.passengers).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            customerId: 'C000000001'
+            customerId: 'C000005349'
           })
         ])
       )

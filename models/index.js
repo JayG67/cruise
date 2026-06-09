@@ -7,11 +7,18 @@ const customerTable = require('./customer.model')
 const bookingTable = require('./booking.model')
 const bookingPassengerTable = require('./bookingPassenger.model')
 const demoUserTable = require('./demoUser.model')
+const appUserTable = require('./appUser.model')
+const appRoleTable = require('./appRole.model')
+const appUserRoleTable = require('./appUserRole.model')
 const customerItineraryFavoriteTable = require('./customerItineraryFavorite.model')
 const turnaroundOperationTable = require('./turnaroundOperation.model')
 const turnaroundTaskTable = require('./turnaroundTask.model')
 const turnaroundTaskUpdateTable = require('./turnaroundTaskUpdate.model')
 const turnaroundSignoffTable = require('./turnaroundSignoff.model')
+const turnaroundEscalationTable = require('./turnaroundEscalation.model')
+const turnaroundStaffingTable = require('./turnaroundStaffing.model')
+const turnaroundTaskDependencyTable = require('./turnaroundTaskDependency.model')
+const turnaroundHandoffTable = require('./turnaroundHandoff.model')
 
 module.exports = {
   cruiseLineTable,
@@ -23,9 +30,16 @@ module.exports = {
   bookingTable,
   bookingPassengerTable,
   demoUserTable,
+  appUserTable,
+  appRoleTable,
+  appUserRoleTable,
   customerItineraryFavoriteTable,
   turnaroundOperationTable,
   turnaroundTaskTable,
   turnaroundTaskUpdateTable,
-  turnaroundSignoffTable
+  turnaroundSignoffTable,
+  turnaroundEscalationTable,
+  turnaroundStaffingTable,
+  turnaroundTaskDependencyTable,
+  turnaroundHandoffTable
 }

@@ -1,3 +1,4 @@
+const { reactSelectorKeys: rs } = require('./support/reactSelectors')
 const { reactBookings, reactCustomers, visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
 describe('React admin hierarchy coverage expansion', () => {
@@ -6,61 +7,61 @@ describe('React admin hierarchy coverage expansion', () => {
   })
 
   function openWorkflowTable() {
-    cy.getByTestId('react-toggle-customer-workflows').click()
-    cy.getByTestId('react-customer-workflow-table').should('be.visible')
+    cy.getByTestId(rs.toggleCustomerWorkflows).click()
+    cy.getByTestId(rs.customerWorkflowTable).should('be.visible')
   }
 
   it('keeps customer workflows hidden until explicitly opened', () => {
-    cy.getByTestId('react-admin-hierarchy').should('be.visible')
-    cy.getByTestId('react-hierarchy-summary').should('contain.text', 'Open customer workflows')
-    cy.getByTestId('react-customer-workflow-table').should('not.exist')
+    cy.getByTestId(rs.adminHierarchy).should('be.visible')
+    cy.getByTestId(rs.hierarchySummary).should('contain.text', 'Open customer workflows')
+    cy.getByTestId(rs.customerWorkflowTable).should('not.exist')
   })
 
   it('opens and hides the customer workflow table with summary updates', () => {
     openWorkflowTable()
-    cy.getByTestId('react-hierarchy-summary').should('contain.text', 'Customer records are visible')
-    cy.getByTestId('react-toggle-customer-workflows').click()
-    cy.getByTestId('react-customer-workflow-table').should('not.exist')
+    cy.getByTestId(rs.hierarchySummary).should('contain.text', 'Customer records are visible')
+    cy.getByTestId(rs.toggleCustomerWorkflows).click()
+    cy.getByTestId(rs.customerWorkflowTable).should('not.exist')
   })
 
   it('filters customer workflows by name, email, loyalty, and booking metadata', () => {
     openWorkflowTable()
-    cy.getByTestId('react-hierarchy-search-input').type('alisa')
-    cy.getByTestId('react-customer-workflow-table').should('contain.text', 'Alisa')
-    cy.getByTestId('react-customer-workflow-table').should('not.contain.text', 'Morgan')
-    cy.getByTestId('react-hierarchy-search-input').clear().type('jay.react@example.com')
-    cy.getByTestId('react-customer-workflow-table').should('contain.text', 'jay.react@example.com')
-    cy.getByTestId('react-hierarchy-search-input').clear().type('RG-100')
-    cy.getByTestId('react-customer-workflow-table').should('contain.text', 'RG-100')
-    cy.getByTestId('react-hierarchy-search-input').clear().type('G202')
-    cy.getByTestId('react-expand-visible-customers').click()
-    cy.getByTestId('react-customer-bookings-row').should('contain.text', 'G202')
+    cy.getByTestId(rs.hierarchySearchInput).type('alisa')
+    cy.getByTestId(rs.customerWorkflowTable).should('contain.text', 'Alisa')
+    cy.getByTestId(rs.customerWorkflowTable).should('not.contain.text', 'Morgan')
+    cy.getByTestId(rs.hierarchySearchInput).clear().type('jay.react@example.com')
+    cy.getByTestId(rs.customerWorkflowTable).should('contain.text', 'jay.react@example.com')
+    cy.getByTestId(rs.hierarchySearchInput).clear().type('RG-100')
+    cy.getByTestId(rs.customerWorkflowTable).should('contain.text', 'RG-100')
+    cy.getByTestId(rs.hierarchySearchInput).clear().type('G202')
+    cy.getByTestId(rs.expandVisibleCustomers).click()
+    cy.getByTestId(rs.customerBookingsRow).should('contain.text', 'G202')
   })
 
   it('shows an empty workflow state for unmatched admin searches', () => {
     openWorkflowTable()
-    cy.getByTestId('react-hierarchy-search-input').type('zzzz-no-match')
-    cy.getByTestId('react-customer-workflow-table').should('contain.text', 'No customer or linked booking records match')
+    cy.getByTestId(rs.hierarchySearchInput).type('zzzz-no-match')
+    cy.getByTestId(rs.customerWorkflowTable).should('contain.text', 'No customer or linked booking records match')
   })
 
   it('expands and collapses all visible customer rows', () => {
     openWorkflowTable()
-    cy.getByTestId('react-expand-visible-customers').click()
-    cy.getByTestId('react-customer-bookings-row').should('have.length.at.least', 1)
-    cy.getByTestId('react-collapse-visible-customers').click()
-    cy.getByTestId('react-customer-bookings-row').should('not.exist')
+    cy.getByTestId(rs.expandVisibleCustomers).click()
+    cy.getByTestId(rs.customerBookingsRow).should('have.length.at.least', 1)
+    cy.getByTestId(rs.collapseVisibleCustomers).click()
+    cy.getByTestId(rs.customerBookingsRow).should('not.exist')
   })
 
   it('opens a customer edit draft, validates, and cancels without saving', () => {
     openWorkflowTable()
-    cy.getByTestId('react-customer-row').first().within(() => {
-      cy.getByTestId('react-edit-customer-button').click()
+    cy.getByTestId(rs.customerRow).first().within(() => {
+      cy.getByTestId(rs.editCustomerButton).click()
     })
-    cy.getByTestId('react-customer-draft-form').should('be.visible')
-    cy.getByTestId('react-validate-customer-draft').click()
-    cy.getByTestId('react-customer-draft-form').should('contain.text', 'Draft is valid')
-    cy.getByTestId('react-cancel-customer-draft').click()
-    cy.getByTestId('react-customer-draft-form').should('not.exist')
+    cy.getByTestId(rs.customerDraftForm).should('be.visible')
+    cy.getByTestId(rs.validateCustomerDraft).click()
+    cy.getByTestId(rs.customerDraftForm).should('contain.text', 'Draft is valid')
+    cy.getByTestId(rs.cancelCustomerDraft).click()
+    cy.getByTestId(rs.customerDraftForm).should('not.exist')
   })
 
   it('saves a customer edit through the React admin table', () => {
@@ -75,12 +76,12 @@ describe('React admin hierarchy coverage expansion', () => {
     ))).as('reloadCustomersAfterDraft')
 
     openWorkflowTable()
-    cy.getByTestId('react-customer-row').first().within(() => {
-      cy.getByTestId('react-edit-customer-button').click()
+    cy.getByTestId(rs.customerRow).first().within(() => {
+      cy.getByTestId(rs.editCustomerButton).click()
     })
-    cy.getByTestId('react-customer-draft-form').within(() => {
+    cy.getByTestId(rs.customerDraftForm).within(() => {
       cy.get('input').eq(3).clear().type('555-9191')
-      cy.getByTestId('react-save-customer-draft').click()
+      cy.getByTestId(rs.saveCustomerDraft).click()
     })
     cy.wait('@saveReactCustomerDraft')
     cy.wait('@reloadCustomersAfterDraft')
@@ -88,15 +89,15 @@ describe('React admin hierarchy coverage expansion', () => {
 
   it('expands a booking row, shows details, and cancels booking edit', () => {
     openWorkflowTable()
-    cy.getByTestId('react-toggle-customer-bookings').first().click()
-    cy.getByTestId('react-booking-card').first().within(() => {
-      cy.getByTestId('react-toggle-booking-details').click()
-      cy.getByTestId('react-booking-details').should('contain.text', 'Fare code')
-      cy.getByTestId('react-edit-booking-button').click()
+    cy.getByTestId(rs.toggleCustomerBookings).first().click()
+    cy.getByTestId(rs.bookingCard).first().within(() => {
+      cy.getByTestId(rs.toggleBookingDetails).click()
+      cy.getByTestId(rs.bookingDetails).should('contain.text', 'Fare code')
+      cy.getByTestId(rs.editBookingButton).click()
     })
-    cy.getByTestId('react-booking-draft-form').should('be.visible')
-    cy.getByTestId('react-cancel-booking-draft').click()
-    cy.getByTestId('react-booking-draft-form').should('not.exist')
+    cy.getByTestId(rs.bookingDraftForm).should('be.visible')
+    cy.getByTestId(rs.cancelBookingDraft).click()
+    cy.getByTestId(rs.bookingDraftForm).should('not.exist')
   })
 
   it('saves a booking edit through the child booking context', () => {
@@ -107,13 +108,13 @@ describe('React admin hierarchy coverage expansion', () => {
     cy.intercept('GET', '/cruise/bookings', [{ ...reactBookings[0], cabinNumber: 'P202' }, reactBookings[1]]).as('reloadBookingsAfterDraft')
 
     openWorkflowTable()
-    cy.getByTestId('react-toggle-customer-bookings').first().click()
-    cy.getByTestId('react-booking-card').first().within(() => {
-      cy.getByTestId('react-edit-booking-button').click()
+    cy.getByTestId(rs.toggleCustomerBookings).first().click()
+    cy.getByTestId(rs.bookingCard).first().within(() => {
+      cy.getByTestId(rs.editBookingButton).click()
     })
-    cy.getByTestId('react-booking-draft-form').within(() => {
+    cy.getByTestId(rs.bookingDraftForm).within(() => {
       cy.get('input').eq(1).clear().type('P202')
-      cy.getByTestId('react-save-booking-draft').click()
+      cy.getByTestId(rs.saveBookingDraft).click()
     })
     cy.wait('@saveReactBookingDraft')
     cy.wait('@reloadBookingsAfterDraft')
@@ -121,13 +122,13 @@ describe('React admin hierarchy coverage expansion', () => {
 
   it('shows native React confirmation when deleting from a customer row and supports cancel', () => {
     openWorkflowTable()
-    cy.getByTestId('react-customer-row').first().within(() => {
-      cy.getByTestId('react-delete-customer-row-button').click()
+    cy.getByTestId(rs.customerRow).first().within(() => {
+      cy.getByTestId(rs.deleteCustomerRowButton).click()
     })
-    cy.getByTestId('react-admin-delete-confirmation-overlay').should('be.visible')
-    cy.getByTestId('react-admin-delete-confirmation').should('be.visible')
-    cy.getByTestId('react-admin-delete-confirmation-cancel').click()
-    cy.getByTestId('react-admin-delete-confirmation').should('not.exist')
+    cy.getByTestId(rs.adminDeleteConfirmationOverlay).should('be.visible')
+    cy.getByTestId(rs.adminDeleteConfirmation).should('be.visible')
+    cy.getByTestId(rs.adminDeleteConfirmationCancel).click()
+    cy.getByTestId(rs.adminDeleteConfirmation).should('not.exist')
   })
 
   it('creates customer and booking records through admin mutation forms', () => {
@@ -142,17 +143,17 @@ describe('React admin hierarchy coverage expansion', () => {
     cy.intercept('GET', '/cruise/customers', reactCustomers).as('reloadCustomersAfterAdminCreate')
     cy.intercept('GET', '/cruise/bookings', reactBookings).as('reloadBookingsAfterAdminCreate')
 
-    cy.getByTestId('react-admin-create-customer-first-name').type('React')
-    cy.getByTestId('react-admin-create-customer-last-name').type('Tester')
-    cy.getByTestId('react-admin-create-customer-email').type('react.tester@example.com')
-    cy.getByTestId('react-admin-create-customer-submit').click()
+    cy.getByTestId(rs.adminCreateCustomerFirstName).type('React')
+    cy.getByTestId(rs.adminCreateCustomerLastName).type('Tester')
+    cy.getByTestId(rs.adminCreateCustomerEmail).type('react.tester@example.com')
+    cy.getByTestId(rs.adminCreateCustomerSubmit).click()
     cy.wait('@createReactAdminCustomer')
 
-    cy.getByTestId('react-admin-create-booking-customer-id').type('react-customer-new')
-    cy.getByTestId('react-admin-create-booking-status').type('CONFIRMED')
-    cy.getByTestId('react-admin-create-booking-cabin').type('N101')
-    cy.getByTestId('react-admin-create-booking-fare').type('TEST')
-    cy.getByTestId('react-admin-create-booking-submit').click()
+    cy.getByTestId(rs.adminCreateBookingCustomerId).type('react-customer-new')
+    cy.getByTestId(rs.adminCreateBookingStatus).type('CONFIRMED')
+    cy.getByTestId(rs.adminCreateBookingCabin).type('N101')
+    cy.getByTestId(rs.adminCreateBookingFare).type('TEST')
+    cy.getByTestId(rs.adminCreateBookingSubmit).click()
     cy.wait('@createReactAdminBooking')
   })
 })

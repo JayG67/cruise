@@ -1,5 +1,17 @@
 const cruiseSeedData = require('../../../data/cruise.json')
 
+
+function getPortfolioPairingBookings(bookings) {
+  return bookings.filter(booking =>
+    booking.passengers?.some(passenger => passenger.customerId === 'C000000001') ||
+    booking.passengers?.some(passenger => passenger.customerId === 'C000000002')
+  )
+}
+
+function getRealisticDemoManifestBookings(bookings) {
+  return bookings.filter(booking => !getPortfolioPairingBookings([booking]).length)
+}
+
 function getCruiseLines() {
   return cruiseSeedData.cruiseLines || []
 }
@@ -293,6 +305,14 @@ describe('customer and booking seed data integrity', () => {
     )
   }
 
+  function getPassengerTotalsBySailing(bookings = getBookings()) {
+    return bookings.reduce((totals, booking) => {
+      const key = `${booking.shipName}|${booking.departureDate}`
+      totals[key] = (totals[key] || 0) + booking.passengers.length
+      return totals
+    }, {})
+  }
+
   it('contains customer IDs using the C-prefixed ten-character portfolio format', () => {
     const customers = getCustomers()
 
@@ -319,40 +339,67 @@ describe('customer and booking seed data integrity', () => {
   })
 
 
-  it('contains a broad booking mix across solo, couple, family, group, and waitlisted scenarios', () => {
+  it('contains a broad booking mix with realistic party sizes and waitlisted scenarios', () => {
     const bookings = getBookings()
-    const passengerCounts = bookings.map(booking => booking.passengers.length)
+    const passengerCounts = getRealisticDemoManifestBookings(bookings).map(booking => booking.passengers.length)
+    const portfolioPairingCounts = getPortfolioPairingBookings(bookings).map(booking => booking.passengers.length)
     const statuses = new Set(bookings.map(booking => booking.bookingStatus))
     const fareCodes = new Set(bookings.map(booking => booking.fareCode))
 
-    expect(passengerCounts).toContain(1)
-    expect(passengerCounts.some(count => count === 2)).toBe(true)
-    expect(passengerCounts.some(count => count >= 3)).toBe(true)
+    const singles = passengerCounts.filter(count => count === 1).length
+    const couples = passengerCounts.filter(count => count === 2).length
+    const fourPersonFamilies = passengerCounts.filter(count => count === 4).length
+    const largerGroups = passengerCounts.filter(count => count > 4).length
+
+    expect(portfolioPairingCounts).toEqual([2])
+    expect(singles).toBeGreaterThanOrEqual(500)
+    expect(couples).toBeGreaterThan(singles)
+    expect(fourPersonFamilies).toBeGreaterThanOrEqual(150)
+    expect(largerGroups).toBeGreaterThan(20)
+    expect(largerGroups).toBeLessThan(fourPersonFamilies)
+    expect(passengerCounts.every(count => count >= 1 && count <= 5)).toBe(true)
     expect([...statuses]).toEqual(expect.arrayContaining(['CONFIRMED', 'DEPOSIT_PAID', 'WAITLISTED']))
     expect(fareCodes.size).toBeGreaterThanOrEqual(8)
   })
 
 
-  it('allows customers to appear across multiple bookings and cruise lines', () => {
+  it('keeps selected regular passengers across multiple bookings without moving Jay and Alisa off Royal Caribbean', () => {
     const bookings = getBookings()
     const jayBookings = bookings.filter(booking =>
       booking.passengers.some(passenger => passenger.customerId === 'C000000001')
+    )
+    const alisaBookings = bookings.filter(booking =>
+      booking.passengers.some(passenger => passenger.customerId === 'C000000002')
     )
     const graceBookings = bookings.filter(booking =>
       booking.passengers.some(passenger => passenger.customerId === 'C000000010')
     )
 
-    expect(jayBookings.length).toBeGreaterThanOrEqual(2)
-    expect(new Set(jayBookings.map(booking => booking.shipName)).size).toBeGreaterThanOrEqual(2)
+    expect(jayBookings).toHaveLength(1)
+    expect(alisaBookings).toHaveLength(1)
+    expect(jayBookings[0].shipName).toBe('Adventure of the Seas')
+    expect(alisaBookings[0].shipName).toBe('Adventure of the Seas')
     expect(graceBookings.length).toBeGreaterThanOrEqual(2)
   })
 
-  it('contains a realistic variety of solo, couple, and family/group bookings', () => {
-    const passengerCounts = getBookings().map(booking => booking.passengers.length)
+  it('contains a realistic variety of cruise booking party sizes', () => {
+    const bookings = getBookings()
+    const passengerCounts = getRealisticDemoManifestBookings(bookings).map(booking => booking.passengers.length)
+    const portfolioPairingCounts = getPortfolioPairingBookings(bookings).map(booking => booking.passengers.length)
 
-    expect(passengerCounts).toContain(1)
-    expect(passengerCounts).toContain(2)
-    expect(passengerCounts.some(count => count >= 3)).toBe(true)
+    expect(passengerCounts).toEqual(expect.arrayContaining([1, 2, 3, 4, 5]))
+    expect(passengerCounts.every(count => count >= 1 && count <= 5)).toBe(true)
+    expect(portfolioPairingCounts).toEqual([2])
+  })
+
+  it('expands bookings so every sailing has a realistic demo manifest total', () => {
+    const sailingSeedKeys = getSailingSeedKeys()
+    const passengerTotals = getPassengerTotalsBySailing()
+    const totals = Object.values(passengerTotals)
+
+    expect(Object.keys(passengerTotals).length).toBe(sailingSeedKeys.size)
+    expect(totals.every(count => count >= 5 && count <= 10)).toBe(true)
+    expect(new Set(totals)).toEqual(new Set([5, 6, 7, 8, 9, 10]))
   })
 
   it('resolves every seeded booking to a seeded ship sailing', () => {
@@ -360,6 +407,16 @@ describe('customer and booking seed data integrity', () => {
 
     getBookings().forEach(booking => {
       expect(sailingSeedKeys.has(`${booking.shipName}|${booking.departureDate}`)).toBe(true)
+    })
+  })
+
+  it('keeps demo sailing dates pushed beyond the immediate July portfolio window', () => {
+    getBookings().forEach(booking => {
+      expect(booking.departureDate >= '2026-08-01').toBe(true)
+    })
+
+    getSailings().forEach(({ sailing }) => {
+      expect(sailing.departureDate >= '2026-08-01').toBe(true)
     })
   })
 
@@ -478,12 +535,18 @@ describe('customer and booking seed data role-selection readiness', () => {
     })
   })
 
-  it('includes bookings with solo, couple, and larger group passenger counts', () => {
-    const passengerCounts = getBookings().map(booking => booking.passengers.length)
+  it('balances booking party sizes like a realistic cruise manifest', () => {
+    const passengerCounts = getRealisticDemoManifestBookings(getBookings()).map(booking => booking.passengers.length)
+    const singles = passengerCounts.filter(count => count === 1).length
+    const couples = passengerCounts.filter(count => count === 2).length
+    const fourPersonGroups = passengerCounts.filter(count => count === 4).length
+    const largerGroups = passengerCounts.filter(count => count > 4).length
 
-    expect(passengerCounts).toContain(1)
-    expect(passengerCounts).toContain(2)
-    expect(passengerCounts.some(count => count >= 3)).toBe(true)
+    expect(passengerCounts.every(count => count >= 1 && count <= 5)).toBe(true)
+    expect(couples).toBeGreaterThan(singles)
+    expect(fourPersonGroups).toBeGreaterThan(largerGroups)
+    expect(largerGroups).toBeGreaterThanOrEqual(20)
+    expect(largerGroups).toBeLessThan(fourPersonGroups)
   })
 })
 
@@ -534,23 +597,22 @@ describe('demo user seed data integrity', () => {
     expect(displayNames).toContain('Grace Thompson')
   })
 
-  it('keeps Jay Gallagher bookings paired only with Alisa Gallagher', () => {
+  it('keeps Jay and Alisa Gallagher scoped to the Royal Caribbean passenger scenario', () => {
     const jayId = 'C000000001'
     const alisaId = 'C000000002'
 
     const jayBookings = cruiseSeedData.bookings.filter(booking =>
       booking.passengers.some(passenger => passenger.customerId === jayId)
     )
+    const alisaBookings = cruiseSeedData.bookings.filter(booking =>
+      booking.passengers.some(passenger => passenger.customerId === alisaId)
+    )
 
-    expect(jayBookings.length).toBeGreaterThan(0)
-
-    jayBookings.forEach(booking => {
-      const passengerIds = booking.passengers.map(passenger => passenger.customerId)
-
-      expect(passengerIds).toContain(jayId)
-      expect(passengerIds).toContain(alisaId)
-      expect(passengerIds).toHaveLength(2)
-    })
+    expect(jayBookings).toHaveLength(1)
+    expect(alisaBookings).toHaveLength(1)
+    expect(jayBookings[0].id).toBe(alisaBookings[0].id)
+    expect(jayBookings[0].shipName).toBe('Adventure of the Seas')
+    expect(jayBookings[0].departureDate).toBe('2026-08-05')
   })
 
   it('does not store authentication secrets in demo role seed data', () => {
@@ -568,6 +630,8 @@ describe('turnaround operation seed data integrity', () => {
     const operations = cruiseSeedData.turnaroundOperations || []
     const taskRoles = new Set(operations.flatMap(operation => (operation.tasks || []).map(task => task.departmentRole)))
     const signoffRoles = new Set(operations.flatMap(operation => (operation.signoffs || []).map(signoff => signoff.departmentRole)))
+    const escalationRoles = new Set(operations.flatMap(operation => (operation.escalations || []).map(escalation => escalation.departmentRole)))
+    const staffingRoles = new Set(operations.flatMap(operation => (operation.staffing || []).map(staffing => staffing.departmentRole)))
 
     expect(operations.length).toBeGreaterThanOrEqual(2)
     operations.forEach(operation => {
@@ -579,6 +643,23 @@ describe('turnaround operation seed data integrity', () => {
       expect(operation.readinessLevel).toEqual(expect.any(String))
       expect(operation.tasks.length).toBeGreaterThan(0)
       expect(operation.signoffs.length).toBeGreaterThan(0)
+      expect(operation.escalations.length).toBeGreaterThan(0)
+      expect(operation.staffing.length).toBeGreaterThan(0)
+      operation.staffing.forEach(staffing => {
+        expect(staffing.departmentRole).toEqual(expect.any(String))
+        expect(staffing.plannedCount).toEqual(expect.any(Number))
+        expect(staffing.checkedInCount).toEqual(expect.any(Number))
+        expect(staffing.plannedCount).toBeGreaterThanOrEqual(staffing.checkedInCount)
+        expect(staffing.leadName).toEqual(expect.any(String))
+        expect(staffing.musterLocation).toEqual(expect.any(String))
+      })
+      operation.escalations.forEach(escalation => {
+        expect(escalation.departmentRole).toEqual(expect.any(String))
+        expect(['WATCH', 'HIGH', 'CRITICAL']).toContain(escalation.severity)
+        expect(['OPEN', 'MONITORING', 'RESOLVED']).toContain(escalation.status)
+        expect(escalation.title).toEqual(expect.any(String))
+        expect(escalation.createdAt).toEqual(expect.any(String))
+      })
       operation.signoffs.forEach(signoff => {
         expect(signoff.departmentRole).toEqual(expect.any(String))
         expect(['PENDING', 'APPROVED', 'BLOCKED']).toContain(signoff.status)
@@ -615,5 +696,61 @@ describe('turnaround operation seed data integrity', () => {
       'food-beverage-lead',
       'engineering-lead'
     ]))
+
+    expect([...escalationRoles]).toEqual(expect.arrayContaining([
+      'guest-services-lead',
+      'engineering-lead',
+      'housekeeping-lead'
+    ]))
+
+    expect([...staffingRoles]).toEqual(expect.arrayContaining([
+      'turnaround-manager',
+      'housekeeping-lead',
+      'guest-services-lead',
+      'food-beverage-lead',
+      'engineering-lead'
+    ]))
   })
+
+  it('provides ship-level operations coverage for every seeded cruise line and ship', () => {
+    const operations = cruiseSeedData.turnaroundOperations || []
+    const operationKeys = new Set(operations.map(operation => `${operation.shipName}|${operation.departureDate}`))
+    const firstSailingKeys = getShips().map(({ ship }) => `${ship.name}|${ship.sailings[0].departureDate}`)
+    const operationCruiseLines = new Set(operations.map(operation => {
+      const sailingRecord = getSailings().find(({ ship, sailing }) => ship.name === operation.shipName && sailing.departureDate === operation.departureDate)
+      return sailingRecord?.cruiseLine.name
+    }).filter(Boolean))
+
+    expect(operations.length).toBeGreaterThanOrEqual(getShips().length)
+    firstSailingKeys.forEach(key => expect(operationKeys.has(key)).toBe(true))
+    expect(operationCruiseLines.size).toBe(getCruiseLines().length)
+  })
+
+  it('provides ship-scoped operational personas for every operations role on every seeded ship', () => {
+    const demoUsers = cruiseSeedData.demoUsers || []
+    const roleNames = ['TURNAROUND_MANAGER', 'HOUSEKEEPING_LEAD', 'GUEST_SERVICES_LEAD', 'FOOD_BEVERAGE_LEAD', 'ENGINEERING_LEAD']
+
+    getShips().forEach(({ ship }) => {
+      roleNames.forEach(role => {
+        const matchingUser = demoUsers.find(user => user.role === role && user.displayName.includes(ship.name))
+        expect(matchingUser).toBeDefined()
+      })
+    })
+  })
+
+  it('uses varied operational scenarios so the portfolio demonstrates real turnaround job functions', () => {
+    const operations = cruiseSeedData.turnaroundOperations || []
+    const statuses = new Set(operations.map(operation => operation.status))
+    const readinessLevels = new Set(operations.map(operation => operation.readinessLevel))
+    const handoffStatuses = new Set(operations.flatMap(operation => (operation.handoffs || []).map(handoff => handoff.status)))
+    const dependencyStatuses = new Set(operations.flatMap(operation => (operation.taskDependencies || []).map(dependency => dependency.status)))
+    const escalationSeverities = new Set(operations.flatMap(operation => (operation.escalations || []).map(escalation => escalation.severity)))
+
+    expect(statuses.size).toBeGreaterThanOrEqual(4)
+    expect(readinessLevels.size).toBeGreaterThanOrEqual(5)
+    expect([...handoffStatuses]).toEqual(expect.arrayContaining(['PENDING', 'READY', 'COMPLETE', 'BLOCKED']))
+    expect([...dependencyStatuses]).toEqual(expect.arrayContaining(['ACTIVE', 'CLEARED']))
+    expect([...escalationSeverities]).toEqual(expect.arrayContaining(['WATCH', 'HIGH', 'CRITICAL']))
+  })
+
 })

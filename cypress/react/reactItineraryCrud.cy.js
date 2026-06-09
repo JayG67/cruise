@@ -1,3 +1,4 @@
+const { reactSelectorKeys: rs } = require('./support/reactSelectors')
 const { openFirstReactFleetShips, openFirstReactSailingItinerary, openFirstReactShipSailings, reactItinerary, reactSailings, reactShips, visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
 describe('React itinerary admin CRUD coverage expansion', () => {
@@ -9,17 +10,17 @@ describe('React itinerary admin CRUD coverage expansion', () => {
   })
 
   it('renders itinerary create forms and existing day cards', () => {
-    cy.getByTestId('react-create-itinerary-day-form').should('be.visible')
-    cy.getByTestId('react-create-itinerary-activity-form').should('be.visible')
-    cy.getByTestId('react-itinerary-count').should('contain.text', '2 days')
-    cy.getByTestId('react-itinerary-day-card').should('have.length', 2)
-    cy.getByTestId('react-itinerary-activity').should('have.length', 3)
+    cy.getByTestId(rs.createItineraryDayForm).should('be.visible')
+    cy.getByTestId(rs.createItineraryActivityForm).should('be.visible')
+    cy.getByTestId(rs.itineraryCount).should('contain.text', '2 days')
+    cy.getByTestId(rs.itineraryDayCard).should('have.length', 2)
+    cy.getByTestId(rs.itineraryActivity).should('have.length', 3)
   })
 
   it('blocks blank itinerary day creation before API submission', () => {
     cy.intercept('POST', `/cruise/sailings/${reactSailings[0].id}/itinerary`).as('blankDayShouldNotSave')
-    cy.getByTestId('react-create-itinerary-day-submit-button').click()
-    cy.getByTestId('react-itinerary-action-message').should('contain.text', 'Day number and title are required')
+    cy.getByTestId(rs.createItineraryDaySubmitButton).click()
+    cy.getByTestId(rs.itineraryActionMessage).should('contain.text', 'Day number and title are required')
     cy.get('@blankDayShouldNotSave.all').should('have.length', 0)
   })
 
@@ -30,22 +31,22 @@ describe('React itinerary admin CRUD coverage expansion', () => {
     }).as('saveItineraryDay')
     cy.intercept('GET', `/cruise/sailings/${reactSailings[0].id}/itinerary`, [{ ...reactItinerary[0], title: 'Updated Embarkation', port: 'Updated Miami' }, reactItinerary[1]]).as('reloadAfterDayUpdate')
 
-    cy.getByTestId('react-itinerary-day-card').first().within(() => {
-      cy.getByTestId('react-update-itinerary-day-button').click()
-      cy.getByTestId('react-edit-itinerary-day-title').clear().type('Updated Embarkation')
-      cy.getByTestId('react-edit-itinerary-day-port').clear().type('Updated Miami')
-      cy.getByTestId('react-save-itinerary-day-edit').click()
+    cy.getByTestId(rs.itineraryDayCard).first().within(() => {
+      cy.getByTestId(rs.updateItineraryDayButton).click()
+      cy.getByTestId(rs.editItineraryDayTitle).clear().type('Updated Embarkation')
+      cy.getByTestId(rs.editItineraryDayPort).clear().type('Updated Miami')
+      cy.getByTestId(rs.saveItineraryDayEdit).click()
     })
     cy.wait('@saveItineraryDay')
     cy.wait('@reloadAfterDayUpdate')
   })
 
   it('cancels itinerary day editing without saving', () => {
-    cy.getByTestId('react-itinerary-day-card').first().within(() => {
-      cy.getByTestId('react-update-itinerary-day-button').click()
-      cy.getByTestId('react-edit-itinerary-day-title').clear().type('Cancelled title')
-      cy.getByTestId('react-cancel-itinerary-day-edit').click()
-      cy.getByTestId('react-itinerary-day-edit-form').should('not.exist')
+    cy.getByTestId(rs.itineraryDayCard).first().within(() => {
+      cy.getByTestId(rs.updateItineraryDayButton).click()
+      cy.getByTestId(rs.editItineraryDayTitle).clear().type('Cancelled title')
+      cy.getByTestId(rs.cancelItineraryDayEdit).click()
+      cy.getByTestId(rs.itineraryDayEditForm).should('not.exist')
     })
   })
 
@@ -56,22 +57,22 @@ describe('React itinerary admin CRUD coverage expansion', () => {
     }).as('saveItineraryActivity')
     cy.intercept('GET', `/cruise/sailings/${reactSailings[0].id}/itinerary`, reactItinerary).as('reloadAfterActivityUpdate')
 
-    cy.getByTestId('react-itinerary-activity').first().within(() => {
-      cy.getByTestId('react-update-itinerary-activity-button').click()
-      cy.getByTestId('react-edit-itinerary-activity-time').clear().type('01:15 PM')
-      cy.getByTestId('react-edit-itinerary-activity-name').clear().type('Updated terminal arrival')
-      cy.getByTestId('react-save-itinerary-activity-edit').click()
+    cy.getByTestId(rs.itineraryActivity).first().within(() => {
+      cy.getByTestId(rs.updateItineraryActivityButton).click()
+      cy.getByTestId(rs.editItineraryActivityTime).clear().type('01:15 PM')
+      cy.getByTestId(rs.editItineraryActivityName).clear().type('Updated terminal arrival')
+      cy.getByTestId(rs.saveItineraryActivityEdit).click()
     })
     cy.wait('@saveItineraryActivity')
     cy.wait('@reloadAfterActivityUpdate')
   })
 
   it('cancels itinerary activity editing without saving', () => {
-    cy.getByTestId('react-itinerary-activity').first().within(() => {
-      cy.getByTestId('react-update-itinerary-activity-button').click()
-      cy.getByTestId('react-edit-itinerary-activity-name').clear().type('Cancelled activity')
-      cy.getByTestId('react-cancel-itinerary-activity-edit').click()
-      cy.getByTestId('react-itinerary-activity-edit-form').should('not.exist')
+    cy.getByTestId(rs.itineraryActivity).first().within(() => {
+      cy.getByTestId(rs.updateItineraryActivityButton).click()
+      cy.getByTestId(rs.editItineraryActivityName).clear().type('Cancelled activity')
+      cy.getByTestId(rs.cancelItineraryActivityEdit).click()
+      cy.getByTestId(rs.itineraryActivityEditForm).should('not.exist')
     })
   })
 
@@ -80,16 +81,16 @@ describe('React itinerary admin CRUD coverage expansion', () => {
     cy.intercept('DELETE', `/cruise/activities/${reactItinerary[0].activitySchedule[0].id}`, { statusCode: 200, body: { deleted: true } }).as('deleteItineraryActivity')
     cy.intercept('GET', `/cruise/sailings/${reactSailings[0].id}/itinerary`, reactItinerary).as('reloadAfterItineraryDelete')
 
-    cy.getByTestId('react-itinerary-day-card').eq(1).within(() => {
-      cy.getByTestId('react-delete-itinerary-day-button').click()
+    cy.getByTestId(rs.itineraryDayCard).eq(1).within(() => {
+      cy.getByTestId(rs.deleteItineraryDayButton).click()
     })
-    cy.getByTestId('react-fleet-delete-confirmation-confirm').click()
+    cy.getByTestId(rs.fleetDeleteConfirmationConfirm).click()
     cy.wait('@deleteItineraryDay')
 
-    cy.getByTestId('react-itinerary-activity').first().within(() => {
-      cy.getByTestId('react-delete-itinerary-activity-button').click()
+    cy.getByTestId(rs.itineraryActivity).first().within(() => {
+      cy.getByTestId(rs.deleteItineraryActivityButton).click()
     })
-    cy.getByTestId('react-fleet-delete-confirmation-confirm').click()
+    cy.getByTestId(rs.fleetDeleteConfirmationConfirm).click()
     cy.wait('@deleteItineraryActivity')
   })
 })

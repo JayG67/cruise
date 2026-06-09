@@ -23,6 +23,7 @@
 - **Coverage report:** https://jayg67.github.io/cruise/coverage/
 - **Mobile Lighthouse report:** https://jayg67.github.io/cruise/lighthouse/
 - **GitHub Actions:** https://github.com/JayG67/cruise/actions/workflows/ci.yml
+- **Go-live manual review guide:** [docs/go-live-manual-review.md](docs/go-live-manual-review.md)
 
 ---
 
@@ -52,6 +53,21 @@ The project currently includes:
 This repository is intentionally maintained as a recruiter-facing engineering and testing showcase.
 
 ---
+
+
+## 🚦 Current Production Readiness Status
+
+The current operations experience has completed the major turnaround management UX slices: selected-turnaround workflow, operations navigation, tasks, dependencies, handoffs, escalations, staffing, readiness approvals, role-specific command briefs, product-language hardening, and Playwright stability hardening.
+
+Before a public presentation or production-style deployment, use the in-app Quality Console and the go-live manual review guide to confirm:
+
+- Role-aware workflows behave correctly for admin, passenger, group leader, turnaround manager, and department lead roles.
+- Turnaround operations remain focused around one selected sailing and one selected work area.
+- Fleet, customer, booking, passenger, and quality workflows are reachable at desktop, tablet, and mobile sizes.
+- User-facing language presents a real cruise operations product, not the internal development process.
+- Automated and manual checks both support approval.
+
+Current engineering phase: Data Architecture Hardening with normalized users/roles and an Operational ownership attribution bridge is underway. Completed hardening now includes production query indexes, shared reference-data contracts, database `CHECK` constraints, typed date/time migration bridge columns, and normalized user/role bridge tables for production identity compatibility. The next data-hardening passes should deepen user/role normalization into owner and approver foreign keys, add audit history, introduce multi-cruise-line tenancy, and eventually move application writes fully onto typed temporal columns. See [docs/data-architecture-hardening.md](docs/data-architecture-hardening.md).
 
 ## ✨ Current Application Features
 

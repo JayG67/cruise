@@ -61,6 +61,23 @@ export async function getTurnaroundOperations(options = {}) {
   return Array.isArray(operations) ? operations : []
 }
 
+
+export async function updateTurnaroundOperationCommand(operationId, payload, options = {}) {
+  if (!operationId) {
+    throw new Error('Turnaround operation id is required.')
+  }
+
+  return requestJson(`/cruise/turnaround-operations/${encodeURIComponent(operationId)}`, {
+    ...options,
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
 export async function updateTurnaroundTaskStatus(taskId, status, options = {}) {
   if (!taskId) {
     throw new Error('Turnaround task id is required.')
@@ -100,6 +117,23 @@ export async function updateTurnaroundTaskDetails(taskId, payload, options = {})
   })
 }
 
+
+export async function createTurnaroundTask(operationId, payload, options = {}) {
+  if (!operationId) {
+    throw new Error('Turnaround operation id is required.')
+  }
+
+  return requestJson(`/cruise/turnaround-operations/${encodeURIComponent(operationId)}/tasks`, {
+    ...options,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
 export async function createTurnaroundTaskUpdate(taskId, payload, options = {}) {
   if (!taskId) {
     throw new Error('Turnaround task id is required.')
@@ -108,6 +142,88 @@ export async function createTurnaroundTaskUpdate(taskId, payload, options = {}) 
   return requestJson(`/cruise/turnaround-tasks/${encodeURIComponent(taskId)}/updates`, {
     ...options,
     method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
+
+export async function deleteTurnaroundTask(taskId, options = {}) {
+  if (!taskId) {
+    throw new Error('Turnaround task id is required.')
+  }
+
+  return requestJson(`/cruise/turnaround-tasks/${encodeURIComponent(taskId)}`, {
+    ...options,
+    method: 'DELETE'
+  })
+}
+
+
+export async function createTurnaroundEscalation(operationId, payload, options = {}) {
+  if (!operationId) {
+    throw new Error('Turnaround operation id is required.')
+  }
+
+  return requestJson(`/cruise/turnaround-operations/${encodeURIComponent(operationId)}/escalations`, {
+    ...options,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function updateTurnaroundEscalation(escalationId, payload, options = {}) {
+  if (!escalationId) {
+    throw new Error('Turnaround escalation id is required.')
+  }
+
+  return requestJson(`/cruise/turnaround-escalations/${encodeURIComponent(escalationId)}`, {
+    ...options,
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
+
+export async function updateTurnaroundHandoff(handoffId, payload, options = {}) {
+  if (!handoffId) {
+    throw new Error('Turnaround handoff id is required.')
+  }
+
+  return requestJson(`/cruise/turnaround-handoffs/${encodeURIComponent(handoffId)}`, {
+    ...options,
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function updateTurnaroundStaffing(operationId, departmentRole, payload, options = {}) {
+  if (!operationId) {
+    throw new Error('Turnaround operation id is required.')
+  }
+
+  if (!departmentRole) {
+    throw new Error('Turnaround department role is required.')
+  }
+
+  return requestJson(`/cruise/turnaround-operations/${encodeURIComponent(operationId)}/staffing/${encodeURIComponent(departmentRole)}`, {
+    ...options,
+    method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
       ...(options.headers || {})
