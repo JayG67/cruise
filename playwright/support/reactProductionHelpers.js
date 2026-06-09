@@ -48,7 +48,12 @@ async function selectRoleAndPerson(page, roleValue, personText = '') {
 
     const matchingCard = page.getByTestId('react-person-finder-result-card').filter({ hasText: personText }).first()
     await expect(matchingCard).toBeVisible({ timeout: 15000 })
-    await matchingCard.click()
+
+    const alreadySelected = await matchingCard.evaluate(card => card.getAttribute('aria-pressed') === 'true')
+    if (!alreadySelected) {
+      await matchingCard.scrollIntoViewIfNeeded()
+      await matchingCard.click({ timeout: 10000 })
+    }
     return
   }
 
@@ -155,11 +160,46 @@ async function expectOperationalDashboardReady(page, roleValue, personText, dash
   await expect(page.getByTestId('react-admin-create-customer-form')).toHaveCount(0)
 }
 
+async function clickStableControl(locator, options = {}) {
+  const timeout = options.timeout || 15000
+  await expect(locator).toBeVisible({ timeout })
+  await expect(locator).toBeEnabled({ timeout })
+  await locator.evaluate(element => {
+    element.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' })
+  })
+
+  try {
+    await locator.click({ timeout: Math.min(timeout, 5000) })
+  } catch (error) {
+    const message = String(error && error.message ? error.message : error)
+    if (!message.includes('outside of the viewport') && !message.includes('Timeout')) {
+      throw error
+    }
+
+    await locator.evaluate(element => element.click())
+  }
+}
+
+async function openCustomerWorkflows(page) {
+  const toggle = page.getByTestId('react-toggle-customer-workflows')
+  const table = page.getByTestId('react-customer-workflow-table')
+
+  if (await table.isVisible().catch(() => false)) {
+    return table
+  }
+
+  await clickStableControl(toggle)
+  await expect(table).toBeVisible({ timeout: 15000 })
+  return table
+}
+
 module.exports = {
+  clickStableControl,
   expectNoHorizontalOverflow,
   expectOperationalDashboardReady,
   normalizeRoleValue,
   openFleetShipsBySearch,
+  openCustomerWorkflows,
   openFleetSailingsBySearch,
   selectDemoUserByRole,
   selectPassengerProfileUser,

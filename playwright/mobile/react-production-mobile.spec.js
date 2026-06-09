@@ -326,23 +326,22 @@ test.describe('React default mobile replacement checks', () => {
   })
 
 
-  test('keeps every operational role dashboard reachable and readable on mobile', async ({ page }) => {
-    await page.goto('/')
+  const operationalRoleDashboards = [
+    ['turnaround-manager', 'Alex Turner', 'react-turnaround-manager-dashboard'],
+    ['housekeeping-lead', 'Maria Rodriguez', 'react-housekeeping-lead-dashboard'],
+    ['guest-services-lead', 'Angela Brooks', 'react-guest-services-lead-dashboard'],
+    ['food-beverage-lead', 'Michael Chen', 'react-food-beverage-lead-dashboard'],
+    ['engineering-lead', 'David Torres', 'react-engineering-lead-dashboard']
+  ]
 
-    const operationalRoles = [
-      ['turnaround-manager', 'Alex Turner', 'react-turnaround-manager-dashboard'],
-      ['housekeeping-lead', 'Maria Rodriguez', 'react-housekeeping-lead-dashboard'],
-      ['guest-services-lead', 'Angela Brooks', 'react-guest-services-lead-dashboard'],
-      ['food-beverage-lead', 'Michael Chen', 'react-food-beverage-lead-dashboard'],
-      ['engineering-lead', 'David Torres', 'react-engineering-lead-dashboard']
-    ]
-
-    for (const [roleValue, personText, dashboardTestId] of operationalRoles) {
+  for (const [roleValue, personText, dashboardTestId] of operationalRoleDashboards) {
+    test(`keeps every operational role dashboard reachable and readable on mobile - ${personText}`, async ({ page }) => {
+      await page.goto('/')
       await expectOperationalDashboardReady(page, roleValue, personText, dashboardTestId)
       await expect(page.getByTestId('react-demo-user-summary')).toContainText(personText)
       await expectNoHorizontalOverflow(page)
-    }
-  })
+    })
+  }
 
   test('lets the turnaround manager run command planning and task creation workflows on mobile', async ({ page }, testInfo) => {
     await page.goto('/')
