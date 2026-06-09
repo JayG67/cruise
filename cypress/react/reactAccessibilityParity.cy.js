@@ -59,7 +59,7 @@ describe('React accessibility and keyboard coverage expansion', () => {
     cy.getByTestId(rs.fleetSearch).focus().should('have.focus')
   })
 
-  it('keeps SQA output announced as a live region', () => {
+  it('keeps quality output announced as a live region', () => {
     cy.getByTestId(rs.sqaOutput).should('have.attr', 'aria-live')
     cy.getByTestId(rs.sqaStatus).should('contain.text', 'Ready for validation')
   })

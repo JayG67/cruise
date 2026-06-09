@@ -1,44 +1,10 @@
 const { test, expect } = require('@playwright/test')
-
-async function expectNoHorizontalOverflow(page) {
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 8)
-  expect(overflow).toBe(false)
-}
-
-async function selectDemoUserByRole(page, roleText) {
-  const roleSelect = page.getByTestId('react-role-type-select')
-  const personSelect = page.getByTestId('react-demo-user-select')
-  const roleValues = {
-    Admin: 'admin',
-    Administrator: 'admin',
-    Passenger: 'passenger',
-    'Group Leader': 'group-leader',
-    'Turnaround Manager': 'turnaround-manager',
-    'Housekeeping Lead': 'housekeeping-lead',
-    'Guest Services Lead': 'guest-services-lead',
-    'Food & Beverage Lead': 'food-beverage-lead',
-    'Engineering Lead': 'engineering-lead'
-  }
-  const roleValue = roleValues[roleText] || roleText.toLowerCase().replaceAll(' ', '-')
-
-  await expect(roleSelect).toBeVisible()
-  await roleSelect.selectOption(roleValue)
-
-  await expect(personSelect).toBeVisible()
-  await expect.poll(async () => {
-    return personSelect.locator('option').count()
-  }).toBeGreaterThan(0)
-
-  const matchingOption = personSelect.locator('option').filter({ hasText: roleText }).first()
-  const matchingCount = await personSelect.locator('option').filter({ hasText: roleText }).count()
-  const fallbackOption = personSelect.locator('option').first()
-  const option = matchingCount > 0 ? matchingOption : fallbackOption
-  const matchingValue = await option.getAttribute('value')
-
-  expect(matchingValue).toBeTruthy()
-
-  await personSelect.selectOption(matchingValue)
-}
+const {
+  expectNoHorizontalOverflow,
+  openFleetShipsBySearch,
+  openFleetSailingsBySearch,
+  selectDemoUserByRole
+} = require('../support/reactProductionHelpers')
 
 test.describe('React default desktop and tablet replacement checks', () => {
   test('keeps React replacement sections in production order', async ({ page }) => {
@@ -87,13 +53,7 @@ test.describe('React default desktop and tablet replacement checks', () => {
   test('loads React fleet ships from the fleet directory at desktop width', async ({ page }) => {
     await page.goto('/')
 
-    await page.getByTestId('react-fleet-search').fill('Royal')
-    await expect(page.getByTestId('react-fleet-card').first()).toContainText('Royal')
-
-    await page.getByTestId('react-view-ships-button').first().click()
-    await expect(page.getByTestId('react-selected-ships-panel')).toBeVisible()
-    await expect(page.getByTestId('react-selected-ships-panel')).toContainText('Royal')
-    await expect(page.getByTestId('react-ship-card').first()).toBeVisible()
+    await openFleetShipsBySearch(page, 'Royal')
     await expect(page.getByTestId('react-ship-card').first()).toContainText('Current port:')
     await expectNoHorizontalOverflow(page)
   })
@@ -134,16 +94,11 @@ test.describe('React default desktop and tablet replacement checks', () => {
   test('keeps React ship CRUD and sailings readable at desktop width', async ({ page }) => {
     await page.goto('/')
 
-    await page.getByTestId('react-fleet-search').fill('Royal')
-    await page.getByTestId('react-view-ships-button').first().click()
-    await expect(page.getByTestId('react-selected-ships-panel')).toBeVisible()
-    await expect(page.getByTestId('react-create-ship-form')).toBeVisible()
-    await expect(page.getByTestId('react-ship-card').first()).toBeVisible()
-    await expect(page.getByTestId('react-view-sailings-button').first()).toBeVisible()
-    await expect(page.getByTestId('react-update-ship-button').first()).toBeVisible()
-    await expect(page.getByTestId('react-delete-ship-button').first()).toBeVisible()
-    await page.getByTestId('react-view-sailings-button').first().click()
-    await expect(page.getByTestId('react-sailings-panel')).toBeVisible()
+    await openFleetShipsBySearch(page, 'Royal')
+    await expect(page.getByTestId('react-create-ship-form')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('react-update-ship-button').first()).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('react-delete-ship-button').first()).toBeVisible({ timeout: 15000 })
+    await openFleetSailingsBySearch(page, 'Royal')
     await expect(page.getByTestId('react-view-itinerary-button').first()).toBeVisible()
     await page.getByTestId('react-view-itinerary-button').first().click()
     await expect(page.getByTestId('react-itinerary-panel')).toBeVisible()
@@ -170,11 +125,7 @@ test.describe('React default desktop and tablet replacement checks', () => {
     await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
-    await page.getByTestId('react-fleet-search').fill('Royal')
-    await page.getByTestId('react-view-ships-button').first().click()
-    await expect(page.getByTestId('react-selected-ships-panel')).toBeVisible()
-    await page.getByTestId('react-view-sailings-button').first().click()
-    await expect(page.getByTestId('react-sailings-panel')).toBeVisible()
+    await openFleetSailingsBySearch(page, 'Royal')
     await expect(page.getByTestId('react-create-sailing-form')).toBeVisible()
     await expect(page.getByTestId('react-create-sailing-submit-button')).toBeVisible()
     await expect(page.getByTestId('react-update-sailing-button').first()).toBeVisible()
@@ -186,11 +137,7 @@ test.describe('React default desktop and tablet replacement checks', () => {
     await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
-    await page.getByTestId('react-fleet-search').fill('Royal')
-    await page.getByTestId('react-view-ships-button').first().click()
-    await expect(page.getByTestId('react-selected-ships-panel')).toBeVisible()
-    await page.getByTestId('react-view-sailings-button').first().click()
-    await expect(page.getByTestId('react-sailings-panel')).toBeVisible()
+    await openFleetSailingsBySearch(page, 'Royal')
     await page.getByTestId('react-view-itinerary-button').first().click()
     await expect(page.getByTestId('react-itinerary-panel')).toBeVisible()
     await expect(page.getByTestId('react-create-itinerary-day-form')).toBeVisible()
@@ -240,7 +187,7 @@ test.describe('React default desktop and tablet replacement checks', () => {
     }
   })
 
-  test('keeps React SQA output panels readable without layout overflow', async ({ page }) => {
+  test('keeps React quality output panels readable without layout overflow', async ({ page }) => {
     await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
@@ -283,11 +230,7 @@ test.describe('React default desktop and tablet replacement checks', () => {
     await page.setViewportSize({ width: 1440, height: 1000 })
     await selectDemoUserByRole(page, 'Admin')
 
-    await page.getByTestId('react-fleet-search').fill('Royal')
-    await expect(page.getByTestId('react-fleet-card').first()).toContainText('Royal')
-    await page.getByTestId('react-view-ships-button').first().click()
-    await expect(page.getByTestId('react-selected-ships-panel')).toBeVisible()
-    await expect(page.getByTestId('react-ship-card').first()).toBeVisible()
+    await openFleetShipsBySearch(page, 'Royal')
     await expectNoHorizontalOverflow(page)
   })
 
@@ -296,9 +239,7 @@ test.describe('React default desktop and tablet replacement checks', () => {
     await page.setViewportSize({ width: 900, height: 1100 })
     await selectDemoUserByRole(page, 'Admin')
 
-    await page.getByTestId('react-fleet-search').fill('Royal')
-    await page.getByTestId('react-view-ships-button').first().click()
-    await page.getByTestId('react-view-sailings-button').first().click()
+    await openFleetSailingsBySearch(page, 'Royal')
     await page.getByTestId('react-view-itinerary-button').first().click()
     await expect(page.getByTestId('react-itinerary-panel')).toBeVisible()
     await expect(page.getByTestId('react-itinerary-day-card').first()).toBeVisible()

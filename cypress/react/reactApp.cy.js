@@ -1,7 +1,7 @@
 const { byTestId, reactSelectorKeys: rs } = require('./support/reactSelectors')
 Cypress.Commands.add('getByTestId', selectorKey => cy.get(byTestId(selectorKey)))
 
-function selectDemoUserByVisibleRole(roleText) {
+function selectDemoUserByVisibleRole(roleText, personText = '') {
   cy.getByTestId(rs.roleTypeSelect)
     .find('option')
     .contains(roleText)
@@ -10,13 +10,16 @@ function selectDemoUserByVisibleRole(roleText) {
       cy.getByTestId(rs.roleTypeSelect).select(roleValue)
     })
 
-  cy.getByTestId(rs.demoUserSelect)
-    .find('option')
-    .first()
-    .invoke('val')
-    .then(userValue => {
-      cy.getByTestId(rs.demoUserSelect).select(userValue)
-    })
+  cy.getByTestId(rs.personFinderPanel).should('be.visible')
+  cy.getByTestId(rs.personFinderResultCard).should('have.length.greaterThan', 0)
+
+  if (personText) {
+    cy.getByTestId(rs.personSearchInput).clear().type(personText)
+    cy.getByTestId(rs.personFinderResultCard).contains(personText).click()
+    return
+  }
+
+  cy.getByTestId(rs.personFinderResultCard).first().click()
 }
 
 
@@ -30,7 +33,7 @@ function fillReactInput(selectorKey, value) {
 
 function visitReactAppAsAdmin() {
   cy.visit('/')
-  cy.getByTestId(rs.demoUserSelect).should('be.visible')
+  cy.getByTestId(rs.personFinderPanel).should('be.visible')
   selectDemoUserByVisibleRole('Admin')
   cy.getByTestId(rs.demoUserSummary).should('contain.text', 'Admin')
 }
@@ -44,7 +47,7 @@ describe('Cruise operations portfolio route', () => {
     cy.getByTestId(rs.productionShell).should('be.visible')
     cy.getByTestId(rs.topNavigation).should('be.visible')
     cy.getByTestId(rs.roleSelector).should('be.visible')
-    cy.getByTestId(rs.demoUserSelect).should('be.visible')
+    cy.getByTestId(rs.personFinderPanel).should('be.visible')
     cy.getByTestId(rs.workspaceCardGrid).should('be.visible')
     cy.getByTestId(rs.retiredRouteNav).should('not.exist')
     cy.getByTestId(rs.releaseReadinessSection).should('not.exist')
@@ -943,7 +946,7 @@ describe('Cruise operations portfolio route', () => {
   })
 
 
-  it('resets React demo data through a native React confirmation panel', () => {
+  it('resets React baseline data through a native React confirmation panel', () => {
     cy.intercept('POST', '/admin/reset-demo-data', {
       statusCode: 200,
       body: { reset: true, customers: 24, bookings: 12 }
@@ -953,7 +956,7 @@ describe('Cruise operations portfolio route', () => {
     cy.getByTestId(rs.sqaResetDemoDataButton).scrollIntoView().click()
     cy.getByTestId(rs.sqaResetConfirmation)
       .should('be.visible')
-      .and('contain.text', 'Reset public demo data back to the seed dataset?')
+      .and('contain.text', 'Reset baseline data back to the baseline dataset?')
 
     cy.getByTestId(rs.sqaResetConfirmationCancel).click()
     cy.getByTestId(rs.sqaResetConfirmation).should('not.exist')
@@ -962,12 +965,12 @@ describe('Cruise operations portfolio route', () => {
     cy.getByTestId(rs.sqaResetDemoDataButton).click()
     cy.getByTestId(rs.sqaResetConfirmationConfirm).click()
     cy.wait('@resetReactDemoData')
-    cy.getByTestId(rs.sqaOutput).should('contain.text', 'Demo Data Recovery Result')
+    cy.getByTestId(rs.sqaOutput).should('contain.text', 'Baseline Data Recovery Result')
     cy.getByTestId(rs.sqaOutput).should('contain.text', '"passed": true')
     cy.getByTestId(rs.sqaResetConfirmation).should('not.exist')
   })
 
-  it('runs a React SQA health check and writes output', () => {
+  it('runs a React quality health check and writes output', () => {
     cy.getByTestId(rs.activeRouteOperations).should('be.visible')
     cy.getByTestId(rs.sqaHealthButton).scrollIntoView().click()
     cy.getByTestId(rs.sqaOutput).should('contain.text', 'Health Check Result')

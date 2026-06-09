@@ -134,9 +134,87 @@ function formatDemoUserLabel(user, bookings = []) {
   return name
 }
 
+function escapeRegExp(value = '') {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function getWorkspaceUserBaseName(user = {}) {
+  const roleLabel = formatDemoUserRole(user.role || user.userType || 'Demo User')
+  const displayName = getDemoUserName(user)
+  const withoutAssignment = displayName.split(' — ')[0].trim()
+  const roleSuffixPattern = new RegExp(`\\s+${escapeRegExp(roleLabel)}$`, 'i')
+
+  return withoutAssignment.replace(roleSuffixPattern, '').trim() || withoutAssignment || displayName
+}
+
+function buildWorkspaceUserOption(user = {}, bookings = []) {
+  const roleView = normalizeRole(user.role || user.userType)
+
+  if (roleView === 'passenger') return buildPassengerOption(user, bookings)
+
+  const displayName = getDemoUserName(user)
+  const name = getWorkspaceUserBaseName(user)
+  const roleLabel = formatDemoUserRole(user.role || user.userType || 'Demo User')
+  const assignment = user.shipName || user.assignedShip || user.department || displayName.split(' — ')[1] || user.email || 'Workspace access'
+
+  return {
+    user,
+    name,
+    contexts: [],
+    label: formatDemoUserLabel(user, bookings),
+    detail: `${roleLabel} · ${assignment}`,
+    searchText: [name, displayName, roleLabel, assignment, user.email, user.id].filter(Boolean).join(' ').toLowerCase()
+  }
+}
+
+
+function condenseWorkspaceUserOptions(options = []) {
+  const groupedOptions = []
+  const optionIndexes = new Map()
+
+  options.forEach(option => {
+    const roleLabel = formatDemoUserRole(option.user?.role || option.user?.userType || 'Demo User')
+    const groupKey = `${option.name}|${roleLabel}`.toLowerCase()
+    const existingIndex = optionIndexes.get(groupKey)
+
+    if (existingIndex === undefined) {
+      optionIndexes.set(groupKey, groupedOptions.length)
+      groupedOptions.push({
+        ...option,
+        workspaceCount: 1,
+        workspaceDetails: [option.detail].filter(Boolean)
+      })
+      return
+    }
+
+    const existing = groupedOptions[existingIndex]
+    const workspaceDetails = new Set(existing.workspaceDetails || [])
+    if (option.detail) workspaceDetails.add(option.detail)
+
+    groupedOptions[existingIndex] = {
+      ...existing,
+      workspaceCount: existing.workspaceCount + 1,
+      workspaceDetails: [...workspaceDetails],
+      detail: existing.workspaceCount + 1 > 1
+        ? `${roleLabel} · ${existing.workspaceCount + 1} assigned workspaces`
+        : existing.detail,
+      searchText: `${existing.searchText} ${option.searchText}`.toLowerCase()
+    }
+  })
+
+  return groupedOptions.map(option => {
+    if ((option.workspaceCount || 1) <= 1) return option
+
+    return {
+      ...option,
+      detail: `${formatDemoUserRole(option.user?.role || option.user?.userType || 'Demo User')} · ${option.workspaceCount} assigned workspaces`
+    }
+  })
+}
+
 function getRoleSummary(user, customerCount, bookingCount, visibleBookingCount = bookingCount) {
   if (!user) {
-    return `Loading workspace users — ${customerCount} customers and ${bookingCount} bookings available.`
+    return `Loading people — ${customerCount} customers and ${bookingCount} bookings available.`
   }
 
   const role = (user.role || '').toLowerCase()
@@ -176,6 +254,7 @@ export default function ReactRoleSelector({
   const [passengerCruiseLineFilter, setPassengerCruiseLineFilter] = useState('')
   const [passengerShipFilter, setPassengerShipFilter] = useState('')
   const [passengerSailingDateFilter, setPassengerSailingDateFilter] = useState('')
+  const [personSearch, setPersonSearch] = useState('')
   const roleOptions = availableRoles.length > 0 ? availableRoles : ['admin', 'passenger', 'group-leader']
   const isPassengerFilterActive = selectedRole === 'passenger'
 
@@ -236,22 +315,46 @@ export default function ReactRoleSelector({
   ])
 
   const visibleDemoUsers = personSelectUsers
+  const personSearchText = personSearch.trim().toLowerCase()
+  const personOptionCards = useMemo(() => {
+    const sourceUsers = isPassengerFilterActive ? visibleDemoUsers : filteredDemoUsers
+    const matchingOptions = sourceUsers
+      .map(user => buildWorkspaceUserOption(user, bookings))
+      .filter(option => !personSearchText || option.searchText.includes(personSearchText))
+
+    return isPassengerFilterActive ? matchingOptions : condenseWorkspaceUserOptions(matchingOptions)
+  }, [bookings, filteredDemoUsers, isPassengerFilterActive, personSearchText, visibleDemoUsers])
+
+  const displayedPersonOptionCards = useMemo(() => {
+    const selectedOption = selectedDemoUserId
+      ? personOptionCards.find(option => option.user.id === selectedDemoUserId)
+      : null
+    const visibleOptions = personOptionCards.slice(0, 8)
+
+    if (selectedOption && !visibleOptions.some(option => option.user.id === selectedOption.user.id)) {
+      return [selectedOption, ...visibleOptions.slice(0, 7)]
+    }
+
+    return visibleOptions
+  }, [personOptionCards, selectedDemoUserId])
+
   const cruiseLineOptions = useMemo(() => getPassengerFilterOptions(passengerOptions, 'cruiseLine'), [passengerOptions])
   const shipOptions = useMemo(() => getPassengerFilterOptions(passengerOptions, 'ship'), [passengerOptions])
   const sailingDateOptions = useMemo(() => getPassengerFilterOptions(passengerOptions, 'sailingDate'), [passengerOptions])
 
   useEffect(() => {
-    if (!isPassengerFilterActive || visibleDemoUsers.length === 0) return
-    if (visibleDemoUsers.some(user => user.id === selectedDemoUserId)) return
+    if (personOptionCards.length === 0) return
+    if (personOptionCards.some(option => option.user.id === selectedDemoUserId)) return
 
-    onSelectDemoUser?.(visibleDemoUsers[0].id)
-  }, [isPassengerFilterActive, onSelectDemoUser, selectedDemoUserId, visibleDemoUsers])
+    onSelectDemoUser?.(personOptionCards[0].user.id)
+  }, [onSelectDemoUser, personOptionCards, selectedDemoUserId])
 
   function handleRoleChange(role) {
     setPassengerSearch('')
     setPassengerCruiseLineFilter('')
     setPassengerShipFilter('')
     setPassengerSailingDateFilter('')
+    setPersonSearch('')
     onSelectRole?.(role)
   }
 
@@ -264,7 +367,7 @@ export default function ReactRoleSelector({
       <p className="eyebrow">Workspace selection</p>
       <h2 id="react-role-selector-heading">View application as</h2>
       <p>
-        Select a role, then choose the specific person or workspace user for operational testing.
+        Select a role, then choose the person whose operational view you want to review.
       </p>
 
       <div className="role-selector-grid">
@@ -394,16 +497,77 @@ export default function ReactRoleSelector({
           </div>
         )}
 
-        <div className="role-selector-field">
-          <label className="react-field-label" htmlFor="react-demo-role">
-            Person
-          </label>
+        <div className="person-finder-panel" data-testid="react-person-finder-panel">
+          <div className="person-finder-heading">
+            <div>
+              <p className="eyebrow">Person</p>
+              <h3>Choose a person</h3>
+            </div>
+            <span>{personOptionCards.length} visible</span>
+          </div>
+
+          <div className="role-selector-field">
+            <label className="react-field-label" htmlFor="react-person-search">
+              Search people
+            </label>
+            <input
+              id="react-person-search"
+              className="react-input"
+              type="search"
+              value={personSearch}
+              onChange={event => setPersonSearch(event.target.value)}
+              placeholder="Search by name, role, ship, email, or sailing context"
+              data-testid="react-person-search-input"
+            />
+          </div>
+
+          {selectedDemoUser && (
+            <div className="selected-person-card" data-testid="react-selected-person-card">
+              <span>Selected</span>
+              <strong>{formatDemoUserLabel(selectedDemoUser, bookings)}</strong>
+              <small>{getRoleSummary(selectedDemoUser, customerCount, bookingCount, visibleBookingCount)}</small>
+            </div>
+          )}
+
+          <div className="person-finder-results" data-testid="react-person-finder-results">
+            {displayedPersonOptionCards.map(option => (
+              <button
+                key={option.user.id}
+                type="button"
+                className={`person-finder-card${selectedDemoUserId === option.user.id ? ' selected' : ''}`}
+                onClick={() => onSelectDemoUser?.(option.user.id)}
+                aria-pressed={selectedDemoUserId === option.user.id}
+                data-testid="react-person-finder-result-card"
+              >
+                <span className="person-finder-card-main">
+                  <strong>{option.name}</strong>
+                  <span>{formatDemoUserRole(option.user.role || option.user.userType || 'Demo User')}</span>
+                </span>
+                <span className="person-finder-card-detail">{option.detail}</span>
+              </button>
+            ))}
+          </div>
+
+          {personOptionCards.length > displayedPersonOptionCards.length && (
+            <p className="finder-limit-note" data-testid="react-person-finder-limit-note">
+              Showing the best {displayedPersonOptionCards.length} matches. Search to narrow the list instead of scanning a long dropdown.
+            </p>
+          )}
+
+          {personOptionCards.length === 0 && (
+            <p className="empty-state compact" data-testid="react-person-finder-empty">No people match the current search.</p>
+          )}
+
+          <label className="sr-only" htmlFor="react-demo-role">Person fallback select</label>
           <select
             id="react-demo-role"
-            className="react-select person-select"
+            className="react-select person-select sr-only"
             value={visibleDemoUsers.some(user => user.id === selectedDemoUserId) ? selectedDemoUserId : ''}
             onChange={event => onSelectDemoUser?.(event.target.value)}
             disabled={isLoadingDemoUsers || visibleDemoUsers.length === 0}
+            aria-hidden="true"
+            tabIndex={-1}
+            hidden
             data-testid="react-demo-user-select"
           >
             {visibleDemoUsers.length === 0 ? (
@@ -422,11 +586,11 @@ export default function ReactRoleSelector({
       {demoUserError && <p className="error" role="alert">{demoUserError}</p>}
 
       <div className="role-summary-card" aria-live="polite" data-testid="react-demo-user-summary">
-        <strong>{selectedDemoUser ? formatDemoUserLabel(selectedDemoUser, bookings) : 'Loading workspace users'}</strong>
+        <strong>{selectedDemoUser ? formatDemoUserLabel(selectedDemoUser, bookings) : 'Loading people'}</strong>
         <span>{getRoleSummary(selectedDemoUser, customerCount, bookingCount, visibleBookingCount)}</span>
         <span>{visibleDemoUsers.length} people visible in the current selector.</span>
         <span>{filteredDemoUsers.length} people available for the selected role.</span>
-        <span>{demoUsers.length} total workspace users available.</span>
+        <span>{demoUsers.length} total people available.</span>
       </div>
     </section>
   )

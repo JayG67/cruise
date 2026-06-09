@@ -136,7 +136,7 @@ export default function App() {
           <div className="react-nav-links">
             <a href="#react-dashboard">Dashboard</a>
             <a href="#react-workspaces">Workspaces</a>
-            <button type="button" onClick={() => openWorkspace('react-role-selector', 'Role Simulation')}>Roles</button>
+            <button type="button" onClick={() => openWorkspace('react-role-selector', 'Role-aware Views')}>Roles</button>
             <button type="button" onClick={() => openWorkspace('react-hierarchy', 'Admin Operations', 'admin')}>Operations</button>
             <button type="button" onClick={() => openWorkspace('react-fleet', 'Fleet Directory', 'admin')}>Fleet</button>
             <button type="button" onClick={() => openWorkspace('react-quality', 'Quality Console', 'admin')}>Quality</button>
@@ -153,7 +153,7 @@ export default function App() {
 
           <div className="hero-cta-row" aria-label="Cruise application shortcuts">
             <button type="button" className="button-link primary" onClick={() => openWorkspace('react-hierarchy', 'Admin Operations', 'admin')} data-testid="react-hero-operations-button">Review Operations</button>
-            <button type="button" className="button-link secondary" onClick={() => openWorkspace('react-quality', 'Quality Console', 'admin')} data-testid="react-hero-quality-button">Open SQA Console</button>
+            <button type="button" className="button-link secondary" onClick={() => openWorkspace('react-quality', 'Quality Console', 'admin')} data-testid="react-hero-quality-button">Open Quality Console</button>
           </div>
 
           <div className="hero-status-pills" aria-label="Cruise application capabilities">
@@ -175,9 +175,9 @@ export default function App() {
         </div>
 
         <div className="react-workspace-card-grid" aria-label="React application workspaces" data-testid="react-workspace-card-grid">
-          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => openWorkspace('react-role-selector', 'Role Simulation')} data-testid="react-workspace-role-button">
+          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => openWorkspace('react-role-selector', 'Role-aware Views')} data-testid="react-workspace-role-button">
             <span className="workspace-icon" aria-hidden="true">👥</span>
-            <span className="workspace-card-title">Role Simulation</span>
+            <span className="workspace-card-title">Role-aware Views</span>
             <span>Switch between admin, passenger, and group leader views.</span>
           </button>
           <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => openWorkspace('react-hierarchy', 'Admin Operations', 'admin')} data-testid="react-workspace-operations-button">
@@ -203,12 +203,12 @@ export default function App() {
             <h3>Start with the role, then move through the operation</h3>
             <p>
               Choose the business context, inspect customer and booking workflows,
-              manage the fleet, then validate quality gates from the SQA panel.
+              manage the fleet, then validate quality gates from the quality panel.
             </p>
           </div>
           <ol className="workflow-step-list" aria-label="Recommended workflow controls">
             <li>
-              <button type="button" className="workflow-step-button" onClick={() => openWorkspace('react-role-selector', 'Role Simulation')} data-testid="react-workflow-role-button">
+              <button type="button" className="workflow-step-button" onClick={() => openWorkspace('react-role-selector', 'Role-aware Views')} data-testid="react-workflow-role-button">
                 <strong>01</strong><span>Choose role</span>
               </button>
             </li>
@@ -234,7 +234,7 @@ export default function App() {
       {roleSwitchRequest && (
         <ConfirmActionPanel
           title="Switch to admin role?"
-          message={`${roleSwitchRequest.workspaceLabel} requires the Admin role. Switch to the Admin demo user and open this workspace?`}
+          message={`${roleSwitchRequest.workspaceLabel} requires the Admin role. Switch to the Admin role and open this section?`}
           confirmLabel="Switch to Admin"
           cancelLabel="Stay in Current Role"
           onConfirm={confirmRoleSwitch}

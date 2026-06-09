@@ -1,5 +1,11 @@
 const { byTestId, reactSelectorKeys: rs } = require('./support/reactSelectors')
 const { interceptReactCoreApis, selectDemoUserByVisibleRole } = require('./support/reactTestHelpers')
+const {
+  openFocusedOperationsWorkspace,
+  selectQueueItemWhenPresent,
+  verifyFocusedDetailListTerms,
+  verifyReadableWorkspaceTextarea
+} = require('./support/operations/focusedWorkspace')
 
 
 function selectOperationalDemoUserByVisibleRole(roleText) {
@@ -33,6 +39,23 @@ describe('React operational role foundation', () => {
     cy.getByTestId(rs.operationalRoleChecklist).should('contain.text', 'Sequence disembarkation')
     cy.getByTestId(rs.customerHierarchy).should('not.exist')
     cy.getByTestId(rs.fleetDirectory).should('not.exist')
+  })
+
+  it('shows a fleet operations portfolio and uses it to select a turnaround', () => {
+    selectOperationalDemoUserByVisibleRole('Turnaround Manager')
+
+    cy.getByTestId(rs.operationsPortfolioBoard).should('be.visible')
+    cy.getByTestId(rs.operationsPortfolioSummary)
+      .should('contain.text', 'Average readiness')
+      .and('contain.text', 'Needs attention')
+      .and('contain.text', 'Open escalations')
+    cy.getByTestId(rs.operationsPortfolioList).within(() => {
+      cy.getByTestId(rs.operationsPortfolioCard).should('have.length', 2)
+      cy.contains(`${byTestId('operationsPortfolioCard')}`, 'San Juan repositioning turnaround readiness').click()
+    })
+
+    cy.getByTestId(rs.operationalReadinessCard).should('contain.text', 'San Juan repositioning turnaround readiness')
+    cy.getByTestId(rs.turnaroundSelector).should('have.value', 'turnaround-react-2')
   })
 
   it('lets operational users switch the selected turnaround sailing without rendering every operation at once', () => {
@@ -86,10 +109,41 @@ describe('React operational role foundation', () => {
     cy.getByTestId(rs.operationsWorkspaceTasksButton).should('have.attr', 'aria-pressed', 'true')
     cy.getByTestId(rs.operationsWorkspaceActiveSummary)
       .should('contain.text', 'Tasks')
-      .and('contain.text', 'Role-focused task checklist')
+      .and('contain.text', 'Task checklist')
   })
 
-  it('renders the slice 3 task workspace as a focused queue with one editable task detail panel', () => {
+  it('shows an operational release board and routes directly into workstreams', () => {
+    selectOperationalDemoUserByVisibleRole('Turnaround Manager')
+
+    cy.getByTestId(rs.operationsReleaseBoard).should('be.visible')
+    cy.getByTestId(rs.operationsReleaseScore).should('contain.text', 'overall readiness')
+    cy.getByTestId(rs.operationsReleaseBoardGrid).within(() => {
+      cy.getByTestId(rs.operationsReleaseCard).should('have.length', 4)
+      cy.contains(`${byTestId('operationsReleaseCard')}`, 'Dependency gates').click()
+    })
+    cy.getByTestId(rs.operationsDependencyWorkspace).should('be.visible')
+  })
+
+  it('surfaces role-specific operational priorities and opens the matching workstream', () => {
+    selectOperationalDemoUserByVisibleRole('Housekeeping Lead')
+
+    cy.getByTestId(rs.operationsRoleBriefPanel).should('be.visible')
+    cy.getByTestId(rs.operationsRoleBriefPanel)
+      .should('contain.text', 'Housekeeping Lead priorities')
+      .and('contain.text', 'Task ownership')
+      .and('contain.text', 'Department handoffs')
+      .and('contain.text', 'Escalations')
+      .and('contain.text', 'Staffing coverage')
+      .and('contain.text', 'Readiness approval')
+    cy.getByTestId(rs.operationsRoleBriefGrid).within(() => {
+      cy.getByTestId(rs.operationsRoleBriefCard).should('have.length', 5)
+      cy.contains(`${byTestId('operationsRoleBriefCard')}`, 'Staffing coverage').click()
+    })
+    cy.getByTestId(rs.operationsStaffingWorkspace).should('be.visible')
+    cy.getByTestId(rs.operationsStaffingDetailPanel).should('contain.text', 'Housekeeping Lead')
+  })
+
+  it('renders task management as a queue with one editable task detail panel', () => {
     selectOperationalDemoUserByVisibleRole('Turnaround Manager')
 
     cy.getByTestId(rs.operationsWorkspaceTasksButton).click()
@@ -122,7 +176,7 @@ describe('React operational role foundation', () => {
     })
   })
 
-  it('renders the slice 4 dependency workspace as a focused gate queue with one selected dependency detail panel', () => {
+  it('renders dependency management as a gate queue with one selected dependency detail panel', () => {
     selectOperationalDemoUserByVisibleRole('Turnaround Manager')
 
     cy.getByTestId(rs.operationsWorkspaceDependenciesButton).click()
@@ -159,7 +213,7 @@ describe('React operational role foundation', () => {
     })
   })
 
-  it('renders the slice 5 handoff workspace as a focused release queue with one editable detail panel', () => {
+  it('renders handoff management as a release queue with one editable detail panel', () => {
     selectOperationalDemoUserByVisibleRole('Turnaround Manager')
 
     cy.getByTestId(rs.operationsWorkspaceHandoffsButton).click()
@@ -207,6 +261,78 @@ describe('React operational role foundation', () => {
     })
   })
 
+  it('renders escalation management as a risk queue with one editable detail panel', () => {
+    selectOperationalDemoUserByVisibleRole('Turnaround Manager')
+
+    openFocusedOperationsWorkspace({
+      buttonKey: 'operationsWorkspaceEscalationsButton',
+      workspaceKey: 'operationsEscalationWorkspace',
+      summaryKey: 'operationsEscalationWorkspaceSummary',
+      listKey: 'operationsEscalationList',
+      listItemKey: 'operationsEscalationListItem',
+      detailPanelKey: 'operationsEscalationDetailPanel',
+      summaryTerms: ['Total', 'Open', 'Monitoring', 'Critical']
+    })
+
+    cy.getByTestId(rs.operationsEscalationDetailPanel)
+      .should('contain.text', 'Escalation Details')
+      .and('contain.text', 'Department')
+      .and('contain.text', 'Owner')
+      .and('contain.text', 'Status')
+      .and('contain.text', 'Severity')
+    cy.getByTestId(rs.operationsEscalationNote).should('be.visible')
+
+    selectQueueItemWhenPresent('operationsEscalationListItem', 'Shore power handoff verification')
+    cy.getByTestId(rs.operationsEscalationDetailPanel).should('be.visible')
+
+    verifyFocusedDetailListTerms('operationsEscalationDetailList', ['Department', 'Owner', 'Status', 'Severity'])
+    verifyReadableWorkspaceTextarea('operationsEscalationDetailPanel', 'escalation resolution notes')
+  })
+
+  it('renders staffing coverage as a queue with one editable detail panel', () => {
+    selectOperationalDemoUserByVisibleRole('Turnaround Manager')
+
+    openFocusedOperationsWorkspace({
+      buttonKey: 'operationsWorkspaceStaffingButton',
+      workspaceKey: 'operationsStaffingWorkspace',
+      summaryKey: 'operationsStaffingWorkspaceSummary',
+      listKey: 'operationsStaffingList',
+      listItemKey: 'operationsStaffingListItem',
+      detailPanelKey: 'operationsStaffingDetailPanel',
+      summaryTerms: ['Departments', 'Planned', 'Checked in', 'Gaps'],
+      detailTerms: ['Staffing Details', 'Department', 'Lead', 'Coverage', 'Muster']
+    })
+
+    cy.getByTestId(rs.operationsStaffingListItem).should('have.length.gte', 1)
+    cy.getByTestId(rs.operationsStaffingDetailList).within(() => {
+      cy.contains('dt', 'Department').should('be.visible')
+      cy.contains('dt', 'Lead').should('be.visible')
+      cy.contains('dt', 'Coverage').should('be.visible')
+      cy.contains('dt', 'Muster').should('be.visible')
+    })
+    cy.getByTestId(rs.operationsStaffingNote).should('be.visible')
+    verifyReadableWorkspaceTextarea('operationsStaffingDetailPanel', 'staffing notes')
+  })
+
+  it('renders readiness approvals as a department queue with one editable detail panel', () => {
+    selectOperationalDemoUserByVisibleRole('Turnaround Manager')
+
+    openFocusedOperationsWorkspace({
+      buttonKey: 'operationsWorkspaceReadinessButton',
+      workspaceKey: 'operationsReadinessWorkspace',
+      summaryKey: 'operationsReadinessWorkspaceSummary',
+      listKey: 'operationsReadinessList',
+      listItemKey: 'operationsReadinessListItem',
+      detailPanelKey: 'operationsReadinessDetailPanel',
+      summaryTerms: ['Departments', 'Approved', 'Pending', 'Blocked'],
+      detailTerms: ['Readiness Details', 'Department', 'Status', 'Approver', 'Signed at']
+    })
+
+    cy.getByTestId(rs.operationsReadinessListItem).should('have.length.gte', 1)
+    verifyFocusedDetailListTerms('operationsReadinessDetailList', ['Department', 'Status', 'Approver', 'Signed at'])
+    verifyReadableWorkspaceTextarea('operationsReadinessDetailPanel', 'readiness notes')
+  })
+
   it('shows a cross-department operations directory without rendering an oversized operational dataset', () => {
     selectOperationalDemoUserByVisibleRole('Turnaround Manager')
 
@@ -218,9 +344,12 @@ describe('React operational role foundation', () => {
     cy.getByTestId(rs.operationsDirectoryCard).should('contain.text', 'Guest Services Lead')
     cy.getByTestId(rs.operationsDirectoryCard).should('contain.text', 'Food & Beverage Lead')
     cy.getByTestId(rs.operationsDirectoryCard).should('contain.text', 'Engineering Lead')
-    cy.getByTestId(rs.operationsDirectoryCard).should('contain.text', 'Contacts')
-    cy.getByTestId(rs.operationsDirectoryCard).should('contain.text', 'Handoffs')
-    cy.getByTestId(rs.operationsDirectoryCard).should('contain.text', 'Escalations')
+    cy.getByTestId(rs.operationsDirectoryDetail).should('be.visible')
+    cy.getByTestId(rs.operationsDirectoryDetail).should('contain.text', 'Contacts')
+    cy.getByTestId(rs.operationsDirectoryDetail).should('contain.text', 'Handoffs')
+    cy.getByTestId(rs.operationsDirectoryDetail).should('contain.text', 'Escalations')
+    cy.getByTestId(rs.operationsDirectoryCard).contains('Housekeeping Lead').click()
+    cy.getByTestId(rs.operationsDirectoryDetail).should('contain.text', 'Housekeeping Lead')
   })
 
   it('changes checklist focus for specialized operational leads', () => {

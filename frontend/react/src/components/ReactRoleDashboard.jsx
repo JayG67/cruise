@@ -121,7 +121,7 @@ function PassengerProfile({
   return (
     <section className="role-profile-card passenger-self-service" aria-labelledby="react-passenger-profile-heading" data-testid="react-passenger-self-service-panel">
       <h3 id="react-passenger-profile-heading">My travel profile</h3>
-      <p>Passengers can update limited contact and cruise preference information for the demo booking experience.</p>
+      <p>Passengers can update limited contact and cruise preference information for their booking experience.</p>
 
       <form className="passenger-profile-form react-passenger-profile-form" onSubmit={handleSubmit} data-testid="react-passenger-profile-form">
         <label>
@@ -310,6 +310,10 @@ function getOperationalRoleLabel(role = '') {
   return OPERATIONAL_DIRECTORY_ROLES.find(item => item.role === normalizedRole)?.label || role
 }
 
+// Backward-compatible alias for operations workspaces that still refer to the
+// older formatter name while the role-label helpers are being consolidated.
+const formatOperationalRoleLabel = getOperationalRoleLabel
+
 function buildOperationalDirectory(readinessOperations = []) {
   const entries = OPERATIONAL_DIRECTORY_ROLES.map(({ role, label }) => ({
     role,
@@ -397,6 +401,139 @@ function buildOperationalDirectory(readinessOperations = []) {
 }
 
 
+function getOperationReleaseMetrics(operation = {}) {
+  const tasks = operation.tasks || []
+  const staffing = operation.staffing || []
+  const signoffs = operation.signoffs || []
+  const dependencies = operation.taskDependencies || []
+  const taskSummary = operation.taskSummary || {}
+  const staffingSummary = operation.staffingSummary || {}
+
+  const totalTasks = Number(taskSummary.totalTasks ?? tasks.length)
+  const completeTasks = Number(taskSummary.completeTasks ?? tasks.filter(task => String(task.status || '').toUpperCase() === 'COMPLETE').length)
+  const blockedTasks = Number(taskSummary.blockedTasks ?? tasks.filter(task => String(task.status || '').toUpperCase() === 'BLOCKED').length)
+  const taskPercent = totalTasks > 0 ? Math.round((completeTasks / totalTasks) * 100) : 0
+
+  const plannedCount = Number(staffingSummary.plannedCount ?? staffing.reduce((sum, item) => sum + Number(item.plannedCount || 0), 0))
+  const checkedInCount = Number(staffingSummary.checkedInCount ?? staffing.reduce((sum, item) => sum + Number(item.checkedInCount || 0), 0))
+  const staffingPercent = plannedCount > 0 ? Math.round((checkedInCount / plannedCount) * 100) : 0
+
+  const totalSignoffs = signoffs.length
+  const approvedSignoffs = signoffs.filter(signoff => String(signoff.status || '').toUpperCase() === 'APPROVED').length
+  const readinessPercent = totalSignoffs > 0 ? Math.round((approvedSignoffs / totalSignoffs) * 100) : 0
+
+  const totalDependencies = dependencies.length
+  const clearedDependencies = dependencies.filter(dependency => String(dependency.status || '').toUpperCase() === 'CLEARED').length
+  const dependencyPercent = totalDependencies > 0 ? Math.round((clearedDependencies / totalDependencies) * 100) : 100
+
+  const openEscalations = (operation.escalations || []).filter(escalation => !['RESOLVED', 'CLOSED'].includes(String(escalation.status || '').toUpperCase())).length
+  const releaseScore = Math.round((taskPercent + staffingPercent + readinessPercent + dependencyPercent) / 4)
+
+  return {
+    totalTasks,
+    completeTasks,
+    blockedTasks,
+    plannedCount,
+    checkedInCount,
+    openEscalations,
+    releaseScore
+  }
+}
+
+function getOperationPortfolioTone(metrics = {}) {
+  if (Number(metrics.blockedTasks || 0) > 0 || Number(metrics.openEscalations || 0) > 1) return 'attention'
+  if (Number(metrics.releaseScore || 0) < 75 || Number(metrics.openEscalations || 0) > 0) return 'watch'
+  return 'clear'
+}
+
+function getOperationPortfolioStatus(metrics = {}) {
+  const tone = getOperationPortfolioTone(metrics)
+  if (tone === 'attention') return 'Needs attention'
+  if (tone === 'watch') return 'Operational watch'
+  return 'On track'
+}
+
+
+function getDirectoryHealthStatus(entry = {}) {
+  const blockedCount = Number(entry.blockedTasks || 0) + Number(entry.blockedHandoffs || 0)
+  const escalationCount = Number(entry.activeEscalations || 0)
+  const staffingPercent = Number(entry.staffingPercent || 0)
+
+  if (escalationCount > 0 || blockedCount > 0) return { label: 'Needs attention', tone: 'attention' }
+  if (staffingPercent < 90) return { label: 'Coverage watch', tone: 'watch' }
+  return { label: 'On track', tone: 'clear' }
+}
+
+function buildRoleOperationsBrief({ roleView, selectedOperation, selectedStaffing, selectedReadinessSignoff }) {
+  const normalizedRole = normalizeOperationalRoleName(roleView)
+  const roleTasks = (selectedOperation?.tasks || []).filter(task => normalizeOperationalRoleName(task.departmentRole) === normalizedRole)
+  const roleHandoffs = (selectedOperation?.handoffs || []).filter(handoff => (
+    normalizeOperationalRoleName(handoff.fromDepartmentRole) === normalizedRole ||
+    normalizeOperationalRoleName(handoff.toDepartmentRole) === normalizedRole
+  ))
+  const roleEscalations = (selectedOperation?.escalations || []).filter(escalation => normalizeOperationalRoleName(escalation.departmentRole) === normalizedRole)
+  const openEscalations = roleEscalations.filter(escalation => !['RESOLVED', 'CLOSED'].includes(String(escalation.status || '').toUpperCase())).length
+  const blockedTasks = roleTasks.filter(task => String(task.status || '').toUpperCase() === 'BLOCKED').length
+  const openHandoffs = roleHandoffs.filter(handoff => String(handoff.status || '').toUpperCase() !== 'COMPLETE').length
+  const plannedCount = Number(selectedStaffing?.plannedCount || 0)
+  const checkedInCount = Number(selectedStaffing?.checkedInCount || 0)
+  const staffingGap = Math.max(plannedCount - checkedInCount, 0)
+  const readinessStatus = selectedReadinessSignoff?.status || 'PENDING'
+  const primaryTask = roleTasks.find(task => String(task.status || '').toUpperCase() !== 'COMPLETE') || roleTasks[0]
+  const primaryEscalation = roleEscalations.find(escalation => !['RESOLVED', 'CLOSED'].includes(String(escalation.status || '').toUpperCase()))
+  const primaryHandoff = roleHandoffs.find(handoff => String(handoff.status || '').toUpperCase() !== 'COMPLETE')
+
+  const actionCards = [
+    {
+      id: 'tasks',
+      label: 'Task ownership',
+      value: roleTasks.length,
+      status: blockedTasks > 0 ? `${blockedTasks} blocked` : 'On track',
+      description: primaryTask?.taskName || 'No active task ownership for this turnaround yet.',
+      priority: blockedTasks > 0 ? 'attention' : 'normal'
+    },
+    {
+      id: 'handoffs',
+      label: 'Department handoffs',
+      value: roleHandoffs.length,
+      status: openHandoffs > 0 ? `${openHandoffs} open` : 'Clear',
+      description: primaryHandoff?.handoffName || 'No active handoff ownership for this department yet.',
+      priority: openHandoffs > 0 ? 'attention' : 'normal'
+    },
+    {
+      id: 'escalations',
+      label: 'Escalations',
+      value: openEscalations,
+      status: openEscalations > 0 ? 'Active' : 'None open',
+      description: primaryEscalation?.title || 'No open escalations assigned to this department.',
+      priority: openEscalations > 0 ? 'attention' : 'normal'
+    },
+    {
+      id: 'staffing',
+      label: 'Staffing coverage',
+      value: plannedCount > 0 ? `${checkedInCount}/${plannedCount}` : 'N/A',
+      status: staffingGap > 0 ? `${staffingGap} gap` : 'Covered',
+      description: selectedStaffing?.musterLocation || 'Muster location pending.',
+      priority: staffingGap > 0 ? 'attention' : 'normal'
+    },
+    {
+      id: 'readiness',
+      label: 'Readiness approval',
+      value: readinessStatus,
+      status: readinessStatus === 'APPROVED' ? 'Approved' : 'Needs review',
+      description: selectedReadinessSignoff?.notes || 'Review final department readiness before release.',
+      priority: readinessStatus === 'APPROVED' ? 'normal' : 'attention'
+    }
+  ]
+
+  return {
+    roleLabel: getOperationalRoleLabel(roleView),
+    actionCards,
+    attentionCount: actionCards.filter(card => card.priority === 'attention').length
+  }
+}
+
+
 function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaroundOperations = [], isLoading = false, error = '', onRetry, onUpdateOperationCommand, onUpdateTaskStatus, onUpdateTaskDetails, onCreateTask, onCreateTaskUpdate, onDeleteTask, onUpdateStaffing, onUpdateSignoff, onCreateEscalation, onUpdateEscalation, onUpdateHandoff, updatingOperationId = '', updatingTaskId = '', updatingTaskDetailsId = '', creatingTaskId = '', creatingTaskUpdateId = '', deletingTaskId = '', updatingStaffingKey = '', updatingSignoffKey = '', creatingEscalationId = '', updatingEscalationId = '', updatingHandoffId = '', mutationStatus = '', mutationError = '' }) {
   const readinessOperations = useMemo(() => buildTurnaroundOperationCards(turnaroundOperations, roleView), [turnaroundOperations, roleView])
   const [selectedTurnaroundId, setSelectedTurnaroundId] = useState('')
@@ -415,13 +552,16 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
   const selectedOperation = readinessOperations.find(operation => operation.id === selectedTurnaroundId) || readinessOperations[0]
   const visibleReadinessOperations = selectedOperation ? [selectedOperation] : []
   const operationalDirectory = useMemo(() => buildOperationalDirectory(visibleReadinessOperations), [visibleReadinessOperations])
+  const [selectedDirectoryRole, setSelectedDirectoryRole] = useState('')
+  const selectedDirectoryEntry = operationalDirectory.find(entry => entry.role === selectedDirectoryRole) || operationalDirectory.find(entry => entry.role === normalizeOperationalRoleName(roleView)) || operationalDirectory[0]
+  const selectedDirectoryHealth = selectedDirectoryEntry ? getDirectoryHealthStatus(selectedDirectoryEntry) : { label: 'Pending', tone: 'pending' }
   const highCoordinationCount = visibleReadinessOperations.filter(item => String(item.readinessLevel).toLowerCase().includes('high')).length
   const passengerTotal = selectedOperation?.passengerCount || 0
   const focusLine = selectedOperation?.tasks?.[0]?.taskName || getOperationalRoleFocus(roleView)
   const [activeOperationsWorkspace, setActiveOperationsWorkspace] = useState('overview')
   const operationsWorkspaceTabs = [
     { id: 'overview', label: 'Overview', summary: 'Command plan, selected sailing context, and cross-department directory.' },
-    { id: 'tasks', label: 'Tasks', summary: 'Role-focused task checklist, follow-up tasks, blocker notes, and shift updates.' },
+    { id: 'tasks', label: 'Tasks', summary: 'Task checklist, follow-up tasks, blocker notes, and shift updates.' },
     { id: 'dependencies', label: 'Dependencies', summary: 'Gates that must clear before embarkation or department release work can continue.' },
     { id: 'handoffs', label: 'Handoffs', summary: 'Department-to-department release workflow, owners, due times, and notes.' },
     { id: 'escalations', label: 'Escalations', summary: 'Open operational risks, owners, severity, monitoring, and resolution state.' },
@@ -432,6 +572,9 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
   const [selectedTaskId, setSelectedTaskId] = useState('')
   const [selectedDependencyId, setSelectedDependencyId] = useState('')
   const [selectedHandoffId, setSelectedHandoffId] = useState('')
+  const [selectedEscalationId, setSelectedEscalationId] = useState('')
+  const [selectedStaffingRole, setSelectedStaffingRole] = useState('')
+  const [selectedReadinessRole, setSelectedReadinessRole] = useState('')
   const [operationCommandDrafts, setOperationCommandDrafts] = useState({})
   const [taskDetailDrafts, setTaskDetailDrafts] = useState({})
   const [taskCreateDrafts, setTaskCreateDrafts] = useState({})
@@ -459,6 +602,37 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
     blockedHandoffs: selectedOperationHandoffs.filter(handoff => handoff.status === 'BLOCKED').length,
     pendingHandoffs: selectedOperationHandoffs.filter(handoff => handoff.status !== 'COMPLETE').length
   }
+  const selectedOperationStaffing = selectedOperation?.staffing || []
+  const selectedStaffing = selectedOperationStaffing.find(staffing => staffing.departmentRole === selectedStaffingRole) || selectedOperationStaffing.find(staffing => staffing.departmentRole === roleView) || selectedOperationStaffing[0]
+  const selectedStaffingKey = selectedStaffing?.departmentRole || ''
+  const selectedOperationSignoffs = selectedOperation?.signoffs || []
+  const selectedReadinessSignoff = selectedOperationSignoffs.find(signoff => signoff.departmentRole === selectedReadinessRole) || selectedOperationSignoffs.find(signoff => signoff.departmentRole === roleView) || selectedOperationSignoffs[0]
+  const selectedReadinessKey = selectedReadinessSignoff?.departmentRole || ''
+  const roleOperationsBrief = useMemo(() => buildRoleOperationsBrief({ roleView, selectedOperation, selectedStaffing, selectedReadinessSignoff }), [roleView, selectedOperation, selectedStaffing, selectedReadinessSignoff])
+  const readinessWorkspaceSummary = {
+    totalSignoffs: selectedOperationSignoffs.length,
+    approvedSignoffs: selectedOperationSignoffs.filter(signoff => String(signoff.status || '').toUpperCase() === 'APPROVED').length,
+    pendingSignoffs: selectedOperationSignoffs.filter(signoff => String(signoff.status || '').toUpperCase() === 'PENDING').length,
+    blockedSignoffs: selectedOperationSignoffs.filter(signoff => String(signoff.status || '').toUpperCase() === 'BLOCKED').length
+  }
+  const staffingWorkspaceSummary = selectedOperation?.staffingSummary || {
+    totalDepartments: selectedOperationStaffing.length,
+    plannedCount: selectedOperationStaffing.reduce((sum, staffing) => sum + Number(staffing.plannedCount || 0), 0),
+    checkedInCount: selectedOperationStaffing.reduce((sum, staffing) => sum + Number(staffing.checkedInCount || 0), 0),
+    gapCount: selectedOperationStaffing.reduce((sum, staffing) => sum + Math.max(Number(staffing.plannedCount || 0) - Number(staffing.checkedInCount || 0), 0), 0),
+    checkInPercent: selectedOperationStaffing.reduce((sum, staffing) => sum + Number(staffing.plannedCount || 0), 0) > 0
+      ? Math.round((selectedOperationStaffing.reduce((sum, staffing) => sum + Number(staffing.checkedInCount || 0), 0) / selectedOperationStaffing.reduce((sum, staffing) => sum + Number(staffing.plannedCount || 0), 0)) * 100)
+      : 0
+  }
+  const selectedOperationEscalations = selectedOperation?.escalations || []
+  const selectedEscalation = selectedOperationEscalations.find(escalation => escalation.id === selectedEscalationId) || selectedOperationEscalations[0]
+  const selectedEscalationKey = selectedEscalation?.id || ''
+  const escalationWorkspaceSummary = selectedOperation?.escalationSummary || {
+    totalEscalations: selectedOperationEscalations.length,
+    openEscalations: selectedOperationEscalations.filter(escalation => String(escalation.status || '').toUpperCase() === 'OPEN').length,
+    monitoringEscalations: selectedOperationEscalations.filter(escalation => String(escalation.status || '').toUpperCase() === 'MONITORING').length,
+    criticalEscalations: selectedOperationEscalations.filter(escalation => String(escalation.severity || '').toUpperCase() === 'CRITICAL').length
+  }
   const selectedTask = selectedOperationTasks.find(task => (task.id || task.taskName) === selectedTaskId) || selectedOperationTasks[0]
   const selectedTaskKey = selectedTask?.id || selectedTask?.taskName || ''
   const taskWorkspaceSummary = selectedOperation?.taskSummary || {
@@ -469,6 +643,67 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
       ? Math.round((selectedOperationTasks.filter(task => task.status === 'COMPLETE').length / selectedOperationTasks.length) * 100)
       : 0
   }
+  const operationReleaseScore = Math.round((
+    Number(taskWorkspaceSummary.completionPercent || 0) +
+    Number(staffingWorkspaceSummary.checkInPercent || 0) +
+    (readinessWorkspaceSummary.totalSignoffs > 0 ? Math.round((readinessWorkspaceSummary.approvedSignoffs / readinessWorkspaceSummary.totalSignoffs) * 100) : 0) +
+    (dependencyWorkspaceSummary.totalDependencies > 0 ? Math.round((dependencyWorkspaceSummary.clearedDependencies / dependencyWorkspaceSummary.totalDependencies) * 100) : 100)
+  ) / 4)
+  const releaseBoardItems = [
+    {
+      id: 'tasks',
+      label: 'Task execution',
+      value: `${taskWorkspaceSummary.completeTasks || 0}/${taskWorkspaceSummary.totalTasks || 0}`,
+      detail: taskWorkspaceSummary.blockedTasks > 0 ? `${taskWorkspaceSummary.blockedTasks} blocked` : 'Active workstream',
+      tone: taskWorkspaceSummary.blockedTasks > 0 ? 'attention' : 'steady'
+    },
+    {
+      id: 'dependencies',
+      label: 'Dependency gates',
+      value: `${dependencyWorkspaceSummary.clearedDependencies || 0}/${dependencyWorkspaceSummary.totalDependencies || 0}`,
+      detail: dependencyWorkspaceSummary.activeDependencies > 0 ? `${dependencyWorkspaceSummary.activeDependencies} active` : 'Gates clear',
+      tone: dependencyWorkspaceSummary.activeDependencies > 0 ? 'watch' : 'clear'
+    },
+    {
+      id: 'staffing',
+      label: 'Staffing coverage',
+      value: `${staffingWorkspaceSummary.checkInPercent || 0}%`,
+      detail: staffingWorkspaceSummary.gapCount > 0 ? `${staffingWorkspaceSummary.gapCount} open positions` : 'Coverage aligned',
+      tone: staffingWorkspaceSummary.gapCount > 0 ? 'watch' : 'clear'
+    },
+    {
+      id: 'readiness',
+      label: 'Readiness approvals',
+      value: `${readinessWorkspaceSummary.approvedSignoffs || 0}/${readinessWorkspaceSummary.totalSignoffs || 0}`,
+      detail: readinessWorkspaceSummary.blockedSignoffs > 0 ? `${readinessWorkspaceSummary.blockedSignoffs} blocked` : 'Department signoffs',
+      tone: readinessWorkspaceSummary.blockedSignoffs > 0 ? 'attention' : 'steady'
+    }
+  ]
+
+  const portfolioOperationItems = readinessOperations.map(operation => ({
+    operation,
+    metrics: getOperationReleaseMetrics(operation)
+  }))
+  const portfolioAverageReadiness = portfolioOperationItems.length > 0
+    ? Math.round(portfolioOperationItems.reduce((sum, item) => sum + item.metrics.releaseScore, 0) / portfolioOperationItems.length)
+    : 0
+  const portfolioNeedsAttention = portfolioOperationItems.filter(item => getOperationPortfolioTone(item.metrics) === 'attention').length
+  const portfolioWatchCount = portfolioOperationItems.filter(item => getOperationPortfolioTone(item.metrics) === 'watch').length
+  const portfolioOpenEscalations = portfolioOperationItems.reduce((sum, item) => sum + Number(item.metrics.openEscalations || 0), 0)
+
+
+  useEffect(() => {
+    if (operationalDirectory.length === 0) {
+      if (selectedDirectoryRole) setSelectedDirectoryRole('')
+      return
+    }
+
+    if (!operationalDirectory.some(entry => entry.role === selectedDirectoryRole)) {
+      const roleEntry = operationalDirectory.find(entry => entry.role === normalizeOperationalRoleName(roleView))
+      setSelectedDirectoryRole((roleEntry || operationalDirectory[0]).role)
+    }
+  }, [operationalDirectory, selectedDirectoryRole, roleView])
+
 
   useEffect(() => {
     if (selectedOperationTasks.length === 0) {
@@ -505,6 +740,44 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
       setSelectedHandoffId(selectedOperationHandoffs[0].id)
     }
   }, [selectedOperation?.id, selectedOperationHandoffs, selectedHandoffId])
+
+
+  useEffect(() => {
+    if (selectedOperationStaffing.length === 0) {
+      if (selectedStaffingRole) setSelectedStaffingRole('')
+      return
+    }
+
+    if (!selectedOperationStaffing.some(staffing => staffing.departmentRole === selectedStaffingRole)) {
+      const roleStaffing = selectedOperationStaffing.find(staffing => staffing.departmentRole === roleView)
+      setSelectedStaffingRole((roleStaffing || selectedOperationStaffing[0]).departmentRole)
+    }
+  }, [selectedOperation?.id, selectedOperationStaffing, selectedStaffingRole, roleView])
+
+
+  useEffect(() => {
+    if (selectedOperationSignoffs.length === 0) {
+      if (selectedReadinessRole) setSelectedReadinessRole('')
+      return
+    }
+
+    if (!selectedOperationSignoffs.some(signoff => signoff.departmentRole === selectedReadinessRole)) {
+      const roleSignoff = selectedOperationSignoffs.find(signoff => signoff.departmentRole === roleView)
+      setSelectedReadinessRole((roleSignoff || selectedOperationSignoffs[0]).departmentRole)
+    }
+  }, [selectedOperation?.id, selectedOperationSignoffs, selectedReadinessRole, roleView])
+
+
+  useEffect(() => {
+    if (selectedOperationEscalations.length === 0) {
+      if (selectedEscalationId) setSelectedEscalationId('')
+      return
+    }
+
+    if (!selectedOperationEscalations.some(escalation => escalation.id === selectedEscalationId)) {
+      setSelectedEscalationId(selectedOperationEscalations[0].id)
+    }
+  }, [selectedOperation?.id, selectedOperationEscalations, selectedEscalationId])
 
 
 
@@ -641,9 +914,9 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
   }
 
 
-  function getRoleStaffing(operationCard) {
-    return (operationCard.staffing || []).find(staffing => staffing.departmentRole === roleView) || {
-      departmentRole: roleView,
+  function getRoleStaffing(operationCard, departmentRole = roleView) {
+    return (operationCard.staffing || []).find(staffing => staffing.departmentRole === departmentRole) || {
+      departmentRole,
       plannedCount: 0,
       checkedInCount: 0,
       leadName: selectedDemoUser?.displayName || '',
@@ -652,10 +925,11 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
     }
   }
 
-  function getStaffingDraft(operationCard) {
-    const existingStaffing = getRoleStaffing(operationCard)
+  function getStaffingDraft(operationCard, departmentRole = roleView) {
+    const existingStaffing = getRoleStaffing(operationCard, departmentRole)
+    const draftKey = `${operationCard.id}:${departmentRole}`
 
-    return staffingDrafts[operationCard.id] || {
+    return staffingDrafts[draftKey] || {
       plannedCount: String(existingStaffing.plannedCount ?? 0),
       checkedInCount: String(existingStaffing.checkedInCount ?? 0),
       leadName: existingStaffing.leadName || selectedDemoUser?.displayName || '',
@@ -664,71 +938,76 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
     }
   }
 
-  function updateStaffingDraft(operationCard, fieldName, value) {
+  function updateStaffingDraft(operationCard, fieldName, value, departmentRole = roleView) {
+    const draftKey = `${operationCard.id}:${departmentRole}`
+
     setStaffingDrafts(current => ({
       ...current,
-      [operationCard.id]: {
-        ...getStaffingDraft(operationCard),
+      [draftKey]: {
+        ...getStaffingDraft(operationCard, departmentRole),
         [fieldName]: value
       }
     }))
   }
 
-  async function saveStaffing(operationCard) {
-    const draft = getStaffingDraft(operationCard)
+  async function saveStaffing(operationCard, departmentRole = roleView) {
+    const draft = getStaffingDraft(operationCard, departmentRole)
     const payload = {
       ...draft,
       plannedCount: Number(draft.plannedCount || 0),
       checkedInCount: Number(draft.checkedInCount || 0)
     }
-    const response = await onUpdateStaffing?.(operationCard.id, roleView, payload)
+    const response = await onUpdateStaffing?.(operationCard.id, departmentRole, payload)
 
     if (response) {
       setStaffingDrafts(current => {
         const next = { ...current }
-        delete next[operationCard.id]
+        delete next[`${operationCard.id}:${departmentRole}`]
         return next
       })
     }
   }
 
-  function getRoleSignoff(operationCard) {
-    return (operationCard.signoffs || []).find(signoff => signoff.departmentRole === roleView) || {
-      departmentRole: roleView,
+  function getRoleSignoff(operationCard, departmentRole = roleView) {
+    return (operationCard.signoffs || []).find(signoff => signoff.departmentRole === departmentRole) || {
+      departmentRole,
       approverName: selectedDemoUser?.displayName || '',
       status: 'PENDING',
       notes: ''
     }
   }
 
-  function getSignoffDraft(operationCard) {
-    const existingSignoff = getRoleSignoff(operationCard)
+  function getSignoffDraft(operationCard, departmentRole = roleView) {
+    const existingSignoff = getRoleSignoff(operationCard, departmentRole)
+    const draftKey = `${operationCard.id}:${departmentRole}`
 
-    return signoffDrafts[operationCard.id] || {
+    return signoffDrafts[draftKey] || {
       approverName: existingSignoff.approverName || selectedDemoUser?.displayName || '',
       status: existingSignoff.status || 'PENDING',
       notes: existingSignoff.notes || ''
     }
   }
 
-  function updateSignoffDraft(operationCard, fieldName, value) {
+  function updateSignoffDraft(operationCard, fieldName, value, departmentRole = roleView) {
+    const draftKey = `${operationCard.id}:${departmentRole}`
+
     setSignoffDrafts(current => ({
       ...current,
-      [operationCard.id]: {
-        ...getSignoffDraft(operationCard),
+      [draftKey]: {
+        ...getSignoffDraft(operationCard, departmentRole),
         [fieldName]: value
       }
     }))
   }
 
-  async function saveSignoff(operationCard) {
-    const draft = getSignoffDraft(operationCard)
-    const response = await onUpdateSignoff?.(operationCard.id, roleView, draft)
+  async function saveSignoff(operationCard, departmentRole = roleView) {
+    const draft = getSignoffDraft(operationCard, departmentRole)
+    const response = await onUpdateSignoff?.(operationCard.id, departmentRole, draft)
 
     if (response) {
       setSignoffDrafts(current => {
         const next = { ...current }
-        delete next[operationCard.id]
+        delete next[`${operationCard.id}:${departmentRole}`]
         return next
       })
     }
@@ -891,6 +1170,74 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         </dl>
       </div>
 
+      {readinessOperations.length > 0 && (
+        <section className="operations-portfolio-board" aria-labelledby="operations-portfolio-board-heading" data-testid="react-operations-portfolio-board">
+          <div className="operations-portfolio-heading">
+            <div>
+              <p className="eyebrow">Fleet operations portfolio</p>
+              <h4 id="operations-portfolio-board-heading">Turnaround command across active sailings</h4>
+              <p>Review every visible turnaround by release readiness, open escalations, blockers, and passenger load before drilling into a single sailing.</p>
+            </div>
+            <dl className="operations-portfolio-summary" aria-label="Fleet turnaround summary" data-testid="react-operations-portfolio-summary">
+              <div>
+                <dt>Average readiness</dt>
+                <dd>{portfolioAverageReadiness}%</dd>
+              </div>
+              <div>
+                <dt>Needs attention</dt>
+                <dd>{portfolioNeedsAttention}</dd>
+              </div>
+              <div>
+                <dt>Watch</dt>
+                <dd>{portfolioWatchCount}</dd>
+              </div>
+              <div>
+                <dt>Open escalations</dt>
+                <dd>{portfolioOpenEscalations}</dd>
+              </div>
+            </dl>
+          </div>
+          <div className="operations-portfolio-list" data-testid="react-operations-portfolio-list">
+            {portfolioOperationItems.map(({ operation, metrics }) => {
+              const tone = getOperationPortfolioTone(metrics)
+              return (
+                <button
+                  type="button"
+                  key={operation.id}
+                  className={`operations-portfolio-card ${tone}${operation.id === selectedOperation?.id ? ' active' : ''}`}
+                  aria-pressed={operation.id === selectedOperation?.id}
+                  onClick={() => setSelectedTurnaroundId(operation.id)}
+                  data-testid="react-operations-portfolio-card"
+                >
+                  <span className={`operations-portfolio-status ${tone}`}>{getOperationPortfolioStatus(metrics)}</span>
+                  <strong>{operation.title}</strong>
+                  <span>{operation.shipName} · {operation.port || operation.arrivalPort}</span>
+                  <dl>
+                    <div>
+                      <dt>Ready</dt>
+                      <dd>{metrics.releaseScore}%</dd>
+                    </div>
+                    <div>
+                      <dt>Tasks</dt>
+                      <dd>{metrics.completeTasks}/{metrics.totalTasks}</dd>
+                    </div>
+                    <div>
+                      <dt>Blocked</dt>
+                      <dd>{metrics.blockedTasks}</dd>
+                    </div>
+                    <div>
+                      <dt>Escalations</dt>
+                      <dd>{metrics.openEscalations}</dd>
+                    </div>
+                  </dl>
+                </button>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
+
       {readinessOperations.length > 1 && selectedOperation && (
         <section className="turnaround-selector-panel" aria-labelledby="turnaround-selector-heading" data-testid="react-turnaround-selector-panel">
           <div>
@@ -934,11 +1281,42 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         </section>
       )}
 
+      {selectedOperation && (
+        <section className="operations-release-board" aria-labelledby="operations-release-board-heading" data-testid="react-operations-release-board">
+          <div className="operations-release-board-header">
+            <div>
+              <p className="eyebrow">Turnaround release board</p>
+              <h4 id="operations-release-board-heading">Operational readiness at a glance</h4>
+              <p>Use the release board to spot the workstream that needs attention before guests arrive at the terminal.</p>
+            </div>
+            <div className="operations-release-score" data-testid="react-operations-release-score" aria-label={`Overall release readiness ${operationReleaseScore}%`}>
+              <span>{operationReleaseScore}%</span>
+              <small>overall readiness</small>
+            </div>
+          </div>
+          <div className="operations-release-board-grid" data-testid="react-operations-release-board-grid">
+            {releaseBoardItems.map(item => (
+              <button
+                type="button"
+                key={item.id}
+                className={`operations-release-card ${item.tone}`}
+                onClick={() => setActiveOperationsWorkspace(item.id)}
+                data-testid="react-operations-release-card"
+              >
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+                <em>{item.detail}</em>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="operations-workspace-shell" aria-labelledby="operations-workspace-heading" data-testid="react-operations-workspace-shell">
         <div className="operations-workspace-heading">
           <p className="eyebrow">Operations workspace</p>
           <h4 id="operations-workspace-heading">Focus by operational workstream</h4>
-          <p>Select a workstream to orient the command center around the job the role is trying to complete. This is the navigation foundation for the focused workspaces coming next.</p>
+          <p>Select a workstream to orient the command center around the job this role needs to complete.</p>
         </div>
         <nav className="operations-workspace-nav" aria-label="Turnaround operations workstreams" data-testid="react-operations-workspace-nav">
           {operationsWorkspaceTabs.map(tab => (
@@ -960,54 +1338,115 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         </div>
       </section>
 
-      {operationalDirectory.length > 0 && (
+      {selectedOperation && (
+        <section className="operations-role-brief-panel" aria-labelledby="operations-role-brief-heading" data-testid="react-operations-role-brief-panel">
+          <div className="operations-role-brief-heading">
+            <div>
+              <p className="eyebrow">Role command brief</p>
+              <h4 id="operations-role-brief-heading">{roleOperationsBrief.roleLabel} priorities for {selectedOperation.title}</h4>
+              <p>Use this department brief to move directly into the highest-value work for the selected turnaround.</p>
+            </div>
+            <span className={`operations-role-brief-alert${roleOperationsBrief.attentionCount > 0 ? ' needs-attention' : ''}`} data-testid="react-operations-role-brief-attention">
+              {roleOperationsBrief.attentionCount > 0 ? `${roleOperationsBrief.attentionCount} needs attention` : 'No immediate blockers'}
+            </span>
+          </div>
+          <div className="operations-role-brief-grid" data-testid="react-operations-role-brief-grid">
+            {roleOperationsBrief.actionCards.map(card => (
+              <button
+                type="button"
+                key={card.id}
+                className={`operations-role-brief-card ${card.priority}`}
+                onClick={() => setActiveOperationsWorkspace(card.id)}
+                data-testid="react-operations-role-brief-card"
+              >
+                <span>{card.label}</span>
+                <strong>{card.value}</strong>
+                <em>{card.status}</em>
+                <small>{card.description}</small>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {operationalDirectory.length > 0 && selectedDirectoryEntry && (
         <section className="operations-directory-panel" aria-labelledby="operations-directory-heading" data-testid="react-operations-directory-panel">
           <div className="operations-directory-heading">
             <div>
               <p className="eyebrow">Operations directory</p>
-              <h4 id="operations-directory-heading">Department contacts and active workload</h4>
-              <p>Fast cross-department visibility for leads, staffing coverage, handoffs, blockers, and escalation ownership across the visible turnaround plans.</p>
+              <h4 id="operations-directory-heading">Department command directory</h4>
+              <p>Select a department to review contacts, coverage, blockers, and coordination details without scanning every department card at once.</p>
             </div>
             <span className="operations-directory-count" data-testid="react-operations-directory-count">{operationalDirectory.length} departments</span>
           </div>
-          <div className="operations-directory-grid" aria-label="Operational department directory">
-            {operationalDirectory.map(entry => (
-              <article className={`operations-directory-card${entry.role === roleView ? ' active' : ''}`} key={entry.role} data-testid="react-operations-directory-card">
-                <div className="operations-directory-card-header">
-                  <div>
-                    <p className="eyebrow">{entry.role === roleView ? 'Current role' : 'Partner role'}</p>
-                    <h5>{entry.label}</h5>
-                  </div>
-                  <span>{entry.staffingPercent}% staffed</span>
+          <div className="operations-directory-layout">
+            <div className="operations-directory-list" aria-label="Operational department directory">
+              {operationalDirectory.map(entry => {
+                const health = getDirectoryHealthStatus(entry)
+                return (
+                  <button
+                    type="button"
+                    className={`operations-directory-card${entry.role === selectedDirectoryEntry.role ? ' active' : ''}${entry.role === normalizeOperationalRoleName(roleView) ? ' current-role' : ''}`}
+                    key={entry.role}
+                    aria-pressed={entry.role === selectedDirectoryEntry.role}
+                    onClick={() => setSelectedDirectoryRole(entry.role)}
+                    data-testid="react-operations-directory-card"
+                  >
+                    <span className="operations-directory-card-title">
+                      <span>
+                        <span className="eyebrow">{entry.role === normalizeOperationalRoleName(roleView) ? 'Current role' : 'Partner role'}</span>
+                        <strong>{entry.label}</strong>
+                      </span>
+                      <em className={`operations-directory-health ${health.tone}`}>{health.label}</em>
+                    </span>
+                    <span className="operations-directory-card-summary">
+                      <strong>{entry.staffingPercent}%</strong> staffed · {entry.taskCount} tasks · {entry.activeEscalations} escalations
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+            <article className="operations-directory-detail" aria-label={`${selectedDirectoryEntry.label} department details`} data-testid="react-operations-directory-detail">
+              <div className="operations-directory-detail-header">
+                <div>
+                  <p className="eyebrow">Department detail</p>
+                  <h5>{selectedDirectoryEntry.label}</h5>
                 </div>
-                <dl className="operations-directory-metrics">
-                  <div>
-                    <dt>Tasks</dt>
-                    <dd>{entry.taskCount}</dd>
-                  </div>
-                  <div>
-                    <dt>Blocked</dt>
-                    <dd>{entry.blockedTasks + entry.blockedHandoffs}</dd>
-                  </div>
-                  <div>
-                    <dt>Handoffs</dt>
-                    <dd>{entry.handoffCount}</dd>
-                  </div>
-                  <div>
-                    <dt>Escalations</dt>
-                    <dd>{entry.activeEscalations}</dd>
-                  </div>
-                </dl>
+                <span className={`operations-directory-health ${selectedDirectoryHealth.tone}`}>{selectedDirectoryHealth.label}</span>
+              </div>
+              <dl className="operations-directory-metrics">
+                <div>
+                  <dt>Staffed</dt>
+                  <dd>{selectedDirectoryEntry.staffingPercent}%</dd>
+                </div>
+                <div>
+                  <dt>Tasks</dt>
+                  <dd>{selectedDirectoryEntry.taskCount}</dd>
+                </div>
+                <div>
+                  <dt>Blocked</dt>
+                  <dd>{selectedDirectoryEntry.blockedTasks + selectedDirectoryEntry.blockedHandoffs}</dd>
+                </div>
+                <div>
+                  <dt>Handoffs</dt>
+                  <dd>{selectedDirectoryEntry.handoffCount}</dd>
+                </div>
+                <div>
+                  <dt>Escalations</dt>
+                  <dd>{selectedDirectoryEntry.activeEscalations}</dd>
+                </div>
+              </dl>
+              <div className="operations-directory-detail-grid">
                 <div className="operations-directory-contact">
                   <strong>Contacts</strong>
-                  <p>{entry.leadNames.length ? entry.leadNames.join(', ') : 'Lead assignment pending'}</p>
+                  <p>{selectedDirectoryEntry.leadNames.length ? selectedDirectoryEntry.leadNames.join(', ') : 'Lead assignment pending'}</p>
                 </div>
                 <div className="operations-directory-contact">
                   <strong>Muster / coordination</strong>
-                  <p>{entry.musterLocations.length ? entry.musterLocations.join(', ') : 'Location pending'}</p>
+                  <p>{selectedDirectoryEntry.musterLocations.length ? selectedDirectoryEntry.musterLocations.join(', ') : 'Location pending'}</p>
                 </div>
-              </article>
-            ))}
+              </div>
+            </article>
           </div>
         </section>
       )}
@@ -1024,11 +1463,266 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         </div>
       ) : readinessOperations.length === 0 ? (
         <p className="status-card compact" data-testid="react-operational-empty-state">No turnaround operation records are available yet.</p>
+      ) : activeOperationsWorkspace === 'readiness' && selectedOperation ? (
+        <section className="operations-readiness-workspace" aria-labelledby="operations-readiness-workspace-heading" data-testid="react-operations-readiness-workspace">
+          <div className="operations-readiness-workspace-header">
+            <div>
+              <p className="eyebrow">Readiness Approvals</p>
+              <h4 id="operations-readiness-workspace-heading">Readiness approvals for {selectedOperation.title}</h4>
+              <p>Review department release decisions in one approval queue. Select a department to confirm status, approver ownership, and signoff notes before final turnaround release.</p>
+            </div>
+            <dl className="operations-readiness-workspace-metrics" aria-label="Selected turnaround readiness summary" data-testid="react-operations-readiness-workspace-summary">
+              <div>
+                <dt>Departments</dt>
+                <dd>{readinessWorkspaceSummary.totalSignoffs}</dd>
+              </div>
+              <div>
+                <dt>Approved</dt>
+                <dd>{readinessWorkspaceSummary.approvedSignoffs}</dd>
+              </div>
+              <div>
+                <dt>Pending</dt>
+                <dd>{readinessWorkspaceSummary.pendingSignoffs}</dd>
+              </div>
+              <div>
+                <dt>Blocked</dt>
+                <dd>{readinessWorkspaceSummary.blockedSignoffs}</dd>
+              </div>
+            </dl>
+          </div>
+
+          {selectedOperationSignoffs.length === 0 ? (
+            <p className="status-card compact" data-testid="react-operations-readiness-empty-state">No department readiness approvals are assigned to this turnaround yet.</p>
+          ) : (
+            <div className="operations-readiness-layout">
+              <div className="operations-readiness-list-panel" aria-label="Department readiness approval queue">
+                <div className="operations-readiness-list-heading">
+                  <h5>Department approvals</h5>
+                  <span>{readinessWorkspaceSummary.approvedSignoffs} of {readinessWorkspaceSummary.totalSignoffs} approved</span>
+                </div>
+                <ul className="operations-readiness-list" data-testid="react-operations-readiness-list">
+                  {selectedOperationSignoffs.map(signoff => {
+                    const isSelected = signoff.departmentRole === selectedReadinessKey
+                    const signoffStatus = String(signoff.status || 'PENDING').toUpperCase()
+
+                    return (
+                      <li key={`${selectedOperation.id}-${signoff.departmentRole}`}>
+                        <button
+                          type="button"
+                          className={`operations-readiness-list-item${isSelected ? ' active' : ''} ${signoffStatus.toLowerCase()}`}
+                          aria-pressed={isSelected}
+                          onClick={() => setSelectedReadinessRole(signoff.departmentRole)}
+                          data-testid="react-operations-readiness-list-item"
+                        >
+                          <span className={`operations-readiness-status-pill ${signoffStatus.toLowerCase()}`}>{signoffStatus}</span>
+                          <strong>{getOperationalRoleLabel(signoff.departmentRole)}</strong>
+                          <span>{signoff.approverName || 'Approver pending'}</span>
+                          {signoff.notes && <small>{signoff.notes}</small>}
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+
+              {selectedReadinessSignoff && (
+                <article className="operations-readiness-detail-panel" aria-label={`Readiness approval details for ${selectedReadinessSignoff.departmentRole}`} data-testid="react-operations-readiness-detail-panel">
+                  <div className="operations-readiness-detail-header">
+                    <div>
+                      <p className="eyebrow">Readiness Details</p>
+                      <h5>{getOperationalRoleLabel(selectedReadinessSignoff.departmentRole)}</h5>
+                    </div>
+                    <span className={`operations-readiness-status-pill ${String(selectedReadinessSignoff.status || 'PENDING').toLowerCase()}`}>{selectedReadinessSignoff.status || 'PENDING'}</span>
+                  </div>
+
+                  <dl className="operations-readiness-detail-list" data-testid="react-operations-readiness-detail-list">
+                    <div>
+                      <dt>Department</dt>
+                      <dd>{getOperationalRoleLabel(selectedReadinessSignoff.departmentRole)}</dd>
+                    </div>
+                    <div>
+                      <dt>Status</dt>
+                      <dd>{selectedReadinessSignoff.status || 'PENDING'}</dd>
+                    </div>
+                    <div>
+                      <dt>Approver</dt>
+                      <dd>{selectedReadinessSignoff.approverName || 'Approver pending'}</dd>
+                    </div>
+                    <div>
+                      <dt>Signed at</dt>
+                      <dd>{selectedReadinessSignoff.signedAt || 'Not signed yet'}</dd>
+                    </div>
+                  </dl>
+
+                  {selectedReadinessSignoff.notes && (
+                    <div className="operations-readiness-note" data-testid="react-operations-readiness-note">
+                      <strong>Readiness note</strong>
+                      <p>{selectedReadinessSignoff.notes}</p>
+                    </div>
+                  )}
+
+                  {onUpdateSignoff && (
+                    <form className="operations-readiness-detail-form operational-signoff-form" onSubmit={event => { event.preventDefault(); saveSignoff(selectedOperation, selectedReadinessSignoff.departmentRole) }} data-testid="react-operational-signoff-form">
+                      <label>
+                        <span>Readiness status</span>
+                        <select value={getSignoffDraft(selectedOperation, selectedReadinessSignoff.departmentRole).status} onChange={event => updateSignoffDraft(selectedOperation, 'status', event.target.value, selectedReadinessSignoff.departmentRole)} aria-label={`${selectedOperation.title} ${selectedReadinessSignoff.departmentRole} readiness status`}>
+                          <option value="PENDING">Pending</option>
+                          <option value="APPROVED">Approved</option>
+                          <option value="BLOCKED">Blocked</option>
+                        </select>
+                      </label>
+                      <label>
+                        <span>Approver</span>
+                        <input value={getSignoffDraft(selectedOperation, selectedReadinessSignoff.departmentRole).approverName} onChange={event => updateSignoffDraft(selectedOperation, 'approverName', event.target.value, selectedReadinessSignoff.departmentRole)} aria-label={`${selectedOperation.title} ${selectedReadinessSignoff.departmentRole} readiness approver`} />
+                      </label>
+                      <label className="full-width-field">
+                        <span>Signoff notes</span>
+                        <textarea value={getSignoffDraft(selectedOperation, selectedReadinessSignoff.departmentRole).notes} onChange={event => updateSignoffDraft(selectedOperation, 'notes', event.target.value, selectedReadinessSignoff.departmentRole)} aria-label={`${selectedOperation.title} ${selectedReadinessSignoff.departmentRole} readiness notes`} rows="3" />
+                      </label>
+                      <button type="submit" className="secondary-action-button compact-button" disabled={updatingSignoffKey === `${selectedOperation.id}:${selectedReadinessSignoff.departmentRole}` || !getSignoffDraft(selectedOperation, selectedReadinessSignoff.departmentRole).approverName.trim()}>Save readiness approval</button>
+                    </form>
+                  )}
+                </article>
+              )}
+            </div>
+          )}
+        </section>
+      ) : activeOperationsWorkspace === 'staffing' && selectedOperation ? (
+        <section className="operations-staffing-workspace" aria-labelledby="operations-staffing-workspace-heading" data-testid="react-operations-staffing-workspace">
+          <div className="operations-staffing-workspace-header">
+            <div>
+              <p className="eyebrow">Staffing Coverage</p>
+              <h4 id="operations-staffing-workspace-heading">Staffing coverage for {selectedOperation.title}</h4>
+              <p>Review crew coverage as a dedicated staffing queue. Select one department to update planned headcount, checked-in crew, lead ownership, muster location, and staffing notes without scanning every department card.</p>
+            </div>
+            <dl className="operations-staffing-workspace-metrics" aria-label="Selected turnaround staffing summary" data-testid="react-operations-staffing-workspace-summary">
+              <div>
+                <dt>Departments</dt>
+                <dd>{staffingWorkspaceSummary.totalDepartments || selectedOperationStaffing.length}</dd>
+              </div>
+              <div>
+                <dt>Planned</dt>
+                <dd>{staffingWorkspaceSummary.plannedCount || 0}</dd>
+              </div>
+              <div>
+                <dt>Checked in</dt>
+                <dd>{staffingWorkspaceSummary.checkedInCount || 0}</dd>
+              </div>
+              <div>
+                <dt>Gaps</dt>
+                <dd>{staffingWorkspaceSummary.gapCount || 0}</dd>
+              </div>
+            </dl>
+          </div>
+
+          {selectedOperationStaffing.length === 0 ? (
+            <p className="status-card compact" data-testid="react-operations-staffing-empty-state">No staffing plans are assigned to this selected turnaround yet.</p>
+          ) : (
+            <div className="operations-staffing-layout">
+              <div className="operations-staffing-list-panel" aria-label="Turnaround staffing queue">
+                <div className="operations-staffing-list-heading">
+                  <h5>Department staffing</h5>
+                  <span>{selectedOperationStaffing.length} department{selectedOperationStaffing.length === 1 ? '' : 's'}</span>
+                </div>
+                <ul className="operations-staffing-list" data-testid="react-operations-staffing-list">
+                  {selectedOperationStaffing.map(staffing => {
+                    const plannedCount = Number(staffing.plannedCount || 0)
+                    const checkedInCount = Number(staffing.checkedInCount || 0)
+                    const gapCount = Math.max(plannedCount - checkedInCount, 0)
+                    const checkInPercent = plannedCount > 0 ? Math.round((checkedInCount / plannedCount) * 100) : 0
+                    const isSelected = staffing.departmentRole === selectedStaffingKey
+
+                    return (
+                      <li key={`${selectedOperation.id}-${staffing.departmentRole}`}>
+                        <button
+                          type="button"
+                          className={`operations-staffing-list-item${isSelected ? ' active' : ''}${gapCount > 0 ? ' staffing-gap' : ''}`}
+                          aria-pressed={isSelected}
+                          onClick={() => setSelectedStaffingRole(staffing.departmentRole)}
+                          data-testid="react-operations-staffing-list-item"
+                        >
+                          <span className="operations-staffing-status-pill">{checkInPercent}% staffed</span>
+                          <strong>{getOperationalRoleLabel(staffing.departmentRole)}</strong>
+                          <span>{checkedInCount} of {plannedCount} checked in</span>
+                          <small>{staffing.leadName || 'Lead pending'} · {staffing.musterLocation || 'Muster pending'}</small>
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+
+              {selectedStaffing && (
+                <article className="operations-staffing-detail-panel" aria-label={`Staffing details for ${selectedStaffing.departmentRole}`} data-testid="react-operations-staffing-detail-panel">
+                  <div className="operations-staffing-detail-header">
+                    <div>
+                      <p className="eyebrow">Staffing Details</p>
+                      <h5>{getOperationalRoleLabel(selectedStaffing.departmentRole)}</h5>
+                    </div>
+                    <span className="operations-staffing-status-pill">{Number(selectedStaffing.plannedCount || 0) > 0 ? Math.round((Number(selectedStaffing.checkedInCount || 0) / Number(selectedStaffing.plannedCount || 0)) * 100) : 0}% staffed</span>
+                  </div>
+
+                  <dl className="operations-staffing-detail-list" data-testid="react-operations-staffing-detail-list">
+                    <div>
+                      <dt>Department</dt>
+                      <dd>{selectedStaffing.departmentRole}</dd>
+                    </div>
+                    <div>
+                      <dt>Lead</dt>
+                      <dd>{selectedStaffing.leadName || 'Lead pending'}</dd>
+                    </div>
+                    <div>
+                      <dt>Coverage</dt>
+                      <dd>{selectedStaffing.checkedInCount} of {selectedStaffing.plannedCount} checked in</dd>
+                    </div>
+                    <div>
+                      <dt>Muster</dt>
+                      <dd>{selectedStaffing.musterLocation || 'Muster pending'}</dd>
+                    </div>
+                  </dl>
+
+                  {selectedStaffing.notes && (
+                    <div className="operations-staffing-note" data-testid="react-operations-staffing-note">
+                      <strong>Staffing note</strong>
+                      <p>{selectedStaffing.notes}</p>
+                    </div>
+                  )}
+
+                  {onUpdateStaffing && (
+                    <form className="operations-staffing-detail-form operational-staffing-form" onSubmit={event => { event.preventDefault(); saveStaffing(selectedOperation, selectedStaffing.departmentRole) }} data-testid="react-operational-staffing-form">
+                      <label>
+                        <span>Planned staff</span>
+                        <input type="number" min="0" value={getStaffingDraft(selectedOperation, selectedStaffing.departmentRole).plannedCount} onChange={event => updateStaffingDraft(selectedOperation, 'plannedCount', event.target.value, selectedStaffing.departmentRole)} aria-label={`${selectedOperation.title} planned staff`} />
+                      </label>
+                      <label>
+                        <span>Checked in</span>
+                        <input type="number" min="0" value={getStaffingDraft(selectedOperation, selectedStaffing.departmentRole).checkedInCount} onChange={event => updateStaffingDraft(selectedOperation, 'checkedInCount', event.target.value, selectedStaffing.departmentRole)} aria-label={`${selectedOperation.title} checked in staff`} />
+                      </label>
+                      <label>
+                        <span>Staffing lead</span>
+                        <input value={getStaffingDraft(selectedOperation, selectedStaffing.departmentRole).leadName} onChange={event => updateStaffingDraft(selectedOperation, 'leadName', event.target.value, selectedStaffing.departmentRole)} aria-label={`${selectedOperation.title} staffing lead`} />
+                      </label>
+                      <label>
+                        <span>Muster location</span>
+                        <input value={getStaffingDraft(selectedOperation, selectedStaffing.departmentRole).musterLocation} onChange={event => updateStaffingDraft(selectedOperation, 'musterLocation', event.target.value, selectedStaffing.departmentRole)} aria-label={`${selectedOperation.title} staffing muster location`} />
+                      </label>
+                      <label className="full-width-field">
+                        <span>Staffing notes</span>
+                        <textarea value={getStaffingDraft(selectedOperation, selectedStaffing.departmentRole).notes} onChange={event => updateStaffingDraft(selectedOperation, 'notes', event.target.value, selectedStaffing.departmentRole)} aria-label={`${selectedOperation.title} staffing notes`} rows="3" />
+                      </label>
+                      <button type="submit" className="secondary-action-button compact-button" disabled={updatingStaffingKey === `${selectedOperation.id}:${selectedStaffing.departmentRole}` || !getStaffingDraft(selectedOperation, selectedStaffing.departmentRole).leadName.trim()}>Save staffing plan</button>
+                    </form>
+                  )}
+                </article>
+              )}
+            </div>
+          )}
+        </section>
       ) : activeOperationsWorkspace === 'dependencies' && selectedOperation ? (
         <section className="operations-dependency-workspace" aria-labelledby="operations-dependency-workspace-heading" data-testid="react-operations-dependency-workspace">
           <div className="operations-dependency-workspace-header">
             <div>
-              <p className="eyebrow">Slice 4 dependency workspace</p>
+              <p className="eyebrow">Dependency Gates</p>
               <h4 id="operations-dependency-workspace-heading">Dependency gates for {selectedOperation.title}</h4>
               <p>Review blocker gates as a dedicated release queue. Select one dependency to see the blocked task, prerequisite task, status, notes, and operational impact without crowding the main overview.</p>
             </div>
@@ -1086,7 +1780,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                 <article className="operations-dependency-detail-panel" aria-label={`Dependency details for ${selectedDependency.taskName}`} data-testid="react-operations-dependency-detail-panel">
                   <div className="operations-dependency-detail-header">
                     <div>
-                      <p className="eyebrow">Focused dependency</p>
+                      <p className="eyebrow">Dependency Details</p>
                       <h5>{selectedDependency.taskName}</h5>
                     </div>
                     <span className={`operations-dependency-status-pill ${String(selectedDependency.status).toLowerCase()}`}>{selectedDependency.status}</span>
@@ -1122,11 +1816,180 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
             </div>
           )}
         </section>
+      ) : activeOperationsWorkspace === 'escalations' && selectedOperation ? (
+        <section className="operations-escalation-workspace" aria-labelledby="operations-escalation-workspace-heading" data-testid="react-operations-escalation-workspace">
+          <div className="operations-escalation-workspace-header">
+            <div>
+              <p className="eyebrow">Escalation Management</p>
+              <h4 id="operations-escalation-workspace-heading">Escalation command for {selectedOperation.title}</h4>
+              <p>Review one operational risk at a time. The queue separates severity, owner, status, and resolution notes so escalations are readable without opening every incident form on the page.</p>
+            </div>
+            <dl className="operations-escalation-workspace-metrics" aria-label="Selected turnaround escalation summary" data-testid="react-operations-escalation-workspace-summary">
+              <div>
+                <dt>Total</dt>
+                <dd>{escalationWorkspaceSummary.totalEscalations ?? selectedOperationEscalations.length}</dd>
+              </div>
+              <div>
+                <dt>Open</dt>
+                <dd>{escalationWorkspaceSummary.openEscalations || 0}</dd>
+              </div>
+              <div>
+                <dt>Monitoring</dt>
+                <dd>{escalationWorkspaceSummary.monitoringEscalations || 0}</dd>
+              </div>
+              <div>
+                <dt>Critical</dt>
+                <dd>{escalationWorkspaceSummary.criticalEscalations || 0}</dd>
+              </div>
+            </dl>
+          </div>
+
+          {onCreateEscalation && (
+            <form className="operations-escalation-quick-add operational-escalation-create-form" onSubmit={event => { event.preventDefault(); saveEscalationCreate(selectedOperation) }} data-testid="react-operational-escalation-create-form">
+              <h5>Add escalation</h5>
+              <label>
+                <span>Department</span>
+                <select value={getEscalationCreateDraft(selectedOperation).departmentRole} onChange={event => updateEscalationCreateDraft(selectedOperation, 'departmentRole', event.target.value)} aria-label={`${selectedOperation.title} escalation department`}>
+                  <option value="turnaround-manager">Turnaround Manager</option>
+                  <option value="housekeeping-lead">Housekeeping Lead</option>
+                  <option value="guest-services-lead">Guest Services Lead</option>
+                  <option value="food-beverage-lead">Food &amp; Beverage Lead</option>
+                  <option value="engineering-lead">Engineering Lead</option>
+                </select>
+              </label>
+              <label>
+                <span>Severity</span>
+                <select value={getEscalationCreateDraft(selectedOperation).severity} onChange={event => updateEscalationCreateDraft(selectedOperation, 'severity', event.target.value)} aria-label={`${selectedOperation.title} escalation severity`}>
+                  <option value="WATCH">Watch</option>
+                  <option value="HIGH">High</option>
+                  <option value="CRITICAL">Critical</option>
+                </select>
+              </label>
+              <label>
+                <span>Title</span>
+                <input value={getEscalationCreateDraft(selectedOperation).title} onChange={event => updateEscalationCreateDraft(selectedOperation, 'title', event.target.value)} aria-label={`${selectedOperation.title} escalation title`} />
+              </label>
+              <label>
+                <span>Owner</span>
+                <input value={getEscalationCreateDraft(selectedOperation).ownerName} onChange={event => updateEscalationCreateDraft(selectedOperation, 'ownerName', event.target.value)} aria-label={`${selectedOperation.title} escalation owner`} />
+              </label>
+              <label className="full-width-field">
+                <span>Escalation notes</span>
+                <textarea value={getEscalationCreateDraft(selectedOperation).resolutionNotes} onChange={event => updateEscalationCreateDraft(selectedOperation, 'resolutionNotes', event.target.value)} aria-label={`${selectedOperation.title} escalation notes`} rows="3" />
+              </label>
+              <button type="submit" className="secondary-action-button compact-button" disabled={creatingEscalationId === selectedOperation.id || !getEscalationCreateDraft(selectedOperation).title.trim()}>Add escalation</button>
+            </form>
+          )}
+
+          {selectedOperationEscalations.length === 0 ? (
+            <p className="status-card compact" data-testid="react-operations-escalation-empty-state">No escalation records are active for this selected turnaround.</p>
+          ) : (
+            <div className="operations-escalation-layout">
+              <div className="operations-escalation-list-panel" aria-label="Turnaround escalation queue">
+                <div className="operations-escalation-list-heading">
+                  <h5>Escalation queue</h5>
+                  <span>{selectedOperationEscalations.length} escalation{selectedOperationEscalations.length === 1 ? '' : 's'}</span>
+                </div>
+                <ul className="operations-escalation-list-focused" data-testid="react-operations-escalation-list">
+                  {selectedOperationEscalations.map(escalation => {
+                    const isSelected = escalation.id === selectedEscalationKey
+                    const severity = String(escalation.severity || 'WATCH').toLowerCase()
+
+                    return (
+                      <li key={escalation.id}>
+                        <button
+                          type="button"
+                          className={`operations-escalation-list-item${isSelected ? ' active' : ''} ${severity}`}
+                          aria-pressed={isSelected}
+                          onClick={() => setSelectedEscalationId(escalation.id)}
+                          data-testid="react-operations-escalation-list-item"
+                        >
+                          <span className={`operations-escalation-severity-pill ${severity}`}>{escalation.severity || 'WATCH'}</span>
+                          <strong>{escalation.title}</strong>
+                          <span>{escalation.departmentRole} · {escalation.status}</span>
+                          <small>{escalation.ownerName || 'Owner pending'}</small>
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+
+              {selectedEscalation && (
+                <article className="operations-escalation-detail-panel" aria-label={`Escalation details for ${selectedEscalation.title}`} data-testid="react-operations-escalation-detail-panel">
+                  <div className="operations-escalation-detail-header">
+                    <div>
+                      <p className="eyebrow">Escalation Details</p>
+                      <h5>{selectedEscalation.title}</h5>
+                    </div>
+                    <span className={`operations-escalation-severity-pill ${String(selectedEscalation.severity || 'WATCH').toLowerCase()}`}>{selectedEscalation.severity || 'WATCH'}</span>
+                  </div>
+
+                  <dl className="operations-escalation-detail-list" data-testid="react-operations-escalation-detail-list">
+                    <div>
+                      <dt>Department</dt>
+                      <dd>{selectedEscalation.departmentRole}</dd>
+                    </div>
+                    <div>
+                      <dt>Owner</dt>
+                      <dd>{selectedEscalation.ownerName || 'Owner pending'}</dd>
+                    </div>
+                    <div>
+                      <dt>Status</dt>
+                      <dd>{selectedEscalation.status}</dd>
+                    </div>
+                    <div>
+                      <dt>Severity</dt>
+                      <dd>{selectedEscalation.severity}</dd>
+                    </div>
+                  </dl>
+
+                  {selectedEscalation.resolutionNotes && (
+                    <div className="operations-escalation-note" data-testid="react-operations-escalation-note">
+                      <strong>Resolution notes</strong>
+                      <p>{selectedEscalation.resolutionNotes}</p>
+                    </div>
+                  )}
+
+                  {onUpdateEscalation && (
+                    <form className="operations-escalation-detail-form operational-escalation-update-form" onSubmit={event => { event.preventDefault(); saveEscalationUpdate(selectedEscalation) }} data-testid="react-operational-escalation-update-form">
+                      <label>
+                        <span>Status</span>
+                        <select value={getEscalationUpdateDraft(selectedEscalation).status} onChange={event => updateEscalationDraft(selectedEscalation, 'status', event.target.value)} aria-label={`${selectedEscalation.title} escalation status`}>
+                          <option value="OPEN">Open</option>
+                          <option value="MONITORING">Monitoring</option>
+                          <option value="RESOLVED">Resolved</option>
+                        </select>
+                      </label>
+                      <label>
+                        <span>Severity</span>
+                        <select value={getEscalationUpdateDraft(selectedEscalation).severity} onChange={event => updateEscalationDraft(selectedEscalation, 'severity', event.target.value)} aria-label={`${selectedEscalation.title} escalation update severity`}>
+                          <option value="WATCH">Watch</option>
+                          <option value="HIGH">High</option>
+                          <option value="CRITICAL">Critical</option>
+                        </select>
+                      </label>
+                      <label>
+                        <span>Owner</span>
+                        <input value={getEscalationUpdateDraft(selectedEscalation).ownerName} onChange={event => updateEscalationDraft(selectedEscalation, 'ownerName', event.target.value)} aria-label={`${selectedEscalation.title} escalation update owner`} />
+                      </label>
+                      <label className="full-width-field">
+                        <span>Resolution notes</span>
+                        <textarea value={getEscalationUpdateDraft(selectedEscalation).resolutionNotes} onChange={event => updateEscalationDraft(selectedEscalation, 'resolutionNotes', event.target.value)} aria-label={`${selectedEscalation.title} escalation resolution notes`} rows="3" />
+                      </label>
+                      <button type="submit" className="secondary-action-button compact-button" disabled={updatingEscalationId === selectedEscalation.id || !getEscalationUpdateDraft(selectedEscalation).title.trim()}>Save escalation</button>
+                    </form>
+                  )}
+                </article>
+              )}
+            </div>
+          )}
+        </section>
       ) : activeOperationsWorkspace === 'handoffs' && selectedOperation ? (
         <section className="operations-handoff-workspace" aria-labelledby="operations-handoff-workspace-heading" data-testid="react-operations-handoff-workspace">
           <div className="operations-handoff-workspace-header">
             <div>
-              <p className="eyebrow">Slice 5 handoff workspace</p>
+              <p className="eyebrow">Department Handoffs</p>
               <h4 id="operations-handoff-workspace-heading">Department handoffs for {selectedOperation.title}</h4>
               <p>Work one release handoff at a time. The queue keeps ownership, due time, sender, receiver, status, and notes readable without showing every handoff form in the overview.</p>
             </div>
@@ -1187,7 +2050,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                 <article className="operations-handoff-detail-panel" aria-label={`Handoff details for ${selectedHandoff.title}`} data-testid="react-operations-handoff-detail-panel">
                   <div className="operations-handoff-detail-header">
                     <div>
-                      <p className="eyebrow">Focused handoff</p>
+                      <p className="eyebrow">Handoff Details</p>
                       <h5>{selectedHandoff.title}</h5>
                     </div>
                     <span className={`operations-handoff-status-pill ${String(selectedHandoff.status).toLowerCase()}`}>{selectedHandoff.status}</span>
@@ -1225,6 +2088,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                         <span>Status</span>
                         <select value={getHandoffDraft(selectedHandoff).status} onChange={event => updateHandoffDraft(selectedHandoff, 'status', event.target.value)} aria-label={`${selectedHandoff.title} handoff status`}>
                           <option value="PENDING">Pending</option>
+                          <option value="READY">Ready</option>
                           <option value="IN_REVIEW">In review</option>
                           <option value="BLOCKED">Blocked</option>
                           <option value="COMPLETE">Complete</option>
@@ -1254,8 +2118,8 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-task-workspace" aria-labelledby="operations-task-workspace-heading" data-testid="react-operations-task-workspace">
           <div className="operations-task-workspace-header">
             <div>
-              <p className="eyebrow">Slice 3 task workspace</p>
-              <h4 id="operations-task-workspace-heading">Focused task list for {selectedOperation.title}</h4>
+              <p className="eyebrow">Task Management</p>
+              <h4 id="operations-task-workspace-heading">Task list for {selectedOperation.title}</h4>
               <p>Review the role checklist as a clean queue. Pick one task to update owner, timing, location, blocker notes, status, and shift updates without exposing every operational workflow at once.</p>
             </div>
             <dl className="operations-task-workspace-metrics" aria-label="Selected turnaround task summary" data-testid="react-operations-task-workspace-summary">
@@ -1344,7 +2208,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                 <article className="operations-task-detail-panel" aria-label={`Task details for ${selectedTask.taskName}`} data-testid="react-operations-task-detail-panel">
                   <div className="operations-task-detail-header">
                     <div>
-                      <p className="eyebrow">Focused task</p>
+                      <p className="eyebrow">Task Details</p>
                       <h5>{selectedTask.taskName}</h5>
                     </div>
                     <span className={`operations-task-status-pill ${String(selectedTask.status).toLowerCase()}`}>{selectedTask.status}</span>
@@ -1566,6 +2430,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                               <span>Status</span>
                               <select value={getHandoffDraft(handoff).status} onChange={event => updateHandoffDraft(handoff, 'status', event.target.value)} aria-label={`${handoff.title} handoff status`}>
                                 <option value="PENDING">Pending</option>
+                                <option value="READY">Ready</option>
                                 <option value="IN_REVIEW">In review</option>
                                 <option value="BLOCKED">Blocked</option>
                                 <option value="COMPLETE">Complete</option>
@@ -2105,7 +2970,7 @@ export default function ReactRoleDashboard({
       {!isOperationalRoleView(roleView) && (
         <div className="role-booking-list">
           {visibleBookings.length === 0 ? (
-            <p className="status-card compact">No bookings are visible for this selected demo user.</p>
+            <p className="status-card compact">No bookings are visible for this selected person.</p>
           ) : visibleBookings.map(booking => {
             const bookingId = booking.id || booking.bookingId
             const favoriteActivityKeys = new Set(favoriteItineraryActivitiesByBooking[bookingId] || [])

@@ -55,12 +55,12 @@ describe('static ADA and WCAG-oriented React accessibility safeguards', () => {
     expect(styles).toContain('.role-profile-grid')
   })
 
-  it('keeps SQA output announced as a live region', () => {
+  it('keeps quality output announced as a live region', () => {
     const sqaConsole = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactSqaConsole.jsx'), 'utf8')
 
     expect(sqaConsole).toContain('aria-live="polite"')
     expect(sqaConsole).toContain('data-testid="react-sqa-output"')
-    expect(sqaConsole).toContain('aria-label="SQA validation output"')
+    expect(sqaConsole).toContain('aria-label="Quality validation output"')
   })
 
   it('keeps native React confirmation panels using alertdialog semantics', () => {

@@ -1,15 +1,16 @@
 const { reactSelectorKeys: rs } = require('./support/reactSelectors')
 const { reactBookings, reactCruiseLines, reactCustomers, visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
-describe('React SQA console coverage expansion', () => {
+describe('React quality console coverage expansion', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
   })
 
   it('renders every React SQA validation action and report link', () => {
-    cy.getByTestId(rs.sqaConsole).should('be.visible').and('contain.text', 'SQA Test Control Panel')
+    cy.getByTestId(rs.sqaConsole).should('be.visible').and('contain.text', 'Quality Validation Console')
     ;[
       rs.sqaHealthButton,
+      rs.sqaGoLiveButton,
       rs.sqaDataButton,
       rs.sqaUiSmokeButton,
       rs.sqaContractButton,
@@ -20,6 +21,7 @@ describe('React SQA console coverage expansion', () => {
       rs.sqaDeploymentButton,
       rs.sqaResetDemoDataButton
     ].forEach(selectorKey => cy.getByTestId(selectorKey).should('be.visible'))
+    cy.getByTestId(rs.goLiveReadinessPanel).should('be.visible').and('contain.text', 'Manual approval checklist')
     cy.getByTestId(rs.sqaConsole).within(() => {
       cy.contains('View Quality Dashboard').should('have.attr', 'href', '/quality-dashboard.html')
       cy.contains('View Latest Lighthouse Mobile Report').should('be.visible')
@@ -97,6 +99,30 @@ describe('React SQA console coverage expansion', () => {
     cy.getByTestId(rs.sqaOutput).should('contain.text', 'Deployment Diagnostics Result')
   })
 
+  it('runs a go-live readiness review with operational data and manual approval guidance', () => {
+    cy.intercept('GET', '/health', { status: 'ok', uptime: 100 }).as('reactGoLiveHealth')
+    cy.intercept('GET', '/cruise', reactCruiseLines).as('reactGoLiveLines')
+    cy.intercept('GET', '/cruise/customers', reactCustomers).as('reactGoLiveCustomers')
+    cy.intercept('GET', '/cruise/bookings', reactBookings).as('reactGoLiveBookings')
+    cy.intercept('GET', '/cruise/turnaround-operations', [{ id: 'turnaround-1', title: 'Adventure turnaround' }]).as('reactGoLiveTurnaround')
+
+    cy.getByTestId(rs.sqaGoLiveButton).click()
+    cy.wait('@reactGoLiveHealth')
+    cy.wait('@reactGoLiveLines')
+    cy.wait('@reactGoLiveCustomers')
+    cy.wait('@reactGoLiveBookings')
+    cy.wait('@reactGoLiveTurnaround')
+
+    cy.getByTestId(rs.sqaOutput)
+      .should('contain.text', 'Go-Live Readiness Review Result')
+      .and('contain.text', 'recommendedManualPath')
+      .and('contain.text', 'manualReviewRequired')
+    cy.getByTestId(rs.goLiveReadinessPanel)
+      .should('contain.text', 'Application API is responding')
+      .and('contain.text', 'turnaround operations available')
+  })
+
+
   it('surfaces seed integrity failures when the fixture is too small', () => {
     cy.intercept('GET', '/cruise', reactCruiseLines).as('reactSmallSeedLines')
     cy.intercept('GET', '/cruise/customers', reactCustomers).as('reactSmallSeedCustomers')
@@ -110,7 +136,7 @@ describe('React SQA console coverage expansion', () => {
 
   it('shows and cancels native React reset confirmation', () => {
     cy.getByTestId(rs.sqaResetDemoDataButton).click()
-    cy.getByTestId(rs.sqaResetConfirmation).should('contain.text', 'Reset public demo data')
+    cy.getByTestId(rs.sqaResetConfirmation).should('contain.text', 'Reset baseline data')
     cy.getByTestId(rs.sqaResetConfirmationCancel).click()
     cy.getByTestId(rs.sqaResetConfirmation).should('not.exist')
     cy.getByTestId(rs.sqaOutput).should('contain.text', 'Test output will appear here')
@@ -124,6 +150,6 @@ describe('React SQA console coverage expansion', () => {
     cy.getByTestId(rs.sqaResetDemoDataButton).click()
     cy.getByTestId(rs.sqaResetConfirmationConfirm).click()
     cy.wait('@reactResetDemoData')
-    cy.getByTestId(rs.sqaOutput).should('contain.text', 'Demo Data Recovery Result')
+    cy.getByTestId(rs.sqaOutput).should('contain.text', 'Baseline Data Recovery Result')
   })
 })

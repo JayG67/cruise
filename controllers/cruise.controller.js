@@ -7,6 +7,7 @@ const customerTable = require('../models/customer.model')
 const bookingTable = require('../models/booking.model')
 const bookingPassengerTable = require('../models/bookingPassenger.model')
 const demoUserTable = require('../models/demoUser.model')
+const appUserTable = require('../models/appUser.model')
 const customerItineraryFavoriteTable = require('../models/customerItineraryFavorite.model')
 const turnaroundOperationTable = require('../models/turnaroundOperation.model')
 const turnaroundTaskTable = require('../models/turnaroundTask.model')
@@ -17,8 +18,29 @@ const turnaroundStaffingTable = require('../models/turnaroundStaffing.model')
 const turnaroundTaskDependencyTable = require('../models/turnaroundTaskDependency.model')
 const turnaroundHandoffTable = require('../models/turnaroundHandoff.model')
 const db = require('../db')
-const { and, eq, inArray } = require('drizzle-orm')
+const { and, eq, inArray, like } = require('drizzle-orm')
 
+
+
+async function resolveOperationalUserIdByName(displayName) {
+  if (!displayName) return null
+
+  const exactMatches = await db
+    .select()
+    .from(appUserTable)
+    .where(eq(appUserTable.displayName, displayName))
+    .limit(1)
+
+  if (exactMatches[0]) return exactMatches[0].id
+
+  const prefixedMatches = await db
+    .select()
+    .from(appUserTable)
+    .where(like(appUserTable.displayName, `${displayName} — %`))
+    .limit(1)
+
+  return prefixedMatches[0]?.id || null
+}
 
 function buildCruiseLinePayload({ name, country, website, brandFamily, brandTheme, marketPositioning }) {
   return Object.fromEntries(
@@ -1274,6 +1296,7 @@ exports.createTurnaroundEscalation = async (req, res, next) => {
         severity,
         title,
         ownerName: ownerName || null,
+        ownerUserId: await resolveOperationalUserIdByName(ownerName),
         status,
         resolutionNotes: resolutionNotes || null,
         createdAt: new Date().toISOString()
@@ -1310,6 +1333,10 @@ exports.updateTurnaroundEscalation = async (req, res, next) => {
 
     if (!escalation) {
       return res.status(404).json({ message: 'Turnaround escalation not found' })
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body, 'ownerName')) {
+      escalationUpdates.ownerUserId = await resolveOperationalUserIdByName(req.body.ownerName)
     }
 
     if (Object.keys(escalationUpdates).length === 0) {
@@ -1425,6 +1452,7 @@ exports.updateTurnaroundSignoff = async (req, res, next) => {
 
     const signoffValues = {
       approverName,
+      approverUserId: await resolveOperationalUserIdByName(approverName),
       status,
       notes: notes || null,
       signedAt: status === 'PENDING' ? null : new Date().toISOString()
@@ -1538,6 +1566,7 @@ exports.createTurnaroundTask = async (req, res, next) => {
         departmentRole,
         taskName,
         ownerName: ownerName || null,
+        ownerUserId: await resolveOperationalUserIdByName(ownerName),
         dueTime: dueTime || null,
         location: location || null,
         blockerReason: blockerReason || null,
@@ -1576,6 +1605,7 @@ exports.createTurnaroundTaskUpdate = async (req, res, next) => {
       .values({
         taskId: id,
         authorName,
+        authorUserId: await resolveOperationalUserIdByName(authorName),
         updateType,
         message,
         createdAt: new Date().toISOString()
@@ -1672,6 +1702,10 @@ exports.updateTurnaroundTaskDetails = async (req, res, next) => {
       return res.status(404).json({ message: 'Turnaround task not found' })
     }
 
+    if (Object.prototype.hasOwnProperty.call(req.body, 'ownerName')) {
+      taskUpdates.ownerUserId = await resolveOperationalUserIdByName(req.body.ownerName)
+    }
+
     if (Object.keys(taskUpdates).length === 0) {
       return res.status(400).json({ message: 'At least one turnaround task detail is required' })
     }
@@ -1709,6 +1743,10 @@ exports.updateTurnaroundHandoff = async (req, res, next) => {
       if (Object.prototype.hasOwnProperty.call(req.body, field)) {
         handoffUpdates[field] = req.body[field] || null
       }
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body, 'ownerName')) {
+      handoffUpdates.ownerUserId = await resolveOperationalUserIdByName(req.body.ownerName)
     }
 
     if (handoffUpdates.status === 'COMPLETE') {

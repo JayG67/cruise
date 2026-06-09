@@ -7,6 +7,9 @@ const customerTable = require('./customer.model')
 const bookingTable = require('./booking.model')
 const bookingPassengerTable = require('./bookingPassenger.model')
 const demoUserTable = require('./demoUser.model')
+const appUserTable = require('./appUser.model')
+const appRoleTable = require('./appRole.model')
+const appUserRoleTable = require('./appUserRole.model')
 const customerItineraryFavoriteTable = require('./customerItineraryFavorite.model')
 const turnaroundOperationTable = require('./turnaroundOperation.model')
 const turnaroundTaskTable = require('./turnaroundTask.model')
@@ -27,6 +30,9 @@ module.exports = {
   bookingTable,
   bookingPassengerTable,
   demoUserTable,
+  appUserTable,
+  appRoleTable,
+  appUserRoleTable,
   customerItineraryFavoriteTable,
   turnaroundOperationTable,
   turnaroundTaskTable,

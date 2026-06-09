@@ -12,6 +12,7 @@ describe('Playwright React coverage inventory', () => {
   const responsiveReactSpecPath = path.join(projectRoot, 'playwright/responsive/react-production-responsive.spec.js')
   const mobileConfigPath = path.join(projectRoot, 'playwright.mobile.config.js')
   const responsiveConfigPath = path.join(projectRoot, 'playwright.responsive.config.js')
+  const playwrightHelperPath = path.join(projectRoot, 'playwright/support/reactProductionHelpers.js')
 
   it('keeps React mobile Playwright coverage broad', () => {
     expect(fs.existsSync(mobileReactSpecPath)).toBe(true)
@@ -55,11 +56,11 @@ describe('Playwright React coverage inventory', () => {
     const mobileReactSpec = fs.readFileSync(mobileReactSpecPath, 'utf8')
     const responsiveReactSpec = fs.readFileSync(responsiveReactSpecPath, 'utf8')
 
-    expect(mobileReactSpec).toContain('async function selectDemoUserByRole')
+    expect(fs.readFileSync(playwrightHelperPath, 'utf8')).toContain('async function selectDemoUserByRole')
     expect(mobileReactSpec).toContain("selectDemoUserByRole(page, 'Passenger')")
     expect(mobileReactSpec).toContain("selectDemoUserByRole(page, 'Admin')")
     expect(mobileReactSpec).not.toContain("selectOption('UPASS0001')")
-    expect(responsiveReactSpec).toContain('async function selectDemoUserByRole')
+    expect(responsiveReactSpec).toContain("require('../support/reactProductionHelpers')")
     expect(responsiveReactSpec).not.toContain("selectOption('UPASS0001')")
   })
 
@@ -79,7 +80,9 @@ describe('Playwright React coverage inventory', () => {
     expect(mobileReactSpec).toContain('keeps every operational role dashboard reachable and readable on mobile')
     expect(mobileReactSpec).toContain('lets the turnaround manager run command planning and task creation workflows on mobile')
     expect(mobileReactSpec).toContain('lets specialized operational leads verify status, detail, update, and signoff workflows on mobile')
-    expect(mobileReactSpec).toContain('react-operational-turnaround-panel')
+    const helpers = fs.readFileSync(playwrightHelperPath, 'utf8')
+
+    expect(helpers).toContain('react-operational-turnaround-panel')
     expect(mobileReactSpec).toContain('Save command plan')
     expect(mobileReactSpec).toContain('Add turnaround task')
     expect(mobileReactSpec).toContain('Remove task')
@@ -87,6 +90,19 @@ describe('Playwright React coverage inventory', () => {
     expect(mobileReactSpec).toContain('Add escalation')
     expect(mobileReactSpec).toContain('Save staffing plan')
     expect(mobileReactSpec).toContain('Save readiness signoff')
+  })
+
+
+  it('centralizes Playwright role selection and overflow checks for GitHub stability', () => {
+    const mobileReactSpec = fs.readFileSync(mobileReactSpecPath, 'utf8')
+    const responsiveReactSpec = fs.readFileSync(responsiveReactSpecPath, 'utf8')
+    const helpers = fs.readFileSync(playwrightHelperPath, 'utf8')
+
+    expect(helpers).toContain('async function selectRoleAndPerson')
+    expect(helpers).toContain('async function expectNoHorizontalOverflow')
+    expect(helpers).toContain('async function expectOperationalDashboardReady')
+    expect(mobileReactSpec).toContain("require('../support/reactProductionHelpers')")
+    expect(responsiveReactSpec).toContain("require('../support/reactProductionHelpers')")
   })
 
 })

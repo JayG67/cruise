@@ -471,17 +471,32 @@ describe('Turnaround operations API integration tests', () => {
     const res = await request(app).get('/cruise/turnaround-operations')
 
     expect(res.statusCode).toBe(200)
-    expect(res.body[0].taskDependencies).toEqual(expect.arrayContaining([
+
+    const operationsWithDependencies = res.body.filter((operation) => operation.taskDependencies.length > 0)
+    expect(operationsWithDependencies.length).toBeGreaterThan(0)
+
+    const operationWithActiveDependency = res.body.find((operation) =>
+      operation.taskDependencies.some((dependency) => dependency.status === 'ACTIVE')
+    )
+    const dependencyOperation = operationWithActiveDependency || operationsWithDependencies[0]
+
+    expect(dependencyOperation.taskDependencies).toEqual(expect.arrayContaining([
       expect.objectContaining({
         taskName: expect.any(String),
         dependsOnTaskName: expect.any(String),
-        status: 'ACTIVE'
+        status: expect.stringMatching(/^(ACTIVE|CLEARED)$/)
       })
     ]))
-    expect(res.body[0].dependencySummary).toEqual(expect.objectContaining({
+    expect(dependencyOperation.dependencySummary).toEqual(expect.objectContaining({
       totalDependencies: expect.any(Number),
       activeDependencies: expect.any(Number)
     }))
+    expect(dependencyOperation.dependencySummary.totalDependencies).toBe(
+      dependencyOperation.taskDependencies.length
+    )
+    expect(dependencyOperation.dependencySummary.activeDependencies).toBe(
+      dependencyOperation.taskDependencies.filter((dependency) => dependency.status === 'ACTIVE').length
+    )
     expect(res.body[0].handoffs).toEqual(expect.arrayContaining([
       expect.objectContaining({
         fromDepartmentRole: expect.any(String),

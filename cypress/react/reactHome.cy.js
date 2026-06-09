@@ -21,7 +21,7 @@ describe('React home and workspace coverage', () => {
 
   it('renders every React workspace card with accessible actions', () => {
     cy.getByTestId(rs.workspaceCardGrid).should('be.visible')
-    cy.getByTestId(rs.workspaceRoleButton).should('contain.text', 'Role Simulation')
+    cy.getByTestId(rs.workspaceRoleButton).should('contain.text', 'Role-aware Views')
     cy.getByTestId(rs.workspaceOperationsButton).should('contain.text', 'Admin Operations')
     cy.getByTestId(rs.workspaceFleetButton).should('contain.text', 'Fleet Directory')
     cy.getByTestId(rs.workspaceQualityButton).should('contain.text', 'Quality Console')

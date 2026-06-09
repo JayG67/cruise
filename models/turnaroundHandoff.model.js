@@ -1,5 +1,6 @@
 const { pgTable, uuid, varchar } = require('drizzle-orm/pg-core')
 const turnaroundOperationTable = require('./turnaroundOperation.model')
+const appUserTable = require('./appUser.model')
 
 const turnaroundHandoffTable = pgTable('turnaround_handoffs', {
   id: uuid().primaryKey().defaultRandom(),
@@ -9,6 +10,7 @@ const turnaroundHandoffTable = pgTable('turnaround_handoffs', {
   title: varchar({ length: 255 }).notNull(),
   status: varchar({ length: 50 }).notNull().default('PENDING'),
   ownerName: varchar({ length: 255 }),
+  ownerUserId: varchar({ length: 40 }).references(() => appUserTable.id),
   dueTime: varchar({ length: 20 }),
   notes: varchar({ length: 500 }),
   completedAt: varchar({ length: 40 })

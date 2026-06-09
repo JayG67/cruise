@@ -1,86 +1,13 @@
 const { test, expect } = require('@playwright/test')
-
-async function expectNoHorizontalOverflow(page) {
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 8)
-  expect(overflow).toBe(false)
-}
-
-
-async function selectRoleAndPerson(page, roleValue, personText) {
-  const roleSelect = page.getByTestId('react-role-type-select')
-  const personSelect = page.getByTestId('react-demo-user-select')
-
-  await expect(roleSelect).toBeVisible()
-  await roleSelect.selectOption(roleValue)
-  await expect(personSelect).toBeVisible()
-
-  if (personText) {
-    await expect.poll(async () => {
-      return personSelect.locator('option').filter({ hasText: personText }).count()
-    }).toBeGreaterThan(0)
-
-    const matchingValue = await personSelect.locator('option').filter({ hasText: personText }).first().getAttribute('value')
-    expect(matchingValue).toBeTruthy()
-    await personSelect.selectOption(matchingValue)
-    return
-  }
-
-  await expect.poll(async () => {
-    return personSelect.locator('option').evaluateAll(options => (
-      options.filter(option => !option.disabled && option.value).length
-    ))
-  }).toBeGreaterThan(0)
-
-  const firstAvailableValue = await personSelect.locator('option').evaluateAll(options => {
-    const option = options.find(candidate => !candidate.disabled && candidate.value)
-    return option ? option.value : ''
-  })
-
-  expect(firstAvailableValue).toBeTruthy()
-  await personSelect.selectOption(firstAvailableValue)
-}
+const {
+  expectNoHorizontalOverflow,
+  expectOperationalDashboardReady,
+  selectDemoUserByRole,
+  selectRoleAndPerson
+} = require('../support/reactProductionHelpers')
 
 function mobileRunSuffix(testInfo) {
   return `${testInfo.project.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${Date.now()}`
-}
-
-async function expectOperationalDashboardReady(page, roleValue, personText, dashboardTestId) {
-  await selectRoleAndPerson(page, roleValue, personText)
-  await expect(page.getByTestId(dashboardTestId)).toBeVisible()
-  await expect(page.getByTestId('react-operational-turnaround-panel')).toBeVisible()
-  await expect(page.getByTestId('react-operations-directory-panel')).toBeVisible()
-  await expect(page.getByTestId('react-operations-directory-card').first()).toBeVisible()
-  const readinessCards = page.getByTestId('react-operational-readiness-card')
-  if (await readinessCards.count()) {
-    await expect(readinessCards.first()).toBeVisible()
-  }
-
-  const progressCards = page.getByTestId('react-operational-progress-summary')
-  if (await progressCards.count()) {
-    await expect(progressCards.first()).toBeVisible()
-  }
-
-  const signoffCards = page.getByTestId('react-operational-signoff-summary')
-  if (await signoffCards.count()) {
-    await expect(signoffCards.first()).toBeVisible()
-  }
-  await expect(page.getByTestId('react-active-route-operations')).toHaveCount(0)
-  await expect(page.getByTestId('react-admin-create-customer-form')).toHaveCount(0)
-}
-
-async function selectDemoUserByRole(page, roleText) {
-  const normalizedRole = roleText.toLowerCase().replace(/\s+/g, '-')
-  const rolePersonTextByRole = {
-    admin: 'Admin Demo User',
-    passenger: 'Passenger View',
-    'group-leader': 'Group Leader'
-  }
-
-  await selectRoleAndPerson(page, normalizedRole, rolePersonTextByRole[normalizedRole] || '')
-
-  if (normalizedRole === 'passenger') {
-    await expect(page.getByTestId('react-demo-user-summary')).toContainText('Passenger', { timeout: 15000 })
-  }
 }
 
 async function openRoyalShipSailings(page) {
@@ -155,17 +82,17 @@ test.describe('React default mobile replacement checks', () => {
     await expect(page.getByTestId('react-production-shell')).toBeVisible()
     await expect(page.getByTestId('react-top-navigation')).toBeVisible()
     await expect(page.getByTestId('react-workspace-card-grid')).toBeVisible()
-    await expect(page.getByTestId('react-demo-user-select')).toBeVisible()
+    await expect(page.getByTestId('react-person-finder-panel')).toBeVisible()
 
-    const demoUserSelect = page.getByTestId('react-demo-user-select')
-    await demoUserSelect.scrollIntoViewIfNeeded()
-    await expect(demoUserSelect).toBeVisible()
-    await expect(demoUserSelect).toBeEnabled()
+    const firstPersonCard = page.getByTestId('react-person-finder-result-card').first()
+    await firstPersonCard.scrollIntoViewIfNeeded()
+    await expect(firstPersonCard).toBeVisible()
+    await expect(firstPersonCard).toBeEnabled()
 
     const roleWorkspaceButton = page.getByTestId('react-workspace-role-button')
     await roleWorkspaceButton.scrollIntoViewIfNeeded()
     await expect(roleWorkspaceButton).toBeVisible()
-    await expect(roleWorkspaceButton).toContainText('Role Simulation')
+    await expect(roleWorkspaceButton).toContainText('Role-aware Views')
     await roleWorkspaceButton.click()
     await expect(page.getByTestId('react-role-selector')).toBeVisible()
 
@@ -302,7 +229,7 @@ test.describe('React default mobile replacement checks', () => {
     await expectNoHorizontalOverflow(page)
   })
 
-  test('keeps React SQA console action grid usable on mobile', async ({ page }) => {
+  test('keeps React quality console action grid usable on mobile', async ({ page }) => {
     await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 

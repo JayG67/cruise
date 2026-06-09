@@ -37,9 +37,9 @@ describe('React production deep-dive coverage', () => {
     cy.getByTestId(rs.sqaConsole).should('be.visible')
   })
 
-  it('keeps the product hero focused on the React app and SQA console', () => {
+  it('keeps the product hero focused on the React app and quality console', () => {
     cy.getByTestId(rs.productionHero).within(() => {
-      cy.getByTestId(rs.heroQualityButton).should('contain.text', 'Open SQA Console')
+      cy.getByTestId(rs.heroQualityButton).should('contain.text', 'Open Quality Console')
       cy.contains('Open Retired Pre-React App').should('not.exist')
     })
     cy.getByTestId(rs.workspaceQualityButton).click()
@@ -153,7 +153,7 @@ describe('React production deep-dive coverage', () => {
     cy.getByTestId(rs.itineraryActivity).should('not.contain.text', 'Terminal arrival')
   })
 
-  it('keeps SQA reset confirmation explicit and refreshes app data after success', () => {
+  it('keeps quality reset confirmation explicit and refreshes app data after success', () => {
     cy.intercept('POST', '/admin/reset-demo-data', {
       statusCode: 200,
       body: { message: 'Demo data reset successfully' }
@@ -169,7 +169,7 @@ describe('React production deep-dive coverage', () => {
     cy.wait('@reloadCustomersAfterReset')
     cy.wait('@reloadBookingsAfterReset')
     cy.wait('@reloadCruiseLinesAfterReset')
-    cy.getByTestId(rs.sqaOutput).should('contain.text', 'Demo Data Recovery Result')
+    cy.getByTestId(rs.sqaOutput).should('contain.text', 'Baseline Data Recovery Result')
     cy.getByTestId(rs.sqaStatus).should('contain.text', 'Ready for validation')
   })
 })

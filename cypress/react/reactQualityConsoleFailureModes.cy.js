@@ -1,7 +1,7 @@
 const { reactSelectorKeys: rs } = require('./support/reactSelectors')
 const { reactBookings, reactCruiseLines, reactCustomers, visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
-describe('React SQA console failure-mode coverage expansion', () => {
+describe('React quality console failure-mode coverage expansion', () => {
   beforeEach(() => {
     visitReactAppAsAdmin()
   })
@@ -60,7 +60,7 @@ describe('React SQA console failure-mode coverage expansion', () => {
     }).as('resetUnavailable')
     cy.getByTestId(rs.sqaResetDemoDataButton).click()
     cy.getByTestId(rs.sqaResetConfirmationConfirm).click()
-    cy.getByTestId(rs.sqaOutput).should('contain.text', 'Demo Data Recovery Failed')
+    cy.getByTestId(rs.sqaOutput).should('contain.text', 'Baseline Data Recovery Failed')
     cy.getByTestId(rs.sqaOutput).should('contain.text', 'reset unavailable')
   })
 
@@ -75,7 +75,7 @@ describe('React SQA console failure-mode coverage expansion', () => {
     cy.getByTestId(rs.sqaOutput).should('contain.text', '"passed": true')
   })
 
-  it('keeps SQA console usable after switching away from and back to admin', () => {
+  it('keeps quality console usable after switching away from and back to admin', () => {
     cy.getByTestId(rs.roleTypeSelect).find('option').contains('Passenger').invoke('val').then(value => {
       cy.getByTestId(rs.roleTypeSelect).select(value)
     })
@@ -88,7 +88,7 @@ describe('React SQA console failure-mode coverage expansion', () => {
     runSqaButton(rs.sqaDataButton, 'Data Verification Result')
   })
 
-  it('keeps SQA console action labels portfolio-readable', () => {
+  it('keeps quality console action labels portfolio-readable', () => {
     const expectedLabels = [
       'Check API Health',
       'Verify Cruise Data',

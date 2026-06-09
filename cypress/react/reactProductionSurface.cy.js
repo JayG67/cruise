@@ -18,7 +18,7 @@ describe('Cruise operations product surface coverage', () => {
   it('keeps product shortcuts focused on real application sections', () => {
     cy.getByTestId(rs.productionHero).within(() => {
       cy.getByTestId(rs.heroOperationsButton).should('contain.text', 'Review Operations')
-      cy.getByTestId(rs.heroQualityButton).should('contain.text', 'Open SQA Console')
+      cy.getByTestId(rs.heroQualityButton).should('contain.text', 'Open Quality Console')
       cy.get('a[href="/retired"]').should('not.exist')
     })
   })
@@ -45,7 +45,7 @@ describe('Cruise operations product surface coverage', () => {
     cy.getByTestId(rs.sqaConsole).should('be.visible')
   })
 
-  it('keeps role selector, operations, fleet, and SQA in product order', () => {
+  it('keeps role selector, operations, fleet, and quality controls in product order', () => {
     cy.getByTestId(rs.roleSelector).then($roleSelector => {
       cy.getByTestId(rs.activeRouteOperations).then($operations => {
         cy.getByTestId(rs.fleetDirectory).then($fleet => {
@@ -99,7 +99,7 @@ describe('Cruise operations product surface coverage', () => {
   it('keeps the hero free of retired rollback links', () => {
     cy.getByTestId(rs.productionHero).within(() => {
       cy.get('a[href="/retired"]').should('not.exist')
-      cy.getByTestId(rs.heroQualityButton).should('contain.text', 'Open SQA Console')
+      cy.getByTestId(rs.heroQualityButton).should('contain.text', 'Open Quality Console')
     })
   })
 
