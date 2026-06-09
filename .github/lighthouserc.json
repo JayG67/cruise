@@ -2,9 +2,9 @@
   "ci": {
     "collect": {
       "url": [
-        "http://localhost:8000"
+        "http://localhost:8000/lighthouse-ci"
       ],
-      "numberOfRuns": 1,
+      "numberOfRuns": 3,
       "chromeFlags": "--headless --no-sandbox --disable-dev-shm-usage",
       "settings": {
         "formFactor": "mobile",
@@ -20,7 +20,9 @@
           "accessibility",
           "best-practices",
           "seo"
-        ]
+        ],
+        "throttlingMethod": "provided",
+        "maxWaitForLoad": 15000
       }
     },
     "assert": {
@@ -28,7 +30,7 @@
         "categories:performance": [
           "error",
           {
-            "minScore": 0.65
+            "minScore": 0.85
           }
         ],
         "categories:accessibility": [
