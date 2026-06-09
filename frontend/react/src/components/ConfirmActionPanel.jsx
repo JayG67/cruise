@@ -1,3 +1,5 @@
+import { createPortal } from 'react-dom'
+
 export default function ConfirmActionPanel({
   title = 'Confirm action',
   message,
@@ -34,10 +36,11 @@ export default function ConfirmActionPanel({
     return panel
   }
 
-  return (
+  return createPortal(
     <div className="react-confirm-action-overlay" data-testid={`${testId}-overlay`}>
       {panel}
-    </div>
+    </div>,
+    document.body
   )
 }
 

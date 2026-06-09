@@ -66,11 +66,12 @@ describe('Cruise operations product presentation guardrails', () => {
 
   it('keeps the live React client resilient when a static host returns HTML for API routes', () => {
     const client = read('frontend/react/src/api/client.js')
-    const bundledDataPath = path.join(projectRoot, 'frontend/react/public/data/cruise.json')
+    const bundledDataPath = path.join(projectRoot, 'data/cruise.json')
     const bundledData = JSON.parse(fs.readFileSync(bundledDataPath, 'utf8'))
 
     expect(client).toContain('class ApiResponseFormatError extends Error')
     expect(client).toContain("const STATIC_DATA_URL = '/data/cruise.json'")
+    expect(fs.existsSync(path.join(projectRoot, 'frontend/react/public/data/cruise.json'))).toBe(false)
     expect(client).toContain('requestStaticFallback(path, options)')
     expect(client).toContain("path === '/cruise/bookings'")
     expect(client).toContain('normalizeStaticBookings(seedData)')
@@ -80,6 +81,28 @@ describe('Cruise operations product presentation guardrails', () => {
     expect(bundledData.customers.length).toBeGreaterThan(0)
     expect(bundledData.bookings.length).toBeGreaterThan(0)
     expect(bundledData.demoUsers.length).toBeGreaterThan(0)
+  })
+
+
+  it('serves the single root seed data file and shared public assets to the React app', () => {
+    const app = read('app.js')
+    const viteConfig = read('frontend/react/vite.config.js')
+    const indexHtml = read('frontend/react/index.html')
+    const css = read('frontend/react/src/styles/app.css')
+
+    expect(app).toContain("const seedDataDir = path.join(__dirname, 'data')")
+    expect(app).toContain("app.use('/data', express.static(seedDataDir")
+    expect(viteConfig).toContain("publicDir: path.resolve(__dirname, '../../public')")
+    expect(indexHtml).not.toContain('rel="preload"')
+    expect(indexHtml).toContain('class="initial-shell"')
+    expect(indexHtml).toContain('Manage cruise line and fleet operations')
+    expect(indexHtml).toContain('Preparing operations workspaces')
+    expect(css).toContain('content-visibility: auto')
+    expect(css).toContain('background: linear-gradient(135deg, #071827 0%, #0b6fa4 100%)')
+    expect(css).toContain('@media (min-width: 761px)')
+    expect(css).not.toContain('backdrop-filter: blur')
+    expect(fs.existsSync(path.join(projectRoot, 'public/images/cruise-background-960.webp'))).toBe(true)
+    expect(fs.existsSync(path.join(projectRoot, 'frontend/react/public/images/cruise-background-960.webp'))).toBe(false)
   })
 
 })

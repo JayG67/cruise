@@ -5,7 +5,6 @@ import useBookingDetailsMutation from './hooks/useBookingDetailsMutation.js'
 import useCruiseLines from './hooks/useCruiseLines.js'
 import useDemoUsers from './hooks/useDemoUsers.js'
 import useTurnaroundOperations from './hooks/useTurnaroundOperations.js'
-import ReactRoleSelector from './components/ReactRoleSelector.jsx'
 import ConfirmActionPanel from './components/ConfirmActionPanel.jsx'
 import { getSelectedRoleView, getVisibleRoleBookings, getVisibleTurnaroundOperations } from './domain/roleView.js'
 
@@ -13,6 +12,7 @@ const CustomerBookingHierarchy = lazy(() => import('./components/CustomerBooking
 const ReactCruiseLineCreateWorkflow = lazy(() => import('./components/ReactCruiseLineCreateWorkflow.jsx'))
 const ReactFleetDirectory = lazy(() => import('./components/ReactFleetDirectory.jsx'))
 const ReactRoleDashboard = lazy(() => import('./components/ReactRoleDashboard.jsx'))
+const ReactRoleSelector = lazy(() => import('./components/ReactRoleSelector.jsx'))
 const ReactSqaConsole = lazy(() => import('./components/ReactSqaConsole.jsx'))
 
 function getIdleScheduler() {
@@ -30,11 +30,11 @@ function useDeferredApplicationData() {
     const idleScheduler = getIdleScheduler()
 
     if (idleScheduler) {
-      const idleId = idleScheduler(() => setIsReady(true), { timeout: 1600 })
+      const idleId = idleScheduler(() => setIsReady(true), { timeout: 4500 })
       return () => window.cancelIdleCallback?.(idleId)
     }
 
-    const timerId = window.setTimeout(() => setIsReady(true), 250)
+    const timerId = window.setTimeout(() => setIsReady(true), 1600)
     return () => window.clearTimeout(timerId)
   }, [])
 
@@ -245,22 +245,24 @@ export default function App() {
         />
       )}
 
-      <ReactRoleSelector
-        customerCount={snapshot.customers.length}
-        bookingCount={snapshot.bookings.length}
-        demoUsers={demoUsers}
-        filteredDemoUsers={filteredDemoUsers}
-        bookings={snapshot.bookings}
-        availableRoles={availableRoles}
-        selectedRole={selectedRole}
-        selectedDemoUser={selectedDemoUser}
-        selectedDemoUserId={selectedDemoUserId}
-        isLoadingDemoUsers={demoUsersLoading}
-        demoUserError={demoUsersError}
-        onSelectRole={setSelectedRole}
-        onSelectDemoUser={setSelectedDemoUserId}
-        visibleBookingCount={visibleRoleBookings.length}
-      />
+      <Suspense fallback={<LazySectionFallback label="Role-aware views" />}>
+        <ReactRoleSelector
+          customerCount={snapshot.customers.length}
+          bookingCount={snapshot.bookings.length}
+          demoUsers={demoUsers}
+          filteredDemoUsers={filteredDemoUsers}
+          bookings={snapshot.bookings}
+          availableRoles={availableRoles}
+          selectedRole={selectedRole}
+          selectedDemoUser={selectedDemoUser}
+          selectedDemoUserId={selectedDemoUserId}
+          isLoadingDemoUsers={demoUsersLoading}
+          demoUserError={demoUsersError}
+          onSelectRole={setSelectedRole}
+          onSelectDemoUser={setSelectedDemoUserId}
+          visibleBookingCount={visibleRoleBookings.length}
+        />
+      </Suspense>
 
       <Suspense fallback={<LazySectionFallback label="Cruise application workspace" />}>
         {selectedRoleView === 'admin' ? (

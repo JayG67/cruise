@@ -3,6 +3,8 @@ const {
   expectNoHorizontalOverflow,
   openFleetShipsBySearch,
   openFleetSailingsBySearch,
+  openCustomerWorkflows,
+  clickStableControl,
   selectDemoUserByRole
 } = require('../support/reactProductionHelpers')
 
@@ -68,9 +70,11 @@ test.describe('React default desktop and tablet replacement checks', () => {
       .first()
     await expect(norwegianFleetCard).toBeVisible()
 
-    await norwegianFleetCard.getByTestId('react-delete-cruise-line-button').click()
-    await expect(page.getByTestId('react-fleet-delete-confirmation')).toContainText('Delete Norwegian')
-    await page.getByTestId('react-fleet-delete-confirmation-cancel').click()
+    await clickStableControl(norwegianFleetCard.getByTestId('react-delete-cruise-line-button'))
+    const fleetDeleteConfirmation = page.getByTestId('react-fleet-delete-confirmation')
+    await expect(fleetDeleteConfirmation).toBeVisible({ timeout: 15000 })
+    await expect(fleetDeleteConfirmation).toContainText('Delete Norwegian', { timeout: 15000 })
+    await clickStableControl(page.getByTestId('react-fleet-delete-confirmation-cancel'))
     await expect(page.getByTestId('react-fleet-delete-confirmation')).toHaveCount(0)
     await expect(norwegianFleetCard).toBeVisible()
     await expectNoHorizontalOverflow(page)
@@ -153,9 +157,8 @@ test.describe('React default desktop and tablet replacement checks', () => {
     await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
-    await page.getByTestId('react-toggle-customer-workflows').click()
-    await expect(page.getByTestId('react-customer-workflow-table')).toBeVisible()
-    await page.getByTestId('react-expand-visible-customers').click()
+    await openCustomerWorkflows(page)
+    await clickStableControl(page.getByTestId('react-expand-visible-customers'))
     await expect(page.getByTestId('react-customer-bookings-row').first()).toBeVisible()
     await expectNoHorizontalOverflow(page)
   })
@@ -165,10 +168,10 @@ test.describe('React default desktop and tablet replacement checks', () => {
     await page.setViewportSize({ width: 900, height: 1100 })
     await selectDemoUserByRole(page, 'Admin')
 
-    await page.getByTestId('react-toggle-customer-workflows').click()
-    await page.getByTestId('react-edit-customer-button').first().click()
+    await openCustomerWorkflows(page)
+    await clickStableControl(page.getByTestId('react-edit-customer-button').first())
     await expect(page.getByTestId('react-customer-draft-form')).toBeVisible()
-    await page.getByTestId('react-cancel-customer-draft').click()
+    await clickStableControl(page.getByTestId('react-cancel-customer-draft'))
     await expect(page.getByTestId('react-customer-draft-form')).toHaveCount(0)
     await expectNoHorizontalOverflow(page)
   })

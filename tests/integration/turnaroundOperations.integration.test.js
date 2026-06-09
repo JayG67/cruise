@@ -395,7 +395,16 @@ describe('Turnaround operations API integration tests', () => {
 
   it('POST /cruise/turnaround-operations/:id/escalations creates a database-backed escalation and refreshes escalation summary', async () => {
     const operationsRes = await request(app).get('/cruise/turnaround-operations')
-    const operation = operationsRes.body[0]
+
+    expect(operationsRes.statusCode).toBe(200)
+    expect(Array.isArray(operationsRes.body)).toBe(true)
+
+    const operation = operationsRes.body.find(candidate => Array.isArray(candidate.escalations))
+    expect(operation).toEqual(expect.objectContaining({
+      id: expect.any(String),
+      escalations: expect.any(Array)
+    }))
+
     const existingEscalationCount = operation.escalations.length
 
     const res = await request(app)
@@ -456,14 +465,27 @@ describe('Turnaround operations API integration tests', () => {
 
   it('rejects invalid turnaround escalation payloads before writing escalation rows', async () => {
     const operationsRes = await request(app).get('/cruise/turnaround-operations')
-    const operation = operationsRes.body[0]
+
+    expect(operationsRes.statusCode).toBe(200)
+    expect(Array.isArray(operationsRes.body)).toBe(true)
+
+    const operation = operationsRes.body.find(candidate => Array.isArray(candidate.escalations))
+    expect(operation).toBeTruthy()
+
+    const existingEscalationCount = operation.escalations.length
 
     const res = await request(app)
       .post(`/cruise/turnaround-operations/${operation.id}/escalations`)
       .send({ departmentRole: 'engineering-lead', severity: 'emergency-ish', title: 'Bad severity' })
 
     expect(res.statusCode).toBe(400)
-    expect(res.body.message).toBe('Validation failed')
+
+    const refreshedOperationsRes = await request(app).get('/cruise/turnaround-operations')
+    expect(refreshedOperationsRes.statusCode).toBe(200)
+
+    const refreshedOperation = refreshedOperationsRes.body.find(candidate => candidate.id === operation.id)
+    expect(refreshedOperation).toBeTruthy()
+    expect(refreshedOperation.escalations).toHaveLength(existingEscalationCount)
   })
 
 

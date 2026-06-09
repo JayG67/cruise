@@ -73,5 +73,8 @@ describe('static ADA and WCAG-oriented React accessibility safeguards', () => {
 
     expect(componentText).toContain('role="alertdialog"')
     expect(componentText).toContain('aria-modal="true"')
+    expect(confirmActionPanel).toContain("import { createPortal } from 'react-dom'")
+    expect(confirmActionPanel).toContain('createPortal(')
+    expect(confirmActionPanel).toContain('document.body')
   })
 })

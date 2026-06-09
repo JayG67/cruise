@@ -747,15 +747,9 @@ a {
 }
 
 .production-hero {
-  min-height: 82vh;
+  min-height: 58vh;
   color: var(--white);
-  background:
-    linear-gradient(90deg, rgba(7, 24, 39, 0.95) 0%, rgba(7, 24, 39, 0.84) 42%, rgba(7, 24, 39, 0.36) 100%),
-    image-set(
-      url('/images/cruise-background-960.webp') type('image/webp') 1x,
-      url('/images/cruise-background-1280.webp') type('image/webp') 2x
-    ) center / cover no-repeat,
-    linear-gradient(135deg, #071827 0%, #0b6fa4 100%);
+  background: linear-gradient(135deg, #071827 0%, #0b6fa4 100%);
   display: flex;
   flex-direction: column;
   padding: 1rem;
@@ -771,9 +765,8 @@ a {
   gap: 16px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 999px;
-  background: rgba(7, 24, 39, 0.72);
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.24);
-  backdrop-filter: blur(14px);
+  background: rgba(7, 24, 39, 0.88);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
 }
 
 .react-brand {
@@ -935,10 +928,6 @@ a {
 }
 
 @media (max-width: 760px) {
-  .production-hero {
-    min-height: 760px;
-  }
-
   .react-top-nav {
     align-items: flex-start;
     border-radius: 1.5rem;
@@ -7053,5 +7042,38 @@ button.react-workspace-card .workspace-card-title,
   .operations-portfolio-summary,
   .operations-portfolio-card dl {
     grid-template-columns: 1fr;
+  }
+}
+
+
+@media (min-width: 761px) {
+  .production-hero {
+    min-height: 70vh;
+    background:
+      linear-gradient(90deg, rgba(7, 24, 39, 0.95) 0%, rgba(7, 24, 39, 0.84) 42%, rgba(7, 24, 39, 0.36) 100%),
+      image-set(
+        url('/images/cruise-background-960.webp') type('image/webp') 1x,
+        url('/images/cruise-background-1280.webp') type('image/webp') 2x
+      ) center / cover no-repeat,
+      linear-gradient(135deg, #071827 0%, #0b6fa4 100%);
+  }
+}
+
+.react-workspace-panel,
+.route-panel,
+.react-quality-section,
+.react-role-dashboard,
+.react-admin-workspace {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 900px;
+}
+
+@media (max-width: 760px) {
+  .react-top-nav,
+  .react-workspace-panel,
+  .hero-status-pills span,
+  .button-link.primary,
+  .button-link.secondary {
+    box-shadow: none;
   }
 }
