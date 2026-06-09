@@ -38,6 +38,20 @@ describe('React component accessibility and presentation contracts', () => {
     expect(bookingCard).toContain('data-testid="react-booking-card"')
   })
 
+  it('scopes operational turnaround workspaces to the selected person before rendering the dashboard', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const roleViewDomain = read('frontend/react/src/domain/roleView.js')
+    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+
+    expect(roleViewDomain).toContain('export function getVisibleTurnaroundOperations')
+    expect(roleViewDomain).toContain('getWorkspaceUserBaseName')
+    expect(roleViewDomain).toContain('getWorkspaceUserAssignedShip')
+    expect(roleViewDomain).toContain('operationHasRoleUserAssignment')
+    expect(app).toContain('getVisibleTurnaroundOperations(effectiveSelectedDemoUser, turnaroundOperations)')
+    expect(app).toContain('turnaroundOperations={visibleTurnaroundOperations}')
+    expect(dashboard).toContain('buildTurnaroundOperationCards(turnaroundOperations, roleView)')
+  })
+
 
 })
 

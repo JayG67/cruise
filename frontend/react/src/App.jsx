@@ -7,7 +7,7 @@ import useDemoUsers from './hooks/useDemoUsers.js'
 import useTurnaroundOperations from './hooks/useTurnaroundOperations.js'
 import ReactRoleSelector from './components/ReactRoleSelector.jsx'
 import ConfirmActionPanel from './components/ConfirmActionPanel.jsx'
-import { getSelectedRoleView, getVisibleRoleBookings } from './domain/roleView.js'
+import { getSelectedRoleView, getVisibleRoleBookings, getVisibleTurnaroundOperations } from './domain/roleView.js'
 
 const CustomerBookingHierarchy = lazy(() => import('./components/CustomerBookingHierarchy.jsx'))
 const ReactCruiseLineCreateWorkflow = lazy(() => import('./components/ReactCruiseLineCreateWorkflow.jsx'))
@@ -64,6 +64,7 @@ export default function App() {
   const shouldLoadTurnaroundOperations = applicationDataReady && selectedRoleView !== 'admin'
   const { turnaroundOperations, isLoading: turnaroundLoading, error: turnaroundError, reload: reloadTurnaroundOperations, updateOperationCommand: updateTurnaroundOperationCommand, updateTaskStatus: updateTurnaroundTaskStatus, updateTaskDetails: updateTurnaroundTaskDetails, createTask: createTurnaroundTask, createTaskUpdate: createTurnaroundTaskUpdate, deleteTask: deleteTurnaroundTask, updateStaffing: updateTurnaroundStaffing, updateSignoff: updateTurnaroundSignoff, createEscalation: createTurnaroundEscalation, updateEscalation: updateTurnaroundEscalation, updateHandoff: updateTurnaroundHandoff, updatingOperationId: updatingTurnaroundOperationId, updatingTaskId: updatingTurnaroundTaskId, updatingTaskDetailsId: updatingTurnaroundTaskDetailsId, creatingTaskId: creatingTurnaroundTaskId, creatingTaskUpdateId: creatingTurnaroundTaskUpdateId, deletingTaskId: deletingTurnaroundTaskId, updatingStaffingKey: updatingTurnaroundStaffingKey, updatingSignoffKey: updatingTurnaroundSignoffKey, creatingEscalationId: creatingTurnaroundEscalationId, updatingEscalationId: updatingTurnaroundEscalationId, updatingHandoffId: updatingTurnaroundHandoffId, mutationStatus: turnaroundMutationStatus, mutationError: turnaroundMutationError } = useTurnaroundOperations({ enabled: shouldLoadTurnaroundOperations })
   const visibleRoleBookings = getVisibleRoleBookings(effectiveSelectedDemoUser, snapshot.bookings)
+  const visibleTurnaroundOperations = getVisibleTurnaroundOperations(effectiveSelectedDemoUser, turnaroundOperations)
   const workspaceTouchTargetStyle = {
     WebkitAppearance: 'none',
     alignItems: 'flex-start',
@@ -306,7 +307,7 @@ export default function App() {
           bookings={snapshot.bookings}
           cruiseLines={cruiseLines}
           visibleBookings={visibleRoleBookings}
-          turnaroundOperations={turnaroundOperations}
+          turnaroundOperations={visibleTurnaroundOperations}
           isLoadingTurnaroundOperations={turnaroundLoading}
           turnaroundOperationsError={turnaroundError}
           onRetryTurnaroundOperations={reloadTurnaroundOperations}
