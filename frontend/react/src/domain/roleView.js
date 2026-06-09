@@ -151,6 +151,75 @@ export function getSelectedCustomerName(selectedDemoUser = {}, customers = []) {
   return getCustomerName(findDemoCustomer(selectedDemoUser, customers) || { name: selectedDemoUser.displayName, id: selectedDemoUser.id })
 }
 
+
+export function getWorkspaceUserBaseName(selectedDemoUser = {}) {
+  const displayName = String(selectedDemoUser.displayName || selectedDemoUser.name || selectedDemoUser.email || selectedDemoUser.id || '').trim()
+  const roleTitle = getRoleDashboardTitle(getSelectedRoleView(selectedDemoUser)).replace(' operations', '').replace(' workspace', '')
+  const withoutAssignment = displayName.split(' — ')[0].trim()
+  const roleSuffixPattern = new RegExp(`\\s+${roleTitle.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}$`, 'i')
+
+  return withoutAssignment.replace(roleSuffixPattern, '').trim() || withoutAssignment || displayName
+}
+
+export function getWorkspaceUserAssignedShip(selectedDemoUser = {}) {
+  const displayName = String(selectedDemoUser.displayName || '').trim()
+  return selectedDemoUser.shipName
+    || selectedDemoUser.assignedShip
+    || selectedDemoUser.workspaceShip
+    || (displayName.includes(' — ') ? displayName.split(' — ').slice(1).join(' — ').trim() : '')
+}
+
+function textMatchesName(value = '', baseName = '') {
+  if (!baseName) return false
+  return String(value || '').toLowerCase().includes(baseName.toLowerCase())
+}
+
+function operationMatchesAssignedShip(operation = {}, assignedShip = '') {
+  if (!assignedShip) return true
+  const shipName = operation.ship?.name || operation.shipName || ''
+  const title = operation.title || ''
+  const notes = operation.notes || ''
+  const searchText = [shipName, title, notes].filter(Boolean).join(' ').toLowerCase()
+  return searchText.includes(String(assignedShip).toLowerCase())
+}
+
+function operationHasRoleUserAssignment(operation = {}, roleView = '', baseName = '') {
+  const normalizedRoleView = normalizeRole(roleView)
+  const tasks = Array.isArray(operation.tasks) ? operation.tasks : []
+  const staffing = Array.isArray(operation.staffing) ? operation.staffing : []
+  const signoffs = Array.isArray(operation.signoffs) ? operation.signoffs : []
+  const escalations = Array.isArray(operation.escalations) ? operation.escalations : []
+  const handoffs = Array.isArray(operation.handoffs) ? operation.handoffs : []
+
+  return tasks.some(task => normalizeRole(task.departmentRole) === normalizedRoleView && textMatchesName(task.ownerName, baseName))
+    || staffing.some(row => normalizeRole(row.departmentRole) === normalizedRoleView && (
+      textMatchesName(row.leadName, baseName)
+      || textMatchesName(row.contacts, baseName)
+      || textMatchesName((row.contactNames || []).join(' '), baseName)
+    ))
+    || signoffs.some(row => normalizeRole(row.departmentRole) === normalizedRoleView && textMatchesName(row.approverName, baseName))
+    || escalations.some(row => normalizeRole(row.departmentRole) === normalizedRoleView && textMatchesName(row.ownerName, baseName))
+    || handoffs.some(row => (
+      normalizeRole(row.fromDepartmentRole) === normalizedRoleView
+      || normalizeRole(row.toDepartmentRole) === normalizedRoleView
+    ) && textMatchesName(row.ownerName, baseName))
+}
+
+export function getVisibleTurnaroundOperations(selectedDemoUser = {}, turnaroundOperations = []) {
+  const roleView = getSelectedRoleView(selectedDemoUser)
+
+  if (!isOperationalRoleView(roleView)) return []
+
+  const baseName = getWorkspaceUserBaseName(selectedDemoUser)
+  const assignedShip = getWorkspaceUserAssignedShip(selectedDemoUser)
+  const scopedOperations = turnaroundOperations.filter(operation =>
+    operationMatchesAssignedShip(operation, assignedShip)
+    && (!baseName || operationHasRoleUserAssignment(operation, roleView, baseName))
+  )
+
+  return scopedOperations.length > 0 ? scopedOperations : turnaroundOperations.filter(operation => operationMatchesAssignedShip(operation, assignedShip))
+}
+
 export function getOperationalRoleFocus(roleView = '') {
   if (roleView === 'housekeeping-lead') return 'Cabin turnover, stateroom readiness, and inspection checkpoints'
   if (roleView === 'guest-services-lead') return 'Disembarkation flow, guest questions, and embarkation readiness'
