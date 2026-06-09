@@ -14,6 +14,7 @@ const app = express()
 const reactBuildDir = path.join(__dirname, 'dist', 'react')
 const reactIndexPath = path.join(reactBuildDir, 'index.html')
 const publicImagesDir = path.join(__dirname, 'public', 'images')
+const seedDataDir = path.join(__dirname, 'data')
 
 function setLongTermAssetCache(res) {
   res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
@@ -70,6 +71,7 @@ app.use(securityHeaders)
 app.use(compression())
 
 app.use('/images', express.static(publicImagesDir, { redirect: false, setHeaders: setLongTermAssetCache }))
+app.use('/data', express.static(seedDataDir, { redirect: false, setHeaders: setReactBuildCache }))
 app.use(express.static(reactBuildDir, { redirect: false, setHeaders: setReactBuildCache }))
 app.get('/', sendReactApp)
 
@@ -83,7 +85,7 @@ app.get('/health', (req, res) => {
 app.use('/cruise', cruiseRouter)
 app.use('/admin', adminRouter)
 
-app.get(/^\/(?!cruise|admin|health|images|retired)(?:.*)?$/, sendReactApp)
+app.get(/^\/(?!cruise|admin|health|images|data|retired)(?:.*)?$/, sendReactApp)
 
 app.use((err, req, res, next) => {
   console.error(err)

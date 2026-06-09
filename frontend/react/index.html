@@ -9,18 +9,37 @@
     />
     <link rel="canonical" href="https://cruise-explorer.onrender.com/" />
     <title>Cruise Fleet Operations Platform</title>
-    <link
-      rel="preload"
-      as="image"
-      href="/images/cruise-background-960.webp"
-      type="image/webp"
-      imagesrcset="/images/cruise-background-960.webp 960w, /images/cruise-background-1280.webp 1280w"
-      imagesizes="100vw"
-    />
+    <style>
+      :root { background: #f4f8fb; color: #102033; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      body { margin: 0; }
+      .initial-shell { background: #f4f8fb; min-height: 100vh; }
+      .initial-hero { background: linear-gradient(135deg, #071827 0%, #0b6fa4 100%); color: #fff; display: grid; min-height: 58vh; padding: 1rem; place-items: center; }
+      .initial-hero-content { width: min(1120px, calc(100% - 32px)); }
+      .initial-eyebrow { color: #79e8f2; font-size: .78rem; font-weight: 800; letter-spacing: .12em; margin: 0 0 1rem; text-transform: uppercase; }
+      .initial-hero h1 { color: #fff; font-size: clamp(2.55rem, 14vw, 4rem); line-height: .95; margin: 0 0 .85rem; max-width: 760px; text-wrap: balance; }
+      .initial-hero p { color: rgba(255,255,255,.92); font-size: clamp(1rem, 2vw, 1.2rem); font-weight: 650; line-height: 1.55; margin: 0; max-width: 720px; }
+      .initial-workspace { background: rgba(255,255,255,.96); border: 1px solid #d8e2ef; border-radius: 1.25rem; box-shadow: 0 16px 36px rgba(7,24,39,.12); margin: -2rem auto 1rem; padding: 1rem; width: min(1120px, calc(100% - 2rem)); }
+      .initial-workspace strong { display: block; font-size: clamp(1.35rem, 5vw, 2.4rem); line-height: 1.1; margin-bottom: .4rem; }
+      @media (min-width: 761px) { .initial-hero { min-height: 70vh; } .initial-hero h1 { font-size: clamp(3rem, 8vw, 5.8rem); } }
+    </style>
   </head>
   <body>
     <noscript>Cruise Fleet Operations Platform requires JavaScript.</noscript>
-    <div id="root"></div>
+    <div id="root">
+      <main class="initial-shell" aria-label="Cruise Fleet Operations Platform loading">
+        <section class="initial-hero">
+          <div class="initial-hero-content">
+            <p class="initial-eyebrow">Cruise Operations Dashboard</p>
+            <h1>Manage cruise line and fleet operations</h1>
+            <p>A production-style operations console for cruise lines, fleet data, customers, bookings, and quality status.</p>
+          </div>
+        </section>
+        <section class="initial-workspace" aria-label="Loading cruise operations workspaces">
+          <strong>Preparing operations workspaces</strong>
+          <span>Role-aware views, admin operations, fleet management, and quality checks are loading.</span>
+        </section>
+      </main>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
