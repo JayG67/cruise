@@ -3,6 +3,19 @@ const DEFAULT_HEADERS = {
 }
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+const STATIC_DATA_URL = '/data/cruise.json'
+
+let staticSeedDataPromise
+
+class ApiResponseFormatError extends Error {
+  constructor(response, cause) {
+    const requestedUrl = response?.url || 'API response'
+    super(`The live data service did not return JSON for ${requestedUrl}. Showing available read-only portfolio data instead.`)
+    this.name = 'ApiResponseFormatError'
+    this.response = response
+    this.cause = cause
+  }
+}
 
 function buildApiUrl(path) {
   if (!path.startsWith('/')) {
@@ -12,10 +25,176 @@ function buildApiUrl(path) {
   return `${API_BASE_URL}${path}`
 }
 
-function getApiTroubleshootingMessage(response) {
-  const requestedUrl = response?.url || 'API response'
+function isReadOnlyRequest(options = {}) {
+  return !options.method || String(options.method).toUpperCase() === 'GET'
+}
 
-  return `Expected JSON from ${requestedUrl}. Make sure the Express API is running on port 8000 and the React Vite proxy is configured for local preview.`
+function slugify(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+function getCruiseLineId(line) {
+  return line.id || slugify(line.name)
+}
+
+function getShipId(line, ship) {
+  return ship.id || `${getCruiseLineId(line)}-${slugify(ship.name)}`
+}
+
+function getSailingId(line, ship, sailing) {
+  return sailing.id || `${getShipId(line, ship)}-${sailing.departureDate}`
+}
+
+async function loadStaticSeedData() {
+  if (!staticSeedDataPromise) {
+    staticSeedDataPromise = fetch(STATIC_DATA_URL, {
+      headers: DEFAULT_HEADERS
+    }).then(async response => {
+      if (!response.ok) {
+        throw new Error(`Unable to load bundled cruise data. HTTP ${response.status}.`)
+      }
+
+      return response.json()
+    })
+  }
+
+  return staticSeedDataPromise
+}
+
+function normalizeStaticCustomers(seedData) {
+  return Array.isArray(seedData.customers) ? seedData.customers : []
+}
+
+function normalizeStaticBookings(seedData) {
+  const customersById = new Map(normalizeStaticCustomers(seedData).map(customer => [customer.id, customer]))
+
+  return (Array.isArray(seedData.bookings) ? seedData.bookings : []).map(booking => ({
+    ...booking,
+    passengers: (booking.passengers || []).map(passenger => ({
+      ...passenger,
+      customer: customersById.get(passenger.customerId) || null
+    }))
+  }))
+}
+
+function normalizeStaticDemoUsers(seedData) {
+  return Array.isArray(seedData.demoUsers) ? seedData.demoUsers : []
+}
+
+function normalizeStaticTurnaroundOperations(seedData) {
+  return Array.isArray(seedData.turnaroundOperations) ? seedData.turnaroundOperations : []
+}
+
+function normalizeStaticCruiseLines(seedData) {
+  return (Array.isArray(seedData.cruiseLines) ? seedData.cruiseLines : []).map(line => ({
+    ...line,
+    id: getCruiseLineId(line),
+    shipCount: Array.isArray(line.ships) ? line.ships.length : 0
+  }))
+}
+
+function getStaticShipsForCruiseLine(seedData, cruiseLineId) {
+  const line = normalizeStaticCruiseLines(seedData).find(candidate => candidate.id === cruiseLineId || slugify(candidate.name) === cruiseLineId)
+
+  if (!line) {
+    return []
+  }
+
+  return (Array.isArray(line.ships) ? line.ships : []).map(ship => ({
+    ...ship,
+    id: getShipId(line, ship),
+    cruiseLineId: line.id,
+    cruiseLineName: line.name,
+    sailingCount: Array.isArray(ship.sailings) ? ship.sailings.length : 0
+  }))
+}
+
+function getStaticSailingsForShip(seedData, shipId) {
+  for (const line of normalizeStaticCruiseLines(seedData)) {
+    for (const ship of (line.ships || [])) {
+      if (getShipId(line, ship) !== shipId && slugify(ship.name) !== shipId) {
+        continue
+      }
+
+      return (Array.isArray(ship.sailings) ? ship.sailings : []).map(sailing => ({
+        ...sailing,
+        id: getSailingId(line, ship, sailing),
+        shipId: getShipId(line, ship),
+        shipName: ship.name,
+        cruiseLineId: line.id,
+        cruiseLineName: line.name
+      }))
+    }
+  }
+
+  return []
+}
+
+function getStaticItineraryForSailing(seedData, sailingId) {
+  for (const line of normalizeStaticCruiseLines(seedData)) {
+    for (const ship of (line.ships || [])) {
+      for (const sailing of (ship.sailings || [])) {
+        if (getSailingId(line, ship, sailing) === sailingId) {
+          return Array.isArray(sailing.itinerary) ? sailing.itinerary : []
+        }
+      }
+    }
+  }
+
+  return []
+}
+
+async function requestStaticFallback(path, options = {}) {
+  if (!isReadOnlyRequest(options)) {
+    throw new Error('Live data writes require the application API. Please try again when the service is available.')
+  }
+
+  const seedData = await loadStaticSeedData()
+
+  if (path === '/cruise/customers') {
+    return normalizeStaticCustomers(seedData)
+  }
+
+  if (path === '/cruise/bookings') {
+    return normalizeStaticBookings(seedData)
+  }
+
+  if (path === '/cruise/demo-users') {
+    return normalizeStaticDemoUsers(seedData)
+  }
+
+  if (path === '/cruise/turnaround-operations') {
+    return normalizeStaticTurnaroundOperations(seedData)
+  }
+
+  if (path === '/cruise') {
+    return normalizeStaticCruiseLines(seedData)
+  }
+
+  if (path.startsWith('/cruise/ships/')) {
+    return getStaticShipsForCruiseLine(seedData, decodeURIComponent(path.replace('/cruise/ships/', '')))
+  }
+
+  if (path.startsWith('/cruise/ship/') && path.endsWith('/sailings')) {
+    const shipId = decodeURIComponent(path.replace('/cruise/ship/', '').replace('/sailings', ''))
+    return getStaticSailingsForShip(seedData, shipId)
+  }
+
+  if (path.startsWith('/cruise/sailings/') && path.endsWith('/itinerary')) {
+    const sailingId = decodeURIComponent(path.replace('/cruise/sailings/', '').replace('/itinerary', ''))
+    return getStaticItineraryForSailing(seedData, sailingId)
+  }
+
+  if (path === '/health') {
+    return { status: 'static-fallback', mode: 'read-only' }
+  }
+
+  throw new Error('Bundled read-only data is not available for this request.')
 }
 
 export async function parseJsonResponse(response) {
@@ -24,7 +203,7 @@ export async function parseJsonResponse(response) {
   try {
     payload = await response.json()
   } catch (error) {
-    throw new Error(getApiTroubleshootingMessage(response))
+    throw new ApiResponseFormatError(response, error)
   }
 
   if (!response.ok) {
@@ -43,7 +222,15 @@ export async function requestJson(path, options = {}) {
     }
   })
 
-  return parseJsonResponse(response)
+  try {
+    return await parseJsonResponse(response)
+  } catch (error) {
+    if (error instanceof ApiResponseFormatError) {
+      return requestStaticFallback(path, options)
+    }
+
+    throw error
+  }
 }
 
 export async function getCustomers(options = {}) {

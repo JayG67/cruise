@@ -261,6 +261,8 @@ describe('Production data architecture hardening guardrails', () => {
 
     expect(loader).toContain('function buildAppUserLookup')
     expect(controller).toContain('resolveOperationalUserIdByName')
+    expect(controller).toContain('const exactMatches = await db')
+    expect(controller).not.toContain('await dbs')
     expect(controller).toContain('ownerUserId: await resolveOperationalUserIdByName(ownerName)')
     expect(controller).toContain('approverUserId: await resolveOperationalUserIdByName(approverName)')
     expect(controller).toContain('authorUserId: await resolveOperationalUserIdByName(authorName)')
