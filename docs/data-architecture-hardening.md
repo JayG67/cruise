@@ -1,127 +1,45 @@
-# Data Architecture Hardening Plan
+# Data Architecture Hardening Roadmap
 
-Cruise Fleet Operations Platform is moving from portfolio-demo data volume toward production-scale operational patterns. This phase keeps the current schema compatible while adding guardrails that matter when the same workflows are connected to larger cruise-line datasets and live services.
+This document tracks the production-scale database architecture path for Cruise Explorer. It belongs in documentation only; development-slice language must not appear in the product UI.
 
-## Phase 1: Query Indexing Baseline
+## Completed hardening baseline
 
-The current hardening slice adds database indexes for the highest-traffic relational access paths:
+### Query Indexing Baseline
+The application now carries a query indexing baseline for the main operational and portfolio lookup paths. Indexing is intended to support large production datasets where cruise lines, ships, sailings, bookings, passengers, turnaround operations, tasks, handoffs, staffing, dependencies, signoffs, escalations, and audit records grow far beyond the demo seed file.
 
-- Cruise line to ship lookup
-- Ship to sailing lookup by departure date
-- Sailing route and departure filtering
-- Booking lookup by sailing, status, and customer
-- Booking passenger lookup by booking and customer
-- Turnaround operation lookup by sailing, date, and status
-- Turnaround task lookup by operation, role, status, and sort order
-- Turnaround dependency, handoff, escalation, staffing, and readiness signoff lookup by operation and operational status
-- Task update history lookup by task and creation time
+### Reference Data and Database Constraints
+Reference data and database checks keeps operational dashboards aligned with valid production states. Status values, role types, assignment scope, and operational workflow fields should be constrained at the database boundary so the UI never has to interpret arbitrary values as valid workflow state.
 
-These indexes support the current UI patterns without changing API contracts or seed data structure.
+### Typed Date and Time Migration Bridge
+The current migration path includes proper `date`, `time`, and `timestamp` columns through typed shadow columns. These fields allow the application to migrate away from string-only temporal values while keeping existing seed and UI compatibility during the transition.
 
+### Normalized User and Role Bridge
+The normalized identity bridge introduces `app_users`, `app_roles`, and role assignment rows so demo identities can evolve into production users without rewriting the whole application at once. This bridge is the foundation for production authentication, authorization, and assignment-aware workflows.
 
-## Phase 2: Reference Data and Database Constraints
+### Operational Ownership Attribution Bridge
+Operational ownership now has a bridge from display names toward durable identity fields such as `ownerUserId`, `approverUserId`, and related author/assignment IDs. The intent is to stop treating names as primary relationships and make task ownership, signoff approval, escalation ownership, handoff accountability, and task-update authorship auditable.
 
-The next hardening slice adds a shared reference-data contract for high-impact operational values and mirrors that contract in the database initializer with idempotent `CHECK` constraints. This protects production data from drifting away from the values the UI and API understand.
+### Tenant and Assignment Scope Bridge
+The tenant and assignment bridge records cruise-line and ship scope on users, roles, and demo users. A turnaround manager should not see every cruise line; each operational person should be constrained by tenant/cruise-line boundaries and assigned ship or sailing responsibility.
 
-Constrained values now cover:
+### Audit Event Bridge
+The audit event bridge introduces the `audit_events` table as the append-only traceability target for production workflows. Each event can carry the actor user, tenant cruise line, ship, sailing, turnaround operation, entity type, entity id, event type, payload, source, and creation timestamp so command, task, staffing, handoff, escalation, signoff, booking, and admin changes can become auditable without coupling the product UI to implementation history.
 
-- Booking status
-- Turnaround operation status
-- Turnaround task status
-- Dependency gate status
-- Handoff status
-- Escalation severity and status
-- Readiness signoff status
-- Operational department roles used by task, staffing, and handoff records
-- Staffing count sanity rules
-- Dependency self-reference prevention
+## Remaining production-scale roadmap
 
-The application still uses string columns for compatibility with the existing seed and API contracts, but the domain options now live in `domain/cruiseReferenceData.js` instead of being scattered through validation logic. This is an intermediate production-readiness step before moving to fully normalized role/status lookup tables or Postgres enum migrations. The date/time bridge now adds typed shadow columns so reporting and live-service integration work can start without breaking existing API consumers.
+Normalize users, crew members, operational roles, and departments so every assignment, workflow action, and tenant boundary resolves through durable identifiers instead of display strings.
 
-## Phase 3: Typed Date and Time Migration Bridge
+### Tenant/Cruise-Line Boundaries
+The platform should continue deepening tenant/cruise-line boundaries across every API read and write path. A production user should only see and mutate data within their cruise line, assigned ships, assigned sailings, and permitted operational roles.
 
-The current hardening slice adds production-safe typed shadow columns for the highest-impact date, time, and timestamp fields while preserving the existing string API contracts. This continues the roadmap to replace string date/time fields with proper `date`, `time`, and `timestamp` columns by giving the database typed `date`, `time`, and `timestamptz` values for future query planning, sorting, reporting, and live-service integrations without forcing a risky API-breaking migration in the same step.
+### Audit and Event History
+The application should keep append-only audit/event history for operational changes. Command plan updates, task status changes, task detail edits, staffing updates, handoff updates, escalation changes, readiness signoffs, booking mutations, and administrative reset actions should be recorded as immutable event rows for compliance and operational traceability.
 
-Typed bridge columns now cover:
+### Seed-JSON Exit Strategy
+The seed JSON should remain a demo/bootstrap source only. Production should move toward migration-owned reference data, database-owned operational data, and live-service integration. The bundled static fallback can remain a read-only portfolio safety net, but it should not become the production source of truth.
 
-- Sailing departure dates with `departureDateValue`
-- Activity schedule times with `activityTimeValue`
-- Turnaround operation dates with `turnaroundDateValue`
-- Turnaround task and handoff due times with `dueTimeValue`
-- Task update creation timestamps with `createdAtTimestamp`
-- Readiness signoff timestamps with `signedAtTimestamp`
-- Escalation creation timestamps with `createdAtTimestamp`
-- Handoff completion timestamps with `completedAtTimestamp`
+### Production Identity and Authorization
+Future work should connect normalized users and roles to a real authentication provider. Server-side authorization should enforce admin, passenger, group leader, and operational lead permissions rather than relying only on UI visibility.
 
-The initializer backfills these columns only when the existing strings match safe ISO-style patterns, which avoids breaking older or unexpected data. New indexes on the typed columns prepare the application for production reporting and timeline views while the UI and API continue to read/write the existing public fields.
-
-This is an intermediate migration bridge. A later production migration should move application writes directly to typed columns, expose typed values through explicit API serializers, and eventually retire redundant string storage after compatibility is proven.
-
-## Phase 4: Normalized User and Role Bridge
-
-The current hardening slice introduces a compatibility bridge from the legacy `demo_users` table toward production-ready identity and authorization tables. The application still serves the existing demo-user API shape, but the database now has normalized foundations for future authentication, role assignment, and audit attribution.
-
-New bridge tables:
-
-- `app_users` stores stable application users with display name, email, user type, customer linkage, and active status.
-- `app_roles` stores normalized access roles instead of relying only on repeated role strings.
-- `app_user_roles` stores role assignments with scope and status so future permissions can be attached to customers, bookings, sailings, or turnaround operations.
-
-The existing `demo_users` table now has `normalizedUserId` and `normalizedRoleId` bridge columns. Seed loading writes both the legacy row and the normalized user/role rows, and the database initializer backfills those values for existing environments. This keeps the current UI and tests stable while preparing the platform to replace display-name and demo-user assumptions with real user IDs.
-
-Why this matters: production cruise operations cannot depend on display names or demo users as durable identities. Task owners, escalation owners, readiness approvers, passenger users, administrators, and future crew/partner users need stable identifiers that can be audited, scoped, deactivated, and integrated with external identity providers.
-
-
-
-## Phase 5: Operational Ownership Attribution Bridge
-
-This hardening slice begins replacing display-name-only operational ownership with stable application user identifiers while preserving the current API and UI compatibility fields.
-
-New bridge columns:
-
-- `turnaround_tasks.ownerUserId` maps task ownership to `app_users` while keeping `ownerName` for existing screens and forms.
-- `turnaround_task_updates.authorUserId` maps shift-update authors to `app_users` while keeping `authorName` for readable activity logs.
-- `turnaround_signoffs.approverUserId` maps readiness approvers to `app_users` while keeping `approverName` for existing readiness approval displays.
-- `turnaround_escalations.ownerUserId` maps escalation owners to `app_users` while keeping `ownerName` for current escalation workflows.
-- `turnaround_handoffs.ownerUserId` maps handoff owners to `app_users` while keeping `ownerName` for current department handoff displays.
-
-The initializer backfills these IDs from existing operational names using normalized app users, and the API now resolves user IDs when operational ownership names are changed through the current endpoints. This gives the product a production migration path toward durable audit attribution without forcing a disruptive UI rewrite.
-
-Why this matters: in production, two people can share the same display name, names can change, and deactivated users still need historical records. Stable user IDs are the foundation for audit trails, authorization, crew assignment, and future integrations with identity providers or shipboard workforce systems.
-
-
-## Why This Matters for Live Services
-
-If Cruise Explorer is connected to real booking, crew, port, or ship systems, unconstrained strings can create expensive cleanup problems: `Complete`, `COMPLETE`, `completed`, and `Done` can become four different operational states. Shared reference data plus database checks keeps operational dashboards, release boards, and role workflows consistent even as data volume grows.
-
-## Why This Matters
-
-The application now presents role-specific operational workflows, portfolio boards, release boards, readiness approvals, handoffs, escalations, staffing, tasks, customers, bookings, and sailings. In a real cruise operations platform, those screens would be backed by much larger tables and frequent filtering by:
-
-- Cruise line
-- Ship
-- Sailing
-- Turnaround operation
-- Department role
-- Status
-- Date
-- Passenger/customer relationships
-
-Without indexes on these paths, the database would gradually shift from predictable lookup behavior to full table scans as data grows.
-
-## Future Production Hardening
-
-This indexing baseline is intentionally only the first data architecture hardening step. The remaining production-scale work should include:
-
-1. Complete the date/time migration by moving writes to typed columns and retiring redundant string storage after compatibility is proven.
-2. Normalize users, crew members, operational roles, and departments by continuing to replace display-name ownership fields with user IDs and extending roles to crew/department assignments.
-3. Move remaining display-name compatibility fields toward read models once API consumers are migrated.
-4. Continue evolving constrained status values toward enums or lookup tables once migration compatibility is planned.
-5. Add tenant/cruise-line boundaries for multi-cruise-line deployment.
-6. Add append-only audit/event history for tasks, handoffs, escalations, staffing, signoffs, and command plan changes.
-7. Move seed JSON usage toward migration-backed seed factories for larger environments.
-8. Add load-test-backed query review once live services or larger datasets are connected.
-
-## Current Principle
-
-Do not destabilize the working application while hardening it. Each data architecture pass should preserve existing tests, UI workflows, and API contracts unless the slice explicitly includes a migration plan and compatibility strategy.
+### Operational Analytics
+Once ownership, timestamps, and events are fully normalized, the platform can produce historical readiness analytics, blocker trends, staffing gap analysis, handoff throughput, escalation resolution time, and fleet-level turnaround performance reporting.

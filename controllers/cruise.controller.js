@@ -22,7 +22,28 @@ const { and, eq, inArray, like } = require('drizzle-orm')
 
 
 
-async function resolveOperationalUserIdByName(displayName) {
+async function getAssignedShipForOperation(operation = {}) {
+  if (!operation?.sailingId) return null
+
+  const sailingRows = await db
+    .select()
+    .from(sailingTable)
+    .where(eq(sailingTable.id, operation.sailingId))
+    .limit(1)
+
+  const sailing = sailingRows[0]
+  if (!sailing?.shipId) return null
+
+  const shipRows = await db
+    .select()
+    .from(shipTable)
+    .where(eq(shipTable.id, sailing.shipId))
+    .limit(1)
+
+  return shipRows[0] || null
+}
+
+async function resolveOperationalUserIdByName(displayName, operation = null) {
   if (!displayName) return null
 
   const exactMatches = await db
@@ -33,6 +54,21 @@ async function resolveOperationalUserIdByName(displayName) {
 
   if (exactMatches[0]) return exactMatches[0].id
 
+  const assignedShip = operation ? await getAssignedShipForOperation(operation) : null
+
+  if (assignedShip?.id) {
+    const scopedMatches = await db
+      .select()
+      .from(appUserTable)
+      .where(and(
+        like(appUserTable.displayName, `${displayName} — %`),
+        eq(appUserTable.assignedShipId, assignedShip.id)
+      ))
+      .limit(1)
+
+    if (scopedMatches[0]) return scopedMatches[0].id
+  }
+
   const prefixedMatches = await db
     .select()
     .from(appUserTable)
@@ -40,6 +76,31 @@ async function resolveOperationalUserIdByName(displayName) {
     .limit(1)
 
   return prefixedMatches[0]?.id || null
+}
+
+
+async function buildAppUserDisplayLookup(userIds = []) {
+  const uniqueUserIds = [...new Set((userIds || []).filter(Boolean))]
+  if (!uniqueUserIds.length) return new Map()
+
+  const userRows = await db
+    .select()
+    .from(appUserTable)
+    .where(inArray(appUserTable.id, uniqueUserIds))
+
+  return new Map(userRows.map(user => [user.id, user.displayName]))
+}
+
+function enrichOperationalPerson(row = {}, userDisplayById = new Map(), userIdField, displayField) {
+  if (!row) return row
+
+  const userId = row[userIdField]
+  const displayName = userId ? userDisplayById.get(userId) : null
+
+  return {
+    ...row,
+    [displayField]: displayName || row[displayField] || row.ownerName || row.authorName || row.approverName || row.leadName || null
+  }
 }
 
 function buildCruiseLinePayload({ name, country, website, brandFamily, brandTheme, marketPositioning }) {
@@ -1148,23 +1209,48 @@ async function getTurnaroundOperationDetails(operation) {
     .from(turnaroundHandoffTable)
     .where(eq(turnaroundHandoffTable.operationId, operation.id))
 
-  const sortedSignoffs = [...(signoffs || [])].sort((a, b) => String(a.departmentRole).localeCompare(String(b.departmentRole)))
-  const sortedEscalations = [...(escalations || [])].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
-  const sortedStaffing = [...(staffing || [])].sort((a, b) => String(a.departmentRole).localeCompare(String(b.departmentRole)))
-  const sortedTaskDependencies = [...(taskDependencies || [])].sort((a, b) => String(a.status).localeCompare(String(b.status)))
-  const sortedHandoffs = [...(handoffs || [])].sort((a, b) => String(a.dueTime || '').localeCompare(String(b.dueTime || '')))
+  const taskUpdateRowsByTaskId = new Map()
+  const operationalUserIds = [
+    ...(tasks || []).map(task => task.ownerUserId),
+    ...(signoffs || []).map(signoff => signoff.approverUserId),
+    ...(escalations || []).map(escalation => escalation.ownerUserId),
+    ...(handoffs || []).map(handoff => handoff.ownerUserId)
+  ]
 
-  const sortedTasks = []
-
-  for (const task of [...(tasks || [])].sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0))) {
+  for (const task of tasks || []) {
     const updates = await db
       .select()
       .from(turnaroundTaskUpdateTable)
       .where(eq(turnaroundTaskUpdateTable.taskId, task.id))
 
+    taskUpdateRowsByTaskId.set(task.id, updates || [])
+    operationalUserIds.push(...(updates || []).map(update => update.authorUserId))
+  }
+
+  const userDisplayById = await buildAppUserDisplayLookup(operationalUserIds)
+
+  const sortedSignoffs = [...(signoffs || [])]
+    .map(signoff => enrichOperationalPerson(signoff, userDisplayById, 'approverUserId', 'approverDisplayName'))
+    .sort((a, b) => String(a.departmentRole).localeCompare(String(b.departmentRole)))
+  const sortedEscalations = [...(escalations || [])]
+    .map(escalation => enrichOperationalPerson(escalation, userDisplayById, 'ownerUserId', 'ownerDisplayName'))
+    .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+  const sortedStaffing = [...(staffing || [])].sort((a, b) => String(a.departmentRole).localeCompare(String(b.departmentRole)))
+  const sortedTaskDependencies = [...(taskDependencies || [])].sort((a, b) => String(a.status).localeCompare(String(b.status)))
+  const sortedHandoffs = [...(handoffs || [])]
+    .map(handoff => enrichOperationalPerson(handoff, userDisplayById, 'ownerUserId', 'ownerDisplayName'))
+    .sort((a, b) => String(a.dueTime || '').localeCompare(String(b.dueTime || '')))
+
+  const sortedTasks = []
+
+  for (const task of [...(tasks || [])].sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0))) {
+    const updates = taskUpdateRowsByTaskId.get(task.id) || []
+
     sortedTasks.push({
-      ...task,
-      updates: [...(updates || [])].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+      ...enrichOperationalPerson(task, userDisplayById, 'ownerUserId', 'ownerDisplayName'),
+      updates: [...updates]
+        .map(update => enrichOperationalPerson(update, userDisplayById, 'authorUserId', 'authorDisplayName'))
+        .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
     })
   }
 
@@ -1200,9 +1286,109 @@ async function getTurnaroundOperationDetails(operation) {
   }
 }
 
+function isOperationalDemoRole(role = '') {
+  const normalizedRole = String(role || '').toLowerCase().replace(/_/g, '-')
+  return [
+    'turnaround-manager',
+    'housekeeping-lead',
+    'guest-services-lead',
+    'food-beverage-lead',
+    'engineering-lead'
+  ].some(operationalRole => normalizedRole.includes(operationalRole))
+}
+
+async function getSailingIdsForOperationalAssignment(demoUser) {
+  if (!demoUser || !isOperationalDemoRole(demoUser.role)) return null
+
+  if (demoUser.assignedShipId) {
+    const sailingRows = await db
+      .select()
+      .from(sailingTable)
+      .where(eq(sailingTable.shipId, demoUser.assignedShipId))
+
+    return sailingRows.map(sailing => sailing.id)
+  }
+
+  if (demoUser.cruiseLineId) {
+    const shipRows = await db
+      .select()
+      .from(shipTable)
+      .where(eq(shipTable.cruiseLineId, demoUser.cruiseLineId))
+
+    const sailingRows = await selectByIds(
+      sailingTable,
+      sailingTable.shipId,
+      shipRows.map(ship => ship.id)
+    )
+
+    return sailingRows.map(sailing => sailing.id)
+  }
+
+  return []
+}
+
+
+async function canAccessTurnaroundOperationForRequest(req, operation) {
+  const demoUserId = req.query?.demoUserId
+
+  if (!demoUserId) return true
+  if (!operation) return false
+
+  const demoUserRows = await db
+    .select()
+    .from(demoUserTable)
+    .where(eq(demoUserTable.id, demoUserId))
+    .limit(1)
+
+  const demoUser = demoUserRows[0]
+
+  if (!demoUser) return false
+
+  const scopedSailingIds = await getSailingIdsForOperationalAssignment(demoUser)
+
+  if (scopedSailingIds === null) return true
+
+  return scopedSailingIds.includes(operation.sailingId)
+}
+
+function sendTurnaroundOperationForbidden(res) {
+  return res.status(403).json({ message: 'Selected demo user is not assigned to this turnaround operation' })
+}
+
+async function getTurnaroundOperationsForRequest(req) {
+  const demoUserId = req.query?.demoUserId
+
+  if (!demoUserId) {
+    return db.select().from(turnaroundOperationTable)
+  }
+
+  const demoUserRows = await db
+    .select()
+    .from(demoUserTable)
+    .where(eq(demoUserTable.id, demoUserId))
+    .limit(1)
+
+  const demoUser = demoUserRows[0]
+
+  if (!demoUser) return []
+
+  const scopedSailingIds = await getSailingIdsForOperationalAssignment(demoUser)
+
+  if (scopedSailingIds === null) {
+    return db.select().from(turnaroundOperationTable)
+  }
+
+  if (scopedSailingIds.length === 0) return []
+
+  return db
+    .select()
+    .from(turnaroundOperationTable)
+    .where(inArray(turnaroundOperationTable.sailingId, scopedSailingIds))
+}
+
 exports.getTurnaroundOperations = async (req, res, next) => {
   try {
-    const operations = await db.select().from(turnaroundOperationTable)
+    const operations = await getTurnaroundOperationsForRequest(req)
 
     if (!operations || operations.length === 0) {
       return res.status(404).json({ message: 'No turnaround operations found' })
@@ -1244,6 +1430,10 @@ exports.updateTurnaroundOperationCommand = async (req, res, next) => {
 
     if (!operation) {
       return res.status(404).json({ message: 'Turnaround operation not found' })
+    }
+
+    if (!(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      return sendTurnaroundOperationForbidden(res)
     }
 
     if (Object.keys(operationUpdates).length === 0) {
@@ -1288,6 +1478,10 @@ exports.createTurnaroundEscalation = async (req, res, next) => {
       return res.status(404).json({ message: 'Turnaround operation not found' })
     }
 
+    if (!(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      return sendTurnaroundOperationForbidden(res)
+    }
+
     await db
       .insert(turnaroundEscalationTable)
       .values({
@@ -1296,7 +1490,7 @@ exports.createTurnaroundEscalation = async (req, res, next) => {
         severity,
         title,
         ownerName: ownerName || null,
-        ownerUserId: await resolveOperationalUserIdByName(ownerName),
+        ownerUserId: await resolveOperationalUserIdByName(ownerName, operation),
         status,
         resolutionNotes: resolutionNotes || null,
         createdAt: new Date().toISOString()
@@ -1335,18 +1529,9 @@ exports.updateTurnaroundEscalation = async (req, res, next) => {
       return res.status(404).json({ message: 'Turnaround escalation not found' })
     }
 
-    if (Object.prototype.hasOwnProperty.call(req.body, 'ownerName')) {
-      escalationUpdates.ownerUserId = await resolveOperationalUserIdByName(req.body.ownerName)
-    }
-
     if (Object.keys(escalationUpdates).length === 0) {
       return res.status(400).json({ message: 'At least one turnaround escalation field is required' })
     }
-
-    await db
-      .update(turnaroundEscalationTable)
-      .set(escalationUpdates)
-      .where(eq(turnaroundEscalationTable.id, id))
 
     const operationRows = await db
       .select()
@@ -1355,6 +1540,19 @@ exports.updateTurnaroundEscalation = async (req, res, next) => {
       .limit(1)
 
     const operation = operationRows[0]
+
+    if (operation && !(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      return sendTurnaroundOperationForbidden(res)
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body, 'ownerName')) {
+      escalationUpdates.ownerUserId = await resolveOperationalUserIdByName(req.body.ownerName, operation)
+    }
+
+    await db
+      .update(turnaroundEscalationTable)
+      .set(escalationUpdates)
+      .where(eq(turnaroundEscalationTable.id, id))
 
     return res.status(200).json({
       message: 'Turnaround escalation updated successfully',
@@ -1381,6 +1579,10 @@ exports.updateTurnaroundStaffing = async (req, res, next) => {
 
     if (!operation) {
       return res.status(404).json({ message: 'Turnaround operation not found' })
+    }
+
+    if (!(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      return sendTurnaroundOperationForbidden(res)
     }
 
     const staffingValues = {
@@ -1441,6 +1643,10 @@ exports.updateTurnaroundSignoff = async (req, res, next) => {
       return res.status(404).json({ message: 'Turnaround operation not found' })
     }
 
+    if (!(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      return sendTurnaroundOperationForbidden(res)
+    }
+
     const existingSignoffs = await db
       .select()
       .from(turnaroundSignoffTable)
@@ -1452,7 +1658,7 @@ exports.updateTurnaroundSignoff = async (req, res, next) => {
 
     const signoffValues = {
       approverName,
-      approverUserId: await resolveOperationalUserIdByName(approverName),
+      approverUserId: await resolveOperationalUserIdByName(approverName, operation),
       status,
       notes: notes || null,
       signedAt: status === 'PENDING' ? null : new Date().toISOString()
@@ -1507,11 +1713,6 @@ exports.updateTurnaroundTaskStatus = async (req, res, next) => {
       nextTaskValues.blockerReason = null
     }
 
-    await db
-      .update(turnaroundTaskTable)
-      .set(nextTaskValues)
-      .where(eq(turnaroundTaskTable.id, id))
-
     const operationRows = await db
       .select()
       .from(turnaroundOperationTable)
@@ -1519,6 +1720,15 @@ exports.updateTurnaroundTaskStatus = async (req, res, next) => {
       .limit(1)
 
     const operation = operationRows[0]
+
+    if (operation && !(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      return sendTurnaroundOperationForbidden(res)
+    }
+
+    await db
+      .update(turnaroundTaskTable)
+      .set(nextTaskValues)
+      .where(eq(turnaroundTaskTable.id, id))
 
     if (!operation) {
       return res.status(200).json({ message: 'Turnaround task status updated successfully' })
@@ -1552,6 +1762,10 @@ exports.createTurnaroundTask = async (req, res, next) => {
       return res.status(404).json({ message: 'Turnaround operation not found' })
     }
 
+    if (!(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      return sendTurnaroundOperationForbidden(res)
+    }
+
     const existingTasks = await db
       .select()
       .from(turnaroundTaskTable)
@@ -1566,7 +1780,7 @@ exports.createTurnaroundTask = async (req, res, next) => {
         departmentRole,
         taskName,
         ownerName: ownerName || null,
-        ownerUserId: await resolveOperationalUserIdByName(ownerName),
+        ownerUserId: await resolveOperationalUserIdByName(ownerName, operation),
         dueTime: dueTime || null,
         location: location || null,
         blockerReason: blockerReason || null,
@@ -1600,17 +1814,6 @@ exports.createTurnaroundTaskUpdate = async (req, res, next) => {
       return res.status(404).json({ message: 'Turnaround task not found' })
     }
 
-    await db
-      .insert(turnaroundTaskUpdateTable)
-      .values({
-        taskId: id,
-        authorName,
-        authorUserId: await resolveOperationalUserIdByName(authorName),
-        updateType,
-        message,
-        createdAt: new Date().toISOString()
-      })
-
     const operationRows = await db
       .select()
       .from(turnaroundOperationTable)
@@ -1618,6 +1821,21 @@ exports.createTurnaroundTaskUpdate = async (req, res, next) => {
       .limit(1)
 
     const operation = operationRows[0]
+
+    if (operation && !(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      return sendTurnaroundOperationForbidden(res)
+    }
+
+    await db
+      .insert(turnaroundTaskUpdateTable)
+      .values({
+        taskId: id,
+        authorName,
+        authorUserId: await resolveOperationalUserIdByName(authorName, operation),
+        updateType,
+        message,
+        createdAt: new Date().toISOString()
+      })
 
     return res.status(201).json({
       message: 'Turnaround task update added successfully',
@@ -1651,6 +1869,12 @@ exports.deleteTurnaroundTask = async (req, res, next) => {
       .where(eq(turnaroundOperationTable.id, existingTask.operationId))
       .limit(1)
 
+    const operation = operationRows[0]
+
+    if (operation && !(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      return sendTurnaroundOperationForbidden(res)
+    }
+
     await db
       .delete(turnaroundTaskDependencyTable)
       .where(eq(turnaroundTaskDependencyTable.taskId, id))
@@ -1666,8 +1890,6 @@ exports.deleteTurnaroundTask = async (req, res, next) => {
     await db
       .delete(turnaroundTaskTable)
       .where(eq(turnaroundTaskTable.id, id))
-
-    const operation = operationRows[0]
 
     return res.status(200).json({
       message: 'Turnaround task removed successfully',
@@ -1702,18 +1924,9 @@ exports.updateTurnaroundTaskDetails = async (req, res, next) => {
       return res.status(404).json({ message: 'Turnaround task not found' })
     }
 
-    if (Object.prototype.hasOwnProperty.call(req.body, 'ownerName')) {
-      taskUpdates.ownerUserId = await resolveOperationalUserIdByName(req.body.ownerName)
-    }
-
     if (Object.keys(taskUpdates).length === 0) {
       return res.status(400).json({ message: 'At least one turnaround task detail is required' })
     }
-
-    await db
-      .update(turnaroundTaskTable)
-      .set(taskUpdates)
-      .where(eq(turnaroundTaskTable.id, id))
 
     const operationRows = await db
       .select()
@@ -1722,6 +1935,15 @@ exports.updateTurnaroundTaskDetails = async (req, res, next) => {
       .limit(1)
 
     const operation = operationRows[0]
+
+    if (operation && !(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      return sendTurnaroundOperationForbidden(res)
+    }
+
+    await db
+      .update(turnaroundTaskTable)
+      .set(taskUpdates)
+      .where(eq(turnaroundTaskTable.id, id))
 
     return res.status(200).json({
       message: 'Turnaround task details updated successfully',
@@ -1743,10 +1965,6 @@ exports.updateTurnaroundHandoff = async (req, res, next) => {
       if (Object.prototype.hasOwnProperty.call(req.body, field)) {
         handoffUpdates[field] = req.body[field] || null
       }
-    }
-
-    if (Object.prototype.hasOwnProperty.call(req.body, 'ownerName')) {
-      handoffUpdates.ownerUserId = await resolveOperationalUserIdByName(req.body.ownerName)
     }
 
     if (handoffUpdates.status === 'COMPLETE') {
@@ -1771,11 +1989,6 @@ exports.updateTurnaroundHandoff = async (req, res, next) => {
       return res.status(400).json({ message: 'At least one turnaround handoff field is required' })
     }
 
-    await db
-      .update(turnaroundHandoffTable)
-      .set(handoffUpdates)
-      .where(eq(turnaroundHandoffTable.id, id))
-
     const operationRows = await db
       .select()
       .from(turnaroundOperationTable)
@@ -1783,6 +1996,19 @@ exports.updateTurnaroundHandoff = async (req, res, next) => {
       .limit(1)
 
     const operation = operationRows[0]
+
+    if (operation && !(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      return sendTurnaroundOperationForbidden(res)
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body, 'ownerName')) {
+      handoffUpdates.ownerUserId = await resolveOperationalUserIdByName(req.body.ownerName, operation)
+    }
+
+    await db
+      .update(turnaroundHandoffTable)
+      .set(handoffUpdates)
+      .where(eq(turnaroundHandoffTable.id, id))
 
     return res.status(200).json({
       message: 'Turnaround handoff updated successfully',

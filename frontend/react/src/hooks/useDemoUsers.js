@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { getDemoUsers } from '../api/client.js'
-import { normalizeRole } from '../domain/roleView.js'
+import { normalizeOperationalDemoUsers, normalizeRole } from '../domain/roleView.js'
 
 export default function useDemoUsers({ enabled = true } = {}) {
   const abortRef = useRef(null)
@@ -18,7 +18,7 @@ export default function useDemoUsers({ enabled = true } = {}) {
     abortRef.current = controller
 
     try {
-      const users = await getDemoUsers({ signal: controller.signal })
+      const users = normalizeOperationalDemoUsers(await getDemoUsers({ signal: controller.signal }))
       setDemoUsers(users)
       setSelectedRole(currentRole => currentRole || 'admin')
       setSelectedDemoUserId(currentId => {

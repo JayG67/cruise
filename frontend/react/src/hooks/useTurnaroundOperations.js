@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { createTurnaroundEscalation, createTurnaroundTask, createTurnaroundTaskUpdate, deleteTurnaroundTask, getTurnaroundOperations, updateTurnaroundEscalation, updateTurnaroundHandoff, updateTurnaroundOperationCommand, updateTurnaroundStaffing, updateTurnaroundSignoff, updateTurnaroundTaskDetails, updateTurnaroundTaskStatus } from '../api/client.js'
 
-export default function useTurnaroundOperations({ enabled = true } = {}) {
+export default function useTurnaroundOperations({ enabled = true, selectedDemoUser = null } = {}) {
   const abortRef = useRef(null)
   const [turnaroundOperations, setTurnaroundOperations] = useState([])
   const [isLoading, setIsLoading] = useState(Boolean(enabled))
@@ -20,6 +20,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
   const [creatingEscalationId, setCreatingEscalationId] = useState('')
   const [updatingEscalationId, setUpdatingEscalationId] = useState('')
   const [updatingHandoffId, setUpdatingHandoffId] = useState('')
+  const mutationScope = { selectedDemoUser }
 
   const reload = useCallback(async () => {
     abortRef.current?.abort()
@@ -29,7 +30,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     setIsLoading(true)
 
     try {
-      const operations = await getTurnaroundOperations({ signal: controller.signal })
+      const operations = await getTurnaroundOperations({ signal: controller.signal, selectedDemoUser })
       setTurnaroundOperations(operations)
       setError('')
     } catch (loadError) {
@@ -42,7 +43,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
         setIsLoading(false)
       }
     }
-  }, [])
+  }, [selectedDemoUser?.id])
 
 
   const updateOperationCommand = useCallback(async (operationId, payload) => {
@@ -51,7 +52,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     setMutationError('')
 
     try {
-      const response = await updateTurnaroundOperationCommand(operationId, payload)
+      const response = await updateTurnaroundOperationCommand(operationId, payload, mutationScope)
       if (response?.operation?.id) {
         setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
           operation.id === response.operation.id ? response.operation : operation
@@ -67,7 +68,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     } finally {
       setUpdatingOperationId('')
     }
-  }, [reload])
+  }, [reload, selectedDemoUser?.id])
 
   const updateTaskStatus = useCallback(async (taskId, status, options = {}) => {
     setUpdatingTaskId(taskId)
@@ -75,7 +76,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     setMutationError('')
 
     try {
-      const response = await updateTurnaroundTaskStatus(taskId, status, options)
+      const response = await updateTurnaroundTaskStatus(taskId, status, { ...options, ...mutationScope })
       if (response?.operation?.id) {
         setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
           operation.id === response.operation.id ? response.operation : operation
@@ -91,7 +92,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     } finally {
       setUpdatingTaskId('')
     }
-  }, [reload])
+  }, [reload, selectedDemoUser?.id])
 
 
 
@@ -101,7 +102,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     setMutationError('')
 
     try {
-      const response = await updateTurnaroundTaskDetails(taskId, payload)
+      const response = await updateTurnaroundTaskDetails(taskId, payload, mutationScope)
       if (response?.operation?.id) {
         setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
           operation.id === response.operation.id ? response.operation : operation
@@ -117,7 +118,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     } finally {
       setUpdatingTaskDetailsId('')
     }
-  }, [reload])
+  }, [reload, selectedDemoUser?.id])
 
 
   const createTask = useCallback(async (operationId, payload) => {
@@ -126,7 +127,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     setMutationError('')
 
     try {
-      const response = await createTurnaroundTask(operationId, payload)
+      const response = await createTurnaroundTask(operationId, payload, mutationScope)
       if (response?.operation?.id) {
         setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
           operation.id === response.operation.id ? response.operation : operation
@@ -142,7 +143,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     } finally {
       setCreatingTaskId('')
     }
-  }, [reload])
+  }, [reload, selectedDemoUser?.id])
 
   const createTaskUpdate = useCallback(async (taskId, payload) => {
     setCreatingTaskUpdateId(taskId)
@@ -150,7 +151,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     setMutationError('')
 
     try {
-      const response = await createTurnaroundTaskUpdate(taskId, payload)
+      const response = await createTurnaroundTaskUpdate(taskId, payload, mutationScope)
       if (response?.operation?.id) {
         setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
           operation.id === response.operation.id ? response.operation : operation
@@ -166,7 +167,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     } finally {
       setCreatingTaskUpdateId('')
     }
-  }, [reload])
+  }, [reload, selectedDemoUser?.id])
 
 
   const deleteTask = useCallback(async (taskId) => {
@@ -175,7 +176,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     setMutationError('')
 
     try {
-      const response = await deleteTurnaroundTask(taskId)
+      const response = await deleteTurnaroundTask(taskId, mutationScope)
       if (response?.operation?.id) {
         setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
           operation.id === response.operation.id ? response.operation : operation
@@ -191,7 +192,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     } finally {
       setDeletingTaskId('')
     }
-  }, [reload])
+  }, [reload, selectedDemoUser?.id])
 
 
   const updateStaffing = useCallback(async (operationId, departmentRole, payload) => {
@@ -201,7 +202,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     setMutationError('')
 
     try {
-      const response = await updateTurnaroundStaffing(operationId, departmentRole, payload)
+      const response = await updateTurnaroundStaffing(operationId, departmentRole, payload, mutationScope)
       if (response?.operation?.id) {
         setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
           operation.id === response.operation.id ? response.operation : operation
@@ -217,7 +218,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     } finally {
       setUpdatingStaffingKey('')
     }
-  }, [reload])
+  }, [reload, selectedDemoUser?.id])
 
   const updateSignoff = useCallback(async (operationId, departmentRole, payload) => {
     const signoffKey = `${operationId}:${departmentRole}`
@@ -226,7 +227,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     setMutationError('')
 
     try {
-      const response = await updateTurnaroundSignoff(operationId, departmentRole, payload)
+      const response = await updateTurnaroundSignoff(operationId, departmentRole, payload, mutationScope)
       if (response?.operation?.id) {
         setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
           operation.id === response.operation.id ? response.operation : operation
@@ -242,7 +243,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     } finally {
       setUpdatingSignoffKey('')
     }
-  }, [reload])
+  }, [reload, selectedDemoUser?.id])
 
 
   const createEscalation = useCallback(async (operationId, payload) => {
@@ -251,7 +252,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     setMutationError('')
 
     try {
-      const response = await createTurnaroundEscalation(operationId, payload)
+      const response = await createTurnaroundEscalation(operationId, payload, mutationScope)
       if (response?.operation?.id) {
         setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
           operation.id === response.operation.id ? response.operation : operation
@@ -267,7 +268,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     } finally {
       setCreatingEscalationId('')
     }
-  }, [reload])
+  }, [reload, selectedDemoUser?.id])
 
   const updateEscalation = useCallback(async (escalationId, payload) => {
     setUpdatingEscalationId(escalationId)
@@ -275,7 +276,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     setMutationError('')
 
     try {
-      const response = await updateTurnaroundEscalation(escalationId, payload)
+      const response = await updateTurnaroundEscalation(escalationId, payload, mutationScope)
       if (response?.operation?.id) {
         setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
           operation.id === response.operation.id ? response.operation : operation
@@ -291,7 +292,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     } finally {
       setUpdatingEscalationId('')
     }
-  }, [reload])
+  }, [reload, selectedDemoUser?.id])
 
 
   const updateHandoff = useCallback(async (handoffId, payload) => {
@@ -300,7 +301,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     setMutationError('')
 
     try {
-      const response = await updateTurnaroundHandoff(handoffId, payload)
+      const response = await updateTurnaroundHandoff(handoffId, payload, mutationScope)
       if (response?.operation?.id) {
         setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
           operation.id === response.operation.id ? response.operation : operation
@@ -316,7 +317,7 @@ export default function useTurnaroundOperations({ enabled = true } = {}) {
     } finally {
       setUpdatingHandoffId('')
     }
-  }, [reload])
+  }, [reload, selectedDemoUser?.id])
 
   useEffect(() => {
     if (!enabled) {

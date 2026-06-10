@@ -264,7 +264,7 @@ describe('React role workflow UI verification', () => {
     cy.getByTestId(rs.passengerDashboard).should('contain.text', 'Group leader dashboard loaded')
     cy.getByTestId(rs.roleBookingCard).should('have.length', 1)
     cy.getByTestId(rs.roleBookingCard).last().within(() => {
-      cy.contains('Celebrity Cruises').should('be.visible')
+      cy.contains('Royal Caribbean International').should('be.visible')
       cy.contains('Morgan Leader').should('be.visible')
       cy.getByTestId(rs.roleBookingDetailsToggle).click()
     })

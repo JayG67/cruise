@@ -36,6 +36,19 @@ function getSelectedPassengerPreferences(selectedCustomer, visibleBookings) {
   }
 }
 
+
+function getOperationalOwnerDisplay(row = {}) {
+  return row.ownerDisplayName || row.ownerName || 'Owner pending'
+}
+
+function getOperationalAuthorDisplay(row = {}) {
+  return row.authorDisplayName || row.authorName || 'Operational lead'
+}
+
+function getOperationalApproverDisplay(row = {}) {
+  return row.approverDisplayName || row.approverName || 'Approver pending'
+}
+
 function buildPassengerProfileDraft(selectedCustomer, selectedDemoUser, visibleBookings) {
   const preferences = getSelectedPassengerPreferences(selectedCustomer, visibleBookings)
 
@@ -349,7 +362,7 @@ function buildOperationalDirectory(readinessOperations = []) {
       const entry = byRole.get(role)
       if (!entry) return
 
-      if (task.ownerName) entry.leadNames.add(task.ownerName)
+      if (task.ownerDisplayName || task.ownerName) entry.leadNames.add(task.ownerDisplayName || task.ownerName)
       entry.taskCount += 1
       if (String(task.status || '').toUpperCase() === 'BLOCKED') entry.blockedTasks += 1
     })
@@ -359,7 +372,7 @@ function buildOperationalDirectory(readinessOperations = []) {
       const entry = byRole.get(role)
       if (!entry) return
 
-      if (escalation.ownerName) entry.leadNames.add(escalation.ownerName)
+      if (escalation.ownerDisplayName || escalation.ownerName) entry.leadNames.add(escalation.ownerDisplayName || escalation.ownerName)
       if (!['RESOLVED', 'CLOSED'].includes(String(escalation.status || '').toUpperCase())) {
         entry.activeEscalations += 1
       }
@@ -375,7 +388,7 @@ function buildOperationalDirectory(readinessOperations = []) {
         const entry = byRole.get(role)
         if (!entry) return
 
-        if (handoff.ownerName) entry.leadNames.add(handoff.ownerName)
+        if (handoff.ownerDisplayName || handoff.ownerName) entry.leadNames.add(handoff.ownerDisplayName || handoff.ownerName)
         entry.handoffCount += 1
         if (String(handoff.status || '').toUpperCase() === 'BLOCKED') entry.blockedHandoffs += 1
       })
@@ -386,7 +399,7 @@ function buildOperationalDirectory(readinessOperations = []) {
       const entry = byRole.get(role)
       if (!entry) return
 
-      if (signoff.approverName) entry.leadNames.add(signoff.approverName)
+      if (signoff.approverDisplayName || signoff.approverName) entry.leadNames.add(signoff.approverDisplayName || signoff.approverName)
       if (signoff.status) entry.signoffStatuses.add(signoff.status)
     })
   })
@@ -1516,7 +1529,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                         >
                           <span className={`operations-readiness-status-pill ${signoffStatus.toLowerCase()}`}>{signoffStatus}</span>
                           <strong>{getOperationalRoleLabel(signoff.departmentRole)}</strong>
-                          <span>{signoff.approverName || 'Approver pending'}</span>
+                          <span>{getOperationalApproverDisplay(signoff)}</span>
                           {signoff.notes && <small>{signoff.notes}</small>}
                         </button>
                       </li>
@@ -1546,7 +1559,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                     </div>
                     <div>
                       <dt>Approver</dt>
-                      <dd>{selectedReadinessSignoff.approverName || 'Approver pending'}</dd>
+                      <dd>{getOperationalApproverDisplay(selectedReadinessSignoff)}</dd>
                     </div>
                     <div>
                       <dt>Signed at</dt>
@@ -1907,7 +1920,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                           <span className={`operations-escalation-severity-pill ${severity}`}>{escalation.severity || 'WATCH'}</span>
                           <strong>{escalation.title}</strong>
                           <span>{escalation.departmentRole} · {escalation.status}</span>
-                          <small>{escalation.ownerName || 'Owner pending'}</small>
+                          <small>{getOperationalOwnerDisplay(escalation)}</small>
                         </button>
                       </li>
                     )
@@ -1932,7 +1945,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                     </div>
                     <div>
                       <dt>Owner</dt>
-                      <dd>{selectedEscalation.ownerName || 'Owner pending'}</dd>
+                      <dd>{getOperationalOwnerDisplay(selectedEscalation)}</dd>
                     </div>
                     <div>
                       <dt>Status</dt>
@@ -2038,7 +2051,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                           <span className={`operations-handoff-status-pill ${String(handoff.status).toLowerCase()}`}>{handoff.status}</span>
                           <strong>{handoff.title}</strong>
                           <span>{handoff.fromDepartmentRole} → {handoff.toDepartmentRole}</span>
-                          <small>{handoff.ownerName || 'Owner pending'} · {handoff.dueTime || 'Due pending'}</small>
+                          <small>{getOperationalOwnerDisplay(handoff)} · {handoff.dueTime || 'Due pending'}</small>
                         </button>
                       </li>
                     )
@@ -2067,7 +2080,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                     </div>
                     <div>
                       <dt>Owner</dt>
-                      <dd>{selectedHandoff.ownerName || 'Owner pending'}</dd>
+                      <dd>{getOperationalOwnerDisplay(selectedHandoff)}</dd>
                     </div>
                     <div>
                       <dt>Due time</dt>
@@ -2195,7 +2208,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                         >
                           <span className="operations-task-status-pill">{task.status}</span>
                           <strong>{task.taskName}</strong>
-                          <span>{task.ownerName || 'Unassigned'} · {task.dueTime || 'Timing pending'}</span>
+                          <span>{task.ownerDisplayName || task.ownerName || 'Unassigned'} · {task.dueTime || 'Timing pending'}</span>
                           {task.blockerReason && <small>Blocked: {task.blockerReason}</small>}
                         </button>
                       </li>
@@ -2217,7 +2230,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                   <dl className="operational-task-detail-list" data-testid="react-operational-task-details">
                     <div>
                       <dt>Owner</dt>
-                      <dd>{selectedTask.ownerName || 'Unassigned'}</dd>
+                      <dd>{selectedTask.ownerDisplayName || selectedTask.ownerName || 'Unassigned'}</dd>
                     </div>
                     <div>
                       <dt>Due</dt>
@@ -2236,7 +2249,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                       <ul>
                         {selectedTask.updates.slice(0, 3).map(update => (
                           <li key={update.id}>
-                            <span>{update.authorName}</span>
+                            <span>{getOperationalAuthorDisplay(update)}</span>
                             <span>{update.updateType || 'NOTE'}</span>
                             <span>{update.message}</span>
                           </li>
@@ -2422,7 +2435,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                     {item.handoffs.map(handoff => (
                       <li key={handoff.id}>
                         <div><strong>{handoff.status}</strong> — {handoff.title}</div>
-                        <p>{handoff.fromDepartmentRole} → {handoff.toDepartmentRole} · {handoff.ownerName || 'Owner pending'} · {handoff.dueTime || 'Due pending'}</p>
+                        <p>{handoff.fromDepartmentRole} → {handoff.toDepartmentRole} · {getOperationalOwnerDisplay(handoff)} · {handoff.dueTime || 'Due pending'}</p>
                         {handoff.notes && <p>{handoff.notes}</p>}
                         {onUpdateHandoff && (
                           <form className="operational-handoff-form" onSubmit={event => { event.preventDefault(); saveHandoffUpdate(handoff) }} data-testid="react-operational-handoff-form">
@@ -2552,7 +2565,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                     {item.escalations.map(escalation => (
                       <li key={escalation.id}>
                         <div><strong>{escalation.severity}</strong> — {escalation.title}</div>
-                        <p>{escalation.departmentRole} · {escalation.ownerName || 'Owner pending'} · {escalation.status}</p>
+                        <p>{escalation.departmentRole} · {getOperationalOwnerDisplay(escalation)} · {escalation.status}</p>
                         {escalation.resolutionNotes && <p>{escalation.resolutionNotes}</p>}
                         {onUpdateEscalation && (
                           <form className="operational-escalation-update-form" onSubmit={event => { event.preventDefault(); saveEscalationUpdate(escalation) }} data-testid="react-operational-escalation-update-form">
@@ -2597,7 +2610,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                       <li key={`${item.id}-${signoff.departmentRole}`}>
                         <span>{signoff.departmentRole}</span>
                         <span>{signoff.status}</span>
-                        <span>{signoff.approverName || 'Approver pending'}</span>
+                        <span>{getOperationalApproverDisplay(signoff)}</span>
                       </li>
                     ))}
                   </ul>
@@ -2675,7 +2688,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                         <dl className="operational-task-detail-list" data-testid="react-operational-task-details">
                           <div>
                             <dt>Owner</dt>
-                            <dd>{task.ownerName || 'Unassigned'}</dd>
+                            <dd>{task.ownerDisplayName || task.ownerName || 'Unassigned'}</dd>
                           </div>
                           <div>
                             <dt>Due</dt>
@@ -2693,7 +2706,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                             <ul>
                               {task.updates.slice(0, 3).map(update => (
                                 <li key={update.id}>
-                                  <span>{update.authorName}</span>
+                                  <span>{getOperationalAuthorDisplay(update)}</span>
                                   <span>{update.updateType || 'NOTE'}</span>
                                   <span>{update.message}</span>
                                 </li>

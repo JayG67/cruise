@@ -698,3 +698,7 @@ Planned technical enhancements include:
 **Jay Gallagher**
 
 Full-Stack Cruise Operations Platform demonstrating enterprise software engineering, quality engineering, operational workflow design, accessibility, automation architecture, and AI-assisted quality strategy.
+
+### Current Data Architecture Hardening Status
+
+Completed hardening slices now include indexing, constraints, typed date/time bridge columns, normalized users/roles, operational ownership attribution, audit/event history, and operational assignment scoping. Operational users are now treated as assigned ship/workspace users instead of global role personas, which prevents a turnaround manager from viewing unrelated cruise-line operations.

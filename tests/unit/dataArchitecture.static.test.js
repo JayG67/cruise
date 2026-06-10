@@ -250,24 +250,184 @@ describe('Production data architecture hardening guardrails', () => {
     }
 
     for (const bridgeField of [
-      'ownerUserId: resolveOperationalUserId(task.ownerName)',
-      'authorUserId: resolveOperationalUserId(update.authorName)',
-      'approverUserId: resolveOperationalUserId(signoff.approverName)',
-      'ownerUserId: resolveOperationalUserId(escalation.ownerName)',
-      'ownerUserId: resolveOperationalUserId(handoff.ownerName)'
+      'ownerUserId: resolveOperationalUserId(task.ownerName, turnaroundOperation.shipName)',
+      'authorUserId: resolveOperationalUserId(update.authorName, turnaroundOperation.shipName)',
+      'approverUserId: resolveOperationalUserId(signoff.approverName, turnaroundOperation.shipName)',
+      'ownerUserId: resolveOperationalUserId(escalation.ownerName, turnaroundOperation.shipName)',
+      'ownerUserId: resolveOperationalUserId(handoff.ownerName, turnaroundOperation.shipName)'
     ]) {
       expect(loader).toContain(bridgeField)
     }
 
     expect(loader).toContain('function buildAppUserLookup')
     expect(controller).toContain('resolveOperationalUserIdByName')
+    expect(controller).toContain('async function getAssignedShipForOperation')
     expect(controller).toContain('const exactMatches = await db')
     expect(controller).not.toContain('await dbs')
-    expect(controller).toContain('ownerUserId: await resolveOperationalUserIdByName(ownerName)')
-    expect(controller).toContain('approverUserId: await resolveOperationalUserIdByName(approverName)')
-    expect(controller).toContain('authorUserId: await resolveOperationalUserIdByName(authorName)')
+    expect(controller).toContain('ownerUserId: await resolveOperationalUserIdByName(ownerName, operation)')
+    expect(controller).toContain('approverUserId: await resolveOperationalUserIdByName(approverName, operation)')
+    expect(controller).toContain('authorUserId: await resolveOperationalUserIdByName(authorName, operation)')
   })
 
+
+
+
+  it('returns assignment-qualified operational person display names from turnaround APIs', () => {
+    const controller = read('controllers/cruise.controller.js')
+    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+
+    expect(controller).toContain('async function buildAppUserDisplayLookup')
+    expect(controller).toContain("enrichOperationalPerson(signoff, userDisplayById, 'approverUserId', 'approverDisplayName')")
+    expect(controller).toContain("enrichOperationalPerson(escalation, userDisplayById, 'ownerUserId', 'ownerDisplayName')")
+    expect(controller).toContain("enrichOperationalPerson(handoff, userDisplayById, 'ownerUserId', 'ownerDisplayName')")
+    expect(controller).toContain("enrichOperationalPerson(task, userDisplayById, 'ownerUserId', 'ownerDisplayName')")
+    expect(controller).toContain("enrichOperationalPerson(update, userDisplayById, 'authorUserId', 'authorDisplayName')")
+
+    expect(dashboard).toContain('function getOperationalOwnerDisplay')
+    expect(dashboard).toContain('function getOperationalAuthorDisplay')
+    expect(dashboard).toContain('function getOperationalApproverDisplay')
+    expect(dashboard).toContain('task.ownerDisplayName || task.ownerName')
+    expect(dashboard).toContain('signoff.approverDisplayName || signoff.approverName')
+  })
+
+
+  it('adds explicit cruise-line and ship assignment bridges for operational tenancy', () => {
+    const initializer = read('services/initializeDatabase.service.js')
+    const loader = read('services/loadCruiseData.service.js')
+    const appUserModel = read('models/appUser.model.js')
+    const appUserRoleModel = read('models/appUserRole.model.js')
+    const demoUserModel = read('models/demoUser.model.js')
+    const roleViewDomain = read('frontend/react/src/domain/roleView.js')
+
+    for (const assignmentColumn of [
+      '"cruiseLineId" uuid REFERENCES cruise_lines(id) ON DELETE SET NULL',
+      '"assignedShipId" uuid REFERENCES ships(id) ON DELETE SET NULL',
+      '"cruiseLineName" varchar(255)',
+      '"assignedShipName" varchar(255)'
+    ]) {
+      expect(initializer).toContain(assignmentColumn)
+    }
+
+    for (const indexName of [
+      'idx_app_users_cruise_line_ship',
+      'idx_app_user_roles_tenant_assignment',
+      'idx_demo_users_operational_assignment'
+    ]) {
+      expect(initializer).toContain(`CREATE INDEX IF NOT EXISTS ${indexName}`)
+    }
+
+    expect(initializer).toContain("'CRUISE_LINE'")
+    expect(initializer).toContain("'SHIP'")
+    expect(loader).toContain('function getOperationalAssignmentShipName')
+    expect(loader).toContain('function getOperationalAssignment')
+    expect(loader).toContain('shipByName.set')
+    expect(loader).toContain('cruiseLineByShipName.set')
+    expect(loader).toContain('assignmentScope: operationalAssignment.assignmentScope')
+    expect(loader).toContain('cruiseLineId: operationalAssignment.cruiseLineId')
+    expect(loader).toContain('assignedShipId: operationalAssignment.assignedShipId')
+
+    for (const modelSource of [appUserModel, appUserRoleModel, demoUserModel]) {
+      expect(modelSource).toContain('cruiseLineId')
+      expect(modelSource).toContain('assignedShipId')
+    }
+
+    expect(demoUserModel).toContain('assignedShipName')
+    expect(demoUserModel).toContain('cruiseLineName')
+    expect(roleViewDomain).toContain('selectedDemoUser.assignedShipName')
+    expect(roleViewDomain).toContain('selectedDemoUser.cruiseLineName')
+  })
+
+
+  it('loads turnaround operations through the selected demo-user assignment scope', () => {
+    const controller = read('controllers/cruise.controller.js')
+    const app = read('frontend/react/src/App.jsx')
+    const hook = read('frontend/react/src/hooks/useTurnaroundOperations.js')
+    const client = read('frontend/react/src/api/client.js')
+
+    expect(controller).toContain('async function getTurnaroundOperationsForRequest(req)')
+    expect(controller).toContain('const demoUserId = req.query?.demoUserId')
+    expect(controller).toContain('getSailingIdsForOperationalAssignment')
+    expect(controller).toContain('where(inArray(turnaroundOperationTable.sailingId, scopedSailingIds))')
+    expect(app).toContain('selectedDemoUser: effectiveSelectedDemoUser')
+    expect(hook).toContain('selectedDemoUser = null')
+    expect(hook).toContain('getTurnaroundOperations({ signal: controller.signal, selectedDemoUser })')
+    expect(hook).toContain('[selectedDemoUser?.id]')
+    expect(client).toContain('demoUserId=${encodeURIComponent(scopedDemoUserId)}')
+    expect(client).toContain('const requestPath = path.split')
+  })
+
+
+  it('enforces selected demo-user assignment scope on turnaround write paths', () => {
+    const controller = read('controllers/cruise.controller.js')
+    const hook = read('frontend/react/src/hooks/useTurnaroundOperations.js')
+    const client = read('frontend/react/src/api/client.js')
+
+    expect(controller).toContain('async function canAccessTurnaroundOperationForRequest(req, operation)')
+    expect(controller).toContain('function sendTurnaroundOperationForbidden(res)')
+    expect(controller).toContain("Selected demo user is not assigned to this turnaround operation")
+    expect(controller).toContain('return scopedSailingIds.includes(operation.sailingId)')
+    expect(controller).toContain('canAccessTurnaroundOperationForRequest(req, operation)')
+
+    expect(client).toContain('function buildScopedApiPath(path, options = {})')
+    expect(client).toContain('function getScopedRequestOptions(options = {})')
+    expect(client).toContain('buildScopedApiPath(`/cruise/turnaround-operations/${encodeURIComponent(operationId)}`, options)')
+    expect(client).toContain('buildScopedApiPath(`/cruise/turnaround-tasks/${encodeURIComponent(taskId)}/status`, options)')
+    expect(client).toContain('buildScopedApiPath(`/cruise/turnaround-handoffs/${encodeURIComponent(handoffId)}`, options)')
+
+    expect(hook).toContain('const mutationScope = { selectedDemoUser }')
+    expect(hook).toContain('updateTurnaroundOperationCommand(operationId, payload, mutationScope)')
+    expect(hook).toContain('updateTurnaroundTaskStatus(taskId, status, { ...options, ...mutationScope })')
+    expect(hook).toContain('deleteTurnaroundTask(taskId, mutationScope)')
+  })
+
+
+  it('adds an append-only audit event bridge for production traceability', () => {
+    const initializer = read('services/initializeDatabase.service.js')
+    const modelsIndex = read('models/index.js')
+    const auditModel = read('models/auditEvent.model.js')
+    const auditService = read('services/auditEvent.service.js')
+    const hardeningPlan = read('docs/data-architecture-hardening.md')
+
+    expect(initializer).toContain('CREATE TABLE IF NOT EXISTS audit_events')
+
+    for (const auditColumn of [
+      '"eventType" varchar(100) NOT NULL',
+      '"entityType" varchar(100) NOT NULL',
+      '"entityId" varchar(100) NOT NULL',
+      '"actorUserId" varchar(40) REFERENCES app_users(id) ON DELETE SET NULL',
+      '"cruiseLineId" uuid REFERENCES cruise_lines(id) ON DELETE SET NULL',
+      '"shipId" uuid REFERENCES ships(id) ON DELETE SET NULL',
+      '"sailingId" uuid REFERENCES sailings(id) ON DELETE SET NULL',
+      '"operationId" uuid REFERENCES turnaround_operations(id) ON DELETE SET NULL',
+      '"eventPayload" text',
+      '"createdAt" varchar(40) NOT NULL'
+    ]) {
+      expect(initializer).toContain(auditColumn)
+    }
+
+    for (const indexName of [
+      'idx_audit_events_created_at',
+      'idx_audit_events_entity',
+      'idx_audit_events_actor',
+      'idx_audit_events_tenant_scope',
+      'idx_audit_events_operation'
+    ]) {
+      expect(initializer).toContain(`CREATE INDEX IF NOT EXISTS ${indexName}`)
+    }
+
+    expect(auditModel).toContain("pgTable('audit_events'")
+    expect(auditModel).toContain('actorUserId')
+    expect(auditModel).toContain('eventPayload')
+    expect(modelsIndex).toContain("const auditEventTable = require('./auditEvent.model')")
+    expect(modelsIndex).toContain('auditEventTable')
+    expect(auditService).toContain('function buildAuditEventValues')
+    expect(auditService).toContain('async function recordAuditEvent')
+    expect(auditService).toContain('db.insert(auditEventTable).values(values)')
+    expect(auditService).toContain('Audit event type is required.')
+    expect(hardeningPlan).toContain('Audit Event Bridge')
+    expect(hardeningPlan).toContain('audit_events')
+    expect(hardeningPlan).toContain('append-only')
+  })
 
   it('documents the remaining production-scale data architecture roadmap', () => {
     const hardeningPlan = read('docs/data-architecture-hardening.md')

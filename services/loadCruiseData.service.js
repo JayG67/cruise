@@ -61,6 +61,7 @@ function getNormalizedRoleType(role) {
 
 function buildAppUserLookup(appUserRows) {
   const exactNameLookup = new Map()
+  const scopedPrefixNameLookup = new Map()
   const prefixNameLookup = new Map()
 
   for (const appUser of appUserRows) {
@@ -69,14 +70,74 @@ function buildAppUserLookup(appUserRows) {
     }
 
     const [displayNamePrefix] = String(appUser.displayName || '').split(' — ')
-    if (displayNamePrefix && !prefixNameLookup.has(displayNamePrefix)) {
-      prefixNameLookup.set(displayNamePrefix, appUser.id)
+    if (displayNamePrefix) {
+      const normalizedPrefix = displayNamePrefix.toLowerCase()
+      const normalizedAssignedShip = String(appUser.assignedShipName || '').toLowerCase()
+
+      if (normalizedAssignedShip) {
+        const scopedKey = `${normalizedPrefix}|${normalizedAssignedShip}`
+        if (!scopedPrefixNameLookup.has(scopedKey)) {
+          scopedPrefixNameLookup.set(scopedKey, appUser.id)
+        }
+      }
+
+      if (!prefixNameLookup.has(normalizedPrefix)) {
+        prefixNameLookup.set(normalizedPrefix, appUser.id)
+      }
     }
   }
 
-  return function resolveAppUserId(displayName) {
+  return function resolveAppUserId(displayName, assignedShipName = '') {
     if (!displayName) return null
-    return exactNameLookup.get(displayName) || prefixNameLookup.get(displayName) || null
+    const normalizedName = String(displayName).toLowerCase()
+    const normalizedAssignedShip = String(assignedShipName || '').toLowerCase()
+    const scopedKey = `${normalizedName}|${normalizedAssignedShip}`
+
+    return exactNameLookup.get(displayName) || scopedPrefixNameLookup.get(scopedKey) || prefixNameLookup.get(normalizedName) || null
+  }
+}
+
+
+function getOperationalAssignmentShipName(demoUser = {}) {
+  const explicitShip = demoUser.shipName
+    || demoUser.assignedShip
+    || demoUser.workspaceShip
+    || demoUser.assignmentShipName
+    || demoUser.assignedShipName
+
+  if (explicitShip) return String(explicitShip).trim()
+
+  const displayName = String(demoUser.displayName || '').trim()
+  if (displayName.includes(' — ')) {
+    return displayName.split(' — ').slice(1).join(' — ').trim()
+  }
+
+  return ''
+}
+
+function getOperationalAssignment({ demoUser = {}, shipByName = new Map(), cruiseLineByShipName = new Map() }) {
+  const roleType = getNormalizedRoleType(demoUser.role)
+  if (roleType !== 'OPERATIONS') {
+    return {
+      assignedShipId: null,
+      assignedShipName: null,
+      cruiseLineId: null,
+      cruiseLineName: null,
+      assignmentScope: demoUser.customerId ? 'CUSTOMER' : 'GLOBAL'
+    }
+  }
+
+  const assignedShipName = getOperationalAssignmentShipName(demoUser)
+  const normalizedShipName = assignedShipName.toLowerCase()
+  const assignedShip = normalizedShipName ? shipByName.get(normalizedShipName) : null
+  const assignedCruiseLine = normalizedShipName ? cruiseLineByShipName.get(normalizedShipName) : null
+
+  return {
+    assignedShipId: assignedShip?.id || null,
+    assignedShipName: assignedShip?.name || assignedShipName || null,
+    cruiseLineId: assignedCruiseLine?.id || null,
+    cruiseLineName: assignedCruiseLine?.name || demoUser.cruiseLineName || demoUser.assignedCruiseLine || null,
+    assignmentScope: assignedShip ? 'SHIP' : assignedCruiseLine ? 'CRUISE_LINE' : 'GLOBAL'
   }
 }
 
@@ -120,6 +181,8 @@ function buildSeedRows(cruiseData) {
   const turnaroundTaskDependencyRows = []
   const turnaroundHandoffRows = []
   const sailingIdBySeedKey = new Map()
+  const shipByName = new Map()
+  const cruiseLineByShipName = new Map()
 
   for (const cruiseLine of cruiseData.cruiseLines || []) {
     const cruiseLineId = randomUUID()
@@ -137,12 +200,16 @@ function buildSeedRows(cruiseData) {
     for (const ship of cruiseLine.ships || []) {
       const shipId = randomUUID()
 
-      shipRows.push({
+      const shipRow = {
         id: shipId,
         name: ship.name,
         currentPort: ship.currentPort,
         cruiseLineId
-      })
+      }
+
+      shipRows.push(shipRow)
+      shipByName.set(String(ship.name || '').toLowerCase(), shipRow)
+      cruiseLineByShipName.set(String(ship.name || '').toLowerCase(), { id: cruiseLineId, name: cruiseLine.name })
 
       for (const sailing of ship.sailings || []) {
         const sailingId = randomUUID()
@@ -242,12 +309,16 @@ function buildSeedRows(cruiseData) {
       })
     }
 
+    const operationalAssignment = getOperationalAssignment({ demoUser, shipByName, cruiseLineByShipName })
+
     appUserRows.push({
       id: normalizedUserId,
       displayName: demoUser.displayName,
       email: `${demoUser.id}@cruise-explorer.local`,
       userType: getNormalizedUserType(demoUser.role),
       primaryCustomerId: demoUser.customerId,
+      cruiseLineId: operationalAssignment.cruiseLineId,
+      assignedShipId: operationalAssignment.assignedShipId,
       status: 'ACTIVE'
     })
 
@@ -255,7 +326,9 @@ function buildSeedRows(cruiseData) {
       id: `${normalizedUserId}-${normalizedRoleId}`,
       userId: normalizedUserId,
       roleId: normalizedRoleId,
-      assignmentScope: demoUser.customerId ? 'CUSTOMER' : 'GLOBAL',
+      assignmentScope: operationalAssignment.assignmentScope,
+      cruiseLineId: operationalAssignment.cruiseLineId,
+      assignedShipId: operationalAssignment.assignedShipId,
       status: 'ACTIVE'
     })
 
@@ -265,7 +338,11 @@ function buildSeedRows(cruiseData) {
       role: demoUser.role,
       customerId: demoUser.customerId,
       normalizedUserId,
-      normalizedRoleId
+      normalizedRoleId,
+      cruiseLineId: operationalAssignment.cruiseLineId,
+      assignedShipId: operationalAssignment.assignedShipId,
+      cruiseLineName: operationalAssignment.cruiseLineName,
+      assignedShipName: operationalAssignment.assignedShipName
     })
   }
 
@@ -296,7 +373,7 @@ function buildSeedRows(cruiseData) {
         operationId,
         departmentRole: signoff.departmentRole,
         approverName: signoff.approverName,
-        approverUserId: resolveOperationalUserId(signoff.approverName),
+        approverUserId: resolveOperationalUserId(signoff.approverName, turnaroundOperation.shipName),
         status: signoff.status || 'PENDING',
         notes: signoff.notes,
         signedAt: signoff.signedAt
@@ -324,7 +401,7 @@ function buildSeedRows(cruiseData) {
         severity: escalation.severity || 'WATCH',
         title: escalation.title,
         ownerName: escalation.ownerName,
-        ownerUserId: resolveOperationalUserId(escalation.ownerName),
+        ownerUserId: resolveOperationalUserId(escalation.ownerName, turnaroundOperation.shipName),
         status: escalation.status || 'OPEN',
         resolutionNotes: escalation.resolutionNotes,
         createdAt: escalation.createdAt || new Date().toISOString()
@@ -343,7 +420,7 @@ function buildSeedRows(cruiseData) {
         departmentRole: task.departmentRole,
         taskName: task.taskName,
         ownerName: task.ownerName,
-        ownerUserId: resolveOperationalUserId(task.ownerName),
+        ownerUserId: resolveOperationalUserId(task.ownerName, turnaroundOperation.shipName),
         dueTime: task.dueTime,
         location: task.location,
         blockerReason: task.blockerReason,
@@ -356,7 +433,7 @@ function buildSeedRows(cruiseData) {
           id: randomUUID(),
           taskId,
           authorName: update.authorName,
-          authorUserId: resolveOperationalUserId(update.authorName),
+          authorUserId: resolveOperationalUserId(update.authorName, turnaroundOperation.shipName),
           updateType: update.updateType || 'NOTE',
           message: update.message,
           createdAt: update.createdAt || new Date().toISOString()
@@ -392,7 +469,7 @@ function buildSeedRows(cruiseData) {
         title: handoff.title,
         status: handoff.status || 'PENDING',
         ownerName: handoff.ownerName,
-        ownerUserId: resolveOperationalUserId(handoff.ownerName),
+        ownerUserId: resolveOperationalUserId(handoff.ownerName, turnaroundOperation.shipName),
         dueTime: handoff.dueTime,
         notes: handoff.notes,
         completedAt: handoff.completedAt

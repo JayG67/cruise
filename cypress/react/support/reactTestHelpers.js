@@ -1,5 +1,15 @@
 const { reactSelectorKeys: rs } = require('./reactSelectors')
 const { testId, byTestId } = require('./reactSelectors')
+
+function getRequestPath(req) {
+  return new URL(req.url).pathname
+}
+
+function getPathSegmentAfter(pathname, marker, suffix = '') {
+  const remainder = pathname.split(marker)[1] || ''
+  return suffix ? remainder.split(suffix)[0] : remainder
+}
+
 const reactCruiseLines = [
   {
     id: '11111111-1111-4111-8111-111111111111',
@@ -155,8 +165,8 @@ const reactBookings = [
     embarkationPort: 'San Juan, Puerto Rico',
     debarkationPort: 'Miami, Florida',
     createdByCustomerId: 'react-customer-3',
-    cruiseLine: { name: 'Celebrity Cruises' },
-    ship: { name: 'React Beyond' },
+    cruiseLine: { name: 'Royal Caribbean International' },
+    ship: { name: 'React Utopia' },
     sailing: {
       departureDate: '2027-01-18',
       itinerary: [reactItinerary[1]]
@@ -264,13 +274,13 @@ const reactTurnaroundOperations = [
       { id: 'turnaround-signoff-4', operationId: 'turnaround-react-2', departmentRole: 'turnaround-manager', approverName: '', status: 'PENDING', notes: 'Command readiness pending.', signedAt: null },
       { id: 'turnaround-signoff-5', operationId: 'turnaround-react-2', departmentRole: 'engineering-lead', approverName: '', status: 'PENDING', notes: 'Engineering readiness pending.', signedAt: null }
     ],
-    ship: { name: 'React Beyond' },
+    ship: { name: 'React Utopia' },
     sailing: {
       departureDate: '2027-01-18',
       departurePort: 'San Juan, Puerto Rico',
       arrivalPort: 'Miami, Florida'
     },
-    cruiseLine: { name: 'Celebrity Cruises' },
+    cruiseLine: { name: 'Royal Caribbean International' },
     taskDependencies: [
       { id: 'turnaround-dependency-3', operationId: 'turnaround-react-2', taskId: 'turnaround-task-6', dependsOnTaskId: 'turnaround-task-5', taskName: 'Confirm inspection checkpoints before guest boarding', dependsOnTaskName: 'Confirm arrival and next departure ports', dependencyType: 'BLOCKS', status: 'ACTIVE', notes: 'Inspection checkpoints depend on command port confirmation.' }
     ],
@@ -310,30 +320,35 @@ const reactDemoUsers = [
     id: 'ops-turnaround',
     displayName: 'Alex Turner',
     role: 'turnaround_manager',
+    cruiseLineName: 'Royal Caribbean International',
     email: 'alex.turner@example.com'
   },
   {
     id: 'ops-housekeeping',
     displayName: 'Maria Rodriguez',
     role: 'housekeeping_lead',
+    cruiseLineName: 'Royal Caribbean International',
     email: 'maria.rodriguez@example.com'
   },
   {
     id: 'ops-guest-services',
     displayName: 'Angela Brooks',
     role: 'guest_services_lead',
+    cruiseLineName: 'Royal Caribbean International',
     email: 'angela.brooks@example.com'
   },
   {
     id: 'ops-food-beverage',
     displayName: 'Michael Chen',
     role: 'food_beverage_lead',
+    cruiseLineName: 'Royal Caribbean International',
     email: 'michael.chen@example.com'
   },
   {
     id: 'ops-engineering',
     displayName: 'David Torres',
     role: 'engineering_lead',
+    cruiseLineName: 'Royal Caribbean International',
     email: 'david.torres@example.com'
   }
 ]
@@ -366,11 +381,11 @@ function interceptReactCoreApis(overrides = {}) {
   cy.intercept('GET', '/cruise/demo-users', overrides.demoUsers || reactDemoUsers).as('reactDemoUsers')
   cy.intercept('GET', '/cruise/customers', overrides.customers || reactCustomers).as('reactCustomers')
   cy.intercept('GET', '/cruise/bookings', overrides.bookings || reactBookings).as('reactBookings')
-  cy.intercept('GET', '/cruise/turnaround-operations', overrides.turnaroundOperations || reactTurnaroundOperations).as('reactTurnaroundOperations')
-  cy.intercept('PATCH', '/cruise/turnaround-operations/*', req => {
+  cy.intercept({ method: 'GET', pathname: '/cruise/turnaround-operations' }, overrides.turnaroundOperations || reactTurnaroundOperations).as('reactTurnaroundOperations')
+  cy.intercept({ method: 'PATCH', pathname: '/cruise/turnaround-operations/*' }, req => {
     if (req.url.includes('/signoffs/') || req.url.includes('/staffing/')) return req.continue()
 
-    const operationId = req.url.split('/turnaround-operations/')[1]
+    const operationId = getPathSegmentAfter(getRequestPath(req), '/turnaround-operations/')
     const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => (
       operation.id === operationId
         ? {
@@ -386,8 +401,8 @@ function interceptReactCoreApis(overrides = {}) {
     req.reply({ statusCode: 200, body: { message: 'Turnaround command plan updated successfully', operation } })
   }).as('reactUpdateTurnaroundOperationCommand')
 
-  cy.intercept('PATCH', '/cruise/turnaround-handoffs/*', req => {
-    const handoffId = req.url.split('/turnaround-handoffs/')[1]
+  cy.intercept({ method: 'PATCH', pathname: '/cruise/turnaround-handoffs/*' }, req => {
+    const handoffId = getPathSegmentAfter(getRequestPath(req), '/turnaround-handoffs/')
     const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
       const handoffs = (operation.handoffs || []).map(handoff => handoff.id === handoffId ? { ...handoff, ...req.body, completedAt: req.body?.status === 'COMPLETE' ? '2026-12-12T10:45:00.000Z' : null } : handoff)
       const completedHandoffs = handoffs.filter(handoff => handoff.status === 'COMPLETE').length
@@ -409,8 +424,8 @@ function interceptReactCoreApis(overrides = {}) {
     req.reply({ statusCode: 200, body: { message: 'Turnaround handoff updated successfully', operation } })
   }).as('reactUpdateTurnaroundHandoff')
 
-  cy.intercept('PATCH', '/cruise/turnaround-operations/*/staffing/*', req => {
-    const [, routeRemainder] = req.url.split('/turnaround-operations/')
+  cy.intercept({ method: 'PATCH', pathname: '/cruise/turnaround-operations/*/staffing/*' }, req => {
+    const routeRemainder = getPathSegmentAfter(getRequestPath(req), '/turnaround-operations/')
     const [operationId, staffingPath] = routeRemainder.split('/staffing/')
     const departmentRole = decodeURIComponent(staffingPath)
     const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
@@ -450,8 +465,8 @@ function interceptReactCoreApis(overrides = {}) {
 
     req.reply({ statusCode: 200, body: { message: 'Turnaround staffing plan updated successfully', operation } })
   }).as('reactUpdateTurnaroundStaffing')
-  cy.intercept('PATCH', '/cruise/turnaround-operations/*/signoffs/*', req => {
-    const [, routeRemainder] = req.url.split('/turnaround-operations/')
+  cy.intercept({ method: 'PATCH', pathname: '/cruise/turnaround-operations/*/signoffs/*' }, req => {
+    const routeRemainder = getPathSegmentAfter(getRequestPath(req), '/turnaround-operations/')
     const [operationId, signoffPath] = routeRemainder.split('/signoffs/')
     const departmentRole = decodeURIComponent(signoffPath)
     const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
@@ -491,8 +506,8 @@ function interceptReactCoreApis(overrides = {}) {
 
     req.reply({ statusCode: 200, body: { message: 'Turnaround readiness signoff updated successfully', operation } })
   }).as('reactUpdateTurnaroundSignoff')
-  cy.intercept('PATCH', '/cruise/turnaround-tasks/*/status', req => {
-    const taskId = req.url.split('/turnaround-tasks/')[1].split('/status')[0]
+  cy.intercept({ method: 'PATCH', pathname: '/cruise/turnaround-tasks/*/status' }, req => {
+    const taskId = getPathSegmentAfter(getRequestPath(req), '/turnaround-tasks/').split('/status')[0]
     const requestedStatus = req.body?.status || 'IN_PROGRESS'
     const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
       const tasks = operation.tasks.map(task => task.id === taskId ? { ...task, status: requestedStatus, blockerReason: req.body?.blockerReason || (requestedStatus === 'BLOCKED' ? 'Awaiting pier-side supervisor confirmation' : '') } : task)
@@ -513,8 +528,8 @@ function interceptReactCoreApis(overrides = {}) {
 
     req.reply({ statusCode: 200, body: { message: 'Turnaround task status updated successfully', operation } })
   }).as('reactUpdateTurnaroundTaskStatus')
-  cy.intercept('PATCH', '/cruise/turnaround-tasks/*/details', req => {
-    const taskId = req.url.split('/turnaround-tasks/')[1].split('/details')[0]
+  cy.intercept({ method: 'PATCH', pathname: '/cruise/turnaround-tasks/*/details' }, req => {
+    const taskId = getPathSegmentAfter(getRequestPath(req), '/turnaround-tasks/').split('/details')[0]
     const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
       const tasks = operation.tasks.map(task => task.id === taskId ? { ...task, ...req.body } : task)
 
@@ -524,8 +539,8 @@ function interceptReactCoreApis(overrides = {}) {
 
     req.reply({ statusCode: 200, body: { message: 'Turnaround task details updated successfully', operation } })
   }).as('reactUpdateTurnaroundTaskDetails')
-  cy.intercept('POST', '/cruise/turnaround-operations/*/tasks', req => {
-    const operationId = req.url.split('/turnaround-operations/')[1].split('/tasks')[0]
+  cy.intercept({ method: 'POST', pathname: '/cruise/turnaround-operations/*/tasks' }, req => {
+    const operationId = getPathSegmentAfter(getRequestPath(req), '/turnaround-operations/').split('/tasks')[0]
     const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
       if (operation.id !== operationId) return operation
 
@@ -563,8 +578,8 @@ function interceptReactCoreApis(overrides = {}) {
 
     req.reply({ statusCode: 201, body: { message: 'Turnaround task created successfully', operation } })
   }).as('reactCreateTurnaroundTask')
-  cy.intercept('POST', '/cruise/turnaround-tasks/*/updates', req => {
-    const taskId = req.url.split('/turnaround-tasks/')[1].split('/updates')[0]
+  cy.intercept({ method: 'POST', pathname: '/cruise/turnaround-tasks/*/updates' }, req => {
+    const taskId = getPathSegmentAfter(getRequestPath(req), '/turnaround-tasks/').split('/updates')[0]
     const update = {
       id: 'turnaround-update-created',
       authorName: req.body?.authorName || 'Operational lead',
@@ -581,8 +596,8 @@ function interceptReactCoreApis(overrides = {}) {
 
     req.reply({ statusCode: 201, body: { message: 'Turnaround task update added successfully', operation } })
   }).as('reactCreateTurnaroundTaskUpdate')
-  cy.intercept('DELETE', '/cruise/turnaround-tasks/*', req => {
-    const taskId = req.url.split('/turnaround-tasks/')[1]
+  cy.intercept({ method: 'DELETE', pathname: '/cruise/turnaround-tasks/*' }, req => {
+    const taskId = getPathSegmentAfter(getRequestPath(req), '/turnaround-tasks/')
     const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
       const tasks = (operation.tasks || []).filter(task => task.id !== taskId)
       const completeTasks = tasks.filter(task => task.status === 'COMPLETE').length
@@ -606,8 +621,8 @@ function interceptReactCoreApis(overrides = {}) {
 
     req.reply({ statusCode: 200, body: { message: 'Turnaround task removed successfully', operation: refreshedOperation } })
   }).as('reactDeleteTurnaroundTask')
-  cy.intercept('POST', '/cruise/turnaround-operations/*/escalations', req => {
-    const operationId = req.url.split('/turnaround-operations/')[1].split('/escalations')[0]
+  cy.intercept({ method: 'POST', pathname: '/cruise/turnaround-operations/*/escalations' }, req => {
+    const operationId = getPathSegmentAfter(getRequestPath(req), '/turnaround-operations/').split('/escalations')[0]
     const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
       if (operation.id !== operationId) return operation
 
@@ -638,8 +653,8 @@ function interceptReactCoreApis(overrides = {}) {
 
     req.reply({ statusCode: 201, body: { message: 'Turnaround escalation created successfully', operation } })
   }).as('reactCreateTurnaroundEscalation')
-  cy.intercept('PATCH', '/cruise/turnaround-escalations/*', req => {
-    const escalationId = req.url.split('/turnaround-escalations/')[1]
+  cy.intercept({ method: 'PATCH', pathname: '/cruise/turnaround-escalations/*' }, req => {
+    const escalationId = getPathSegmentAfter(getRequestPath(req), '/turnaround-escalations/')
     const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
       const escalations = (operation.escalations || []).map(escalation => escalation.id === escalationId ? { ...escalation, ...req.body } : escalation)
       const openEscalations = escalations.filter(row => row.status === 'OPEN').length
