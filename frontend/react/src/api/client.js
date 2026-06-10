@@ -149,48 +149,66 @@ function getStaticItineraryForSailing(seedData, sailingId) {
   return []
 }
 
+
+function buildScopedApiPath(path, options = {}) {
+  const scopedDemoUserId = options.demoUserId || options.selectedDemoUser?.id || ''
+
+  if (!scopedDemoUserId) {
+    return path
+  }
+
+  const separator = path.includes('?') ? '&' : '?'
+  return `${path}${separator}demoUserId=${encodeURIComponent(scopedDemoUserId)}`
+}
+
+function getScopedRequestOptions(options = {}) {
+  const { demoUserId, selectedDemoUser, ...requestOptions } = options
+  return requestOptions
+}
+
 async function requestStaticFallback(path, options = {}) {
   if (!isReadOnlyRequest(options)) {
     throw new Error('Live data writes require the application API. Please try again when the service is available.')
   }
 
   const seedData = await loadStaticSeedData()
+  const requestPath = path.split('?')[0]
 
-  if (path === '/cruise/customers') {
+  if (requestPath === '/cruise/customers') {
     return normalizeStaticCustomers(seedData)
   }
 
-  if (path === '/cruise/bookings') {
+  if (path === '/cruise/bookings' || requestPath === '/cruise/bookings') {
     return normalizeStaticBookings(seedData)
   }
 
-  if (path === '/cruise/demo-users') {
+  if (requestPath === '/cruise/demo-users') {
     return normalizeStaticDemoUsers(seedData)
   }
 
-  if (path === '/cruise/turnaround-operations') {
+  if (requestPath === '/cruise/turnaround-operations') {
     return normalizeStaticTurnaroundOperations(seedData)
   }
 
-  if (path === '/cruise') {
+  if (requestPath === '/cruise') {
     return normalizeStaticCruiseLines(seedData)
   }
 
-  if (path.startsWith('/cruise/ships/')) {
-    return getStaticShipsForCruiseLine(seedData, decodeURIComponent(path.replace('/cruise/ships/', '')))
+  if (requestPath.startsWith('/cruise/ships/')) {
+    return getStaticShipsForCruiseLine(seedData, decodeURIComponent(requestPath.replace('/cruise/ships/', '')))
   }
 
-  if (path.startsWith('/cruise/ship/') && path.endsWith('/sailings')) {
-    const shipId = decodeURIComponent(path.replace('/cruise/ship/', '').replace('/sailings', ''))
+  if (requestPath.startsWith('/cruise/ship/') && requestPath.endsWith('/sailings')) {
+    const shipId = decodeURIComponent(requestPath.replace('/cruise/ship/', '').replace('/sailings', ''))
     return getStaticSailingsForShip(seedData, shipId)
   }
 
-  if (path.startsWith('/cruise/sailings/') && path.endsWith('/itinerary')) {
-    const sailingId = decodeURIComponent(path.replace('/cruise/sailings/', '').replace('/itinerary', ''))
+  if (requestPath.startsWith('/cruise/sailings/') && requestPath.endsWith('/itinerary')) {
+    const sailingId = decodeURIComponent(requestPath.replace('/cruise/sailings/', '').replace('/itinerary', ''))
     return getStaticItineraryForSailing(seedData, sailingId)
   }
 
-  if (path === '/health') {
+  if (requestPath === '/health') {
     return { status: 'static-fallback', mode: 'read-only' }
   }
 
@@ -244,7 +262,12 @@ export async function getBookings(options = {}) {
 }
 
 export async function getTurnaroundOperations(options = {}) {
-  const operations = await requestJson('/cruise/turnaround-operations', options)
+  const { demoUserId, selectedDemoUser, ...requestOptions } = options
+  const scopedDemoUserId = demoUserId || selectedDemoUser?.id || ''
+  const path = scopedDemoUserId
+    ? `/cruise/turnaround-operations?demoUserId=${encodeURIComponent(scopedDemoUserId)}`
+    : '/cruise/turnaround-operations'
+  const operations = await requestJson(path, requestOptions)
   return Array.isArray(operations) ? operations : []
 }
 
@@ -254,8 +277,8 @@ export async function updateTurnaroundOperationCommand(operationId, payload, opt
     throw new Error('Turnaround operation id is required.')
   }
 
-  return requestJson(`/cruise/turnaround-operations/${encodeURIComponent(operationId)}`, {
-    ...options,
+  return requestJson(buildScopedApiPath(`/cruise/turnaround-operations/${encodeURIComponent(operationId)}`, options), {
+    ...getScopedRequestOptions(options),
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -270,14 +293,15 @@ export async function updateTurnaroundTaskStatus(taskId, status, options = {}) {
     throw new Error('Turnaround task id is required.')
   }
 
-  const { blockerReason, ...requestOptions } = options
+  const { blockerReason, ...statusOptions } = options
+  const requestOptions = getScopedRequestOptions(statusOptions)
   const payload = { status }
 
   if (blockerReason !== undefined) {
     payload.blockerReason = blockerReason
   }
 
-  return requestJson(`/cruise/turnaround-tasks/${encodeURIComponent(taskId)}/status`, {
+  return requestJson(buildScopedApiPath(`/cruise/turnaround-tasks/${encodeURIComponent(taskId)}/status`, options), {
     ...requestOptions,
     method: 'PATCH',
     headers: {
@@ -293,8 +317,8 @@ export async function updateTurnaroundTaskDetails(taskId, payload, options = {})
     throw new Error('Turnaround task id is required.')
   }
 
-  return requestJson(`/cruise/turnaround-tasks/${encodeURIComponent(taskId)}/details`, {
-    ...options,
+  return requestJson(buildScopedApiPath(`/cruise/turnaround-tasks/${encodeURIComponent(taskId)}/details`, options), {
+    ...getScopedRequestOptions(options),
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -310,8 +334,8 @@ export async function createTurnaroundTask(operationId, payload, options = {}) {
     throw new Error('Turnaround operation id is required.')
   }
 
-  return requestJson(`/cruise/turnaround-operations/${encodeURIComponent(operationId)}/tasks`, {
-    ...options,
+  return requestJson(buildScopedApiPath(`/cruise/turnaround-operations/${encodeURIComponent(operationId)}/tasks`, options), {
+    ...getScopedRequestOptions(options),
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -326,8 +350,8 @@ export async function createTurnaroundTaskUpdate(taskId, payload, options = {}) 
     throw new Error('Turnaround task id is required.')
   }
 
-  return requestJson(`/cruise/turnaround-tasks/${encodeURIComponent(taskId)}/updates`, {
-    ...options,
+  return requestJson(buildScopedApiPath(`/cruise/turnaround-tasks/${encodeURIComponent(taskId)}/updates`, options), {
+    ...getScopedRequestOptions(options),
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -343,8 +367,8 @@ export async function deleteTurnaroundTask(taskId, options = {}) {
     throw new Error('Turnaround task id is required.')
   }
 
-  return requestJson(`/cruise/turnaround-tasks/${encodeURIComponent(taskId)}`, {
-    ...options,
+  return requestJson(buildScopedApiPath(`/cruise/turnaround-tasks/${encodeURIComponent(taskId)}`, options), {
+    ...getScopedRequestOptions(options),
     method: 'DELETE'
   })
 }
@@ -355,8 +379,8 @@ export async function createTurnaroundEscalation(operationId, payload, options =
     throw new Error('Turnaround operation id is required.')
   }
 
-  return requestJson(`/cruise/turnaround-operations/${encodeURIComponent(operationId)}/escalations`, {
-    ...options,
+  return requestJson(buildScopedApiPath(`/cruise/turnaround-operations/${encodeURIComponent(operationId)}/escalations`, options), {
+    ...getScopedRequestOptions(options),
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -371,8 +395,8 @@ export async function updateTurnaroundEscalation(escalationId, payload, options 
     throw new Error('Turnaround escalation id is required.')
   }
 
-  return requestJson(`/cruise/turnaround-escalations/${encodeURIComponent(escalationId)}`, {
-    ...options,
+  return requestJson(buildScopedApiPath(`/cruise/turnaround-escalations/${encodeURIComponent(escalationId)}`, options), {
+    ...getScopedRequestOptions(options),
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -388,8 +412,8 @@ export async function updateTurnaroundHandoff(handoffId, payload, options = {}) 
     throw new Error('Turnaround handoff id is required.')
   }
 
-  return requestJson(`/cruise/turnaround-handoffs/${encodeURIComponent(handoffId)}`, {
-    ...options,
+  return requestJson(buildScopedApiPath(`/cruise/turnaround-handoffs/${encodeURIComponent(handoffId)}`, options), {
+    ...getScopedRequestOptions(options),
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -408,8 +432,8 @@ export async function updateTurnaroundStaffing(operationId, departmentRole, payl
     throw new Error('Turnaround department role is required.')
   }
 
-  return requestJson(`/cruise/turnaround-operations/${encodeURIComponent(operationId)}/staffing/${encodeURIComponent(departmentRole)}`, {
-    ...options,
+  return requestJson(buildScopedApiPath(`/cruise/turnaround-operations/${encodeURIComponent(operationId)}/staffing/${encodeURIComponent(departmentRole)}`, options), {
+    ...getScopedRequestOptions(options),
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -428,8 +452,8 @@ export async function updateTurnaroundSignoff(operationId, departmentRole, paylo
     throw new Error('Turnaround department role is required.')
   }
 
-  return requestJson(`/cruise/turnaround-operations/${encodeURIComponent(operationId)}/signoffs/${encodeURIComponent(departmentRole)}`, {
-    ...options,
+  return requestJson(buildScopedApiPath(`/cruise/turnaround-operations/${encodeURIComponent(operationId)}/signoffs/${encodeURIComponent(departmentRole)}`, options), {
+    ...getScopedRequestOptions(options),
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',

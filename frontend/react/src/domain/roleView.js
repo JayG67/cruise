@@ -161,12 +161,80 @@ export function getWorkspaceUserBaseName(selectedDemoUser = {}) {
   return withoutAssignment.replace(roleSuffixPattern, '').trim() || withoutAssignment || displayName
 }
 
-export function getWorkspaceUserAssignedShip(selectedDemoUser = {}) {
-  const displayName = String(selectedDemoUser.displayName || '').trim()
-  return selectedDemoUser.shipName
+
+export function getOperationalAssignmentShipName(selectedDemoUser = {}) {
+  const displayName = String(selectedDemoUser.displayName || selectedDemoUser.name || '').trim()
+  const explicitShip = selectedDemoUser.shipName
     || selectedDemoUser.assignedShip
     || selectedDemoUser.workspaceShip
-    || (displayName.includes(' — ') ? displayName.split(' — ').slice(1).join(' — ').trim() : '')
+    || selectedDemoUser.assignmentShipName
+    || selectedDemoUser.assignedShipName
+
+  if (explicitShip) return String(explicitShip).trim()
+
+  if (displayName.includes(' — ')) {
+    return displayName.split(' — ').slice(1).join(' — ').trim()
+  }
+
+  return ''
+}
+
+export function getOperationalAssignmentCruiseLineName(selectedDemoUser = {}, cruiseLines = []) {
+  const explicitCruiseLine = selectedDemoUser.cruiseLineName
+    || selectedDemoUser.assignedCruiseLine
+    || selectedDemoUser.workspaceCruiseLine
+    || selectedDemoUser.cruiseLineName
+
+  if (explicitCruiseLine) return String(explicitCruiseLine).trim()
+
+  const assignedShip = getOperationalAssignmentShipName(selectedDemoUser)
+  if (!assignedShip) return ''
+
+  const matchingCruiseLine = cruiseLines.find(cruiseLine =>
+    (cruiseLine.ships || []).some(ship => String(ship.name || '').toLowerCase() === assignedShip.toLowerCase())
+  )
+
+  return matchingCruiseLine?.name || ''
+}
+
+export function hasOperationalAssignment(selectedDemoUser = {}) {
+  return Boolean(getOperationalAssignmentShipName(selectedDemoUser))
+}
+
+export function normalizeOperationalDemoUsers(demoUsers = []) {
+  const assignedByRole = new Map()
+
+  demoUsers.forEach(user => {
+    const roleView = normalizeRole(user.role || user.userType)
+    if (!isOperationalRoleView(roleView)) return
+    if (!hasOperationalAssignment(user)) return
+
+    if (!assignedByRole.has(roleView)) assignedByRole.set(roleView, [])
+    assignedByRole.get(roleView).push(user)
+  })
+
+  const seenAssignments = new Set()
+
+  return demoUsers.filter(user => {
+    const roleView = normalizeRole(user.role || user.userType)
+    if (!isOperationalRoleView(roleView)) return true
+
+    const hasAssignedUsersForRole = (assignedByRole.get(roleView) || []).length > 0
+    if (hasAssignedUsersForRole && !hasOperationalAssignment(user)) return false
+
+    const baseName = getWorkspaceUserBaseName(user).toLowerCase()
+    const assignedShip = getOperationalAssignmentShipName(user).toLowerCase()
+    const assignedCruiseLine = String(user.cruiseLineName || user.assignedCruiseLine || user.workspaceCruiseLine || '').toLowerCase()
+    const assignmentKey = `${roleView}:${baseName}:${assignedCruiseLine}:${assignedShip}:${user.id || ''}`
+    if (seenAssignments.has(assignmentKey)) return false
+
+    seenAssignments.add(assignmentKey)
+    return true
+  })
+}
+
+export function getWorkspaceUserAssignedShip(selectedDemoUser = {}) {
+  return getOperationalAssignmentShipName(selectedDemoUser)
 }
 
 function textMatchesName(value = '', baseName = '') {
@@ -175,12 +243,18 @@ function textMatchesName(value = '', baseName = '') {
 }
 
 function operationMatchesAssignedShip(operation = {}, assignedShip = '') {
-  if (!assignedShip) return true
+  if (!assignedShip) return false
   const shipName = operation.ship?.name || operation.shipName || ''
   const title = operation.title || ''
   const notes = operation.notes || ''
   const searchText = [shipName, title, notes].filter(Boolean).join(' ').toLowerCase()
   return searchText.includes(String(assignedShip).toLowerCase())
+}
+
+function operationMatchesAssignedCruiseLine(operation = {}, assignedCruiseLine = '') {
+  if (!assignedCruiseLine) return false
+  const cruiseLineName = operation.cruiseLine?.name || operation.cruiseLineName || ''
+  return String(cruiseLineName).toLowerCase() === String(assignedCruiseLine).toLowerCase()
 }
 
 function operationHasRoleUserAssignment(operation = {}, roleView = '', baseName = '') {
@@ -212,12 +286,19 @@ export function getVisibleTurnaroundOperations(selectedDemoUser = {}, turnaround
 
   const baseName = getWorkspaceUserBaseName(selectedDemoUser)
   const assignedShip = getWorkspaceUserAssignedShip(selectedDemoUser)
-  const scopedOperations = turnaroundOperations.filter(operation =>
-    operationMatchesAssignedShip(operation, assignedShip)
-    && (!baseName || operationHasRoleUserAssignment(operation, roleView, baseName))
+  const assignedCruiseLine = getOperationalAssignmentCruiseLineName(selectedDemoUser)
+
+  if (!assignedShip && !assignedCruiseLine) return []
+
+  const assignedOperations = assignedCruiseLine
+    ? turnaroundOperations.filter(operation => operationMatchesAssignedCruiseLine(operation, assignedCruiseLine))
+    : turnaroundOperations.filter(operation => operationMatchesAssignedShip(operation, assignedShip))
+
+  const specificallyAssignedOperations = assignedOperations.filter(operation =>
+    !baseName || operationHasRoleUserAssignment(operation, roleView, baseName)
   )
 
-  return scopedOperations.length > 0 ? scopedOperations : turnaroundOperations.filter(operation => operationMatchesAssignedShip(operation, assignedShip))
+  return specificallyAssignedOperations.length > 0 ? specificallyAssignedOperations : assignedOperations
 }
 
 export function getOperationalRoleFocus(roleView = '') {
@@ -259,6 +340,8 @@ export function getOperationalTasksForRole(operation = {}, roleView = '') {
 
   return tasks.filter(task => normalizeRole(task.departmentRole) === roleView)
 }
+
+
 
 export function buildTurnaroundOperationCards(turnaroundOperations = [], roleView = '') {
   return turnaroundOperations.map(operation => {

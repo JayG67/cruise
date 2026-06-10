@@ -14,8 +14,9 @@ describe('React role and person selector', () => {
     cy.getByTestId(rs.passengerFinderPanel).should('be.visible')
     cy.getByTestId(rs.passengerFinderResults).should('be.visible')
     cy.getByTestId(rs.passengerFinderResultCard).first().invoke('text').should((text) => {
-      expect(text).to.match(/Cruise Line|Royal Caribbean|Carnival|Norwegian|Celebrity/)
       expect(text).to.match(/\d{4}-\d{2}-\d{2}/)
+      expect(text).to.include(' · ')
+      expect(text).to.match(/to|→/)
     })
     cy.getByTestId(rs.personFinderResultCard).should('have.length.lessThan', 9)
     cy.getByTestId(rs.personFinderResultCard).should('not.contain.text', 'Admin')

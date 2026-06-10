@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { normalizeRole } from '../domain/roleView.js'
+import { getOperationalAssignmentShipName, normalizeRole } from '../domain/roleView.js'
 
 function formatDemoUserRole(role = 'Demo User') {
   return role
@@ -155,7 +155,7 @@ function buildWorkspaceUserOption(user = {}, bookings = []) {
   const displayName = getDemoUserName(user)
   const name = getWorkspaceUserBaseName(user)
   const roleLabel = formatDemoUserRole(user.role || user.userType || 'Demo User')
-  const assignment = user.shipName || user.assignedShip || user.department || displayName.split(' — ')[1] || user.email || 'Workspace access'
+  const assignment = getOperationalAssignmentShipName(user) || user.department || user.email || 'Workspace access'
 
   return {
     user,
@@ -322,8 +322,22 @@ export default function ReactRoleSelector({
       .map(user => buildWorkspaceUserOption(user, bookings))
       .filter(option => !personSearchText || option.searchText.includes(personSearchText))
 
-    return isPassengerFilterActive ? matchingOptions : condenseWorkspaceUserOptions(matchingOptions)
-  }, [bookings, filteredDemoUsers, isPassengerFilterActive, personSearchText, visibleDemoUsers])
+    const roleView = normalizeRole(selectedRole)
+    const isOperationalRole = roleView === 'turnaround-manager'
+      || roleView === 'housekeeping-lead'
+      || roleView === 'guest-services-lead'
+      || roleView === 'food-beverage-lead'
+      || roleView === 'engineering-lead'
+    const exactNameSearch = personSearchText
+      && matchingOptions.length > 1
+      && matchingOptions.every(option => option.name.toLowerCase() === personSearchText)
+
+    if (isPassengerFilterActive) return matchingOptions
+
+    return isOperationalRole && !exactNameSearch
+      ? matchingOptions
+      : condenseWorkspaceUserOptions(matchingOptions)
+  }, [bookings, filteredDemoUsers, isPassengerFilterActive, personSearchText, selectedRole, visibleDemoUsers])
 
   const displayedPersonOptionCards = useMemo(() => {
     const selectedOption = selectedDemoUserId

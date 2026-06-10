@@ -211,6 +211,8 @@ async function initializeDatabase() {
       email varchar(255) NOT NULL,
       "userType" varchar(50) NOT NULL,
       "primaryCustomerId" varchar(10) REFERENCES customers(id) ON DELETE SET NULL,
+      "cruiseLineId" uuid REFERENCES cruise_lines(id) ON DELETE SET NULL,
+      "assignedShipId" uuid REFERENCES ships(id) ON DELETE SET NULL,
       status varchar(50) NOT NULL DEFAULT 'ACTIVE'
     );
   `)
@@ -221,6 +223,8 @@ async function initializeDatabase() {
       "userId" varchar(40) NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
       "roleId" varchar(50) NOT NULL REFERENCES app_roles(id) ON DELETE CASCADE,
       "assignmentScope" varchar(50) NOT NULL DEFAULT 'GLOBAL',
+      "cruiseLineId" uuid REFERENCES cruise_lines(id) ON DELETE SET NULL,
+      "assignedShipId" uuid REFERENCES ships(id) ON DELETE SET NULL,
       status varchar(50) NOT NULL DEFAULT 'ACTIVE'
     );
   `)
@@ -232,7 +236,11 @@ async function initializeDatabase() {
       role varchar(50) NOT NULL,
       "customerId" varchar(10) REFERENCES customers(id) ON DELETE SET NULL,
       "normalizedUserId" varchar(40) REFERENCES app_users(id) ON DELETE SET NULL,
-      "normalizedRoleId" varchar(50) REFERENCES app_roles(id) ON DELETE SET NULL
+      "normalizedRoleId" varchar(50) REFERENCES app_roles(id) ON DELETE SET NULL,
+      "cruiseLineId" uuid REFERENCES cruise_lines(id) ON DELETE SET NULL,
+      "assignedShipId" uuid REFERENCES ships(id) ON DELETE SET NULL,
+      "cruiseLineName" varchar(255),
+      "assignedShipName" varchar(255)
     );
   `)
 
@@ -254,6 +262,24 @@ async function initializeDatabase() {
       id varchar(60) PRIMARY KEY,
       "customerId" varchar(10) NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
       "activityScheduleId" uuid NOT NULL REFERENCES activity_schedules(id) ON DELETE CASCADE
+    );
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS audit_events (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      "eventType" varchar(100) NOT NULL,
+      "entityType" varchar(100) NOT NULL,
+      "entityId" varchar(100) NOT NULL,
+      "actorUserId" varchar(40) REFERENCES app_users(id) ON DELETE SET NULL,
+      "actorDisplayName" varchar(255),
+      "cruiseLineId" uuid REFERENCES cruise_lines(id) ON DELETE SET NULL,
+      "shipId" uuid REFERENCES ships(id) ON DELETE SET NULL,
+      "sailingId" uuid REFERENCES sailings(id) ON DELETE SET NULL,
+      "operationId" uuid REFERENCES turnaround_operations(id) ON DELETE SET NULL,
+      source varchar(100) NOT NULL DEFAULT 'APPLICATION',
+      "eventPayload" text,
+      "createdAt" varchar(40) NOT NULL
     );
   `)
 
@@ -448,6 +474,38 @@ async function initializeDatabase() {
 
 
   await db.execute(sql`
+    ALTER TABLE app_users ADD COLUMN IF NOT EXISTS "cruiseLineId" uuid REFERENCES cruise_lines(id) ON DELETE SET NULL;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE app_users ADD COLUMN IF NOT EXISTS "assignedShipId" uuid REFERENCES ships(id) ON DELETE SET NULL;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE app_user_roles ADD COLUMN IF NOT EXISTS "cruiseLineId" uuid REFERENCES cruise_lines(id) ON DELETE SET NULL;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE app_user_roles ADD COLUMN IF NOT EXISTS "assignedShipId" uuid REFERENCES ships(id) ON DELETE SET NULL;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE demo_users ADD COLUMN IF NOT EXISTS "cruiseLineId" uuid REFERENCES cruise_lines(id) ON DELETE SET NULL;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE demo_users ADD COLUMN IF NOT EXISTS "assignedShipId" uuid REFERENCES ships(id) ON DELETE SET NULL;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE demo_users ADD COLUMN IF NOT EXISTS "cruiseLineName" varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE demo_users ADD COLUMN IF NOT EXISTS "assignedShipName" varchar(255);
+  `)
+
+  await db.execute(sql`
     ALTER TABLE turnaround_tasks ADD COLUMN IF NOT EXISTS "ownerUserId" varchar(40);
   `)
 
@@ -483,25 +541,34 @@ async function initializeDatabase() {
   `)
 
   await db.execute(sql`
-    INSERT INTO app_users (id, "displayName", email, "userType", "primaryCustomerId", status)
+    INSERT INTO app_users (id, "displayName", email, "userType", "primaryCustomerId", "cruiseLineId", "assignedShipId", status)
     SELECT
       id,
       "displayName",
       id || '@cruise-explorer.local',
       CASE WHEN role = 'ADMIN' THEN 'EMPLOYEE' ELSE 'PASSENGER' END,
       "customerId",
+      "cruiseLineId",
+      "assignedShipId",
       'ACTIVE'
     FROM demo_users
     ON CONFLICT (id) DO NOTHING;
   `)
 
   await db.execute(sql`
-    INSERT INTO app_user_roles (id, "userId", "roleId", "assignmentScope", status)
+    INSERT INTO app_user_roles (id, "userId", "roleId", "assignmentScope", "cruiseLineId", "assignedShipId", status)
     SELECT
       demo_users.id || '-' || lower(replace(demo_users.role, '_', '-')),
       demo_users.id,
       lower(replace(demo_users.role, '_', '-')),
-      CASE WHEN demo_users."customerId" IS NULL THEN 'GLOBAL' ELSE 'CUSTOMER' END,
+      CASE
+        WHEN demo_users."assignedShipId" IS NOT NULL THEN 'SHIP'
+        WHEN demo_users."cruiseLineId" IS NOT NULL THEN 'CRUISE_LINE'
+        WHEN demo_users."customerId" IS NULL THEN 'GLOBAL'
+        ELSE 'CUSTOMER'
+      END,
+      demo_users."cruiseLineId",
+      demo_users."assignedShipId",
       'ACTIVE'
     FROM demo_users
     WHERE demo_users.role IS NOT NULL
@@ -516,6 +583,59 @@ async function initializeDatabase() {
     WHERE "normalizedUserId" IS NULL OR "normalizedRoleId" IS NULL;
   `)
 
+
+  await db.execute(sql`
+    UPDATE turnaround_tasks
+    SET "ownerUserId" = app_users.id
+    FROM turnaround_operations
+    JOIN sailings ON sailings.id = turnaround_operations."sailingId"
+    JOIN app_users ON app_users."assignedShipId" = sailings."shipId"
+    WHERE turnaround_tasks."operationId" = turnaround_operations.id
+      AND app_users."displayName" LIKE turnaround_tasks."ownerName" || ' — %';
+  `)
+
+  await db.execute(sql`
+    UPDATE turnaround_task_updates
+    SET "authorUserId" = app_users.id
+    FROM turnaround_tasks
+    JOIN turnaround_operations ON turnaround_operations.id = turnaround_tasks."operationId"
+    JOIN sailings ON sailings.id = turnaround_operations."sailingId"
+    JOIN app_users ON app_users."assignedShipId" = sailings."shipId"
+    WHERE turnaround_task_updates."taskId" = turnaround_tasks.id
+      AND app_users."displayName" LIKE turnaround_task_updates."authorName" || ' — %';
+  `)
+
+  await db.execute(sql`
+    UPDATE turnaround_signoffs
+    SET "approverUserId" = app_users.id
+    FROM turnaround_operations
+    JOIN sailings ON sailings.id = turnaround_operations."sailingId"
+    JOIN app_users ON app_users."assignedShipId" = sailings."shipId"
+    WHERE turnaround_signoffs."operationId" = turnaround_operations.id
+      AND turnaround_signoffs."approverName" IS NOT NULL
+      AND turnaround_signoffs."approverName" <> ''
+      AND app_users."displayName" LIKE turnaround_signoffs."approverName" || ' — %';
+  `)
+
+  await db.execute(sql`
+    UPDATE turnaround_escalations
+    SET "ownerUserId" = app_users.id
+    FROM turnaround_operations
+    JOIN sailings ON sailings.id = turnaround_operations."sailingId"
+    JOIN app_users ON app_users."assignedShipId" = sailings."shipId"
+    WHERE turnaround_escalations."operationId" = turnaround_operations.id
+      AND app_users."displayName" LIKE turnaround_escalations."ownerName" || ' — %';
+  `)
+
+  await db.execute(sql`
+    UPDATE turnaround_handoffs
+    SET "ownerUserId" = app_users.id
+    FROM turnaround_operations
+    JOIN sailings ON sailings.id = turnaround_operations."sailingId"
+    JOIN app_users ON app_users."assignedShipId" = sailings."shipId"
+    WHERE turnaround_handoffs."operationId" = turnaround_operations.id
+      AND app_users."displayName" LIKE turnaround_handoffs."ownerName" || ' — %';
+  `)
 
   await db.execute(sql`
     UPDATE turnaround_tasks
@@ -677,7 +797,7 @@ async function initializeDatabase() {
   `)
 
   await db.execute(sql`
-    ALTER TABLE app_user_roles ADD CONSTRAINT chk_app_user_roles_assignment_scope CHECK ("assignmentScope" IN ('GLOBAL', 'CUSTOMER', 'BOOKING', 'SAILING', 'TURNAROUND_OPERATION'));
+    ALTER TABLE app_user_roles ADD CONSTRAINT chk_app_user_roles_assignment_scope CHECK ("assignmentScope" IN ('GLOBAL', 'CUSTOMER', 'BOOKING', 'SAILING', 'TURNAROUND_OPERATION', 'CRUISE_LINE', 'SHIP'));
   `)
 
   await db.execute(sql`
@@ -893,6 +1013,55 @@ async function initializeDatabase() {
       AND "completedAt" ~ '^\\d{4}-\\d{2}-\\d{2}T';
   `)
 
+
+  await db.execute(sql`
+    ALTER TABLE audit_events ADD COLUMN IF NOT EXISTS "eventType" varchar(100);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE audit_events ADD COLUMN IF NOT EXISTS "entityType" varchar(100);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE audit_events ADD COLUMN IF NOT EXISTS "entityId" varchar(100);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE audit_events ADD COLUMN IF NOT EXISTS "actorUserId" varchar(40);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE audit_events ADD COLUMN IF NOT EXISTS "actorDisplayName" varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE audit_events ADD COLUMN IF NOT EXISTS "cruiseLineId" uuid;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE audit_events ADD COLUMN IF NOT EXISTS "shipId" uuid;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE audit_events ADD COLUMN IF NOT EXISTS "sailingId" uuid;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE audit_events ADD COLUMN IF NOT EXISTS "operationId" uuid;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE audit_events ADD COLUMN IF NOT EXISTS source varchar(100) DEFAULT 'APPLICATION';
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE audit_events ADD COLUMN IF NOT EXISTS "eventPayload" text;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE audit_events ADD COLUMN IF NOT EXISTS "createdAt" varchar(40);
+  `)
+
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_sailings_departure_date_value ON sailings("departureDateValue");
   `)
@@ -927,6 +1096,10 @@ async function initializeDatabase() {
   `)
 
   await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_app_users_cruise_line_ship ON app_users("cruiseLineId", "assignedShipId");
+  `)
+
+  await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_app_user_roles_user_status ON app_user_roles("userId", status);
   `)
 
@@ -935,7 +1108,15 @@ async function initializeDatabase() {
   `)
 
   await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_app_user_roles_tenant_assignment ON app_user_roles("cruiseLineId", "assignedShipId", "assignmentScope");
+  `)
+
+  await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_demo_users_normalized_user_role ON demo_users("normalizedUserId", "normalizedRoleId");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_demo_users_operational_assignment ON demo_users("cruiseLineId", "assignedShipId", role);
   `)
 
 
@@ -1050,6 +1231,27 @@ async function initializeDatabase() {
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_turnaround_signoffs_operation_role_status ON turnaround_signoffs("operationId", "departmentRole", status);
   `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_audit_events_created_at ON audit_events("createdAt");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_audit_events_entity ON audit_events("entityType", "entityId", "createdAt");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_audit_events_actor ON audit_events("actorUserId", "createdAt");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_audit_events_tenant_scope ON audit_events("cruiseLineId", "shipId", "sailingId", "createdAt");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_audit_events_operation ON audit_events("operationId", "createdAt");
+  `)
+
 
   if (process.env.NODE_ENV !== 'test' && process.env.SUPPRESS_DB_LOGS !== 'true') {
     console.log('Database tables verified')

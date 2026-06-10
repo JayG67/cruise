@@ -46,10 +46,25 @@ describe('React component accessibility and presentation contracts', () => {
     expect(roleViewDomain).toContain('export function getVisibleTurnaroundOperations')
     expect(roleViewDomain).toContain('getWorkspaceUserBaseName')
     expect(roleViewDomain).toContain('getWorkspaceUserAssignedShip')
+    expect(roleViewDomain).toContain('normalizeOperationalDemoUsers')
+    expect(roleViewDomain).toContain('if (!assignedShip && !assignedCruiseLine) return []')
+    expect(roleViewDomain).toContain('operationMatchesAssignedCruiseLine')
     expect(roleViewDomain).toContain('operationHasRoleUserAssignment')
     expect(app).toContain('getVisibleTurnaroundOperations(effectiveSelectedDemoUser, turnaroundOperations)')
     expect(app).toContain('turnaroundOperations={visibleTurnaroundOperations}')
     expect(dashboard).toContain('buildTurnaroundOperationCards(turnaroundOperations, roleView)')
+  })
+
+  it('keeps operational person selection on one assigned workspace per person and role', () => {
+    const selector = read('frontend/react/src/components/ReactRoleSelector.jsx')
+    const demoHook = read('frontend/react/src/hooks/useDemoUsers.js')
+    const roleViewDomain = read('frontend/react/src/domain/roleView.js')
+
+    expect(demoHook).toContain('normalizeOperationalDemoUsers(await getDemoUsers')
+    expect(roleViewDomain).toContain("const assignmentKey = `${roleView}:${baseName}:${assignedCruiseLine}:${assignedShip}:${user.id || ''}`")
+    expect(selector).toContain("getOperationalAssignmentShipName(user)")
+    expect(selector).toContain("roleView === 'turnaround-manager'")
+    expect(selector).toContain('? matchingOptions')
   })
 
 
