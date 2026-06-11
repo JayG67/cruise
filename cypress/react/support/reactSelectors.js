@@ -328,6 +328,7 @@ const reactSelectors = Object.freeze({
   sqaDataButton: 'react-sqa-data-button',
   sqaDeploymentButton: 'react-sqa-deployment-button',
   sqaHealthButton: 'react-sqa-health-button',
+  sqaAuditHistoryButton: 'react-sqa-audit-history-button',
   sqaGoLiveButton: 'react-sqa-go-live-button',
   goLiveReadinessPanel: 'react-go-live-readiness-panel',
   sqaOutput: 'react-sqa-output',

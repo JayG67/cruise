@@ -139,4 +139,77 @@ describe('Validation middleware', () => {
       })
     )
   })
+
+})
+
+
+const { buildProductionPrincipal, buildRequestIdentity, getScopedDemoUserId } = require('../../../middleware/requestIdentity.middleware')
+
+describe('Request identity middleware', () => {
+  it('prefers header-scoped demo identity over legacy query strings', () => {
+    const req = {
+      headers: {
+        'x-cruise-demo-user-id': 'turnaround-manager-harmony'
+      },
+      query: {
+        demoUserId: 'legacy-query-user'
+      }
+    }
+
+    expect(getScopedDemoUserId(req)).toBe('turnaround-manager-harmony')
+    expect(buildRequestIdentity(req)).toEqual({
+      demoUserId: 'turnaround-manager-harmony',
+      principal: null,
+      identitySource: 'header',
+      isDemoIdentity: true,
+      isAuthenticated: true
+    })
+  })
+
+  it('keeps legacy demoUserId query support for compatibility', () => {
+    const req = {
+      headers: {},
+      query: {
+        demoUserId: 'legacy-query-user'
+      }
+    }
+
+    expect(getScopedDemoUserId(req)).toBe('legacy-query-user')
+    expect(buildRequestIdentity(req)).toEqual({
+      demoUserId: 'legacy-query-user',
+      principal: null,
+      identitySource: 'query',
+      isDemoIdentity: true,
+      isAuthenticated: true
+    })
+  })
+
+  it('accepts future production principal headers without removing demo compatibility', () => {
+    const req = {
+      headers: {
+        'x-cruise-user-id': 'auth0|ops-admin',
+        'x-cruise-user-email': 'ops.admin@example.com',
+        'x-cruise-user-name': 'Operations Admin',
+        'x-cruise-user-role': 'ADMIN',
+        'x-cruise-tenant-id': 'royal-caribbean'
+      },
+      query: {}
+    }
+
+    expect(buildProductionPrincipal(req)).toEqual({
+      userId: 'auth0|ops-admin',
+      email: 'ops.admin@example.com',
+      displayName: 'Operations Admin',
+      role: 'ADMIN',
+      tenantId: 'royal-caribbean',
+      identitySource: 'principal-header'
+    })
+    expect(buildRequestIdentity(req)).toMatchObject({
+      demoUserId: null,
+      identitySource: 'principal-header',
+      isDemoIdentity: false,
+      isAuthenticated: true
+    })
+  })
+
 })

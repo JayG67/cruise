@@ -57,7 +57,7 @@ This repository is intentionally maintained as a recruiter-facing engineering an
 
 ## 🚦 Current Production Readiness Status
 
-The current operations experience has completed the major turnaround management UX slices: selected-turnaround workflow, operations navigation, tasks, dependencies, handoffs, escalations, staffing, readiness approvals, role-specific command briefs, product-language hardening, and Playwright stability hardening.
+The current operations experience has completed the major turnaround management UX slices: selected-turnaround workflow, operations navigation, tasks, dependencies, handoffs, escalations, staffing, readiness approvals, role-specific command briefs, audit history, release-packet readiness review, unified operational timeline, product-language hardening, and Playwright stability hardening.
 
 Before a public presentation or production-style deployment, use the in-app Quality Console and the go-live manual review guide to confirm:
 
@@ -702,3 +702,40 @@ Full-Stack Cruise Operations Platform demonstrating enterprise software engineer
 ### Current Data Architecture Hardening Status
 
 Completed hardening slices now include indexing, constraints, typed date/time bridge columns, normalized users/roles, operational ownership attribution, audit/event history, and operational assignment scoping. Operational users are now treated as assigned ship/workspace users instead of global role personas, which prevents a turnaround manager from viewing unrelated cruise-line operations.
+
+### Current Production-Hardening Slice: Platform Audit History Review
+
+The latest production-hardening slice extends audit/event traceability beyond turnaround operations into the core platform management workflows recruiters and cruise-line reviewers are likely to exercise:
+
+- Cruise line create/update/delete
+- Ship create/update/delete
+- Sailing create/update/delete
+- Customer create/update/delete
+- Booking create/update/delete
+- Booking passenger add/remove
+
+These events use the shared `audit_events` table and a platform audit boundary so mutation traceability is no longer limited to operational turnaround workflows. Fleet and booking audit rows carry the strongest available tenant scope, including cruise line, ship, and sailing identifiers when the affected entity can be resolved to that hierarchy. Admin users can now review recent platform audit history through `GET /cruise/audit-events`, and the React quality console includes an Audit History Review check for production traceability validation.
+
+
+### Current Production-Hardening Slice: Production Authorization Seam
+
+The latest production-hardening slice adds a real-auth-ready request principal bridge without removing the demo selector experience that makes the portfolio easy to review:
+
+- `X-Cruise-User-Id`, `X-Cruise-User-Email`, `X-Cruise-User-Name`, `X-Cruise-User-Role`, and `X-Cruise-Tenant-Id` are accepted as future production principal headers.
+- `requestAuthorization.service.js` centralizes actor resolution and admin authorization decisions.
+- Platform audit history now uses the shared authorization service instead of controller-local demo-user checks.
+- Platform and turnaround audit actor attribution resolves through the same request-actor seam, so future auth claims can replace demo users cleanly.
+- Existing `X-Cruise-Demo-User-Id` and legacy `demoUserId` query compatibility remain intact for the current demo workflow.
+
+This does not add a full login provider yet. It creates the clean backend seam needed to connect one later without reworking the turnaround, platform audit, and admin authorization paths.
+
+
+### Latest turnaround operations slice
+
+- **Unified operational timeline:** turnaround operation payloads now include a production-style event feed across command status, tasks, task updates, staffing, dependencies, handoffs, escalations, signoffs, release readiness context, and audit history.
+- **Demo-safe production architecture:** reviewers can still assume any role from the role selector, while the backend returns scoped operational history through the same request identity and turnaround scope boundaries.
+
+
+### Turnaround playbook template bridge
+
+The turnaround dashboard now derives a reusable operations playbook from each scoped operation. The playbook summarizes template readiness, reusable task order, department baselines, staffing expectations, exception rules, and next best actions so reviewers can see how live turnaround work could become repeatable ship/port operating templates while preserving the demo role-assumption flow.

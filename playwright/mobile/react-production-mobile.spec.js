@@ -11,6 +11,13 @@ function mobileRunSuffix(testInfo) {
   return `${testInfo.project.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${Date.now()}`
 }
 
+function mobileEngineeringLeadName(testInfo) {
+  const projectName = String(testInfo.project.name || '').toLowerCase()
+  if (projectName.includes('iphone')) return 'Iris Kowalski'
+  if (projectName.includes('ipad')) return 'Mateo Silva'
+  return 'David Torres'
+}
+
 async function openRoyalShipSailings(page) {
   await page.getByTestId('react-fleet-search').fill('Royal')
 
@@ -391,7 +398,8 @@ test.describe('React default mobile replacement checks', () => {
 
   test('lets specialized operational leads verify status, detail, update, and signoff workflows on mobile', async ({ page }, testInfo) => {
     await page.goto('/')
-    await expectOperationalDashboardReady(page, 'engineering-lead', 'David Torres', 'react-engineering-lead-dashboard')
+    const engineeringLeadName = mobileEngineeringLeadName(testInfo)
+    await expectOperationalDashboardReady(page, 'engineering-lead', engineeringLeadName, 'react-engineering-lead-dashboard')
 
     const suffix = mobileRunSuffix(testInfo)
     const firstCard = page.getByTestId('react-operational-readiness-card').first()
@@ -418,7 +426,7 @@ test.describe('React default mobile replacement checks', () => {
       await expect(firstCard).toContainText('IN_PROGRESS')
     }
 
-    await taskItem.locator('input[aria-label$="owner"]').fill(`David Torres ${suffix}`)
+    await taskItem.locator('input[aria-label$="owner"]').fill(`${engineeringLeadName} ${suffix}`)
     await taskItem.locator('input[aria-label$="due time"]').fill('08:35')
     await taskItem.locator('input[aria-label$="location"]').fill(`Mobile engine control ${suffix}`)
     await taskItem.locator('input[aria-label$="blocker reason"]').fill(`Mobile shore-power check ${suffix}`)
@@ -428,7 +436,7 @@ test.describe('React default mobile replacement checks', () => {
 
     await firstCard.locator('input[aria-label$="planned staff"]').fill('13')
     await firstCard.locator('input[aria-label$="checked in staff"]').fill('12')
-    await firstCard.locator('input[aria-label$="staffing lead"]').fill(`David Torres ${suffix}`)
+    await firstCard.locator('input[aria-label$="staffing lead"]').fill(`${engineeringLeadName} ${suffix}`)
     await firstCard.locator('input[aria-label$="staffing muster location"]').fill(`Mobile engine muster ${suffix}`)
     await firstCard.locator('input[aria-label$="staffing notes"]').fill(`Mobile staffing verified ${suffix}`)
     await firstCard.getByRole('button', { name: 'Save staffing plan' }).click()
@@ -444,7 +452,7 @@ test.describe('React default mobile replacement checks', () => {
     await firstCard.locator('select[aria-label$="escalation department"]').selectOption('engineering-lead')
     await firstCard.locator('select[aria-label$="escalation severity"]').selectOption('HIGH')
     await firstCard.locator('input[aria-label$="escalation title"]').fill(escalationTitle)
-    await firstCard.locator('input[aria-label$="escalation owner"]').fill(`David Torres ${suffix}`)
+    await firstCard.locator('input[aria-label$="escalation owner"]').fill(`${engineeringLeadName} ${suffix}`)
     await firstCard.locator('input[aria-label$="escalation notes"]').fill(`Mobile escalation opened ${suffix}`)
     await firstCard.getByRole('button', { name: 'Add escalation' }).click()
     await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround escalation created successfully')
@@ -458,11 +466,11 @@ test.describe('React default mobile replacement checks', () => {
     await expect(firstCard).toContainText(`Mobile escalation resolved ${suffix}`)
 
     await firstCard.locator('select[aria-label$="readiness signoff status"]').selectOption('APPROVED')
-    await firstCard.locator('input[aria-label$="readiness approver"]').fill(`David Torres ${suffix}`)
+    await firstCard.locator('input[aria-label$="readiness approver"]').fill(`${engineeringLeadName} ${suffix}`)
     await firstCard.locator('input[aria-label$="readiness notes"]').fill(`Mobile engineering signoff ${suffix}`)
     await firstCard.getByRole('button', { name: 'Save readiness signoff' }).click()
     await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround readiness signoff updated successfully')
-    await expect(firstCard).toContainText(`David Torres ${suffix}`)
+    await expect(firstCard).toContainText(`${engineeringLeadName} ${suffix}`)
     await expectNoHorizontalOverflow(page)
   })
 

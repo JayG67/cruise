@@ -150,20 +150,33 @@ function getStaticItineraryForSailing(seedData, sailingId) {
 }
 
 
-function buildScopedApiPath(path, options = {}) {
-  const scopedDemoUserId = options.demoUserId || options.selectedDemoUser?.id || ''
+function getScopedDemoUserId(options = {}) {
+  return options.demoUserId || options.selectedDemoUser?.id || ''
+}
+
+function buildScopedHeaders(options = {}) {
+  const scopedDemoUserId = getScopedDemoUserId(options)
 
   if (!scopedDemoUserId) {
-    return path
+    return options.headers || {}
   }
 
-  const separator = path.includes('?') ? '&' : '?'
-  return `${path}${separator}demoUserId=${encodeURIComponent(scopedDemoUserId)}`
+  return {
+    ...(options.headers || {}),
+    'X-Cruise-Demo-User-Id': scopedDemoUserId
+  }
+}
+
+function buildScopedApiPath(path) {
+  return path
 }
 
 function getScopedRequestOptions(options = {}) {
   const { demoUserId, selectedDemoUser, ...requestOptions } = options
-  return requestOptions
+  return {
+    ...requestOptions,
+    headers: buildScopedHeaders(options)
+  }
 }
 
 async function requestStaticFallback(path, options = {}) {
@@ -188,6 +201,10 @@ async function requestStaticFallback(path, options = {}) {
 
   if (requestPath === '/cruise/turnaround-operations') {
     return normalizeStaticTurnaroundOperations(seedData)
+  }
+
+  if (requestPath === '/cruise/audit-events') {
+    return { auditEvents: [], filters: {}, staticFallback: true }
   }
 
   if (requestPath === '/cruise') {
@@ -261,14 +278,32 @@ export async function getBookings(options = {}) {
   return Array.isArray(bookings) ? bookings : []
 }
 
+
+export async function getPlatformAuditEvents(filters = {}, options = {}) {
+  const searchParams = new URLSearchParams()
+  for (const [key, value] of Object.entries(filters || {})) {
+    if (value !== undefined && value !== null && String(value).trim()) {
+      searchParams.set(key, String(value).trim())
+    }
+  }
+
+  const queryString = searchParams.toString()
+  const response = await requestJson(`/cruise/audit-events${queryString ? `?${queryString}` : ''}`, getScopedRequestOptions(options))
+  return Array.isArray(response?.auditEvents) ? response.auditEvents : []
+}
+
 export async function getTurnaroundOperations(options = {}) {
-  const { demoUserId, selectedDemoUser, ...requestOptions } = options
-  const scopedDemoUserId = demoUserId || selectedDemoUser?.id || ''
-  const path = scopedDemoUserId
-    ? `/cruise/turnaround-operations?demoUserId=${encodeURIComponent(scopedDemoUserId)}`
-    : '/cruise/turnaround-operations'
-  const operations = await requestJson(path, requestOptions)
+  const operations = await requestJson('/cruise/turnaround-operations', getScopedRequestOptions(options))
   return Array.isArray(operations) ? operations : []
+}
+
+export async function getTurnaroundOperationAuditEvents(operationId, options = {}) {
+  if (!operationId) {
+    throw new Error('Turnaround operation id is required.')
+  }
+
+  const response = await requestJson(buildScopedApiPath(`/cruise/turnaround-operations/${encodeURIComponent(operationId)}/audit-events`, options), getScopedRequestOptions(options))
+  return Array.isArray(response?.auditEvents) ? response.auditEvents : []
 }
 
 
@@ -282,7 +317,7 @@ export async function updateTurnaroundOperationCommand(operationId, payload, opt
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
+      ...(getScopedRequestOptions(options).headers || {})
     },
     body: JSON.stringify(payload)
   })
@@ -322,7 +357,7 @@ export async function updateTurnaroundTaskDetails(taskId, payload, options = {})
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
+      ...(getScopedRequestOptions(options).headers || {})
     },
     body: JSON.stringify(payload)
   })
@@ -339,7 +374,7 @@ export async function createTurnaroundTask(operationId, payload, options = {}) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
+      ...(getScopedRequestOptions(options).headers || {})
     },
     body: JSON.stringify(payload)
   })
@@ -355,7 +390,7 @@ export async function createTurnaroundTaskUpdate(taskId, payload, options = {}) 
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
+      ...(getScopedRequestOptions(options).headers || {})
     },
     body: JSON.stringify(payload)
   })
@@ -384,7 +419,7 @@ export async function createTurnaroundEscalation(operationId, payload, options =
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
+      ...(getScopedRequestOptions(options).headers || {})
     },
     body: JSON.stringify(payload)
   })
@@ -400,7 +435,7 @@ export async function updateTurnaroundEscalation(escalationId, payload, options 
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
+      ...(getScopedRequestOptions(options).headers || {})
     },
     body: JSON.stringify(payload)
   })
@@ -417,7 +452,7 @@ export async function updateTurnaroundHandoff(handoffId, payload, options = {}) 
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
+      ...(getScopedRequestOptions(options).headers || {})
     },
     body: JSON.stringify(payload)
   })
@@ -437,7 +472,7 @@ export async function updateTurnaroundStaffing(operationId, departmentRole, payl
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
+      ...(getScopedRequestOptions(options).headers || {})
     },
     body: JSON.stringify(payload)
   })
@@ -457,7 +492,7 @@ export async function updateTurnaroundSignoff(operationId, departmentRole, paylo
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
+      ...(getScopedRequestOptions(options).headers || {})
     },
     body: JSON.stringify(payload)
   })

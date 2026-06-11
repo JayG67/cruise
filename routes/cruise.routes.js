@@ -44,10 +44,19 @@ router.get(
 
 
 router.get(
+  '/audit-events',
+  cruiseController.getPlatformAuditEvents
+)
+
+router.get(
   '/turnaround-operations',
   cruiseController.getTurnaroundOperations
 )
 
+router.get(
+  '/turnaround-operations/:id/audit-events',
+  cruiseController.getTurnaroundOperationAuditEvents
+)
 
 
 router.patch(
