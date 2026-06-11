@@ -12,15 +12,37 @@ function getScopedDemoUserId(req) {
   return attachedDemoUserId || headerDemoUserId || queryDemoUserId || ''
 }
 
+function buildProductionPrincipal(req = {}) {
+  const userId = String(readHeader(req, 'X-Cruise-User-Id') || '').trim()
+  if (!userId) return null
+
+  const email = String(readHeader(req, 'X-Cruise-User-Email') || '').trim()
+  const displayName = String(readHeader(req, 'X-Cruise-User-Name') || '').trim()
+  const role = String(readHeader(req, 'X-Cruise-User-Role') || '').trim()
+  const tenantId = String(readHeader(req, 'X-Cruise-Tenant-Id') || '').trim()
+
+  return {
+    userId,
+    email: email || null,
+    displayName: displayName || email || userId,
+    role: role || null,
+    tenantId: tenantId || null,
+    identitySource: 'principal-header'
+  }
+}
+
 function buildRequestIdentity(req = {}) {
   const headerDemoUserId = String(readHeader(req, 'X-Cruise-Demo-User-Id') || '').trim()
   const queryDemoUserId = String(req?.query?.demoUserId || '').trim()
   const demoUserId = headerDemoUserId || queryDemoUserId || null
+  const principal = buildProductionPrincipal(req)
 
   return {
     demoUserId,
-    identitySource: headerDemoUserId ? 'header' : queryDemoUserId ? 'query' : 'anonymous',
-    isDemoIdentity: Boolean(demoUserId)
+    principal,
+    identitySource: principal ? 'principal-header' : headerDemoUserId ? 'header' : queryDemoUserId ? 'query' : 'anonymous',
+    isDemoIdentity: Boolean(demoUserId),
+    isAuthenticated: Boolean(principal || demoUserId)
   }
 }
 
@@ -31,6 +53,7 @@ function attachRequestIdentity(req, res, next) {
 
 module.exports = {
   attachRequestIdentity,
+  buildProductionPrincipal,
   buildRequestIdentity,
   getScopedDemoUserId
 }

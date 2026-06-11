@@ -70,8 +70,14 @@ test.describe('React default desktop and tablet replacement checks', () => {
       .first()
     await expect(norwegianFleetCard).toBeVisible()
 
-    await clickStableControl(norwegianFleetCard.getByTestId('react-delete-cruise-line-button'))
+    const fleetDeleteButton = norwegianFleetCard.getByTestId('react-delete-cruise-line-button')
+    await clickStableControl(fleetDeleteButton)
     const fleetDeleteConfirmation = page.getByTestId('react-fleet-delete-confirmation')
+
+    if (!(await fleetDeleteConfirmation.isVisible({ timeout: 2500 }).catch(() => false))) {
+      await fleetDeleteButton.evaluate(button => button.click())
+    }
+
     await expect(fleetDeleteConfirmation).toBeVisible({ timeout: 15000 })
     await expect(fleetDeleteConfirmation).toContainText('Delete Norwegian', { timeout: 15000 })
     await clickStableControl(page.getByTestId('react-fleet-delete-confirmation-cancel'))

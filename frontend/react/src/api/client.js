@@ -203,6 +203,10 @@ async function requestStaticFallback(path, options = {}) {
     return normalizeStaticTurnaroundOperations(seedData)
   }
 
+  if (requestPath === '/cruise/audit-events') {
+    return { auditEvents: [], filters: {}, staticFallback: true }
+  }
+
   if (requestPath === '/cruise') {
     return normalizeStaticCruiseLines(seedData)
   }
@@ -272,6 +276,20 @@ export async function getCustomers(options = {}) {
 export async function getBookings(options = {}) {
   const bookings = await requestJson('/cruise/bookings', options)
   return Array.isArray(bookings) ? bookings : []
+}
+
+
+export async function getPlatformAuditEvents(filters = {}, options = {}) {
+  const searchParams = new URLSearchParams()
+  for (const [key, value] of Object.entries(filters || {})) {
+    if (value !== undefined && value !== null && String(value).trim()) {
+      searchParams.set(key, String(value).trim())
+    }
+  }
+
+  const queryString = searchParams.toString()
+  const response = await requestJson(`/cruise/audit-events${queryString ? `?${queryString}` : ''}`, getScopedRequestOptions(options))
+  return Array.isArray(response?.auditEvents) ? response.auditEvents : []
 }
 
 export async function getTurnaroundOperations(options = {}) {

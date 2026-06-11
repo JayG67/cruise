@@ -18,15 +18,36 @@ const turnaroundStaffingTable = require('../models/turnaroundStaffing.model')
 const turnaroundTaskDependencyTable = require('../models/turnaroundTaskDependency.model')
 const turnaroundHandoffTable = require('../models/turnaroundHandoff.model')
 const db = require('../db')
-const { listAuditEventsForOperation, recordAuditEvent } = require('../services/auditEvent.service')
+const { listAuditEvents, listAuditEventsForOperation, recordAuditEvent } = require('../services/auditEvent.service')
+const {
+  getBookingAuditScope,
+  getSailingAuditScope,
+  getShipAuditScope,
+  recordPlatformAuditEvent
+} = require('../services/platformAudit.service')
 const {
   buildTurnaroundAuditContext,
   canAccessTurnaroundOperationForRequest,
   getTurnaroundOperationsForRequest,
   sendTurnaroundOperationForbidden
 } = require('../services/turnaroundScope.service')
+const { buildTurnaroundReleasePacket } = require('../services/turnaroundRelease.service')
+const { buildTurnaroundOperationalTimeline } = require('../services/turnaroundTimeline.service')
+const { buildTurnaroundOperationalMetrics } = require('../services/turnaroundMetrics.service')
+const { buildTurnaroundPlaybookTemplate } = require('../services/turnaroundPlaybook.service')
+const { requireAdminRequest } = require('../services/requestAuthorization.service')
 const { and, eq, inArray, like } = require('drizzle-orm')
 
+
+
+function buildAuditEventFilters(query = {}) {
+  const allowedFilters = ['entityType', 'entityId', 'actorUserId', 'cruiseLineId', 'shipId', 'sailingId', 'operationId', 'source']
+  return Object.fromEntries(
+    allowedFilters
+      .map(field => [field, String(query[field] || '').trim()])
+      .filter(([, value]) => value.length > 0)
+  )
+}
 
 async function recordTurnaroundAuditEvent(req, operation, event) {
   const context = await buildTurnaroundAuditContext(req, operation)
@@ -34,6 +55,11 @@ async function recordTurnaroundAuditEvent(req, operation, event) {
     ...context,
     ...event
   })
+}
+
+
+async function recordCruiseManagementAuditEvent(req, event) {
+  return recordPlatformAuditEvent(req, event)
 }
 
 
@@ -287,10 +313,19 @@ exports.insertCruiseLine = async (req, res, next) => {
       return res.status(400).json({ message: 'Cruise line with the same name already exists' })
     }
 
+    const cruiseLineValues = buildCruiseLinePayload({ name, country, website, brandFamily, brandTheme, marketPositioning })
     const insertedRows = await db
       .insert(cruiseLineTable)
-      .values(buildCruiseLinePayload({ name, country, website, brandFamily, brandTheme, marketPositioning }))
+      .values(cruiseLineValues)
       .returning({ id: cruiseLineTable.id })
+
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'CRUISE_LINE_CREATED',
+      entityType: 'CRUISE_LINE',
+      entityId: insertedRows[0].id,
+      cruiseLineId: insertedRows[0].id,
+      eventPayload: cruiseLineValues
+    })
 
     return res.status(201).json({
       message: 'Cruise line created successfully',
@@ -325,10 +360,20 @@ exports.insertShip = async (req, res, next) => {
       return res.status(400).json({ message: 'Invalid cruise line ID' })
     }
 
+    const shipValues = { name, currentPort, cruiseLineId }
     const insertedRows = await db
       .insert(shipTable)
-      .values({ name, currentPort, cruiseLineId })
+      .values(shipValues)
       .returning({ id: shipTable.id })
+
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'SHIP_CREATED',
+      entityType: 'SHIP',
+      entityId: insertedRows[0].id,
+      cruiseLineId,
+      shipId: insertedRows[0].id,
+      eventPayload: shipValues
+    })
 
     return res.status(201).json({
       message: 'Ship created successfully',
@@ -368,10 +413,19 @@ exports.updateCruiseLine = async (req, res, next) => {
       return res.status(400).json({ message: 'Cruise line with the same name already exists' })
     }
 
+    const cruiseLineUpdates = buildCruiseLinePayload({ name, country, website, brandFamily, brandTheme, marketPositioning })
     await db
       .update(cruiseLineTable)
-      .set(buildCruiseLinePayload({ name, country, website, brandFamily, brandTheme, marketPositioning }))
+      .set(cruiseLineUpdates)
       .where(eq(cruiseLineTable.id, id))
+
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'CRUISE_LINE_UPDATED',
+      entityType: 'CRUISE_LINE',
+      entityId: id,
+      cruiseLineId: id,
+      eventPayload: { previous: existingRows[0], updates: cruiseLineUpdates }
+    })
 
     return res.status(200).json({ message: 'Cruise line updated successfully' })
   } catch (err) {
@@ -418,10 +472,20 @@ exports.updateShip = async (req, res, next) => {
       return res.status(400).json({ message: 'Invalid cruise line ID' })
     }
 
+    const shipUpdates = { name, currentPort, cruiseLineId }
     await db
       .update(shipTable)
-      .set({ name, currentPort, cruiseLineId })
+      .set(shipUpdates)
       .where(eq(shipTable.id, id))
+
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'SHIP_UPDATED',
+      entityType: 'SHIP',
+      entityId: id,
+      cruiseLineId,
+      shipId: id,
+      eventPayload: { previous: existingShipRows[0], updates: shipUpdates }
+    })
 
     return res.status(200).json({ message: 'Ship updated successfully' })
   } catch (err) {
@@ -515,6 +579,16 @@ exports.deleteCruiseLine = async (req, res, next) => {
       .delete(cruiseLineTable)
       .where(eq(cruiseLineTable.id, id))
 
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'CRUISE_LINE_DELETED',
+      entityType: 'CRUISE_LINE',
+      entityId: id,
+      cruiseLineId: null,
+      shipId: null,
+      sailingId: null,
+      eventPayload: { deletedCruiseLine: existingRows[0], deletedShipIds: shipIds }
+    })
+
     return res.status(200).json({ message: 'Cruise line deleted successfully' })
   } catch (err) {
     next(err)
@@ -540,6 +614,16 @@ exports.deleteShip = async (req, res, next) => {
     }
 
     await deleteShipHierarchy(id)
+
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'SHIP_DELETED',
+      entityType: 'SHIP',
+      entityId: id,
+      cruiseLineId: existingRows[0].cruiseLineId || null,
+      shipId: null,
+      sailingId: null,
+      eventPayload: { deletedShip: existingRows[0] }
+    })
 
     return res.status(200).json({ message: 'Ship deleted successfully' })
   } catch (err) {
@@ -636,18 +720,29 @@ exports.insertSailing = async (req, res, next) => {
       return res.status(404).json({ message: 'Ship not found' })
     }
 
+    const sailingValues = {
+      shipId,
+      departureDate,
+      port: departurePort,
+      departurePort,
+      arrivalPort,
+      days,
+      isRepositioning: Boolean(isRepositioning)
+    }
     const insertedRows = await db
       .insert(sailingTable)
-      .values({
-        shipId,
-        departureDate,
-        port: departurePort,
-        departurePort,
-        arrivalPort,
-        days,
-        isRepositioning: Boolean(isRepositioning)
-      })
+      .values(sailingValues)
       .returning({ id: sailingTable.id })
+
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'SAILING_CREATED',
+      entityType: 'SAILING',
+      entityId: insertedRows[0].id,
+      cruiseLineId: existingShip.cruiseLineId || null,
+      shipId,
+      sailingId: insertedRows[0].id,
+      eventPayload: sailingValues
+    })
 
     return res.status(201).json({ message: 'Sailing created successfully', id: insertedRows[0].id })
   } catch (err) {
@@ -666,17 +761,27 @@ exports.updateSailing = async (req, res, next) => {
       return res.status(404).json({ message: 'Sailing not found' })
     }
 
+    const sailingUpdates = {
+      departureDate,
+      port: departurePort,
+      departurePort,
+      arrivalPort,
+      days,
+      isRepositioning: Boolean(isRepositioning)
+    }
     await db
       .update(sailingTable)
-      .set({
-        departureDate,
-        port: departurePort,
-        departurePort,
-        arrivalPort,
-        days,
-        isRepositioning: Boolean(isRepositioning)
-      })
+      .set(sailingUpdates)
       .where(eq(sailingTable.id, id))
+
+    const sailingScope = await getSailingAuditScope(existingSailing)
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'SAILING_UPDATED',
+      entityType: 'SAILING',
+      entityId: id,
+      ...sailingScope,
+      eventPayload: { previous: existingSailing, updates: sailingUpdates }
+    })
 
     return res.status(200).json({ message: 'Sailing updated successfully' })
   } catch (err) {
@@ -697,6 +802,16 @@ exports.deleteSailing = async (req, res, next) => {
     await deleteItineraryForSailingIds([id])
 
     await db.delete(sailingTable).where(eq(sailingTable.id, id))
+
+    const sailingScope = await getSailingAuditScope(existingSailing)
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'SAILING_DELETED',
+      entityType: 'SAILING',
+      entityId: id,
+      ...sailingScope,
+      sailingId: null,
+      eventPayload: { deletedSailing: existingSailing }
+    })
 
     return res.status(200).json({ message: 'Sailing deleted successfully' })
   } catch (err) {
@@ -1275,6 +1390,53 @@ async function getTurnaroundOperationDetails(operation) {
     taskName: taskNameById.get(dependency.taskId) || 'Unknown task',
     dependsOnTaskName: taskNameById.get(dependency.dependsOnTaskId) || 'Unknown prerequisite'
   }))
+  const auditEvents = await listAuditEventsForOperation(operation.id, { limit: 8 })
+  const releasePacket = buildTurnaroundReleasePacket({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    auditEvents
+  })
+  const operationalTimeline = buildTurnaroundOperationalTimeline({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    auditEvents
+  })
+  const passengerCount = await getPassengerCountForSailing(operation.sailingId)
+  const operationalMetrics = buildTurnaroundOperationalMetrics({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    auditEvents,
+    operationalTimeline,
+    releasePacket,
+    passengerCount
+  })
+  const playbookTemplate = buildTurnaroundPlaybookTemplate({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    releasePacket,
+    operationalMetrics,
+    passengerCount
+  })
 
   return {
     ...operation,
@@ -1295,13 +1457,36 @@ async function getTurnaroundOperationDetails(operation) {
     sailing,
     ship,
     cruiseLine,
-    passengerCount: await getPassengerCountForSailing(operation.sailingId),
+    passengerCount,
     taskSummary: getTurnaroundProgress(sortedTasks),
-    auditEvents: await listAuditEventsForOperation(operation.id, { limit: 8 }),
+    releasePacket,
+    operationalTimeline,
+    operationalMetrics,
+    playbookTemplate,
+    auditEvents,
     tasks: sortedTasks
   }
 }
 
+
+
+exports.getPlatformAuditEvents = async (req, res, next) => {
+  try {
+    if (!(await requireAdminRequest(req, res))) return
+
+    const auditEvents = await listAuditEvents(buildAuditEventFilters(req.query), {
+      limit: req.query.limit || 50
+    })
+
+    return res.status(200).json({
+      auditEvents,
+      filters: buildAuditEventFilters(req.query),
+      limit: auditEvents.length
+    })
+  } catch (error) {
+    return next(error)
+  }
+}
 
 exports.getTurnaroundOperations = async (req, res, next) => {
   try {
@@ -2243,9 +2428,17 @@ exports.insertCustomer = async (req, res, next) => {
       return res.status(400).json({ message: 'Customer with the same email already exists' })
     }
 
+    const customerValues = { id, firstName, lastName, email, phone, loyaltyNumber }
     await db
       .insert(customerTable)
-      .values({ id, firstName, lastName, email, phone, loyaltyNumber })
+      .values(customerValues)
+
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'CUSTOMER_CREATED',
+      entityType: 'CUSTOMER',
+      entityId: id,
+      eventPayload: customerValues
+    })
 
     return res.status(201).json({
       message: 'Customer created successfully',
@@ -2271,10 +2464,18 @@ exports.updateCustomer = async (req, res, next) => {
       return res.status(404).json({ message: 'Customer not found' })
     }
 
+    const customerUpdates = { firstName, lastName, email, phone, loyaltyNumber }
     await db
       .update(customerTable)
-      .set({ firstName, lastName, email, phone, loyaltyNumber })
+      .set(customerUpdates)
       .where(eq(customerTable.id, id))
+
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'CUSTOMER_UPDATED',
+      entityType: 'CUSTOMER',
+      entityId: id,
+      eventPayload: { previous: existingRows[0], updates: customerUpdates }
+    })
 
     return res.status(200).json({ message: 'Customer updated successfully' })
   } catch (err) {
@@ -2308,6 +2509,13 @@ exports.deleteCustomer = async (req, res, next) => {
     await db
       .delete(customerTable)
       .where(eq(customerTable.id, id))
+
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'CUSTOMER_DELETED',
+      entityType: 'CUSTOMER',
+      entityId: id,
+      eventPayload: { deletedCustomer: existingRows[0] }
+    })
 
     return res.status(200).json({ message: 'Customer deleted successfully' })
   } catch (err) {
@@ -2454,17 +2662,19 @@ exports.insertBooking = async (req, res, next) => {
       })
     }
 
+    const bookingValues = {
+      id,
+      sailingId,
+      bookingStatus,
+      cabinNumber,
+      fareCode,
+      embarkationPort,
+      debarkationPort,
+      createdByCustomerId
+    }
+
     await db.transaction(async tx => {
-      await tx.insert(bookingTable).values({
-        id,
-        sailingId,
-        bookingStatus,
-        cabinNumber,
-        fareCode,
-        embarkationPort,
-        debarkationPort,
-        createdByCustomerId
-      })
+      await tx.insert(bookingTable).values(bookingValues)
 
       for (const passenger of passengers) {
         await tx.insert(bookingPassengerTable).values({
@@ -2478,6 +2688,15 @@ exports.insertBooking = async (req, res, next) => {
           boardingGroup: passenger.boardingGroup
         })
       }
+    })
+
+    const bookingScope = await getSailingAuditScope(sailingRows[0])
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'BOOKING_CREATED',
+      entityType: 'BOOKING',
+      entityId: id,
+      ...bookingScope,
+      eventPayload: { booking: bookingValues, passengerCount: passengers.length }
     })
 
     return res.status(201).json({
@@ -2559,18 +2778,20 @@ exports.updateBooking = async (req, res, next) => {
       })
     }
 
+    const bookingUpdates = {
+      sailingId,
+      bookingStatus,
+      cabinNumber,
+      fareCode,
+      embarkationPort,
+      debarkationPort,
+      createdByCustomerId
+    }
+
     await db.transaction(async tx => {
       await tx
         .update(bookingTable)
-        .set({
-          sailingId,
-          bookingStatus,
-          cabinNumber,
-          fareCode,
-          embarkationPort,
-          debarkationPort,
-          createdByCustomerId
-        })
+        .set(bookingUpdates)
         .where(eq(bookingTable.id, id))
 
       await tx
@@ -2589,6 +2810,15 @@ exports.updateBooking = async (req, res, next) => {
           boardingGroup: passenger.boardingGroup
         })
       }
+    })
+
+    const bookingScope = await getSailingAuditScope(sailingRows[0])
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'BOOKING_UPDATED',
+      entityType: 'BOOKING',
+      entityId: id,
+      ...bookingScope,
+      eventPayload: { previous: existingRows[0], updates: bookingUpdates, passengerCount: passengers.length }
     })
 
     return res.status(200).json({ message: 'Booking updated successfully' })
@@ -2707,6 +2937,15 @@ exports.deleteBooking = async (req, res, next) => {
       .delete(bookingTable)
       .where(eq(bookingTable.id, id))
 
+    const bookingScope = await getBookingAuditScope(existingRows[0])
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'BOOKING_DELETED',
+      entityType: 'BOOKING',
+      entityId: id,
+      ...bookingScope,
+      eventPayload: { deletedBooking: existingRows[0] }
+    })
+
     return res.status(200).json({ message: 'Booking deleted successfully' })
   } catch (err) {
     next(err)
@@ -2778,7 +3017,7 @@ exports.addBookingPassenger = async (req, res, next) => {
       })
     }
 
-    await db.insert(bookingPassengerTable).values({
+    const passengerValues = {
       id: `${bookingId}-${customerId}`,
       bookingId,
       customerId,
@@ -2787,6 +3026,16 @@ exports.addBookingPassenger = async (req, res, next) => {
       diningPreference,
       accessibilityNotes,
       boardingGroup
+    }
+    await db.insert(bookingPassengerTable).values(passengerValues)
+
+    const bookingScope = await getBookingAuditScope(bookingRows[0])
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'BOOKING_PASSENGER_ADDED',
+      entityType: 'BOOKING_PASSENGER',
+      entityId: `${bookingId}-${customerId}`,
+      ...bookingScope,
+      eventPayload: passengerValues
     })
 
     return res.status(201).json({ message: 'Booking passenger added successfully' })
@@ -2809,9 +3058,24 @@ exports.deleteBookingPassenger = async (req, res, next) => {
       return res.status(404).json({ message: 'Booking passenger not found' })
     }
 
+    const bookingRows = await db
+      .select()
+      .from(bookingTable)
+      .where(eq(bookingTable.id, bookingId))
+      .limit(1)
+
     await db
       .delete(bookingPassengerTable)
       .where(eq(bookingPassengerTable.id, `${bookingId}-${customerId}`))
+
+    const bookingScope = await getBookingAuditScope(bookingRows[0])
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'BOOKING_PASSENGER_REMOVED',
+      entityType: 'BOOKING_PASSENGER',
+      entityId: `${bookingId}-${customerId}`,
+      ...bookingScope,
+      eventPayload: { deletedPassenger: passengerRows[0] }
+    })
 
     return res.status(200).json({ message: 'Booking passenger deleted successfully' })
   } catch (err) {

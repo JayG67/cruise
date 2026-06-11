@@ -299,7 +299,7 @@ export default function App() {
             <ReactCruiseLineCreateWorkflow onCreated={reloadFleet} />
 
             <section id="react-quality" className="react-quality-section" aria-label="Quality validation console">
-              <ReactSqaConsole onRefreshData={() => Promise.all([reload(), reloadFleet()])} />
+              <ReactSqaConsole selectedDemoUser={selectedDemoUser} onRefreshData={() => Promise.all([reload(), reloadFleet()])} />
             </section>
           </>
         ) : (

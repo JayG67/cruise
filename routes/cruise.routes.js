@@ -44,6 +44,11 @@ router.get(
 
 
 router.get(
+  '/audit-events',
+  cruiseController.getPlatformAuditEvents
+)
+
+router.get(
   '/turnaround-operations',
   cruiseController.getTurnaroundOperations
 )

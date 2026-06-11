@@ -49,6 +49,19 @@ function getOperationalApproverDisplay(row = {}) {
   return row.approverDisplayName || row.approverName || 'Approver pending'
 }
 
+
+function getReleasePacketStatusLabel(status = '') {
+  if (String(status).toUpperCase() === 'READY') return 'Ready for release'
+  if (String(status).toUpperCase() === 'NOT_READY') return 'Hold release'
+  return 'Release review'
+}
+
+function getReleaseChecklistStatusLabel(status = '') {
+  if (String(status).toUpperCase() === 'PASS') return 'Pass'
+  if (String(status).toUpperCase() === 'WATCH') return 'Watch'
+  return 'Action required'
+}
+
 function buildPassengerProfileDraft(selectedCustomer, selectedDemoUser, visibleBookings) {
   const preferences = getSelectedPassengerPreferences(selectedCustomer, visibleBookings)
 
@@ -564,6 +577,40 @@ function formatAuditEventPayload(event = {}) {
   if (changedFields.length === 0) return ''
 
   return `Changed ${changedFields.slice(0, 4).join(', ')}${changedFields.length > 4 ? '…' : ''}`
+}
+
+function formatOperationalTimelineSource(source = '') {
+  return String(source || '')
+    .toLowerCase()
+    .split('_')
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ') || 'Operation'
+}
+
+function formatOperationalTimelineTime(item = {}) {
+  if (item.dueTime) return `Due ${item.dueTime}`
+  if (!item.occurredAt) return 'Time pending'
+  const date = new Date(item.occurredAt)
+  if (Number.isNaN(date.getTime())) return String(item.occurredAt)
+  return date.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+}
+
+
+function getOperationalMetricTone(status = '') {
+  const normalized = String(status || '').toUpperCase()
+  if (normalized === 'ACTION') return 'action'
+  if (normalized === 'WATCH') return 'watch'
+  return 'pass'
+}
+
+function getOperationalTimelineTone(item = {}) {
+  const severity = String(item.severity || '').toLowerCase()
+  const status = String(item.status || '').toLowerCase()
+  if (['critical', 'blocked'].includes(severity) || status === 'blocked') return 'critical'
+  if (['action', 'watch'].includes(severity) || ['pending', 'open', 'gap', 'active'].includes(status)) return 'action'
+  if (severity === 'success' || ['complete', 'approved', 'cleared', 'covered', 'resolved'].includes(status)) return 'success'
+  return 'info'
 }
 
 
@@ -1343,6 +1390,177 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
               </button>
             ))}
           </div>
+        </section>
+      )}
+
+      {selectedOperation?.releasePacket && (
+        <section className={`operations-release-packet ${String(selectedOperation.releasePacket.releaseStatus || '').toLowerCase()}`} aria-labelledby="operations-release-packet-heading" data-testid="react-operations-release-packet">
+          <div className="operations-release-packet-header">
+            <div>
+              <p className="eyebrow">Release packet</p>
+              <h4 id="operations-release-packet-heading">Final embarkation release readiness</h4>
+              <p>{selectedOperation.releasePacket.releaseRecommendation}</p>
+            </div>
+            <div className="operations-release-packet-score" aria-label={`Release packet score ${selectedOperation.releasePacket.readinessScore}%`}>
+              <span>{selectedOperation.releasePacket.readinessScore}%</span>
+              <small>{getReleasePacketStatusLabel(selectedOperation.releasePacket.releaseStatus)}</small>
+            </div>
+          </div>
+          <div className="operations-release-packet-grid" data-testid="react-operations-release-packet-checklist">
+            {(selectedOperation.releasePacket.checklist || []).map(item => (
+              <article className={`operations-release-packet-item ${String(item.status || '').toLowerCase()}`} key={item.id}>
+                <strong>{item.label}</strong>
+                <span>{getReleaseChecklistStatusLabel(item.status)} · {item.percent}%</span>
+              </article>
+            ))}
+          </div>
+          {selectedOperation.releasePacket.blockers?.length > 0 && (
+            <div className="operations-release-blockers" data-testid="react-operations-release-blockers">
+              <strong>Release blockers</strong>
+              <ul>
+                {selectedOperation.releasePacket.blockers.slice(0, 5).map((blocker, index) => (
+                  <li key={`${blocker.type}-${blocker.label}-${index}`}>
+                    <span>{blocker.type}</span>
+                    <em>{blocker.label}</em>
+                    <small>{blocker.detail}</small>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+      )}
+
+
+      {selectedOperation?.operationalMetrics && (
+        <section className="operations-metrics" aria-labelledby="operations-metrics-heading" data-testid="react-operations-metrics">
+          <div className="operations-metrics-header">
+            <div>
+              <p className="eyebrow">Operational analytics</p>
+              <h4 id="operations-metrics-heading">Turnaround performance signals</h4>
+              <p>Release confidence blends readiness, risk, staffing, dependencies, handoffs, escalations, and timeline activity into a command-center view.</p>
+            </div>
+            <div className="operations-metrics-confidence" aria-label={`Release confidence ${selectedOperation.operationalMetrics.summary?.releaseConfidence || 0}%`}>
+              <span>{selectedOperation.operationalMetrics.summary?.releaseConfidence || 0}%</span>
+              <small>Release confidence</small>
+            </div>
+          </div>
+          <div className="operations-metrics-signal-grid" data-testid="react-operations-metrics-signals">
+            {(selectedOperation.operationalMetrics.signals || []).map(signal => (
+              <article className={`operations-metrics-signal ${getOperationalMetricTone(signal.status)}`} key={signal.id}>
+                <span>{signal.label}</span>
+                <strong>{signal.value}</strong>
+                <em>{signal.detail}</em>
+              </article>
+            ))}
+          </div>
+          {selectedOperation.operationalMetrics.departmentMetrics?.length > 0 && (
+            <div className="operations-metrics-departments" data-testid="react-operations-metrics-departments">
+              <strong>Department risk ranking</strong>
+              <ol>
+                {selectedOperation.operationalMetrics.departmentMetrics.slice(0, 4).map(department => (
+                  <li key={department.departmentRole}>
+                    <span>{department.departmentRole}</span>
+                    <strong>{department.taskCompletionPercent}% tasks complete</strong>
+                    <em>Risk {department.riskScore} · {department.staffingGap} staffing gap · {department.openEscalationCount} open escalations</em>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+        </section>
+      )}
+
+
+      {selectedOperation?.playbookTemplate && (
+        <section className="operations-playbook" aria-labelledby="operations-playbook-heading" data-testid="react-operations-playbook-template">
+          <div className="operations-playbook-header">
+            <div>
+              <p className="eyebrow">Reusable playbook</p>
+              <h4 id="operations-playbook-heading">Turnaround template promotion plan</h4>
+              <p>{selectedOperation.playbookTemplate.templateName} can be reviewed as a repeatable operating playbook for similar ships, ports, and passenger loads.</p>
+            </div>
+            <div className="operations-playbook-score" aria-label={`Template readiness ${selectedOperation.playbookTemplate.summary?.templateReadinessScore || 0}%`}>
+              <span>{selectedOperation.playbookTemplate.summary?.templateReadinessScore || 0}%</span>
+              <small>{String(selectedOperation.playbookTemplate.summary?.templateReadinessStatus || 'REVIEW').replace(/_/g, ' ')}</small>
+            </div>
+          </div>
+          <div className="operations-playbook-grid" data-testid="react-operations-playbook-checks">
+            {(selectedOperation.playbookTemplate.checks || []).map(check => (
+              <article className={`operations-playbook-check ${String(check.status || '').toLowerCase()}`} key={check.id}>
+                <span>{check.label}</span>
+                <strong>{check.status}</strong>
+                <em>{check.detail}</em>
+              </article>
+            ))}
+          </div>
+          <div className="operations-playbook-details">
+            <div data-testid="react-operations-playbook-departments">
+              <strong>Department playbooks</strong>
+              <ul>
+                {(selectedOperation.playbookTemplate.departmentPlaybooks || []).slice(0, 5).map(department => (
+                  <li key={department.departmentRole}>
+                    <span>{department.departmentRole}</span>
+                    <em>{department.taskCount} tasks · {department.plannedStaff} planned staff · {department.recommendedCadence}</em>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div data-testid="react-operations-playbook-actions">
+              <strong>Next best actions</strong>
+              <ul>
+                {(selectedOperation.playbookTemplate.nextBestActions || []).slice(0, 3).map(action => (
+                  <li key={action}>{action}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+      )}
+
+
+      {selectedOperation?.operationalTimeline?.items?.length > 0 && (
+        <section className="operations-timeline" aria-labelledby="operations-timeline-heading" data-testid="react-operations-timeline">
+          <div className="operations-timeline-header">
+            <div>
+              <p className="eyebrow">Operations timeline</p>
+              <h4 id="operations-timeline-heading">Live turnaround event timeline</h4>
+              <p>One operational feed combines tasks, notes, staffing, signoffs, dependencies, handoffs, escalations, release readiness, and audit events.</p>
+            </div>
+            <dl className="operations-timeline-summary" aria-label="Turnaround timeline summary">
+              <div>
+                <dt>Total</dt>
+                <dd>{selectedOperation.operationalTimeline.summary?.totalEvents || selectedOperation.operationalTimeline.items.length}</dd>
+              </div>
+              <div>
+                <dt>Critical</dt>
+                <dd>{selectedOperation.operationalTimeline.summary?.criticalCount || 0}</dd>
+              </div>
+              <div>
+                <dt>Action</dt>
+                <dd>{selectedOperation.operationalTimeline.summary?.actionCount || 0}</dd>
+              </div>
+            </dl>
+          </div>
+          <ol className="operations-timeline-list" aria-label="Unified turnaround operational timeline">
+            {selectedOperation.operationalTimeline.items.slice(0, 10).map(item => (
+              <li className={`operations-timeline-item ${getOperationalTimelineTone(item)}`} key={item.id} data-testid="react-operations-timeline-item">
+                <span className="operations-timeline-marker" aria-hidden="true" />
+                <div className="operations-timeline-card">
+                  <div className="operations-timeline-card-heading">
+                    <strong>{item.title}</strong>
+                    <small>{formatOperationalTimelineSource(item.source)} · {item.status}</small>
+                  </div>
+                  <p>{item.detail || `${item.actorDisplayName || 'System actor'} moved this workstream forward.`}</p>
+                  <div className="operations-timeline-meta">
+                    <span>{item.actorDisplayName || 'System actor'}</span>
+                    {item.departmentRole && <span>{item.departmentRole}</span>}
+                    <span>{formatOperationalTimelineTime(item)}</span>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ol>
         </section>
       )}
 

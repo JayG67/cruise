@@ -6,6 +6,7 @@ const shipTable = require('../models/ship.model')
 const sailingTable = require('../models/sailing.model')
 const turnaroundOperationTable = require('../models/turnaroundOperation.model')
 const { getScopedDemoUserId } = require('../middleware/requestIdentity.middleware')
+const { resolveRequestActor } = require('./requestAuthorization.service')
 
 const TURNAROUND_OPERATION_FORBIDDEN_MESSAGE = 'Selected demo user is not assigned to this turnaround operation'
 const TURNAROUND_AUDIT_SOURCE = 'TURNAROUND_OPERATIONS_API'
@@ -140,12 +141,12 @@ async function getTurnaroundScopeForOperation(operation = {}) {
 }
 
 async function buildTurnaroundAuditContext(req, operation = {}) {
-  const demoUser = await resolveRequestDemoUser(req)
+  const actor = await resolveRequestActor(req)
   const scope = await getTurnaroundScopeForOperation(operation)
 
   return {
-    actorUserId: demoUser?.normalizedUserId || null,
-    actorDisplayName: demoUser?.displayName || null,
+    actorUserId: actor.actorUserId || null,
+    actorDisplayName: actor.actorDisplayName || null,
     ...scope,
     source: TURNAROUND_AUDIT_SOURCE
   }

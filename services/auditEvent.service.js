@@ -1,4 +1,4 @@
-const { desc, eq } = require('drizzle-orm')
+const { and, desc, eq } = require('drizzle-orm')
 
 const auditEventTable = require('../models/auditEvent.model')
 const db = require('../db')
@@ -89,17 +89,45 @@ function buildAuditEventValues({
 }
 
 
-async function listAuditEventsForOperation(operationId, { limit = 25 } = {}) {
-  if (!operationId) return []
+async function listAuditEvents(filters = {}, { limit = 25 } = {}) {
+  const conditions = []
 
-  const rows = await db
+  for (const [field, column] of Object.entries({
+    entityType: auditEventTable.entityType,
+    entityId: auditEventTable.entityId,
+    actorUserId: auditEventTable.actorUserId,
+    cruiseLineId: auditEventTable.cruiseLineId,
+    shipId: auditEventTable.shipId,
+    sailingId: auditEventTable.sailingId,
+    operationId: auditEventTable.operationId,
+    source: auditEventTable.source
+  })) {
+    if (filters[field]) {
+      conditions.push(eq(column, filters[field]))
+    }
+  }
+
+  let query = db
     .select()
     .from(auditEventTable)
-    .where(eq(auditEventTable.operationId, operationId))
+
+  if (conditions.length === 1) {
+    query = query.where(conditions[0])
+  } else if (conditions.length > 1) {
+    query = query.where(and(...conditions))
+  }
+
+  const rows = await query
     .orderBy(desc(auditEventTable.createdAt))
     .limit(normalizeAuditEventLimit(limit))
 
   return rows.map(mapAuditEvent)
+}
+
+async function listAuditEventsForOperation(operationId, { limit = 25 } = {}) {
+  if (!operationId) return []
+
+  return listAuditEvents({ operationId }, { limit })
 }
 
 async function recordAuditEvent(event) {
@@ -110,6 +138,7 @@ async function recordAuditEvent(event) {
 
 module.exports = {
   buildAuditEventValues,
+  listAuditEvents,
   listAuditEventsForOperation,
   mapAuditEvent,
   normalizeAuditEventLimit,

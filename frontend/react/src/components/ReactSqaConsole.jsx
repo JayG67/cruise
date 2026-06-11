@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 
 import ConfirmActionPanel from './ConfirmActionPanel.jsx'
-import { getBookings, getCruiseLines, getCustomers, getHealthStatus, getTurnaroundOperations, resetDemoData } from '../api/client.js'
+import { getBookings, getCruiseLines, getCustomers, getHealthStatus, getPlatformAuditEvents, getTurnaroundOperations, resetDemoData } from '../api/client.js'
 
 function formatResult(title, payload) {
   return `${title}\n\n${JSON.stringify(payload, null, 2)}`
@@ -45,7 +45,7 @@ function buildReadinessChecklist(result = {}) {
   ]
 }
 
-export default function ReactSqaConsole({ onRefreshData }) {
+export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
   const [output, setOutput] = useState('Test output will appear here...')
   const [lastRun, setLastRun] = useState('No manual run yet')
   const [isRunning, setIsRunning] = useState(false)
@@ -162,6 +162,27 @@ export default function ReactSqaConsole({ onRefreshData }) {
       }
     },
     {
+      key: 'audit-history',
+      testId: 'react-sqa-audit-history-button',
+      title: 'Audit History Review',
+      description: 'Verify immutable platform and turnaround audit history is queryable for production review.',
+      buttonLabel: 'Review Audit History',
+      run: async () => {
+        const [platformAuditEvents, turnaroundOperations] = await Promise.all([
+          getPlatformAuditEvents({ limit: 25 }, { selectedDemoUser }),
+          getTurnaroundOperations({ selectedDemoUser })
+        ])
+        const operationAuditCount = turnaroundOperations.reduce((count, operation) => count + (Array.isArray(operation.auditEvents) ? operation.auditEvents.length : 0), 0)
+        return {
+          passed: platformAuditEvents.length > 0 || operationAuditCount > 0,
+          platformAuditEventCount: platformAuditEvents.length,
+          operationAuditEventCount: operationAuditCount,
+          reviewedActor: selectedDemoUser?.displayName || selectedDemoUser?.name || 'Admin demo user',
+          note: 'A new environment may show zero platform audit events until mutations are performed; turnaround payloads should include recent operational audit events after workflow activity.'
+        }
+      }
+    },
+    {
       key: 'deployment',
       testId: 'react-sqa-deployment-button',
       title: 'Deployment Diagnostics',
@@ -202,7 +223,7 @@ export default function ReactSqaConsole({ onRefreshData }) {
         return result
       }
     }
-  ]), [])
+  ]), [selectedDemoUser])
 
   async function runValidation(action) {
     setIsRunning(true)

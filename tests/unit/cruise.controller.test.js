@@ -7,7 +7,16 @@ jest.mock('../../db', () => ({
 
 jest.mock('drizzle-orm', () => ({
   eq: jest.fn((field, value) => ({ field, value })),
-  inArray: jest.fn((field, values) => ({ field, values }))
+  inArray: jest.fn((field, values) => ({ field, values })),
+  like: jest.fn((field, value) => ({ field, value })),
+  and: jest.fn((...conditions) => ({ conditions }))
+}), { virtual: true })
+
+jest.mock('../../services/platformAudit.service', () => ({
+  getBookingAuditScope: jest.fn(),
+  getSailingAuditScope: jest.fn(),
+  getShipAuditScope: jest.fn(),
+  recordPlatformAuditEvent: jest.fn().mockResolvedValue(null)
 }))
 
 const cruiseController = require('../../controllers/cruise.controller')
