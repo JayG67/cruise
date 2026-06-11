@@ -150,20 +150,33 @@ function getStaticItineraryForSailing(seedData, sailingId) {
 }
 
 
-function buildScopedApiPath(path, options = {}) {
-  const scopedDemoUserId = options.demoUserId || options.selectedDemoUser?.id || ''
+function getScopedDemoUserId(options = {}) {
+  return options.demoUserId || options.selectedDemoUser?.id || ''
+}
+
+function buildScopedHeaders(options = {}) {
+  const scopedDemoUserId = getScopedDemoUserId(options)
 
   if (!scopedDemoUserId) {
-    return path
+    return options.headers || {}
   }
 
-  const separator = path.includes('?') ? '&' : '?'
-  return `${path}${separator}demoUserId=${encodeURIComponent(scopedDemoUserId)}`
+  return {
+    ...(options.headers || {}),
+    'X-Cruise-Demo-User-Id': scopedDemoUserId
+  }
+}
+
+function buildScopedApiPath(path) {
+  return path
 }
 
 function getScopedRequestOptions(options = {}) {
   const { demoUserId, selectedDemoUser, ...requestOptions } = options
-  return requestOptions
+  return {
+    ...requestOptions,
+    headers: buildScopedHeaders(options)
+  }
 }
 
 async function requestStaticFallback(path, options = {}) {
@@ -262,12 +275,7 @@ export async function getBookings(options = {}) {
 }
 
 export async function getTurnaroundOperations(options = {}) {
-  const { demoUserId, selectedDemoUser, ...requestOptions } = options
-  const scopedDemoUserId = demoUserId || selectedDemoUser?.id || ''
-  const path = scopedDemoUserId
-    ? `/cruise/turnaround-operations?demoUserId=${encodeURIComponent(scopedDemoUserId)}`
-    : '/cruise/turnaround-operations'
-  const operations = await requestJson(path, requestOptions)
+  const operations = await requestJson('/cruise/turnaround-operations', getScopedRequestOptions(options))
   return Array.isArray(operations) ? operations : []
 }
 
@@ -282,7 +290,7 @@ export async function updateTurnaroundOperationCommand(operationId, payload, opt
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
+      ...(getScopedRequestOptions(options).headers || {})
     },
     body: JSON.stringify(payload)
   })
@@ -322,7 +330,7 @@ export async function updateTurnaroundTaskDetails(taskId, payload, options = {})
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
+      ...(getScopedRequestOptions(options).headers || {})
     },
     body: JSON.stringify(payload)
   })
@@ -339,7 +347,7 @@ export async function createTurnaroundTask(operationId, payload, options = {}) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
+      ...(getScopedRequestOptions(options).headers || {})
     },
     body: JSON.stringify(payload)
   })
@@ -355,7 +363,7 @@ export async function createTurnaroundTaskUpdate(taskId, payload, options = {}) 
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
+      ...(getScopedRequestOptions(options).headers || {})
     },
     body: JSON.stringify(payload)
   })
@@ -384,7 +392,7 @@ export async function createTurnaroundEscalation(operationId, payload, options =
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
+      ...(getScopedRequestOptions(options).headers || {})
     },
     body: JSON.stringify(payload)
   })
@@ -400,7 +408,7 @@ export async function updateTurnaroundEscalation(escalationId, payload, options 
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
+      ...(getScopedRequestOptions(options).headers || {})
     },
     body: JSON.stringify(payload)
   })
@@ -417,7 +425,7 @@ export async function updateTurnaroundHandoff(handoffId, payload, options = {}) 
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
+      ...(getScopedRequestOptions(options).headers || {})
     },
     body: JSON.stringify(payload)
   })
@@ -437,7 +445,7 @@ export async function updateTurnaroundStaffing(operationId, departmentRole, payl
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
+      ...(getScopedRequestOptions(options).headers || {})
     },
     body: JSON.stringify(payload)
   })
@@ -457,7 +465,7 @@ export async function updateTurnaroundSignoff(operationId, departmentRole, paylo
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
+      ...(getScopedRequestOptions(options).headers || {})
     },
     body: JSON.stringify(payload)
   })

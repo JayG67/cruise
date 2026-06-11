@@ -345,14 +345,14 @@ describe('Production data architecture hardening guardrails', () => {
     const client = read('frontend/react/src/api/client.js')
 
     expect(controller).toContain('async function getTurnaroundOperationsForRequest(req)')
-    expect(controller).toContain('const demoUserId = req.query?.demoUserId')
+    expect(controller).toContain('const demoUserId = getScopedDemoUserId(req)')
     expect(controller).toContain('getSailingIdsForOperationalAssignment')
     expect(controller).toContain('where(inArray(turnaroundOperationTable.sailingId, scopedSailingIds))')
     expect(app).toContain('selectedDemoUser: effectiveSelectedDemoUser')
     expect(hook).toContain('selectedDemoUser = null')
     expect(hook).toContain('getTurnaroundOperations({ signal: controller.signal, selectedDemoUser })')
     expect(hook).toContain('[selectedDemoUser?.id]')
-    expect(client).toContain('demoUserId=${encodeURIComponent(scopedDemoUserId)}')
+    expect(client).toContain("'X-Cruise-Demo-User-Id': scopedDemoUserId")
     expect(client).toContain('const requestPath = path.split')
   })
 
@@ -368,8 +368,9 @@ describe('Production data architecture hardening guardrails', () => {
     expect(controller).toContain('return scopedSailingIds.includes(operation.sailingId)')
     expect(controller).toContain('canAccessTurnaroundOperationForRequest(req, operation)')
 
-    expect(client).toContain('function buildScopedApiPath(path, options = {})')
+    expect(client).toContain('function buildScopedApiPath(path)')
     expect(client).toContain('function getScopedRequestOptions(options = {})')
+    expect(client).toContain('function buildScopedHeaders(options = {})')
     expect(client).toContain('buildScopedApiPath(`/cruise/turnaround-operations/${encodeURIComponent(operationId)}`, options)')
     expect(client).toContain('buildScopedApiPath(`/cruise/turnaround-tasks/${encodeURIComponent(taskId)}/status`, options)')
     expect(client).toContain('buildScopedApiPath(`/cruise/turnaround-handoffs/${encodeURIComponent(handoffId)}`, options)')
@@ -378,6 +379,26 @@ describe('Production data architecture hardening guardrails', () => {
     expect(hook).toContain('updateTurnaroundOperationCommand(operationId, payload, mutationScope)')
     expect(hook).toContain('updateTurnaroundTaskStatus(taskId, status, { ...options, ...mutationScope })')
     expect(hook).toContain('deleteTurnaroundTask(taskId, mutationScope)')
+  })
+
+
+  it('abstracts demo identity away from turnaround query strings before real auth is added', () => {
+    const app = read('app.js')
+    const middleware = read('middleware/requestIdentity.middleware.js')
+    const controller = read('controllers/cruise.controller.js')
+    const client = read('frontend/react/src/api/client.js')
+
+    expect(app).toContain("const { attachRequestIdentity } = require('./middleware/requestIdentity.middleware')")
+    expect(app).toContain('app.use(attachRequestIdentity)')
+    expect(middleware).toContain("'X-Cruise-Demo-User-Id'")
+    expect(middleware).toContain('function buildRequestIdentity(req = {})')
+    expect(middleware).toContain('function getScopedDemoUserId(req)')
+    expect(middleware).toContain("identitySource: headerDemoUserId ? 'header' : queryDemoUserId ? 'query' : 'anonymous'")
+    expect(controller).toContain("const { getScopedDemoUserId } = require('../middleware/requestIdentity.middleware')")
+    expect(controller).toContain('const demoUserId = getScopedDemoUserId(req)')
+    expect(client).toContain('function buildScopedHeaders(options = {})')
+    expect(client).toContain("'X-Cruise-Demo-User-Id': scopedDemoUserId")
+    expect(client).toContain("requestJson('/cruise/turnaround-operations', getScopedRequestOptions(options))")
   })
 
 
@@ -427,6 +448,44 @@ describe('Production data architecture hardening guardrails', () => {
     expect(hardeningPlan).toContain('Audit Event Bridge')
     expect(hardeningPlan).toContain('audit_events')
     expect(hardeningPlan).toContain('append-only')
+  })
+
+  it('wires turnaround mutation endpoints to production audit events', () => {
+    const controller = read('controllers/cruise.controller.js')
+
+    expect(controller).toContain("const { recordAuditEvent } = require('../services/auditEvent.service')")
+    expect(controller).toContain('async function buildTurnaroundAuditContext(req, operation = {})')
+    expect(controller).toContain('async function recordTurnaroundAuditEvent(req, operation, event)')
+    expect(controller).toContain("source: 'TURNAROUND_OPERATIONS_API'")
+    expect(controller).toContain('actorUserId: demoUser?.normalizedUserId || null')
+    expect(controller).toContain('context.cruiseLineId = ship.cruiseLineId || null')
+
+    for (const eventType of [
+      'TURNAROUND_COMMAND_UPDATED',
+      'TURNAROUND_TASK_STATUS_UPDATED',
+      'TURNAROUND_TASK_DETAILS_UPDATED',
+      'TURNAROUND_TASK_CREATED',
+      'TURNAROUND_TASK_UPDATE_CREATED',
+      'TURNAROUND_TASK_DELETED',
+      'TURNAROUND_STAFFING_UPDATED',
+      'TURNAROUND_SIGNOFF_UPDATED',
+      'TURNAROUND_ESCALATION_CREATED',
+      'TURNAROUND_ESCALATION_UPDATED',
+      'TURNAROUND_HANDOFF_UPDATED'
+    ]) {
+      expect(controller).toContain(`eventType: '${eventType}'`)
+    }
+
+    for (const entityType of [
+      'TURNAROUND_OPERATION',
+      'TURNAROUND_TASK',
+      'TURNAROUND_STAFFING',
+      'TURNAROUND_SIGNOFF',
+      'TURNAROUND_ESCALATION',
+      'TURNAROUND_HANDOFF'
+    ]) {
+      expect(controller).toContain(`entityType: '${entityType}'`)
+    }
   })
 
   it('documents the remaining production-scale data architecture roadmap', () => {

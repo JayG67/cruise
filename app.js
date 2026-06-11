@@ -8,6 +8,7 @@ const compression = require('compression')
 const cruiseRouter = require('./routes/cruise.routes')
 const adminRouter = require('./routes/admin.routes')
 const { serverLogger } = require('./middleware/loggers')
+const { attachRequestIdentity } = require('./middleware/requestIdentity.middleware')
 
 const app = express()
 
@@ -123,6 +124,7 @@ app.get('/', sendReactApp)
 
 app.use(express.json())
 app.use(serverLogger)
+app.use(attachRequestIdentity)
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' })

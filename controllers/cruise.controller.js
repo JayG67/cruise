@@ -18,9 +18,88 @@ const turnaroundStaffingTable = require('../models/turnaroundStaffing.model')
 const turnaroundTaskDependencyTable = require('../models/turnaroundTaskDependency.model')
 const turnaroundHandoffTable = require('../models/turnaroundHandoff.model')
 const db = require('../db')
+const { recordAuditEvent } = require('../services/auditEvent.service')
+const { getScopedDemoUserId } = require('../middleware/requestIdentity.middleware')
 const { and, eq, inArray, like } = require('drizzle-orm')
 
 
+
+
+async function resolveAuditActorForRequest(req) {
+  const demoUserId = getScopedDemoUserId(req)
+  if (!demoUserId) {
+    return { actorUserId: null, actorDisplayName: null }
+  }
+
+  const demoUserRows = await db
+    .select()
+    .from(demoUserTable)
+    .where(eq(demoUserTable.id, demoUserId))
+    .limit(1)
+
+  const demoUser = demoUserRows[0]
+
+  return {
+    actorUserId: demoUser?.normalizedUserId || null,
+    actorDisplayName: demoUser?.displayName || null
+  }
+}
+
+async function buildTurnaroundAuditContext(req, operation = {}) {
+  const actor = await resolveAuditActorForRequest(req)
+  const context = {
+    ...actor,
+    cruiseLineId: null,
+    shipId: null,
+    sailingId: operation?.sailingId || null,
+    operationId: operation?.id || null,
+    source: 'TURNAROUND_OPERATIONS_API'
+  }
+
+  if (!operation?.sailingId) {
+    return context
+  }
+
+  const sailingRows = await db
+    .select()
+    .from(sailingTable)
+    .where(eq(sailingTable.id, operation.sailingId))
+    .limit(1)
+
+  const sailing = sailingRows[0]
+  if (!sailing) {
+    return context
+  }
+
+  context.sailingId = sailing.id
+  context.shipId = sailing.shipId || null
+
+  if (!sailing.shipId) {
+    return context
+  }
+
+  const shipRows = await db
+    .select()
+    .from(shipTable)
+    .where(eq(shipTable.id, sailing.shipId))
+    .limit(1)
+
+  const ship = shipRows[0]
+  if (ship) {
+    context.shipId = ship.id
+    context.cruiseLineId = ship.cruiseLineId || null
+  }
+
+  return context
+}
+
+async function recordTurnaroundAuditEvent(req, operation, event) {
+  const context = await buildTurnaroundAuditContext(req, operation)
+  return recordAuditEvent({
+    ...context,
+    ...event
+  })
+}
 
 async function getAssignedShipForOperation(operation = {}) {
   if (!operation?.sailingId) return null
@@ -1329,7 +1408,7 @@ async function getSailingIdsForOperationalAssignment(demoUser) {
 
 
 async function canAccessTurnaroundOperationForRequest(req, operation) {
-  const demoUserId = req.query?.demoUserId
+  const demoUserId = getScopedDemoUserId(req)
 
   if (!demoUserId) return true
   if (!operation) return false
@@ -1356,7 +1435,7 @@ function sendTurnaroundOperationForbidden(res) {
 }
 
 async function getTurnaroundOperationsForRequest(req) {
-  const demoUserId = req.query?.demoUserId
+  const demoUserId = getScopedDemoUserId(req)
 
   if (!demoUserId) {
     return db.select().from(turnaroundOperationTable)
@@ -1445,6 +1524,21 @@ exports.updateTurnaroundOperationCommand = async (req, res, next) => {
       .set(operationUpdates)
       .where(eq(turnaroundOperationTable.id, id))
 
+    await recordTurnaroundAuditEvent(req, operation, {
+      eventType: 'TURNAROUND_COMMAND_UPDATED',
+      entityType: 'TURNAROUND_OPERATION',
+      entityId: id,
+      eventPayload: {
+        previous: {
+          status: operation.status,
+          readinessLevel: operation.readinessLevel,
+          port: operation.port,
+          notes: operation.notes
+        },
+        updates: operationUpdates
+      }
+    })
+
     const refreshedOperationRows = await db
       .select()
       .from(turnaroundOperationTable)
@@ -1495,6 +1589,13 @@ exports.createTurnaroundEscalation = async (req, res, next) => {
         resolutionNotes: resolutionNotes || null,
         createdAt: new Date().toISOString()
       })
+
+    await recordTurnaroundAuditEvent(req, operation, {
+      eventType: 'TURNAROUND_ESCALATION_CREATED',
+      entityType: 'TURNAROUND_ESCALATION',
+      entityId: id,
+      eventPayload: { departmentRole, severity, title, ownerName: ownerName || null, status, resolutionNotes: resolutionNotes || null }
+    })
 
     return res.status(201).json({
       message: 'Turnaround escalation created successfully',
@@ -1553,6 +1654,13 @@ exports.updateTurnaroundEscalation = async (req, res, next) => {
       .update(turnaroundEscalationTable)
       .set(escalationUpdates)
       .where(eq(turnaroundEscalationTable.id, id))
+
+    await recordTurnaroundAuditEvent(req, operation, {
+      eventType: 'TURNAROUND_ESCALATION_UPDATED',
+      entityType: 'TURNAROUND_ESCALATION',
+      entityId: id,
+      eventPayload: { previous: escalation, updates: escalationUpdates }
+    })
 
     return res.status(200).json({
       message: 'Turnaround escalation updated successfully',
@@ -1617,6 +1725,13 @@ exports.updateTurnaroundStaffing = async (req, res, next) => {
         })
     }
 
+    await recordTurnaroundAuditEvent(req, operation, {
+      eventType: 'TURNAROUND_STAFFING_UPDATED',
+      entityType: 'TURNAROUND_STAFFING',
+      entityId: existingStaffing[0]?.id || `${id}:${departmentRole}`,
+      eventPayload: { departmentRole, previous: existingStaffing[0] || null, updates: staffingValues }
+    })
+
     return res.status(200).json({
       message: 'Turnaround staffing plan updated successfully',
       operation: await getTurnaroundOperationDetails(operation)
@@ -1679,6 +1794,13 @@ exports.updateTurnaroundSignoff = async (req, res, next) => {
         })
     }
 
+    await recordTurnaroundAuditEvent(req, operation, {
+      eventType: 'TURNAROUND_SIGNOFF_UPDATED',
+      entityType: 'TURNAROUND_SIGNOFF',
+      entityId: existingSignoffs[0]?.id || `${id}:${departmentRole}`,
+      eventPayload: { departmentRole, previous: existingSignoffs[0] || null, updates: signoffValues }
+    })
+
     return res.status(200).json({
       message: 'Turnaround readiness signoff updated successfully',
       operation: await getTurnaroundOperationDetails(operation)
@@ -1730,6 +1852,15 @@ exports.updateTurnaroundTaskStatus = async (req, res, next) => {
       .set(nextTaskValues)
       .where(eq(turnaroundTaskTable.id, id))
 
+    if (operation) {
+      await recordTurnaroundAuditEvent(req, operation, {
+        eventType: 'TURNAROUND_TASK_STATUS_UPDATED',
+        entityType: 'TURNAROUND_TASK',
+        entityId: id,
+        eventPayload: { previous: { status: existingTask.status, blockerReason: existingTask.blockerReason }, updates: nextTaskValues }
+      })
+    }
+
     if (!operation) {
       return res.status(200).json({ message: 'Turnaround task status updated successfully' })
     }
@@ -1773,20 +1904,29 @@ exports.createTurnaroundTask = async (req, res, next) => {
 
     const nextSortOrder = existingTasks.reduce((maxSortOrder, task) => Math.max(maxSortOrder, Number(task.sortOrder || 0)), 0) + 1
 
+    const taskValues = {
+      operationId: id,
+      departmentRole,
+      taskName,
+      ownerName: ownerName || null,
+      ownerUserId: await resolveOperationalUserIdByName(ownerName, operation),
+      dueTime: dueTime || null,
+      location: location || null,
+      blockerReason: blockerReason || null,
+      status,
+      sortOrder: nextSortOrder
+    }
+
     await db
       .insert(turnaroundTaskTable)
-      .values({
-        operationId: id,
-        departmentRole,
-        taskName,
-        ownerName: ownerName || null,
-        ownerUserId: await resolveOperationalUserIdByName(ownerName, operation),
-        dueTime: dueTime || null,
-        location: location || null,
-        blockerReason: blockerReason || null,
-        status,
-        sortOrder: nextSortOrder
-      })
+      .values(taskValues)
+
+    await recordTurnaroundAuditEvent(req, operation, {
+      eventType: 'TURNAROUND_TASK_CREATED',
+      entityType: 'TURNAROUND_TASK',
+      entityId: `${id}:${nextSortOrder}`,
+      eventPayload: taskValues
+    })
 
     return res.status(201).json({
       message: 'Turnaround task created successfully',
@@ -1826,16 +1966,27 @@ exports.createTurnaroundTaskUpdate = async (req, res, next) => {
       return sendTurnaroundOperationForbidden(res)
     }
 
+    const taskUpdateValues = {
+      taskId: id,
+      authorName,
+      authorUserId: await resolveOperationalUserIdByName(authorName, operation),
+      updateType,
+      message,
+      createdAt: new Date().toISOString()
+    }
+
     await db
       .insert(turnaroundTaskUpdateTable)
-      .values({
-        taskId: id,
-        authorName,
-        authorUserId: await resolveOperationalUserIdByName(authorName, operation),
-        updateType,
-        message,
-        createdAt: new Date().toISOString()
+      .values(taskUpdateValues)
+
+    if (operation) {
+      await recordTurnaroundAuditEvent(req, operation, {
+        eventType: 'TURNAROUND_TASK_UPDATE_CREATED',
+        entityType: 'TURNAROUND_TASK',
+        entityId: id,
+        eventPayload: taskUpdateValues
       })
+    }
 
     return res.status(201).json({
       message: 'Turnaround task update added successfully',
@@ -1891,6 +2042,15 @@ exports.deleteTurnaroundTask = async (req, res, next) => {
       .delete(turnaroundTaskTable)
       .where(eq(turnaroundTaskTable.id, id))
 
+    if (operation) {
+      await recordTurnaroundAuditEvent(req, operation, {
+        eventType: 'TURNAROUND_TASK_DELETED',
+        entityType: 'TURNAROUND_TASK',
+        entityId: id,
+        eventPayload: { deletedTask: existingTask }
+      })
+    }
+
     return res.status(200).json({
       message: 'Turnaround task removed successfully',
       operation: operation ? await getTurnaroundOperationDetails(operation) : undefined
@@ -1940,10 +2100,23 @@ exports.updateTurnaroundTaskDetails = async (req, res, next) => {
       return sendTurnaroundOperationForbidden(res)
     }
 
+    if (Object.prototype.hasOwnProperty.call(req.body, 'ownerName')) {
+      taskUpdates.ownerUserId = await resolveOperationalUserIdByName(req.body.ownerName, operation)
+    }
+
     await db
       .update(turnaroundTaskTable)
       .set(taskUpdates)
       .where(eq(turnaroundTaskTable.id, id))
+
+    if (operation) {
+      await recordTurnaroundAuditEvent(req, operation, {
+        eventType: 'TURNAROUND_TASK_DETAILS_UPDATED',
+        entityType: 'TURNAROUND_TASK',
+        entityId: id,
+        eventPayload: { previous: existingTask, updates: taskUpdates }
+      })
+    }
 
     return res.status(200).json({
       message: 'Turnaround task details updated successfully',
@@ -2009,6 +2182,15 @@ exports.updateTurnaroundHandoff = async (req, res, next) => {
       .update(turnaroundHandoffTable)
       .set(handoffUpdates)
       .where(eq(turnaroundHandoffTable.id, id))
+
+    if (operation) {
+      await recordTurnaroundAuditEvent(req, operation, {
+        eventType: 'TURNAROUND_HANDOFF_UPDATED',
+        entityType: 'TURNAROUND_HANDOFF',
+        entityId: id,
+        eventPayload: { previous: handoff, updates: handoffUpdates }
+      })
+    }
 
     return res.status(200).json({
       message: 'Turnaround handoff updated successfully',

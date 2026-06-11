@@ -140,3 +140,42 @@ describe('Validation middleware', () => {
     )
   })
 })
+
+
+const { buildRequestIdentity, getScopedDemoUserId } = require('../../../middleware/requestIdentity.middleware')
+
+describe('Request identity middleware', () => {
+  it('prefers header-scoped demo identity over legacy query strings', () => {
+    const req = {
+      headers: {
+        'x-cruise-demo-user-id': 'turnaround-manager-harmony'
+      },
+      query: {
+        demoUserId: 'legacy-query-user'
+      }
+    }
+
+    expect(getScopedDemoUserId(req)).toBe('turnaround-manager-harmony')
+    expect(buildRequestIdentity(req)).toEqual({
+      demoUserId: 'turnaround-manager-harmony',
+      identitySource: 'header',
+      isDemoIdentity: true
+    })
+  })
+
+  it('keeps legacy demoUserId query support for compatibility', () => {
+    const req = {
+      headers: {},
+      query: {
+        demoUserId: 'legacy-query-user'
+      }
+    }
+
+    expect(getScopedDemoUserId(req)).toBe('legacy-query-user')
+    expect(buildRequestIdentity(req)).toEqual({
+      demoUserId: 'legacy-query-user',
+      identitySource: 'query',
+      isDemoIdentity: true
+    })
+  })
+})

@@ -23,7 +23,10 @@ Operational ownership now has a bridge from display names toward durable identit
 The tenant and assignment bridge records cruise-line and ship scope on users, roles, and demo users. A turnaround manager should not see every cruise line; each operational person should be constrained by tenant/cruise-line boundaries and assigned ship or sailing responsibility.
 
 ### Audit Event Bridge
-The audit event bridge introduces the `audit_events` table as the append-only traceability target for production workflows. Each event can carry the actor user, tenant cruise line, ship, sailing, turnaround operation, entity type, entity id, event type, payload, source, and creation timestamp so command, task, staffing, handoff, escalation, signoff, booking, and admin changes can become auditable without coupling the product UI to implementation history.
+The audit event bridge introduces the `audit_events` table as the append-only traceability target for production workflows. Turnaround command, task, staffing, handoff, escalation, and signoff mutation endpoints now write scoped audit events with actor, cruise-line, ship, sailing, operation, entity, event type, payload, source, and timestamp metadata. Booking and broader admin mutations remain on the roadmap for the next audit expansion.
+
+### Request Identity Bridge
+Turnaround scoping now flows through a request identity middleware instead of requiring controllers to know about raw query-string demo user parameters. The React client sends the selected demo identity in the `X-Cruise-Demo-User-Id` header, while the server still accepts the legacy `demoUserId` query parameter for compatibility. This keeps the current demo-user experience working while preparing the API boundary for real authenticated user context.
 
 ## Remaining production-scale roadmap
 
@@ -33,7 +36,7 @@ Normalize users, crew members, operational roles, and departments so every assig
 The platform should continue deepening tenant/cruise-line boundaries across every API read and write path. A production user should only see and mutate data within their cruise line, assigned ships, assigned sailings, and permitted operational roles.
 
 ### Audit and Event History
-The application should keep append-only audit/event history for operational changes. Command plan updates, task status changes, task detail edits, staffing updates, handoff updates, escalation changes, readiness signoffs, booking mutations, and administrative reset actions should be recorded as immutable event rows for compliance and operational traceability.
+The application now records append-only audit/event history for turnaround operational changes. The next audit expansion should cover booking mutations, customer mutations, cruise-line/ship/sailing/itinerary administration, and administrative reset actions so every production-impacting change has immutable event rows for compliance and operational traceability.
 
 ### Seed-JSON Exit Strategy
 The seed JSON should remain a demo/bootstrap source only. Production should move toward migration-owned reference data, database-owned operational data, and live-service integration. The bundled static fallback can remain a read-only portfolio safety net, but it should not become the production source of truth.
