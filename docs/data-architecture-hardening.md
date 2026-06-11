@@ -25,8 +25,14 @@ The tenant and assignment bridge records cruise-line and ship scope on users, ro
 ### Audit Event Bridge
 The audit event bridge introduces the `audit_events` table as the append-only traceability target for production workflows. Turnaround command, task, staffing, handoff, escalation, and signoff mutation endpoints now write scoped audit events with actor, cruise-line, ship, sailing, operation, entity, event type, payload, source, and timestamp metadata. Booking and broader admin mutations remain on the roadmap for the next audit expansion.
 
+### Audit History Review Bridge
+Turnaround operation responses now include a bounded recent audit trail, and the API exposes `GET /cruise/turnaround-operations/:id/audit-events` behind the same assignment-aware authorization gate as operational writes. This makes production traceability review visible without relying on direct database access while preserving tenant/ship/sailing scope.
+
 ### Request Identity Bridge
 Turnaround scoping now flows through a request identity middleware instead of requiring controllers to know about raw query-string demo user parameters. The React client sends the selected demo identity in the `X-Cruise-Demo-User-Id` header, while the server still accepts the legacy `demoUserId` query parameter for compatibility. This keeps the current demo-user experience working while preparing the API boundary for real authenticated user context.
+
+### Turnaround Scope Service
+Turnaround authorization, scoped reads, forbidden responses, actor lookup, sailing/ship/cruise-line scope resolution, and audit context construction now live behind a reusable `turnaroundScope.service.js` boundary. Controllers call this service instead of re-implementing selected-user and assignment logic inline, which makes the bridge easier to replace with real authenticated user authorization later.
 
 ## Remaining production-scale roadmap
 
@@ -36,13 +42,13 @@ Normalize users, crew members, operational roles, and departments so every assig
 The platform should continue deepening tenant/cruise-line boundaries across every API read and write path. A production user should only see and mutate data within their cruise line, assigned ships, assigned sailings, and permitted operational roles.
 
 ### Audit and Event History
-The application now records append-only audit/event history for turnaround operational changes. The next audit expansion should cover booking mutations, customer mutations, cruise-line/ship/sailing/itinerary administration, and administrative reset actions so every production-impacting change has immutable event rows for compliance and operational traceability.
+The application now records append-only audit/event history for turnaround operational changes and exposes scoped turnaround audit history for review. The next audit expansion should cover booking mutations, customer mutations, cruise-line/ship/sailing/itinerary administration, and administrative reset actions so every production-impacting change has immutable event rows for compliance and operational traceability.
 
 ### Seed-JSON Exit Strategy
 The seed JSON should remain a demo/bootstrap source only. Production should move toward migration-owned reference data, database-owned operational data, and live-service integration. The bundled static fallback can remain a read-only portfolio safety net, but it should not become the production source of truth.
 
 ### Production Identity and Authorization
-Future work should connect normalized users and roles to a real authentication provider. Server-side authorization should enforce admin, passenger, group leader, and operational lead permissions rather than relying only on UI visibility.
+Future work should connect normalized users and roles to a real authentication provider. Server-side authorization should enforce admin, passenger, group leader, and operational lead permissions rather than relying only on UI visibility. The turnaround scope service is now the seam where authenticated actor claims can replace demo-user headers without rewriting every turnaround endpoint.
 
 ### Operational Analytics
 Once ownership, timestamps, and events are fully normalized, the platform can produce historical readiness analytics, blocker trends, staffing gap analysis, handoff throughput, escalation resolution time, and fleet-level turnaround performance reporting.

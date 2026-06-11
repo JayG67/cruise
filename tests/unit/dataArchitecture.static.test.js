@@ -340,14 +340,16 @@ describe('Production data architecture hardening guardrails', () => {
 
   it('loads turnaround operations through the selected demo-user assignment scope', () => {
     const controller = read('controllers/cruise.controller.js')
+    const scopeService = read('services/turnaroundScope.service.js')
     const app = read('frontend/react/src/App.jsx')
     const hook = read('frontend/react/src/hooks/useTurnaroundOperations.js')
     const client = read('frontend/react/src/api/client.js')
 
-    expect(controller).toContain('async function getTurnaroundOperationsForRequest(req)')
-    expect(controller).toContain('const demoUserId = getScopedDemoUserId(req)')
-    expect(controller).toContain('getSailingIdsForOperationalAssignment')
-    expect(controller).toContain('where(inArray(turnaroundOperationTable.sailingId, scopedSailingIds))')
+    expect(controller).toContain("getTurnaroundOperationsForRequest")
+    expect(scopeService).toContain('async function getTurnaroundOperationsForRequest(req)')
+    expect(scopeService).toContain('const demoUser = await resolveRequestDemoUser(req)')
+    expect(scopeService).toContain('getSailingIdsForOperationalAssignment')
+    expect(scopeService).toContain('where(inArray(turnaroundOperationTable.sailingId, scopedSailingIds))')
     expect(app).toContain('selectedDemoUser: effectiveSelectedDemoUser')
     expect(hook).toContain('selectedDemoUser = null')
     expect(hook).toContain('getTurnaroundOperations({ signal: controller.signal, selectedDemoUser })')
@@ -359,14 +361,16 @@ describe('Production data architecture hardening guardrails', () => {
 
   it('enforces selected demo-user assignment scope on turnaround write paths', () => {
     const controller = read('controllers/cruise.controller.js')
+    const scopeService = read('services/turnaroundScope.service.js')
     const hook = read('frontend/react/src/hooks/useTurnaroundOperations.js')
     const client = read('frontend/react/src/api/client.js')
 
-    expect(controller).toContain('async function canAccessTurnaroundOperationForRequest(req, operation)')
-    expect(controller).toContain('function sendTurnaroundOperationForbidden(res)')
-    expect(controller).toContain("Selected demo user is not assigned to this turnaround operation")
-    expect(controller).toContain('return scopedSailingIds.includes(operation.sailingId)')
     expect(controller).toContain('canAccessTurnaroundOperationForRequest(req, operation)')
+    expect(controller).toContain('sendTurnaroundOperationForbidden(res)')
+    expect(scopeService).toContain('async function canAccessTurnaroundOperationForRequest(req, operation)')
+    expect(scopeService).toContain('function sendTurnaroundOperationForbidden(res)')
+    expect(scopeService).toContain("Selected demo user is not assigned to this turnaround operation")
+    expect(scopeService).toContain('return scopedSailingIds.includes(operation.sailingId)')
 
     expect(client).toContain('function buildScopedApiPath(path)')
     expect(client).toContain('function getScopedRequestOptions(options = {})')
@@ -386,6 +390,7 @@ describe('Production data architecture hardening guardrails', () => {
     const app = read('app.js')
     const middleware = read('middleware/requestIdentity.middleware.js')
     const controller = read('controllers/cruise.controller.js')
+    const scopeService = read('services/turnaroundScope.service.js')
     const client = read('frontend/react/src/api/client.js')
 
     expect(app).toContain("const { attachRequestIdentity } = require('./middleware/requestIdentity.middleware')")
@@ -394,8 +399,9 @@ describe('Production data architecture hardening guardrails', () => {
     expect(middleware).toContain('function buildRequestIdentity(req = {})')
     expect(middleware).toContain('function getScopedDemoUserId(req)')
     expect(middleware).toContain("identitySource: headerDemoUserId ? 'header' : queryDemoUserId ? 'query' : 'anonymous'")
-    expect(controller).toContain("const { getScopedDemoUserId } = require('../middleware/requestIdentity.middleware')")
-    expect(controller).toContain('const demoUserId = getScopedDemoUserId(req)')
+    expect(controller).toContain("require('../services/turnaroundScope.service')")
+    expect(scopeService).toContain("const { getScopedDemoUserId } = require('../middleware/requestIdentity.middleware')")
+    expect(scopeService).toContain('const demoUserId = getScopedDemoUserId(req)')
     expect(client).toContain('function buildScopedHeaders(options = {})')
     expect(client).toContain("'X-Cruise-Demo-User-Id': scopedDemoUserId")
     expect(client).toContain("requestJson('/cruise/turnaround-operations', getScopedRequestOptions(options))")
@@ -452,13 +458,15 @@ describe('Production data architecture hardening guardrails', () => {
 
   it('wires turnaround mutation endpoints to production audit events', () => {
     const controller = read('controllers/cruise.controller.js')
+    const scopeService = read('services/turnaroundScope.service.js')
 
-    expect(controller).toContain("const { recordAuditEvent } = require('../services/auditEvent.service')")
-    expect(controller).toContain('async function buildTurnaroundAuditContext(req, operation = {})')
+    expect(controller).toContain("const { listAuditEventsForOperation, recordAuditEvent } = require('../services/auditEvent.service')")
     expect(controller).toContain('async function recordTurnaroundAuditEvent(req, operation, event)')
-    expect(controller).toContain("source: 'TURNAROUND_OPERATIONS_API'")
-    expect(controller).toContain('actorUserId: demoUser?.normalizedUserId || null')
-    expect(controller).toContain('context.cruiseLineId = ship.cruiseLineId || null')
+    expect(controller).toContain('buildTurnaroundAuditContext(req, operation)')
+    expect(scopeService).toContain('async function buildTurnaroundAuditContext(req, operation = {})')
+    expect(scopeService).toContain("source: TURNAROUND_AUDIT_SOURCE")
+    expect(scopeService).toContain('actorUserId: demoUser?.normalizedUserId || null')
+    expect(scopeService).toContain('cruiseLineId: scope.cruiseLineId || null')
 
     for (const eventType of [
       'TURNAROUND_COMMAND_UPDATED',
@@ -486,6 +494,30 @@ describe('Production data architecture hardening guardrails', () => {
     ]) {
       expect(controller).toContain(`entityType: '${entityType}'`)
     }
+  })
+
+
+  it('exposes scoped turnaround audit history for production traceability review', () => {
+    const routes = read('routes/cruise.routes.js')
+    const controller = read('controllers/cruise.controller.js')
+    const auditService = read('services/auditEvent.service.js')
+    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const client = read('frontend/react/src/api/client.js')
+
+    expect(routes).toContain("'/turnaround-operations/:id/audit-events'")
+    expect(routes).toContain('cruiseController.getTurnaroundOperationAuditEvents')
+    expect(controller).toContain('exports.getTurnaroundOperationAuditEvents')
+    expect(controller).toContain('canAccessTurnaroundOperationForRequest(req, operation)')
+    expect(controller).toContain('listAuditEventsForOperation(operation.id')
+    expect(controller).toContain('auditEvents: await listAuditEventsForOperation(operation.id, { limit: 8 })')
+    expect(auditService).toContain('async function listAuditEventsForOperation(operationId')
+    expect(auditService).toContain('function mapAuditEvent(row = {})')
+    expect(auditService).toContain('function parseAuditPayload(eventPayload)')
+    expect(auditService).toContain('orderBy(desc(auditEventTable.createdAt))')
+    expect(client).toContain('export async function getTurnaroundOperationAuditEvents(operationId, options = {})')
+    expect(dashboard).toContain('data-testid="react-operations-audit-trail"')
+    expect(dashboard).toContain('formatAuditEventType(event.eventType)')
+    expect(dashboard).toContain('selectedOperation.auditEvents.slice(0, 6).map')
   })
 
   it('documents the remaining production-scale data architecture roadmap', () => {

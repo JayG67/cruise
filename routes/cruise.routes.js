@@ -48,6 +48,10 @@ router.get(
   cruiseController.getTurnaroundOperations
 )
 
+router.get(
+  '/turnaround-operations/:id/audit-events',
+  cruiseController.getTurnaroundOperationAuditEvents
+)
 
 
 router.patch(

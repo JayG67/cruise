@@ -547,6 +547,27 @@ function buildRoleOperationsBrief({ roleView, selectedOperation, selectedStaffin
 }
 
 
+function formatAuditEventType(eventType = '') {
+  return String(eventType || '')
+    .toLowerCase()
+    .split('_')
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ') || 'Audit event'
+}
+
+function formatAuditEventPayload(event = {}) {
+  const payload = event.eventPayload
+  if (!payload || typeof payload !== 'object') return ''
+
+  const changedFields = Object.keys(payload.next || payload).filter(fieldName => !['id', 'operationId'].includes(fieldName))
+  if (changedFields.length === 0) return ''
+
+  return `Changed ${changedFields.slice(0, 4).join(', ')}${changedFields.length > 4 ? '…' : ''}`
+}
+
+
+
 function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaroundOperations = [], isLoading = false, error = '', onRetry, onUpdateOperationCommand, onUpdateTaskStatus, onUpdateTaskDetails, onCreateTask, onCreateTaskUpdate, onDeleteTask, onUpdateStaffing, onUpdateSignoff, onCreateEscalation, onUpdateEscalation, onUpdateHandoff, updatingOperationId = '', updatingTaskId = '', updatingTaskDetailsId = '', creatingTaskId = '', creatingTaskUpdateId = '', deletingTaskId = '', updatingStaffingKey = '', updatingSignoffKey = '', creatingEscalationId = '', updatingEscalationId = '', updatingHandoffId = '', mutationStatus = '', mutationError = '' }) {
   const readinessOperations = useMemo(() => buildTurnaroundOperationCards(turnaroundOperations, roleView), [turnaroundOperations, roleView])
   const [selectedTurnaroundId, setSelectedTurnaroundId] = useState('')
@@ -1322,6 +1343,28 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
               </button>
             ))}
           </div>
+        </section>
+      )}
+
+      {selectedOperation?.auditEvents?.length > 0 && (
+        <section className="operations-audit-trail" aria-labelledby="operations-audit-trail-heading" data-testid="react-operations-audit-trail">
+          <div className="operations-audit-trail-header">
+            <div>
+              <p className="eyebrow">Audit trail</p>
+              <h4 id="operations-audit-trail-heading">Recent operational changes</h4>
+              <p>Every listed event is scoped to this turnaround assignment and actor context.</p>
+            </div>
+            <span>{selectedOperation.auditEvents.length} recent events</span>
+          </div>
+          <ol className="operations-audit-event-list" aria-label="Recent turnaround audit events">
+            {selectedOperation.auditEvents.slice(0, 6).map(event => (
+              <li key={event.id || `${event.eventType}-${event.createdAt}`}>
+                <strong>{formatAuditEventType(event.eventType)}</strong>
+                <span>{event.actorDisplayName || 'System actor'} · {event.createdAt || 'Time pending'}</span>
+                {formatAuditEventPayload(event) && <em>{formatAuditEventPayload(event)}</em>}
+              </li>
+            ))}
+          </ol>
         </section>
       )}
 

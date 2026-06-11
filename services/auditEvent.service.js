@@ -1,5 +1,42 @@
+const { desc, eq } = require('drizzle-orm')
+
 const auditEventTable = require('../models/auditEvent.model')
 const db = require('../db')
+
+
+function parseAuditPayload(eventPayload) {
+  if (!eventPayload) return null
+
+  try {
+    return JSON.parse(eventPayload)
+  } catch (error) {
+    return eventPayload
+  }
+}
+
+function mapAuditEvent(row = {}) {
+  return {
+    id: row.id,
+    eventType: row.eventType,
+    entityType: row.entityType,
+    entityId: row.entityId,
+    actorUserId: row.actorUserId,
+    actorDisplayName: row.actorDisplayName,
+    cruiseLineId: row.cruiseLineId,
+    shipId: row.shipId,
+    sailingId: row.sailingId,
+    operationId: row.operationId,
+    source: row.source,
+    eventPayload: parseAuditPayload(row.eventPayload),
+    createdAt: row.createdAt
+  }
+}
+
+function normalizeAuditEventLimit(limit = 25) {
+  const parsedLimit = Number(limit)
+  if (!Number.isFinite(parsedLimit)) return 25
+  return Math.max(1, Math.min(100, Math.trunc(parsedLimit)))
+}
 
 function serializeAuditPayload(payload = {}) {
   if (!payload || Object.keys(payload).length === 0) {
@@ -51,6 +88,20 @@ function buildAuditEventValues({
   }
 }
 
+
+async function listAuditEventsForOperation(operationId, { limit = 25 } = {}) {
+  if (!operationId) return []
+
+  const rows = await db
+    .select()
+    .from(auditEventTable)
+    .where(eq(auditEventTable.operationId, operationId))
+    .orderBy(desc(auditEventTable.createdAt))
+    .limit(normalizeAuditEventLimit(limit))
+
+  return rows.map(mapAuditEvent)
+}
+
 async function recordAuditEvent(event) {
   const values = buildAuditEventValues(event)
   await db.insert(auditEventTable).values(values)
@@ -59,5 +110,9 @@ async function recordAuditEvent(event) {
 
 module.exports = {
   buildAuditEventValues,
+  listAuditEventsForOperation,
+  mapAuditEvent,
+  normalizeAuditEventLimit,
+  parseAuditPayload,
   recordAuditEvent
 }

@@ -18,80 +18,15 @@ const turnaroundStaffingTable = require('../models/turnaroundStaffing.model')
 const turnaroundTaskDependencyTable = require('../models/turnaroundTaskDependency.model')
 const turnaroundHandoffTable = require('../models/turnaroundHandoff.model')
 const db = require('../db')
-const { recordAuditEvent } = require('../services/auditEvent.service')
-const { getScopedDemoUserId } = require('../middleware/requestIdentity.middleware')
+const { listAuditEventsForOperation, recordAuditEvent } = require('../services/auditEvent.service')
+const {
+  buildTurnaroundAuditContext,
+  canAccessTurnaroundOperationForRequest,
+  getTurnaroundOperationsForRequest,
+  sendTurnaroundOperationForbidden
+} = require('../services/turnaroundScope.service')
 const { and, eq, inArray, like } = require('drizzle-orm')
 
-
-
-
-async function resolveAuditActorForRequest(req) {
-  const demoUserId = getScopedDemoUserId(req)
-  if (!demoUserId) {
-    return { actorUserId: null, actorDisplayName: null }
-  }
-
-  const demoUserRows = await db
-    .select()
-    .from(demoUserTable)
-    .where(eq(demoUserTable.id, demoUserId))
-    .limit(1)
-
-  const demoUser = demoUserRows[0]
-
-  return {
-    actorUserId: demoUser?.normalizedUserId || null,
-    actorDisplayName: demoUser?.displayName || null
-  }
-}
-
-async function buildTurnaroundAuditContext(req, operation = {}) {
-  const actor = await resolveAuditActorForRequest(req)
-  const context = {
-    ...actor,
-    cruiseLineId: null,
-    shipId: null,
-    sailingId: operation?.sailingId || null,
-    operationId: operation?.id || null,
-    source: 'TURNAROUND_OPERATIONS_API'
-  }
-
-  if (!operation?.sailingId) {
-    return context
-  }
-
-  const sailingRows = await db
-    .select()
-    .from(sailingTable)
-    .where(eq(sailingTable.id, operation.sailingId))
-    .limit(1)
-
-  const sailing = sailingRows[0]
-  if (!sailing) {
-    return context
-  }
-
-  context.sailingId = sailing.id
-  context.shipId = sailing.shipId || null
-
-  if (!sailing.shipId) {
-    return context
-  }
-
-  const shipRows = await db
-    .select()
-    .from(shipTable)
-    .where(eq(shipTable.id, sailing.shipId))
-    .limit(1)
-
-  const ship = shipRows[0]
-  if (ship) {
-    context.shipId = ship.id
-    context.cruiseLineId = ship.cruiseLineId || null
-  }
-
-  return context
-}
 
 async function recordTurnaroundAuditEvent(req, operation, event) {
   const context = await buildTurnaroundAuditContext(req, operation)
@@ -100,6 +35,7 @@ async function recordTurnaroundAuditEvent(req, operation, event) {
     ...event
   })
 }
+
 
 async function getAssignedShipForOperation(operation = {}) {
   if (!operation?.sailingId) return null
@@ -1361,109 +1297,11 @@ async function getTurnaroundOperationDetails(operation) {
     cruiseLine,
     passengerCount: await getPassengerCountForSailing(operation.sailingId),
     taskSummary: getTurnaroundProgress(sortedTasks),
+    auditEvents: await listAuditEventsForOperation(operation.id, { limit: 8 }),
     tasks: sortedTasks
   }
 }
 
-function isOperationalDemoRole(role = '') {
-  const normalizedRole = String(role || '').toLowerCase().replace(/_/g, '-')
-  return [
-    'turnaround-manager',
-    'housekeeping-lead',
-    'guest-services-lead',
-    'food-beverage-lead',
-    'engineering-lead'
-  ].some(operationalRole => normalizedRole.includes(operationalRole))
-}
-
-async function getSailingIdsForOperationalAssignment(demoUser) {
-  if (!demoUser || !isOperationalDemoRole(demoUser.role)) return null
-
-  if (demoUser.assignedShipId) {
-    const sailingRows = await db
-      .select()
-      .from(sailingTable)
-      .where(eq(sailingTable.shipId, demoUser.assignedShipId))
-
-    return sailingRows.map(sailing => sailing.id)
-  }
-
-  if (demoUser.cruiseLineId) {
-    const shipRows = await db
-      .select()
-      .from(shipTable)
-      .where(eq(shipTable.cruiseLineId, demoUser.cruiseLineId))
-
-    const sailingRows = await selectByIds(
-      sailingTable,
-      sailingTable.shipId,
-      shipRows.map(ship => ship.id)
-    )
-
-    return sailingRows.map(sailing => sailing.id)
-  }
-
-  return []
-}
-
-
-async function canAccessTurnaroundOperationForRequest(req, operation) {
-  const demoUserId = getScopedDemoUserId(req)
-
-  if (!demoUserId) return true
-  if (!operation) return false
-
-  const demoUserRows = await db
-    .select()
-    .from(demoUserTable)
-    .where(eq(demoUserTable.id, demoUserId))
-    .limit(1)
-
-  const demoUser = demoUserRows[0]
-
-  if (!demoUser) return false
-
-  const scopedSailingIds = await getSailingIdsForOperationalAssignment(demoUser)
-
-  if (scopedSailingIds === null) return true
-
-  return scopedSailingIds.includes(operation.sailingId)
-}
-
-function sendTurnaroundOperationForbidden(res) {
-  return res.status(403).json({ message: 'Selected demo user is not assigned to this turnaround operation' })
-}
-
-async function getTurnaroundOperationsForRequest(req) {
-  const demoUserId = getScopedDemoUserId(req)
-
-  if (!demoUserId) {
-    return db.select().from(turnaroundOperationTable)
-  }
-
-  const demoUserRows = await db
-    .select()
-    .from(demoUserTable)
-    .where(eq(demoUserTable.id, demoUserId))
-    .limit(1)
-
-  const demoUser = demoUserRows[0]
-
-  if (!demoUser) return []
-
-  const scopedSailingIds = await getSailingIdsForOperationalAssignment(demoUser)
-
-  if (scopedSailingIds === null) {
-    return db.select().from(turnaroundOperationTable)
-  }
-
-  if (scopedSailingIds.length === 0) return []
-
-  return db
-    .select()
-    .from(turnaroundOperationTable)
-    .where(inArray(turnaroundOperationTable.sailingId, scopedSailingIds))
-}
 
 exports.getTurnaroundOperations = async (req, res, next) => {
   try {
@@ -1485,6 +1323,37 @@ exports.getTurnaroundOperations = async (req, res, next) => {
   }
 }
 
+
+
+exports.getTurnaroundOperationAuditEvents = async (req, res, next) => {
+  try {
+    const operationRows = await db
+      .select()
+      .from(turnaroundOperationTable)
+      .where(eq(turnaroundOperationTable.id, req.params.id))
+      .limit(1)
+
+    const operation = operationRows[0]
+    if (!operation) {
+      return res.status(404).json({ message: 'Turnaround operation not found' })
+    }
+
+    if (!(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      return sendTurnaroundOperationForbidden(res)
+    }
+
+    const auditEvents = await listAuditEventsForOperation(operation.id, {
+      limit: req.query.limit || 50
+    })
+
+    return res.status(200).json({
+      operationId: operation.id,
+      auditEvents
+    })
+  } catch (error) {
+    return next(error)
+  }
+}
 
 
 exports.updateTurnaroundOperationCommand = async (req, res, next) => {

@@ -279,6 +279,15 @@ export async function getTurnaroundOperations(options = {}) {
   return Array.isArray(operations) ? operations : []
 }
 
+export async function getTurnaroundOperationAuditEvents(operationId, options = {}) {
+  if (!operationId) {
+    throw new Error('Turnaround operation id is required.')
+  }
+
+  const response = await requestJson(buildScopedApiPath(`/cruise/turnaround-operations/${encodeURIComponent(operationId)}/audit-events`, options), getScopedRequestOptions(options))
+  return Array.isArray(response?.auditEvents) ? response.auditEvents : []
+}
+
 
 export async function updateTurnaroundOperationCommand(operationId, payload, options = {}) {
   if (!operationId) {
