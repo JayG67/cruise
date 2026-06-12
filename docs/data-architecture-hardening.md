@@ -67,3 +67,46 @@ Turnaround operation payloads now include a unified `operationalTimeline` genera
 
 ### Turnaround Playbook Template Bridge
 Turnaround operation payloads now include a derived `playbookTemplate` that evaluates whether a live operation is safe to reuse as a repeatable operating playbook. The bridge extracts department baselines, template task order, staffing expectations, exception rules, template readiness checks, and next best actions from the same scoped operation data that powers the release packet, timeline, analytics, and audit views. This keeps the demo app role-assumable while showing cruise-line reviewers how current operations can become future ship/port templates without adding a premature template database workflow.
+
+### Turnaround Playbook Variance Rehearsal Bridge
+Turnaround operation payloads now include a derived `playbookVariance` view that compares live execution against the reusable playbook baseline. The bridge scores department-level task completion, staffing variance, signoff state, and open exceptions, then summarizes rehearsal status and next actions. This keeps the app role-assumable for demo reviewers while showing how a cruise-line operations team could validate whether today’s turnaround is tracking closely enough to become a repeatable ship/port operating pattern.
+
+
+
+### Turnaround Incident Command Bridge
+Turnaround operation payloads now include a derived `incidentCommand` view that converts blocked tasks, unresolved escalations, active dependencies, open handoffs, staffing gaps, incomplete signoffs, release readiness, timeline criticality, and variance risk into one release-day exception bridge. This keeps the application role-assumable for demo reviewers while showing how a production operations center could isolate incident signals, rank affected departments, and drive command actions before final embarkation release.
+
+## Turnaround After-Action Review Bridge
+
+The turnaround module now derives an after-action review object for each scoped operation after release packet, timeline, metrics, playbook, variance, and incident command data are assembled. This keeps the demo experience role-assumable while presenting a production-style debrief layer that cruise operations teams would expect after a turnaround.
+
+The bridge intentionally remains derived from normalized operation, task, staffing, signoff, dependency, handoff, escalation, audit, playbook, and incident sources. It does not create a new persistence model yet. Future production hardening can promote after-action findings, department lessons, and follow-up actions into append-only review tables once the data model leaves seed/demo mode.
+
+Current guarantees:
+
+- after-action review is scoped to the selected turnaround operation;
+- department lessons are based on user-id-backed task, signoff, escalation, and handoff ownership data;
+- findings are derived from release confidence, rehearsal variance, incident score, open blockers, staffing gaps, and release gates;
+- follow-up actions can be displayed without granting real authorization or removing demo role assumption.
+
+## Turnaround Reviewer Packet Bridge
+
+Turnaround operation payloads now include a derived `reviewerPacket` designed for cruise-line outreach and portfolio review. The packet consolidates executive brief scoring, release readiness, incident command, after-action review, playbook variance, operational timeline depth, and data-quality watch items into a single presentation-ready layer.
+
+The bridge is intentionally derived rather than persisted. It preserves the current demo role-assumption model while proving that the backend can assemble scoped, reviewer-facing evidence from normalized operational records. A future production slice can promote this packet into an exportable document, approval workflow, or signed operational handoff without changing the source operational contracts.
+
+### Cruise-Line Outreach Board
+
+Turnaround operation payloads now include a derived `outreachBoard` that sits above the reviewer packet and executive brief. The board converts reviewer readiness, executive decision signals, after-action review quality, incident command risk, and data-quality watch items into an application-ready outreach strategy. It intentionally preserves demo-mode role assumption while showing which evidence assets, target reviewer groups, and next actions are ready before sending the platform to cruise-line reviewers.
+
+### Turnaround Management Status Map
+
+The turnaround management status map is an application-level synthesis layer. It does not replace the underlying operational records. It reads from tasks, staffing, dependencies, handoffs, signoffs, audit events, timeline events, release packet, metrics, playbook variance, incident command, after-action review, executive brief, reviewer packet, and outreach board.
+
+Purpose:
+- Give reviewers and future development conversations a single status view for turnaround management completeness.
+- Keep the demo role selector intact while showing production-oriented capability maturity.
+- Identify remaining hardening work without scattering roadmap logic across the UI.
+- Preserve the path toward normalized users, IDs, status constraints, indexed lookup fields, and tenant-aware cruise-line/ship scoping.
+
+This is a presentation and planning bridge, not an authorization boundary or persistence model.

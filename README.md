@@ -57,7 +57,7 @@ This repository is intentionally maintained as a recruiter-facing engineering an
 
 ## 🚦 Current Production Readiness Status
 
-The current operations experience has completed the major turnaround management UX slices: selected-turnaround workflow, operations navigation, tasks, dependencies, handoffs, escalations, staffing, readiness approvals, role-specific command briefs, audit history, release-packet readiness review, unified operational timeline, product-language hardening, and Playwright stability hardening.
+The current operations experience has completed the major turnaround management UX slices: selected-turnaround workflow, operations navigation, tasks, dependencies, handoffs, escalations, staffing, readiness approvals, role-specific command briefs, audit history, release-packet readiness review, unified operational timeline, playbook variance rehearsal, product-language hardening, and Playwright stability hardening.
 
 Before a public presentation or production-style deployment, use the in-app Quality Console and the go-live manual review guide to confirm:
 
@@ -739,3 +739,42 @@ This does not add a full login provider yet. It creates the clean backend seam n
 ### Turnaround playbook template bridge
 
 The turnaround dashboard now derives a reusable operations playbook from each scoped operation. The playbook summarizes template readiness, reusable task order, department baselines, staffing expectations, exception rules, and next best actions so reviewers can see how live turnaround work could become repeatable ship/port operating templates while preserving the demo role-assumption flow.
+
+
+### Turnaround incident command bridge
+The turnaround operations module now includes a derived incident-command view that rolls blockers, escalations, staffing gaps, handoff risk, signoff gaps, dependencies, timeline criticality, release readiness, and playbook variance into one release-day exception management panel for demo reviewers and future production operators.
+
+### Latest turnaround personnel selector slice
+
+The turnaround role selector now includes an assignment roster review for the selected cruise-line scope. In addition to the cruise-line-first and ship-second filters, reviewers can see which ships and role groups are represented in the active operational personnel pool, how many scoped people are visible, and whether the current cards remain cross-line clean. This keeps the demo role-assumption flow intact while making the original personnel-assignment integrity problem visible and testable before continuing deeper turnaround management feature work.
+
+
+## Current development status - Turnaround operations executive-readiness slice
+
+The turnaround operations module now has the major production-demo layers in place: scoped operational role views, selected-user scoping, command planning, task/staffing/dependency/handoff/escalation/signoff workflows, release readiness, operational timeline, performance metrics, playbook template readiness, playbook variance, incident command, after-action review, and an executive turnaround brief. The demo remains intentionally role-assumable so reviewers can switch into Admin, Passenger, Group Leader, Turnaround Manager, Housekeeping Lead, Guest Services Lead, Food & Beverage Lead, and Engineering Lead without login friction, while the backend continues to route the selected demo user through request identity and scope services.
+
+The latest slice adds the executive brief layer. It is generated server-side from release packet, operational metrics, operational timeline, playbook template, playbook variance, incident command, and after-action review data. The React dashboard now shows a reviewer-ready summary with decision score, release confidence, incident score, debrief score, rehearsal score, executive highlights, department focus, and action plan. This is intended to make a cruise-line reviewer see the state of a turnaround operation quickly without reading every operational panel.
+
+Turnaround personnel selector status: the selector is now hardened around one cruise-line scope at a time for operational users. It supports cruise-line-first filtering, ship narrowing only after cruise-line selection, 16 visible assignment cards, assignment roster, manifest, governance, integrity review, and deployment matrix. The data model still supports demo role assumption, but operational visibility is constrained so turnaround personnel are not shown as broadly assigned across multiple cruise lines in the active scope.
+
+Testing status: the current baseline passed before this slice. This slice was validated with react production completion and targeted Jest coverage for the new executive brief service and existing architecture guardrails. Full React build could not be run in this sandbox because the uploaded zip does not include node_modules/vite.
+
+Recommended next work: continue with turnaround operations hardening rather than adding unrelated features. Best next candidates are executive/export polish, final selector/data normalization audit, controller/service decomposition for the large cruise controller, and more unit coverage for the lower-branch-coverage turnaround services.
+
+### Current production-demo slice: Turnaround reviewer packet
+
+The latest slice adds a cruise-line reviewer packet to the turnaround dashboard. It is generated server-side from the executive brief, release packet, operational timeline, metrics, playbook template, playbook variance, incident command, after-action review, audit events, and live operation data. The packet gives reviewers a presentation-ready summary with readiness score, reviewer narrative, proof points, data-quality snapshot, and next steps.
+
+This moves the turnaround module beyond internal workflow panels into an outreach-ready story: a cruise-line reviewer can see why the selected operation is ready, what evidence supports it, which risks remain, and how the system protects scoped operational data. The feature remains demo-safe and role-assumable, but it is structured as a future export/approval seam.
+
+### Current continuation slice: turnaround outreach board
+
+The latest turnaround slice adds a cruise-line outreach board to the operational dashboard. It builds on the reviewer packet, executive brief, incident command, and after-action review to produce outreach readiness, a send/review/hold status, checklist items, reviewer assets, target recommendations, and an application action plan. This keeps the app focused on demo-mode role assumption while giving cruise-line reviewers a structured path through the operational evidence.
+
+## Turnaround Management Status Slice
+
+This slice adds a continuation-ready turnaround management status map. The selected operation now exposes a `managementStatus` payload built from the existing turnaround evidence stack: role-scoped command, workflow CRUD, release metrics, audit/timeline evidence, playbooks, variance, incident command, after-action review, executive brief, reviewer packet, and outreach board.
+
+The dashboard now shows a production-demo completion score, capability-by-capability readiness, remaining hardening work, and recommended next slices. This keeps demo role assumption intact while making it easier to explain where turnaround management stands and where the next development conversation should resume.
+
+Current direction: turnaround management is no longer missing core workflow functionality. Remaining work is mostly flagship-demo polish, portfolio-level comparison, guided reviewer scripting, and deeper data architecture hardening before broader cruise-line outreach.

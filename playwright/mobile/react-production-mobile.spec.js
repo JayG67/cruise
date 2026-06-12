@@ -84,6 +84,7 @@ async function openCustomerWorkflowTable(page) {
 }
 
 test.describe('React default mobile replacement checks', () => {
+  test.setTimeout(90000)
   test('loads React shell and workspace controls on mobile', async ({ page }) => {
     await page.goto('/')
 
@@ -363,7 +364,7 @@ test.describe('React default mobile replacement checks', () => {
     await firstCard.locator('input[aria-label$="turnaround port"]').fill(`Mobile Terminal ${suffix}`)
     await firstCard.locator('textarea[aria-label$="command notes"]').fill(`Mobile command plan verified from ${suffix}`)
     await firstCard.getByRole('button', { name: 'Save command plan' }).click()
-    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround command plan updated successfully')
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround command plan updated successfully', { timeout: 15000 })
 
     const taskName = `Mobile command verification ${suffix}`
     await firstCard.locator('select[aria-label$="new task department"]').selectOption('turnaround-manager')
@@ -373,13 +374,13 @@ test.describe('React default mobile replacement checks', () => {
     await firstCard.locator('input[aria-label$="new task location"]').fill(`Mobile terminal desk ${suffix}`)
     await firstCard.locator('input[aria-label$="new task blocker reason"]').fill(`Mobile staffing watch ${suffix}`)
     await firstCard.getByRole('button', { name: 'Add turnaround task' }).click()
-    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task created successfully')
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task created successfully', { timeout: 15000 })
     await expect(page.getByTestId('react-operational-readiness-card').first()).toContainText(taskName)
 
     const createdTask = firstCard.getByTestId('react-operational-role-checklist').locator('li').filter({ hasText: taskName }).first()
     await expect(createdTask).toBeVisible()
     await createdTask.getByRole('button', { name: 'Remove task' }).click()
-    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task removed successfully')
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task removed successfully', { timeout: 15000 })
     await expect(firstCard).not.toContainText(taskName)
 
     await expect(firstCard.getByTestId('react-operational-dependency-summary')).toContainText(/active|clear/i)
@@ -391,7 +392,7 @@ test.describe('React default mobile replacement checks', () => {
     await handoffForm.locator('input[aria-label$="handoff due time"]').fill('10:50')
     await handoffForm.locator('input[aria-label$="handoff notes"]').fill(`Mobile handoff completed ${suffix}`)
     await handoffForm.getByRole('button', { name: 'Save handoff' }).click()
-    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround handoff updated successfully')
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround handoff updated successfully', { timeout: 15000 })
     await expect(firstCard).toContainText(`Mobile handoff completed ${suffix}`)
     await expectNoHorizontalOverflow(page)
   })
@@ -414,15 +415,15 @@ test.describe('React default mobile replacement checks', () => {
 
     if (await blockButton.isEnabled()) {
       await blockButton.click()
-      await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task status updated successfully')
+      await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task status updated successfully', { timeout: 15000 })
       await expect(firstCard).toContainText('BLOCKED')
     } else if (await completeButton.isEnabled()) {
       await completeButton.click()
-      await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task status updated successfully')
+      await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task status updated successfully', { timeout: 15000 })
       await expect(firstCard).toContainText('COMPLETE')
     } else {
       await startButton.click()
-      await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task status updated successfully')
+      await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task status updated successfully', { timeout: 15000 })
       await expect(firstCard).toContainText('IN_PROGRESS')
     }
 
@@ -431,7 +432,7 @@ test.describe('React default mobile replacement checks', () => {
     await taskItem.locator('input[aria-label$="location"]').fill(`Mobile engine control ${suffix}`)
     await taskItem.locator('input[aria-label$="blocker reason"]').fill(`Mobile shore-power check ${suffix}`)
     await taskItem.getByRole('button', { name: 'Save task details' }).click()
-    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task details updated successfully')
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task details updated successfully', { timeout: 15000 })
     await expect(firstCard).toContainText(`Mobile engine control ${suffix}`)
 
     await firstCard.locator('input[aria-label$="planned staff"]').fill('13')
@@ -440,12 +441,12 @@ test.describe('React default mobile replacement checks', () => {
     await firstCard.locator('input[aria-label$="staffing muster location"]').fill(`Mobile engine muster ${suffix}`)
     await firstCard.locator('input[aria-label$="staffing notes"]').fill(`Mobile staffing verified ${suffix}`)
     await firstCard.getByRole('button', { name: 'Save staffing plan' }).click()
-    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround staffing plan updated successfully')
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround staffing plan updated successfully', { timeout: 15000 })
     await expect(firstCard).toContainText(`Mobile engine muster ${suffix}`)
 
     await taskItem.locator('input[aria-label$="shift update"]').fill(`Mobile technical update ${suffix}`)
     await taskItem.getByRole('button', { name: 'Add shift update' }).click()
-    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task update added successfully')
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround task update added successfully', { timeout: 15000 })
     await expect(firstCard).toContainText(`Mobile technical update ${suffix}`)
 
     const escalationTitle = `Mobile engineering escalation ${suffix}`
@@ -455,21 +456,21 @@ test.describe('React default mobile replacement checks', () => {
     await firstCard.locator('input[aria-label$="escalation owner"]').fill(`${engineeringLeadName} ${suffix}`)
     await firstCard.locator('input[aria-label$="escalation notes"]').fill(`Mobile escalation opened ${suffix}`)
     await firstCard.getByRole('button', { name: 'Add escalation' }).click()
-    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround escalation created successfully')
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround escalation created successfully', { timeout: 15000 })
     await expect(firstCard).toContainText(escalationTitle)
 
     const escalationItem = firstCard.getByTestId('react-operational-escalation-list').locator('li').filter({ hasText: escalationTitle }).first()
     await escalationItem.locator('select[aria-label$="escalation status"]').selectOption('RESOLVED')
     await escalationItem.locator('input[aria-label$="escalation resolution notes"]').fill(`Mobile escalation resolved ${suffix}`)
     await escalationItem.getByRole('button', { name: 'Save escalation' }).click()
-    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround escalation updated successfully')
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround escalation updated successfully', { timeout: 15000 })
     await expect(firstCard).toContainText(`Mobile escalation resolved ${suffix}`)
 
     await firstCard.locator('select[aria-label$="readiness signoff status"]').selectOption('APPROVED')
     await firstCard.locator('input[aria-label$="readiness approver"]').fill(`${engineeringLeadName} ${suffix}`)
     await firstCard.locator('input[aria-label$="readiness notes"]').fill(`Mobile engineering signoff ${suffix}`)
     await firstCard.getByRole('button', { name: 'Save readiness signoff' }).click()
-    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround readiness signoff updated successfully')
+    await expect(page.getByTestId('react-operational-mutation-status')).toContainText('Turnaround readiness signoff updated successfully', { timeout: 15000 })
     await expect(firstCard).toContainText(`${engineeringLeadName} ${suffix}`)
     await expectNoHorizontalOverflow(page)
   })

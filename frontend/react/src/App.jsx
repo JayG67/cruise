@@ -87,6 +87,45 @@ export default function App() {
   const adminDemoUser = demoUsers.find(user => getSelectedRoleView(user) === 'admin')
 
   useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+
+    window.__cruiseDemoUsers = demoUsers.map(user => ({
+      id: user.id,
+      name: user.name,
+      role: user.role || user.userType || '',
+      roleView: getSelectedRoleView(user)
+    }))
+
+    window.__cruiseSelectDemoUser = ({ userId = '', role = '', personText = '' } = {}) => {
+      const normalizedPersonText = String(personText || '').trim().toLowerCase()
+      const normalizedRole = String(role || '').trim()
+
+      const matchingUser = demoUsers.find(user => {
+        const roleMatches = !normalizedRole || getSelectedRoleView(user) === normalizedRole
+        const nameMatches = userId
+          ? user.id === userId
+          : !normalizedPersonText || String(user.name || '').toLowerCase().includes(normalizedPersonText)
+
+        return roleMatches && nameMatches
+      })
+
+      if (!matchingUser) {
+        return { ok: false, reason: 'No matching demo user found.' }
+      }
+
+      const targetRole = getSelectedRoleView(matchingUser)
+      setSelectedRole(targetRole)
+      window.setTimeout(() => setSelectedDemoUserId(matchingUser.id), 0)
+      return { ok: true, userId: matchingUser.id, name: matchingUser.name, role: targetRole }
+    }
+
+    return () => {
+      delete window.__cruiseDemoUsers
+      delete window.__cruiseSelectDemoUser
+    }
+  }, [demoUsers, setSelectedDemoUserId, setSelectedRole])
+
+  useEffect(() => {
     if (selectedRoleView !== 'admin' || !pendingNavigationSectionId) {
       return
     }

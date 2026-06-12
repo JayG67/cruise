@@ -1519,6 +1519,352 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
       )}
 
 
+      {selectedOperation?.playbookVariance && (
+        <section className="operations-playbook-variance" aria-labelledby="operations-playbook-variance-heading" data-testid="react-operations-playbook-variance">
+          <div className="operations-playbook-variance-header">
+            <div>
+              <p className="eyebrow">Playbook variance</p>
+              <h4 id="operations-playbook-variance-heading">Live execution versus template baseline</h4>
+              <p>Rehearsal scoring compares this turnaround against the reusable playbook so operators can see whether today is tracking like a repeatable ship and port pattern.</p>
+            </div>
+            <div className={`operations-playbook-variance-score ${String(selectedOperation.playbookVariance.status || '').toLowerCase()}`}>
+              <span>{selectedOperation.playbookVariance.summary?.rehearsalScore || 0}%</span>
+              <small>{String(selectedOperation.playbookVariance.summary?.rehearsalStatus || 'REVIEW').replace(/_/g, ' ')}</small>
+            </div>
+          </div>
+          <div className="operations-playbook-variance-grid" data-testid="react-operations-playbook-variance-departments">
+            {(selectedOperation.playbookVariance.departmentVariances || []).slice(0, 4).map(department => (
+              <article className={`operations-playbook-variance-card ${String(department.status || '').toLowerCase()}`} key={department.departmentRole}>
+                <span>{department.departmentRole}</span>
+                <strong>{department.status}</strong>
+                <em>{department.completeTaskCount}/{department.baselineTaskCount} tasks · {department.checkedInStaff}/{department.baselinePlannedStaff} staff · variance {department.varianceScore}</em>
+              </article>
+            ))}
+          </div>
+          <div className="operations-playbook-variance-actions" data-testid="react-operations-playbook-variance-actions">
+            <strong>Rehearsal actions</strong>
+            <ul>
+              {(selectedOperation.playbookVariance.rehearsalActions || []).slice(0, 3).map(action => (
+                <li key={action}>{action}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+
+      {selectedOperation?.incidentCommand && (
+        <section className="operations-incident-command" aria-labelledby="operations-incident-command-heading" data-testid="react-operations-incident-command">
+          <div className="operations-incident-command-header">
+            <div>
+              <p className="eyebrow">Incident command</p>
+              <h4 id="operations-incident-command-heading">Release-day exception bridge</h4>
+              <p>Incident command converts blockers, staffing gaps, signoffs, handoffs, dependencies, escalations, and timeline risk into one commander-facing action bridge.</p>
+            </div>
+            <div className={`operations-incident-command-score ${String(selectedOperation.incidentCommand.incidentSeverity || '').toLowerCase()}`}>
+              <span>{selectedOperation.incidentCommand.incidentScore || 0}</span>
+              <small>{String(selectedOperation.incidentCommand.incidentStatus || 'STABLE').replace(/_/g, ' ')}</small>
+            </div>
+          </div>
+          <div className="operations-incident-command-grid" data-testid="react-operations-incident-signals">
+            {(selectedOperation.incidentCommand.incidentSignals || []).slice(0, 4).map(signal => (
+              <article className={`operations-incident-command-card ${String(signal.severity || '').toLowerCase()}`} key={signal.id || `${signal.source}-${signal.title}`}>
+                <span>{signal.departmentRole}</span>
+                <strong>{signal.title}</strong>
+                <em>{signal.source} · {signal.ownerDisplayName}</em>
+                <p>{signal.detail}</p>
+              </article>
+            ))}
+          </div>
+          <div className="operations-incident-command-footer">
+            <div data-testid="react-operations-incident-departments">
+              <strong>Top incident departments</strong>
+              <ul>
+                {(selectedOperation.incidentCommand.incidentDepartments || []).slice(0, 3).map(department => (
+                  <li key={department.departmentRole}>{department.departmentRole}: risk {department.riskScore}</li>
+                ))}
+              </ul>
+            </div>
+            <div data-testid="react-operations-incident-actions">
+              <strong>Command actions</strong>
+              <ul>
+                {(selectedOperation.incidentCommand.commandActions || []).slice(0, 4).map(action => (
+                  <li key={action}>{action}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+      )}
+
+
+      {selectedOperation?.reviewerPacket && (
+        <section className="operations-reviewer-packet" aria-labelledby="operations-reviewer-packet-heading" data-testid="react-operations-reviewer-packet">
+          <div className="operations-reviewer-packet-header">
+            <div>
+              <p className="eyebrow">Cruise-line reviewer packet</p>
+              <h4 id="operations-reviewer-packet-heading">Presentation-ready operational evidence packet</h4>
+              <p>{selectedOperation.reviewerPacket.narrative?.reviewerPositioning}</p>
+            </div>
+            <div className="operations-reviewer-packet-score" aria-label={`Reviewer readiness score ${selectedOperation.reviewerPacket.readiness?.readinessScore || 0}%`}>
+              <span>{selectedOperation.reviewerPacket.readiness?.readinessScore || 0}%</span>
+              <small>{String(selectedOperation.reviewerPacket.readiness?.readinessStatus || 'REVIEW_WITH_WATCH_ITEMS').replace(/_/g, ' ')}</small>
+            </div>
+          </div>
+          <div className="operations-reviewer-packet-narrative" data-testid="react-operations-reviewer-packet-narrative">
+            <strong>{selectedOperation.reviewerPacket.narrative?.summary}</strong>
+            <p>{selectedOperation.reviewerPacket.narrative?.topAction}</p>
+          </div>
+          <div className="operations-reviewer-packet-grid" data-testid="react-operations-reviewer-packet-proof-points">
+            {(selectedOperation.reviewerPacket.proofPoints || []).slice(0, 6).map(point => (
+              <article className="operations-reviewer-packet-card" key={point.id}>
+                <span>{point.status}</span>
+                <strong>{point.label}</strong>
+                <p>{point.detail}</p>
+              </article>
+            ))}
+          </div>
+          <div className="operations-reviewer-packet-details">
+            <div data-testid="react-operations-reviewer-packet-quality">
+              <strong>Data quality snapshot</strong>
+              <dl>
+                <div><dt>Tasks</dt><dd>{selectedOperation.reviewerPacket.dataQuality?.taskCount || 0}</dd></div>
+                <div><dt>Blockers</dt><dd>{selectedOperation.reviewerPacket.dataQuality?.blockerCount || 0}</dd></div>
+                <div><dt>Open escalations</dt><dd>{selectedOperation.reviewerPacket.dataQuality?.openEscalations || 0}</dd></div>
+                <div><dt>Staffing gaps</dt><dd>{selectedOperation.reviewerPacket.dataQuality?.staffingGaps || 0}</dd></div>
+                <div><dt>Audit events</dt><dd>{selectedOperation.reviewerPacket.dataQuality?.auditEventCount || 0}</dd></div>
+              </dl>
+            </div>
+            <div data-testid="react-operations-reviewer-packet-next-steps">
+              <strong>Reviewer next steps</strong>
+              <ul>
+                {(selectedOperation.reviewerPacket.nextSteps || []).slice(0, 6).map(step => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+      )}
+
+
+      {selectedOperation?.outreachBoard && (
+        <section className="operations-outreach-board" aria-labelledby="operations-outreach-board-heading" data-testid="react-operations-outreach-board">
+          <div className="operations-outreach-board-header">
+            <div>
+              <p className="eyebrow">Cruise-line outreach board</p>
+              <h4 id="operations-outreach-board-heading">Application-ready reviewer strategy</h4>
+              <p>{selectedOperation.outreachBoard.narrative?.positioning}</p>
+            </div>
+            <div className={`operations-outreach-board-score ${String(selectedOperation.outreachBoard.readiness?.readinessStatus || '').toLowerCase()}`} aria-label={`Outreach readiness score ${selectedOperation.outreachBoard.readiness?.readinessScore || 0}%`}>
+              <span>{selectedOperation.outreachBoard.readiness?.readinessScore || 0}%</span>
+              <small>{String(selectedOperation.outreachBoard.readiness?.readinessStatus || 'REVIEW_BEFORE_SEND').replace(/_/g, ' ')}</small>
+            </div>
+          </div>
+          <div className="operations-outreach-board-narrative" data-testid="react-operations-outreach-board-narrative">
+            <strong>{selectedOperation.outreachBoard.narrative?.headline}</strong>
+            <p>{selectedOperation.outreachBoard.narrative?.statusLine}</p>
+            <p>{selectedOperation.outreachBoard.narrative?.recommendedAction}</p>
+          </div>
+          <div className="operations-outreach-board-grid" data-testid="react-operations-outreach-checklist">
+            {(selectedOperation.outreachBoard.checklist || []).slice(0, 5).map(item => (
+              <article className={`operations-outreach-board-card ${String(item.status || '').toLowerCase()}`} key={item.id}>
+                <span>{item.status}</span>
+                <strong>{item.label}</strong>
+                <p>{item.detail}</p>
+              </article>
+            ))}
+          </div>
+          <div className="operations-outreach-board-details">
+            <div data-testid="react-operations-outreach-assets">
+              <strong>Reviewer assets</strong>
+              <ul>
+                {(selectedOperation.outreachBoard.assets || []).slice(0, 4).map(asset => (
+                  <li key={asset.id}><span>{asset.status}</span> {asset.label}: {asset.detail}</li>
+                ))}
+              </ul>
+            </div>
+            <div data-testid="react-operations-outreach-targets">
+              <strong>Target recommendations</strong>
+              <ul>
+                {(selectedOperation.outreachBoard.targetRecommendations || []).slice(0, 4).map(target => (
+                  <li key={target.id}><span>{target.status}</span> {target.label}: {target.detail}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="operations-outreach-board-actions" data-testid="react-operations-outreach-actions">
+            <strong>Application action plan</strong>
+            <ol>
+              {(selectedOperation.outreachBoard.actionPlan || []).slice(0, 4).map(action => (
+                <li key={action}>{action}</li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      )}
+
+
+      {selectedOperation?.managementStatus && (
+        <section className="operations-management-status" aria-labelledby="operations-management-status-heading" data-testid="react-operations-management-status">
+          <div className="operations-management-status-header">
+            <div>
+              <p className="eyebrow">Turnaround management status</p>
+              <h4 id="operations-management-status-heading">Production-demo completion map</h4>
+              <p>{selectedOperation.managementStatus.continuationSummary?.currentState}</p>
+            </div>
+            <div className={`operations-management-status-score ${String(selectedOperation.managementStatus.maturityStatus || '').toLowerCase()}`} aria-label={`Turnaround management completion ${selectedOperation.managementStatus.maturityScore || 0}%`}>
+              <span>{selectedOperation.managementStatus.maturityScore || 0}%</span>
+              <small>{String(selectedOperation.managementStatus.maturityStatus || 'HARDENING_IN_PROGRESS').replace(/_/g, ' ')}</small>
+            </div>
+          </div>
+          <div className="operations-management-status-summary" data-testid="react-operations-management-status-summary">
+            <strong>{selectedOperation.managementStatus.continuationSummary?.headline}</strong>
+            <p>{selectedOperation.managementStatus.continuationSummary?.recommendedNext}</p>
+          </div>
+          <div className="operations-management-status-grid" data-testid="react-operations-management-capabilities">
+            {(selectedOperation.managementStatus.capabilities || []).slice(0, 7).map(capability => (
+              <article className={`operations-management-status-card ${String(capability.status || '').toLowerCase()}`} key={capability.id}>
+                <span>{capability.score}% · {String(capability.status || 'REVIEW').replace(/_/g, ' ')}</span>
+                <strong>{capability.label}</strong>
+                <p>{capability.detail}</p>
+              </article>
+            ))}
+          </div>
+          <div className="operations-management-status-details">
+            <div data-testid="react-operations-management-remaining-work">
+              <strong>Remaining work</strong>
+              <ul>
+                {(selectedOperation.managementStatus.remainingWork || []).slice(0, 6).map(item => (
+                  <li key={item.id}><span>{item.priority}</span> {item.label}: {item.detail}</li>
+                ))}
+              </ul>
+            </div>
+            <div data-testid="react-operations-management-next-slices">
+              <strong>Recommended next slices</strong>
+              <ol>
+                {(selectedOperation.managementStatus.nextSlices || []).slice(0, 5).map(slice => (
+                  <li key={slice}>{slice}</li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        </section>
+      )}
+
+
+      {selectedOperation?.executiveBrief && (
+        <section className="operations-executive-brief" aria-labelledby="operations-executive-brief-heading" data-testid="react-operations-executive-brief">
+          <div className="operations-executive-brief-header">
+            <div>
+              <p className="eyebrow">Executive brief</p>
+              <h4 id="operations-executive-brief-heading">Cruise-line ready turnaround summary</h4>
+              <p>Executive brief consolidates release confidence, incident command, playbook variance, after-action lessons, and timeline depth into one reviewer-ready decision summary.</p>
+            </div>
+            <div className={`operations-executive-brief-score ${String(selectedOperation.executiveBrief.summary?.decisionTone || '').toLowerCase()}`} aria-label={`Executive readiness score ${selectedOperation.executiveBrief.summary?.decisionScore || 0}%`}>
+              <span>{selectedOperation.executiveBrief.summary?.decisionScore || 0}%</span>
+              <small>{String(selectedOperation.executiveBrief.summary?.decisionStatus || 'NEEDS_COMMAND_REVIEW').replace(/_/g, ' ')}</small>
+            </div>
+          </div>
+          <dl className="operations-executive-brief-kpis" aria-label="Executive turnaround readiness inputs" data-testid="react-operations-executive-brief-kpis">
+            <div>
+              <dt>Release</dt>
+              <dd>{selectedOperation.executiveBrief.summary?.releaseConfidence || 0}%</dd>
+            </div>
+            <div>
+              <dt>Incident</dt>
+              <dd>{selectedOperation.executiveBrief.summary?.incidentScore || 0}</dd>
+            </div>
+            <div>
+              <dt>Debrief</dt>
+              <dd>{selectedOperation.executiveBrief.summary?.reviewScore || 0}%</dd>
+            </div>
+            <div>
+              <dt>Rehearsal</dt>
+              <dd>{selectedOperation.executiveBrief.summary?.rehearsalScore || 0}%</dd>
+            </div>
+          </dl>
+          <div className="operations-executive-brief-grid" data-testid="react-operations-executive-brief-highlights">
+            {(selectedOperation.executiveBrief.highlights || []).slice(0, 4).map(highlight => (
+              <article className="operations-executive-brief-card" key={highlight.id}>
+                <span>{highlight.status}</span>
+                <strong>{highlight.label}</strong>
+                <p>{highlight.detail}</p>
+              </article>
+            ))}
+          </div>
+          <div className="operations-executive-brief-details">
+            <div data-testid="react-operations-executive-brief-departments">
+              <strong>Executive department focus</strong>
+              <ul>
+                {(selectedOperation.executiveBrief.departmentBriefs || []).slice(0, 5).map(department => (
+                  <li key={department.departmentRole}>
+                    <span>{department.departmentRole}</span>
+                    <em>Risk {department.riskScore || 0} · {department.driver || department.recommendation || 'Operational focus'}</em>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div data-testid="react-operations-executive-brief-actions">
+              <strong>Executive action plan</strong>
+              <ul>
+                {(selectedOperation.executiveBrief.executiveActions || []).slice(0, 6).map(action => (
+                  <li key={action}>{action}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+      )}
+
+
+      {selectedOperation?.afterActionReview && (
+        <section className="operations-after-action" aria-labelledby="operations-after-action-heading" data-testid="react-operations-after-action-review">
+          <div className="operations-after-action-header">
+            <div>
+              <p className="eyebrow">After-action review</p>
+              <h4 id="operations-after-action-heading">Turnaround debrief and promotion readiness</h4>
+              <p>After-action review converts release confidence, playbook variance, incident risk, timeline activity, blockers, staffing gaps, and department outcomes into follow-up actions before the operation is promoted as a reusable pattern.</p>
+            </div>
+            <div className={`operations-after-action-score ${String(selectedOperation.afterActionReview.summary?.reviewStatus || '').toLowerCase()}`} aria-label={`After-action review score ${selectedOperation.afterActionReview.summary?.reviewScore || 0}%`}>
+              <span>{selectedOperation.afterActionReview.summary?.reviewScore || 0}%</span>
+              <small>{String(selectedOperation.afterActionReview.summary?.reviewStatus || 'FOLLOW_UP').replace(/_/g, ' ')}</small>
+            </div>
+          </div>
+          <div className="operations-after-action-grid" data-testid="react-operations-after-action-findings">
+            {(selectedOperation.afterActionReview.findings || []).slice(0, 6).map(finding => (
+              <article className={`operations-after-action-finding ${String(finding.status || '').toLowerCase()}`} key={finding.id}>
+                <span>{finding.status}</span>
+                <strong>{finding.label}</strong>
+                <p>{finding.detail}</p>
+              </article>
+            ))}
+          </div>
+          <div className="operations-after-action-details">
+            <div data-testid="react-operations-after-action-departments">
+              <strong>Department lessons</strong>
+              <ul>
+                {(selectedOperation.afterActionReview.departmentLessons || []).slice(0, 4).map(department => (
+                  <li key={department.departmentRole}>
+                    <span>{department.departmentRole}</span>
+                    <em>Score {department.lessonScore} · {department.completionPercent}% complete · {department.recommendation}</em>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div data-testid="react-operations-after-action-followups">
+              <strong>Follow-up actions</strong>
+              <ul>
+                {(selectedOperation.afterActionReview.followUpActions || []).slice(0, 5).map(action => (
+                  <li key={action}>{action}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+      )}
+
+
       {selectedOperation?.operationalTimeline?.items?.length > 0 && (
         <section className="operations-timeline" aria-labelledby="operations-timeline-heading" data-testid="react-operations-timeline">
           <div className="operations-timeline-header">

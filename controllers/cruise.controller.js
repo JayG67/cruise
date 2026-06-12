@@ -35,6 +35,13 @@ const { buildTurnaroundReleasePacket } = require('../services/turnaroundRelease.
 const { buildTurnaroundOperationalTimeline } = require('../services/turnaroundTimeline.service')
 const { buildTurnaroundOperationalMetrics } = require('../services/turnaroundMetrics.service')
 const { buildTurnaroundPlaybookTemplate } = require('../services/turnaroundPlaybook.service')
+const { buildTurnaroundPlaybookVariance } = require('../services/turnaroundVariance.service')
+const { buildTurnaroundIncidentCommand } = require('../services/turnaroundIncident.service')
+const { buildTurnaroundAfterActionReview } = require('../services/turnaroundAfterAction.service')
+const { buildTurnaroundExecutiveBrief } = require('../services/turnaroundExecutiveBrief.service')
+const { buildTurnaroundReviewerPacket } = require('../services/turnaroundReviewerPacket.service')
+const { buildTurnaroundOutreachBoard } = require('../services/turnaroundOutreach.service')
+const { buildTurnaroundManagementStatus } = require('../services/turnaroundCompletion.service')
 const { requireAdminRequest } = require('../services/requestAuthorization.service')
 const { and, eq, inArray, like } = require('drizzle-orm')
 
@@ -252,6 +259,10 @@ exports.getCruiseLines = async (req, res, next) => {
   } catch (err) {
     next(err)
   }
+}
+
+exports.getMissingCruiseLineId = async (req, res) => {
+  return res.status(404).json({ message: 'Cruise line not found' })
 }
 
 exports.getCruiseLineById = async (req, res, next) => {
@@ -1437,6 +1448,101 @@ async function getTurnaroundOperationDetails(operation) {
     operationalMetrics,
     passengerCount
   })
+  const playbookVariance = buildTurnaroundPlaybookVariance({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    releasePacket,
+    operationalMetrics,
+    playbookTemplate
+  })
+  const incidentCommand = buildTurnaroundIncidentCommand({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    releasePacket,
+    operationalMetrics,
+    operationalTimeline,
+    playbookVariance
+  })
+  const afterActionReview = buildTurnaroundAfterActionReview({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    auditEvents,
+    operationalTimeline,
+    operationalMetrics,
+    playbookTemplate,
+    playbookVariance,
+    incidentCommand
+  })
+  const executiveBrief = buildTurnaroundExecutiveBrief({
+    operation,
+    releasePacket,
+    operationalTimeline,
+    operationalMetrics,
+    playbookTemplate,
+    playbookVariance,
+    incidentCommand,
+    afterActionReview
+  })
+  const reviewerPacket = buildTurnaroundReviewerPacket({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    auditEvents,
+    releasePacket,
+    operationalTimeline,
+    operationalMetrics,
+    playbookTemplate,
+    playbookVariance,
+    incidentCommand,
+    afterActionReview,
+    executiveBrief
+  })
+  const outreachBoard = buildTurnaroundOutreachBoard({
+    operation,
+    reviewerPacket,
+    executiveBrief,
+    afterActionReview,
+    incidentCommand
+  })
+  const managementStatus = buildTurnaroundManagementStatus({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    auditEvents,
+    releasePacket,
+    operationalTimeline,
+    operationalMetrics,
+    playbookTemplate,
+    playbookVariance,
+    incidentCommand,
+    afterActionReview,
+    executiveBrief,
+    reviewerPacket,
+    outreachBoard
+  })
 
   return {
     ...operation,
@@ -1463,6 +1569,13 @@ async function getTurnaroundOperationDetails(operation) {
     operationalTimeline,
     operationalMetrics,
     playbookTemplate,
+    playbookVariance,
+    incidentCommand,
+    afterActionReview,
+    executiveBrief,
+    reviewerPacket,
+    outreachBoard,
+    managementStatus,
     auditEvents,
     tasks: sortedTasks
   }

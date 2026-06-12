@@ -32,6 +32,11 @@ const router = express.Router()
 router.get('/', cruiseController.getCruiseLines)
 
 router.get(
+  '/cruise-line',
+  cruiseController.getMissingCruiseLineId
+)
+
+router.get(
   '/cruise-line/:id',
   cruiseController.getCruiseLineById
 )
