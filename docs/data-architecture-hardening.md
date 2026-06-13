@@ -110,3 +110,18 @@ Purpose:
 - Preserve the path toward normalized users, IDs, status constraints, indexed lookup fields, and tenant-aware cruise-line/ship scoping.
 
 This is a presentation and planning bridge, not an authorization boundary or persistence model.
+
+### Turnaround launch plan bridge
+
+The turnaround launch plan is intentionally derived from existing operational evidence instead of introducing a separate source of truth. It consumes the release packet, metrics, incident command, after-action review, executive brief, reviewer packet, outreach board, and management status. This keeps reviewer readiness, risk mitigation, and demo runbook status tied to the same scoped operation data that powers the dashboards.
+
+## Turnaround scenario plan slice
+
+The turnaround management module now includes a scenario-planning layer. This layer intentionally derives from existing operational evidence rather than introducing a separate scenario seed file. It uses release readiness, operational metrics, incident command, playbook variance, after-action review, launch plan, and management status to produce:
+
+- disruption stress cases,
+- trigger matrix rows,
+- contingency actions,
+- and a reviewer-safe drill runbook.
+
+This keeps the demonstration role-switchable while still showing production-style operational resilience and clear decision support.

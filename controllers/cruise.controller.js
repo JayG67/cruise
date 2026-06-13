@@ -42,6 +42,8 @@ const { buildTurnaroundExecutiveBrief } = require('../services/turnaroundExecuti
 const { buildTurnaroundReviewerPacket } = require('../services/turnaroundReviewerPacket.service')
 const { buildTurnaroundOutreachBoard } = require('../services/turnaroundOutreach.service')
 const { buildTurnaroundManagementStatus } = require('../services/turnaroundCompletion.service')
+const { buildTurnaroundLaunchPlan } = require('../services/turnaroundLaunchPlan.service')
+const { buildTurnaroundScenarioPlan } = require('../services/turnaroundScenarioPlan.service')
 const { requireAdminRequest } = require('../services/requestAuthorization.service')
 const { and, eq, inArray, like } = require('drizzle-orm')
 
@@ -1543,6 +1545,27 @@ async function getTurnaroundOperationDetails(operation) {
     reviewerPacket,
     outreachBoard
   })
+  const launchPlan = buildTurnaroundLaunchPlan({
+    operation,
+    releasePacket,
+    operationalMetrics,
+    incidentCommand,
+    afterActionReview,
+    executiveBrief,
+    reviewerPacket,
+    outreachBoard,
+    managementStatus
+  })
+  const scenarioPlan = buildTurnaroundScenarioPlan({
+    operation,
+    releasePacket,
+    operationalMetrics,
+    playbookVariance,
+    incidentCommand,
+    afterActionReview,
+    launchPlan,
+    managementStatus
+  })
 
   return {
     ...operation,
@@ -1576,6 +1599,8 @@ async function getTurnaroundOperationDetails(operation) {
     reviewerPacket,
     outreachBoard,
     managementStatus,
+    launchPlan,
+    scenarioPlan,
     auditEvents,
     tasks: sortedTasks
   }

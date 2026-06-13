@@ -1753,6 +1753,120 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
       )}
 
 
+      {selectedOperation?.launchPlan && (
+        <section className="operations-launch-plan" aria-labelledby="operations-launch-plan-heading" data-testid="react-operations-launch-plan">
+          <div className="operations-launch-plan-header">
+            <div>
+              <p className="eyebrow">Turnaround launch plan</p>
+              <h4 id="operations-launch-plan-heading">Reviewer demo certification gates</h4>
+              <p>{selectedOperation.launchPlan.summary}</p>
+            </div>
+            <div className={`operations-launch-plan-score ${String(selectedOperation.launchPlan.launchStatus || '').toLowerCase()}`} aria-label={`Launch readiness score ${selectedOperation.launchPlan.launchScore || 0}%`}>
+              <span>{selectedOperation.launchPlan.launchScore || 0}%</span>
+              <small>{String(selectedOperation.launchPlan.launchStatus || 'READY_WITH_WATCH_ITEMS').replace(/_/g, ' ')}</small>
+            </div>
+          </div>
+          <div className="operations-launch-plan-summary" data-testid="react-operations-launch-plan-summary">
+            <strong>{selectedOperation.launchPlan.headline}</strong>
+            <p>{selectedOperation.launchPlan.nextAction}</p>
+          </div>
+          <div className="operations-launch-plan-grid" data-testid="react-operations-launch-gates">
+            {(selectedOperation.launchPlan.certificationGates || []).slice(0, 6).map(gate => (
+              <article className={`operations-launch-plan-card ${String(gate.status || '').toLowerCase()}`} key={gate.id}>
+                <span>{gate.score}% · {String(gate.status || 'REVIEW').replace(/_/g, ' ')}</span>
+                <strong>{gate.label}</strong>
+                <p>{gate.detail}</p>
+              </article>
+            ))}
+          </div>
+          <div className="operations-launch-plan-details">
+            <div data-testid="react-operations-launch-runbook">
+              <strong>Role-by-role demo runbook</strong>
+              <ol>
+                {(selectedOperation.launchPlan.demoRunbook || []).slice(0, 8).map(step => (
+                  <li key={step.id}><span>{step.role}</span> {step.label}: {step.detail}</li>
+                ))}
+              </ol>
+            </div>
+            <div data-testid="react-operations-launch-risks">
+              <strong>Launch risks and mitigations</strong>
+              <ul>
+                {(selectedOperation.launchPlan.launchRisks || []).slice(0, 6).map(risk => (
+                  <li key={risk.id}><span>{risk.severity}</span> {risk.label}: {risk.mitigation}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="operations-launch-plan-quality" data-testid="react-operations-launch-quality-gates">
+            {(selectedOperation.launchPlan.qualityGates || []).slice(0, 4).map(gate => (
+              <article key={gate.id}>
+                <span>{gate.status}</span>
+                <strong>{gate.label}</strong>
+                <p>{gate.detail}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+
+      {selectedOperation?.scenarioPlan && (
+        <section className="operations-scenario-plan" aria-labelledby="operations-scenario-plan-heading" data-testid="react-operations-scenario-plan">
+          <div className="operations-scenario-plan-header">
+            <div>
+              <p className="eyebrow">Turnaround scenario plan</p>
+              <h4 id="operations-scenario-plan-heading">Operational resilience drills and contingencies</h4>
+              <p>{selectedOperation.scenarioPlan.summary}</p>
+            </div>
+            <div className={`operations-scenario-plan-score ${String(selectedOperation.scenarioPlan.scenarioStatus || '').toLowerCase()}`} aria-label={`Scenario resilience score ${selectedOperation.scenarioPlan.resilienceScore || 0}%`}>
+              <span>{selectedOperation.scenarioPlan.resilienceScore || 0}%</span>
+              <small>{String(selectedOperation.scenarioPlan.scenarioStatus || 'WATCH_ITEMS_PRESENT').replace(/_/g, ' ')}</small>
+            </div>
+          </div>
+          <div className="operations-scenario-plan-summary" data-testid="react-operations-scenario-plan-summary">
+            <strong>{selectedOperation.scenarioPlan.headline}</strong>
+            <p>Evidence: release {selectedOperation.scenarioPlan.evidence?.releaseStatus}, incident {selectedOperation.scenarioPlan.evidence?.incidentSeverity}, launch {selectedOperation.scenarioPlan.evidence?.launchStatus}, management {selectedOperation.scenarioPlan.evidence?.managementStatus}.</p>
+          </div>
+          <div className="operations-scenario-plan-grid" data-testid="react-operations-scenario-stress-cases">
+            {(selectedOperation.scenarioPlan.stressCases || []).slice(0, 5).map(stressCase => (
+              <article className={`operations-scenario-plan-card ${String(stressCase.status || '').toLowerCase()}`} key={stressCase.id}>
+                <span>{stressCase.resilienceScore}% · {String(stressCase.status || 'REVIEW').replace(/_/g, ' ')}</span>
+                <strong>{stressCase.label}</strong>
+                <p>{stressCase.trigger}</p>
+                <p>{stressCase.response}</p>
+              </article>
+            ))}
+          </div>
+          <div className="operations-scenario-plan-details">
+            <div data-testid="react-operations-scenario-triggers">
+              <strong>Trigger matrix</strong>
+              <ul>
+                {(selectedOperation.scenarioPlan.triggerMatrix || []).slice(0, 5).map(trigger => (
+                  <li key={trigger.id}><span>{trigger.severity}</span> {trigger.owner}: {trigger.trigger}</li>
+                ))}
+              </ul>
+            </div>
+            <div data-testid="react-operations-scenario-actions">
+              <strong>Contingency actions</strong>
+              <ul>
+                {(selectedOperation.scenarioPlan.contingencyActions || []).slice(0, 6).map(action => (
+                  <li key={action.id}><span>{action.priority}</span> {action.owner}: {action.label} — {action.detail}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="operations-scenario-plan-runbook" data-testid="react-operations-scenario-runbook">
+            <strong>Reviewer-safe drill runbook</strong>
+            <ol>
+              {(selectedOperation.scenarioPlan.drillRunbook || []).slice(0, 6).map(step => (
+                <li key={step.id}><span>{step.label}</span> {step.detail}</li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      )}
+
+
       {selectedOperation?.executiveBrief && (
         <section className="operations-executive-brief" aria-labelledby="operations-executive-brief-heading" data-testid="react-operations-executive-brief">
           <div className="operations-executive-brief-header">

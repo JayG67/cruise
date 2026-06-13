@@ -778,3 +778,34 @@ This slice adds a continuation-ready turnaround management status map. The selec
 The dashboard now shows a production-demo completion score, capability-by-capability readiness, remaining hardening work, and recommended next slices. This keeps demo role assumption intact while making it easier to explain where turnaround management stands and where the next development conversation should resume.
 
 Current direction: turnaround management is no longer missing core workflow functionality. Remaining work is mostly flagship-demo polish, portfolio-level comparison, guided reviewer scripting, and deeper data architecture hardening before broader cruise-line outreach.
+
+## Turnaround launch plan slice
+
+The current turnaround management work now includes a reviewer-demo launch plan. The launch plan rolls up release confidence, incident safety, after-action review, reviewer packet readiness, outreach readiness, and management completion into certification gates. It also gives the demo a role-by-role runbook, launch risks with mitigations, and quality gates so the next reviewer walkthrough stays focused and repeatable.
+
+This keeps the application demo-friendly: users can still assume roles freely, while the operational evidence now explains whether the selected turnaround is ready to be used as the flagship cruise-line review scenario.
+
+### Current Slice: Turnaround scenario planning and resilience drills
+
+This slice adds a turnaround scenario plan to the operational dashboard. The plan converts the current turnaround state into stress cases, trigger matrices, contingency actions, and a reviewer-safe drill runbook. It sits after the launch plan and before the executive brief so the demo can show not only normal execution, but also how the platform handles disruption.
+
+Added artifacts:
+- `services/turnaroundScenarioPlan.service.js`
+- `tests/unit/turnaroundScenarioPlan.service.test.js`
+- Turnaround scenario panel in `frontend/react/src/components/ReactRoleDashboard.jsx`
+- Scenario-plan styling in `frontend/react/src/styles/app.css`
+- Static architecture guardrails in `tests/unit/dataArchitecture.static.test.js`
+
+## Current testing-architecture slice: Cypress lifecycle workflows
+
+The current slice changes the testing direction for the turnaround module. Cypress is now the intended home for long-form, soup-to-nuts workflow coverage: start as administrator, create or verify the setup data through the UI, assume operational roles, mutate turnaround workflows, and verify the results from the visible user experience. Mobile Playwright remains important, but its role is responsive reachability, touch safety, viewport overflow, and cross-device rendering rather than owning the longest CRUD lifecycle paths.
+
+This slice also fixes the current mobile Playwright role-selection instability by making named demo-user selection use the deterministic app-level bridge before falling back to hidden select/card interaction. That keeps mobile tests focused on the responsive UX instead of spending the run budget on repeated card-click races in the expanded personnel selector.
+
+New testing direction artifacts:
+- `docs/testing-architecture.md`
+- `cypress/react/reactTurnaroundLifecycleGoal.cy.js`
+- Static guardrails in `tests/unit/cypressSupport.static.test.js`
+- Playwright bridge guardrails in `tests/unit/playwrightCoverage.static.test.js`
+
+Current limitation: the application does not yet expose administrator UI flows for creating every future production entity from a completely blank slate, especially full user/role creation and blank-slate turnaround creation. Until those features exist, the lifecycle Cypress spec protects the intended workflow architecture and exercises the deepest current admin-to-operational flow.

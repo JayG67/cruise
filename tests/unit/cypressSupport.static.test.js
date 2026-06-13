@@ -124,4 +124,22 @@ describe('browser test helper inventory', () => {
       expect(spec).toContain('reactSelectorKeys: rs')
     }
   })
+
+  it('keeps long-form Cypress lifecycle architecture in place for soup-to-nuts turnaround testing', () => {
+    const lifecycleSpecPath = path.join(projectRoot, 'cypress/react/reactTurnaroundLifecycleGoal.cy.js')
+    const lifecycleSpec = fs.readFileSync(lifecycleSpecPath, 'utf8')
+    const testingArchitecture = fs.readFileSync(path.join(projectRoot, 'docs/testing-architecture.md'), 'utf8')
+
+    expect(fs.existsSync(lifecycleSpecPath)).toBe(true)
+    expect(lifecycleSpec).toContain('Turnaround lifecycle soup-to-nuts Cypress architecture')
+    expect(lifecycleSpec).toContain('walks the deepest current admin-to-turnaround role lifecycle')
+    expect(lifecycleSpec).toContain("selectDemoUserByVisibleRole('Turnaround Manager')")
+    expect(lifecycleSpec).toContain("selectDemoUserByVisibleRole('Engineering Lead', 'David Torres')")
+    expect(lifecycleSpec).toContain('Turnaround task created successfully')
+    expect(lifecycleSpec).toContain('Turnaround staffing plan updated successfully')
+    expect(testingArchitecture).toContain('Full lifecycle workflows')
+    expect(testingArchitecture).toContain('Branch workflows')
+    expect(testingArchitecture).toContain('Do not use mobile Playwright as the primary owner of long CRUD lifecycle coverage')
+  })
+
 })

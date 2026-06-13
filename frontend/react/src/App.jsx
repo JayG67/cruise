@@ -96,6 +96,13 @@ export default function App() {
       roleView: getSelectedRoleView(user)
     }))
 
+    window.__cruiseDemoSelectionState = {
+      selectedDemoUserId: selectedDemoUser?.id || '',
+      selectedDemoUserName: selectedDemoUser?.name || selectedDemoUser?.displayName || '',
+      selectedRoleView,
+      selectedRole
+    }
+
     window.__cruiseSelectDemoUser = ({ userId = '', role = '', personText = '' } = {}) => {
       const normalizedPersonText = String(personText || '').trim().toLowerCase()
       const normalizedRole = String(role || '').trim()
@@ -114,8 +121,11 @@ export default function App() {
       }
 
       const targetRole = getSelectedRoleView(matchingUser)
-      setSelectedRole(targetRole)
-      window.setTimeout(() => setSelectedDemoUserId(matchingUser.id), 0)
+      // Select through the same demo-user setter used by the visible UI. The
+      // setter also synchronizes the selected role from the chosen user, which
+      // avoids a mobile Playwright race where setting the role first briefly
+      // selected that role's first user before the requested person landed.
+      setSelectedDemoUserId(matchingUser.id)
       return { ok: true, userId: matchingUser.id, name: matchingUser.name, role: targetRole }
     }
 
@@ -123,7 +133,7 @@ export default function App() {
       delete window.__cruiseDemoUsers
       delete window.__cruiseSelectDemoUser
     }
-  }, [demoUsers, setSelectedDemoUserId, setSelectedRole])
+  }, [demoUsers, selectedDemoUser?.id, selectedDemoUser?.name, selectedDemoUser?.displayName, selectedRole, selectedRoleView, setSelectedDemoUserId, setSelectedRole])
 
   useEffect(() => {
     if (selectedRoleView !== 'admin' || !pendingNavigationSectionId) {

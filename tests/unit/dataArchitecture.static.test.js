@@ -875,3 +875,47 @@ describe('Turnaround management status guardrails', () => {
     expect(styles).toContain('.operations-management-status-grid')
   })
 })
+
+describe('Turnaround launch plan guardrails', () => {
+  it('adds reviewer-demo launch certification gates generated from management and reviewer evidence', () => {
+    const controller = read('controllers/cruise.controller.js')
+    const launchService = read('services/turnaroundLaunchPlan.service.js')
+    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(controller).toContain("const { buildTurnaroundLaunchPlan } = require('../services/turnaroundLaunchPlan.service')")
+    expect(controller).toContain('const launchPlan = buildTurnaroundLaunchPlan({')
+    expect(controller).toContain('launchPlan,')
+    expect(launchService).toContain('function buildTurnaroundLaunchPlan')
+    expect(launchService).toContain('buildCertificationGates')
+    expect(launchService).toContain('buildDemoRunbook')
+    expect(launchService).toContain('READY_FOR_REVIEWER_DEMO')
+    expect(dashboard).toContain('data-testid="react-operations-launch-plan"')
+    expect(dashboard).toContain('selectedOperation.launchPlan.certificationGates')
+    expect(dashboard).toContain('Reviewer demo certification gates')
+    expect(styles).toContain('.operations-launch-plan')
+    expect(styles).toContain('.operations-launch-plan-grid')
+  })
+})
+
+describe('Turnaround scenario plan guardrails', () => {
+  it('adds operational resilience scenarios generated from launch and management evidence', () => {
+    const controller = read('controllers/cruise.controller.js')
+    const scenarioService = read('services/turnaroundScenarioPlan.service.js')
+    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(controller).toContain("const { buildTurnaroundScenarioPlan } = require('../services/turnaroundScenarioPlan.service')")
+    expect(controller).toContain('const scenarioPlan = buildTurnaroundScenarioPlan({')
+    expect(controller).toContain('scenarioPlan,')
+    expect(scenarioService).toContain('function buildTurnaroundScenarioPlan')
+    expect(scenarioService).toContain('buildStressCases')
+    expect(scenarioService).toContain('buildContingencyActions')
+    expect(scenarioService).toContain('NEEDS_CONTINGENCY_REVIEW')
+    expect(dashboard).toContain('data-testid="react-operations-scenario-plan"')
+    expect(dashboard).toContain('selectedOperation.scenarioPlan.stressCases')
+    expect(dashboard).toContain('Operational resilience drills and contingencies')
+    expect(styles).toContain('.operations-scenario-plan')
+    expect(styles).toContain('.operations-scenario-plan-grid')
+  })
+})

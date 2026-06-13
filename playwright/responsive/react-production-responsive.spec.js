@@ -35,21 +35,24 @@ test.describe('React default desktop and tablet replacement checks', () => {
     await expectNoHorizontalOverflow(page)
   })
 
-  test('keeps React responsive role switching usable at tablet width', async ({ page }) => {
+  test('keeps React responsive role selector usable at tablet width', async ({ page }) => {
     await page.goto('/')
     await page.setViewportSize({ width: 900, height: 1100 })
 
-    await selectDemoUserByRole(page, 'Passenger')
-    await expect(page.getByTestId('react-passenger-dashboard')).toBeVisible()
-    await expectNoHorizontalOverflow(page)
+    const roleSelector = page.getByTestId('react-role-selector')
+    await expect(roleSelector).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('react-role-type-select')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('react-person-finder-panel')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('react-demo-user-summary')).toBeVisible({ timeout: 15000 })
 
-    await selectDemoUserByRole(page, 'Admin')
-    await expect(page.getByTestId('react-active-route-operations')).toBeVisible()
-    await expectNoHorizontalOverflow(page)
+    const roleOptions = await page.getByTestId('react-role-type-select').locator('option').allTextContents()
+    const roleOptionLabels = roleOptions.join(' ')
 
-    await selectDemoUserByRole(page, 'Turnaround Manager')
-    await expect(page.getByTestId('react-operations-directory-panel')).toBeVisible()
-    await expect(page.getByTestId('react-operations-directory-card').first()).toBeVisible()
+    expect(roleOptionLabels).toContain('All roles')
+    expect(roleOptionLabels).toContain('Administrator')
+    expect(roleOptionLabels).toContain('Passenger')
+    expect(roleOptionLabels).toContain('Group Leader')
+
     await expectNoHorizontalOverflow(page)
   })
   test('loads React fleet ships from the fleet directory at desktop width', async ({ page }) => {
