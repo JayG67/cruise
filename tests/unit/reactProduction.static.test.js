@@ -24,8 +24,11 @@ describe('Cruise operations product presentation guardrails', () => {
   it('removes user-facing retired implementation-history calls to action from the production React shell', () => {
     const app = read('frontend/react/src/App.jsx')
 
+    expect(app).toContain('Start Employer Demo')
     expect(app).toContain('Open Quality Console')
+    expect(app).toContain('data-testid="react-hero-demo-button"')
     expect(app).toContain('data-testid="react-hero-quality-button"')
+    expect(app).toContain("openWorkspace('react-employer-demo', 'Employer Demo Command Center')")
     expect(app).toContain("openWorkspace('react-quality', 'Quality Console', 'admin')")
     expect(app).not.toContain('Open Retired Pre-React App')
     expect(app).not.toContain('href="/retired"')

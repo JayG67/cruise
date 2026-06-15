@@ -1393,6 +1393,115 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         </section>
       )}
 
+
+      {selectedOperation?.presentationGuide && (
+        <section className={`operations-presentation-guide ${String(selectedOperation.presentationGuide.status || '').toLowerCase()}`} aria-labelledby="operations-presentation-guide-heading" data-testid="react-operations-presentation-guide">
+          <div className="operations-presentation-guide-header">
+            <div>
+              <p className="eyebrow">Five-minute demo guide</p>
+              <h4 id="operations-presentation-guide-heading">{selectedOperation.presentationGuide.headline}</h4>
+              <p>{selectedOperation.presentationGuide.positioning}</p>
+            </div>
+            <div className="operations-presentation-score" aria-label={`Presentation readiness ${selectedOperation.presentationGuide.averageScore || 0}%`}>
+              <span>{selectedOperation.presentationGuide.averageScore || 0}%</span>
+              <small>{String(selectedOperation.presentationGuide.status || 'PRESENTATION_HARDENING').replace(/_/g, ' ')}</small>
+            </div>
+          </div>
+          <div className="operations-presentation-storyline" data-testid="react-operations-presentation-storyline">
+            {(selectedOperation.presentationGuide.storyline || []).slice(0, 5).map(step => (
+              <article className={`operations-presentation-step ${String(step.status || '').toLowerCase()}`} key={step.id}>
+                <span>{step.duration}</span>
+                <strong>{step.label}</strong>
+                <p>{step.detail}</p>
+              </article>
+            ))}
+          </div>
+          <div className="operations-presentation-focus-grid">
+            <div data-testid="react-operations-presentation-focus">
+              <strong>Presenter focus</strong>
+              <p>{selectedOperation.presentationGuide.focus?.priority}</p>
+              <ul>
+                {(selectedOperation.presentationGuide.focus?.talkingPoints || []).slice(0, 6).map(point => (
+                  <li key={point}>{point}</li>
+                ))}
+              </ul>
+            </div>
+            <div data-testid="react-operations-presentation-risks">
+              <strong>Demo risks and mitigations</strong>
+              <ul>
+                {(selectedOperation.presentationGuide.risks || []).slice(0, 4).map(risk => (
+                  <li key={risk.id}><span>{risk.label}</span> {risk.mitigation}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="operations-presentation-freeze" data-testid="react-operations-presentation-freeze">
+            <strong>Freeze recommendation</strong>
+            <p>{selectedOperation.presentationGuide.freezeRecommendation}</p>
+          </div>
+        </section>
+      )}
+
+      {selectedOperation?.lifecycleState && (
+        <section className={`operations-lifecycle ${String(selectedOperation.lifecycleState.status || '').toLowerCase()}`} aria-labelledby="operations-lifecycle-heading" data-testid="react-operations-lifecycle-state">
+          <div className="operations-lifecycle-header">
+            <div>
+              <p className="eyebrow">Turnaround lifecycle</p>
+              <h4 id="operations-lifecycle-heading">{selectedOperation.lifecycleState.currentPhaseLabel} command path</h4>
+              <p>{selectedOperation.lifecycleState.completionLanguage}</p>
+            </div>
+            <div className="operations-lifecycle-score" aria-label={`Lifecycle completion ${selectedOperation.lifecycleState.completionPercent || 0}%`}>
+              <span>{selectedOperation.lifecycleState.completionPercent || 0}%</span>
+              <small>{String(selectedOperation.lifecycleState.status || 'IN_PROGRESS').replace(/_/g, ' ')}</small>
+            </div>
+          </div>
+          <div className="operations-lifecycle-story" data-testid="react-operations-lifecycle-story">
+            {(selectedOperation.lifecycleState.storyBeats || []).map(beat => (
+              <span key={beat}>{beat}</span>
+            ))}
+          </div>
+          <div className="operations-lifecycle-phase-grid" data-testid="react-operations-lifecycle-phases">
+            {(selectedOperation.lifecycleState.phases || []).map(phase => (
+              <article className={`operations-lifecycle-phase ${String(phase.status || '').toLowerCase()}`} key={phase.id}>
+                <span>{phase.sequence}. {phase.label}</span>
+                <strong>{phase.percentComplete}%</strong>
+                <p>{phase.description}</p>
+                {phase.blockers?.length > 0 && <em>{phase.blockers.join(' · ')}</em>}
+              </article>
+            ))}
+          </div>
+          <div className="operations-lifecycle-details">
+            <div data-testid="react-operations-lifecycle-blockers">
+              <strong>Completion blockers</strong>
+              {selectedOperation.lifecycleState.finalBlockers?.length > 0 ? (
+                <ul>
+                  {selectedOperation.lifecycleState.finalBlockers.slice(0, 6).map(blocker => (
+                    <li key={blocker.id}><span>{blocker.type}</span> {blocker.label}: {blocker.detail}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No lifecycle blockers remain.</p>
+              )}
+            </div>
+            <div data-testid="react-operations-lifecycle-departments">
+              <strong>Department readiness</strong>
+              <ul>
+                {(selectedOperation.lifecycleState.departmentReadiness || []).slice(0, 6).map(department => (
+                  <li key={department.departmentRole}>
+                    <span>{department.ready ? 'Ready' : 'Open'}</span> {department.departmentRole}: {department.taskCompletionPercent}% tasks · {department.openEscalations} escalations · {department.openDependencies} dependencies
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="operations-lifecycle-next-action" data-testid="react-operations-lifecycle-next-action">
+            <strong>Next best action</strong>
+            <p>{selectedOperation.lifecycleState.nextBestAction}</p>
+          </div>
+        </section>
+      )}
+
+
       {selectedOperation?.releasePacket && (
         <section className={`operations-release-packet ${String(selectedOperation.releasePacket.releaseStatus || '').toLowerCase()}`} aria-labelledby="operations-release-packet-heading" data-testid="react-operations-release-packet">
           <div className="operations-release-packet-header">
@@ -1862,6 +1971,251 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                 <li key={step.id}><span>{step.label}</span> {step.detail}</li>
               ))}
             </ol>
+          </div>
+        </section>
+      )}
+
+
+      {selectedOperation?.productionReadiness && (
+        <section className="operations-production-readiness" aria-labelledby="operations-production-readiness-heading" data-testid="react-operations-production-readiness">
+          <div className="operations-production-readiness-header">
+            <div>
+              <p className="eyebrow">Production readiness cockpit</p>
+              <h4 id="operations-production-readiness-heading">Reviewer demo readiness and test ownership</h4>
+              <p>{selectedOperation.productionReadiness.summary}</p>
+            </div>
+            <div className={`operations-production-readiness-score ${String(selectedOperation.productionReadiness.productionStatus || '').toLowerCase()}`} aria-label={`Production readiness score ${selectedOperation.productionReadiness.productionScore || 0}%`}>
+              <span>{selectedOperation.productionReadiness.productionScore || 0}%</span>
+              <small>{String(selectedOperation.productionReadiness.productionStatus || 'NEEDS_HARDENING').replace(/_/g, ' ')}</small>
+            </div>
+          </div>
+          <div className="operations-production-readiness-summary" data-testid="react-operations-production-readiness-summary">
+            <strong>{selectedOperation.productionReadiness.headline}</strong>
+            <p>{selectedOperation.productionReadiness.nextAction}</p>
+          </div>
+          <div className="operations-production-readiness-grid" data-testid="react-operations-production-readiness-gates">
+            {(selectedOperation.productionReadiness.gates || []).slice(0, 8).map(gate => (
+              <article className={`operations-production-readiness-card ${String(gate.status || '').toLowerCase()}`} key={gate.id}>
+                <span>{gate.readinessScore}% · {String(gate.status || 'REVIEW').replace(/_/g, ' ')}</span>
+                <strong>{gate.label}</strong>
+                <p>{gate.detail}</p>
+              </article>
+            ))}
+          </div>
+          <div className="operations-production-readiness-details">
+            <div data-testid="react-operations-production-readiness-blockers">
+              <strong>Production-demo blockers</strong>
+              <ul>
+                {(selectedOperation.productionReadiness.blockers || []).slice(0, 8).map(blocker => (
+                  <li key={blocker.id}><span>{blocker.severity}</span> {blocker.owner}: {blocker.detail}</li>
+                ))}
+              </ul>
+            </div>
+            <div data-testid="react-operations-production-readiness-testing-contract">
+              <strong>Testing ownership contract</strong>
+              <ul>
+                {(selectedOperation.productionReadiness.testingContract || []).slice(0, 4).map(item => (
+                  <li key={item.id}><span>{item.layer}</span> {item.status}: {item.coverage}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="operations-production-readiness-runbook" data-testid="react-operations-production-readiness-runbook">
+            <strong>Production-demo runbook</strong>
+            <ol>
+              {(selectedOperation.productionReadiness.runbook || []).slice(0, 8).map(step => (
+                <li key={step.id}><span>{step.label}</span> {step.owner}: {step.detail}</li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      )}
+
+
+      {selectedOperation?.applicationDossier && (
+        <section className="operations-application-dossier" aria-labelledby="operations-application-dossier-heading" data-testid="react-operations-application-dossier">
+          <div className="operations-application-dossier-header">
+            <div>
+              <p className="eyebrow">Application dossier</p>
+              <h4 id="operations-application-dossier-heading">Cruise-line application proof package</h4>
+              <p>{selectedOperation.applicationDossier.summary}</p>
+            </div>
+            <div className={`operations-application-dossier-score ${String(selectedOperation.applicationDossier.dossierStatus || '').toLowerCase()}`} aria-label={`Application dossier score ${selectedOperation.applicationDossier.dossierScore || 0}%`}>
+              <span>{selectedOperation.applicationDossier.dossierScore || 0}%</span>
+              <small>{String(selectedOperation.applicationDossier.dossierStatus || 'NEEDS_PROOF_HARDENING').replace(/_/g, ' ')}</small>
+            </div>
+          </div>
+          <div className="operations-application-dossier-summary" data-testid="react-operations-application-dossier-summary">
+            <strong>{selectedOperation.applicationDossier.reviewerNarrative?.headline}</strong>
+            <p>{selectedOperation.applicationDossier.nextAction}</p>
+            <p>{selectedOperation.applicationDossier.reviewerNarrative?.opener}</p>
+          </div>
+          <div className="operations-application-dossier-grid" data-testid="react-operations-application-dossier-evidence">
+            {(selectedOperation.applicationDossier.evidenceSections || []).slice(0, 5).map(section => (
+              <article className={`operations-application-dossier-card ${String(section.readiness || '').toLowerCase()}`} key={section.id}>
+                <span>{section.score}% · {String(section.readiness || 'REVIEW').replace(/_/g, ' ')}</span>
+                <strong>{section.label}</strong>
+                <p>{section.detail}</p>
+                <small>{section.status}</small>
+              </article>
+            ))}
+          </div>
+          <div className="operations-application-dossier-details">
+            <div data-testid="react-operations-application-dossier-checklist">
+              <strong>Application checklist</strong>
+              <ul>
+                {(selectedOperation.applicationDossier.checklist || []).slice(0, 8).map(item => (
+                  <li key={item.id}><span>{item.status}</span> {item.label}: {item.detail}</li>
+                ))}
+              </ul>
+            </div>
+            <div data-testid="react-operations-application-dossier-narrative">
+              <strong>Reviewer narrative</strong>
+              <ul>
+                <li>{selectedOperation.applicationDossier.reviewerNarrative?.strongestProof}</li>
+                <li>{selectedOperation.applicationDossier.reviewerNarrative?.weakestProof}</li>
+                <li>{selectedOperation.applicationDossier.reviewerNarrative?.close}</li>
+              </ul>
+            </div>
+          </div>
+          <div className="operations-application-dossier-steps" data-testid="react-operations-application-dossier-next-steps">
+            <strong>Next application steps</strong>
+            <ol>
+              {(selectedOperation.applicationDossier.nextApplicationSteps || []).slice(0, 5).map(step => (
+                <li key={step.id}><span>{step.priority}</span> {step.owner}: {step.detail}</li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      )}
+
+
+      {selectedOperation?.commandCenter && (
+        <section className="operations-command-center" aria-labelledby="operations-command-center-heading" data-testid="react-operations-command-center">
+          <div className="operations-command-center-header">
+            <div>
+              <p className="eyebrow">Turnaround command center</p>
+              <h4 id="operations-command-center-heading">Live management board from assignment through closeout</h4>
+              <p>{selectedOperation.commandCenter.commanderBrief?.summary}</p>
+            </div>
+            <div className={`operations-command-center-score ${String(selectedOperation.commandCenter.commandStatus || '').toLowerCase()}`} aria-label={`Command center score ${selectedOperation.commandCenter.commandScore || 0}%`}>
+              <span>{selectedOperation.commandCenter.commandScore || 0}%</span>
+              <small>{String(selectedOperation.commandCenter.commandStatus || 'ACTIVE_COMMAND').replace(/_/g, ' ')}</small>
+            </div>
+          </div>
+          <div className="operations-command-center-brief" data-testid="react-operations-command-center-brief">
+            <strong>{selectedOperation.commandCenter.commanderBrief?.headline}</strong>
+            <p>{selectedOperation.commandCenter.commanderBrief?.nextDecision}</p>
+            <p>{selectedOperation.commandCenter.commanderBrief?.activePhase}</p>
+          </div>
+          <dl className="operations-command-center-kpis" aria-label="Turnaround command center KPIs" data-testid="react-operations-command-center-kpis">
+            {(selectedOperation.commandCenter.kpis || []).slice(0, 6).map(kpi => (
+              <div key={kpi.id}>
+                <dt>{kpi.label}</dt>
+                <dd>{kpi.value}</dd>
+                <small>{kpi.detail}</small>
+              </div>
+            ))}
+          </dl>
+          <div className="operations-command-center-grid">
+            <div data-testid="react-operations-command-center-decisions">
+              <strong>Command decision queue</strong>
+              <ol>
+                {(selectedOperation.commandCenter.decisionQueue || []).slice(0, 8).map(decision => (
+                  <li key={decision.id}><span>{decision.severity}</span> {decision.owner}: {decision.decision}. {decision.action}</li>
+                ))}
+              </ol>
+            </div>
+            <div data-testid="react-operations-command-center-critical-path">
+              <strong>Critical path</strong>
+              <ol>
+                {(selectedOperation.commandCenter.criticalPath || []).slice(0, 6).map(phase => (
+                  <li key={phase.id}><span>{phase.score}% · {phase.status}</span> {phase.label}: {phase.evidence}</li>
+                ))}
+              </ol>
+            </div>
+          </div>
+          <div className="operations-command-center-departments" data-testid="react-operations-command-center-departments">
+            <strong>Department command board</strong>
+            <div className="operations-command-center-department-grid">
+              {(selectedOperation.commandCenter.departmentBoard || []).slice(0, 8).map(department => (
+                <article key={department.departmentRole}>
+                  <span>{department.readinessScore}% · {department.status}</span>
+                  <strong>{department.departmentRole}</strong>
+                  <p>{department.nextAction}</p>
+                  <small>{department.taskCount} tasks · {department.openEscalations} escalations · {department.signoffCompletion}% signoff</small>
+                </article>
+              ))}
+            </div>
+          </div>
+          <div className="operations-command-center-handoffs" data-testid="react-operations-command-center-handoffs">
+            <strong>Handoff timeline</strong>
+            <ul>
+              {(selectedOperation.commandCenter.handoffTimeline || []).slice(0, 8).map(handoff => (
+                <li key={handoff.id}><span>{handoff.dueTime} · {handoff.status}</span> {handoff.owner}: {handoff.detail}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+
+      {selectedOperation?.closeoutPacket && (
+        <section className="operations-closeout-packet" aria-labelledby="operations-closeout-packet-heading" data-testid="react-operations-closeout-packet">
+          <div className="operations-closeout-packet-header">
+            <div>
+              <p className="eyebrow">Turnaround closeout packet</p>
+              <h4 id="operations-closeout-packet-heading">Final management closeout and reusable operation proof</h4>
+              <p>{selectedOperation.closeoutPacket.narrative?.summary}</p>
+            </div>
+            <div className={`operations-closeout-packet-score ${String(selectedOperation.closeoutPacket.closeoutStatus || '').toLowerCase()}`} aria-label={`Closeout score ${selectedOperation.closeoutPacket.closeoutScore || 0}%`}>
+              <span>{selectedOperation.closeoutPacket.closeoutScore || 0}%</span>
+              <small>{String(selectedOperation.closeoutPacket.closeoutStatus || 'NOT_READY_TO_CLOSE').replace(/_/g, ' ')}</small>
+            </div>
+          </div>
+          <div className="operations-closeout-packet-summary" data-testid="react-operations-closeout-summary">
+            <strong>{selectedOperation.closeoutPacket.narrative?.headline}</strong>
+            <p>{selectedOperation.closeoutPacket.narrative?.statusLine}</p>
+            <p>{selectedOperation.closeoutPacket.narrative?.recommendation}</p>
+          </div>
+          <div className="operations-closeout-packet-grid" data-testid="react-operations-closeout-gates">
+            {(selectedOperation.closeoutPacket.gates || []).slice(0, 8).map(gate => (
+              <article className={`operations-closeout-packet-card ${String(gate.status || '').toLowerCase()}`} key={gate.id}>
+                <span>{gate.readinessScore}% · {String(gate.status || 'REVIEW').replace(/_/g, ' ')}</span>
+                <strong>{gate.label}</strong>
+                <p>{gate.detail}</p>
+              </article>
+            ))}
+          </div>
+          <div className="operations-closeout-packet-details">
+            <div data-testid="react-operations-closeout-checklist">
+              <strong>Final closeout checklist</strong>
+              <ol>
+                {(selectedOperation.closeoutPacket.checklist || []).slice(0, 8).map(item => (
+                  <li key={item.id}><span>{item.status}</span> {item.label}: {item.detail}</li>
+                ))}
+              </ol>
+            </div>
+            <div data-testid="react-operations-closeout-blockers">
+              <strong>Closeout blockers and watch items</strong>
+              <ul>
+                {(selectedOperation.closeoutPacket.blockers || []).slice(0, 8).map(blocker => (
+                  <li key={blocker.id}><span>{blocker.severity}</span> {blocker.owner}: {blocker.detail}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="operations-closeout-packet-archive" data-testid="react-operations-closeout-evidence-archive">
+            <strong>Evidence archive</strong>
+            <div className="operations-closeout-packet-archive-grid">
+              {(selectedOperation.closeoutPacket.evidenceArchive || []).slice(0, 6).map(evidence => (
+                <article key={evidence.id}>
+                  <span>{evidence.status}</span>
+                  <strong>{evidence.label}</strong>
+                  <p>{evidence.detail}</p>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
       )}

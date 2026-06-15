@@ -13,10 +13,12 @@ describe('Cruise operations product surface coverage', () => {
     cy.getByTestId(rs.activeRouteEvidencePanel).should('not.exist')
     cy.contains('Portfolio evidence for cruise-line software engineering roles').should('not.exist')
     cy.contains('Cruise operations command center').should('not.exist')
+    cy.getByTestId(rs.employerDemoCommandCenter).should('be.visible')
   })
 
   it('keeps product shortcuts focused on real application sections', () => {
     cy.getByTestId(rs.productionHero).within(() => {
+      cy.getByTestId(rs.heroDemoButton).should('contain.text', 'Start Employer Demo')
       cy.getByTestId(rs.heroOperationsButton).should('contain.text', 'Review Operations')
       cy.getByTestId(rs.heroQualityButton).should('contain.text', 'Open Quality Console')
       cy.get('a[href="/retired"]').should('not.exist')
@@ -24,6 +26,8 @@ describe('Cruise operations product surface coverage', () => {
   })
 
   it('scrolls workspace controls to live application sections', () => {
+    cy.getByTestId(rs.workspaceDemoButton).click()
+    cy.getByTestId(rs.employerDemoCommandCenter).should('be.visible')
     cy.getByTestId(rs.workspaceRoleButton).click()
     cy.getByTestId(rs.roleSelector).should('be.visible')
     cy.getByTestId(rs.workspaceOperationsButton).click()
@@ -35,6 +39,8 @@ describe('Cruise operations product surface coverage', () => {
   })
 
   it('keeps recommended workflow controls wired to application sections', () => {
+    cy.getByTestId(rs.workflowDemoButton).click()
+    cy.getByTestId(rs.employerDemoCommandCenter).should('be.visible')
     cy.getByTestId(rs.workflowRoleButton).click()
     cy.getByTestId(rs.roleSelector).should('be.visible')
     cy.getByTestId(rs.workflowOperationsButton).click()
@@ -46,21 +52,25 @@ describe('Cruise operations product surface coverage', () => {
   })
 
   it('keeps role selector, operations, fleet, and quality controls in product order', () => {
-    cy.getByTestId(rs.roleSelector).then($roleSelector => {
+    cy.getByTestId(rs.employerDemoCommandCenter).then($demo => {
+      cy.getByTestId(rs.roleSelector).then($roleSelector => {
       cy.getByTestId(rs.activeRouteOperations).then($operations => {
         cy.getByTestId(rs.fleetDirectory).then($fleet => {
           cy.getByTestId(rs.sqaConsole).then($sqa => {
+            const demo = $demo[0]
             const roleSelector = $roleSelector[0]
             const operations = $operations[0]
             const fleet = $fleet[0]
             const sqa = $sqa[0]
 
+            expect(Boolean(demo.compareDocumentPosition(roleSelector) & Node.DOCUMENT_POSITION_FOLLOWING)).to.equal(true)
             expect(Boolean(roleSelector.compareDocumentPosition(operations) & Node.DOCUMENT_POSITION_FOLLOWING)).to.equal(true)
             expect(Boolean(operations.compareDocumentPosition(fleet) & Node.DOCUMENT_POSITION_FOLLOWING)).to.equal(true)
             expect(Boolean(fleet.compareDocumentPosition(sqa) & Node.DOCUMENT_POSITION_FOLLOWING)).to.equal(true)
           })
         })
       })
+    })
     })
   })
 

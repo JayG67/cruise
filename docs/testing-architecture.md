@@ -28,3 +28,16 @@ The full start-from-nothing administrator capability does not yet exist for ever
 ## Required Direction for Future Slices
 
 Every future turnaround-management feature should add or extend Cypress lifecycle coverage. A feature is not considered production-demo complete until there is Cypress coverage that proves the role can use it through the UI, mutate it, and verify the result from another relevant view when applicable.
+
+## Portfolio Soup-to-Nuts Workflow Contract
+
+The current Cypress contract now includes a portfolio-level journey suite in addition to feature-specific specs. That suite must remain broad enough to prove the application can be demonstrated to an employer from start to finish:
+
+1. Start from the employer demo command center and confirm every primary workspace is reachable.
+2. Create or verify core administrative data: cruise line, ship, sailing, itinerary day, and itinerary activity.
+3. Drive passenger self-service from cruise search through a verified booking request.
+4. Switch to group leader and prove scoped visibility rules after passenger booking activity.
+5. Create/assign turnaround personnel from admin setup, then assume operational roles and mutate command, task, staffing, signoff, lifecycle, and presentation evidence.
+6. Finish in the quality console by proving health, contract validation, reset safety, and presentation proof remain accessible.
+
+This portfolio workflow is not a replacement for detailed feature specs. It is a high-level acceptance journey that protects the product story. Detailed Cypress specs should continue to cover validation, cancellation, API failure, and edge cases.

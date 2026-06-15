@@ -773,3 +773,31 @@ export async function resetDemoData(options = {}) {
     method: 'POST'
   })
 }
+
+export async function getTurnaroundAdminSetup(options = {}) {
+  return requestJson('/cruise/turnaround-admin/setup', getScopedRequestOptions(options))
+}
+
+export async function createTurnaroundPerson(payload, options = {}) {
+  return requestJson('/cruise/turnaround-admin/people', {
+    ...getScopedRequestOptions(options),
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(getScopedRequestOptions(options).headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function updateTurnaroundPerson(personId, payload, options = {}) {
+  return requestJson(`/cruise/turnaround-admin/people/${encodeURIComponent(personId)}`, {
+    ...getScopedRequestOptions(options),
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(getScopedRequestOptions(options).headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}

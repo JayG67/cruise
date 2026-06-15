@@ -35,6 +35,8 @@ The current production UI is implemented in React. Earlier migration work is com
 
 The project currently includes:
 
+The latest presentation-hardening slice adds an in-app Employer Demo Command Center that gives reviewers a five-minute guided path through the strongest proof points: scoped turnaround setup, role-aware UX, operational lifecycle execution, fleet data ownership, and quality-gate strategy.
+
 - Cruise line, ship, sailing, itinerary, customer, booking, and passenger data workflows
 - Admin, passenger, and group-leader demo roles
 - Workspace-first navigation for faster movement through operational areas
@@ -57,7 +59,9 @@ This repository is intentionally maintained as a recruiter-facing engineering an
 
 ## 🚦 Current Production Readiness Status
 
-The current operations experience has completed the major turnaround management UX slices: selected-turnaround workflow, operations navigation, tasks, dependencies, handoffs, escalations, staffing, readiness approvals, role-specific command briefs, audit history, release-packet readiness review, unified operational timeline, playbook variance rehearsal, product-language hardening, and Playwright stability hardening.
+Current presentation status: the default React surface now opens with a reviewer-facing demo command center before the workspace stack. Use it as the primary employer-demo entry point, then move into role selector, turnaround setup, fleet CRUD, and quality console from the guided run-of-show.
+
+The current operations experience has completed the major turnaround management UX slices: selected-turnaround workflow, operations navigation, tasks, dependencies, handoffs, escalations, staffing, readiness approvals, role-specific command briefs, audit history, release-packet readiness review, unified operational timeline, playbook variance rehearsal, production readiness cockpit, cruise-line application dossier, product-language hardening, and Playwright stability hardening.
 
 Before a public presentation or production-style deployment, use the in-app Quality Console and the go-live manual review guide to confirm:
 
@@ -66,6 +70,7 @@ Before a public presentation or production-style deployment, use the in-app Qual
 - Fleet, customer, booking, passenger, and quality workflows are reachable at desktop, tablet, and mobile sizes.
 - User-facing language presents a real cruise operations product, not the internal development process.
 - Automated and manual checks both support approval.
+- The application dossier ties admin CRUD proof, turnaround role execution, reviewer narrative, production readiness, and testing ownership into one cruise-line application package.
 
 Current engineering phase: Data Architecture Hardening with normalized users/roles and an Operational ownership attribution bridge is underway. Completed hardening now includes production query indexes, shared reference-data contracts, database `CHECK` constraints, typed date/time migration bridge columns, and normalized user/role bridge tables for production identity compatibility. The next data-hardening passes should deepen user/role normalization into owner and approver foreign keys, add audit history, introduce multi-cruise-line tenancy, and eventually move application writes fully onto typed temporal columns. See [docs/data-architecture-hardening.md](docs/data-architecture-hardening.md).
 
@@ -809,3 +814,139 @@ New testing direction artifacts:
 - Playwright bridge guardrails in `tests/unit/playwrightCoverage.static.test.js`
 
 Current limitation: the application does not yet expose administrator UI flows for creating every future production entity from a completely blank slate, especially full user/role creation and blank-slate turnaround creation. Until those features exist, the lifecycle Cypress spec protects the intended workflow architecture and exercises the deepest current admin-to-operational flow.
+
+## Current production-readiness cockpit slice
+
+This slice adds a production readiness cockpit to each selected turnaround operation. It consolidates release confidence, workflow completion, department signoffs, incident control, launch readiness, scenario resilience, management maturity, reviewer package readiness, and outreach readiness into one server-derived payload and React dashboard panel.
+
+The cockpit also formalizes the testing ownership boundary that came out of the recent Playwright churn: Cypress owns long-form soup-to-nuts CRUD and role workflow coverage, while Playwright owns responsive reachability, viewport safety, overflow checks, and selector stability. That boundary is now visible in the product as a testing contract and protected by static guardrails.
+
+Added artifacts:
+- `services/turnaroundProductionReadiness.service.js`
+- `tests/unit/turnaroundProductionReadiness.service.test.js`
+- Production readiness panel in `frontend/react/src/components/ReactRoleDashboard.jsx`
+- Production readiness styling in `frontend/react/src/styles/app.css`
+- Static architecture guardrails in `tests/unit/dataArchitecture.static.test.js`
+
+Current direction: the turnaround module is now strong enough for a flagship reviewer demo path. The next large work should either add true blank-slate admin creation flows for users/roles/turnaround operations or start decomposing the large cruise controller into smaller production services while keeping Cypress lifecycle coverage as the full-workflow safety net.
+
+## Current cruise-line application dossier slice
+
+This slice adds a cruise-line application dossier to each selected turnaround operation. It builds on the production readiness cockpit and turns the accumulated turnaround evidence into a recruiter/reviewer-facing proof package: production-demo proof, workflow proof, reviewer proof, resilience proof, audit proof, application checklist, reviewer narrative, and next application steps.
+
+The dossier is intended to support applying the platform to additional cruise lines while keeping the testing architecture stable. Cypress remains the owner of soup-to-nuts workflow evidence, and Playwright remains scoped to responsive reachability and layout stability so brittle browser role-switching does not keep blocking application progress.
+
+Added artifacts:
+- `services/turnaroundApplicationDossier.service.js`
+- `tests/unit/turnaroundApplicationDossier.service.test.js`
+- Application dossier panel in `frontend/react/src/components/ReactRoleDashboard.jsx`
+- Application dossier styling in `frontend/react/src/styles/app.css`
+- Static architecture guardrails in `tests/unit/dataArchitecture.static.test.js`
+
+Current direction: the turnaround module now has both operational execution depth and a reviewer-facing application story. The next very large slice should focus on blank-slate admin creation paths for turnaround operations/users/roles or begin decomposing the large cruise controller into smaller production-grade service/controller modules.
+
+## Current big slice: Turnaround Admin Setup + Cypress Lifecycle Contract Part 1
+
+This slice starts the final presentation-hardening path for turnaround management by adding an administrator-facing setup foundation instead of another reviewer summary panel.
+
+What changed:
+- Admins now get a Turnaround Setup workspace in the React application.
+- The setup panel can create turnaround operational people from the UI.
+- Created people are stored through the existing demo-user compatibility model so role switching remains open and portfolio-demo friendly.
+- Each turnaround person is validated against exactly one cruise line.
+- Ship assignments are optional, but when selected they must belong to the selected cruise line.
+- Sailing selection is exposed as the first Cypress lifecycle contract seam so the future soup-to-nuts spec can create/select cruise line, ship, sailing, people, and role assignments before driving operational work.
+- The React client now includes turnaround-admin setup read/create/update API functions.
+- Server-side admin setup routes are protected by the existing admin request guard and emit audit events.
+- Cypress now has the first visible admin-created personnel assignment contract in `reactTurnaroundLifecycleGoal.cy.js`.
+- Static Jest guardrails protect the new admin setup service, routes, validation schema, React panel, and client functions.
+
+Updated artifacts:
+- `services/turnaroundAdminSetup.service.js`
+- `controllers/cruise.controller.js`
+- `routes/cruise.routes.js`
+- `validation/cruise.validation.js`
+- `frontend/react/src/api/client.js`
+- `frontend/react/src/components/ReactTurnaroundAdminSetup.jsx`
+- `frontend/react/src/App.jsx`
+- `frontend/react/src/styles/app.css`
+- `cypress/react/support/reactSelectors.js`
+- `cypress/react/support/reactTestHelpers.js`
+- `cypress/react/reactTurnaroundLifecycleGoal.cy.js`
+- `tests/unit/turnaroundAdminSetup.service.test.js`
+
+Current direction: next slice should deepen this into the full lifecycle contract: create/select the operational world, switch into each created role, complete each department workflow, resolve blockers/handoffs/escalations, approve signoffs, and verify final readiness. Cypress continues to own this soup-to-nuts journey; Playwright should stay limited to responsive/mobile smoke coverage.
+
+## Current very big slice: Turnaround Lifecycle State Engine + Presentation Path
+
+This slice gives turnaround management a clear beginning, middle, and completion story instead of only showing separate operational panels. Each turnaround operation now receives a server-derived lifecycle state with eight presentation phases: Setup, Pre-arrival, Disembarkation, Cleaning / reset, Provisioning, Embarkation, Final readiness, and Completed.
+
+What changed:
+- Added a lifecycle state service that computes weighted progress, the current lifecycle phase, completion status, phase blockers, department readiness, final blockers, story beats, and the next best action.
+- The lifecycle model counts completed tasks, blocked tasks, unresolved escalations, open dependencies, open handoffs, staffing coverage, and unapproved department signoffs.
+- Turnaround operation payloads now include `lifecycleState` alongside release packets, metrics, playbooks, management status, launch plans, production readiness, and the application dossier.
+- The React operations dashboard now presents the lifecycle story immediately after the release board so reviewers can see the operation move from setup to completed.
+- The lifecycle panel includes the phase grid, blocker list, department readiness list, and a next-best-action callout.
+- Cypress lifecycle coverage now asserts that the command path shows Setup through Completed and that task blockers flow into the lifecycle blocker panel.
+- Unit coverage now protects the lifecycle engine, completed-state rules, department readiness summarization, and bounded percent calculations.
+- Static React guardrails protect the lifecycle payload wiring, React test IDs, and lifecycle styling.
+
+Updated artifacts:
+- `services/turnaroundLifecycle.service.js`
+- `controllers/cruise.controller.js`
+- `frontend/react/src/components/ReactRoleDashboard.jsx`
+- `frontend/react/src/styles/app.css`
+- `cypress/react/support/reactSelectors.js`
+- `cypress/react/reactTurnaroundLifecycleGoal.cy.js`
+- `tests/unit/turnaroundLifecycle.service.test.js`
+- `tests/unit/reactComponentContracts.static.test.js`
+- `README.md`
+
+Current direction: the next very large slice should complete the lifecycle workflow contract end-to-end in Cypress: resolve blockers, clear dependencies, complete handoffs, approve signoffs, switch through each operational role, and verify that the lifecycle reaches Completed with reviewer-facing panels reflecting the completed state.
+
+## Current very big slice: Turnaround Presentation Guide + Demo Freeze Path
+
+This slice adds a focused five-minute presentation guide to the turnaround operations dashboard. The goal is to stop burying the best employer-demo story inside many separate operational/reviewer panels and give the presenter a clear run of show: admin setup, role execution, manager progress, provable readiness, and portfolio value.
+
+What changed:
+- Added a presentation guide service that derives demo readiness from lifecycle state, release packet, executive brief, reviewer packet, management status, launch plan, production readiness, and application dossier scores.
+- The guide builds a five-step employer-demo storyline with timestamps, demo status, presenter focus, talking points, risks, mitigations, and a freeze recommendation.
+- Turnaround operation payloads now include `presentationGuide` so the same live operational state drives both workflow execution and presentation planning.
+- The React operations dashboard now renders a Five-minute demo guide above the lifecycle board, making the primary presentation path obvious before drilling into detailed panels.
+- Cypress lifecycle coverage now verifies that the presentation guide, storyline, focus, risk, and freeze recommendation stay visible during the soup-to-nuts turnaround workflow.
+- Static and unit guardrails protect the presentation guide service, payload wiring, React rendering contract, selector map, and Cypress fixture hydration.
+
+Updated artifacts:
+- `services/turnaroundPresentation.service.js`
+- `controllers/cruise.controller.js`
+- `frontend/react/src/domain/roleView.js`
+- `frontend/react/src/components/ReactRoleDashboard.jsx`
+- `frontend/react/src/styles/app.css`
+- `cypress/react/support/reactSelectors.js`
+- `cypress/react/support/reactTestHelpers.js`
+- `cypress/react/reactTurnaroundLifecycleGoal.cy.js`
+- `tests/unit/turnaroundPresentation.service.test.js`
+- `tests/unit/reactComponentContracts.static.test.js`
+- `tests/unit/cypressSupport.static.test.js`
+
+Current direction: after this presentation guide is stable, the next slice should be the true lifecycle completion contract: drive each role through its work, resolve blockers/dependencies/handoffs/escalations, approve signoffs, and assert the lifecycle reaches Completed. Once that passes consistently, freeze turnaround expansion and move to Jay-led UX cleanup across the whole application.
+
+## Current very big slice: Portfolio Soup-to-Nuts Cypress Workflow Coverage
+
+This slice broadens the project from individual feature checks into an employer-demo workflow suite that walks the product from beginning setup through operational completion evidence. The goal is to prove the strongest application stories end to end instead of relying only on isolated CRUD tests.
+
+What changed:
+- Added `reactPortfolioSoupToNuts.cy.js`, a Cypress suite that runs the employer demo runway through every live workspace.
+- Added an admin setup journey that creates a cruise line, starter ship, operational ship, sailing, itinerary day, and itinerary activity through visible React workflows.
+- Added a passenger journey that searches trip inventory, creates a booking request, verifies the refreshed booking card, and then switches to group-leader visibility to prove scope boundaries.
+- Added a turnaround journey that starts from admin personnel setup, switches through manager, housekeeping, and engineering roles, updates command planning, task work, staffing, signoffs, lifecycle evidence, and presentation guide output.
+- Added a quality-console finish that verifies health, contract validation, reset confirmation safety, and employer-demo proof evidence from the same product surface.
+- Extended static Cypress guardrails so the new soup-to-nuts portfolio spec is treated as required workflow architecture rather than optional coverage.
+
+Updated artifacts:
+- `cypress/react/reactPortfolioSoupToNuts.cy.js`
+- `tests/unit/cypressSupport.static.test.js`
+- `docs/testing-architecture.md`
+- `README.md`
+
+Current direction: continue adding future product capabilities into this soup-to-nuts Cypress layer first. Playwright should remain mobile/responsive smoke coverage only, while Cypress owns long workflow proof from setup through visible completion.

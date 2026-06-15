@@ -919,3 +919,78 @@ describe('Turnaround scenario plan guardrails', () => {
     expect(styles).toContain('.operations-scenario-plan-grid')
   })
 })
+
+describe('Turnaround production readiness cockpit guardrails', () => {
+  it('adds production readiness evidence without putting deep workflows back into Playwright', () => {
+    const controller = read('controllers/cruise.controller.js')
+    const productionService = read('services/turnaroundProductionReadiness.service.js')
+    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(controller).toContain("const { buildTurnaroundProductionReadiness } = require('../services/turnaroundProductionReadiness.service')")
+    expect(controller).toContain('const productionReadiness = buildTurnaroundProductionReadiness({')
+    expect(controller).toContain('productionReadiness,')
+    expect(productionService).toContain('function buildTurnaroundProductionReadiness')
+    expect(productionService).toContain('buildProductionTestingContract')
+    expect(productionService).toContain('Full soup-to-nuts role workflow CRUD')
+    expect(productionService).toContain('Responsive layout, overflow, reachability, and selector stability only')
+    expect(dashboard).toContain('data-testid="react-operations-production-readiness"')
+    expect(dashboard).toContain('selectedOperation.productionReadiness.testingContract')
+    expect(dashboard).toContain('Reviewer demo readiness and test ownership')
+    expect(styles).toContain('.operations-production-readiness')
+    expect(styles).toContain('.operations-production-readiness-grid')
+  })
+})
+
+
+describe('Turnaround application dossier guardrails', () => {
+  it('adds cruise-line application proof package without expanding brittle Playwright workflow depth', () => {
+    const controller = read('controllers/cruise.controller.js')
+    const dossierService = read('services/turnaroundApplicationDossier.service.js')
+    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(controller).toContain("const { buildTurnaroundApplicationDossier } = require('../services/turnaroundApplicationDossier.service')")
+    expect(controller).toContain('const applicationDossier = buildTurnaroundApplicationDossier({')
+    expect(controller).toContain('productionReadiness')
+    expect(controller).toContain('applicationDossier,')
+    expect(dossierService).toContain('function buildTurnaroundApplicationDossier')
+    expect(dossierService).toContain('buildEvidenceSections')
+    expect(dossierService).toContain('Application checklist')
+    expect(dossierService).toContain('Keep Playwright limited to responsive reachability, overflow, and selector stability')
+    expect(dashboard).toContain('data-testid="react-operations-application-dossier"')
+    expect(dashboard).toContain('selectedOperation.applicationDossier.evidenceSections')
+    expect(dashboard).toContain('Cruise-line application proof package')
+    expect(styles).toContain('.operations-application-dossier')
+    expect(styles).toContain('.operations-application-dossier-grid')
+  })
+})
+
+describe('Turnaround closeout packet guardrails', () => {
+  const projectRoot = path.resolve(__dirname, '../..')
+  function read(relativePath) {
+    return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
+  }
+
+  it('adds a final closeout packet generated from operational, readiness, debrief, and reviewer proof layers', () => {
+    const controller = read('controllers/cruise.controller.js')
+    const closeoutService = read('services/turnaroundCloseout.service.js')
+    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const roleViewDomain = read('frontend/react/src/domain/roleView.js')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(controller).toContain("const { buildTurnaroundCloseoutPacket } = require('../services/turnaroundCloseout.service')")
+    expect(controller).toContain('const closeoutPacket = buildTurnaroundCloseoutPacket({')
+    expect(controller).toContain('closeoutPacket,')
+    expect(closeoutService).toContain('function buildTurnaroundCloseoutPacket')
+    expect(closeoutService).toContain('buildCloseoutGates')
+    expect(closeoutService).toContain('buildCloseoutChecklist')
+    expect(closeoutService).toContain('READY_TO_CLOSE')
+    expect(roleViewDomain).toContain('closeoutPacket: operation.closeoutPacket || null')
+    expect(dashboard).toContain('data-testid="react-operations-closeout-packet"')
+    expect(dashboard).toContain('selectedOperation.closeoutPacket.gates')
+    expect(dashboard).toContain('Final management closeout and reusable operation proof')
+    expect(styles).toContain('.operations-closeout-packet')
+    expect(styles).toContain('.operations-closeout-packet-grid')
+  })
+})

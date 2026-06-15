@@ -70,6 +70,60 @@ describe('React component accessibility and presentation contracts', () => {
   })
 
 
+  it('renders the turnaround lifecycle state as the primary command story', () => {
+    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+    const controller = read('controllers/cruise.controller.js')
+
+    const roleViewDomain = read('frontend/react/src/domain/roleView.js')
+
+    expect(controller).toContain('buildTurnaroundLifecycleState')
+    expect(controller).toContain('lifecycleState')
+    expect(roleViewDomain).toContain('lifecycleState: operation.lifecycleState || null')
+    expect(dashboard).toContain('data-testid="react-operations-lifecycle-state"')
+    expect(dashboard).toContain('data-testid="react-operations-lifecycle-phases"')
+    expect(dashboard).toContain('data-testid="react-operations-lifecycle-blockers"')
+    expect(dashboard).toContain('data-testid="react-operations-lifecycle-next-action"')
+    expect(styles).toContain('.operations-lifecycle')
+  })
+
+  it('renders an employer demo command center above the workspace stack', () => {
+    const app = read('frontend/react/src/App.jsx')
+    const commandCenter = read('frontend/react/src/components/EmployerDemoCommandCenter.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(app).toContain("import EmployerDemoCommandCenter from './components/EmployerDemoCommandCenter.jsx'")
+    expect(app).toContain('<EmployerDemoCommandCenter')
+    expect(app.indexOf('<EmployerDemoCommandCenter')).toBeLessThan(app.indexOf('id="react-workspaces"'))
+    expect(app).toContain('data-testid="react-hero-demo-button"')
+    expect(app).toContain('data-testid="react-workspace-demo-button"')
+    expect(app).toContain('data-testid="react-workflow-demo-button"')
+    expect(commandCenter).toContain('data-testid="react-employer-demo-command-center"')
+    expect(commandCenter).toContain('data-testid="react-employer-demo-proof-grid"')
+    expect(commandCenter).toContain('data-testid="react-employer-demo-runway"')
+    expect(commandCenter).toContain('buildDemoProofPoints')
+    expect(commandCenter).toContain('buildRunOfShow')
+    expect(styles).toContain('.employer-demo-command-center')
+  })
+
+  it('renders a five-minute turnaround presentation guide from the same operational state', () => {
+    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+    const controller = read('controllers/cruise.controller.js')
+    const roleViewDomain = read('frontend/react/src/domain/roleView.js')
+
+    expect(controller).toContain('buildTurnaroundPresentationGuide')
+    expect(controller).toContain('presentationGuide,')
+    expect(roleViewDomain).toContain('presentationGuide: operation.presentationGuide || null')
+    expect(dashboard).toContain('data-testid="react-operations-presentation-guide"')
+    expect(dashboard).toContain('data-testid="react-operations-presentation-storyline"')
+    expect(dashboard).toContain('data-testid="react-operations-presentation-focus"')
+    expect(dashboard).toContain('data-testid="react-operations-presentation-risks"')
+    expect(dashboard).toContain('data-testid="react-operations-presentation-freeze"')
+    expect(styles).toContain('.operations-presentation-guide')
+  })
+
+
 })
 
 
@@ -84,6 +138,7 @@ describe('React route preview accessibility contracts', () => {
     const app = read('frontend/react/src/App.jsx')
 
     expect(app).toContain('aria-label="React application workspaces"')
+    expect(app).toContain('data-testid="react-workspace-demo-button"')
     expect(app).toContain('data-testid="react-workspace-role-button"')
     expect(app).toContain('data-testid="react-workspace-operations-button"')
     expect(app).toContain('data-testid="react-workspace-fleet-button"')
@@ -313,6 +368,7 @@ describe('React route preview accessibility contracts', () => {
     const app = read('frontend/react/src/App.jsx')
     const styles = read('frontend/react/src/styles/app.css')
 
+    expect(app).toContain('data-testid="react-workspace-demo-button"')
     expect(app).toContain('data-testid="react-workspace-role-button"')
     expect(app).toContain('data-testid="react-workspace-operations-button"')
     expect(app).toContain('data-testid="react-workspace-fleet-button"')
@@ -854,4 +910,24 @@ describe('React route preview accessibility contracts', () => {
     expect(cypressSpec).toContain("expect(optionText).to.deep.eq(['Balcony'])")
   })
 
+})
+
+
+describe('turnaround command center React contract', () => {
+  const projectRoot = path.resolve(__dirname, '../..')
+
+  it('keeps the turnaround command center wired from API assembly to role dashboard render', () => {
+    const controller = fs.readFileSync(path.join(projectRoot, 'controllers/cruise.controller.js'), 'utf8')
+    const roleView = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/roleView.js'), 'utf8')
+    const dashboard = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactRoleDashboard.jsx'), 'utf8')
+
+    expect(controller).toContain("buildTurnaroundCommandCenter")
+    expect(controller).toContain("commandCenter,")
+    expect(roleView).toContain("function getCommandCenterFallback")
+    expect(roleView).toContain("commandCenter: getCommandCenterFallback(operation, tasks, taskSummary)")
+    expect(dashboard).toContain('data-testid="react-operations-command-center"')
+    expect(dashboard).toContain('data-testid="react-operations-command-center-decisions"')
+    expect(dashboard).toContain('data-testid="react-operations-command-center-critical-path"')
+    expect(dashboard).toContain('data-testid="react-operations-command-center-departments"')
+  })
 })

@@ -42,8 +42,15 @@ const { buildTurnaroundExecutiveBrief } = require('../services/turnaroundExecuti
 const { buildTurnaroundReviewerPacket } = require('../services/turnaroundReviewerPacket.service')
 const { buildTurnaroundOutreachBoard } = require('../services/turnaroundOutreach.service')
 const { buildTurnaroundManagementStatus } = require('../services/turnaroundCompletion.service')
+const { buildTurnaroundLifecycleState } = require('../services/turnaroundLifecycle.service')
 const { buildTurnaroundLaunchPlan } = require('../services/turnaroundLaunchPlan.service')
 const { buildTurnaroundScenarioPlan } = require('../services/turnaroundScenarioPlan.service')
+const { buildTurnaroundProductionReadiness } = require('../services/turnaroundProductionReadiness.service')
+const { buildTurnaroundApplicationDossier } = require('../services/turnaroundApplicationDossier.service')
+const { buildTurnaroundPresentationGuide } = require('../services/turnaroundPresentation.service')
+const { buildTurnaroundCloseoutPacket } = require('../services/turnaroundCloseout.service')
+const { buildTurnaroundCommandCenter } = require('../services/turnaroundCommandCenter.service')
+const { buildTurnaroundSetupSummary, createTurnaroundPerson: createTurnaroundSetupPerson, updateTurnaroundPerson: updateTurnaroundSetupPerson } = require('../services/turnaroundAdminSetup.service')
 const { requireAdminRequest } = require('../services/requestAuthorization.service')
 const { and, eq, inArray, like } = require('drizzle-orm')
 
@@ -1438,6 +1445,17 @@ async function getTurnaroundOperationDetails(operation) {
     releasePacket,
     passengerCount
   })
+  const lifecycleState = buildTurnaroundLifecycleState({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    releasePacket,
+    operationalMetrics
+  })
   const playbookTemplate = buildTurnaroundPlaybookTemplate({
     operation,
     tasks: sortedTasks,
@@ -1486,6 +1504,7 @@ async function getTurnaroundOperationDetails(operation) {
     auditEvents,
     operationalTimeline,
     operationalMetrics,
+    lifecycleState,
     playbookTemplate,
     playbookVariance,
     incidentCommand
@@ -1495,6 +1514,7 @@ async function getTurnaroundOperationDetails(operation) {
     releasePacket,
     operationalTimeline,
     operationalMetrics,
+    lifecycleState,
     playbookTemplate,
     playbookVariance,
     incidentCommand,
@@ -1512,6 +1532,7 @@ async function getTurnaroundOperationDetails(operation) {
     releasePacket,
     operationalTimeline,
     operationalMetrics,
+    lifecycleState,
     playbookTemplate,
     playbookVariance,
     incidentCommand,
@@ -1537,6 +1558,7 @@ async function getTurnaroundOperationDetails(operation) {
     releasePacket,
     operationalTimeline,
     operationalMetrics,
+    lifecycleState,
     playbookTemplate,
     playbookVariance,
     incidentCommand,
@@ -1566,6 +1588,107 @@ async function getTurnaroundOperationDetails(operation) {
     launchPlan,
     managementStatus
   })
+  const productionReadiness = buildTurnaroundProductionReadiness({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    releasePacket,
+    operationalMetrics,
+    playbookVariance,
+    incidentCommand,
+    afterActionReview,
+    executiveBrief,
+    reviewerPacket,
+    outreachBoard,
+    managementStatus,
+    launchPlan,
+    scenarioPlan
+  })
+  const applicationDossier = buildTurnaroundApplicationDossier({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    auditEvents,
+    releasePacket,
+    operationalMetrics,
+    playbookVariance,
+    incidentCommand,
+    afterActionReview,
+    executiveBrief,
+    reviewerPacket,
+    outreachBoard,
+    managementStatus,
+    launchPlan,
+    scenarioPlan,
+    productionReadiness
+  })
+
+  const presentationGuide = buildTurnaroundPresentationGuide({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    lifecycleState,
+    releasePacket,
+    operationalMetrics,
+    executiveBrief,
+    reviewerPacket,
+    managementStatus,
+    launchPlan,
+    productionReadiness,
+    applicationDossier
+  })
+  const closeoutPacket = buildTurnaroundCloseoutPacket({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    auditEvents,
+    lifecycleState,
+    releasePacket,
+    operationalTimeline,
+    operationalMetrics,
+    afterActionReview,
+    executiveBrief,
+    reviewerPacket,
+    managementStatus,
+    launchPlan,
+    scenarioPlan,
+    productionReadiness,
+    applicationDossier,
+    presentationGuide
+  })
+  const commandCenter = buildTurnaroundCommandCenter({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    auditEvents,
+    lifecycleState,
+    releasePacket,
+    operationalMetrics,
+    incidentCommand,
+    managementStatus,
+    closeoutPacket,
+    passengerCount
+  })
 
   return {
     ...operation,
@@ -1591,6 +1714,7 @@ async function getTurnaroundOperationDetails(operation) {
     releasePacket,
     operationalTimeline,
     operationalMetrics,
+    lifecycleState,
     playbookTemplate,
     playbookVariance,
     incidentCommand,
@@ -1601,12 +1725,84 @@ async function getTurnaroundOperationDetails(operation) {
     managementStatus,
     launchPlan,
     scenarioPlan,
+    productionReadiness,
+    applicationDossier,
+    presentationGuide,
+    closeoutPacket,
+    commandCenter,
     auditEvents,
     tasks: sortedTasks
   }
 }
 
 
+
+
+exports.getTurnaroundAdminSetup = async (req, res, next) => {
+  try {
+    if (!(await requireAdminRequest(req, res))) return
+
+    return res.status(200).json(await buildTurnaroundSetupSummary())
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.createTurnaroundPerson = async (req, res, next) => {
+  try {
+    if (!(await requireAdminRequest(req, res))) return
+
+    const person = await createTurnaroundSetupPerson(req.body)
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'TURNAROUND_PERSON_CREATED',
+      entityType: 'DEMO_USER',
+      entityId: person.id,
+      cruiseLineId: person.cruiseLineId || null,
+      shipId: person.assignedShipId || null,
+      source: 'TURNAROUND_ADMIN_SETUP_API',
+      eventPayload: { displayName: person.displayName, role: person.role }
+    })
+
+    return res.status(201).json({
+      message: 'Turnaround person created and assigned successfully',
+      person,
+      setup: await buildTurnaroundSetupSummary()
+    })
+  } catch (err) {
+    if (err.statusCode) {
+      return res.status(err.statusCode).json({ message: err.message })
+    }
+    next(err)
+  }
+}
+
+exports.updateTurnaroundPerson = async (req, res, next) => {
+  try {
+    if (!(await requireAdminRequest(req, res))) return
+
+    const person = await updateTurnaroundSetupPerson(req.params.id, req.body)
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'TURNAROUND_PERSON_UPDATED',
+      entityType: 'DEMO_USER',
+      entityId: person.id,
+      cruiseLineId: person.cruiseLineId || null,
+      shipId: person.assignedShipId || null,
+      source: 'TURNAROUND_ADMIN_SETUP_API',
+      eventPayload: { displayName: person.displayName, role: person.role }
+    })
+
+    return res.status(200).json({
+      message: 'Turnaround person assignment updated successfully',
+      person,
+      setup: await buildTurnaroundSetupSummary()
+    })
+  } catch (err) {
+    if (err.statusCode) {
+      return res.status(err.statusCode).json({ message: err.message })
+    }
+    next(err)
+  }
+}
 
 exports.getPlatformAuditEvents = async (req, res, next) => {
   try {

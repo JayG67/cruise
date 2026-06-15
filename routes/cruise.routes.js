@@ -24,7 +24,8 @@ const {
   turnaroundStaffingUpdateSchema,
   turnaroundEscalationCreateSchema,
   turnaroundEscalationUpdateSchema,
-  turnaroundHandoffUpdateSchema
+  turnaroundHandoffUpdateSchema,
+  turnaroundPersonAssignmentSchema
 } = require('../validation/cruise.validation')
 
 const router = express.Router()
@@ -51,6 +52,24 @@ router.get(
 router.get(
   '/audit-events',
   cruiseController.getPlatformAuditEvents
+)
+
+
+router.get(
+  '/turnaround-admin/setup',
+  cruiseController.getTurnaroundAdminSetup
+)
+
+router.post(
+  '/turnaround-admin/people',
+  validate(turnaroundPersonAssignmentSchema),
+  cruiseController.createTurnaroundPerson
+)
+
+router.patch(
+  '/turnaround-admin/people/:id',
+  validate(turnaroundPersonAssignmentSchema.omit({ id: true })),
+  cruiseController.updateTurnaroundPerson
 )
 
 router.get(

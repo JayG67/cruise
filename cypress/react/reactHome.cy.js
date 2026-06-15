@@ -12,6 +12,7 @@ describe('React home and workspace coverage', () => {
     cy.getByTestId(rs.productionHero).should('contain.text', 'Manage cruise line and fleet operations')
     cy.getByTestId(rs.topNavigation).within(() => {
       cy.contains('Dashboard').should('be.visible')
+      cy.contains('Demo Guide').should('be.visible')
       cy.contains('Roles').should('be.visible')
       cy.contains('Operations').should('be.visible')
       cy.contains('Fleet').should('be.visible')
@@ -21,6 +22,7 @@ describe('React home and workspace coverage', () => {
 
   it('renders every React workspace card with accessible actions', () => {
     cy.getByTestId(rs.workspaceCardGrid).should('be.visible')
+    cy.getByTestId(rs.workspaceDemoButton).should('contain.text', 'Employer Demo')
     cy.getByTestId(rs.workspaceRoleButton).should('contain.text', 'Role-aware Views')
     cy.getByTestId(rs.workspaceOperationsButton).should('contain.text', 'Admin Operations')
     cy.getByTestId(rs.workspaceFleetButton).should('contain.text', 'Fleet Directory')
@@ -28,6 +30,8 @@ describe('React home and workspace coverage', () => {
   })
 
   it('drives workspace shortcuts to real application sections', () => {
+    cy.getByTestId(rs.workspaceDemoButton).click()
+    cy.getByTestId(rs.employerDemoCommandCenter).should('be.visible')
     cy.getByTestId(rs.workspaceRoleButton).click()
     cy.getByTestId(rs.roleSelector).should('be.visible')
     cy.getByTestId(rs.workspaceOperationsButton).click()

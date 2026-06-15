@@ -6,6 +6,7 @@ import useCruiseLines from './hooks/useCruiseLines.js'
 import useDemoUsers from './hooks/useDemoUsers.js'
 import useTurnaroundOperations from './hooks/useTurnaroundOperations.js'
 import ConfirmActionPanel from './components/ConfirmActionPanel.jsx'
+import EmployerDemoCommandCenter from './components/EmployerDemoCommandCenter.jsx'
 import { getSelectedRoleView, getVisibleRoleBookings, getVisibleTurnaroundOperations } from './domain/roleView.js'
 
 const CustomerBookingHierarchy = lazy(() => import('./components/CustomerBookingHierarchy.jsx'))
@@ -14,6 +15,7 @@ const ReactFleetDirectory = lazy(() => import('./components/ReactFleetDirectory.
 const ReactRoleDashboard = lazy(() => import('./components/ReactRoleDashboard.jsx'))
 const ReactRoleSelector = lazy(() => import('./components/ReactRoleSelector.jsx'))
 const ReactSqaConsole = lazy(() => import('./components/ReactSqaConsole.jsx'))
+const ReactTurnaroundAdminSetup = lazy(() => import('./components/ReactTurnaroundAdminSetup.jsx'))
 
 function getIdleScheduler() {
   if (typeof window === 'undefined') {
@@ -54,7 +56,7 @@ export default function App() {
   const applicationDataReady = useDeferredApplicationData()
   const { snapshot, isLoading, error, reload, reloadNow } = useAdminHierarchySnapshot({ enabled: applicationDataReady })
   const { cruiseLines, isLoading: fleetLoading, isRefreshing: fleetRefreshing, error: fleetError, reload: reloadFleet } = useCruiseLines({ enabled: applicationDataReady })
-  const { demoUsers, filteredDemoUsers, availableRoles, selectedRole, selectedDemoUser, selectedDemoUserId, setSelectedDemoUserId, setSelectedRole, isLoading: demoUsersLoading, error: demoUsersError } = useDemoUsers({ enabled: applicationDataReady })
+  const { demoUsers, filteredDemoUsers, availableRoles, selectedRole, selectedDemoUser, selectedDemoUserId, setSelectedDemoUserId, setSelectedRole, isLoading: demoUsersLoading, error: demoUsersError, reload: reloadDemoUsers } = useDemoUsers({ enabled: applicationDataReady })
   const [roleSwitchRequest, setRoleSwitchRequest] = useState(null)
   const [pendingNavigationSectionId, setPendingNavigationSectionId] = useState('')
   const { saveCustomerProfile, savingCustomerId, mutationError } = useCustomerProfileMutation({ onSaved: reload })
@@ -185,10 +187,12 @@ export default function App() {
           </a>
           <div className="react-nav-links">
             <a href="#react-dashboard">Dashboard</a>
+            <a href="#react-employer-demo">Demo Guide</a>
             <a href="#react-workspaces">Workspaces</a>
             <button type="button" onClick={() => openWorkspace('react-role-selector', 'Role-aware Views')}>Roles</button>
             <button type="button" onClick={() => openWorkspace('react-hierarchy', 'Admin Operations', 'admin')}>Operations</button>
             <button type="button" onClick={() => openWorkspace('react-fleet', 'Fleet Directory', 'admin')}>Fleet</button>
+            <button type="button" onClick={() => openWorkspace('react-turnaround-admin-setup', 'Turnaround Admin Setup', 'admin')}>Turnaround Setup</button>
             <button type="button" onClick={() => openWorkspace('react-quality', 'Quality Console', 'admin')}>Quality</button>
           </div>
         </nav>
@@ -202,7 +206,8 @@ export default function App() {
           </p>
 
           <div className="hero-cta-row" aria-label="Cruise application shortcuts">
-            <button type="button" className="button-link primary" onClick={() => openWorkspace('react-hierarchy', 'Admin Operations', 'admin')} data-testid="react-hero-operations-button">Review Operations</button>
+            <button type="button" className="button-link primary" onClick={() => openWorkspace('react-employer-demo', 'Employer Demo Command Center')} data-testid="react-hero-demo-button">Start Employer Demo</button>
+            <button type="button" className="button-link secondary" onClick={() => openWorkspace('react-hierarchy', 'Admin Operations', 'admin')} data-testid="react-hero-operations-button">Review Operations</button>
             <button type="button" className="button-link secondary" onClick={() => openWorkspace('react-quality', 'Quality Console', 'admin')} data-testid="react-hero-quality-button">Open Quality Console</button>
           </div>
 
@@ -213,6 +218,15 @@ export default function App() {
           </div>
         </div>
       </section>
+
+      <EmployerDemoCommandCenter
+        customerCount={snapshot.customers.length}
+        bookingCount={snapshot.bookings.length}
+        cruiseLineCount={cruiseLines.length}
+        demoUsers={demoUsers}
+        selectedRoleView={selectedRoleView}
+        onOpenWorkspace={openWorkspace}
+      />
 
       <section className="react-workspace-panel operations-console-panel" id="react-workspaces" aria-labelledby="react-workspaces-heading">
         <div className="operations-console-copy">
@@ -225,6 +239,11 @@ export default function App() {
         </div>
 
         <div className="react-workspace-card-grid" aria-label="React application workspaces" data-testid="react-workspace-card-grid">
+          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => openWorkspace('react-employer-demo', 'Employer Demo Command Center')} data-testid="react-workspace-demo-button">
+            <span className="workspace-icon" aria-hidden="true">🎬</span>
+            <span className="workspace-card-title">Employer Demo</span>
+            <span>Follow the five-minute proof path for reviewers.</span>
+          </button>
           <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => openWorkspace('react-role-selector', 'Role-aware Views')} data-testid="react-workspace-role-button">
             <span className="workspace-icon" aria-hidden="true">👥</span>
             <span className="workspace-card-title">Role-aware Views</span>
@@ -239,6 +258,11 @@ export default function App() {
             <span className="workspace-icon" aria-hidden="true">🚢</span>
             <span className="workspace-card-title">Fleet Directory</span>
             <span>Search cruise lines, manage fleets, ships, and sailings.</span>
+          </button>
+          <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => openWorkspace('react-turnaround-admin-setup', 'Turnaround Admin Setup', 'admin')} data-testid="react-workspace-turnaround-setup-button">
+            <span className="workspace-icon" aria-hidden="true">🧭</span>
+            <span className="workspace-card-title">Turnaround Setup</span>
+            <span>Create scoped operational people for lifecycle demos.</span>
           </button>
           <button type="button" className="react-workspace-card" style={workspaceTouchTargetStyle} onClick={() => openWorkspace('react-quality', 'Quality Console', 'admin')} data-testid="react-workspace-quality-button">
             <span className="workspace-icon" aria-hidden="true">✅</span>
@@ -258,23 +282,33 @@ export default function App() {
           </div>
           <ol className="workflow-step-list" aria-label="Recommended workflow controls">
             <li>
+              <button type="button" className="workflow-step-button" onClick={() => openWorkspace('react-employer-demo', 'Employer Demo Command Center')} data-testid="react-workflow-demo-button">
+                <strong>01</strong><span>Start demo</span>
+              </button>
+            </li>
+            <li>
               <button type="button" className="workflow-step-button" onClick={() => openWorkspace('react-role-selector', 'Role-aware Views')} data-testid="react-workflow-role-button">
-                <strong>01</strong><span>Choose role</span>
+                <strong>02</strong><span>Choose role</span>
               </button>
             </li>
             <li>
               <button type="button" className="workflow-step-button" onClick={() => openWorkspace('react-hierarchy', 'Admin Operations', 'admin')} data-testid="react-workflow-operations-button">
-                <strong>02</strong><span>Review operations</span>
+                <strong>03</strong><span>Review operations</span>
               </button>
             </li>
             <li>
               <button type="button" className="workflow-step-button" onClick={() => openWorkspace('react-fleet', 'Fleet Directory', 'admin')} data-testid="react-workflow-fleet-button">
-                <strong>03</strong><span>Manage fleet</span>
+                <strong>04</strong><span>Manage fleet</span>
               </button>
             </li>
             <li>
               <button type="button" className="workflow-step-button" aria-label="Run quality checks" onClick={() => openWorkspace('react-quality', 'Quality Console', 'admin')} data-testid="react-workflow-quality-button">
-                <strong>04</strong><span>Quality checks</span>
+                <strong>05</strong><span>Quality checks</span>
+              </button>
+            </li>
+            <li>
+              <button type="button" className="workflow-step-button" onClick={() => openWorkspace('react-turnaround-admin-setup', 'Turnaround Admin Setup', 'admin')} data-testid="react-workflow-turnaround-setup-button">
+                <strong>06</strong><span>Turnaround setup</span>
               </button>
             </li>
           </ol>
@@ -346,6 +380,8 @@ export default function App() {
           />
 
             <ReactCruiseLineCreateWorkflow onCreated={reloadFleet} />
+
+            <ReactTurnaroundAdminSetup selectedDemoUser={selectedDemoUser} onSetupChanged={() => Promise.all([reloadDemoUsers(), reloadTurnaroundOperations?.()])} />
 
             <section id="react-quality" className="react-quality-section" aria-label="Quality validation console">
               <ReactSqaConsole selectedDemoUser={selectedDemoUser} onRefreshData={() => Promise.all([reload(), reloadFleet()])} />

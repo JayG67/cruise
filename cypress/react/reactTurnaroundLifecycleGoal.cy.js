@@ -32,6 +32,27 @@ describe('Turnaround lifecycle soup-to-nuts Cypress architecture', () => {
     cy.getByTestId(rs.sqaConsole).should('be.visible')
   })
 
+
+  it('starts the admin-created turnaround setup contract with scoped personnel assignment', () => {
+    cy.getByTestId(rs.turnaroundAdminSetup).should('be.visible')
+    cy.wait('@reactTurnaroundAdminSetup')
+
+    const personName = `Cypress Setup Lead ${Date.now()}`
+    cy.getByTestId(rs.turnaroundAdminPersonForm).within(() => {
+      cy.getByTestId(rs.turnaroundAdminPersonNameInput).type(personName)
+      cy.getByTestId(rs.turnaroundAdminPersonRoleSelect).select('housekeeping-lead')
+      cy.getByTestId(rs.turnaroundAdminPersonCruiseLineSelect).select('Royal Caribbean International')
+      cy.getByTestId(rs.turnaroundAdminPersonShipSelect).select('React Icon')
+      cy.getByTestId(rs.turnaroundAdminPersonSailingSelect).select('2026-12-12 · Miami, Florida')
+      cy.getByTestId(rs.turnaroundAdminPersonSubmitButton).click()
+    })
+
+    cy.wait('@reactCreateTurnaroundPerson')
+    cy.getByTestId(rs.turnaroundAdminMessage).should('contain.text', 'Turnaround person created and assigned successfully')
+    cy.getByTestId(rs.turnaroundAdminRoster).should('contain.text', personName)
+    cy.getByTestId(rs.turnaroundAdminRoster).should('contain.text', 'React Icon')
+  })
+
   it('walks the deepest current admin-to-turnaround role lifecycle through visible UI state', () => {
     cy.getByTestId(rs.createCruiseLineWorkflow).within(() => {
       cy.getByTestId(rs.createCruiseLineName).should('be.visible')
@@ -56,6 +77,17 @@ describe('Turnaround lifecycle soup-to-nuts Cypress architecture', () => {
     cy.getByTestId(rs.turnaroundManagerDashboard).should('be.visible')
     cy.getByTestId(rs.operationsWorkspaceShell).should('be.visible')
     cy.getByTestId(rs.operationsReleaseBoard).should('be.visible')
+    cy.getByTestId(rs.operationsCommandCenter).should('be.visible')
+    cy.getByTestId(rs.operationsCommandCenterKpis).should('contain.text', 'Task execution').and('contain.text', 'Closeout readiness')
+    cy.getByTestId(rs.operationsCommandCenterDecisions).should('contain.text', 'Command decision queue')
+    cy.getByTestId(rs.operationsCommandCenterCriticalPath).should('contain.text', 'Command setup').and('contain.text', 'Management closeout')
+    cy.getByTestId(rs.operationsCommandCenterDepartments).should('contain.text', 'Department command board')
+    cy.getByTestId(rs.operationsPresentationGuide).should('be.visible')
+    cy.getByTestId(rs.operationsPresentationStoryline).should('contain.text', 'Admin sets up operations').and('contain.text', 'Close with employer value')
+    cy.getByTestId(rs.operationsPresentationFocus).should('contain.text', 'Presenter focus')
+    cy.getByTestId(rs.operationsLifecycleState).should('be.visible')
+    cy.getByTestId(rs.operationsLifecyclePhases).should('contain.text', 'Setup').and('contain.text', 'Completed')
+    cy.getByTestId(rs.operationsLifecycleNextAction).should('contain.text', 'Next best action')
 
     const taskName = `Lifecycle Cypress verification ${Date.now()}`
     cy.getByTestId(rs.operationalReadinessCard).first().within(() => {
@@ -76,6 +108,9 @@ describe('Turnaround lifecycle soup-to-nuts Cypress architecture', () => {
     })
     cy.getByTestId(rs.operationalMutationStatus).should('contain.text', 'Turnaround task created successfully')
     cy.getByTestId(rs.operationalReadinessCard).first().should('contain.text', taskName)
+    cy.getByTestId(rs.operationsLifecycleBlockers).should('contain.text', 'Task blocker')
+    cy.getByTestId(rs.operationsPresentationRisks).should('contain.text', 'Task blocker')
+    cy.getByTestId(rs.operationsPresentationFreeze).should('contain.text', 'Freeze')
 
     selectDemoUserByVisibleRole('Engineering Lead', 'David Torres')
     cy.wait('@reactTurnaroundOperations')

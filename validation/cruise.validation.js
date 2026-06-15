@@ -300,6 +300,16 @@ const itineraryFavoriteSchema = z.object({
 }).strict()
 
 
+
+const turnaroundPersonAssignmentSchema = z.object({
+  id: z.string().trim().max(20, 'Turnaround person id is too long').optional(),
+  displayName: z.string().trim().min(1, 'Display name is required').max(255, 'Display name is too long'),
+  role: z.string().trim().min(1, 'Operational role is required').max(50, 'Operational role is too long'),
+  cruiseLineId: uuidSchema,
+  assignedShipId: uuidSchema.optional().nullable(),
+  sailingId: uuidSchema.optional().nullable()
+}).strict()
+
 const turnaroundOperationCommandUpdateSchema = z.object({
   status: z
     .string()
@@ -456,6 +466,7 @@ module.exports = {
   turnaroundEscalationCreateSchema,
   turnaroundEscalationUpdateSchema,
   turnaroundHandoffUpdateSchema,
+  turnaroundPersonAssignmentSchema,
   customerIdSchema,
   bookingIdSchema
 }

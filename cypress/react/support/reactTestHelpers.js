@@ -190,6 +190,267 @@ const reactBookings = [
   }
 ]
 
+
+function normalizeTurnaroundRoleLabel(role) {
+  return String(role || '')
+    .replace(/_/g, '-')
+    .split('-')
+    .filter(Boolean)
+    .map(part => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(' ')
+}
+
+function buildReactTurnaroundLifecycleState(operation = {}) {
+  const tasks = operation.tasks || []
+  const dependencies = operation.taskDependencies || []
+  const handoffs = operation.handoffs || []
+  const escalations = operation.escalations || []
+  const signoffs = operation.signoffs || []
+  const staffing = operation.staffing || []
+  const totalTasks = operation.taskSummary?.totalTasks ?? tasks.length
+  const completeTasks = operation.taskSummary?.completeTasks ?? tasks.filter(task => task.status === 'COMPLETE').length
+  const blockedTasks = operation.taskSummary?.blockedTasks ?? tasks.filter(task => task.status === 'BLOCKED' || task.blockerReason).length
+  const inProgressTasks = operation.taskSummary?.inProgressTasks ?? tasks.filter(task => task.status === 'IN_PROGRESS').length
+  const taskCompletionPercent = totalTasks === 0 ? 0 : Math.round((completeTasks / totalTasks) * 100)
+  const activeDependencies = operation.dependencySummary?.activeDependencies ?? dependencies.filter(dependency => dependency.status !== 'CLEARED').length
+  const openHandoffs = operation.handoffSummary?.openHandoffs ?? handoffs.filter(handoff => handoff.status !== 'COMPLETE').length
+  const openEscalations = operation.escalationSummary?.openEscalations ?? escalations.filter(escalation => escalation.status !== 'RESOLVED').length
+  const pendingSignoffs = operation.signoffSummary?.pendingSignoffs ?? signoffs.filter(signoff => signoff.status === 'PENDING').length
+  const staffingGaps = operation.staffingSummary?.gapCount ?? staffing.reduce((sum, row) => sum + Math.max(Number(row.plannedCount || 0) - Number(row.checkedInCount || 0), 0), 0)
+  const completionPercent = Math.round((
+    taskCompletionPercent +
+    (activeDependencies === 0 ? 100 : 45) +
+    (openHandoffs === 0 ? 100 : 45) +
+    (openEscalations === 0 ? 100 : 55) +
+    (pendingSignoffs === 0 ? 100 : 40)
+  ) / 5)
+  const status = completionPercent >= 100 && blockedTasks === 0 && activeDependencies === 0 && openHandoffs === 0 && openEscalations === 0 && pendingSignoffs === 0
+    ? 'COMPLETED'
+    : blockedTasks > 0 || openEscalations > 0
+      ? 'AT_RISK'
+      : inProgressTasks > 0
+        ? 'IN_PROGRESS'
+        : 'SETUP'
+  const phases = [
+    ['setup', 'Setup', 'Create the turnaround plan, scoped people, and operating assignments.', totalTasks > 0 ? 100 : 25],
+    ['pre-arrival', 'Pre-arrival', 'Confirm arrival windows, leadership coverage, and dependency gates.', activeDependencies === 0 ? 100 : 50],
+    ['disembarkation', 'Disembarkation', 'Sequence guest flow and luggage release before reset work begins.', taskCompletionPercent >= 20 ? 75 : 35],
+    ['cleaning-reset', 'Cleaning / reset', 'Drive cabin readiness and ship reset workstream completion.', taskCompletionPercent >= 50 ? 80 : 40],
+    ['provisioning', 'Provisioning', 'Clear food, beverage, supply, and dock-side receiving work.', openHandoffs === 0 ? 100 : 45],
+    ['embarkation', 'Embarkation', 'Coordinate guest-services readiness and terminal release handoffs.', openEscalations === 0 ? 90 : 45],
+    ['final-readiness', 'Final readiness', 'Resolve blockers and collect department signoffs.', pendingSignoffs === 0 ? 100 : 40],
+    ['completed', 'Completed', 'Turnaround is ready to close with all workstreams complete.', status === 'COMPLETED' ? 100 : 0]
+  ].map(([id, label, description, percentComplete], index) => ({
+    id,
+    label,
+    description,
+    sequence: index + 1,
+    percentComplete,
+    status: percentComplete >= 100 ? 'COMPLETE' : percentComplete > 0 ? 'IN_PROGRESS' : 'PENDING',
+    blockers: id === 'completed' && status !== 'COMPLETED' ? ['Outstanding operational closure items remain'] : []
+  }))
+  const finalBlockers = [
+    ...tasks.filter(task => task.blockerReason || task.status === 'BLOCKED').map(task => ({
+      id: `task-${task.id}`,
+      type: 'Task blocker',
+      label: task.taskName,
+      detail: task.blockerReason || 'Task is blocked'
+    })),
+    ...dependencies.filter(dependency => dependency.status !== 'CLEARED').map(dependency => ({
+      id: `dependency-${dependency.id}`,
+      type: 'Dependency',
+      label: dependency.taskName,
+      detail: dependency.notes || dependency.dependsOnTaskName
+    })),
+    ...escalations.filter(escalation => escalation.status !== 'RESOLVED').map(escalation => ({
+      id: `escalation-${escalation.id}`,
+      type: 'Escalation',
+      label: escalation.title,
+      detail: escalation.resolutionNotes || escalation.ownerName || escalation.severity
+    })),
+    ...signoffs.filter(signoff => signoff.status !== 'APPROVED').map(signoff => ({
+      id: `signoff-${signoff.id}`,
+      type: 'Signoff',
+      label: normalizeTurnaroundRoleLabel(signoff.departmentRole),
+      detail: signoff.notes || 'Department signoff is still open'
+    }))
+  ]
+  const departmentReadiness = staffing.map(row => {
+    const departmentTasks = tasks.filter(task => String(task.departmentRole || '').replace(/_/g, '-') === row.departmentRole)
+    const completeDepartmentTasks = departmentTasks.filter(task => task.status === 'COMPLETE').length
+    const roleSignoff = signoffs.find(signoff => signoff.departmentRole === row.departmentRole)
+
+    return {
+      departmentRole: normalizeTurnaroundRoleLabel(row.departmentRole),
+      ready: roleSignoff?.status === 'APPROVED' && departmentTasks.every(task => task.status === 'COMPLETE' || task.status === 'READY'),
+      taskCompletionPercent: departmentTasks.length === 0 ? 0 : Math.round((completeDepartmentTasks / departmentTasks.length) * 100),
+      openEscalations: escalations.filter(escalation => escalation.departmentRole === row.departmentRole && escalation.status !== 'RESOLVED').length,
+      openDependencies: dependencies.filter(dependency => String(dependency.taskName || '').toLowerCase().includes(String(row.departmentRole || '').split('-')[0])).length
+    }
+  })
+  const currentPhaseLabel = phases.find(phase => phase.status !== 'COMPLETE')?.label || 'Completed'
+  const nextBestAction = finalBlockers.length > 0
+    ? `Resolve ${finalBlockers[0].type.toLowerCase()}: ${finalBlockers[0].label}`
+    : status === 'COMPLETED'
+      ? 'Archive the completed turnaround packet and brief the next sailing team.'
+      : 'Keep progressing department workstreams toward final readiness.'
+
+  return {
+    status,
+    completionPercent,
+    currentPhaseLabel,
+    completionLanguage: status === 'COMPLETED'
+      ? 'Turnaround is complete and ready for final packet review.'
+      : `${completionPercent}% complete with ${finalBlockers.length} lifecycle blocker${finalBlockers.length === 1 ? '' : 's'} remaining.`,
+    storyBeats: [
+      `${completeTasks}/${totalTasks} tasks complete`,
+      `${activeDependencies} open dependencies`,
+      `${openHandoffs} handoffs open`,
+      `${openEscalations} escalations open`,
+      `${pendingSignoffs} signoffs pending`,
+      `${staffingGaps} staffing gaps`
+    ],
+    phases,
+    finalBlockers,
+    departmentReadiness,
+    nextBestAction
+  }
+}
+
+function buildReactTurnaroundCommandCenter(operation = {}) {
+  const lifecycleState = buildReactTurnaroundLifecycleState(operation)
+  const tasks = operation.tasks || []
+  const dependencies = operation.taskDependencies || []
+  const handoffs = operation.handoffs || []
+  const escalations = operation.escalations || []
+  const signoffs = operation.signoffs || []
+  const staffing = operation.staffing || []
+  const taskCount = tasks.length
+  const completeTaskCount = tasks.filter(task => task.status === 'COMPLETE').length
+  const blockedTaskCount = tasks.filter(task => task.status === 'BLOCKED' || task.blockerReason).length
+  const openDependencyCount = dependencies.filter(dependency => dependency.status !== 'CLEARED').length
+  const openHandoffCount = handoffs.filter(handoff => handoff.status !== 'COMPLETE').length
+  const openEscalationCount = escalations.filter(escalation => escalation.status !== 'RESOLVED').length
+  const pendingSignoffCount = signoffs.filter(signoff => signoff.status === 'PENDING').length
+  const staffingGapCount = staffing.reduce((total, row) => total + Math.max(Number(row.plannedCount || 0) - Number(row.checkedInCount || 0), 0), 0)
+  const closeoutReadiness = Math.max(0, Math.min(100, lifecycleState.completionPercent - (openEscalationCount * 5) - (pendingSignoffCount * 4)))
+  const firstDependency = dependencies.find(dependency => dependency.status !== 'CLEARED')
+  const firstTask = tasks.find(task => task.status !== 'COMPLETE')
+  const firstHandoff = handoffs.find(handoff => handoff.status !== 'COMPLETE')
+  const firstEscalation = escalations.find(escalation => escalation.status !== 'RESOLVED')
+
+  return {
+    commandStatus: closeoutReadiness >= 85 ? 'CLOSEOUT_READY' : closeoutReadiness >= 60 ? 'ACTIVE_COMMAND' : 'NEEDS_COMMAND_ATTENTION',
+    commandScore: closeoutReadiness,
+    commanderBrief: {
+      headline: 'Turnaround command center is coordinating every department through closeout.',
+      summary: `${operation.title || 'Turnaround'} is ${lifecycleState.completionPercent}% complete with ${openDependencyCount + openHandoffCount + openEscalationCount + pendingSignoffCount} command items still active.`,
+      nextDecision: lifecycleState.nextBestAction,
+      activePhase: lifecycleState.currentPhaseLabel
+    },
+    kpis: [
+      { id: 'task-execution', label: 'Task execution', value: `${completeTaskCount}/${taskCount}`, detail: `${blockedTaskCount} blockers remain in the operational queue.` },
+      { id: 'dependency-control', label: 'Dependency control', value: String(openDependencyCount), detail: 'Open dependencies requiring command sequencing.' },
+      { id: 'handoff-control', label: 'Handoff control', value: String(openHandoffCount), detail: 'Department handoffs still moving toward acceptance.' },
+      { id: 'risk-control', label: 'Risk control', value: String(openEscalationCount), detail: 'Open escalations requiring leadership attention.' },
+      { id: 'staffing-coverage', label: 'Staffing coverage', value: String(staffingGapCount), detail: 'Crew gaps across department staffing plans.' },
+      { id: 'closeout-readiness', label: 'Closeout readiness', value: `${closeoutReadiness}%`, detail: `${pendingSignoffCount} signoffs pending before final packet review.` }
+    ],
+    decisionQueue: [
+      firstDependency ? { id: 'dependency-decision', severity: 'HIGH', owner: firstDependency.ownerName || 'Command', decision: firstDependency.title, action: firstDependency.blockerReason || firstDependency.notes || 'Clear the dependency before readiness signoff.' } : null,
+      firstEscalation ? { id: 'escalation-decision', severity: firstEscalation.severity || 'MEDIUM', owner: firstEscalation.ownerName || 'Command', decision: firstEscalation.title, action: firstEscalation.resolutionNotes || firstEscalation.description || 'Resolve the escalation before closeout.' } : null,
+      firstHandoff ? { id: 'handoff-decision', severity: 'MEDIUM', owner: firstHandoff.ownerName || 'Command', decision: firstHandoff.title, action: firstHandoff.notes || 'Accept the handoff and confirm release timing.' } : null,
+      firstTask ? { id: 'task-decision', severity: firstTask.status === 'BLOCKED' ? 'HIGH' : 'NORMAL', owner: firstTask.ownerName || 'Department lead', decision: firstTask.title, action: firstTask.blockerReason || firstTask.notes || 'Move the task to completion.' } : null
+    ].filter(Boolean),
+    criticalPath: [
+      { id: 'command-setup', label: 'Command setup', status: 'READY', score: 100, evidence: 'Admin-created operational people are scoped to cruise line, ship, and sailing.' },
+      { id: 'department-execution', label: 'Department execution', status: completeTaskCount === taskCount ? 'READY' : 'ACTIVE', score: taskCount ? Math.round((completeTaskCount / taskCount) * 100) : 100, evidence: `${completeTaskCount}/${taskCount} operational tasks complete.` },
+      { id: 'dependency-release', label: 'Dependency release', status: openDependencyCount ? 'ACTIVE' : 'READY', score: openDependencyCount ? 60 : 100, evidence: `${openDependencyCount} dependencies remain open.` },
+      { id: 'handoff-acceptance', label: 'Handoff acceptance', status: openHandoffCount ? 'ACTIVE' : 'READY', score: openHandoffCount ? 65 : 100, evidence: `${openHandoffCount} handoffs remain open.` },
+      { id: 'readiness-signoff', label: 'Readiness signoff', status: pendingSignoffCount ? 'ACTIVE' : 'READY', score: pendingSignoffCount ? 70 : 100, evidence: `${pendingSignoffCount} signoffs remain pending.` },
+      { id: 'management-closeout', label: 'Management closeout', status: closeoutReadiness >= 85 ? 'READY' : 'ACTIVE', score: closeoutReadiness, evidence: 'Closeout packet readiness reflects blockers, evidence, and final approvals.' }
+    ],
+    departmentBoard: lifecycleState.departmentReadiness.map(department => ({
+      departmentRole: department.departmentRole,
+      readinessScore: department.readinessScore,
+      status: department.status,
+      nextAction: department.detail,
+      taskCount: department.taskCount,
+      openEscalations: department.openEscalations,
+      signoffCompletion: department.signoffCompletion
+    })),
+    handoffTimeline: handoffs.map(handoff => ({
+      id: handoff.id,
+      dueTime: handoff.dueTime || 'TBD',
+      status: handoff.status,
+      owner: handoff.ownerName || handoff.fromDepartmentRole || 'Department lead',
+      detail: handoff.title || handoff.notes || 'Department handoff'
+    }))
+  }
+}
+
+
+function buildReactTurnaroundPresentationGuide(operation = {}) {
+  const lifecycleState = buildReactTurnaroundLifecycleState(operation)
+  const releaseScore = operation.releasePacket?.readinessScore || lifecycleState.completionPercent
+  const reviewerScore = operation.reviewerPacket?.readiness?.readinessScore || Math.max(55, releaseScore - 5)
+  const finalBlockers = lifecycleState.finalBlockers || []
+  const status = lifecycleState.completionPercent >= 85 && finalBlockers.length === 0
+    ? 'DEMO_READY'
+    : lifecycleState.completionPercent >= 55
+      ? 'PRESENTATION_HARDENING'
+      : 'NEEDS_FOCUS'
+  const firstBlocker = finalBlockers[0]
+
+  return {
+    status,
+    averageScore: Math.round((lifecycleState.completionPercent + releaseScore + reviewerScore) / 3),
+    headline: status === 'DEMO_READY'
+      ? 'Turnaround management is ready for the five-minute employer demo.'
+      : 'Turnaround management is close; use this guide to keep the demo tight.',
+    positioning: 'Show admin setup, scoped operational roles, lifecycle progress, and reviewer-ready proof.',
+    scores: {
+      lifecycleScore: lifecycleState.completionPercent,
+      releaseScore,
+      reviewerScore,
+      launchScore: releaseScore,
+      productionScore: reviewerScore,
+      dossierScore: reviewerScore
+    },
+    storyline: [
+      { id: 'admin-setup', label: 'Admin sets up operations', duration: '0:00-1:00', status: 'READY', detail: 'Open the admin setup board and show scoped people.' },
+      { id: 'role-work', label: 'Roles execute the turnaround', duration: '1:00-2:30', status: finalBlockers.length ? 'WATCH' : 'READY', detail: firstBlocker ? `Drive ${firstBlocker.type}: ${firstBlocker.label}.` : 'Show role work moving to completion.' },
+      { id: 'manager-command', label: 'Manager sees progress', duration: '2:30-3:30', status: 'WATCH', detail: `${lifecycleState.completionPercent}% lifecycle completion tells the command story.` },
+      { id: 'readiness-proof', label: 'Readiness becomes provable', duration: '3:30-4:30', status: 'WATCH', detail: 'Reviewer evidence turns workflow state into proof.' },
+      { id: 'portfolio-close', label: 'Close with employer value', duration: '4:30-5:00', status: 'READY', detail: 'Cypress owns the soup-to-nuts workflow and Playwright stays responsive-only.' }
+    ],
+    focus: {
+      priority: lifecycleState.nextBestAction,
+      talkingPoints: lifecycleState.storyBeats || [],
+      showFirst: ['Role selector', 'Lifecycle phase board', 'Reviewer packet']
+    },
+    risks: finalBlockers.length
+      ? finalBlockers.slice(0, 3).map(blocker => ({ id: blocker.id, label: blocker.type, mitigation: blocker.detail }))
+      : [{ id: 'presentation-ready', label: 'No critical demo risks surfaced', mitigation: 'Use the five-minute run of show.' }],
+    freezeRecommendation: status === 'DEMO_READY'
+      ? 'Freeze turnaround feature expansion and begin cross-app UX cleanup.'
+      : 'Finish the listed risks, rerun the Cypress lifecycle workflow, then freeze turnaround expansion.'
+  }
+}
+
+function hydrateReactTurnaroundOperation(operation = {}) {
+  return {
+    ...operation,
+    lifecycleState: buildReactTurnaroundLifecycleState(operation),
+    presentationGuide: buildReactTurnaroundPresentationGuide(operation),
+    commandCenter: operation.commandCenter || buildReactTurnaroundCommandCenter(operation)
+  }
+}
+
+function hydrateReactTurnaroundOperations(operations = []) {
+  return operations.map(operation => hydrateReactTurnaroundOperation(operation))
+}
+
 const reactTurnaroundOperations = [
   {
     id: 'turnaround-react-1',
@@ -381,12 +642,35 @@ function interceptReactCoreApis(overrides = {}) {
   cy.intercept('GET', '/cruise/demo-users', overrides.demoUsers || reactDemoUsers).as('reactDemoUsers')
   cy.intercept('GET', '/cruise/customers', overrides.customers || reactCustomers).as('reactCustomers')
   cy.intercept('GET', '/cruise/bookings', overrides.bookings || reactBookings).as('reactBookings')
-  cy.intercept({ method: 'GET', pathname: '/cruise/turnaround-operations' }, overrides.turnaroundOperations || reactTurnaroundOperations).as('reactTurnaroundOperations')
+  const baseTurnaroundOperations = hydrateReactTurnaroundOperations(overrides.turnaroundOperations || reactTurnaroundOperations)
+  cy.intercept({ method: 'GET', pathname: '/cruise/turnaround-operations' }, baseTurnaroundOperations).as('reactTurnaroundOperations')
+
+  const turnaroundSetup = {
+    turnaroundPeople: (overrides.demoUsers || reactDemoUsers).filter(user => String(user.role || '').toLowerCase().includes('lead') || String(user.role || '').toLowerCase().includes('manager')),
+    cruiseLines: overrides.cruiseLines || reactCruiseLines,
+    ships: overrides.ships || reactShips,
+    sailings: overrides.sailings || reactSailings,
+    supportedRoles: ['turnaround-manager', 'housekeeping-lead', 'guest-services-lead', 'food-beverage-lead', 'engineering-lead', 'security-lead', 'port-operations-lead']
+  }
+  cy.intercept('GET', '/cruise/turnaround-admin/setup', turnaroundSetup).as('reactTurnaroundAdminSetup')
+  cy.intercept('POST', '/cruise/turnaround-admin/people', req => {
+    const person = {
+      id: 'tu-cypress-person',
+      displayName: req.body?.displayName || 'Cypress Person',
+      role: String(req.body?.role || 'housekeeping-lead').toUpperCase().replace(/-/g, '_'),
+      cruiseLineId: req.body?.cruiseLineId,
+      assignedShipId: req.body?.assignedShipId || null,
+      cruiseLineName: (overrides.cruiseLines || reactCruiseLines).find(line => line.id === req.body?.cruiseLineId)?.name || 'Cruise line',
+      assignedShipName: (overrides.ships || reactShips).find(ship => ship.id === req.body?.assignedShipId)?.name || null
+    }
+    req.reply({ statusCode: 201, body: { message: 'Turnaround person created and assigned successfully', person, setup: { ...turnaroundSetup, turnaroundPeople: [...turnaroundSetup.turnaroundPeople, person] } } })
+  }).as('reactCreateTurnaroundPerson')
+
   cy.intercept({ method: 'PATCH', pathname: '/cruise/turnaround-operations/*' }, req => {
     if (req.url.includes('/signoffs/') || req.url.includes('/staffing/')) return req.continue()
 
     const operationId = getPathSegmentAfter(getRequestPath(req), '/turnaround-operations/')
-    const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => (
+    const updatedOperations = baseTurnaroundOperations.map(operation => (
       operation.id === operationId
         ? {
             ...operation,
@@ -398,12 +682,12 @@ function interceptReactCoreApis(overrides = {}) {
     ))
     const operation = updatedOperations.find(candidate => candidate.id === operationId)
 
-    req.reply({ statusCode: 200, body: { message: 'Turnaround command plan updated successfully', operation } })
+    req.reply({ statusCode: 200, body: { message: 'Turnaround command plan updated successfully', operation: hydrateReactTurnaroundOperation(operation) } })
   }).as('reactUpdateTurnaroundOperationCommand')
 
   cy.intercept({ method: 'PATCH', pathname: '/cruise/turnaround-handoffs/*' }, req => {
     const handoffId = getPathSegmentAfter(getRequestPath(req), '/turnaround-handoffs/')
-    const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
+    const updatedOperations = baseTurnaroundOperations.map(operation => {
       const handoffs = (operation.handoffs || []).map(handoff => handoff.id === handoffId ? { ...handoff, ...req.body, completedAt: req.body?.status === 'COMPLETE' ? '2026-12-12T10:45:00.000Z' : null } : handoff)
       const completedHandoffs = handoffs.filter(handoff => handoff.status === 'COMPLETE').length
       const blockedHandoffs = handoffs.filter(handoff => handoff.status === 'BLOCKED').length
@@ -421,14 +705,14 @@ function interceptReactCoreApis(overrides = {}) {
     })
     const operation = updatedOperations.find(candidate => (candidate.handoffs || []).some(handoff => handoff.id === handoffId))
 
-    req.reply({ statusCode: 200, body: { message: 'Turnaround handoff updated successfully', operation } })
+    req.reply({ statusCode: 200, body: { message: 'Turnaround handoff updated successfully', operation: hydrateReactTurnaroundOperation(operation) } })
   }).as('reactUpdateTurnaroundHandoff')
 
   cy.intercept({ method: 'PATCH', pathname: '/cruise/turnaround-operations/*/staffing/*' }, req => {
     const routeRemainder = getPathSegmentAfter(getRequestPath(req), '/turnaround-operations/')
     const [operationId, staffingPath] = routeRemainder.split('/staffing/')
     const departmentRole = decodeURIComponent(staffingPath)
-    const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
+    const updatedOperations = baseTurnaroundOperations.map(operation => {
       if (operation.id !== operationId) return operation
 
       const existingStaffing = operation.staffing || []
@@ -463,13 +747,13 @@ function interceptReactCoreApis(overrides = {}) {
     })
     const operation = updatedOperations.find(candidate => candidate.id === operationId)
 
-    req.reply({ statusCode: 200, body: { message: 'Turnaround staffing plan updated successfully', operation } })
+    req.reply({ statusCode: 200, body: { message: 'Turnaround staffing plan updated successfully', operation: hydrateReactTurnaroundOperation(operation) } })
   }).as('reactUpdateTurnaroundStaffing')
   cy.intercept({ method: 'PATCH', pathname: '/cruise/turnaround-operations/*/signoffs/*' }, req => {
     const routeRemainder = getPathSegmentAfter(getRequestPath(req), '/turnaround-operations/')
     const [operationId, signoffPath] = routeRemainder.split('/signoffs/')
     const departmentRole = decodeURIComponent(signoffPath)
-    const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
+    const updatedOperations = baseTurnaroundOperations.map(operation => {
       if (operation.id !== operationId) return operation
 
       const existingSignoffs = operation.signoffs || []
@@ -504,12 +788,12 @@ function interceptReactCoreApis(overrides = {}) {
     })
     const operation = updatedOperations.find(candidate => candidate.id === operationId)
 
-    req.reply({ statusCode: 200, body: { message: 'Turnaround readiness signoff updated successfully', operation } })
+    req.reply({ statusCode: 200, body: { message: 'Turnaround readiness signoff updated successfully', operation: hydrateReactTurnaroundOperation(operation) } })
   }).as('reactUpdateTurnaroundSignoff')
   cy.intercept({ method: 'PATCH', pathname: '/cruise/turnaround-tasks/*/status' }, req => {
     const taskId = getPathSegmentAfter(getRequestPath(req), '/turnaround-tasks/').split('/status')[0]
     const requestedStatus = req.body?.status || 'IN_PROGRESS'
-    const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
+    const updatedOperations = baseTurnaroundOperations.map(operation => {
       const tasks = operation.tasks.map(task => task.id === taskId ? { ...task, status: requestedStatus, blockerReason: req.body?.blockerReason || (requestedStatus === 'BLOCKED' ? 'Awaiting pier-side supervisor confirmation' : '') } : task)
       const completeTasks = tasks.filter(task => task.status === 'COMPLETE').length
       const blockedTasks = tasks.filter(task => task.status === 'BLOCKED').length
@@ -526,22 +810,22 @@ function interceptReactCoreApis(overrides = {}) {
     })
     const operation = updatedOperations.find(candidate => candidate.tasks.some(task => task.id === taskId))
 
-    req.reply({ statusCode: 200, body: { message: 'Turnaround task status updated successfully', operation } })
+    req.reply({ statusCode: 200, body: { message: 'Turnaround task status updated successfully', operation: hydrateReactTurnaroundOperation(operation) } })
   }).as('reactUpdateTurnaroundTaskStatus')
   cy.intercept({ method: 'PATCH', pathname: '/cruise/turnaround-tasks/*/details' }, req => {
     const taskId = getPathSegmentAfter(getRequestPath(req), '/turnaround-tasks/').split('/details')[0]
-    const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
+    const updatedOperations = baseTurnaroundOperations.map(operation => {
       const tasks = operation.tasks.map(task => task.id === taskId ? { ...task, ...req.body } : task)
 
       return { ...operation, tasks }
     })
     const operation = updatedOperations.find(candidate => candidate.tasks.some(task => task.id === taskId))
 
-    req.reply({ statusCode: 200, body: { message: 'Turnaround task details updated successfully', operation } })
+    req.reply({ statusCode: 200, body: { message: 'Turnaround task details updated successfully', operation: hydrateReactTurnaroundOperation(operation) } })
   }).as('reactUpdateTurnaroundTaskDetails')
   cy.intercept({ method: 'POST', pathname: '/cruise/turnaround-operations/*/tasks' }, req => {
     const operationId = getPathSegmentAfter(getRequestPath(req), '/turnaround-operations/').split('/tasks')[0]
-    const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
+    const updatedOperations = baseTurnaroundOperations.map(operation => {
       if (operation.id !== operationId) return operation
 
       const createdTask = {
@@ -576,7 +860,7 @@ function interceptReactCoreApis(overrides = {}) {
     })
     const operation = updatedOperations.find(candidate => candidate.id === operationId)
 
-    req.reply({ statusCode: 201, body: { message: 'Turnaround task created successfully', operation } })
+    req.reply({ statusCode: 201, body: { message: 'Turnaround task created successfully', operation: hydrateReactTurnaroundOperation(operation) } })
   }).as('reactCreateTurnaroundTask')
   cy.intercept({ method: 'POST', pathname: '/cruise/turnaround-tasks/*/updates' }, req => {
     const taskId = getPathSegmentAfter(getRequestPath(req), '/turnaround-tasks/').split('/updates')[0]
@@ -587,18 +871,18 @@ function interceptReactCoreApis(overrides = {}) {
       message: req.body?.message || 'Update added',
       createdAt: '2026-12-12T09:30:00.000Z'
     }
-    const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
+    const updatedOperations = baseTurnaroundOperations.map(operation => {
       const tasks = operation.tasks.map(task => task.id === taskId ? { ...task, updates: [update, ...(task.updates || [])] } : task)
 
       return { ...operation, tasks }
     })
     const operation = updatedOperations.find(candidate => candidate.tasks.some(task => task.id === taskId))
 
-    req.reply({ statusCode: 201, body: { message: 'Turnaround task update added successfully', operation } })
+    req.reply({ statusCode: 201, body: { message: 'Turnaround task update added successfully', operation: hydrateReactTurnaroundOperation(operation) } })
   }).as('reactCreateTurnaroundTaskUpdate')
   cy.intercept({ method: 'DELETE', pathname: '/cruise/turnaround-tasks/*' }, req => {
     const taskId = getPathSegmentAfter(getRequestPath(req), '/turnaround-tasks/')
-    const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
+    const updatedOperations = baseTurnaroundOperations.map(operation => {
       const tasks = (operation.tasks || []).filter(task => task.id !== taskId)
       const completeTasks = tasks.filter(task => task.status === 'COMPLETE').length
       const blockedTasks = tasks.filter(task => task.status === 'BLOCKED').length
@@ -616,14 +900,14 @@ function interceptReactCoreApis(overrides = {}) {
         }
       }
     })
-    const operation = (overrides.turnaroundOperations || reactTurnaroundOperations).find(candidate => (candidate.tasks || []).some(task => task.id === taskId))
+    const operation = baseTurnaroundOperations.find(candidate => (candidate.tasks || []).some(task => task.id === taskId))
     const refreshedOperation = updatedOperations.find(candidate => candidate.id === operation?.id)
 
-    req.reply({ statusCode: 200, body: { message: 'Turnaround task removed successfully', operation: refreshedOperation } })
+    req.reply({ statusCode: 200, body: { message: 'Turnaround task removed successfully', operation: hydrateReactTurnaroundOperation(refreshedOperation) } })
   }).as('reactDeleteTurnaroundTask')
   cy.intercept({ method: 'POST', pathname: '/cruise/turnaround-operations/*/escalations' }, req => {
     const operationId = getPathSegmentAfter(getRequestPath(req), '/turnaround-operations/').split('/escalations')[0]
-    const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
+    const updatedOperations = baseTurnaroundOperations.map(operation => {
       if (operation.id !== operationId) return operation
 
       const escalation = {
@@ -651,11 +935,11 @@ function interceptReactCoreApis(overrides = {}) {
     })
     const operation = updatedOperations.find(candidate => candidate.id === operationId)
 
-    req.reply({ statusCode: 201, body: { message: 'Turnaround escalation created successfully', operation } })
+    req.reply({ statusCode: 201, body: { message: 'Turnaround escalation created successfully', operation: hydrateReactTurnaroundOperation(operation) } })
   }).as('reactCreateTurnaroundEscalation')
   cy.intercept({ method: 'PATCH', pathname: '/cruise/turnaround-escalations/*' }, req => {
     const escalationId = getPathSegmentAfter(getRequestPath(req), '/turnaround-escalations/')
-    const updatedOperations = (overrides.turnaroundOperations || reactTurnaroundOperations).map(operation => {
+    const updatedOperations = baseTurnaroundOperations.map(operation => {
       const escalations = (operation.escalations || []).map(escalation => escalation.id === escalationId ? { ...escalation, ...req.body } : escalation)
       const openEscalations = escalations.filter(row => row.status === 'OPEN').length
       const monitoringEscalations = escalations.filter(row => row.status === 'MONITORING').length
@@ -670,7 +954,7 @@ function interceptReactCoreApis(overrides = {}) {
     })
     const operation = updatedOperations.find(candidate => (candidate.escalations || []).some(escalation => escalation.id === escalationId))
 
-    req.reply({ statusCode: 200, body: { message: 'Turnaround escalation updated successfully', operation } })
+    req.reply({ statusCode: 200, body: { message: 'Turnaround escalation updated successfully', operation: hydrateReactTurnaroundOperation(operation) } })
   }).as('reactUpdateTurnaroundEscalation')
   cy.intercept('GET', '/cruise', overrides.cruiseLines || reactCruiseLines).as('reactCruiseLines')
 }
