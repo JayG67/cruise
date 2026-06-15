@@ -50,6 +50,7 @@ const { buildTurnaroundApplicationDossier } = require('../services/turnaroundApp
 const { buildTurnaroundPresentationGuide } = require('../services/turnaroundPresentation.service')
 const { buildTurnaroundCloseoutPacket } = require('../services/turnaroundCloseout.service')
 const { buildTurnaroundCommandCenter } = require('../services/turnaroundCommandCenter.service')
+const { buildTurnaroundContinuityCenter } = require('../services/turnaroundContinuity.service')
 const { buildTurnaroundSetupSummary, createTurnaroundPerson: createTurnaroundSetupPerson, updateTurnaroundPerson: updateTurnaroundSetupPerson } = require('../services/turnaroundAdminSetup.service')
 const { requireAdminRequest } = require('../services/requestAuthorization.service')
 const { and, eq, inArray, like } = require('drizzle-orm')
@@ -1689,6 +1690,21 @@ async function getTurnaroundOperationDetails(operation) {
     closeoutPacket,
     passengerCount
   })
+  const continuityCenter = buildTurnaroundContinuityCenter({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    lifecycleState,
+    releasePacket,
+    commandCenter,
+    closeoutPacket,
+    productionReadiness,
+    passengerCount
+  })
 
   return {
     ...operation,
@@ -1730,6 +1746,7 @@ async function getTurnaroundOperationDetails(operation) {
     presentationGuide,
     closeoutPacket,
     commandCenter,
+    continuityCenter,
     auditEvents,
     tasks: sortedTasks
   }

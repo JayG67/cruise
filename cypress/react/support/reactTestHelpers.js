@@ -390,6 +390,67 @@ function buildReactTurnaroundCommandCenter(operation = {}) {
 }
 
 
+function buildReactTurnaroundContinuityCenter(operation = {}) {
+  const lifecycleState = buildReactTurnaroundLifecycleState(operation)
+  const commandCenter = operation.commandCenter || buildReactTurnaroundCommandCenter(operation)
+  const tasks = operation.tasks || []
+  const dependencies = operation.taskDependencies || []
+  const handoffs = operation.handoffs || []
+  const escalations = operation.escalations || []
+  const signoffs = operation.signoffs || []
+  const staffing = operation.staffing || []
+  const blockedTasks = tasks.filter(task => task.status === 'BLOCKED' || task.blockerReason)
+  const openDependencies = dependencies.filter(dependency => dependency.status !== 'CLEARED')
+  const openHandoffs = handoffs.filter(handoff => handoff.status !== 'COMPLETE')
+  const openEscalations = escalations.filter(escalation => escalation.status !== 'RESOLVED')
+  const pendingSignoffs = signoffs.filter(signoff => signoff.status !== 'APPROVED')
+  const staffingGaps = staffing.filter(row => Number(row.plannedCount || 0) > Number(row.checkedInCount || 0))
+  const continuityScore = Math.max(0, Math.min(100, Number(commandCenter.commandScore || lifecycleState.completionPercent || 0) - (blockedTasks.length * 7) - (openEscalations.length * 6) - (openDependencies.length * 4) - (pendingSignoffs.length * 3)))
+  const firstTask = blockedTasks[0] || tasks.find(task => task.status !== 'COMPLETE')
+  const firstEscalation = openEscalations[0]
+
+  return {
+    headline: `${operation.shipName || operation.ship?.name || 'Selected ship'} continuity and recovery control`,
+    summary: `${operation.title || 'Turnaround'} has ${openEscalations.length} open escalations, ${openDependencies.length} dependencies, ${openHandoffs.length} handoffs, and ${pendingSignoffs.length} pending signoffs under continuity review.`,
+    continuityScore,
+    commandStatus: continuityScore >= 85 ? 'CONTINUITY_READY' : continuityScore >= 65 ? 'CONTINUITY_WATCH' : 'CONTINUITY_AT_RISK',
+    passengerImpact: operation.passengerCount ? `${operation.passengerCount} passengers protected by continuity checks.` : 'Passenger impact is tracked through the selected sailing.',
+    executivePrompt: continuityScore >= 85 ? 'Continuity is ready for final closeout.' : 'Continuity requires active command attention before final release.',
+    scenarios: [
+      firstEscalation ? { id: 'active-escalation', label: 'Active escalation', severity: firstEscalation.severity || 'MEDIUM', trigger: firstEscalation.title || 'Open escalation', impact: firstEscalation.description || 'Operational risk requires recovery owner.', owner: firstEscalation.ownerName || 'Incident Commander', recoveryWindow: 'Immediate command review', play: firstEscalation.resolutionNotes || 'Assign owner, update time, and closeout evidence.' } : null,
+      firstTask ? { id: 'task-recovery', label: 'Task recovery', severity: firstTask.status === 'BLOCKED' ? 'HIGH' : 'MEDIUM', trigger: firstTask.title || firstTask.taskName, impact: 'Open work can affect downstream readiness if not timeboxed.', owner: firstTask.ownerName || 'Department lead', recoveryWindow: 'Next command checkpoint', play: firstTask.blockerReason || firstTask.notes || 'Publish owner, workaround, and verification step.' } : null,
+      openDependencies[0] ? { id: 'dependency-recovery', label: 'Dependency recovery', severity: 'MEDIUM', trigger: openDependencies[0].title || openDependencies[0].taskName || 'Open dependency', impact: 'Dependency gate needs release evidence.', owner: openDependencies[0].ownerName || 'Command', recoveryWindow: 'Before readiness signoff', play: 'Confirm prerequisite owner and evidence.' } : null
+    ].filter(Boolean),
+    departmentContinuity: lifecycleState.departmentReadiness.map(department => ({
+      departmentRole: department.departmentRole,
+      score: department.taskCompletionPercent,
+      status: department.ready ? 'READY' : department.taskCompletionPercent >= 65 ? 'WATCH' : 'AT_RISK',
+      openTasks: Math.max((department.taskCount || 0) - Math.round(((department.taskCompletionPercent || 0) / 100) * (department.taskCount || 0)), 0),
+      openEscalations: department.openEscalations,
+      openDependencies: department.openDependencies,
+      staffingGap: staffingGaps.some(row => normalizeTurnaroundRoleLabel(row.departmentRole) === department.departmentRole),
+      nextAction: 'Protect readiness cadence and evidence.'
+    })),
+    runbook: [
+      { id: 'declare-command-window', label: 'Declare command window', owner: 'Turnaround Manager', evidence: operation.port || 'Selected port', action: 'Confirm phase, owner, and next recovery checkpoint.' },
+      { id: 'protect-critical-path', label: 'Protect critical path', owner: 'Department leads', evidence: `${blockedTasks.length} blocked task signals`, action: 'Move blockers into owned recovery plays with timestamps.' },
+      { id: 'close-readiness-loop', label: 'Close readiness loop', owner: 'Readiness approvers', evidence: `${pendingSignoffs.length} pending signoffs`, action: 'Verify final signoff evidence before release.' }
+    ],
+    watchlist: [
+      ...blockedTasks.map(task => ({ id: `task-${task.id}`, type: 'Task', label: task.title || task.taskName, owner: task.ownerName || 'Department lead', detail: task.blockerReason || task.notes || 'Blocked task requires recovery path.' })),
+      ...openEscalations.map(escalation => ({ id: `escalation-${escalation.id}`, type: 'Escalation', label: escalation.title || 'Open escalation', owner: escalation.ownerName || 'Incident Commander', detail: escalation.resolutionNotes || escalation.description || 'Escalation needs next update.' })),
+      ...openDependencies.map(dependency => ({ id: `dependency-${dependency.id}`, type: 'Dependency', label: dependency.title || dependency.taskName || 'Open dependency', owner: dependency.ownerName || 'Command', detail: 'Dependency still needs release evidence.' }))
+    ].slice(0, 8),
+    evidenceChecklist: [
+      { id: 'scenario-owners', label: 'Scenario owners assigned', complete: true },
+      { id: 'critical-path-watchlist', label: 'Critical path watchlist current', complete: blockedTasks.length <= 2 },
+      { id: 'signoff-path', label: 'Final signoff path visible', complete: pendingSignoffs.length === 0 }
+    ]
+  }
+}
+
+
+
 function buildReactTurnaroundPresentationGuide(operation = {}) {
   const lifecycleState = buildReactTurnaroundLifecycleState(operation)
   const releaseScore = operation.releasePacket?.readinessScore || lifecycleState.completionPercent
@@ -443,7 +504,8 @@ function hydrateReactTurnaroundOperation(operation = {}) {
     ...operation,
     lifecycleState: buildReactTurnaroundLifecycleState(operation),
     presentationGuide: buildReactTurnaroundPresentationGuide(operation),
-    commandCenter: operation.commandCenter || buildReactTurnaroundCommandCenter(operation)
+    commandCenter: operation.commandCenter || buildReactTurnaroundCommandCenter(operation),
+    continuityCenter: operation.continuityCenter || buildReactTurnaroundContinuityCenter(operation)
   }
 }
 

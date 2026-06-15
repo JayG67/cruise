@@ -428,6 +428,69 @@ function getCommandCenterFallback(operation = {}, tasks = [], taskSummary = {}) 
 }
 
 
+function getContinuityCenterFallback(operation = {}, tasks = [], taskSummary = {}) {
+  if (operation.continuityCenter) return operation.continuityCenter
+
+  const dependencies = Array.isArray(operation.taskDependencies) ? operation.taskDependencies : []
+  const handoffs = Array.isArray(operation.handoffs) ? operation.handoffs : []
+  const escalations = Array.isArray(operation.escalations) ? operation.escalations : []
+  const signoffs = Array.isArray(operation.signoffs) ? operation.signoffs : []
+  const staffing = Array.isArray(operation.staffing) ? operation.staffing : []
+  const openDependencies = dependencies.filter(dependency => String(dependency.status || '').toUpperCase() !== 'CLEARED')
+  const openHandoffs = handoffs.filter(handoff => String(handoff.status || '').toUpperCase() !== 'COMPLETE')
+  const openEscalations = escalations.filter(escalation => String(escalation.status || '').toUpperCase() !== 'RESOLVED')
+  const pendingSignoffs = signoffs.filter(signoff => String(signoff.status || '').toUpperCase() !== 'APPROVED')
+  const staffingGaps = staffing.filter(row => Number(row.plannedCount || 0) > Number(row.checkedInCount || 0))
+  const blockedTasks = tasks.filter(task => ['BLOCKED', 'AT_RISK'].includes(String(task.status || '').toUpperCase()) || task.blockerReason)
+  const continuityScore = Math.max(0, Math.min(100, Number(operation.commandCenter?.commandScore || operation.lifecycleState?.completionPercent || taskSummary.completionPercent || 0) - (blockedTasks.length * 7) - (openEscalations.length * 6) - (openDependencies.length * 4) - (pendingSignoffs.length * 3)))
+  const firstScenarioTask = blockedTasks[0] || tasks.find(task => String(task.status || '').toUpperCase() !== 'COMPLETE') || {}
+  const firstScenarioEscalation = openEscalations[0]
+  const departmentRoles = Array.from(new Set([
+    ...tasks.map(task => task.departmentRole).filter(Boolean),
+    ...staffing.map(row => row.departmentRole).filter(Boolean),
+    ...signoffs.map(row => row.departmentRole).filter(Boolean),
+    ...dependencies.map(row => row.departmentRole).filter(Boolean),
+    ...handoffs.map(row => row.departmentRole).filter(Boolean)
+  ]))
+
+  return {
+    headline: `${operation.shipName || 'Selected ship'} continuity and recovery control`,
+    summary: `${operation.title || 'Selected turnaround'} has ${openEscalations.length} open escalations, ${openDependencies.length} dependencies, ${openHandoffs.length} handoffs, and ${pendingSignoffs.length} pending signoffs under continuity review.`,
+    continuityScore,
+    commandStatus: continuityScore >= 85 ? 'CONTINUITY_READY' : continuityScore >= 65 ? 'CONTINUITY_WATCH' : 'CONTINUITY_AT_RISK',
+    passengerImpact: operation.passengerCount ? `${operation.passengerCount} passengers protected by continuity checks.` : 'Passenger impact is tracked through the selected sailing.',
+    scenarios: [
+      firstScenarioEscalation ? { id: 'active-escalation', label: 'Active escalation', severity: firstScenarioEscalation.severity || 'MEDIUM', trigger: firstScenarioEscalation.title || 'Open escalation', impact: firstScenarioEscalation.description || 'Operational risk requires a recovery owner.', owner: firstScenarioEscalation.ownerName || 'Incident Commander', recoveryWindow: 'Immediate command review', play: firstScenarioEscalation.resolutionNotes || 'Assign owner, update time, and closeout evidence.' } : null,
+      firstScenarioTask?.id ? { id: 'task-recovery', label: 'Task recovery', severity: firstScenarioTask.status === 'BLOCKED' ? 'HIGH' : 'MEDIUM', trigger: firstScenarioTask.title || firstScenarioTask.taskName, impact: 'Open work can affect downstream readiness if not timeboxed.', owner: firstScenarioTask.ownerName || 'Department lead', recoveryWindow: 'Next command checkpoint', play: firstScenarioTask.blockerReason || firstScenarioTask.notes || 'Publish owner, workaround, and verification step.' } : null,
+      openDependencies[0] ? { id: 'dependency-recovery', label: 'Dependency recovery', severity: 'MEDIUM', trigger: openDependencies[0].title || openDependencies[0].taskName || 'Open dependency', impact: 'Dependency gate needs release evidence.', owner: openDependencies[0].ownerName || 'Command', recoveryWindow: 'Before readiness signoff', play: 'Confirm prerequisite owner and evidence.' } : null
+    ].filter(Boolean).slice(0, 4),
+    departmentContinuity: (departmentRoles.length ? departmentRoles : ['turnaround-manager']).map(departmentRole => {
+      const departmentTasks = tasks.filter(task => task.departmentRole === departmentRole)
+      const completeTasks = departmentTasks.filter(task => String(task.status || '').toUpperCase() === 'COMPLETE').length
+      const score = departmentTasks.length ? Math.round((completeTasks / departmentTasks.length) * 100) : 75
+      return { departmentRole, score, status: score >= 85 ? 'READY' : score >= 65 ? 'WATCH' : 'AT_RISK', openTasks: Math.max(departmentTasks.length - completeTasks, 0), openEscalations: openEscalations.filter(escalation => escalation.departmentRole === departmentRole).length, openDependencies: openDependencies.filter(dependency => dependency.departmentRole === departmentRole).length, staffingGap: staffingGaps.some(row => row.departmentRole === departmentRole), nextAction: departmentTasks.find(task => String(task.status || '').toUpperCase() !== 'COMPLETE')?.title || 'Protect readiness cadence and evidence.' }
+    }).slice(0, 8),
+    runbook: [
+      { id: 'declare-command-window', label: 'Declare command window', owner: 'Turnaround Manager', evidence: operation.port || operation.arrivalPort || 'Selected port', action: 'Confirm phase, owner, and next recovery checkpoint.' },
+      { id: 'protect-critical-path', label: 'Protect critical path', owner: 'Department leads', evidence: `${blockedTasks.length} blocked task signals`, action: 'Move blockers into owned recovery plays with timestamps.' },
+      { id: 'close-readiness-loop', label: 'Close readiness loop', owner: 'Readiness approvers', evidence: `${pendingSignoffs.length} pending signoffs`, action: 'Verify final signoff evidence before release.' }
+    ],
+    watchlist: [
+      ...blockedTasks.map(task => ({ id: `task-${task.id}`, type: 'Task', label: task.title || task.taskName, owner: task.ownerName || 'Department lead', detail: task.blockerReason || task.notes || 'Blocked task requires recovery path.' })),
+      ...openEscalations.map(escalation => ({ id: `escalation-${escalation.id}`, type: 'Escalation', label: escalation.title || 'Open escalation', owner: escalation.ownerName || 'Incident Commander', detail: escalation.resolutionNotes || escalation.description || 'Escalation needs next update.' })),
+      ...openDependencies.map(dependency => ({ id: `dependency-${dependency.id}`, type: 'Dependency', label: dependency.title || dependency.taskName || 'Open dependency', owner: dependency.ownerName || 'Command', detail: 'Dependency still needs release evidence.' }))
+    ].slice(0, 8),
+    executivePrompt: continuityScore >= 85 ? 'Continuity is ready for final closeout.' : 'Continuity requires active command attention before final release.',
+    evidenceChecklist: [
+      { id: 'scenario-owners', label: 'Scenario owners assigned', complete: true },
+      { id: 'critical-path-watchlist', label: 'Critical path watchlist current', complete: blockedTasks.length <= 2 },
+      { id: 'signoff-path', label: 'Final signoff path visible', complete: pendingSignoffs.length === 0 }
+    ]
+  }
+}
+
+
+
 export function buildTurnaroundOperationCards(turnaroundOperations = [], roleView = '') {
   return turnaroundOperations.map(operation => {
     const tasks = getOperationalTasksForRole(operation, roleView)
@@ -493,6 +556,7 @@ export function buildTurnaroundOperationCards(turnaroundOperations = [], roleVie
       presentationGuide: operation.presentationGuide || null,
       closeoutPacket: operation.closeoutPacket || null,
       commandCenter: getCommandCenterFallback(operation, tasks, taskSummary),
+      continuityCenter: getContinuityCenterFallback(operation, tasks, taskSummary),
       status: operation.status || 'PLANNED',
       title: operation.title || 'Turnaround operation',
       notes: operation.notes || ''

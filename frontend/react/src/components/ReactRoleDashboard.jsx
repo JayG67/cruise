@@ -2160,6 +2160,75 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
       )}
 
 
+      {selectedOperation?.continuityCenter && (
+        <section className={`operations-continuity-center ${String(selectedOperation.continuityCenter.commandStatus || '').toLowerCase()}`} aria-labelledby="operations-continuity-center-heading" data-testid="react-operations-continuity-center">
+          <div className="operations-continuity-center-header">
+            <div>
+              <p className="eyebrow">Turnaround continuity center</p>
+              <h4 id="operations-continuity-center-heading">Exception recovery and passenger-impact control</h4>
+              <p>{selectedOperation.continuityCenter.summary}</p>
+            </div>
+            <div className={`operations-continuity-center-score ${String(selectedOperation.continuityCenter.commandStatus || '').toLowerCase()}`} aria-label={`Continuity score ${selectedOperation.continuityCenter.continuityScore || 0}%`}>
+              <span>{selectedOperation.continuityCenter.continuityScore || 0}%</span>
+              <small>{String(selectedOperation.continuityCenter.commandStatus || 'CONTINUITY_WATCH').replace(/_/g, ' ')}</small>
+            </div>
+          </div>
+          <div className="operations-continuity-impact" data-testid="react-operations-continuity-impact">
+            <strong>{selectedOperation.continuityCenter.headline}</strong>
+            <p>{selectedOperation.continuityCenter.passengerImpact}</p>
+            <p>{selectedOperation.continuityCenter.executivePrompt}</p>
+          </div>
+          <div className="operations-continuity-grid">
+            <div data-testid="react-operations-continuity-scenarios">
+              <strong>Scenario recovery plays</strong>
+              <ol>
+                {(selectedOperation.continuityCenter.scenarios || []).slice(0, 6).map(scenario => (
+                  <li key={scenario.id}><span>{scenario.severity}</span> {scenario.label}: {scenario.trigger}. {scenario.play}</li>
+                ))}
+              </ol>
+            </div>
+            <div data-testid="react-operations-continuity-runbook">
+              <strong>Continuity runbook</strong>
+              <ol>
+                {(selectedOperation.continuityCenter.runbook || []).slice(0, 6).map(step => (
+                  <li key={step.id}><span>{step.owner}</span> {step.label}: {step.action}</li>
+                ))}
+              </ol>
+            </div>
+          </div>
+          <div className="operations-continuity-departments" data-testid="react-operations-continuity-departments">
+            <strong>Department continuity board</strong>
+            <div className="operations-continuity-department-grid">
+              {(selectedOperation.continuityCenter.departmentContinuity || []).slice(0, 8).map(department => (
+                <article key={department.departmentRole}>
+                  <span>{department.score}% · {department.status}</span>
+                  <strong>{department.departmentRole}</strong>
+                  <p>{department.nextAction}</p>
+                  <small>{department.openTasks} open tasks · {department.openEscalations} escalations · {department.openDependencies} dependencies</small>
+                </article>
+              ))}
+            </div>
+          </div>
+          <div className="operations-continuity-watchlist" data-testid="react-operations-continuity-watchlist">
+            <strong>Continuity watchlist</strong>
+            <ul>
+              {(selectedOperation.continuityCenter.watchlist || []).slice(0, 8).map(item => (
+                <li key={item.id}><span>{item.type}</span> {item.owner}: {item.label}. {item.detail}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="operations-continuity-checklist" data-testid="react-operations-continuity-checklist">
+            <strong>Evidence checklist</strong>
+            <ul>
+              {(selectedOperation.continuityCenter.evidenceChecklist || []).slice(0, 6).map(item => (
+                <li key={item.id}><span>{item.complete ? 'Ready' : 'Open'}</span> {item.label}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+
       {selectedOperation?.closeoutPacket && (
         <section className="operations-closeout-packet" aria-labelledby="operations-closeout-packet-heading" data-testid="react-operations-closeout-packet">
           <div className="operations-closeout-packet-header">
