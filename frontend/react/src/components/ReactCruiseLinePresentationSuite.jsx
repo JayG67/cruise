@@ -455,14 +455,17 @@ function buildLineDemoFlow(line = {}, metrics = {}, bookings = []) {
 
 export default function ReactCruiseLinePresentationSuite({ cruiseLines = [], bookings = [], onOpenWorkspace }) {
   const [selectedLineId, setSelectedLineId] = useState(() => getLineId(cruiseLines[0] || {}))
+  const [selectedShipName, setSelectedShipName] = useState('')
+  const [selectedSailingId, setSelectedSailingId] = useState('')
   const selectedLine = useMemo(() => {
     return cruiseLines.find(line => getLineId(line) === selectedLineId) || cruiseLines[0] || null
   }, [cruiseLines, selectedLineId])
   const metrics = useMemo(() => selectedLine ? buildLineMetrics(selectedLine, bookings) : buildLineMetrics({}, []), [selectedLine, bookings])
   const demoFlow = useMemo(() => selectedLine ? buildLineDemoFlow(selectedLine, metrics, bookings) : [], [selectedLine, metrics, bookings])
-  const ships = selectedLine ? getPresentationShips(selectedLine, bookings) : []
-  const featuredShip = ships[0] || {}
-  const featuredSailing = getShipSailings(featuredShip)[0] || {}
+  const ships = useMemo(() => selectedLine ? getPresentationShips(selectedLine, bookings) : [], [selectedLine, bookings])
+  const featuredShip = ships.find(ship => ship.name === selectedShipName) || ships[0] || {}
+  const shipSailings = getShipSailings(featuredShip)
+  const featuredSailing = shipSailings.find(sailing => sailing.id === selectedSailingId || sailing.departureDate === selectedSailingId) || shipSailings[0] || {}
   const featuredItinerary = getSailingItinerary(featuredSailing)
   const activityHighlights = selectedLine ? getActivityHighlights(selectedLine, bookings) : []
   const manifestPreview = metrics.matchingBookings.slice(0, 4)
@@ -492,18 +495,31 @@ export default function ReactCruiseLinePresentationSuite({ cruiseLines = [], boo
           <p className="eyebrow">Cruise line operations</p>
           <h2 id="react-cruise-line-presentation-heading">Cruise line operating workspace</h2>
           <p>
-            Select a cruise line to review its fleet, sailing inventory, itinerary program, guest demand,
-            port footprint, commercial mix, and turnaround handoff.
+            Select the operating scope, then drill into fleet, guest, sailing, or turnaround workflows.
           </p>
         </div>
-        <label className="presentation-line-picker">
-          <span>Cruise line</span>
-          <select value={getLineId(selectedLine)} onChange={event => setSelectedLineId(event.target.value)} data-testid="react-presentation-line-picker">
-            {cruiseLines.map(line => (
-              <option key={getLineId(line)} value={getLineId(line)}>{line.name}</option>
-            ))}
-          </select>
-        </label>
+        <div className="presentation-scope-controls" aria-label="Cruise line operating scope">
+          <label className="presentation-line-picker">
+            <span>Cruise line</span>
+            <select value={getLineId(selectedLine)} onChange={event => { setSelectedLineId(event.target.value); setSelectedShipName(''); setSelectedSailingId('') }} data-testid="react-presentation-line-picker">
+              {cruiseLines.map(line => (
+                <option key={getLineId(line)} value={getLineId(line)}>{line.name}</option>
+              ))}
+            </select>
+          </label>
+          <label className="presentation-line-picker">
+            <span>Ship</span>
+            <select value={featuredShip.name || ''} onChange={event => { setSelectedShipName(event.target.value); setSelectedSailingId('') }} data-testid="react-presentation-ship-picker">
+              {ships.map(ship => <option key={ship.name} value={ship.name}>{ship.name}</option>)}
+            </select>
+          </label>
+          <label className="presentation-line-picker">
+            <span>Sailing</span>
+            <select value={featuredSailing.id || featuredSailing.departureDate || ''} onChange={event => setSelectedSailingId(event.target.value)} data-testid="react-presentation-sailing-picker">
+              {shipSailings.map(sailing => <option key={sailing.id || sailing.departureDate} value={sailing.id || sailing.departureDate}>{sailing.departureDate || 'Date pending'} · {getSailingDestination(sailing)}</option>)}
+            </select>
+          </label>
+        </div>
       </div>
 
       <div className="presentation-hero-card">
@@ -522,13 +538,27 @@ export default function ReactCruiseLinePresentationSuite({ cruiseLines = [], boo
         </div>
       </div>
 
-      <div className="presentation-demo-flow" aria-label="Cruise line operating flow">
-        {demoFlow.map(step => (
-          <article key={step.id} className="presentation-flow-card" data-testid="react-presentation-flow-card">
-            <strong>{step.label}</strong>
-            <p>{step.detail}</p>
-          </article>
-        ))}
+      <div className="presentation-demo-flow presentation-action-grid" aria-label="Cruise line operating actions">
+        <article className="presentation-flow-card" data-testid="react-presentation-flow-card">
+          <strong>Fleet</strong>
+          <p>{formatCount(metrics.shipCount)} ships and {formatCount(metrics.sailingCount)} sailings in scope.</p>
+          <button type="button" className="secondary-action-button" onClick={() => onOpenWorkspace?.('react-fleet', 'Fleet Directory', 'admin')}>Open fleet</button>
+        </article>
+        <article className="presentation-flow-card" data-testid="react-presentation-flow-card">
+          <strong>Guests</strong>
+          <p>{formatCount(metrics.bookingCount)} bookings and {formatCount(metrics.passengerCount)} visible passengers.</p>
+          <button type="button" className="secondary-action-button" onClick={() => onOpenWorkspace?.('react-role-selector', 'Role-aware Views')}>Open roles</button>
+        </article>
+        <article className="presentation-flow-card" data-testid="react-presentation-flow-card">
+          <strong>Sailing plan</strong>
+          <p>{featuredShip.name || 'Selected ship'} · {featuredSailing.departureDate || 'date pending'}.</p>
+          <button type="button" className="secondary-action-button" onClick={() => onOpenWorkspace?.('react-fleet', 'Fleet Directory', 'admin')}>Open sailings</button>
+        </article>
+        <article className="presentation-flow-card" data-testid="react-presentation-flow-card">
+          <strong>Turnaround</strong>
+          <p>Move from voyage data to assigned operational execution.</p>
+          <button type="button" className="secondary-action-button" onClick={() => onOpenWorkspace?.('react-turnaround-admin-setup', 'Turnaround Setup', 'admin')}>Open operations</button>
+        </article>
       </div>
 
       <div className="presentation-detail-grid">

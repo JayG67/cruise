@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import { createBooking, createCustomer, deleteBooking, deleteCustomer } from '../api/client.js'
 import CustomerHierarchyRow from './CustomerHierarchyRow.jsx'
 import ConfirmActionPanel from './ConfirmActionPanel.jsx'
@@ -77,6 +77,31 @@ export default function CustomerBookingHierarchy({
   const [workflowFilters, setWorkflowFilters] = useState({ cruiseLine: '', ship: '', customerId: '' })
   const [activeDeleteId, setActiveDeleteId] = useState('')
   const [pendingDelete, setPendingDelete] = useState(null)
+  const [isSelectorPending, startSelectorTransition] = useTransition()
+
+  const bookingSelectorRows = useMemo(() => bookings.map(booking => ({
+    booking,
+    lineName: getBookingCruiseLineName(booking),
+    shipName: getBookingShipName(booking),
+    primaryPassenger: getBookingPrimaryPassenger(booking),
+    passengerIds: new Set((booking.passengers || []).map(passenger => passenger.customerId || passenger.customer?.id).filter(Boolean))
+  })), [bookings])
+
+  const customerSelectorMeta = useMemo(() => {
+    const metaMap = new Map()
+
+    customers.forEach(customer => {
+      const linkedRows = bookingSelectorRows.filter(row => row.booking.createdByCustomerId === customer.id || row.passengerIds.has(customer.id))
+      metaMap.set(customer.id, {
+        bookingIds: new Set(linkedRows.map(row => row.booking.id)),
+        lineNames: uniqueSorted(linkedRows.map(row => row.lineName)),
+        shipNames: uniqueSorted(linkedRows.map(row => row.shipName)),
+        linkedCount: linkedRows.length
+      })
+    })
+
+    return metaMap
+  }, [customers, bookingSelectorRows])
 
   function updateCreateCustomerDraft(fieldName, value) {
     setCreateCustomerDraft(current => ({ ...current, [fieldName]: value }))
@@ -253,10 +278,7 @@ export default function CustomerBookingHierarchy({
   }
 
   function getCustomerDeleteLabel(customer = {}) {
-    const linkedCount = bookings.filter(booking =>
-      booking.createdByCustomerId === customer.id
-      || (booking.passengers || []).some(passenger => (passenger.customerId || passenger.customer?.id) === customer.id)
-    ).length
+    const linkedCount = customerSelectorMeta.get(customer.id)?.linkedCount || 0
     const bookingSummary = linkedCount === 1 ? '1 linked booking' : `${linkedCount} linked bookings`
 
     return `${getCustomerSortLabel(customer)} — ${customer.email || customer.id} · ${bookingSummary}`
@@ -319,26 +341,15 @@ export default function CustomerBookingHierarchy({
   }
 
   function getCustomerBookingIds(customer = {}) {
-    return new Set(bookings
-      .filter(booking => booking.createdByCustomerId === customer.id
-        || (booking.passengers || []).some(passenger => (passenger.customerId || passenger.customer?.id) === customer.id))
-      .map(booking => booking.id))
+    return customerSelectorMeta.get(customer.id)?.bookingIds || new Set()
   }
 
   function getCustomerCruiseLineNames(customer = {}) {
-    const bookingIds = getCustomerBookingIds(customer)
-    return Array.from(new Set(bookings
-      .filter(booking => bookingIds.has(booking.id))
-      .map(getBookingCruiseLineName)
-      .filter(Boolean)))
+    return customerSelectorMeta.get(customer.id)?.lineNames || []
   }
 
   function getCustomerShipNames(customer = {}) {
-    const bookingIds = getCustomerBookingIds(customer)
-    return Array.from(new Set(bookings
-      .filter(booking => bookingIds.has(booking.id))
-      .map(getBookingShipName)
-      .filter(Boolean)))
+    return customerSelectorMeta.get(customer.id)?.shipNames || []
   }
 
   function uniqueSorted(values = []) {
@@ -346,7 +357,7 @@ export default function CustomerBookingHierarchy({
   }
 
   function updateDeleteCustomerFilter(fieldName, value) {
-    setDeleteCustomerFilters(current => {
+    startSelectorTransition(() => setDeleteCustomerFilters(current => {
       const next = { ...current, [fieldName]: value }
       if (fieldName === 'cruiseLine') {
         next.ship = ''
@@ -355,11 +366,11 @@ export default function CustomerBookingHierarchy({
       if (fieldName === 'ship') next.customerId = ''
       setDeleteCustomerId(next.customerId)
       return next
-    })
+    }))
   }
 
   function updateDeleteBookingFilter(fieldName, value) {
-    setDeleteBookingFilters(current => {
+    startSelectorTransition(() => setDeleteBookingFilters(current => {
       const next = { ...current, [fieldName]: value }
       if (fieldName === 'cruiseLine') {
         next.ship = ''
@@ -368,7 +379,7 @@ export default function CustomerBookingHierarchy({
       if (fieldName === 'ship') next.bookingId = ''
       setDeleteBookingId(next.bookingId)
       return next
-    })
+    }))
   }
 
   function getScopedCustomerRows(filters = {}) {
@@ -382,11 +393,11 @@ export default function CustomerBookingHierarchy({
   }
 
   function getScopedBookingRows(filters = {}) {
-    return bookings.filter(booking => {
-      const lineMatches = !filters.cruiseLine || getBookingCruiseLineName(booking) === filters.cruiseLine
-      const shipMatches = !filters.ship || getBookingShipName(booking) === filters.ship
+    return bookingSelectorRows.filter(row => {
+      const lineMatches = !filters.cruiseLine || row.lineName === filters.cruiseLine
+      const shipMatches = !filters.ship || row.shipName === filters.ship
       return lineMatches && shipMatches
-    }).sort(compareBookingPassengerNames)
+    }).map(row => row.booking).sort(compareBookingPassengerNames)
   }
 
   function getScopedLineOptions(filters = {}, mode = 'booking') {
@@ -397,9 +408,9 @@ export default function CustomerBookingHierarchy({
         .flatMap(getCustomerCruiseLineNames))
     }
 
-    return uniqueSorted(source
-      .filter(booking => !filters.ship || getBookingShipName(booking) === filters.ship)
-      .map(getBookingCruiseLineName))
+    return uniqueSorted(bookingSelectorRows
+      .filter(row => !filters.ship || row.shipName === filters.ship)
+      .map(row => row.lineName))
   }
 
   function getScopedShipOptions(filters = {}, mode = 'booking') {
@@ -410,13 +421,13 @@ export default function CustomerBookingHierarchy({
         .flatMap(getCustomerShipNames))
     }
 
-    return uniqueSorted(source
-      .filter(booking => !filters.cruiseLine || getBookingCruiseLineName(booking) === filters.cruiseLine)
-      .map(getBookingShipName))
+    return uniqueSorted(bookingSelectorRows
+      .filter(row => !filters.cruiseLine || row.lineName === filters.cruiseLine)
+      .map(row => row.shipName))
   }
 
   function updateWorkflowFilter(fieldName, value) {
-    setWorkflowFilters(current => {
+    startSelectorTransition(() => setWorkflowFilters(current => {
       const next = { ...current, [fieldName]: value }
       if (fieldName === 'cruiseLine') {
         next.ship = ''
@@ -429,7 +440,7 @@ export default function CustomerBookingHierarchy({
         : next.ship || next.cruiseLine || ''
       updateSearchTerm(nextSearchTerm)
       return next
-    })
+    }))
   }
 
   const customerCruiseLineOptions = getScopedLineOptions(deleteCustomerFilters, 'customer')
@@ -498,8 +509,8 @@ export default function CustomerBookingHierarchy({
             <p>Create customer records and manage destructive corrections with scoped selectors. Passenger-led booking creation remains in the passenger booking workflow.</p>
           </div>
 
-          {isLoading && (
-            <p className="draft-message" role="status" data-testid="react-admin-refresh-status">Refreshing customer and booking workspace…</p>
+          {(isLoading || isSelectorPending) && (
+            <p className="draft-message" role="status" data-testid="react-admin-refresh-status">{isLoading ? 'Refreshing customer and booking workspace…' : 'Updating selector choices…'}</p>
           )}
 
           {adminMutationMessage && (
@@ -556,7 +567,7 @@ export default function CustomerBookingHierarchy({
                   </select>
                 </label>
               </div>
-              <p className="muted">{filteredDeleteCustomers.length} matching customers</p>
+              <p className="muted" role="status">{isSelectorPending ? 'Updating customer choices…' : `${filteredDeleteCustomers.length} matching customers`}</p>
               <button type="submit" className="fleet-danger-action" disabled={activeDeleteId === `customer:${deleteCustomerId.trim()}`} data-testid="react-admin-delete-customer-submit">Delete Customer</button>
             </form>
 
@@ -586,7 +597,7 @@ export default function CustomerBookingHierarchy({
                   </select>
                 </label>
               </div>
-              <p className="muted">{filteredDeleteBookings.length} matching bookings</p>
+              <p className="muted" role="status">{isSelectorPending ? 'Updating booking choices…' : `${filteredDeleteBookings.length} matching bookings`}</p>
               <button type="submit" className="fleet-danger-action" disabled={activeDeleteId === `booking:${deleteBookingId.trim()}`} data-testid="react-admin-delete-booking-submit">Delete Booking</button>
             </form>
           </div>
@@ -621,7 +632,7 @@ export default function CustomerBookingHierarchy({
               </select>
             </label>
           </div>
-          <p className="muted">{filteredWorkflowCustomers.length} matching customer records</p>
+          <p className="muted" role="status">{isSelectorPending ? 'Updating customer records…' : `${filteredWorkflowCustomers.length} matching customer records`}</p>
           <input
             className="react-admin-legacy-filter-input"
             data-testid="react-hierarchy-search-input"

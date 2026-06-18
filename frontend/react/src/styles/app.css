@@ -13204,3 +13204,42 @@ button.react-workspace-card .workspace-card-title,
   overflow: hidden;
   position: absolute;
 }
+
+.presentation-scope-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+
+.presentation-action-grid .presentation-flow-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+}
+
+.presentation-action-grid .presentation-flow-card p {
+  flex: 1;
+}
+
+.presentation-action-grid .secondary-action-button {
+  width: fit-content;
+  min-width: 8.5rem;
+}
+
+.react-admin-workspace select,
+.cruise-line-presentation-suite select {
+  cursor: pointer;
+}
+
+.react-admin-workspace [role="status"],
+.cruise-line-presentation-suite [role="status"] {
+  transition: opacity 120ms ease-out;
+}
+
+@media (max-width: 900px) {
+  .presentation-scope-controls {
+    grid-template-columns: 1fr;
+  }
+}
