@@ -4,6 +4,7 @@ const appUserTable = require('./appUser.model')
 const appRoleTable = require('./appRole.model')
 const cruiseLineTable = require('./cruiseline.model')
 const shipTable = require('./ship.model')
+const sailingTable = require('./sailing.model')
 
 const demoUserTable = pgTable('demo_users', {
   id: varchar({ length: 20 }).primaryKey(),
@@ -14,6 +15,7 @@ const demoUserTable = pgTable('demo_users', {
   normalizedRoleId: varchar({ length: 50 }).references(() => appRoleTable.id),
   cruiseLineId: uuid().references(() => cruiseLineTable.id),
   assignedShipId: uuid().references(() => shipTable.id),
+  assignedSailingId: uuid().references(() => sailingTable.id),
   cruiseLineName: varchar({ length: 255 }),
   assignedShipName: varchar({ length: 255 })
 })

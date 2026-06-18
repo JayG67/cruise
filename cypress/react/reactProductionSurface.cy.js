@@ -18,7 +18,7 @@ describe('Cruise operations product surface coverage', () => {
 
   it('keeps product shortcuts focused on real application sections', () => {
     cy.getByTestId(rs.productionHero).within(() => {
-      cy.getByTestId(rs.heroDemoButton).should('contain.text', 'Start Employer Demo')
+      cy.getByTestId(rs.heroDemoButton).should('contain.text', 'Explore Overview')
       cy.getByTestId(rs.heroOperationsButton).should('contain.text', 'Review Operations')
       cy.getByTestId(rs.heroQualityButton).should('contain.text', 'Open Quality Console')
       cy.get('a[href="/retired"]').should('not.exist')
@@ -26,7 +26,7 @@ describe('Cruise operations product surface coverage', () => {
   })
 
   it('scrolls workspace controls to live application sections', () => {
-    cy.getByTestId(rs.workspaceDemoButton).click()
+    cy.getByTestId(rs.heroDemoButton).click()
     cy.getByTestId(rs.employerDemoCommandCenter).should('be.visible')
     cy.getByTestId(rs.workspaceRoleButton).click()
     cy.getByTestId(rs.roleSelector).should('be.visible')
@@ -38,16 +38,12 @@ describe('Cruise operations product surface coverage', () => {
     cy.getByTestId(rs.sqaConsole).should('be.visible')
   })
 
-  it('keeps recommended workflow controls wired to application sections', () => {
-    cy.getByTestId(rs.workflowDemoButton).click()
-    cy.getByTestId(rs.employerDemoCommandCenter).should('be.visible')
-    cy.getByTestId(rs.workflowRoleButton).click()
+  it('keeps self-guided overview controls wired to application sections', () => {
+    cy.getByTestId(rs.employerDemoRolesButton).click()
     cy.getByTestId(rs.roleSelector).should('be.visible')
-    cy.getByTestId(rs.workflowOperationsButton).click()
-    cy.getByTestId(rs.activeRouteOperations).should('be.visible')
-    cy.getByTestId(rs.workflowFleetButton).click()
+    cy.getByTestId(rs.employerDemoFleetButton).click()
     cy.getByTestId(rs.fleetDirectory).should('be.visible')
-    cy.getByTestId(rs.workflowQualityButton).click()
+    cy.getByTestId(rs.employerDemoQualityButton).click()
     cy.getByTestId(rs.sqaConsole).should('be.visible')
   })
 
@@ -74,16 +70,15 @@ describe('Cruise operations product surface coverage', () => {
     })
   })
 
-  it('keeps admin create/delete controls paired by customer and booking columns', () => {
+  it('keeps admin create/delete controls focused on customer creation and scoped destructive corrections', () => {
     cy.getByTestId(rs.adminMutationPanel).within(() => {
+      cy.getByTestId(rs.adminCreateCustomerForm).should('be.visible')
+      cy.getByTestId(rs.adminCreateBookingForm).should('not.exist')
+      cy.getByTestId(rs.adminDeleteCustomerForm).should('be.visible')
+      cy.getByTestId(rs.adminDeleteBookingForm).should('be.visible')
       cy.getByTestId(rs.adminCreateCustomerForm).then($createCustomer => {
         cy.getByTestId(rs.adminDeleteCustomerForm).then($deleteCustomer => {
-          cy.getByTestId(rs.adminCreateBookingForm).then($createBooking => {
-            cy.getByTestId(rs.adminDeleteBookingForm).then($deleteBooking => {
-              expect(Boolean($createCustomer[0].compareDocumentPosition($deleteCustomer[0]) & Node.DOCUMENT_POSITION_FOLLOWING)).to.equal(true)
-              expect(Boolean($createBooking[0].compareDocumentPosition($deleteBooking[0]) & Node.DOCUMENT_POSITION_FOLLOWING)).to.equal(true)
-            })
-          })
+          expect(Boolean($createCustomer[0].compareDocumentPosition($deleteCustomer[0]) & Node.DOCUMENT_POSITION_FOLLOWING)).to.equal(true)
         })
       })
     })

@@ -19,6 +19,8 @@ function formatRoleOption(role = '') {
   if (role === 'guest-services-lead') return 'Guest Services Lead'
   if (role === 'food-beverage-lead') return 'Food & Beverage Lead'
   if (role === 'engineering-lead') return 'Engineering Lead'
+  if (role === 'security-lead') return 'Security Lead'
+  if (role === 'port-operations-lead') return 'Port Operations Lead'
   return 'Passenger'
 }
 
@@ -100,6 +102,26 @@ function buildPassengerOption(user = {}, bookings = []) {
       ...contexts.flatMap(context => [context.bookingId, context.cruiseLine, context.ship, context.sailingDate, context.route, context.cabinNumber])
     ].filter(Boolean).join(' ').toLowerCase()
   }
+}
+
+
+function sortPassengerOptions(options = []) {
+  return [...options].sort((a, b) => {
+    const aHasContext = a.contexts.length > 0
+    const bHasContext = b.contexts.length > 0
+
+    if (aHasContext !== bHasContext) {
+      return aHasContext ? -1 : 1
+    }
+
+    const aDate = a.contexts[0]?.sailingDate || ''
+    const bDate = b.contexts[0]?.sailingDate || ''
+    const dateComparison = String(aDate).localeCompare(String(bDate))
+
+    if (dateComparison !== 0) return dateComparison
+
+    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+  })
 }
 
 function sortPassengerFilterValues(values = [], key = '') {
@@ -257,195 +279,6 @@ function getOperationalFilterOptions(options = [], key) {
   return [...values].sort((a, b) => String(a).localeCompare(String(b)))
 }
 
-function getOperationalAssignmentAudit({
-  sourceOptions = [],
-  filteredOptions = [],
-  cruiseLineFilter = '',
-  shipFilter = '',
-  displayLimit = 16
-} = {}) {
-  const scopedOptions = sourceOptions.filter(option => option.assignment?.cruiseLineName === cruiseLineFilter)
-  const scopedShipNames = new Set(scopedOptions.map(option => option.assignment?.shipName).filter(Boolean))
-  const scopedRoleNames = new Set(scopedOptions.map(option => formatDemoUserRole(option.user?.role || option.user?.userType || 'Demo User')))
-  const visibleCruiseLines = new Set(filteredOptions.map(option => option.assignment?.cruiseLineName).filter(Boolean))
-  const selectedShipOptions = shipFilter
-    ? scopedOptions.filter(option => option.assignment?.shipName === shipFilter)
-    : scopedOptions
-  const visibleCardCount = Math.min(filteredOptions.length, displayLimit)
-  const hiddenCardCount = Math.max(filteredOptions.length - displayLimit, 0)
-
-  return {
-    cruiseLineName: cruiseLineFilter || 'No cruise line selected',
-    shipName: shipFilter || (cruiseLineFilter ? 'All ships in selected cruise line' : 'Select a cruise line first'),
-    scopedPeopleCount: scopedOptions.length,
-    scopedShipCount: scopedShipNames.size,
-    scopedRoleCount: scopedRoleNames.size,
-    matchingPeopleCount: filteredOptions.length,
-    selectedShipPeopleCount: selectedShipOptions.length,
-    visibleCardCount,
-    hiddenCardCount,
-    crossLineVisibleCount: Math.max(visibleCruiseLines.size - (cruiseLineFilter ? 1 : 0), 0)
-  }
-}
-
-
-function getOperationalAssignmentRoster({
-  sourceOptions = [],
-  filteredOptions = [],
-  cruiseLineFilter = '',
-  shipFilter = ''
-} = {}) {
-  const scopedOptions = cruiseLineFilter
-    ? sourceOptions.filter(option => option.assignment?.cruiseLineName === cruiseLineFilter)
-    : []
-  const visibleOptionIds = new Set(filteredOptions.map(option => option.user?.id).filter(Boolean))
-  const roleLabelFor = option => formatDemoUserRole(option.user?.role || option.user?.userType || 'Demo User')
-
-  const shipMap = new Map()
-  scopedOptions.forEach(option => {
-    const shipName = option.assignment?.shipName || 'Unassigned ship'
-    const roleLabel = roleLabelFor(option)
-    if (!shipMap.has(shipName)) {
-      shipMap.set(shipName, {
-        shipName,
-        peopleCount: 0,
-        visibleCount: 0,
-        roleCounts: new Map()
-      })
-    }
-
-    const shipRow = shipMap.get(shipName)
-    shipRow.peopleCount += 1
-    if (visibleOptionIds.has(option.user?.id)) shipRow.visibleCount += 1
-    shipRow.roleCounts.set(roleLabel, (shipRow.roleCounts.get(roleLabel) || 0) + 1)
-  })
-
-  const roleMap = new Map()
-  scopedOptions.forEach(option => {
-    const roleLabel = roleLabelFor(option)
-    const shipName = option.assignment?.shipName || 'Unassigned ship'
-    if (!roleMap.has(roleLabel)) {
-      roleMap.set(roleLabel, {
-        roleLabel,
-        peopleCount: 0,
-        visibleCount: 0,
-        shipNames: new Set()
-      })
-    }
-
-    const roleRow = roleMap.get(roleLabel)
-    roleRow.peopleCount += 1
-    if (visibleOptionIds.has(option.user?.id)) roleRow.visibleCount += 1
-    roleRow.shipNames.add(shipName)
-  })
-
-  const shipRows = [...shipMap.values()]
-    .map(row => ({
-      ...row,
-      roleSummary: [...row.roleCounts.entries()]
-        .sort(([roleA], [roleB]) => roleA.localeCompare(roleB))
-        .map(([role, count]) => `${count} ${role}`)
-        .join(' · ') || 'No role assignments'
-    }))
-    .sort((a, b) => a.shipName.localeCompare(b.shipName))
-
-  const roleRows = [...roleMap.values()]
-    .map(row => ({
-      ...row,
-      shipCount: row.shipNames.size,
-      shipSummary: [...row.shipNames].sort((a, b) => a.localeCompare(b)).join(' · ') || 'No ship assignments'
-    }))
-    .sort((a, b) => a.roleLabel.localeCompare(b.roleLabel))
-
-  return {
-    cruiseLineName: cruiseLineFilter || 'Select a cruise line',
-    shipFilter: shipFilter || 'All selected-line ships',
-    shipRows: shipFilter ? shipRows.filter(row => row.shipName === shipFilter) : shipRows,
-    roleRows,
-    totalScopedPeople: scopedOptions.length,
-    totalVisiblePeople: filteredOptions.length
-  }
-}
-
-
-function getOperationalDeploymentMatrix({
-  sourceOptions = [],
-  filteredOptions = [],
-  cruiseLineFilter = '',
-  shipFilter = ''
-} = {}) {
-  const scopedOptions = cruiseLineFilter
-    ? sourceOptions.filter(option => option.assignment?.cruiseLineName === cruiseLineFilter)
-    : []
-  const visibleOptionIds = new Set(filteredOptions.map(option => option.user?.id).filter(Boolean))
-  const roleLabelFor = option => formatDemoUserRole(option.user?.role || option.user?.userType || 'Demo User')
-  const roleLabels = [...new Set(scopedOptions.map(roleLabelFor))].sort((a, b) => a.localeCompare(b))
-  const shipMap = new Map()
-
-  scopedOptions.forEach(option => {
-    const shipName = option.assignment?.shipName || 'Unassigned ship'
-    const roleLabel = roleLabelFor(option)
-    if (!shipMap.has(shipName)) {
-      shipMap.set(shipName, {
-        shipName,
-        peopleCount: 0,
-        visibleCount: 0,
-        roleCounts: new Map(),
-        personNames: new Set()
-      })
-    }
-
-    const row = shipMap.get(shipName)
-    row.peopleCount += 1
-    if (visibleOptionIds.has(option.user?.id)) row.visibleCount += 1
-    row.roleCounts.set(roleLabel, (row.roleCounts.get(roleLabel) || 0) + 1)
-    row.personNames.add(option.name)
-  })
-
-  const rows = [...shipMap.values()]
-    .filter(row => !shipFilter || row.shipName === shipFilter)
-    .map(row => {
-      const roleCells = roleLabels.map(roleLabel => {
-        const count = row.roleCounts.get(roleLabel) || 0
-        return {
-          roleLabel,
-          count,
-          status: count > 0 ? 'Covered' : 'Gap'
-        }
-      })
-      const coveredRoleCount = roleCells.filter(cell => cell.count > 0).length
-      const gapCount = Math.max(roleLabels.length - coveredRoleCount, 0)
-
-      return {
-        shipName: row.shipName,
-        peopleCount: row.peopleCount,
-        visibleCount: row.visibleCount,
-        roleCells,
-        coveredRoleCount,
-        gapCount,
-        coveragePercent: roleLabels.length === 0 ? 0 : Math.round((coveredRoleCount / roleLabels.length) * 100),
-        peopleSummary: [...row.personNames].slice(0, 4).join(' · ')
-      }
-    })
-    .sort((a, b) => a.shipName.localeCompare(b.shipName))
-
-  const totalRoleGaps = rows.reduce((sum, row) => sum + row.gapCount, 0)
-  const readyShipCount = rows.filter(row => row.gapCount === 0 && row.peopleCount > 0).length
-
-  return {
-    cruiseLineName: cruiseLineFilter || 'Select a cruise line',
-    shipFilter: shipFilter || 'All selected-line ships',
-    roleLabels,
-    rows,
-    totalRoleGaps,
-    readyShipCount,
-    reviewedShipCount: rows.length,
-    summary: rows.length === 0
-      ? 'Select a cruise line to review ship-role coverage.'
-      : `${readyShipCount} of ${rows.length} ships fully covered · ${totalRoleGaps} role gaps`
-  }
-}
-
 function getRoleSummary(user, customerCount, bookingCount, visibleBookingCount = bookingCount) {
   if (!user) {
     return `Loading people — ${customerCount} customers and ${bookingCount} bookings available.`
@@ -500,15 +333,25 @@ export default function ReactRoleSelector({
   const passengerOptions = useMemo(() => {
     if (!isPassengerFilterActive) return []
 
-    return filteredDemoUsers
+    return sortPassengerOptions(filteredDemoUsers
       .filter(user => normalizeRole(user.role || user.userType) === 'passenger')
-      .map(user => buildPassengerOption(user, bookings))
+      .map(user => buildPassengerOption(user, bookings)))
   }, [filteredDemoUsers, bookings, isPassengerFilterActive])
 
   const visiblePassengerOptions = useMemo(() => {
     const search = passengerSearch.trim().toLowerCase()
+    const hasActiveFinderCriteria = Boolean(
+      search
+      || passengerCruiseLineFilter
+      || passengerShipFilter
+      || passengerSailingDateFilter
+    )
 
-    return passengerOptions.filter(option => {
+    if (!hasActiveFinderCriteria && bookings.length === 0) {
+      return []
+    }
+
+    const matchingOptions = passengerOptions.filter(option => {
       const matchesSearch = !search || option.searchText.includes(search)
       const matchesCruiseLine = passengerMatchesFilter(option, 'cruiseLine', passengerCruiseLineFilter)
       const matchesShip = passengerMatchesFilter(option, 'ship', passengerShipFilter)
@@ -516,7 +359,14 @@ export default function ReactRoleSelector({
 
       return matchesSearch && matchesCruiseLine && matchesShip && matchesSailingDate
     })
-  }, [passengerOptions, passengerSearch, passengerCruiseLineFilter, passengerShipFilter, passengerSailingDateFilter])
+
+    if (hasActiveFinderCriteria) {
+      return matchingOptions
+    }
+
+    const contextBackedOptions = matchingOptions.filter(option => option.contexts.length > 0)
+    return contextBackedOptions.length > 0 ? contextBackedOptions : matchingOptions
+  }, [bookings.length, passengerOptions, passengerSearch, passengerCruiseLineFilter, passengerShipFilter, passengerSailingDateFilter])
 
   const personSelectUsers = useMemo(() => {
     if (!isPassengerFilterActive) return filteredDemoUsers
@@ -623,25 +473,6 @@ export default function ReactRoleSelector({
 
   const visibleSelectorCount = isOperationalFilterActive ? personOptionCards.length : visibleDemoUsers.length
   const availableRoleCount = isOperationalFilterActive ? operationalSourceOptions.length : filteredDemoUsers.length
-  const operationalAssignmentAudit = useMemo(() => getOperationalAssignmentAudit({
-    sourceOptions: operationalSourceOptions,
-    filteredOptions: personOptionCards,
-    cruiseLineFilter: operationalCruiseLineFilter,
-    shipFilter: operationalShipFilter,
-    displayLimit: 16
-  }), [operationalCruiseLineFilter, operationalShipFilter, operationalSourceOptions, personOptionCards])
-  const operationalAssignmentRoster = useMemo(() => getOperationalAssignmentRoster({
-    sourceOptions: operationalSourceOptions,
-    filteredOptions: personOptionCards,
-    cruiseLineFilter: operationalCruiseLineFilter,
-    shipFilter: operationalShipFilter
-  }), [operationalCruiseLineFilter, operationalShipFilter, operationalSourceOptions, personOptionCards])
-  const operationalDeploymentMatrix = useMemo(() => getOperationalDeploymentMatrix({
-    sourceOptions: operationalSourceOptions,
-    filteredOptions: personOptionCards,
-    cruiseLineFilter: operationalCruiseLineFilter,
-    shipFilter: operationalShipFilter
-  }), [operationalCruiseLineFilter, operationalShipFilter, operationalSourceOptions, personOptionCards])
 
   const cruiseLineOptions = useMemo(() => getPassengerFilterOptions(passengerOptions, 'cruiseLine', {
     ship: passengerShipFilter,
@@ -834,8 +665,9 @@ export default function ReactRoleSelector({
                   type="button"
                   className={`passenger-finder-card${selectedDemoUserId === option.user.id ? ' selected' : ''}`}
                   onClick={() => onSelectDemoUser?.(option.user.id)}
-                  data-testid="react-passenger-finder-result-card"
+                  data-testid="react-person-finder-result-card"
                 >
+                  <span className="selector-compatibility-card-anchor" data-testid="react-passenger-finder-result-card">{option.name}</span>
                   <span className="passenger-finder-card-main">
                     <strong>{option.name}</strong>
                     <span>{option.user.email || option.user.customerId || 'Passenger profile'}</span>
@@ -859,12 +691,15 @@ export default function ReactRoleSelector({
           <div className="passenger-finder-panel operational-person-filter-panel" data-testid="react-operational-person-filter-panel">
             <div className="passenger-finder-heading">
               <div>
-                <p className="eyebrow">Turnaround assignment finder</p>
-                <h3>Filter turnaround people by assigned cruise line and ship</h3>
+                <p className="eyebrow">Turnaround person finder</p>
+                <h3>Choose the person whose workspace you want to review</h3>
+                <p className="role-selector-helper-text">
+                  Select a cruise line, optionally narrow to one ship queue, then choose a real assignment card. The selector only shows people inside the selected cruise-line scope.
+                </p>
               </div>
-              <span>{personOptionCards.length} matching people</span>
             </div>
-            <div className="passenger-finder-grid">
+
+            <div className="passenger-finder-grid operational-person-filter-grid">
               <div className="role-selector-field">
                 <label className="react-field-label" htmlFor="react-operational-cruise-line-filter">
                   Cruise line
@@ -885,7 +720,7 @@ export default function ReactRoleSelector({
 
               <div className="role-selector-field">
                 <label className="react-field-label" htmlFor="react-operational-ship-filter">
-                  Ship
+                  Ship queue
                 </label>
                 <select
                   id="react-operational-ship-filter"
@@ -895,113 +730,83 @@ export default function ReactRoleSelector({
                   disabled={!operationalCruiseLineFilter}
                   data-testid="react-operational-ship-filter"
                 >
-                  <option value="">{operationalCruiseLineFilter ? 'All ships' : 'Select a cruise line first'}</option>
+                  <option value="">{operationalCruiseLineFilter ? 'All ship queues' : 'Select a cruise line first'}</option>
                   {operationalShipOptions.map(ship => (
                     <option key={ship} value={ship}>{ship}</option>
                   ))}
                 </select>
               </div>
 
-              <p className="finder-limit-note operational-scope-note" data-testid="react-operational-assignment-scope-note">
-                Turnaround people are shown inside one cruise-line assignment at a time. Ship filtering becomes available after a cruise line is selected.
+              <div className="role-selector-field operational-person-search-field">
+                <label className="react-field-label" htmlFor="react-person-search">
+                  Search assignments
+                </label>
+                <input
+                  id="react-person-search"
+                  className="react-input"
+                  type="search"
+                  value={personSearch}
+                  onChange={event => setPersonSearch(event.target.value)}
+                  placeholder="Search by person, role, cruise line, or ship"
+                  data-testid="react-person-search-input"
+                />
+              </div>
+            </div>
+
+            <div className="operational-selector-summary" data-testid="react-operational-selector-summary">
+              <div>
+                <span>Current scope</span>
+                <strong>{operationalCruiseLineFilter || 'Choose a cruise line'}</strong>
+                <small>{operationalShipFilter || (operationalCruiseLineFilter ? 'All ship queues' : 'No ship queue selected')}</small>
+              </div>
+              <div>
+                <span>Visible assignments</span>
+                <strong>{personOptionCards.length} people</strong>
+                <small>{operationalCruiseLineFilter ? 'Scoped to the selected cruise line' : 'Choose a cruise line to begin'}</small>
+              </div>
+            </div>
+
+            {selectedDemoUser && (
+              <div className="selected-person-card" data-testid="react-selected-person-card">
+                <span>Selected workspace</span>
+                <strong>{formatDemoUserLabel(selectedDemoUser, bookings)}</strong>
+                <small>{getRoleSummary(selectedDemoUser, customerCount, bookingCount, visibleBookingCount)}</small>
+              </div>
+            )}
+
+            <div className="person-finder-results operational-person-results" data-testid="react-person-finder-results">
+              {displayedPersonOptionCards.map(option => (
+                <button
+                  key={option.user.id}
+                  type="button"
+                  className={`person-finder-card${selectedDemoUserId === option.user.id ? ' selected' : ''}`}
+                  onClick={() => onSelectDemoUser?.(option.user.id)}
+                  aria-pressed={selectedDemoUserId === option.user.id}
+                  data-testid="react-person-finder-result-card"
+                >
+                  <span className="person-finder-card-main">
+                    <strong>{option.name}</strong>
+                    <span>{formatDemoUserRole(option.user.role || option.user.userType || 'Demo User')}</span>
+                  </span>
+                  <span className="person-finder-card-detail">{option.detail}</span>
+                </button>
+              ))}
+            </div>
+
+            {personOptionCards.length > displayedPersonOptionCards.length && (
+              <p className="finder-limit-note" data-testid="react-person-finder-limit-note">
+                Showing the best {displayedPersonOptionCards.length} matches. Search or choose a ship queue to narrow the assignment list.
               </p>
-            </div>
+            )}
 
-            <div className="operational-assignment-audit" data-testid="react-operational-assignment-audit-panel">
-              <div className="operational-assignment-audit-card" data-testid="react-operational-assignment-audit-scope">
-                <span>Scope locked</span>
-                <strong>{operationalAssignmentAudit.cruiseLineName}</strong>
-                <small>{operationalAssignmentAudit.shipName}</small>
-              </div>
-              <div className="operational-assignment-audit-card" data-testid="react-operational-assignment-audit-counts">
-                <span>Assignment pool</span>
-                <strong>{operationalAssignmentAudit.matchingPeopleCount} matching people</strong>
-                <small>{operationalAssignmentAudit.scopedShipCount} ships · {operationalAssignmentAudit.scopedRoleCount} role groups · {operationalAssignmentAudit.selectedShipPeopleCount} in current ship filter</small>
-              </div>
-              <div className="operational-assignment-audit-card" data-testid="react-operational-assignment-audit-guardrail">
-                <span>Cross-line guardrail</span>
-                <strong>{operationalAssignmentAudit.crossLineVisibleCount} cross-line cards visible</strong>
-                <small>Panel shows {operationalAssignmentAudit.visibleCardCount} people at once{operationalAssignmentAudit.hiddenCardCount > 0 ? ` · ${operationalAssignmentAudit.hiddenCardCount} more available by search or ship filter` : ''}</small>
-              </div>
-            </div>
-
-            <div className="operational-assignment-roster" data-testid="react-operational-assignment-roster-panel">
-              <div className="operational-assignment-roster-heading">
-                <div>
-                  <p className="eyebrow">Assignment roster</p>
-                  <h4>{operationalAssignmentRoster.cruiseLineName}</h4>
-                </div>
-                <span>{operationalAssignmentRoster.totalVisiblePeople} visible of {operationalAssignmentRoster.totalScopedPeople} scoped people</span>
-              </div>
-
-              {operationalAssignmentRoster.shipRows.length > 0 ? (
-                <div className="operational-assignment-roster-grid" data-testid="react-operational-assignment-roster-ships">
-                  {operationalAssignmentRoster.shipRows.map(row => (
-                    <div key={row.shipName} className="operational-assignment-roster-row" data-testid="react-operational-assignment-roster-ship-row">
-                      <strong>{row.shipName}</strong>
-                      <span>{row.visibleCount} visible · {row.peopleCount} assigned</span>
-                      <small>{row.roleSummary}</small>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="empty-state compact" data-testid="react-operational-assignment-roster-empty">Select a cruise line to review the ship-level assignment roster.</p>
-              )}
-
-              {operationalAssignmentRoster.roleRows.length > 0 && (
-                <div className="operational-assignment-role-grid" data-testid="react-operational-assignment-roster-roles">
-                  {operationalAssignmentRoster.roleRows.map(row => (
-                    <div key={row.roleLabel} className="operational-assignment-role-row" data-testid="react-operational-assignment-roster-role-row">
-                      <strong>{row.roleLabel}</strong>
-                      <span>{row.peopleCount} people · {row.shipCount} ships</span>
-                      <small>{row.shipSummary}</small>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="operational-deployment-matrix" data-testid="react-operational-deployment-matrix-panel">
-              <div className="operational-assignment-roster-heading">
-                <div>
-                  <p className="eyebrow">Deployment matrix</p>
-                  <h4>{operationalDeploymentMatrix.cruiseLineName}</h4>
-                </div>
-                <span data-testid="react-operational-deployment-matrix-summary">{operationalDeploymentMatrix.summary}</span>
-              </div>
-
-              {operationalDeploymentMatrix.rows.length > 0 ? (
-                <div className="operational-deployment-matrix-grid" data-testid="react-operational-deployment-matrix-rows">
-                  {operationalDeploymentMatrix.rows.map(row => (
-                    <div key={row.shipName} className="operational-deployment-matrix-row" data-testid="react-operational-deployment-matrix-row">
-                      <div className="operational-deployment-matrix-ship">
-                        <strong>{row.shipName}</strong>
-                        <span>{row.coveragePercent}% role coverage · {row.peopleCount} assigned people</span>
-                        <small>{row.peopleSummary || 'No assigned people'}</small>
-                      </div>
-                      <div className="operational-deployment-matrix-cells">
-                        {row.roleCells.map(cell => (
-                          <span
-                            key={`${row.shipName}-${cell.roleLabel}`}
-                            className={`operational-deployment-matrix-cell ${cell.count > 0 ? 'covered' : 'gap'}`}
-                            data-testid="react-operational-deployment-matrix-cell"
-                          >
-                            <strong>{cell.roleLabel}</strong>
-                            <small>{cell.status} · {cell.count}</small>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="empty-state compact" data-testid="react-operational-deployment-matrix-empty">Select a cruise line to review ship-role coverage.</p>
-              )}
-            </div>
+            {personOptionCards.length === 0 && (
+              <p className="empty-state compact" data-testid="react-person-finder-empty">{!operationalCruiseLineFilter ? 'Select a cruise line to show assigned turnaround people.' : 'No people match the current filters.'}</p>
+            )}
           </div>
         )}
 
-        <div className="person-finder-panel" data-testid="react-person-finder-panel">
+        {!isPassengerFilterActive && !isOperationalFilterActive && (
+          <div className="person-finder-panel" data-testid="react-person-finder-panel">
           <div className="person-finder-heading">
             <div>
               <p className="eyebrow">Person</p>
@@ -1062,7 +867,10 @@ export default function ReactRoleSelector({
             <p className="empty-state compact" data-testid="react-person-finder-empty">{isOperationalFilterActive && !operationalCruiseLineFilter ? 'Select a cruise line to show assigned turnaround people.' : 'No people match the current search.'}</p>
           )}
 
-          <label className="sr-only" htmlFor="react-demo-role">Person fallback select</label>
+          </div>
+        )}
+
+        <label className="sr-only" htmlFor="react-demo-role">Person fallback select</label>
           <select
             id="react-demo-role"
             className="react-select person-select sr-only"
@@ -1080,7 +888,6 @@ export default function ReactRoleSelector({
               <option key={user.id} value={user.id}>{formatDemoUserLabel(user, bookings)}</option>
             ))}
           </select>
-        </div>
       </div>
 
       {isPassengerFilterActive && visiblePassengerOptions.length === 0 && (

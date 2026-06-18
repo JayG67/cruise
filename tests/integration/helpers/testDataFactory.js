@@ -20,11 +20,16 @@ const createdBookingIds = []
 let uniqueCustomerSequence = 0
 let uniqueBookingSequence = 0
 
+const integrationRunEntropy = Math.floor(Math.random() * 1296)
+  .toString(36)
+  .toUpperCase()
+  .padStart(2, '0')
+
 function uniqueSeedSafeId(prefix, sequence) {
-  const timePart = (Date.now() % 1000000).toString().padStart(6, '0')
+  const timePart = (Date.now() % 1679616).toString(36).toUpperCase().padStart(4, '0')
   const sequencePart = (sequence % 46656).toString(36).toUpperCase().padStart(3, '0')
 
-  return `${prefix}${timePart}${sequencePart}`
+  return `${prefix}${timePart}${integrationRunEntropy}${sequencePart}`
 }
 
 function uniqueCustomerId() {

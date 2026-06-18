@@ -24,7 +24,7 @@ describe('Cruise operations product presentation guardrails', () => {
   it('removes user-facing retired implementation-history calls to action from the production React shell', () => {
     const app = read('frontend/react/src/App.jsx')
 
-    expect(app).toContain('Start Employer Demo')
+    expect(app).toContain('Explore Overview')
     expect(app).toContain('Open Quality Console')
     expect(app).toContain('data-testid="react-hero-demo-button"')
     expect(app).toContain('data-testid="react-hero-quality-button"')
@@ -62,7 +62,7 @@ describe('Cruise operations product presentation guardrails', () => {
     const sqaConsole = read('frontend/react/src/components/ReactSqaConsole.jsx')
 
     expect(app).toContain('<ReactSqaConsole')
-    expect(app).toContain('Run quality checks')
+    expect(app).toContain('Open Quality Console')
     expect(sqaConsole).toContain('Quality Console')
     expect(sqaConsole).toContain('View Quality Dashboard')
     expect(sqaConsole).toContain('Run Performance Check')

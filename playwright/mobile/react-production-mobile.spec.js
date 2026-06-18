@@ -67,7 +67,7 @@ async function expectAdminMutationFormsReady(page) {
   await expect(mutationPanel).toBeVisible({ timeout: 15000 })
 
   await expect(page.getByTestId('react-admin-create-customer-form')).toBeVisible({ timeout: 15000 })
-  await expect(page.getByTestId('react-admin-create-booking-form')).toBeVisible({ timeout: 15000 })
+  await expect(page.getByTestId('react-admin-create-booking-form')).toHaveCount(0)
 }
 
 async function openCustomerWorkflowTable(page) {

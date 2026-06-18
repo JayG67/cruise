@@ -25,6 +25,19 @@ const bookingIdSchema = z
   .trim()
   .regex(/^B[A-Z0-9]{9}$/, 'Booking ID must be 10 characters and start with B')
 
+const requiredAbsoluteUrlSchema = z
+  .string()
+  .trim()
+  .max(255, 'Website URL is too long')
+  .refine((value) => {
+    try {
+      const parsedUrl = new URL(value)
+      return ['http:', 'https:'].includes(parsedUrl.protocol) && Boolean(parsedUrl.hostname.includes('.'))
+    } catch (err) {
+      return false
+    }
+  }, 'Website must be a valid URL')
+
 const cruiseLineSchema = z.object({
   name: z
     .string()
@@ -38,12 +51,7 @@ const cruiseLineSchema = z.object({
     .max(255, 'Country is too long')
     .optional(),
 
-  website: z
-    .string()
-    .trim()
-    .url('Website must be a valid URL')
-    .max(255, 'Website URL is too long')
-    .optional(),
+  website: requiredAbsoluteUrlSchema.optional(),
 
   brandFamily: z
     .string()
@@ -307,6 +315,7 @@ const turnaroundPersonAssignmentSchema = z.object({
   role: z.string().trim().min(1, 'Operational role is required').max(50, 'Operational role is too long'),
   cruiseLineId: uuidSchema,
   assignedShipId: uuidSchema.optional().nullable(),
+  assignedSailingId: uuidSchema.optional().nullable(),
   sailingId: uuidSchema.optional().nullable()
 }).strict()
 

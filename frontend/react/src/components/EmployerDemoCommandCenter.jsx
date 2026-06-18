@@ -14,34 +14,34 @@ function getTurnaroundPersonCount(demoUsers = []) {
   }).length
 }
 
-function buildDemoProofPoints({ customerCount = 0, bookingCount = 0, cruiseLineCount = 0, demoUsers = [], selectedRoleView = 'admin' } = {}) {
+function buildDemoProofPoints({ customerCount = 0, bookingCount = 0, cruiseLineCount = 0, demoUsers = [] } = {}) {
   const roleCount = getDemoRoleCount(demoUsers)
   const turnaroundPersonCount = getTurnaroundPersonCount(demoUsers)
 
   return [
     {
-      id: 'product-depth',
-      label: 'Product depth',
-      value: `${formatCount(customerCount)} customers / ${formatCount(bookingCount)} bookings`,
-      detail: 'Customer, booking, passenger, fleet, sailing, itinerary, and operational workflows live in one coherent application.'
+      id: 'business',
+      label: 'Operational scope',
+      value: `${formatCount(customerCount)} customers`,
+      detail: `${formatCount(bookingCount)} bookings plus fleet, passenger, and itinerary workflows.`
     },
     {
-      id: 'role-model',
+      id: 'roles',
       label: 'Role model',
-      value: `${formatCount(roleCount)} role perspectives`,
-      detail: `Current view: ${selectedRoleView}. Demo users exercise admin, passenger, group leader, manager, and department lead journeys.`
+      value: `${formatCount(roleCount)} views`,
+      detail: 'Admin, passenger, group leader, manager, and department leads see different work.'
     },
     {
-      id: 'fleet-scope',
-      label: 'Fleet scope',
-      value: `${formatCount(cruiseLineCount)} cruise lines`,
-      detail: 'Fleet CRUD connects cruise lines to ships, sailings, itineraries, and turnaround operating context.'
+      id: 'turnaround',
+      label: 'Turnaround depth',
+      value: `${formatCount(turnaroundPersonCount)} operators`,
+      detail: 'Command, lifecycle, closeout, continuity, staffing, blockers, and signoff evidence.'
     },
     {
-      id: 'turnaround-readiness',
-      label: 'Turnaround readiness',
-      value: `${formatCount(turnaroundPersonCount)} operational people`,
-      detail: 'Scoped managers and leads can drive task, staffing, handoff, escalation, signoff, lifecycle, and reviewer workflows.'
+      id: 'quality',
+      label: 'SQA coverage',
+      value: `${formatCount(cruiseLineCount)} lines`,
+      detail: 'The isolated SQA console keeps validation evidence available without mixing testing controls into daily operations.'
     }
   ]
 }
@@ -49,44 +49,40 @@ function buildDemoProofPoints({ customerCount = 0, bookingCount = 0, cruiseLineC
 function buildRunOfShow() {
   return [
     {
-      id: 'setup',
-      time: '0:00-1:00',
-      title: 'Show the operating model',
-      detail: 'Open turnaround setup and explain scoped people, cruise-line boundaries, and admin-created operational assignments.',
-      targetSectionId: 'react-turnaround-admin-setup',
+      id: 'presentation',
+      title: 'Cruise line operations',
+      detail: 'Open the line operations workspace for brand, fleet, sailing, guest, and turnaround context.',
+      targetSectionId: 'react-cruise-line-presentation',
       requiredRole: 'admin',
-      buttonLabel: 'Open setup'
+      buttonLabel: 'Open line ops'
     },
     {
       id: 'roles',
-      time: '1:00-2:00',
-      title: 'Switch into real role views',
-      detail: 'Use the role selector to show passenger, group leader, manager, and department lead perspectives without fake authorization friction.',
+      title: 'Role-aware Views',
+      detail: 'Switch between admin, passenger, group leader, and operational lead views.',
       targetSectionId: 'react-role-selector',
       buttonLabel: 'Open roles'
     },
     {
       id: 'operations',
-      time: '2:00-3:30',
-      title: 'Drive the turnaround workflow',
-      detail: 'Complete tasks, clear blockers, update staffing, resolve escalations, approve signoffs, and watch lifecycle progress move.',
-      targetSectionId: 'react-role-selector',
-      buttonLabel: 'Start role workflow'
+      title: 'Admin Operations',
+      detail: 'Search and manage customer and booking datasets.',
+      targetSectionId: 'react-hierarchy',
+      requiredRole: 'admin',
+      buttonLabel: 'Open operations'
     },
     {
       id: 'fleet',
-      time: '3:30-4:15',
-      title: 'Connect operations to fleet data',
-      detail: 'Open fleet management to prove the same product owns cruise lines, ships, sailings, and itineraries behind the operational dashboard.',
+      title: 'Fleet Directory',
+      detail: 'Search cruise lines, manage fleets, ships, and sailings.',
       targetSectionId: 'react-fleet',
       requiredRole: 'admin',
       buttonLabel: 'Open fleet'
     },
     {
       id: 'quality',
-      time: '4:15-5:00',
-      title: 'Close with quality engineering',
-      detail: 'Open the Quality Console and explain that Jest owns services, Cypress owns workflows, Playwright owns responsive smoke, and audits gate release readiness.',
+      title: 'Quality Console',
+      detail: 'Run API health, data integrity, accessibility, and browser validation checks.',
       targetSectionId: 'react-quality',
       requiredRole: 'admin',
       buttonLabel: 'Open quality'
@@ -99,36 +95,53 @@ export default function EmployerDemoCommandCenter({
   bookingCount = 0,
   cruiseLineCount = 0,
   demoUsers = [],
-  selectedRoleView = 'admin',
   onOpenWorkspace
 }) {
-  const proofPoints = buildDemoProofPoints({ customerCount, bookingCount, cruiseLineCount, demoUsers, selectedRoleView })
+  const proofPoints = buildDemoProofPoints({ customerCount, bookingCount, cruiseLineCount, demoUsers })
   const runOfShow = buildRunOfShow()
 
   function openStep(step) {
     onOpenWorkspace?.(step.targetSectionId, step.title, step.requiredRole || null)
   }
 
+  function getWorkspaceTestId(step) {
+    const map = {
+      presentation: 'react-workspace-presentation-button',
+      roles: 'react-workspace-role-button',
+      operations: 'react-workspace-operations-button',
+      fleet: 'react-workspace-fleet-button',
+      quality: 'react-workspace-quality-button'
+    }
+
+    return map[step.id] || `react-employer-demo-${step.id}-button`
+  }
+
+  function getEmployerDemoTestId(step) {
+    const map = {
+      roles: 'react-employer-demo-roles-button',
+      fleet: 'react-employer-demo-fleet-button',
+      quality: 'react-employer-demo-quality-button'
+    }
+
+    return map[step.id] || `react-employer-demo-${step.id}-button`
+  }
+
   return (
-    <section className="employer-demo-command-center" id="react-employer-demo" aria-labelledby="react-employer-demo-heading" data-testid="react-employer-demo-command-center">
-      <div className="employer-demo-heading">
+    <section className="employer-demo-command-center self-guided-overview" id="react-employer-demo" aria-labelledby="react-employer-demo-heading" data-testid="react-employer-demo-command-center">
+      <div className="employer-demo-heading self-guided-overview-heading">
         <div>
-          <p className="eyebrow">Employer presentation mode</p>
-          <h2 id="react-employer-demo-heading">A five-minute path through the strongest engineering story</h2>
+          <p className="eyebrow">Operations dashboard</p>
+          <h2 id="react-employer-demo-heading">Cruise operations at a glance</h2>
           <p>
-            This command center gives reviewers a clean route through the application: business model, role-aware UX,
-            operational lifecycle, fleet CRUD, and quality gates without hunting through every panel.
+            Monitor passenger booking, fleet administration, role-aware workflows, turnaround management,
+            and SQA validation from one operational surface.
           </p>
-        </div>
-        <div className="employer-demo-badge" aria-label="Portfolio position">
-          <strong>Portfolio-ready</strong>
-          <span>Full-stack + SQA proof</span>
         </div>
       </div>
 
-      <div className="employer-demo-proof-grid" aria-label="Employer demo proof points" data-testid="react-employer-demo-proof-grid">
+      <div className="employer-demo-proof-grid self-guided-proof-grid" aria-label="Application proof points" data-testid="react-employer-demo-proof-grid">
         {proofPoints.map(point => (
-          <article className="employer-demo-proof-card" key={point.id} data-testid="react-employer-demo-proof-card">
+          <article className="employer-demo-proof-card self-guided-proof-card" key={point.id} data-testid="react-employer-demo-proof-card">
             <span>{point.label}</span>
             <strong>{point.value}</strong>
             <p>{point.detail}</p>
@@ -136,34 +149,34 @@ export default function EmployerDemoCommandCenter({
         ))}
       </div>
 
-      <div className="employer-demo-runway" data-testid="react-employer-demo-runway">
-        <div className="employer-demo-talk-track">
-          <h3>What to say while presenting</h3>
-          <p>
-            “This started as a cruise data application and evolved into an operations platform. The important part is not just CRUD;
-            it is how the data model, role scoping, lifecycle state, and test strategy hold together as product complexity grows.”
-          </p>
-          <ul>
-            <li>Lead with the business workflow instead of the technology stack.</li>
-            <li>Show role switching as a demo affordance, then explain where real authorization would plug in.</li>
-            <li>Close with the quality strategy so employers see release judgment, not only feature output.</li>
-          </ul>
+      <div className="self-guided-tour-runway" id="react-workspaces" aria-label="React application workspaces" data-testid="react-employer-demo-runway">
+        <div className="self-guided-tour-list" data-testid="react-workspace-card-grid">
+        {runOfShow.map(step => (
+          <article
+            className="self-guided-tour-card react-workspace-card"
+            key={step.id}
+            onClick={() => openStep(step)}
+            onKeyDown={event => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault()
+                openStep(step)
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            data-testid={getWorkspaceTestId(step)}
+          >
+            <div data-testid="react-employer-demo-step">
+              <strong>{step.title}</strong>
+              <p>{step.detail}</p>
+              <span className="visually-hidden">{step.buttonLabel}</span>
+            </div>
+            <button type="button" className="employer-demo-step-button" onClick={event => { event.stopPropagation(); openStep(step) }} data-testid={getEmployerDemoTestId(step)}>
+              {step.buttonLabel}
+            </button>
+          </article>
+        ))}
         </div>
-
-        <ol className="employer-demo-step-list" aria-label="Five-minute employer demo run of show">
-          {runOfShow.map(step => (
-            <li className="employer-demo-step" key={step.id} data-testid="react-employer-demo-step">
-              <span>{step.time}</span>
-              <div>
-                <strong>{step.title}</strong>
-                <p>{step.detail}</p>
-              </div>
-              <button type="button" className="employer-demo-step-button" onClick={() => openStep(step)} data-testid={`react-employer-demo-${step.id}-button`}>
-                {step.buttonLabel}
-              </button>
-            </li>
-          ))}
-        </ol>
       </div>
     </section>
   )

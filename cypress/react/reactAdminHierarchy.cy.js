@@ -131,29 +131,20 @@ describe('React admin hierarchy coverage expansion', () => {
     cy.getByTestId(rs.adminDeleteConfirmation).should('not.exist')
   })
 
-  it('creates customer and booking records through admin mutation forms', () => {
+  it('creates customer records through admin mutation forms without exposing admin booking creation', () => {
     cy.intercept('POST', '/cruise/customers', req => {
       expect(req.body).to.include({ firstName: 'React', lastName: 'Tester', email: 'react.tester@example.com' })
       req.reply({ statusCode: 201, body: { id: 'react-customer-new', ...req.body } })
     }).as('createReactAdminCustomer')
-    cy.intercept('POST', '/cruise/bookings', req => {
-      expect(req.body).to.include({ customerId: 'react-customer-new', cabinNumber: 'N101' })
-      req.reply({ statusCode: 201, body: { id: 'react-booking-new', ...req.body } })
-    }).as('createReactAdminBooking')
+    cy.intercept('POST', '/cruise/bookings').as('unexpectedReactAdminBookingCreate')
     cy.intercept('GET', '/cruise/customers', reactCustomers).as('reloadCustomersAfterAdminCreate')
-    cy.intercept('GET', '/cruise/bookings', reactBookings).as('reloadBookingsAfterAdminCreate')
 
     cy.getByTestId(rs.adminCreateCustomerFirstName).type('React')
     cy.getByTestId(rs.adminCreateCustomerLastName).type('Tester')
     cy.getByTestId(rs.adminCreateCustomerEmail).type('react.tester@example.com')
     cy.getByTestId(rs.adminCreateCustomerSubmit).click()
     cy.wait('@createReactAdminCustomer')
-
-    cy.getByTestId(rs.adminCreateBookingCustomerId).type('react-customer-new')
-    cy.getByTestId(rs.adminCreateBookingStatus).type('CONFIRMED')
-    cy.getByTestId(rs.adminCreateBookingCabin).type('N101')
-    cy.getByTestId(rs.adminCreateBookingFare).type('TEST')
-    cy.getByTestId(rs.adminCreateBookingSubmit).click()
-    cy.wait('@createReactAdminBooking')
+    cy.getByTestId(rs.adminCreateBookingForm).should('not.exist')
+    cy.get('@unexpectedReactAdminBookingCreate.all').should('have.length', 0)
   })
 })

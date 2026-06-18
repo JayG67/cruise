@@ -557,6 +557,9 @@ export function buildTurnaroundOperationCards(turnaroundOperations = [], roleVie
       closeoutPacket: operation.closeoutPacket || null,
       commandCenter: getCommandCenterFallback(operation, tasks, taskSummary),
       continuityCenter: getContinuityCenterFallback(operation, tasks, taskSummary),
+      shiftBriefing: operation.shiftBriefing || null,
+      goLiveCenter: operation.goLiveCenter || null,
+      operationsControlBoard: operation.operationsControlBoard || null,
       status: operation.status || 'PLANNED',
       title: operation.title || 'Turnaround operation',
       notes: operation.notes || ''

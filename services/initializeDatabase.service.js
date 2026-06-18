@@ -239,6 +239,7 @@ async function initializeDatabase() {
       "normalizedRoleId" varchar(50) REFERENCES app_roles(id) ON DELETE SET NULL,
       "cruiseLineId" uuid REFERENCES cruise_lines(id) ON DELETE SET NULL,
       "assignedShipId" uuid REFERENCES ships(id) ON DELETE SET NULL,
+      "assignedSailingId" uuid REFERENCES sailings(id) ON DELETE SET NULL,
       "cruiseLineName" varchar(255),
       "assignedShipName" varchar(255)
     );
@@ -495,6 +496,10 @@ async function initializeDatabase() {
 
   await db.execute(sql`
     ALTER TABLE demo_users ADD COLUMN IF NOT EXISTS "assignedShipId" uuid REFERENCES ships(id) ON DELETE SET NULL;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE demo_users ADD COLUMN IF NOT EXISTS "assignedSailingId" uuid REFERENCES sailings(id) ON DELETE SET NULL;
   `)
 
   await db.execute(sql`
@@ -1117,6 +1122,10 @@ async function initializeDatabase() {
 
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_demo_users_operational_assignment ON demo_users("cruiseLineId", "assignedShipId", role);
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_demo_users_turnaround_sailing_assignment ON demo_users("cruiseLineId", "assignedShipId", "assignedSailingId", role);
   `)
 
 

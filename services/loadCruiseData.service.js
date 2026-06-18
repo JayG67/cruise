@@ -501,7 +501,7 @@ function buildSeedRows(cruiseData) {
   }
 }
 
-async function loadCruiseData() {
+async function performLoadCruiseData() {
   const cruiseData = readCruiseSeedData()
   const rows = buildSeedRows(cruiseData)
 
@@ -577,6 +577,18 @@ async function loadCruiseData() {
     turnaroundHandoffCount: rows.turnaroundHandoffRows.length,
     source: 'data/cruise.json'
   }
+}
+
+let activeSeedLoadPromise = null
+
+async function loadCruiseData() {
+  if (!activeSeedLoadPromise) {
+    activeSeedLoadPromise = performLoadCruiseData().finally(() => {
+      activeSeedLoadPromise = null
+    })
+  }
+
+  return activeSeedLoadPromise
 }
 
 module.exports = loadCruiseData

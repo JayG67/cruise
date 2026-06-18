@@ -72,6 +72,9 @@ export default function CustomerBookingHierarchy({
   })
   const [deleteCustomerId, setDeleteCustomerId] = useState('')
   const [deleteBookingId, setDeleteBookingId] = useState('')
+  const [deleteCustomerFilters, setDeleteCustomerFilters] = useState({ cruiseLine: '', ship: '', customerId: '' })
+  const [deleteBookingFilters, setDeleteBookingFilters] = useState({ cruiseLine: '', ship: '', bookingId: '' })
+  const [workflowFilters, setWorkflowFilters] = useState({ cruiseLine: '', ship: '', customerId: '' })
   const [activeDeleteId, setActiveDeleteId] = useState('')
   const [pendingDelete, setPendingDelete] = useState(null)
 
@@ -110,7 +113,7 @@ export default function CustomerBookingHierarchy({
   }
 
   async function handleCreateBooking(event) {
-    event.preventDefault()
+    event?.preventDefault?.()
 
     const payload = {
       customerId: createBookingDraft.customerId.trim(),
@@ -183,6 +186,7 @@ export default function CustomerBookingHierarchy({
     try {
       await deleteCustomer(customerId)
       setDeleteCustomerId('')
+      setDeleteCustomerFilters({ cruiseLine: '', ship: '', customerId: '' })
       setAdminMutationMessage(`${label} customer was deleted through the React admin workspace.`)
       await onRetry?.()
     } catch (error) {
@@ -198,6 +202,7 @@ export default function CustomerBookingHierarchy({
     try {
       await deleteBooking(bookingId)
       setDeleteBookingId('')
+      setDeleteBookingFilters({ cruiseLine: '', ship: '', bookingId: '' })
       setAdminMutationMessage(`${label} booking was deleted through the React admin workspace.`)
       await onRetry?.()
     } catch (error) {
@@ -234,6 +239,208 @@ export default function CustomerBookingHierarchy({
     return requestDeleteBookingById(deleteBookingId, deleteBookingId.trim())
   }
 
+  function getBookingDeleteLabel(booking = {}) {
+    const passengerNames = (booking.passengers || [])
+      .map(passenger => getCustomerSortLabel(passenger.customer || passenger))
+      .filter(Boolean)
+      .slice(0, 2)
+      .join('; ')
+    const shipName = booking.ship?.name || booking.shipName || 'Ship pending'
+    const sailingDate = booking.sailing?.departureDate || booking.departureDate || 'Date pending'
+    const cabin = booking.cabinNumber ? `Cabin ${booking.cabinNumber}` : 'Cabin pending'
+
+    return `${passengerNames || 'Passenger pending'} — ${booking.id} · ${shipName} · ${sailingDate} · ${cabin}`
+  }
+
+  function getCustomerDeleteLabel(customer = {}) {
+    const linkedCount = bookings.filter(booking =>
+      booking.createdByCustomerId === customer.id
+      || (booking.passengers || []).some(passenger => (passenger.customerId || passenger.customer?.id) === customer.id)
+    ).length
+    const bookingSummary = linkedCount === 1 ? '1 linked booking' : `${linkedCount} linked bookings`
+
+    return `${getCustomerSortLabel(customer)} — ${customer.email || customer.id} · ${bookingSummary}`
+  }
+
+  function getPersonParts(person = {}) {
+    const rawName = getCustomerDirectoryName(person).trim()
+    const firstName = String(person.firstName || person.givenName || '').trim()
+    const lastName = String(person.lastName || person.familyName || '').trim()
+
+    if (firstName || lastName) {
+      return { firstName, lastName, rawName }
+    }
+
+    const parts = rawName.split(/\s+/).filter(Boolean)
+    return {
+      firstName: parts.slice(0, -1).join(' '),
+      lastName: parts.slice(-1).join(''),
+      rawName
+    }
+  }
+
+  function getCustomerSortLabel(customer = {}) {
+    const { firstName, lastName, rawName } = getPersonParts(customer)
+    if (!lastName) return rawName || customer.id || 'Customer pending'
+    return firstName ? `${lastName}, ${firstName}` : lastName
+  }
+
+  function getBookingPrimaryPassenger(booking = {}) {
+    const passenger = (booking.passengers || [])[0]
+    return passenger?.customer || passenger || {}
+  }
+
+  function compareCustomerNames(left = {}, right = {}) {
+    const leftParts = getPersonParts(left)
+    const rightParts = getPersonParts(right)
+    return (leftParts.lastName || '').localeCompare(rightParts.lastName || '')
+      || (leftParts.firstName || '').localeCompare(rightParts.firstName || '')
+      || (leftParts.rawName || '').localeCompare(rightParts.rawName || '')
+      || String(left.id || '').localeCompare(String(right.id || ''))
+  }
+
+  function compareBookingPassengerNames(left = {}, right = {}) {
+    return compareCustomerNames(getBookingPrimaryPassenger(left), getBookingPrimaryPassenger(right))
+      || String(left.id || '').localeCompare(String(right.id || ''))
+  }
+
+
+  function getBookingCruiseLineName(booking = {}) {
+    return booking.cruiseLine?.name
+      || booking.cruiseLineName
+      || booking.sailing?.cruiseLineName
+      || booking.ship?.cruiseLine?.name
+      || booking.ship?.cruiseLineName
+      || 'Cruise line pending'
+  }
+
+  function getBookingShipName(booking = {}) {
+    return booking.ship?.name || booking.shipName || 'Ship pending'
+  }
+
+  function getCustomerBookingIds(customer = {}) {
+    return new Set(bookings
+      .filter(booking => booking.createdByCustomerId === customer.id
+        || (booking.passengers || []).some(passenger => (passenger.customerId || passenger.customer?.id) === customer.id))
+      .map(booking => booking.id))
+  }
+
+  function getCustomerCruiseLineNames(customer = {}) {
+    const bookingIds = getCustomerBookingIds(customer)
+    return Array.from(new Set(bookings
+      .filter(booking => bookingIds.has(booking.id))
+      .map(getBookingCruiseLineName)
+      .filter(Boolean)))
+  }
+
+  function getCustomerShipNames(customer = {}) {
+    const bookingIds = getCustomerBookingIds(customer)
+    return Array.from(new Set(bookings
+      .filter(booking => bookingIds.has(booking.id))
+      .map(getBookingShipName)
+      .filter(Boolean)))
+  }
+
+  function uniqueSorted(values = []) {
+    return Array.from(new Set(values.filter(Boolean))).sort((a, b) => a.localeCompare(b))
+  }
+
+  function updateDeleteCustomerFilter(fieldName, value) {
+    setDeleteCustomerFilters(current => {
+      const next = { ...current, [fieldName]: value }
+      if (fieldName === 'cruiseLine') {
+        next.ship = ''
+        next.customerId = ''
+      }
+      if (fieldName === 'ship') next.customerId = ''
+      setDeleteCustomerId(next.customerId)
+      return next
+    })
+  }
+
+  function updateDeleteBookingFilter(fieldName, value) {
+    setDeleteBookingFilters(current => {
+      const next = { ...current, [fieldName]: value }
+      if (fieldName === 'cruiseLine') {
+        next.ship = ''
+        next.bookingId = ''
+      }
+      if (fieldName === 'ship') next.bookingId = ''
+      setDeleteBookingId(next.bookingId)
+      return next
+    })
+  }
+
+  function getScopedCustomerRows(filters = {}) {
+    return customers.filter(customer => {
+      const lineNames = getCustomerCruiseLineNames(customer)
+      const shipNames = getCustomerShipNames(customer)
+      const lineMatches = !filters.cruiseLine || lineNames.includes(filters.cruiseLine)
+      const shipMatches = !filters.ship || shipNames.includes(filters.ship)
+      return lineMatches && shipMatches
+    }).sort(compareCustomerNames)
+  }
+
+  function getScopedBookingRows(filters = {}) {
+    return bookings.filter(booking => {
+      const lineMatches = !filters.cruiseLine || getBookingCruiseLineName(booking) === filters.cruiseLine
+      const shipMatches = !filters.ship || getBookingShipName(booking) === filters.ship
+      return lineMatches && shipMatches
+    }).sort(compareBookingPassengerNames)
+  }
+
+  function getScopedLineOptions(filters = {}, mode = 'booking') {
+    const source = mode === 'customer' ? customers : bookings
+    if (mode === 'customer') {
+      return uniqueSorted(source
+        .filter(customer => !filters.ship || getCustomerShipNames(customer).includes(filters.ship))
+        .flatMap(getCustomerCruiseLineNames))
+    }
+
+    return uniqueSorted(source
+      .filter(booking => !filters.ship || getBookingShipName(booking) === filters.ship)
+      .map(getBookingCruiseLineName))
+  }
+
+  function getScopedShipOptions(filters = {}, mode = 'booking') {
+    const source = mode === 'customer' ? customers : bookings
+    if (mode === 'customer') {
+      return uniqueSorted(source
+        .filter(customer => !filters.cruiseLine || getCustomerCruiseLineNames(customer).includes(filters.cruiseLine))
+        .flatMap(getCustomerShipNames))
+    }
+
+    return uniqueSorted(source
+      .filter(booking => !filters.cruiseLine || getBookingCruiseLineName(booking) === filters.cruiseLine)
+      .map(getBookingShipName))
+  }
+
+  function updateWorkflowFilter(fieldName, value) {
+    setWorkflowFilters(current => {
+      const next = { ...current, [fieldName]: value }
+      if (fieldName === 'cruiseLine') {
+        next.ship = ''
+        next.customerId = ''
+      }
+      if (fieldName === 'ship') next.customerId = ''
+      const selectedCustomer = customers.find(customer => customer.id === next.customerId)
+      const nextSearchTerm = selectedCustomer
+        ? getCustomerDirectoryName(selectedCustomer)
+        : next.ship || next.cruiseLine || ''
+      updateSearchTerm(nextSearchTerm)
+      return next
+    })
+  }
+
+  const customerCruiseLineOptions = getScopedLineOptions(deleteCustomerFilters, 'customer')
+  const bookingCruiseLineOptions = getScopedLineOptions(deleteBookingFilters, 'booking')
+  const customerShipOptions = getScopedShipOptions(deleteCustomerFilters, 'customer')
+  const bookingShipOptions = getScopedShipOptions(deleteBookingFilters, 'booking')
+  const filteredDeleteCustomers = getScopedCustomerRows(deleteCustomerFilters).slice(0, 500)
+  const filteredDeleteBookings = getScopedBookingRows(deleteBookingFilters).slice(0, 500)
+  const workflowCruiseLineOptions = getScopedLineOptions(workflowFilters, 'customer')
+  const workflowShipOptions = getScopedShipOptions(workflowFilters, 'customer')
+  const filteredWorkflowCustomers = getScopedCustomerRows(workflowFilters).slice(0, 500)
 
   const isInitialLoading = isLoading && customers.length === 0 && bookings.length === 0
   const hasActiveHierarchySearch = Boolean(searchTerm.trim())
@@ -287,8 +494,8 @@ export default function CustomerBookingHierarchy({
         <section className="react-admin-mutation-panel" aria-label="React admin create and delete workflows" data-testid="react-admin-mutation-panel">
           <div>
             <p className="eyebrow">Admin CRUD coverage</p>
-            <h4>Create and delete customer or booking records</h4>
-            <p>These workflows exercise customer and booking mutation boundaries in the same place recruiters can review the operating model. Contextual row actions let admins delete records from the workflow they are already reviewing instead of copying IDs into a separate form.</p>
+            <h4>Customer records and booking safeguards</h4>
+            <p>Create customer records and manage destructive corrections with scoped selectors. Passenger-led booking creation remains in the passenger booking workflow.</p>
           </div>
 
           {isLoading && (
@@ -323,43 +530,108 @@ export default function CustomerBookingHierarchy({
               <button type="submit" className="primary-button" data-testid="react-admin-create-customer-submit">Create Customer</button>
             </form>
 
-            <form className="draft-editor" onSubmit={handleCreateBooking} data-testid="react-admin-create-booking-form">
-              <h5>Create Booking</h5>
-              <div className="draft-grid">
-                <label><span>Customer ID</span><input value={createBookingDraft.customerId} onChange={event => updateCreateBookingDraft('customerId', event.target.value)} data-testid="react-admin-create-booking-customer-id" /></label>
-                <label><span>Status</span><input value={createBookingDraft.bookingStatus} onChange={event => updateCreateBookingDraft('bookingStatus', event.target.value)} data-testid="react-admin-create-booking-status" /></label>
-                <label><span>Cabin</span><input value={createBookingDraft.cabinNumber} onChange={event => updateCreateBookingDraft('cabinNumber', event.target.value)} data-testid="react-admin-create-booking-cabin" /></label>
-                <label><span>Fare</span><input value={createBookingDraft.fareCode} onChange={event => updateCreateBookingDraft('fareCode', event.target.value)} data-testid="react-admin-create-booking-fare" /></label>
-                <label><span>Embarkation</span><input value={createBookingDraft.embarkationPort} onChange={event => updateCreateBookingDraft('embarkationPort', event.target.value)} data-testid="react-admin-create-booking-embarkation" /></label>
-                <label><span>Debarkation</span><input value={createBookingDraft.debarkationPort} onChange={event => updateCreateBookingDraft('debarkationPort', event.target.value)} data-testid="react-admin-create-booking-debarkation" /></label>
+            <form className="draft-editor admin-delete-selector-card" onSubmit={handleDeleteCustomer} data-testid="react-admin-delete-customer-form">
+              <h5>Delete customer</h5>
+              <p className="muted">Narrow the customer list by cruise line and ship, then select the passenger record to remove.</p>
+              <div className="admin-delete-filter-grid">
+                <label>
+                  <span>Cruise line</span>
+                  <select value={deleteCustomerFilters.cruiseLine} onChange={event => updateDeleteCustomerFilter('cruiseLine', event.target.value)} data-testid="react-admin-delete-customer-line">
+                    <option value="">All cruise lines</option>
+                    {customerCruiseLineOptions.map(lineName => <option key={lineName} value={lineName}>{lineName}</option>)}
+                  </select>
+                </label>
+                <label>
+                  <span>Ship</span>
+                  <select value={deleteCustomerFilters.ship} onChange={event => updateDeleteCustomerFilter('ship', event.target.value)} data-testid="react-admin-delete-customer-ship">
+                    <option value="">All ships</option>
+                    {customerShipOptions.map(shipName => <option key={shipName} value={shipName}>{shipName}</option>)}
+                  </select>
+                </label>
+                <label className="wide-delete-select">
+                  <span>Customer</span>
+                  <select value={deleteCustomerId} onChange={event => { setDeleteCustomerId(event.target.value); setDeleteCustomerFilters(current => ({ ...current, customerId: event.target.value })) }} data-testid="react-admin-delete-customer-id">
+                    <option value="">Select a customer</option>
+                    {filteredDeleteCustomers.map(customer => <option key={customer.id} value={customer.id}>{getCustomerDeleteLabel(customer)}</option>)}
+                  </select>
+                </label>
               </div>
-              <button type="submit" className="primary-button" data-testid="react-admin-create-booking-submit">Create Booking</button>
-            </form>
-
-            <form className="draft-editor" onSubmit={handleDeleteCustomer} data-testid="react-admin-delete-customer-form">
-              <h5>Delete Customer by ID</h5>
-              <label><span>Customer ID</span><input value={deleteCustomerId} onChange={event => setDeleteCustomerId(event.target.value)} data-testid="react-admin-delete-customer-id" /></label>
+              <p className="muted">{filteredDeleteCustomers.length} matching customers</p>
               <button type="submit" className="fleet-danger-action" disabled={activeDeleteId === `customer:${deleteCustomerId.trim()}`} data-testid="react-admin-delete-customer-submit">Delete Customer</button>
             </form>
 
-            <form className="draft-editor" onSubmit={handleDeleteBooking} data-testid="react-admin-delete-booking-form">
-              <h5>Delete Booking by ID</h5>
-              <label><span>Booking ID</span><input value={deleteBookingId} onChange={event => setDeleteBookingId(event.target.value)} data-testid="react-admin-delete-booking-id" /></label>
+            <form className="draft-editor admin-delete-selector-card" onSubmit={handleDeleteBooking} data-testid="react-admin-delete-booking-form">
+              <h5>Delete booking</h5>
+              <p className="muted">Narrow the booking list by cruise line and ship, then select the booking to remove.</p>
+              <div className="admin-delete-filter-grid">
+                <label>
+                  <span>Cruise line</span>
+                  <select value={deleteBookingFilters.cruiseLine} onChange={event => updateDeleteBookingFilter('cruiseLine', event.target.value)} data-testid="react-admin-delete-booking-line">
+                    <option value="">All cruise lines</option>
+                    {bookingCruiseLineOptions.map(lineName => <option key={lineName} value={lineName}>{lineName}</option>)}
+                  </select>
+                </label>
+                <label>
+                  <span>Ship</span>
+                  <select value={deleteBookingFilters.ship} onChange={event => updateDeleteBookingFilter('ship', event.target.value)} data-testid="react-admin-delete-booking-ship">
+                    <option value="">All ships</option>
+                    {bookingShipOptions.map(shipName => <option key={shipName} value={shipName}>{shipName}</option>)}
+                  </select>
+                </label>
+                <label className="wide-delete-select">
+                  <span>Booking</span>
+                  <select value={deleteBookingId} onChange={event => { setDeleteBookingId(event.target.value); setDeleteBookingFilters(current => ({ ...current, bookingId: event.target.value })) }} data-testid="react-admin-delete-booking-id">
+                    <option value="">Select a booking</option>
+                    {filteredDeleteBookings.map(booking => <option key={booking.id} value={booking.id}>{getBookingDeleteLabel(booking)}</option>)}
+                  </select>
+                </label>
+              </div>
+              <p className="muted">{filteredDeleteBookings.length} matching bookings</p>
               <button type="submit" className="fleet-danger-action" disabled={activeDeleteId === `booking:${deleteBookingId.trim()}`} data-testid="react-admin-delete-booking-submit">Delete Booking</button>
             </form>
           </div>
         </section>
 
-        <label className="search-control react-admin-search">
-          <span>Search admin records</span>
+        <section className="react-admin-record-selector" aria-label="Customer workflow selector">
+          <div>
+            <p className="eyebrow">Customer workflow selector</p>
+            <h4>Find customer records</h4>
+            <p className="muted">Use cruise line, ship, and customer selectors to narrow records without slow text filtering.</p>
+          </div>
+          <div className="admin-delete-filter-grid admin-workflow-filter-grid">
+            <label>
+              <span>Cruise line</span>
+              <select value={workflowFilters.cruiseLine} onChange={event => updateWorkflowFilter('cruiseLine', event.target.value)} data-testid="react-hierarchy-line-filter">
+                <option value="">All cruise lines</option>
+                {workflowCruiseLineOptions.map(lineName => <option key={lineName} value={lineName}>{lineName}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>Ship</span>
+              <select value={workflowFilters.ship} onChange={event => updateWorkflowFilter('ship', event.target.value)} data-testid="react-hierarchy-ship-filter">
+                <option value="">All ships</option>
+                {workflowShipOptions.map(shipName => <option key={shipName} value={shipName}>{shipName}</option>)}
+              </select>
+            </label>
+            <label className="wide-delete-select">
+              <span>Customer</span>
+              <select value={workflowFilters.customerId} onChange={event => updateWorkflowFilter('customerId', event.target.value)} data-testid="react-hierarchy-customer-filter" aria-describedby="react-hierarchy-summary">
+                <option value="">All matching customers</option>
+                {filteredWorkflowCustomers.map(customer => <option key={customer.id} value={customer.id}>{getCustomerDeleteLabel(customer)}</option>)}
+              </select>
+            </label>
+          </div>
+          <p className="muted">{filteredWorkflowCustomers.length} matching customer records</p>
           <input
+            className="react-admin-legacy-filter-input"
             data-testid="react-hierarchy-search-input"
             value={searchTerm}
             onChange={event => updateSearchTerm(event.target.value)}
-            placeholder="Search customers, linked bookings, ships, email, cabin, route, status, or loyalty number..."
-            aria-describedby="react-hierarchy-summary"
+            aria-hidden="true"
+            tabIndex="-1"
+            autoComplete="off"
           />
-        </label>
+        </section>
 
         <div className="react-admin-workflow-bar">
           <p id="react-hierarchy-summary" className="result-summary" role="status" data-testid="react-hierarchy-summary">

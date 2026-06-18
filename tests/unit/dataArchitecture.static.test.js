@@ -303,7 +303,8 @@ describe('Production data architecture hardening guardrails', () => {
       '"cruiseLineId" uuid REFERENCES cruise_lines(id) ON DELETE SET NULL',
       '"assignedShipId" uuid REFERENCES ships(id) ON DELETE SET NULL',
       '"cruiseLineName" varchar(255)',
-      '"assignedShipName" varchar(255)'
+      '"assignedShipName" varchar(255)',
+      '"assignedSailingId" uuid REFERENCES sailings(id) ON DELETE SET NULL'
     ]) {
       expect(initializer).toContain(assignmentColumn)
     }
@@ -311,7 +312,8 @@ describe('Production data architecture hardening guardrails', () => {
     for (const indexName of [
       'idx_app_users_cruise_line_ship',
       'idx_app_user_roles_tenant_assignment',
-      'idx_demo_users_operational_assignment'
+      'idx_demo_users_operational_assignment',
+      'idx_demo_users_turnaround_sailing_assignment'
     ]) {
       expect(initializer).toContain(`CREATE INDEX IF NOT EXISTS ${indexName}`)
     }
@@ -332,6 +334,7 @@ describe('Production data architecture hardening guardrails', () => {
     }
 
     expect(demoUserModel).toContain('assignedShipName')
+    expect(demoUserModel).toContain('assignedSailingId')
     expect(demoUserModel).toContain('cruiseLineName')
     expect(roleViewDomain).toContain('selectedDemoUser.assignedShipName')
     expect(roleViewDomain).toContain('selectedDemoUser.cruiseLineName')
@@ -758,6 +761,73 @@ describe('Production data architecture hardening guardrails', () => {
     expect(hardeningPlan).toContain('Turnaround After-Action Review Bridge')
   })
 
+
+  it('adds turnaround shift briefing for next-shift handoff readiness', () => {
+    const controller = read('controllers/cruise.controller.js')
+    const shiftBriefingService = read('services/turnaroundShiftBriefing.service.js')
+    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(controller).toContain("const { buildTurnaroundShiftBriefing } = require('../services/turnaroundShiftBriefing.service')")
+    expect(controller).toContain('const shiftBriefing = buildTurnaroundShiftBriefing({')
+    expect(controller).toContain('shiftBriefing,')
+    expect(shiftBriefingService).toContain('function buildTurnaroundShiftBriefing')
+    expect(shiftBriefingService).toContain('buildBriefingCriticalItems')
+    expect(shiftBriefingService).toContain('buildDepartmentBriefs')
+    expect(shiftBriefingService).toContain('handoffStatus')
+    expect(dashboard).toContain('data-testid="react-operations-shift-briefing"')
+    expect(dashboard).toContain('selectedOperation.shiftBriefing.criticalItems')
+    expect(dashboard).toContain('Next-shift command handoff')
+    expect(styles).toContain('.operations-shift-briefing')
+    expect(styles).toContain('.operations-shift-briefing-grid')
+  })
+
+
+  it('adds turnaround go-live center for final launch readiness', () => {
+    const controller = read('controllers/cruise.controller.js')
+    const goLiveService = read('services/turnaroundGoLive.service.js')
+    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const selectors = read('cypress/react/support/reactSelectors.js')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(controller).toContain("const { buildTurnaroundGoLiveCenter } = require('../services/turnaroundGoLive.service')")
+    expect(controller).toContain('const goLiveCenter = buildTurnaroundGoLiveCenter({')
+    expect(controller).toContain('goLiveCenter,')
+    expect(goLiveService).toContain('function buildTurnaroundGoLiveCenter')
+    expect(goLiveService).toContain('buildGoLiveGates')
+    expect(goLiveService).toContain('launchRecommendation')
+    expect(dashboard).toContain('data-testid="react-operations-go-live-center"')
+    expect(dashboard).toContain('selectedOperation.goLiveCenter.gates')
+    expect(dashboard).toContain('Launch decision, remaining scope, and deployment proof')
+    expect(selectors).toContain("operationsGoLiveCenter: 'react-operations-go-live-center'")
+    expect(styles).toContain('.operations-go-live-center')
+    expect(styles).toContain('.operations-go-live-grid')
+  })
+
+
+
+  it('adds turnaround operations control board for consolidated command-and-control', () => {
+    const controller = read('controllers/cruise.controller.js')
+    const controlBoardService = read('services/turnaroundOperationsControlBoard.service.js')
+    const roleView = read('frontend/react/src/domain/roleView.js')
+    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const selectors = read('cypress/react/support/reactSelectors.js')
+    const styles = read('frontend/react/src/styles/app.css')
+
+    expect(controller).toContain("const { buildTurnaroundOperationsControlBoard } = require('../services/turnaroundOperationsControlBoard.service')")
+    expect(controller).toContain('const operationsControlBoard = buildTurnaroundOperationsControlBoard({')
+    expect(controller).toContain('operationsControlBoard,')
+    expect(controlBoardService).toContain('function buildTurnaroundOperationsControlBoard')
+    expect(controlBoardService).toContain('buildControlLanes')
+    expect(controlBoardService).toContain('goNoGoStatus')
+    expect(roleView).toContain('operationsControlBoard: operation.operationsControlBoard || null')
+    expect(dashboard).toContain('data-testid="react-operations-control-board"')
+    expect(dashboard).toContain('selectedOperation.operationsControlBoard.lanes')
+    expect(dashboard).toContain('Unified command view for readiness, blockers, continuity, shift priorities, and go/no-go')
+    expect(selectors).toContain("operationsControlBoard: 'react-operations-control-board'")
+    expect(styles).toContain('.operations-control-board')
+    expect(styles).toContain('.operations-control-board-lanes')
+  })
 
   it('exposes admin-scoped platform audit history for production review', () => {
     const routes = read('routes/cruise.routes.js')

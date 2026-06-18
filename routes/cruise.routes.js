@@ -55,6 +55,34 @@ router.get(
 )
 
 
+
+router.get(
+  '/data-architecture/readiness',
+  cruiseController.getDataArchitectureReadiness
+)
+
+router.get(
+  '/production-hardening/readiness',
+  cruiseController.getProductionHardeningReadiness
+)
+
+router.get(
+  '/deployment/readiness',
+  cruiseController.getDeploymentReadiness
+)
+
+router.get(
+  '/portfolio/showcase',
+  cruiseController.getPortfolioShowcase
+)
+
+
+router.get(
+  '/public-launch/readiness',
+  cruiseController.getPublicLaunchReadiness
+)
+
+
 router.get(
   '/turnaround-admin/setup',
   cruiseController.getTurnaroundAdminSetup
@@ -70,6 +98,11 @@ router.patch(
   '/turnaround-admin/people/:id',
   validate(turnaroundPersonAssignmentSchema.omit({ id: true })),
   cruiseController.updateTurnaroundPerson
+)
+
+router.delete(
+  '/turnaround-admin/people/:id',
+  cruiseController.deleteTurnaroundPerson
 )
 
 router.get(

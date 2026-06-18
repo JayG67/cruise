@@ -10,6 +10,34 @@ function selectDemoUserByVisibleRole(roleText, personText = '') {
       cy.getByTestId(rs.roleTypeSelect).select(roleValue)
     })
 
+  if (/passenger/i.test(roleText)) {
+    cy.getByTestId(rs.passengerFinderPanel).should('be.visible')
+    cy.getByTestId(rs.passengerFinderResultCard).should('have.length.greaterThan', 0)
+
+    if (personText) {
+      cy.getByTestId(rs.passengerSearchInput).clear().type(personText)
+      cy.getByTestId(rs.passengerFinderResultCard).contains(personText).click()
+      return
+    }
+
+    cy.getByTestId(rs.passengerFinderResultCard).first().click()
+    return
+  }
+
+  if (/turnaround|housekeeping|guest services|food|beverage|engineering|security|port operations/i.test(roleText)) {
+    cy.getByTestId(rs.operationalPersonFilterPanel).should('be.visible')
+    cy.getByTestId(rs.personFinderResultCard).should('have.length.greaterThan', 0)
+
+    if (personText) {
+      cy.getByTestId(rs.personSearchInput).clear().type(personText)
+      cy.getByTestId(rs.personFinderResultCard).contains(personText).click()
+      return
+    }
+
+    cy.getByTestId(rs.personFinderResultCard).first().click()
+    return
+  }
+
   cy.getByTestId(rs.personFinderPanel).should('be.visible')
   cy.getByTestId(rs.personFinderResultCard).should('have.length.greaterThan', 0)
 
@@ -284,7 +312,20 @@ describe('Cruise operations portfolio route', () => {
 
   it('creates and deletes React admin customers and bookings', () => {
     const adminCrudCustomers = []
-    const adminCrudBookings = []
+    const adminCrudBookings = [
+      {
+        id: 'react-booking-created',
+        bookingStatus: 'CONFIRMED',
+        cabinNumber: 'R100',
+        fareCode: 'RX',
+        embarkationPort: 'Miami',
+        debarkationPort: 'Nassau',
+        cruiseLineName: 'Royal Caribbean International',
+        shipName: 'Wonder of the Seas',
+        createdByCustomerId: 'react-customer-created',
+        passengers: []
+      }
+    ]
 
     cy.intercept('GET', '/cruise/customers', req => {
       req.reply({ statusCode: 200, body: adminCrudCustomers })
@@ -371,26 +412,16 @@ describe('Cruise operations portfolio route', () => {
     cy.getByTestId(rs.adminCreateCustomerSubmit).click()
     cy.wait('@createReactCustomer')
     cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'React Admin was created')
-    cy.getByTestId(rs.adminCreateBookingForm).should('be.visible')
+    cy.getByTestId(rs.adminCreateBookingForm).should('not.exist')
 
-    fillReactInput(rs.adminCreateBookingCustomerId, 'react-customer-created')
-    fillReactInput(rs.adminCreateBookingStatus, 'CONFIRMED')
-    fillReactInput(rs.adminCreateBookingCabin, 'R100')
-    fillReactInput(rs.adminCreateBookingFare, 'RX')
-    fillReactInput(rs.adminCreateBookingEmbarkation, 'Miami')
-    fillReactInput(rs.adminCreateBookingDebarkation, 'Nassau')
-    cy.getByTestId(rs.adminCreateBookingSubmit).click()
-    cy.wait('@createReactBooking')
-    cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'react-booking-created booking was created')
-
-    fillReactInput(rs.adminDeleteBookingId, 'react-booking-created')
+    cy.getByTestId(rs.adminDeleteBookingId).select('react-booking-created')
     cy.getByTestId(rs.adminDeleteBookingSubmit).click()
     cy.getByTestId(rs.adminDeleteConfirmation).should('contain.text', 'Delete booking react-booking-created?')
     cy.getByTestId(rs.adminDeleteConfirmationConfirm).click()
     cy.wait('@deleteReactBooking')
     cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'react-booking-created booking was deleted')
 
-    fillReactInput(rs.adminDeleteCustomerId, 'react-customer-created')
+    cy.getByTestId(rs.adminDeleteCustomerId).select('react-customer-created')
     cy.getByTestId(rs.adminDeleteCustomerSubmit).click()
     cy.getByTestId(rs.adminDeleteConfirmation).should('contain.text', 'Delete customer react-customer-created?')
     cy.getByTestId(rs.adminDeleteConfirmationConfirm).click()

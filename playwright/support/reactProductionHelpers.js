@@ -18,8 +18,53 @@ const ROLE_PERSON_SEARCH = {
   'group-leader': 'Group Leader'
 }
 
+
+function isPassengerRole(roleValue) {
+  return roleValue === 'passenger'
+}
+
+function isOperationalRole(roleValue) {
+  return /turnaround|housekeeping|guest-services|food-beverage|engineering|security|port-operations/.test(String(roleValue || ''))
+}
+
+async function expectVisibleRolePersonPanel(page, roleValue, timeout = 20000) {
+  if (isPassengerRole(roleValue)) {
+    await expect(page.getByTestId('react-passenger-finder-panel')).toBeVisible({ timeout })
+    return page.getByTestId('react-passenger-finder-panel')
+  }
+
+  if (isOperationalRole(roleValue)) {
+    await expect(page.getByTestId('react-operational-person-filter-panel')).toBeVisible({ timeout })
+    return page.getByTestId('react-operational-person-filter-panel')
+  }
+
+  await expect(page.getByTestId('react-person-finder-panel')).toBeVisible({ timeout })
+  return page.getByTestId('react-person-finder-panel')
+}
+
 function normalizeRoleValue(roleText) {
   return ROLE_VALUES[roleText] || String(roleText || '').toLowerCase().replace(/\s+/g, '-')
+}
+
+async function expectSelectedRoleSurface(page, roleValue, timeout = 20000) {
+  const dashboardTestId = `react-${roleValue}-dashboard`
+
+  if (roleValue === 'passenger') {
+    await expect(page.getByTestId('react-demo-user-summary')).toContainText('Passenger', { timeout })
+    await expect(page.getByTestId('react-passenger-dashboard')).toBeVisible({ timeout })
+    return
+  }
+
+  if (roleValue === 'group-leader') {
+    await expect(page.getByTestId('react-demo-user-summary')).toContainText('Group Leader', { timeout })
+    await expect(page.getByTestId(dashboardTestId)).toBeVisible({ timeout })
+    return
+  }
+
+  if (isOperationalRole(roleValue)) {
+    await expect(page.getByTestId(dashboardTestId)).toBeVisible({ timeout })
+    await expect(page.getByTestId('react-operational-turnaround-panel')).toBeVisible({ timeout })
+  }
 }
 
 async function expectNoHorizontalOverflow(page) {
@@ -28,8 +73,10 @@ async function expectNoHorizontalOverflow(page) {
 }
 
 async function waitForRolePicker(page) {
-  await expect(page.getByTestId('react-role-type-select')).toBeVisible({ timeout: 15000 })
-  await expect(page.getByTestId('react-person-finder-panel')).toBeVisible({ timeout: 15000 })
+  const roleSelect = page.getByTestId('react-role-type-select')
+  await expect(roleSelect).toBeVisible({ timeout: 15000 })
+  const roleValue = await roleSelect.evaluate(select => select.value || 'admin')
+  await expectVisibleRolePersonPanel(page, roleValue, 15000)
 }
 
 async function selectDemoUserThroughAppBridge(page, roleValue, personText = '') {
@@ -123,7 +170,7 @@ async function setSelectValueByTestId(page, testId, value) {
 
 async function selectRoleThroughDom(page, roleValue) {
   await setSelectValueByTestId(page, 'react-role-type-select', roleValue)
-  await expect(page.getByTestId('react-person-finder-panel')).toBeVisible({ timeout: 20000 })
+  await expectVisibleRolePersonPanel(page, roleValue, 20000)
 }
 
 async function clickPersonCardSafely(personCard) {
@@ -216,6 +263,7 @@ async function selectRoleAndPerson(page, roleValue, personText = '') {
   const selectedThroughAppBridge = await selectDemoUserThroughAppBridge(page, roleValue, personText)
 
   if (selectedThroughAppBridge) {
+    await expectSelectedRoleSurface(page, roleValue, 20000)
     return
   }
 
@@ -231,7 +279,29 @@ async function selectRoleAndPerson(page, roleValue, personText = '') {
 
   await selectRoleThroughDom(page, roleValue)
 
-  const personFinder = page.getByTestId('react-person-finder-panel')
+  if (roleValue === 'passenger') {
+    await expect(page.getByTestId('react-passenger-finder-panel')).toBeVisible({ timeout: 20000 })
+
+    if (personText) {
+      const passengerCard = page.getByTestId('react-passenger-finder-result-card').filter({ hasText: personText }).first()
+
+      if (!(await passengerCard.isVisible({ timeout: 3000 }).catch(() => false))) {
+        const passengerSearch = page.getByTestId('react-passenger-search-input')
+        await expect(passengerSearch).toBeVisible({ timeout: 5000 })
+        await setSearchInputValue(page, 'react-passenger-search-input', personText)
+      }
+
+      await clickPersonCardSafely(passengerCard)
+      await expect(page.getByTestId('react-demo-user-summary')).toContainText(personText, { timeout: 10000 })
+      return
+    }
+
+    const firstPassengerCard = page.getByTestId('react-passenger-finder-result-card').first()
+    await clickPersonCardSafely(firstPassengerCard)
+    return
+  }
+
+  await expectVisibleRolePersonPanel(page, roleValue, 20000)
 
   if (personText) {
     const matchingCard = page.getByTestId('react-person-finder-result-card').filter({ hasText: personText }).first()
@@ -258,7 +328,8 @@ async function selectDemoUserByRole(page, roleText) {
   await selectRoleAndPerson(page, normalizedRole, ROLE_PERSON_SEARCH[normalizedRole] || '')
 
   if (normalizedRole === 'passenger') {
-    await expect(page.getByTestId('react-demo-user-summary')).toContainText('Passenger', { timeout: 15000 })
+    await expect(page.getByTestId('react-demo-user-summary')).toContainText('Passenger', { timeout: 20000 })
+    await expectSelectedRoleSurface(page, normalizedRole, 20000)
   }
 }
 
@@ -372,14 +443,32 @@ async function clickStableControl(locator, options = {}) {
 }
 
 async function openCustomerWorkflows(page) {
+  const operationsPanel = page.getByTestId('react-active-route-operations')
   const toggle = page.getByTestId('react-toggle-customer-workflows')
   const table = page.getByTestId('react-customer-workflow-table')
+
+  await expect(operationsPanel).toBeVisible({ timeout: 15000 })
 
   if (await table.isVisible().catch(() => false)) {
     return table
   }
 
+  await expect(toggle).toBeVisible({ timeout: 15000 })
+  await expect(toggle).toBeEnabled({ timeout: 15000 })
   await clickStableControl(toggle)
+
+  if (!(await table.isVisible({ timeout: 2500 }).catch(() => false))) {
+    await toggle.evaluate(element => {
+      element.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' })
+      element.click()
+    })
+  }
+
+  if (!(await table.isVisible({ timeout: 2500 }).catch(() => false))) {
+    await toggle.focus()
+    await page.keyboard.press('Enter')
+  }
+
   await expect(table).toBeVisible({ timeout: 15000 })
   return table
 }
@@ -388,6 +477,7 @@ module.exports = {
   clickStableControl,
   expectNoHorizontalOverflow,
   expectOperationalDashboardReady,
+  expectSelectedRoleSurface,
   normalizeRoleValue,
   openFleetShipsBySearch,
   openCustomerWorkflows,

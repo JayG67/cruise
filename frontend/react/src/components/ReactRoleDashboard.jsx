@@ -324,7 +324,9 @@ const OPERATIONAL_DIRECTORY_ROLES = [
   { role: 'housekeeping-lead', label: 'Housekeeping Lead' },
   { role: 'guest-services-lead', label: 'Guest Services Lead' },
   { role: 'food-beverage-lead', label: 'Food & Beverage Lead' },
-  { role: 'engineering-lead', label: 'Engineering Lead' }
+  { role: 'engineering-lead', label: 'Engineering Lead' },
+  { role: 'security-lead', label: 'Security Lead' },
+  { role: 'port-operations-lead', label: 'Port Operations Lead' }
 ]
 
 function normalizeOperationalRoleName(role = '') {
@@ -1976,7 +1978,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
       )}
 
 
-      {selectedOperation?.productionReadiness && (
+      {false && selectedOperation?.productionReadiness && (
         <section className="operations-production-readiness" aria-labelledby="operations-production-readiness-heading" data-testid="react-operations-production-readiness">
           <div className="operations-production-readiness-header">
             <div>
@@ -2032,7 +2034,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
       )}
 
 
-      {selectedOperation?.applicationDossier && (
+      {false && selectedOperation?.applicationDossier && (
         <section className="operations-application-dossier" aria-labelledby="operations-application-dossier-heading" data-testid="react-operations-application-dossier">
           <div className="operations-application-dossier-header">
             <div>
@@ -2160,6 +2162,67 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
       )}
 
 
+      {selectedOperation?.operationsControlBoard && (
+        <section className={`operations-control-board ${String(selectedOperation.operationsControlBoard.summary?.goNoGoStatus || '').toLowerCase().replace(/_/g, '-')}`} aria-labelledby="operations-control-board-heading" data-testid="react-operations-control-board">
+          <div className="operations-control-board-header">
+            <div>
+              <p className="eyebrow">Turnaround operations control board</p>
+              <h4 id="operations-control-board-heading">Unified command view for readiness, blockers, continuity, shift priorities, and go/no-go</h4>
+              <p>{selectedOperation.operationsControlBoard.summary?.headline}</p>
+              <small>{selectedOperation.operationsControlBoard.summary?.nextBestAction}</small>
+            </div>
+            <div className={`operations-control-board-score ${String(selectedOperation.operationsControlBoard.summary?.goNoGoStatus || '').toLowerCase().replace(/_/g, '-')}`} aria-label={`Operations control board score ${selectedOperation.operationsControlBoard.summary?.controlScore || 0}%`}>
+              <span>{selectedOperation.operationsControlBoard.summary?.controlScore || 0}%</span>
+              <small>{String(selectedOperation.operationsControlBoard.summary?.goNoGoStatus || 'WATCH').replace(/_/g, ' ')}</small>
+            </div>
+          </div>
+          <dl className="operations-control-board-kpis" aria-label="Operations control board KPIs" data-testid="react-operations-control-board-kpis">
+            <div>
+              <dt>Blocked tasks</dt>
+              <dd>{selectedOperation.operationsControlBoard.summary?.blockedTasks || 0}</dd>
+            </div>
+            <div>
+              <dt>Open dependencies</dt>
+              <dd>{selectedOperation.operationsControlBoard.summary?.openDependencies || 0}</dd>
+            </div>
+            <div>
+              <dt>Continuity score</dt>
+              <dd>{selectedOperation.operationsControlBoard.summary?.continuityScore || 0}%</dd>
+            </div>
+            <div>
+              <dt>Go-live score</dt>
+              <dd>{selectedOperation.operationsControlBoard.summary?.goLiveScore || 0}%</dd>
+            </div>
+          </dl>
+          <div className="operations-control-board-lanes" data-testid="react-operations-control-board-lanes">
+            {(selectedOperation.operationsControlBoard.lanes || []).map(lane => (
+              <article key={lane.id} className={`operations-control-board-lane ${String(lane.status || '').toLowerCase().replace(/_/g, '-')}`}>
+                <span>{lane.score}% · {String(lane.status || '').replace(/_/g, ' ')}</span>
+                <strong>{lane.label}</strong>
+                <p>{lane.evidence}</p>
+              </article>
+            ))}
+          </div>
+          <div className="operations-control-board-grid">
+            <div data-testid="react-operations-control-board-priorities">
+              <strong>Command priorities</strong>
+              <ol>
+                {(selectedOperation.operationsControlBoard.priorityActions || []).slice(0, 8).map(action => (
+                  <li key={action.id}><span>{action.priority} · {action.source}</span> {action.owner}: {action.action}</li>
+                ))}
+              </ol>
+            </div>
+            <div data-testid="react-operations-control-board-rhythm">
+              <strong>Control rhythm</strong>
+              <ol>
+                {(selectedOperation.operationsControlBoard.commandRhythm || []).map(item => <li key={item}>{item}</li>)}
+              </ol>
+            </div>
+          </div>
+        </section>
+      )}
+
+
       {selectedOperation?.continuityCenter && (
         <section className={`operations-continuity-center ${String(selectedOperation.continuityCenter.commandStatus || '').toLowerCase()}`} aria-labelledby="operations-continuity-center-heading" data-testid="react-operations-continuity-center">
           <div className="operations-continuity-center-header">
@@ -2222,6 +2285,146 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
             <ul>
               {(selectedOperation.continuityCenter.evidenceChecklist || []).slice(0, 6).map(item => (
                 <li key={item.id}><span>{item.complete ? 'Ready' : 'Open'}</span> {item.label}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+
+      {selectedOperation?.shiftBriefing && (
+        <section className="operations-shift-briefing" aria-labelledby="operations-shift-briefing-heading" data-testid="react-operations-shift-briefing">
+          <div className="operations-shift-briefing-header">
+            <div>
+              <p className="eyebrow">Shift briefing</p>
+              <h4 id="operations-shift-briefing-heading">Next-shift command handoff</h4>
+              <p>One focused briefing translates live turnaround risk into what the next operations lead must know: critical items, department focus, and handoff checklist status.</p>
+            </div>
+            <div className={`operations-shift-briefing-score ${String(selectedOperation.shiftBriefing.summary?.handoffStatus || '').toLowerCase()}`} aria-label={`Shift briefing score ${selectedOperation.shiftBriefing.summary?.briefingScore || 0}%`}>
+              <span>{selectedOperation.shiftBriefing.summary?.briefingScore || 0}%</span>
+              <small>{String(selectedOperation.shiftBriefing.summary?.handoffStatus || 'WATCH_HANDOFF').replace(/_/g, ' ')}</small>
+            </div>
+          </div>
+          <dl className="operations-shift-briefing-kpis" aria-label="Shift briefing summary" data-testid="react-operations-shift-briefing-kpis">
+            <div>
+              <dt>Actions</dt>
+              <dd>{selectedOperation.shiftBriefing.summary?.actionCount || 0}</dd>
+            </div>
+            <div>
+              <dt>Watch</dt>
+              <dd>{selectedOperation.shiftBriefing.summary?.watchCount || 0}</dd>
+            </div>
+            <div>
+              <dt>Critical</dt>
+              <dd>{selectedOperation.shiftBriefing.summary?.criticalItemCount || 0}</dd>
+            </div>
+            <div>
+              <dt>Next focus</dt>
+              <dd>{selectedOperation.shiftBriefing.summary?.nextShiftFocus || 'All departments'}</dd>
+            </div>
+          </dl>
+          <div className="operations-shift-briefing-grid">
+            <div data-testid="react-operations-shift-briefing-critical-items">
+              <strong>Critical handoff items</strong>
+              <ul>
+                {(selectedOperation.shiftBriefing.criticalItems || []).slice(0, 8).map(item => (
+                  <li key={item.id}><span>{item.type}</span> {item.departmentRole} · {item.owner}: {item.label}. {item.detail}</li>
+                ))}
+              </ul>
+            </div>
+            <div data-testid="react-operations-shift-briefing-checklist">
+              <strong>Shift handoff checklist</strong>
+              <ol>
+                {(selectedOperation.shiftBriefing.checklist || []).slice(0, 6).map(item => (
+                  <li key={item.id}><span>{item.status}</span> {item.label}: {item.detail}</li>
+                ))}
+              </ol>
+            </div>
+          </div>
+          <div className="operations-shift-briefing-departments" data-testid="react-operations-shift-briefing-departments">
+            <strong>Department briefing focus</strong>
+            <div className="operations-shift-briefing-department-grid">
+              {(selectedOperation.shiftBriefing.departmentBriefs || []).slice(0, 6).map(department => (
+                <article key={department.departmentRole}>
+                  <span>{department.completionPercent}% complete · {department.signoffStatus}</span>
+                  <strong>{department.departmentRole}</strong>
+                  <p>{department.briefingFocus}</p>
+                  <small>{department.blockedTasks} blocked · {department.staffingGap} staffing gap · {department.openEscalations} escalations</small>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+
+      {selectedOperation?.goLiveCenter && (
+        <section className={`operations-go-live-center ${String(selectedOperation.goLiveCenter.summary?.goLiveStatus || '').toLowerCase()}`} aria-labelledby="operations-go-live-heading" data-testid="react-operations-go-live-center">
+          <div className="operations-go-live-header">
+            <div>
+              <p className="eyebrow">Turnaround go-live center</p>
+              <h4 id="operations-go-live-heading">Launch decision, remaining scope, and deployment proof</h4>
+              <p>{selectedOperation.goLiveCenter.summary?.launchRecommendation}</p>
+              <small>{selectedOperation.goLiveCenter.context}</small>
+            </div>
+            <div className={`operations-go-live-score ${String(selectedOperation.goLiveCenter.summary?.goLiveStatus || '').toLowerCase()}`} aria-label={`Go-live score ${selectedOperation.goLiveCenter.summary?.goLiveScore || 0}%`}>
+              <span>{selectedOperation.goLiveCenter.summary?.goLiveScore || 0}%</span>
+              <small>{String(selectedOperation.goLiveCenter.summary?.goLiveStatus || 'NO_GO').replace(/_/g, ' ')}</small>
+            </div>
+          </div>
+          <dl className="operations-go-live-kpis" aria-label="Go-live summary" data-testid="react-operations-go-live-kpis">
+            <div>
+              <dt>Go gates</dt>
+              <dd>{selectedOperation.goLiveCenter.summary?.goGateCount || 0}</dd>
+            </div>
+            <div>
+              <dt>Watch</dt>
+              <dd>{selectedOperation.goLiveCenter.summary?.watchCount || 0}</dd>
+            </div>
+            <div>
+              <dt>No-go</dt>
+              <dd>{selectedOperation.goLiveCenter.summary?.noGoCount || 0}</dd>
+            </div>
+            <div>
+              <dt>Actions</dt>
+              <dd>{selectedOperation.goLiveCenter.summary?.actionCount || 0}</dd>
+            </div>
+          </dl>
+          <div className="operations-go-live-grid">
+            <div data-testid="react-operations-go-live-gates">
+              <strong>Launch gates</strong>
+              <ul>
+                {(selectedOperation.goLiveCenter.gates || []).slice(0, 6).map(gate => (
+                  <li key={gate.id}><span>{gate.status}</span> {gate.label} · {gate.score}% — {gate.detail}</li>
+                ))}
+              </ul>
+            </div>
+            <div data-testid="react-operations-go-live-actions">
+              <strong>Remaining launch actions</strong>
+              <ol>
+                {(selectedOperation.goLiveCenter.actions || []).slice(0, 8).map(action => (
+                  <li key={action.id}><span>{action.priority}</span> {action.owner}: {action.action}</li>
+                ))}
+              </ol>
+            </div>
+          </div>
+          <div className="operations-go-live-evidence" data-testid="react-operations-go-live-evidence">
+            <strong>Deployment proof checklist</strong>
+            <div className="operations-go-live-evidence-grid">
+              {(selectedOperation.goLiveCenter.evidence || []).slice(0, 6).map(item => (
+                <article key={item.id}>
+                  <span>{item.status}</span>
+                  <strong>{item.label}</strong>
+                  <p>{item.detail}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+          <div className="operations-go-live-scope" data-testid="react-operations-go-live-scope">
+            <strong>Remaining scope before public launch</strong>
+            <ul>
+              {(selectedOperation.goLiveCenter.remainingScope || []).map(item => (
+                <li key={item.id}><span>{item.status}</span> {item.label}: {item.detail}</li>
               ))}
             </ul>
           </div>
@@ -3012,6 +3215,8 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                   <option value="guest-services-lead">Guest Services Lead</option>
                   <option value="food-beverage-lead">Food &amp; Beverage Lead</option>
                   <option value="engineering-lead">Engineering Lead</option>
+                  <option value="security-lead">Security Lead</option>
+                  <option value="port-operations-lead">Port Operations Lead</option>
                 </select>
               </label>
               <label>
@@ -3313,6 +3518,8 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                   <option value="guest-services-lead">Guest Services Lead</option>
                   <option value="food-beverage-lead">Food &amp; Beverage Lead</option>
                   <option value="engineering-lead">Engineering Lead</option>
+                  <option value="security-lead">Security Lead</option>
+                  <option value="port-operations-lead">Port Operations Lead</option>
                 </select>
               </label>
               <label className="operations-task-quick-add-name">
@@ -3676,6 +3883,8 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                       <option value="guest-services-lead">Guest Services Lead</option>
                       <option value="food-beverage-lead">Food &amp; Beverage Lead</option>
                       <option value="engineering-lead">Engineering Lead</option>
+                      <option value="security-lead">Security Lead</option>
+                      <option value="port-operations-lead">Port Operations Lead</option>
                     </select>
                   </label>
                   <label>
@@ -3793,6 +4002,8 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                       <option value="guest-services-lead">Guest Services Lead</option>
                       <option value="food-beverage-lead">Food &amp; Beverage Lead</option>
                       <option value="engineering-lead">Engineering Lead</option>
+                      <option value="security-lead">Security Lead</option>
+                      <option value="port-operations-lead">Port Operations Lead</option>
                     </select>
                   </label>
                   <label className="full-width-field">
@@ -3912,6 +4123,113 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
     </section>
   )
 }
+
+function PassengerVoyagePlanner({ visibleBookings = [], favoriteItineraryActivitiesByBooking = {} }) {
+  const bookingPlans = visibleBookings.map(booking => {
+    const bookingId = booking.id || booking.bookingId || 'booking'
+    const itineraryDays = getBookingItineraryDays(booking)
+    const favoriteKeys = new Set(favoriteItineraryActivitiesByBooking[bookingId] || [])
+    const activityRows = itineraryDays.flatMap(day => {
+      const dayKey = String(day.id || day.day || day.title)
+      return getItineraryDayActivities(day).map(activity => ({
+        day,
+        dayKey,
+        activity,
+        activityKey: getActivityFavoriteKey(dayKey, activity)
+      }))
+    })
+    const favoriteRows = activityRows.filter(row => favoriteKeys.has(row.activityKey))
+    const portDays = itineraryDays.filter(day => !String(day.port || day.title || '').toLowerCase().includes('sea'))
+    const firstActivity = activityRows[0]
+
+    return {
+      booking,
+      bookingId,
+      itineraryDays,
+      activityRows,
+      favoriteRows,
+      portDays,
+      firstActivity
+    }
+  })
+
+  const totalFavorites = bookingPlans.reduce((sum, plan) => sum + plan.favoriteRows.length, 0)
+  const totalPortDays = bookingPlans.reduce((sum, plan) => sum + plan.portDays.length, 0)
+  const nextPlan = bookingPlans.find(plan => plan.firstActivity) || bookingPlans[0]
+  const [checklistState, setChecklistState] = useState({
+    documents: false,
+    luggage: false,
+    dining: false,
+    excursions: false
+  })
+  const completeChecklistCount = Object.values(checklistState).filter(Boolean).length
+
+  function toggleChecklistItem(item) {
+    setChecklistState(current => ({ ...current, [item]: !current[item] }))
+  }
+
+  return (
+    <section className="passenger-voyage-planner" aria-labelledby="react-passenger-voyage-planner-heading" data-testid="react-passenger-voyage-planner">
+      <div className="passenger-voyage-heading">
+        <div>
+          <p className="eyebrow">Passenger cruise tools</p>
+          <h3 id="react-passenger-voyage-planner-heading">My voyage planner</h3>
+          <p>Review sailing context, favorite activities, port days, and pre-cruise checklist progress from one passenger workspace.</p>
+        </div>
+        <div className="voyage-score-card" aria-label="Voyage planning summary">
+          <strong>{completeChecklistCount}/4</strong>
+          <span>Pre-cruise checklist complete</span>
+        </div>
+      </div>
+
+      <div className="voyage-planner-grid">
+        <article className="voyage-planner-card">
+          <h4>Trip snapshot</h4>
+          <dl className="compact-fields">
+            <div><dt>Visible bookings</dt><dd>{visibleBookings.length}</dd></div>
+            <div><dt>Port days</dt><dd>{totalPortDays}</dd></div>
+            <div><dt>Saved activities</dt><dd>{totalFavorites}</dd></div>
+            <div><dt>Next activity</dt><dd>{nextPlan?.firstActivity?.activity?.activity || nextPlan?.firstActivity?.activity?.name || 'Open itinerary details to review activities'}</dd></div>
+          </dl>
+        </article>
+
+        <article className="voyage-planner-card">
+          <h4>Pre-cruise checklist</h4>
+          <div className="voyage-checklist" data-testid="react-voyage-checklist">
+            {[
+              ['documents', 'Travel documents verified'],
+              ['luggage', 'Luggage tags and cabin assignment reviewed'],
+              ['dining', 'Dining preference checked'],
+              ['excursions', 'Favorite excursions selected']
+            ].map(([id, label]) => (
+              <label key={id} className="react-checkbox-label">
+                <input type="checkbox" checked={Boolean(checklistState[id])} onChange={() => toggleChecklistItem(id)} data-testid={`react-voyage-checklist-${id}`} />
+                <span>{label}</span>
+              </label>
+            ))}
+          </div>
+        </article>
+      </div>
+
+      <div className="voyage-booking-strip" aria-label="Voyage booking summaries">
+        {bookingPlans.length === 0 ? (
+          <p className="status-card compact">No cruise bookings are visible for this passenger yet.</p>
+        ) : bookingPlans.map(plan => (
+          <article key={plan.bookingId} className="voyage-booking-card" data-testid="react-voyage-booking-card">
+            <h4>{getBookingCardTitle(plan.booking)}</h4>
+            <p>{plan.booking.cruiseLine?.name || 'Cruise line'} aboard {plan.booking.ship?.name || 'assigned ship'}</p>
+            <ul>
+              <li>{plan.itineraryDays.length} itinerary day{plan.itineraryDays.length === 1 ? '' : 's'}</li>
+              <li>{plan.portDays.length} port day{plan.portDays.length === 1 ? '' : 's'}</li>
+              <li>{plan.favoriteRows.length} saved activit{plan.favoriteRows.length === 1 ? 'y' : 'ies'}</li>
+            </ul>
+          </article>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 
 function RoleBookingCard({ booking, roleView, isExpanded, favoriteActivityKeys, favoritesOnly, onToggleDetails, onToggleFavorite, onToggleFavoritesOnly }) {
   const passengers = getVisiblePassengerRows(booking)
@@ -4077,6 +4395,10 @@ export default function ReactRoleDashboard({
             onSavePassengerProfile={onSavePassengerProfile}
             savingCustomerId={savingCustomerId}
             mutationError={mutationError}
+          />
+          <PassengerVoyagePlanner
+            visibleBookings={visibleBookings}
+            favoriteItineraryActivitiesByBooking={favoriteItineraryActivitiesByBooking}
           />
           <PassengerCruiseBookingWorkflow
             cruiseLines={cruiseLines}

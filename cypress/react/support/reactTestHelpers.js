@@ -451,6 +451,98 @@ function buildReactTurnaroundContinuityCenter(operation = {}) {
 
 
 
+
+function buildReactTurnaroundShiftBriefing(operation = {}) {
+  const commandCenter = operation.commandCenter || buildReactTurnaroundCommandCenter(operation)
+  const continuityCenter = operation.continuityCenter || buildReactTurnaroundContinuityCenter(operation)
+  const tasks = operation.tasks || []
+  const signoffs = operation.signoffs || []
+  const staffing = operation.staffing || []
+  const escalations = operation.escalations || []
+  const dependencies = operation.taskDependencies || []
+  const handoffs = operation.handoffs || []
+  const criticalItems = [
+    ...escalations.filter(row => row.status !== 'RESOLVED').map(row => ({ id: `escalation-${row.id}`, type: row.severity === 'CRITICAL' ? 'CRITICAL_ESCALATION' : 'ESCALATION', departmentRole: normalizeTurnaroundRoleLabel(row.departmentRole), owner: row.ownerName || 'Incident Commander', label: row.title || 'Open escalation', detail: row.resolutionNotes || row.description || 'Escalation needs update.', priority: row.severity === 'CRITICAL' ? 100 : 80 })),
+    ...tasks.filter(row => row.status === 'BLOCKED' || row.status === 'NOT_STARTED').map(row => ({ id: `task-${row.id}`, type: row.status === 'BLOCKED' ? 'BLOCKER' : 'START_READY', departmentRole: normalizeTurnaroundRoleLabel(row.departmentRole), owner: row.ownerName || 'Department lead', label: row.title || row.taskName, detail: row.blockerReason || row.notes || 'Task needs update.', priority: row.status === 'BLOCKED' ? 90 : 45 })),
+    ...dependencies.filter(row => row.status !== 'CLEARED').map(row => ({ id: `dependency-${row.id}`, type: 'DEPENDENCY', departmentRole: normalizeTurnaroundRoleLabel(row.departmentRole), owner: row.ownerName || 'Command', label: row.title || row.taskName || 'Dependency gate', detail: 'Dependency still active.', priority: 70 })),
+    ...handoffs.filter(row => row.status !== 'COMPLETE').map(row => ({ id: `handoff-${row.id}`, type: 'HANDOFF', departmentRole: normalizeTurnaroundRoleLabel(row.departmentRole), owner: row.ownerName || 'Department lead', label: row.title || 'Operational handoff', detail: row.notes || 'Handoff needs acceptance.', priority: 55 }))
+  ].sort((a, b) => b.priority - a.priority).slice(0, 8)
+  const departmentBriefs = (commandCenter.departmentBoard || []).slice(0, 6).map(row => {
+    const staffingRow = staffing.find(item => normalizeTurnaroundRoleLabel(item.departmentRole) === row.departmentRole)
+    const signoff = signoffs.find(item => normalizeTurnaroundRoleLabel(item.departmentRole) === row.departmentRole)
+    return {
+      departmentRole: row.departmentRole,
+      completionPercent: row.readinessScore || row.signoffCompletion || 0,
+      signoffStatus: signoff?.status || row.status || 'PENDING',
+      blockedTasks: tasks.filter(task => normalizeTurnaroundRoleLabel(task.departmentRole) === row.departmentRole && task.status === 'BLOCKED').length,
+      staffingGap: staffingRow ? Math.max(Number(staffingRow.plannedCount || 0) - Number(staffingRow.checkedInCount || 0), 0) : 0,
+      openEscalations: row.openEscalations || 0,
+      briefingFocus: row.nextAction || 'Keep pace and report exceptions before the next command check.'
+    }
+  })
+  const actionCount = criticalItems.filter(item => item.priority >= 80).length
+  const watchCount = criticalItems.length - actionCount
+
+  return {
+    summary: {
+      briefingScore: Math.max(0, Math.min(100, Number(commandCenter.commandScore || 75) - actionCount * 7 - watchCount * 3)),
+      handoffStatus: actionCount ? 'COMMAND_REVIEW' : watchCount > 1 ? 'WATCH_HANDOFF' : 'READY_HANDOFF',
+      actionCount,
+      watchCount,
+      criticalItemCount: criticalItems.length,
+      nextShiftFocus: criticalItems[0]?.departmentRole || departmentBriefs[0]?.departmentRole || 'All departments'
+    },
+    criticalItems,
+    departmentBriefs,
+    checklist: [
+      { id: 'release-confidence', label: 'Release confidence', status: 'READY', detail: 'Release confidence is visible for shift handoff.' },
+      { id: 'decision-queue', label: 'Decision queue', status: (commandCenter.decisionQueue || []).length ? 'ACTION' : 'READY', detail: `${(commandCenter.decisionQueue || []).length} command decisions need acknowledgement.` },
+      { id: 'continuity-watchlist', label: 'Continuity watchlist', status: (continuityCenter.watchlist || []).length ? 'WATCH' : 'READY', detail: `${(continuityCenter.watchlist || []).length} continuity items carry into the next shift.` }
+    ]
+  }
+}
+
+function buildReactTurnaroundGoLiveCenter(operation = {}) {
+  const commandCenter = operation.commandCenter || buildReactTurnaroundCommandCenter(operation)
+  const continuityCenter = operation.continuityCenter || buildReactTurnaroundContinuityCenter(operation)
+  const shiftBriefing = operation.shiftBriefing || buildReactTurnaroundShiftBriefing(operation)
+  const lifecycleState = operation.lifecycleState || buildReactTurnaroundLifecycleState(operation)
+  const closeoutPacket = operation.closeoutPacket || { closeoutScore: lifecycleState.completionPercent || 72 }
+  const productionScore = operation.productionReadiness?.readinessScore || lifecycleState.completionPercent || 72
+  const releaseScore = operation.releasePacket?.summary?.releaseScore || lifecycleState.completionPercent || 72
+  const gates = [
+    { id: 'workflow-complete', label: 'Workflow completeness', owner: 'Turnaround Manager', score: lifecycleState.completionPercent || 72, status: lifecycleState.completionPercent >= 90 ? 'GO' : 'WATCH', detail: 'Task and signoff evidence is visible.' },
+    { id: 'risk-controlled', label: 'Risk controlled', owner: 'Incident Commander', score: Math.max(0, 100 - (operation.escalations || []).filter(row => row.status !== 'RESOLVED').length * 15), status: (operation.escalations || []).some(row => row.status !== 'RESOLVED') ? 'WATCH' : 'GO', detail: 'Escalation and blocker evidence is visible.' },
+    { id: 'shift-handoff', label: 'Shift handoff ready', owner: 'Operations Lead', score: shiftBriefing.summary?.briefingScore || 72, status: 'WATCH', detail: 'Next-shift handoff evidence is available.' },
+    { id: 'continuity-ready', label: 'Continuity ready', owner: 'Continuity Lead', score: continuityCenter.continuityScore || 72, status: 'WATCH', detail: 'Exception recovery evidence is available.' },
+    { id: 'production-ready', label: 'Production surface ready', owner: 'Engineering Lead', score: productionScore, status: productionScore >= 90 ? 'GO' : 'WATCH', detail: 'Production and release evidence is available.' },
+    { id: 'reviewer-proof', label: 'Reviewer proof ready', owner: 'Portfolio Reviewer', score: closeoutPacket.closeoutScore || 72, status: 'WATCH', detail: 'Reviewer proof package is available.' }
+  ]
+  const goLiveScore = Math.round(gates.reduce((total, gate) => total + gate.score, 0) / gates.length)
+
+  return {
+    headline: `${operation.shipName || operation.ship?.name || 'Selected ship'} turnaround go-live is ${goLiveScore}% ready.`,
+    context: `${operation.cruiseLineName || operation.cruiseLine?.name || 'Cruise line'} · ${operation.turnaroundDate || operation.sailingDate || 'date pending'} · ${operation.title || 'Turnaround operation'}`,
+    summary: {
+      goLiveScore,
+      goLiveStatus: gates.some(gate => gate.status === 'NO_GO') ? 'NO_GO' : gates.some(gate => gate.status === 'WATCH') ? 'GO_WITH_WATCH' : 'READY_TO_LAUNCH',
+      goGateCount: gates.filter(gate => gate.status === 'GO').length,
+      watchCount: gates.filter(gate => gate.status === 'WATCH').length,
+      noGoCount: gates.filter(gate => gate.status === 'NO_GO').length,
+      actionCount: gates.filter(gate => gate.status !== 'GO').length,
+      launchRecommendation: 'Resolve watch items or document them in launch notes before public deployment.'
+    },
+    gates,
+    actions: gates.filter(gate => gate.status !== 'GO').map(gate => ({ id: `gate-${gate.id}`, owner: gate.owner, priority: gate.status === 'NO_GO' ? 'HIGH' : 'MEDIUM', action: `${gate.label}: ${gate.detail}` })).slice(0, 8),
+    evidence: gates.slice(0, 5).map(gate => ({ id: `evidence-${gate.id}`, label: gate.label, status: gate.status, detail: gate.detail })),
+    remainingScope: [
+      { id: 'production-hardening', label: 'Production hardening', status: 'REMAINING', detail: 'Deployment settings, error states, and environment readiness.' },
+      { id: 'data-hardening', label: 'Data architecture hardening', status: 'REMAINING', detail: 'Normalize production data contracts.' },
+      { id: 'portfolio-launch', label: 'Portfolio launch packaging', status: 'REMAINING', detail: 'Screenshots, README story, and final live-site smoke evidence.' }
+    ]
+  }
+}
+
 function buildReactTurnaroundPresentationGuide(operation = {}) {
   const lifecycleState = buildReactTurnaroundLifecycleState(operation)
   const releaseScore = operation.releasePacket?.readinessScore || lifecycleState.completionPercent
@@ -505,7 +597,9 @@ function hydrateReactTurnaroundOperation(operation = {}) {
     lifecycleState: buildReactTurnaroundLifecycleState(operation),
     presentationGuide: buildReactTurnaroundPresentationGuide(operation),
     commandCenter: operation.commandCenter || buildReactTurnaroundCommandCenter(operation),
-    continuityCenter: operation.continuityCenter || buildReactTurnaroundContinuityCenter(operation)
+    continuityCenter: operation.continuityCenter || buildReactTurnaroundContinuityCenter(operation),
+    shiftBriefing: operation.shiftBriefing || buildReactTurnaroundShiftBriefing(operation),
+    goLiveCenter: operation.goLiveCenter || buildReactTurnaroundGoLiveCenter(operation)
   }
 }
 
@@ -687,6 +781,34 @@ function selectDemoUserByVisibleRole(roleText, personText = '') {
     .then(roleValue => {
       cy.getByTestId(rs.roleTypeSelect).select(roleValue)
     })
+
+  if (/passenger/i.test(roleText)) {
+    cy.getByTestId(rs.passengerFinderPanel).should('be.visible')
+    cy.getByTestId(rs.passengerFinderResultCard).should('have.length.greaterThan', 0)
+
+    if (personText) {
+      cy.getByTestId(rs.passengerSearchInput).clear().type(personText)
+      cy.getByTestId(rs.passengerFinderResultCard).contains(personText).click()
+      return
+    }
+
+    cy.getByTestId(rs.passengerFinderResultCard).first().click()
+    return
+  }
+
+  if (/turnaround|housekeeping|guest services|food|beverage|engineering|security|port operations/i.test(roleText)) {
+    cy.getByTestId(rs.operationalPersonFilterPanel).should('be.visible')
+    cy.getByTestId(rs.personFinderResultCard).should('have.length.greaterThan', 0)
+
+    if (personText) {
+      cy.getByTestId(rs.personSearchInput).clear().type(personText)
+      cy.getByTestId(rs.personFinderResultCard).contains(personText).click()
+      return
+    }
+
+    cy.getByTestId(rs.personFinderResultCard).first().click()
+    return
+  }
 
   cy.getByTestId(rs.personFinderPanel).should('be.visible')
   cy.getByTestId(rs.personFinderResultCard).should('have.length.greaterThan', 0)
