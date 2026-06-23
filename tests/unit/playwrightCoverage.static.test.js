@@ -32,6 +32,18 @@ describe('Playwright React coverage inventory', () => {
     expect(config).toContain('Tablet Safari - iPad Mini')
   })
 
+
+  it('keeps mobile Playwright serialized against the shared local server and database', () => {
+    const config = fs.readFileSync(mobileConfigPath, 'utf8')
+    const helpers = fs.readFileSync(playwrightHelperPath, 'utf8')
+
+    expect(config).toContain('fullyParallel: false')
+    expect(config).toContain('workers: 1')
+    expect(config).toContain('single shared local server and test database')
+    expect(helpers).toContain('if (expectedText || userId)')
+    expect(helpers).toContain('return selectedUserMatches || summaryMatches')
+  })
+
   it('keeps responsive Playwright project coverage broad', () => {
     const config = fs.readFileSync(responsiveConfigPath, 'utf8')
 
@@ -56,8 +68,11 @@ describe('Playwright React coverage inventory', () => {
     const mobileReactSpec = fs.readFileSync(mobileReactSpecPath, 'utf8')
     const responsiveReactSpec = fs.readFileSync(responsiveReactSpecPath, 'utf8')
 
-    expect(fs.readFileSync(playwrightHelperPath, 'utf8')).toContain('async function selectDemoUserByRole')
-    expect(mobileReactSpec).toContain("selectDemoUserByRole(page, 'Passenger')")
+    const helperSource = fs.readFileSync(playwrightHelperPath, 'utf8')
+    expect(helperSource).toContain('async function selectDemoUserByRole')
+    expect(helperSource).toContain("passenger: 'Ryan Parker Passenger View'")
+    expect(mobileReactSpec).toContain('selectPassengerProfileUser(page)')
+    expect(mobileReactSpec).toContain('waitForPassengerBookingDetailToggles(page')
     expect(mobileReactSpec).toContain("selectDemoUserByRole(page, 'Admin')")
     expect(mobileReactSpec).not.toContain("selectOption('UPASS0001')")
     expect(responsiveReactSpec).toContain("require('../support/reactProductionHelpers')")
@@ -108,6 +123,7 @@ describe('Playwright React coverage inventory', () => {
     expect(helpers).toContain('const selectedThroughAppBridge = await selectDemoUserThroughAppBridge')
     expect(helpers).toContain('const selectedThroughNativeSelect = await selectHiddenDemoUserByText')
     expect(helpers).toContain('return committed')
+    expect(helpers).toContain('async function waitForPassengerBookingDetailToggles')
     expect(helpers).toContain('async function selectRoleThroughDom')
     expect(helpers).toContain('async function expectVisibleRolePersonPanel')
     expect(helpers).toContain('react-passenger-finder-panel')

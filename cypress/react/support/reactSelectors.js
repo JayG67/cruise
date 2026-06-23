@@ -70,6 +70,9 @@ const reactSelectors = Object.freeze({
   cancelShipEdit: 'react-cancel-ship-edit',
   collapseVisibleCustomers: 'react-collapse-visible-customers',
   createCruiseLineCountry: 'react-create-cruise-line-country',
+  createCruiseLineBrandFamily: 'react-create-cruise-line-brand-family',
+  createCruiseLineBrandTheme: 'react-create-cruise-line-brand-theme',
+  createCruiseLineMarketPositioning: 'react-create-cruise-line-market-positioning',
   createCruiseLineMessage: 'react-create-cruise-line-message',
   createCruiseLineName: 'react-create-cruise-line-name',
   createCruiseLineWebsite: 'react-create-cruise-line-website',
@@ -375,6 +378,10 @@ const reactSelectors = Object.freeze({
   operationsLifecycleBlockers: 'react-operations-lifecycle-blockers',
   operationsLifecycleDepartments: 'react-operations-lifecycle-departments',
   operationsLifecycleNextAction: 'react-operations-lifecycle-next-action',
+  operationsLifecyclePhaseAction: 'react-operations-lifecycle-phase-action',
+  operationsLifecycleBlockerAction: 'react-operations-lifecycle-blocker-action',
+  operationsLifecycleDepartmentAction: 'react-operations-lifecycle-department-action',
+  operationsLifecycleNextActionButton: 'react-operations-lifecycle-next-action-button',
   operationsCommandCenter: 'react-operations-command-center',
   operationsCommandCenterBrief: 'react-operations-command-center-brief',
   operationsCommandCenterKpis: 'react-operations-command-center-kpis',
@@ -426,7 +433,13 @@ const reactSelectors = Object.freeze({
   workspaceFleetButton: 'react-workspace-fleet-button',
   workspaceOperationsButton: 'react-workspace-operations-button',
   workspaceQualityButton: 'react-workspace-quality-button',
-  workspaceRoleButton: 'react-workspace-role-button'
+  workspaceRoleButton: 'react-workspace-role-button',
+  voyageChecklist: 'react-voyage-checklist',
+  voyageChecklistDocuments: 'react-voyage-checklist-documents',
+  voyageChecklistLuggage: 'react-voyage-checklist-luggage',
+  voyageChecklistDining: 'react-voyage-checklist-dining',
+  voyageChecklistExcursions: 'react-voyage-checklist-excursions',
+  voyageChecklistMessage: 'react-voyage-checklist-message'
 })
 
 const reactSelectorKeys = Object.freeze(Object.fromEntries(

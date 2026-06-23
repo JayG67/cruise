@@ -673,13 +673,6 @@ export default function ReactRoleSelector({
                     <span>{option.user.email || option.user.customerId || 'Passenger profile'}</span>
                   </span>
                   <span className="passenger-finder-card-detail">{option.detail}</span>
-                  {option.contexts.length > 0 && (
-                    <span className="passenger-finder-card-chips">
-                      {option.contexts.slice(0, 2).map(context => (
-                        <span key={`${option.user.id}-${context.bookingId}`}>{context.ship} · {context.sailingDate}</span>
-                      ))}
-                    </span>
-                  )}
                 </button>
               ))}
             </div>

@@ -14,6 +14,7 @@ const {
   bookingPassengerCreateSchema,
   passengerCustomerUpdateSchema,
   bookingPreferenceUpdateSchema,
+  preCruiseChecklistSchema,
   itineraryFavoriteSchema,
   turnaroundOperationCommandUpdateSchema,
   turnaroundTaskStatusUpdateSchema,
@@ -246,6 +247,12 @@ router.patch(
   '/bookings/:bookingId/passengers/:customerId/preferences',
   validate(bookingPreferenceUpdateSchema),
   cruiseController.updatePassengerBookingPreferences
+)
+
+router.patch(
+  '/customers/:id/pre-cruise-checklist',
+  validate(preCruiseChecklistSchema),
+  cruiseController.updatePassengerPreCruiseChecklist
 )
 
 router.post(

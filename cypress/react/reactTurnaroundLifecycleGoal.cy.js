@@ -89,12 +89,12 @@ describe('Turnaround lifecycle soup-to-nuts Cypress architecture', () => {
     cy.getByTestId(rs.operationsGoLiveActions).should('contain.text', 'Remaining launch actions')
     cy.getByTestId(rs.operationsGoLiveEvidence).should('contain.text', 'Deployment proof checklist')
     cy.getByTestId(rs.operationsGoLiveScope).should('contain.text', 'Remaining scope before public launch')
-    cy.getByTestId(rs.operationsPresentationGuide).should('be.visible')
-    cy.getByTestId(rs.operationsPresentationStoryline).should('contain.text', 'Admin sets up operations').and('contain.text', 'Close with employer value')
-    cy.getByTestId(rs.operationsPresentationFocus).should('contain.text', 'Presenter focus')
+    cy.getByTestId(rs.operationsPresentationGuide).should('not.exist')
     cy.getByTestId(rs.operationsLifecycleState).should('be.visible')
     cy.getByTestId(rs.operationsLifecyclePhases).should('contain.text', 'Setup').and('contain.text', 'Completed')
     cy.getByTestId(rs.operationsLifecycleNextAction).should('contain.text', 'Next best action')
+    cy.getByTestId(rs.operationsLifecyclePhaseAction).should('have.length.greaterThan', 0)
+    cy.getByTestId(rs.operationsLifecycleNextActionButton).should('be.visible')
 
     const taskName = `Lifecycle Cypress verification ${Date.now()}`
     cy.getByTestId(rs.operationalReadinessCard).first().within(() => {
@@ -116,8 +116,8 @@ describe('Turnaround lifecycle soup-to-nuts Cypress architecture', () => {
     cy.getByTestId(rs.operationalMutationStatus).should('contain.text', 'Turnaround task created successfully')
     cy.getByTestId(rs.operationalReadinessCard).first().should('contain.text', taskName)
     cy.getByTestId(rs.operationsLifecycleBlockers).should('contain.text', 'Task blocker')
-    cy.getByTestId(rs.operationsPresentationRisks).should('contain.text', 'Task blocker')
-    cy.getByTestId(rs.operationsPresentationFreeze).should('contain.text', 'Freeze')
+    cy.getByTestId(rs.operationsLifecycleBlockerAction).first().click()
+    cy.getByTestId(rs.operationsWorkspaceActiveSummary).should('be.visible')
 
     selectDemoUserByVisibleRole('Engineering Lead', 'David Torres')
     cy.wait('@reactTurnaroundOperations')

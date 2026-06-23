@@ -72,6 +72,33 @@ describe('React passenger self-service coverage expansion', () => {
     cy.getByTestId(rs.roleBookingDetails).should('have.length', 1)
   })
 
+  it('saves pre-cruise checklist changes to the selected passenger profile', () => {
+    cy.intercept('PATCH', '/cruise/customers/react-customer-1/pre-cruise-checklist', req => {
+      expect(req.body).to.deep.equal({
+        documents: true,
+        luggage: true,
+        dining: false,
+        excursions: false
+      })
+      req.reply({
+        statusCode: 200,
+        body: {
+          message: 'Pre-cruise checklist updated successfully',
+          preCruiseChecklist: req.body
+        }
+      })
+    }).as('savePreCruiseChecklist')
+    cy.intercept('GET', '/cruise/customers', reactCustomers.map(customer => customer.id === 'react-customer-1'
+      ? { ...customer, preCruiseChecklist: { documents: true, luggage: true, dining: false, excursions: false } }
+      : customer)).as('reloadChecklistCustomers')
+
+    cy.getByTestId(rs.voyageChecklistDocuments).should('not.be.checked').check()
+    cy.wait('@savePreCruiseChecklist')
+    cy.getByTestId(rs.voyageChecklistDocuments).should('be.checked')
+    cy.getByTestId(rs.voyageChecklistLuggage).should('be.checked')
+    cy.getByTestId(rs.voyageChecklistMessage).should('contain.text', 'Pre-cruise checklist updated successfully')
+  })
+
   it('shows empty favorite itinerary activity state before selecting favorites', () => {
     cy.getByTestId(rs.roleBookingCard).first().within(() => {
       cy.getByTestId(rs.roleBookingDetailsToggle).click()

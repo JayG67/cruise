@@ -77,7 +77,10 @@ describe('Portfolio soup-to-nuts workflow journeys', () => {
       expect(req.body).to.deep.equal({
         name: 'Portfolio Demo Cruise Line',
         country: 'United States',
-        website: 'https://portfolio-demo.example.com'
+        website: 'https://portfolio-demo.example.com',
+        brandFamily: 'Portfolio Holdings',
+        brandTheme: 'Showcase Innovation',
+        marketPositioning: 'Employer demo operations cruise line'
       })
       req.reply({ statusCode: 201, body: { id: 'portfolio-demo-line', ...req.body } })
     }).as('portfolioCreateCruiseLine')
@@ -93,13 +96,19 @@ describe('Portfolio soup-to-nuts workflow journeys', () => {
       id: 'portfolio-demo-line',
       name: 'Portfolio Demo Cruise Line',
       country: 'United States',
-      website: 'https://portfolio-demo.example.com'
+      website: 'https://portfolio-demo.example.com',
+      brandFamily: 'Portfolio Holdings',
+      brandTheme: 'Showcase Innovation',
+      marketPositioning: 'Employer demo operations cruise line'
     }]).as('portfolioReloadCruiseLines')
 
     cy.getByTestId(rs.createCruiseLineName).type('Portfolio Demo Cruise Line')
     cy.getByTestId(rs.createCruiseLineCountry).type('United States')
     cy.getByTestId(rs.createCruiseLineWebsite).type('https://portfolio-demo.example.com')
-    cy.getByTestId(rs.createShipName).type('Portfolio Demo Ship')
+    cy.getByTestId(rs.createCruiseLineBrandFamily).type('Portfolio Holdings')
+    cy.getByTestId(rs.createCruiseLineBrandTheme).type('Showcase Innovation')
+    cy.getByTestId(rs.createCruiseLineMarketPositioning).type('Employer demo operations cruise line')
+    cy.getByTestId(rs.createShipName).should('not.be.disabled').type('Portfolio Demo Ship')
     cy.getByTestId(rs.createShipPort).type('Miami')
     cy.getByTestId(rs.saveCruiseLine).click()
     cy.wait('@portfolioCreateCruiseLine')
@@ -275,7 +284,7 @@ describe('Portfolio soup-to-nuts workflow journeys', () => {
     cy.wait('@reactTurnaroundOperations')
     cy.getByTestId(rs.turnaroundManagerDashboard).should('be.visible')
     cy.getByTestId(rs.operationsLifecycleState).should('be.visible')
-    cy.getByTestId(rs.operationsPresentationGuide).should('be.visible')
+    cy.getByTestId(rs.operationsPresentationGuide).should('not.exist')
 
     cy.getByTestId(rs.operationalReadinessCard).first().within(() => {
       cy.get('select[aria-label$="command status"]').select('IN_PROGRESS')
@@ -324,10 +333,9 @@ describe('Portfolio soup-to-nuts workflow journeys', () => {
     cy.getByTestId(rs.operationalMutationStatus).should('contain.text', 'Turnaround task status updated successfully')
 
     cy.getByTestId(rs.operationsLifecycleState).should('be.visible')
-    cy.getByTestId(rs.operationsPresentationStoryline)
-      .should('contain.text', 'Admin sets up operations')
-      .and('contain.text', 'Roles execute the turnaround')
-    cy.getByTestId(rs.operationsPresentationRisks).should('be.visible')
+    cy.getByTestId(rs.operationsLifecyclePhaseAction).should('have.length.greaterThan', 0)
+    cy.getByTestId(rs.operationsLifecycleBlockerAction).first().click()
+    cy.getByTestId(rs.operationsWorkspaceActiveSummary).should('be.visible')
   })
 
   it('finishes with quality, reset, and release-readiness evidence available from the same product surface', () => {

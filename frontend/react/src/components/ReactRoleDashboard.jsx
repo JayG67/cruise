@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import PassengerCruiseBookingWorkflow from './PassengerCruiseBookingWorkflow.jsx'
+import { getBookingDetails, getItineraryForSailing, updatePassengerPreCruiseChecklist } from '../api/client.js'
 
 import {
   buildTurnaroundOperationCards,
@@ -774,6 +775,10 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
   const portfolioWatchCount = portfolioOperationItems.filter(item => getOperationPortfolioTone(item.metrics) === 'watch').length
   const portfolioOpenEscalations = portfolioOperationItems.reduce((sum, item) => sum + Number(item.metrics.openEscalations || 0), 0)
 
+  useEffect(() => {
+    setActiveOperationsWorkspace('overview')
+  }, [roleView, selectedDemoUser?.id])
+
 
   useEffect(() => {
     if (operationalDirectory.length === 0) {
@@ -1097,6 +1102,34 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
   }
 
 
+
+  function focusOperationsWorkspace(workspaceId) {
+    setActiveOperationsWorkspace(workspaceId)
+    window.requestAnimationFrame(() => {
+      document.getElementById('operations-workspace-heading')?.scrollIntoView({ block: 'start' })
+    })
+  }
+
+  function getLifecycleTargetWorkspace(item = {}) {
+    const typeText = String(item.type || item.label || item.detail || item.departmentRole || '').toLowerCase()
+    if (typeText.includes('staff')) return 'staffing'
+    if (typeText.includes('dependency')) return 'dependencies'
+    if (typeText.includes('handoff')) return 'handoffs'
+    if (typeText.includes('escalation')) return 'escalations'
+    if (typeText.includes('signoff') || typeText.includes('department')) return 'readiness'
+    return 'tasks'
+  }
+
+  function getPhaseTargetWorkspace(phase = {}) {
+    const blockerText = [...(phase.blockers || []), phase.description, phase.label].filter(Boolean).join(' ').toLowerCase()
+    if (blockerText.includes('staff')) return 'staffing'
+    if (blockerText.includes('depend')) return 'dependencies'
+    if (blockerText.includes('handoff')) return 'handoffs'
+    if (blockerText.includes('escalation')) return 'escalations'
+    if (blockerText.includes('signoff') || blockerText.includes('readiness')) return 'readiness'
+    return 'tasks'
+  }
+
   function getTaskCreateDraft(operationCard) {
     return taskCreateDrafts[operationCard.id] || {
       departmentRole: roleView,
@@ -1383,7 +1416,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                 type="button"
                 key={item.id}
                 className={`operations-release-card ${item.tone}`}
-                onClick={() => setActiveOperationsWorkspace(item.id)}
+                onClick={() => focusOperationsWorkspace(item.id)}
                 data-testid="react-operations-release-card"
               >
                 <span>{item.label}</span>
@@ -1396,57 +1429,10 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
       )}
 
 
-      {selectedOperation?.presentationGuide && (
-        <section className={`operations-presentation-guide ${String(selectedOperation.presentationGuide.status || '').toLowerCase()}`} aria-labelledby="operations-presentation-guide-heading" data-testid="react-operations-presentation-guide">
-          <div className="operations-presentation-guide-header">
-            <div>
-              <p className="eyebrow">Five-minute demo guide</p>
-              <h4 id="operations-presentation-guide-heading">{selectedOperation.presentationGuide.headline}</h4>
-              <p>{selectedOperation.presentationGuide.positioning}</p>
-            </div>
-            <div className="operations-presentation-score" aria-label={`Presentation readiness ${selectedOperation.presentationGuide.averageScore || 0}%`}>
-              <span>{selectedOperation.presentationGuide.averageScore || 0}%</span>
-              <small>{String(selectedOperation.presentationGuide.status || 'PRESENTATION_HARDENING').replace(/_/g, ' ')}</small>
-            </div>
-          </div>
-          <div className="operations-presentation-storyline" data-testid="react-operations-presentation-storyline">
-            {(selectedOperation.presentationGuide.storyline || []).slice(0, 5).map(step => (
-              <article className={`operations-presentation-step ${String(step.status || '').toLowerCase()}`} key={step.id}>
-                <span>{step.duration}</span>
-                <strong>{step.label}</strong>
-                <p>{step.detail}</p>
-              </article>
-            ))}
-          </div>
-          <div className="operations-presentation-focus-grid">
-            <div data-testid="react-operations-presentation-focus">
-              <strong>Presenter focus</strong>
-              <p>{selectedOperation.presentationGuide.focus?.priority}</p>
-              <ul>
-                {(selectedOperation.presentationGuide.focus?.talkingPoints || []).slice(0, 6).map(point => (
-                  <li key={point}>{point}</li>
-                ))}
-              </ul>
-            </div>
-            <div data-testid="react-operations-presentation-risks">
-              <strong>Demo risks and mitigations</strong>
-              <ul>
-                {(selectedOperation.presentationGuide.risks || []).slice(0, 4).map(risk => (
-                  <li key={risk.id}><span>{risk.label}</span> {risk.mitigation}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          <div className="operations-presentation-freeze" data-testid="react-operations-presentation-freeze">
-            <strong>Freeze recommendation</strong>
-            <p>{selectedOperation.presentationGuide.freezeRecommendation}</p>
-          </div>
-        </section>
-      )}
 
       {selectedOperation?.lifecycleState && (
         <section className={`operations-lifecycle ${String(selectedOperation.lifecycleState.status || '').toLowerCase()}`} aria-labelledby="operations-lifecycle-heading" data-testid="react-operations-lifecycle-state">
-          <div className="operations-lifecycle-header">
+          <div className="operations-lifecycle-header" data-testid="react-operations-lifecycle-header">
             <div>
               <p className="eyebrow">Turnaround lifecycle</p>
               <h4 id="operations-lifecycle-heading">{selectedOperation.lifecycleState.currentPhaseLabel} command path</h4>
@@ -1463,23 +1449,45 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
             ))}
           </div>
           <div className="operations-lifecycle-phase-grid" data-testid="react-operations-lifecycle-phases">
-            {(selectedOperation.lifecycleState.phases || []).map(phase => (
-              <article className={`operations-lifecycle-phase ${String(phase.status || '').toLowerCase()}`} key={phase.id}>
-                <span>{phase.sequence}. {phase.label}</span>
-                <strong>{phase.percentComplete}%</strong>
-                <p>{phase.description}</p>
-                {phase.blockers?.length > 0 && <em>{phase.blockers.join(' · ')}</em>}
-              </article>
-            ))}
+            {(selectedOperation.lifecycleState.phases || []).map(phase => {
+              const targetWorkspace = getPhaseTargetWorkspace(phase)
+              return (
+                <button
+                  type="button"
+                  className={`operations-lifecycle-phase ${String(phase.status || '').toLowerCase()}`}
+                  key={phase.id}
+                  onClick={() => focusOperationsWorkspace(targetWorkspace)}
+                  data-testid="react-operations-lifecycle-phase-action"
+                  aria-label={`Open ${targetWorkspace} workspace for ${phase.label}`}
+                >
+                  <span>{phase.sequence}. {phase.label}</span>
+                  <strong>{phase.percentComplete}%</strong>
+                  <p>{phase.description}</p>
+                  {phase.blockers?.length > 0 && <em>{phase.blockers.join(' · ')}</em>}
+                </button>
+              )
+            })}
           </div>
           <div className="operations-lifecycle-details">
             <div data-testid="react-operations-lifecycle-blockers">
               <strong>Completion blockers</strong>
               {selectedOperation.lifecycleState.finalBlockers?.length > 0 ? (
                 <ul>
-                  {selectedOperation.lifecycleState.finalBlockers.slice(0, 6).map(blocker => (
-                    <li key={blocker.id}><span>{blocker.type}</span> {blocker.label}: {blocker.detail}</li>
-                  ))}
+                  {selectedOperation.lifecycleState.finalBlockers.slice(0, 6).map(blocker => {
+                    const targetWorkspace = getLifecycleTargetWorkspace(blocker)
+                    return (
+                      <li key={blocker.id}>
+                        <button
+                          type="button"
+                          className="operations-lifecycle-detail-action"
+                          onClick={() => focusOperationsWorkspace(targetWorkspace)}
+                          data-testid="react-operations-lifecycle-blocker-action"
+                        >
+                          <span>{blocker.type}</span> {blocker.label}: {blocker.detail}
+                        </button>
+                      </li>
+                    )
+                  })}
                 </ul>
               ) : (
                 <p>No lifecycle blockers remain.</p>
@@ -1488,17 +1496,40 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
             <div data-testid="react-operations-lifecycle-departments">
               <strong>Department readiness</strong>
               <ul>
-                {(selectedOperation.lifecycleState.departmentReadiness || []).slice(0, 6).map(department => (
-                  <li key={department.departmentRole}>
-                    <span>{department.ready ? 'Ready' : 'Open'}</span> {department.departmentRole}: {department.taskCompletionPercent}% tasks · {department.openEscalations} escalations · {department.openDependencies} dependencies
-                  </li>
-                ))}
+                {(selectedOperation.lifecycleState.departmentReadiness || []).slice(0, 6).map(department => {
+                  const targetWorkspace = department.openEscalations > 0
+                    ? 'escalations'
+                    : department.openDependencies > 0
+                      ? 'dependencies'
+                      : department.ready
+                        ? 'readiness'
+                        : 'tasks'
+                  return (
+                    <li key={department.departmentRole}>
+                      <button
+                        type="button"
+                        className="operations-lifecycle-detail-action"
+                        onClick={() => focusOperationsWorkspace(targetWorkspace)}
+                        data-testid="react-operations-lifecycle-department-action"
+                      >
+                        <span>{department.ready ? 'Ready' : 'Open'}</span> {department.departmentRole}: {department.taskCompletionPercent}% tasks · {department.openEscalations} escalations · {department.openDependencies} dependencies
+                      </button>
+                    </li>
+                  )
+                })}
               </ul>
             </div>
           </div>
           <div className="operations-lifecycle-next-action" data-testid="react-operations-lifecycle-next-action">
             <strong>Next best action</strong>
-            <p>{selectedOperation.lifecycleState.nextBestAction}</p>
+            <button
+              type="button"
+              className="operations-lifecycle-next-action-button"
+              onClick={() => focusOperationsWorkspace(getLifecycleTargetWorkspace({ detail: selectedOperation.lifecycleState.nextBestAction }))}
+              data-testid="react-operations-lifecycle-next-action-button"
+            >
+              {selectedOperation.lifecycleState.nextBestAction}
+            </button>
           </div>
         </section>
       )}
@@ -1709,56 +1740,6 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
       )}
 
 
-      {selectedOperation?.reviewerPacket && (
-        <section className="operations-reviewer-packet" aria-labelledby="operations-reviewer-packet-heading" data-testid="react-operations-reviewer-packet">
-          <div className="operations-reviewer-packet-header">
-            <div>
-              <p className="eyebrow">Cruise-line reviewer packet</p>
-              <h4 id="operations-reviewer-packet-heading">Presentation-ready operational evidence packet</h4>
-              <p>{selectedOperation.reviewerPacket.narrative?.reviewerPositioning}</p>
-            </div>
-            <div className="operations-reviewer-packet-score" aria-label={`Reviewer readiness score ${selectedOperation.reviewerPacket.readiness?.readinessScore || 0}%`}>
-              <span>{selectedOperation.reviewerPacket.readiness?.readinessScore || 0}%</span>
-              <small>{String(selectedOperation.reviewerPacket.readiness?.readinessStatus || 'REVIEW_WITH_WATCH_ITEMS').replace(/_/g, ' ')}</small>
-            </div>
-          </div>
-          <div className="operations-reviewer-packet-narrative" data-testid="react-operations-reviewer-packet-narrative">
-            <strong>{selectedOperation.reviewerPacket.narrative?.summary}</strong>
-            <p>{selectedOperation.reviewerPacket.narrative?.topAction}</p>
-          </div>
-          <div className="operations-reviewer-packet-grid" data-testid="react-operations-reviewer-packet-proof-points">
-            {(selectedOperation.reviewerPacket.proofPoints || []).slice(0, 6).map(point => (
-              <article className="operations-reviewer-packet-card" key={point.id}>
-                <span>{point.status}</span>
-                <strong>{point.label}</strong>
-                <p>{point.detail}</p>
-              </article>
-            ))}
-          </div>
-          <div className="operations-reviewer-packet-details">
-            <div data-testid="react-operations-reviewer-packet-quality">
-              <strong>Data quality snapshot</strong>
-              <dl>
-                <div><dt>Tasks</dt><dd>{selectedOperation.reviewerPacket.dataQuality?.taskCount || 0}</dd></div>
-                <div><dt>Blockers</dt><dd>{selectedOperation.reviewerPacket.dataQuality?.blockerCount || 0}</dd></div>
-                <div><dt>Open escalations</dt><dd>{selectedOperation.reviewerPacket.dataQuality?.openEscalations || 0}</dd></div>
-                <div><dt>Staffing gaps</dt><dd>{selectedOperation.reviewerPacket.dataQuality?.staffingGaps || 0}</dd></div>
-                <div><dt>Audit events</dt><dd>{selectedOperation.reviewerPacket.dataQuality?.auditEventCount || 0}</dd></div>
-              </dl>
-            </div>
-            <div data-testid="react-operations-reviewer-packet-next-steps">
-              <strong>Reviewer next steps</strong>
-              <ul>
-                {(selectedOperation.reviewerPacket.nextSteps || []).slice(0, 6).map(step => (
-                  <li key={step}>{step}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </section>
-      )}
-
-
       {selectedOperation?.outreachBoard && (
         <section className="operations-outreach-board" aria-labelledby="operations-outreach-board-heading" data-testid="react-operations-outreach-board">
           <div className="operations-outreach-board-header">
@@ -1811,111 +1792,6 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                 <li key={action}>{action}</li>
               ))}
             </ol>
-          </div>
-        </section>
-      )}
-
-
-      {selectedOperation?.managementStatus && (
-        <section className="operations-management-status" aria-labelledby="operations-management-status-heading" data-testid="react-operations-management-status">
-          <div className="operations-management-status-header">
-            <div>
-              <p className="eyebrow">Turnaround management status</p>
-              <h4 id="operations-management-status-heading">Production-demo completion map</h4>
-              <p>{selectedOperation.managementStatus.continuationSummary?.currentState}</p>
-            </div>
-            <div className={`operations-management-status-score ${String(selectedOperation.managementStatus.maturityStatus || '').toLowerCase()}`} aria-label={`Turnaround management completion ${selectedOperation.managementStatus.maturityScore || 0}%`}>
-              <span>{selectedOperation.managementStatus.maturityScore || 0}%</span>
-              <small>{String(selectedOperation.managementStatus.maturityStatus || 'HARDENING_IN_PROGRESS').replace(/_/g, ' ')}</small>
-            </div>
-          </div>
-          <div className="operations-management-status-summary" data-testid="react-operations-management-status-summary">
-            <strong>{selectedOperation.managementStatus.continuationSummary?.headline}</strong>
-            <p>{selectedOperation.managementStatus.continuationSummary?.recommendedNext}</p>
-          </div>
-          <div className="operations-management-status-grid" data-testid="react-operations-management-capabilities">
-            {(selectedOperation.managementStatus.capabilities || []).slice(0, 7).map(capability => (
-              <article className={`operations-management-status-card ${String(capability.status || '').toLowerCase()}`} key={capability.id}>
-                <span>{capability.score}% · {String(capability.status || 'REVIEW').replace(/_/g, ' ')}</span>
-                <strong>{capability.label}</strong>
-                <p>{capability.detail}</p>
-              </article>
-            ))}
-          </div>
-          <div className="operations-management-status-details">
-            <div data-testid="react-operations-management-remaining-work">
-              <strong>Remaining work</strong>
-              <ul>
-                {(selectedOperation.managementStatus.remainingWork || []).slice(0, 6).map(item => (
-                  <li key={item.id}><span>{item.priority}</span> {item.label}: {item.detail}</li>
-                ))}
-              </ul>
-            </div>
-            <div data-testid="react-operations-management-next-slices">
-              <strong>Recommended next slices</strong>
-              <ol>
-                {(selectedOperation.managementStatus.nextSlices || []).slice(0, 5).map(slice => (
-                  <li key={slice}>{slice}</li>
-                ))}
-              </ol>
-            </div>
-          </div>
-        </section>
-      )}
-
-
-      {selectedOperation?.launchPlan && (
-        <section className="operations-launch-plan" aria-labelledby="operations-launch-plan-heading" data-testid="react-operations-launch-plan">
-          <div className="operations-launch-plan-header">
-            <div>
-              <p className="eyebrow">Turnaround launch plan</p>
-              <h4 id="operations-launch-plan-heading">Reviewer demo certification gates</h4>
-              <p>{selectedOperation.launchPlan.summary}</p>
-            </div>
-            <div className={`operations-launch-plan-score ${String(selectedOperation.launchPlan.launchStatus || '').toLowerCase()}`} aria-label={`Launch readiness score ${selectedOperation.launchPlan.launchScore || 0}%`}>
-              <span>{selectedOperation.launchPlan.launchScore || 0}%</span>
-              <small>{String(selectedOperation.launchPlan.launchStatus || 'READY_WITH_WATCH_ITEMS').replace(/_/g, ' ')}</small>
-            </div>
-          </div>
-          <div className="operations-launch-plan-summary" data-testid="react-operations-launch-plan-summary">
-            <strong>{selectedOperation.launchPlan.headline}</strong>
-            <p>{selectedOperation.launchPlan.nextAction}</p>
-          </div>
-          <div className="operations-launch-plan-grid" data-testid="react-operations-launch-gates">
-            {(selectedOperation.launchPlan.certificationGates || []).slice(0, 6).map(gate => (
-              <article className={`operations-launch-plan-card ${String(gate.status || '').toLowerCase()}`} key={gate.id}>
-                <span>{gate.score}% · {String(gate.status || 'REVIEW').replace(/_/g, ' ')}</span>
-                <strong>{gate.label}</strong>
-                <p>{gate.detail}</p>
-              </article>
-            ))}
-          </div>
-          <div className="operations-launch-plan-details">
-            <div data-testid="react-operations-launch-runbook">
-              <strong>Role-by-role demo runbook</strong>
-              <ol>
-                {(selectedOperation.launchPlan.demoRunbook || []).slice(0, 8).map(step => (
-                  <li key={step.id}><span>{step.role}</span> {step.label}: {step.detail}</li>
-                ))}
-              </ol>
-            </div>
-            <div data-testid="react-operations-launch-risks">
-              <strong>Launch risks and mitigations</strong>
-              <ul>
-                {(selectedOperation.launchPlan.launchRisks || []).slice(0, 6).map(risk => (
-                  <li key={risk.id}><span>{risk.severity}</span> {risk.label}: {risk.mitigation}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          <div className="operations-launch-plan-quality" data-testid="react-operations-launch-quality-gates">
-            {(selectedOperation.launchPlan.qualityGates || []).slice(0, 4).map(gate => (
-              <article key={gate.id}>
-                <span>{gate.status}</span>
-                <strong>{gate.label}</strong>
-                <p>{gate.detail}</p>
-              </article>
-            ))}
           </div>
         </section>
       )}
@@ -2685,7 +2561,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
               key={tab.id}
               className={`operations-workspace-nav-button${activeOperationsWorkspace === tab.id ? ' active' : ''}`}
               aria-pressed={activeOperationsWorkspace === tab.id}
-              onClick={() => setActiveOperationsWorkspace(tab.id)}
+              onClick={() => focusOperationsWorkspace(tab.id)}
               data-testid={`react-operations-workspace-${tab.id}-button`}
             >
               {tab.label}
@@ -2716,7 +2592,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                 type="button"
                 key={card.id}
                 className={`operations-role-brief-card ${card.priority}`}
-                onClick={() => setActiveOperationsWorkspace(card.id)}
+                onClick={() => focusOperationsWorkspace(card.id)}
                 data-testid="react-operations-role-brief-card"
               >
                 <span>{card.label}</span>
@@ -2808,6 +2684,130 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
               </div>
             </article>
           </div>
+        </section>
+      )}
+
+
+      {selectedOperation && (
+        <section className="operational-readiness-list operational-command-compatibility-panel" aria-label="Selected turnaround command workspace">
+          {[selectedOperation].map(item => (
+            <article className="operational-readiness-card" key={`command-${item.id}`} data-testid="react-operational-command-overview-card">
+              <div>
+                <p className="eyebrow">{item.status}</p>
+                <h4>{item.title}</h4>
+                <p>{item.shipName} · {item.route}</p>
+                {item.notes && <p>{item.notes}</p>}
+              </div>
+              <dl className="role-booking-fields compact-fields">
+                <div>
+                  <dt>Sailing date</dt>
+                  <dd>{item.sailingDate}</dd>
+                </div>
+                <div>
+                  <dt>Turnaround port</dt>
+                  <dd>{item.port || item.arrivalPort}</dd>
+                </div>
+                <div>
+                  <dt>Passenger load</dt>
+                  <dd>{item.passengerCount} passenger{item.passengerCount === 1 ? '' : 's'}</dd>
+                </div>
+                <div>
+                  <dt>Readiness level</dt>
+                  <dd>{item.readinessLevel}</dd>
+                </div>
+                <div>
+                  <dt>Command status</dt>
+                  <dd>{item.commandStatus || item.status}</dd>
+                </div>
+                <div>
+                  <dt>Command readiness</dt>
+                  <dd>{item.commandReadinessLevel || item.readinessLevel}</dd>
+                </div>
+              </dl>
+
+              {onUpdateOperationCommand && roleView === 'turnaround-manager' && (
+                <form className="operational-command-form" onSubmit={event => { event.preventDefault(); saveOperationCommand(item) }} data-testid="react-operational-command-form">
+                  <label>
+                    <span>Command status</span>
+                    <select value={getOperationCommandDraft(item).status} onChange={event => updateOperationCommandDraft(item, 'status', event.target.value)} aria-label={`${item.title} command status`}>
+                      <option value="PLANNED">Planned</option>
+                      <option value="IN_PROGRESS">In progress</option>
+                      <option value="READY">Ready</option>
+                      <option value="BLOCKED">Blocked</option>
+                      <option value="COMPLETE">Complete</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>Command readiness</span>
+                    <select value={getOperationCommandDraft(item).readinessLevel} onChange={event => updateOperationCommandDraft(item, 'readinessLevel', event.target.value)} aria-label={`${item.title} command readiness`}>
+                      {COMMAND_READINESS_OPTIONS.map(option => (
+                        <option value={option} key={option}>{option}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>Turnaround port</span>
+                    <input value={getOperationCommandDraft(item).port} onChange={event => updateOperationCommandDraft(item, 'port', event.target.value)} aria-label={`${item.title} turnaround port`} />
+                  </label>
+                  <label className="full-width-field">
+                    <span>Command notes</span>
+                    <textarea value={getOperationCommandDraft(item).notes} onChange={event => updateOperationCommandDraft(item, 'notes', event.target.value)} aria-label={`${item.title} command notes`} rows="3" />
+                  </label>
+                  <button type="submit" className="secondary-action-button compact-button" disabled={updatingOperationId === item.id || !getOperationCommandDraft(item).readinessLevel.trim() || !getOperationCommandDraft(item).port.trim()}>Save command plan</button>
+                </form>
+              )}
+
+              {onCreateTask && (
+                <form className="operational-task-create-form" onSubmit={event => { event.preventDefault(); saveTaskCreate(item) }} data-testid="react-operational-task-create-form">
+                  <label>
+                    <span>New task department</span>
+                    <select value={getTaskCreateDraft(item).departmentRole} onChange={event => updateTaskCreateDraft(item, 'departmentRole', event.target.value)} aria-label={`${item.title} new task department`}>
+                      <option value="turnaround-manager">Turnaround Manager</option>
+                      <option value="housekeeping-lead">Housekeeping Lead</option>
+                      <option value="guest-services-lead">Guest Services Lead</option>
+                      <option value="food-beverage-lead">Food &amp; Beverage Lead</option>
+                      <option value="engineering-lead">Engineering Lead</option>
+                      <option value="security-lead">Security Lead</option>
+                      <option value="port-operations-lead">Port Operations Lead</option>
+                    </select>
+                  </label>
+                  <label className="full-width-field">
+                    <span>New task name</span>
+                    <input value={getTaskCreateDraft(item).taskName} onChange={event => updateTaskCreateDraft(item, 'taskName', event.target.value)} aria-label={`${item.title} new task name`} />
+                  </label>
+                  <label>
+                    <span>Owner</span>
+                    <input value={getTaskCreateDraft(item).ownerName} onChange={event => updateTaskCreateDraft(item, 'ownerName', event.target.value)} aria-label={`${item.title} new task owner`} />
+                  </label>
+                  <label>
+                    <span>Due time</span>
+                    <input value={getTaskCreateDraft(item).dueTime} onChange={event => updateTaskCreateDraft(item, 'dueTime', event.target.value)} aria-label={`${item.title} new task due time`} />
+                  </label>
+                  <label>
+                    <span>Location</span>
+                    <input value={getTaskCreateDraft(item).location} onChange={event => updateTaskCreateDraft(item, 'location', event.target.value)} aria-label={`${item.title} new task location`} />
+                  </label>
+                  <label className="full-width-field">
+                    <span>Blocker reason</span>
+                    <input value={getTaskCreateDraft(item).blockerReason} onChange={event => updateTaskCreateDraft(item, 'blockerReason', event.target.value)} aria-label={`${item.title} new task blocker reason`} />
+                  </label>
+                  <button type="submit" className="secondary-action-button compact-button" disabled={creatingTaskId === item.id || !getTaskCreateDraft(item).taskName.trim()}>Add turnaround task</button>
+                </form>
+              )}
+
+              {item.tasks.length > 0 && (
+                <ul className="operational-checklist" data-testid="react-operational-role-checklist-summary">
+                  {item.tasks.map(task => (
+                    <li key={task.id || `${item.id}-${task.taskName}`}>
+                      <div><strong>{task.status}</strong> — {task.taskName}</div>
+                      {task.ownerName && <p>{task.ownerDisplayName || task.ownerName}</p>}
+                      {task.blockerReason && <p>Blocked: {task.blockerReason}</p>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </article>
+          ))}
         </section>
       )}
 
@@ -3530,7 +3530,19 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                 <span>Owner</span>
                 <input value={getTaskCreateDraft(selectedOperation).ownerName} onChange={event => updateTaskCreateDraft(selectedOperation, 'ownerName', event.target.value)} aria-label={`${selectedOperation.title} new task owner`} />
               </label>
-              <button type="submit" className="secondary-action-button compact-button" disabled={creatingTaskId === selectedOperation.id || !getTaskCreateDraft(selectedOperation).taskName.trim()}>Add task</button>
+              <label>
+                <span>Due time</span>
+                <input value={getTaskCreateDraft(selectedOperation).dueTime} onChange={event => updateTaskCreateDraft(selectedOperation, 'dueTime', event.target.value)} aria-label={`${selectedOperation.title} new task due time`} />
+              </label>
+              <label>
+                <span>Location</span>
+                <input value={getTaskCreateDraft(selectedOperation).location} onChange={event => updateTaskCreateDraft(selectedOperation, 'location', event.target.value)} aria-label={`${selectedOperation.title} new task location`} />
+              </label>
+              <label className="full-width-field">
+                <span>Blocker reason</span>
+                <input value={getTaskCreateDraft(selectedOperation).blockerReason} onChange={event => updateTaskCreateDraft(selectedOperation, 'blockerReason', event.target.value)} aria-label={`${selectedOperation.title} new task blocker reason`} />
+              </label>
+              <button type="submit" className="secondary-action-button compact-button" disabled={creatingTaskId === selectedOperation.id || !getTaskCreateDraft(selectedOperation).taskName.trim()}>Add turnaround task</button>
             </form>
           )}
 
@@ -3562,100 +3574,46 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                           <span>{task.ownerDisplayName || task.ownerName || 'Unassigned'} · {task.dueTime || 'Timing pending'}</span>
                           {task.blockerReason && <small>Blocked: {task.blockerReason}</small>}
                         </button>
+                        {isSelected && (
+                          <article className="operations-task-detail-panel inline-task-detail-panel" aria-label={`Task details for ${task.taskName}`} data-testid="react-operations-task-detail-panel">
+                            <div className="operations-task-detail-header"><p className="eyebrow">Selected task</p><h5>{task.taskName}</h5><span className="operations-task-status-pill">{task.status}</span></div>
+                            <dl className="operational-task-detail-list" data-testid="react-operational-task-details">
+                              <div><dt>Owner</dt><dd>{task.ownerDisplayName || task.ownerName || 'Unassigned'}</dd></div>
+                              <div><dt>Due</dt><dd>{task.dueTime || 'Timing pending'}</dd></div>
+                              <div><dt>Location</dt><dd>{task.location || 'Location pending'}</dd></div>
+                            </dl>
+                            {task.blockerReason && <p className="operational-blocker-note" data-testid="react-operational-blocker-note">Blocked: {task.blockerReason}</p>}
+                            {task.updates?.length > 0 && (
+                              <div className="operational-task-updates" data-testid="react-operational-task-updates">
+                                <strong>Shift updates</strong>
+                                <ul>{task.updates.slice(0, 3).map(update => <li key={update.id}><span>{getOperationalAuthorDisplay(update)}</span><span>{update.message}</span></li>)}</ul>
+                              </div>
+                            )}
+                            {onCreateTaskUpdate && task.id && (
+                              <form className="operational-task-update-form" onSubmit={event => { event.preventDefault(); saveTaskUpdate(task) }} data-testid="react-operational-task-update-form">
+                                <label className="full-width-field"><span>Shift update</span><input value={getTaskUpdateDraft(task)} onChange={event => updateTaskUpdateDraft(task, event.target.value)} aria-label={`${task.taskName} shift update`} /></label>
+                                <button type="submit" className="secondary-action-button compact-button" disabled={creatingTaskUpdateId === task.id || !getTaskUpdateDraft(task).trim()}>Add shift update</button>
+                              </form>
+                            )}
+                            {onUpdateTaskDetails && task.id && (
+                              <form className="operational-task-detail-form operations-task-detail-edit-form" onSubmit={event => { event.preventDefault(); saveTaskDetails(task) }} data-testid="react-operational-task-detail-form">
+                                <label><span>Owner</span><input value={getTaskDetailDraft(task).ownerName} onChange={event => updateTaskDetailDraft(task, 'ownerName', event.target.value)} aria-label={`${task.taskName} owner`} /></label>
+                                <label><span>Due time</span><input value={getTaskDetailDraft(task).dueTime} onChange={event => updateTaskDetailDraft(task, 'dueTime', event.target.value)} aria-label={`${task.taskName} due time`} /></label>
+                                <label><span>Location</span><input value={getTaskDetailDraft(task).location} onChange={event => updateTaskDetailDraft(task, 'location', event.target.value)} aria-label={`${task.taskName} location`} /></label>
+                                <label className="full-width-field"><span>Blocker reason</span><textarea value={getTaskDetailDraft(task).blockerReason} onChange={event => updateTaskDetailDraft(task, 'blockerReason', event.target.value)} aria-label={`${task.taskName} blocker reason`} rows="4" /></label>
+                                <button type="submit" className="secondary-action-button compact-button" disabled={updatingTaskDetailsId === task.id}>Save task details</button>
+                              </form>
+                            )}
+                            {onUpdateTaskStatus && task.id && <div className="operational-task-actions" aria-label={`Update ${task.taskName} status`}><button type="button" className="secondary-action-button compact-button" disabled={updatingTaskId === task.id || task.status === 'IN_PROGRESS'} onClick={() => updateStatus(task, 'IN_PROGRESS')}>Start</button><button type="button" className="secondary-action-button compact-button" disabled={updatingTaskId === task.id || task.status === 'BLOCKED'} onClick={() => updateStatus(task, 'BLOCKED')}>Block</button><button type="button" className="secondary-action-button compact-button" disabled={updatingTaskId === task.id || task.status === 'COMPLETE'} onClick={() => updateStatus(task, 'COMPLETE')}>Complete</button></div>}
+                            {onDeleteTask && task.id && <button type="button" className="danger-outline-button compact-button" disabled={deletingTaskId === task.id} onClick={() => removeTask(task)} data-testid="react-operational-task-remove-button">{deletingTaskId === task.id ? 'Removing task...' : 'Remove task'}</button>}
+                          </article>
+                        )}
                       </li>
                     )
                   })}
                 </ul>
               </div>
 
-              {selectedTask && (
-                <article className="operations-task-detail-panel" aria-label={`Task details for ${selectedTask.taskName}`} data-testid="react-operations-task-detail-panel">
-                  <div className="operations-task-detail-header">
-                    <div>
-                      <p className="eyebrow">Task Details</p>
-                      <h5>{selectedTask.taskName}</h5>
-                    </div>
-                    <span className={`operations-task-status-pill ${String(selectedTask.status).toLowerCase()}`}>{selectedTask.status}</span>
-                  </div>
-
-                  <dl className="operational-task-detail-list" data-testid="react-operational-task-details">
-                    <div>
-                      <dt>Owner</dt>
-                      <dd>{selectedTask.ownerDisplayName || selectedTask.ownerName || 'Unassigned'}</dd>
-                    </div>
-                    <div>
-                      <dt>Due</dt>
-                      <dd>{selectedTask.dueTime || 'Timing pending'}</dd>
-                    </div>
-                    <div>
-                      <dt>Location</dt>
-                      <dd>{selectedTask.location || 'Location pending'}</dd>
-                    </div>
-                  </dl>
-                  {selectedTask.blockerReason && <p className="operational-blocker-note" data-testid="react-operational-blocker-note">Blocked: {selectedTask.blockerReason}</p>}
-
-                  {selectedTask.updates?.length > 0 && (
-                    <div className="operational-task-updates" data-testid="react-operational-task-updates">
-                      <strong>Shift updates</strong>
-                      <ul>
-                        {selectedTask.updates.slice(0, 3).map(update => (
-                          <li key={update.id}>
-                            <span>{getOperationalAuthorDisplay(update)}</span>
-                            <span>{update.updateType || 'NOTE'}</span>
-                            <span>{update.message}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {onCreateTaskUpdate && selectedTask.id && (
-                    <form className="operational-task-update-form" onSubmit={event => { event.preventDefault(); saveTaskUpdate(selectedTask) }} data-testid="react-operational-task-update-form">
-                      <label className="full-width-field">
-                        <span>Shift update</span>
-                        <textarea value={getTaskUpdateDraft(selectedTask)} onChange={event => updateTaskUpdateDraft(selectedTask, event.target.value)} aria-label={`${selectedTask.taskName} shift update`} rows="3" />
-                      </label>
-                      <button type="submit" className="secondary-action-button compact-button" disabled={creatingTaskUpdateId === selectedTask.id || !getTaskUpdateDraft(selectedTask).trim()}>Add shift update</button>
-                    </form>
-                  )}
-
-                  {onUpdateTaskDetails && selectedTask.id && (
-                    <form className="operational-task-detail-form operations-task-detail-edit-form" onSubmit={event => { event.preventDefault(); saveTaskDetails(selectedTask) }} data-testid="react-operational-task-detail-form">
-                      <label>
-                        <span>Owner</span>
-                        <input value={getTaskDetailDraft(selectedTask).ownerName} onChange={event => updateTaskDetailDraft(selectedTask, 'ownerName', event.target.value)} aria-label={`${selectedTask.taskName} owner`} />
-                      </label>
-                      <label>
-                        <span>Due time</span>
-                        <input value={getTaskDetailDraft(selectedTask).dueTime} onChange={event => updateTaskDetailDraft(selectedTask, 'dueTime', event.target.value)} aria-label={`${selectedTask.taskName} due time`} />
-                      </label>
-                      <label>
-                        <span>Location</span>
-                        <input value={getTaskDetailDraft(selectedTask).location} onChange={event => updateTaskDetailDraft(selectedTask, 'location', event.target.value)} aria-label={`${selectedTask.taskName} location`} />
-                      </label>
-                      <label className="full-width-field">
-                        <span>Blocker reason</span>
-                        <textarea value={getTaskDetailDraft(selectedTask).blockerReason} onChange={event => updateTaskDetailDraft(selectedTask, 'blockerReason', event.target.value)} aria-label={`${selectedTask.taskName} blocker reason`} rows="3" />
-                      </label>
-                      <button type="submit" className="secondary-action-button compact-button" disabled={updatingTaskDetailsId === selectedTask.id}>Save task details</button>
-                    </form>
-                  )}
-
-                  {onUpdateTaskStatus && selectedTask.id && (
-                    <div className="operational-task-actions" aria-label={`Update ${selectedTask.taskName} status`}>
-                      <button type="button" className="secondary-action-button compact-button" disabled={updatingTaskId === selectedTask.id || selectedTask.status === 'IN_PROGRESS'} onClick={() => updateStatus(selectedTask, 'IN_PROGRESS')}>Start</button>
-                      <button type="button" className="secondary-action-button compact-button" disabled={updatingTaskId === selectedTask.id || selectedTask.status === 'BLOCKED'} onClick={() => updateStatus(selectedTask, 'BLOCKED')}>Block</button>
-                      <button type="button" className="secondary-action-button compact-button" disabled={updatingTaskId === selectedTask.id || selectedTask.status === 'COMPLETE'} onClick={() => updateStatus(selectedTask, 'COMPLETE')}>Complete</button>
-                    </div>
-                  )}
-
-                  {onDeleteTask && selectedTask.id && (
-                    <button type="button" className="danger-outline-button compact-button" disabled={deletingTaskId === selectedTask.id} onClick={() => removeTask(selectedTask)} data-testid="react-operational-task-remove-button">
-                      {deletingTaskId === selectedTask.id ? 'Removing task...' : 'Remove task'}
-                    </button>
-                  )}
-                </article>
-              )}
             </div>
           )}
         </section>
@@ -4124,7 +4082,25 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
   )
 }
 
-function PassengerVoyagePlanner({ visibleBookings = [], favoriteItineraryActivitiesByBooking = {} }) {
+function getDefaultPreCruiseChecklist() {
+  return {
+    documents: false,
+    luggage: false,
+    dining: false,
+    excursions: false
+  }
+}
+
+function normalizePreCruiseChecklist(checklist = {}) {
+  return {
+    documents: Boolean(checklist.documents),
+    luggage: Boolean(checklist.luggage),
+    dining: Boolean(checklist.dining),
+    excursions: Boolean(checklist.excursions)
+  }
+}
+
+function PassengerVoyagePlanner({ selectedCustomer, visibleBookings = [], favoriteItineraryActivitiesByBooking = {}, onChecklistSaved }) {
   const bookingPlans = visibleBookings.map(booking => {
     const bookingId = booking.id || booking.bookingId || 'booking'
     const itineraryDays = getBookingItineraryDays(booking)
@@ -4156,16 +4132,46 @@ function PassengerVoyagePlanner({ visibleBookings = [], favoriteItineraryActivit
   const totalFavorites = bookingPlans.reduce((sum, plan) => sum + plan.favoriteRows.length, 0)
   const totalPortDays = bookingPlans.reduce((sum, plan) => sum + plan.portDays.length, 0)
   const nextPlan = bookingPlans.find(plan => plan.firstActivity) || bookingPlans[0]
-  const [checklistState, setChecklistState] = useState({
-    documents: false,
-    luggage: false,
-    dining: false,
-    excursions: false
-  })
+  const selectedCustomerId = selectedCustomer?.id || ''
+  const [checklistState, setChecklistState] = useState(() => normalizePreCruiseChecklist(selectedCustomer?.preCruiseChecklist || getDefaultPreCruiseChecklist()))
+  const [savingChecklistItem, setSavingChecklistItem] = useState('')
+  const [checklistMessage, setChecklistMessage] = useState('')
   const completeChecklistCount = Object.values(checklistState).filter(Boolean).length
 
-  function toggleChecklistItem(item) {
-    setChecklistState(current => ({ ...current, [item]: !current[item] }))
+  useEffect(() => {
+    setChecklistState(normalizePreCruiseChecklist(selectedCustomer?.preCruiseChecklist || getDefaultPreCruiseChecklist()))
+    setSavingChecklistItem('')
+  }, [selectedCustomerId, selectedCustomer?.preCruiseChecklist?.documents, selectedCustomer?.preCruiseChecklist?.luggage, selectedCustomer?.preCruiseChecklist?.dining, selectedCustomer?.preCruiseChecklist?.excursions])
+
+  useEffect(() => {
+    setChecklistMessage('')
+  }, [selectedCustomerId])
+
+  async function toggleChecklistItem(item) {
+    if (!selectedCustomerId || savingChecklistItem) return
+
+    const nextChecklist = {
+      ...checklistState,
+      [item]: !checklistState[item]
+    }
+    const previousChecklist = checklistState
+
+    setChecklistState(nextChecklist)
+    setSavingChecklistItem(item)
+    setChecklistMessage('Saving pre-cruise checklist...')
+
+    try {
+      const response = await updatePassengerPreCruiseChecklist(selectedCustomerId, nextChecklist)
+      const savedChecklist = normalizePreCruiseChecklist(response?.preCruiseChecklist || nextChecklist)
+      setChecklistState(savedChecklist)
+      setChecklistMessage(response?.message || 'Pre-cruise checklist updated successfully')
+      await onChecklistSaved?.()
+    } catch (error) {
+      setChecklistState(previousChecklist)
+      setChecklistMessage(error.message || 'Could not save pre-cruise checklist.')
+    } finally {
+      setSavingChecklistItem('')
+    }
   }
 
   return (
@@ -4203,13 +4209,23 @@ function PassengerVoyagePlanner({ visibleBookings = [], favoriteItineraryActivit
               ['excursions', 'Favorite excursions selected']
             ].map(([id, label]) => (
               <label key={id} className="react-checkbox-label">
-                <input type="checkbox" checked={Boolean(checklistState[id])} onChange={() => toggleChecklistItem(id)} data-testid={`react-voyage-checklist-${id}`} />
-                <span>{label}</span>
+                <input
+                  type="checkbox"
+                  checked={Boolean(checklistState[id])}
+                  disabled={!selectedCustomerId || Boolean(savingChecklistItem)}
+                  onChange={() => toggleChecklistItem(id)}
+                  data-testid={`react-voyage-checklist-${id}`}
+                />
+                <span>{label}{savingChecklistItem === id ? ' — saving' : ''}</span>
               </label>
             ))}
           </div>
+          <p className="draft-message" aria-live="polite" data-testid="react-voyage-checklist-message">
+            {checklistMessage || 'Checklist progress is saved to this passenger profile.'}
+          </p>
         </article>
       </div>
+
 
       <div className="voyage-booking-strip" aria-label="Voyage booking summaries">
         {bookingPlans.length === 0 ? (
@@ -4232,12 +4248,75 @@ function PassengerVoyagePlanner({ visibleBookings = [], favoriteItineraryActivit
 
 
 function RoleBookingCard({ booking, roleView, isExpanded, favoriteActivityKeys, favoritesOnly, onToggleDetails, onToggleFavorite, onToggleFavoritesOnly }) {
-  const passengers = getVisiblePassengerRows(booking)
+  const [detailedBooking, setDetailedBooking] = useState(null)
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false)
+  const [detailLoadError, setDetailLoadError] = useState('')
+  const bookingId = booking.id || booking.bookingId
+  const effectiveBooking = detailedBooking || booking
+  const passengers = getVisiblePassengerRows(effectiveBooking)
+  const sailingId = effectiveBooking.sailingId || effectiveBooking.sailing?.id
+  const needsItineraryDetails = isExpanded && bookingId && getBookingItineraryDays(effectiveBooking).length === 0
+  const hasLoadedBookingDetails = Boolean(detailedBooking) || Boolean(detailLoadError)
+  const isWaitingForItineraryDetails = Boolean(needsItineraryDetails && !hasLoadedBookingDetails)
+
+  useEffect(() => {
+    let isActive = true
+
+    async function loadBookingDetails() {
+      if (!needsItineraryDetails) return
+
+      setIsLoadingDetails(true)
+      setDetailLoadError('')
+
+      try {
+        const nextBooking = await getBookingDetails(bookingId)
+        const nextSailingId = nextBooking?.sailingId || nextBooking?.sailing?.id || sailingId
+        const nextItineraryDays = getBookingItineraryDays(nextBooking)
+
+        if (nextItineraryDays.length > 0 || !nextSailingId) {
+          if (isActive) setDetailedBooking(nextBooking)
+          return
+        }
+
+        const itineraryDays = await getItineraryForSailing(nextSailingId)
+        const bookingWithItinerary = {
+          ...nextBooking,
+          itinerary: itineraryDays,
+          itineraryDays,
+          sailing: nextBooking?.sailing
+            ? {
+                ...nextBooking.sailing,
+                itinerary: itineraryDays,
+                itineraryDays
+              }
+            : nextBooking?.sailing
+        }
+
+        if (isActive) setDetailedBooking(bookingWithItinerary)
+      } catch (err) {
+        if (isActive) setDetailLoadError(err.message || 'Unable to load itinerary details for this booking.')
+      } finally {
+        if (isActive) setIsLoadingDetails(false)
+      }
+    }
+
+    loadBookingDetails()
+
+    return () => {
+      isActive = false
+    }
+  }, [bookingId, needsItineraryDetails, sailingId])
+
+  useEffect(() => {
+    setDetailedBooking(null)
+    setDetailLoadError('')
+    setIsLoadingDetails(false)
+  }, [bookingId])
 
   return (
     <article className="role-booking-card" data-testid="react-role-booking-card">
       <div className="role-booking-heading">
-        <h3>{getBookingCardTitle(booking)}</h3>
+        <h3>{getBookingCardTitle(effectiveBooking)}</h3>
         <div className="role-booking-badges">
           {roleView === 'group-leader' && <span className="status-pill">Group Leader</span>}
           <span className="status-pill">{booking.bookingStatus || 'Confirmed'}</span>
@@ -4245,8 +4324,8 @@ function RoleBookingCard({ booking, roleView, isExpanded, favoriteActivityKeys, 
       </div>
 
       <dl className="role-booking-fields">
-        {getBookingCardFields(booking).map(([label, value]) => (
-          <div key={`${booking.id}-${label}`}>
+        {getBookingCardFields(effectiveBooking).map(([label, value]) => (
+          <div key={`${bookingId}-${label}`}>
             <dt>{label}</dt>
             <dd>{value}</dd>
           </div>
@@ -4275,9 +4354,17 @@ function RoleBookingCard({ booking, roleView, isExpanded, favoriteActivityKeys, 
         {isExpanded ? 'Hide Details' : 'View Details'}
       </button>
 
-      {isExpanded && (
+      {isExpanded && (isLoadingDetails || isWaitingForItineraryDetails) && (
+        <p className="status-card compact" data-testid="react-role-booking-details-loading">Loading itinerary details…</p>
+      )}
+
+      {isExpanded && detailLoadError && (
+        <p className="status-card compact error" data-testid="react-role-booking-details-error">{detailLoadError}</p>
+      )}
+
+      {isExpanded && !isLoadingDetails && !isWaitingForItineraryDetails && (
         <RoleBookingDetails
-          booking={booking}
+          booking={effectiveBooking}
           favoriteActivityKeys={favoriteActivityKeys}
           favoritesOnly={favoritesOnly}
           onToggleFavorite={onToggleFavorite}
@@ -4334,6 +4421,21 @@ export default function ReactRoleDashboard({
   const [favoriteItineraryActivitiesByBooking, setFavoriteItineraryActivitiesByBooking] = useState({})
   const [favoritesOnlyByBooking, setFavoritesOnlyByBooking] = useState({})
   const visibleBookingIds = useMemo(() => new Set(visibleBookings.map(booking => booking.id)), [visibleBookings])
+  const itineraryReadyVisibleBookings = useMemo(() => {
+    if (isOperationalRoleView(roleView)) return visibleBookings
+
+    return [...visibleBookings].sort((leftBooking, rightBooking) => {
+      const leftItineraryCount = getBookingItineraryDays(leftBooking).length
+      const rightItineraryCount = getBookingItineraryDays(rightBooking).length
+
+      if (leftItineraryCount !== rightItineraryCount) {
+        return rightItineraryCount - leftItineraryCount
+      }
+
+      return String(leftBooking.sailing?.departureDate || leftBooking.createdAt || leftBooking.id || '')
+        .localeCompare(String(rightBooking.sailing?.departureDate || rightBooking.createdAt || rightBooking.id || ''))
+    })
+  }, [roleView, visibleBookings])
 
   if (roleView === 'admin') return null
 
@@ -4397,8 +4499,10 @@ export default function ReactRoleDashboard({
             mutationError={mutationError}
           />
           <PassengerVoyagePlanner
+            selectedCustomer={selectedCustomer}
             visibleBookings={visibleBookings}
             favoriteItineraryActivitiesByBooking={favoriteItineraryActivitiesByBooking}
+            onChecklistSaved={onBookingCreated}
           />
           <PassengerCruiseBookingWorkflow
             cruiseLines={cruiseLines}
@@ -4448,9 +4552,9 @@ export default function ReactRoleDashboard({
 
       {!isOperationalRoleView(roleView) && (
         <div className="role-booking-list">
-          {visibleBookings.length === 0 ? (
+          {itineraryReadyVisibleBookings.length === 0 ? (
             <p className="status-card compact">No bookings are visible for this selected person.</p>
-          ) : visibleBookings.map(booking => {
+          ) : itineraryReadyVisibleBookings.map(booking => {
             const bookingId = booking.id || booking.bookingId
             const favoriteActivityKeys = new Set(favoriteItineraryActivitiesByBooking[bookingId] || [])
 

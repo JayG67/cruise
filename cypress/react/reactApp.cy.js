@@ -599,7 +599,10 @@ describe('Cruise operations portfolio route', () => {
       expect(req.body).to.deep.equal({
         name: 'React Test Cruises',
         country: 'United States',
-        website: 'https://react-test-cruises.example.com'
+        website: 'https://react-test-cruises.example.com',
+        brandFamily: 'React Holdings',
+        brandTheme: 'Innovation',
+        marketPositioning: 'Modern React cruise experiences'
       })
 
       req.reply({
@@ -608,7 +611,10 @@ describe('Cruise operations portfolio route', () => {
           id: 'react-test-cruise-line',
           name: 'React Test Cruises',
           country: 'United States',
-          website: 'https://react-test-cruises.example.com'
+          website: 'https://react-test-cruises.example.com',
+          brandFamily: 'React Holdings',
+          brandTheme: 'Innovation',
+          marketPositioning: 'Modern React cruise experiences'
         }
       })
     }).as('createReactCruiseLine')
@@ -632,7 +638,10 @@ describe('Cruise operations portfolio route', () => {
     cy.getByTestId(rs.createCruiseLineName).clear().type('  React Test Cruises  ')
     cy.getByTestId(rs.createCruiseLineCountry).clear().type('  United States  ')
     cy.getByTestId(rs.createCruiseLineWebsite).clear().type('  https://react-test-cruises.example.com  ')
-    cy.getByTestId(rs.createShipName).first().clear().type('  React Ship One  ')
+    cy.getByTestId(rs.createCruiseLineBrandFamily).clear().type('  React Holdings  ')
+    cy.getByTestId(rs.createCruiseLineBrandTheme).clear().type('  Innovation  ')
+    cy.getByTestId(rs.createCruiseLineMarketPositioning).clear().type('  Modern React cruise experiences  ')
+    cy.getByTestId(rs.createShipName).first().should('not.be.disabled').clear().type('  React Ship One  ')
     cy.getByTestId(rs.createShipPort).first().clear().type('  Tampa  ')
 
     cy.getByTestId(rs.addShipRow).click()
@@ -653,6 +662,9 @@ describe('Cruise operations portfolio route', () => {
 
     cy.getByTestId(rs.createCruiseLineName).should('have.value', '')
     cy.getByTestId(rs.createShipName).should('have.length', 1)
+
+    cy.getByTestId(rs.createShipName).should('be.disabled')
+    cy.getByTestId(rs.addShipRow).should('be.disabled')
 
     cy.getByTestId(rs.createCruiseLineName).type('Temporary React Cruise')
     cy.getByTestId(rs.resetCruiseLine).click()

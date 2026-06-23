@@ -94,7 +94,9 @@ export default function App() {
 
     window.__cruiseDemoUsers = demoUsers.map(user => ({
       id: user.id,
-      name: user.name,
+      name: user.displayName || user.name || '',
+      displayName: user.displayName || user.name || '',
+      customerId: user.customerId || '',
       role: user.role || user.userType || '',
       roleView: getSelectedRoleView(user)
     }))
@@ -112,9 +114,10 @@ export default function App() {
 
       const matchingUser = demoUsers.find(user => {
         const roleMatches = !normalizedRole || getSelectedRoleView(user) === normalizedRole
+        const userSearchText = [user.displayName, user.name, user.email].filter(Boolean).join(' ').toLowerCase()
         const nameMatches = userId
           ? user.id === userId
-          : !normalizedPersonText || String(user.name || '').toLowerCase().includes(normalizedPersonText)
+          : !normalizedPersonText || userSearchText.includes(normalizedPersonText)
 
         return roleMatches && nameMatches
       })
@@ -129,7 +132,7 @@ export default function App() {
       // avoids a mobile Playwright race where setting the role first briefly
       // selected that role's first user before the requested person landed.
       setSelectedDemoUserId(matchingUser.id)
-      return { ok: true, userId: matchingUser.id, name: matchingUser.name, role: targetRole }
+      return { ok: true, userId: matchingUser.id, name: matchingUser.displayName || matchingUser.name, role: targetRole }
     }
 
     return () => {
@@ -187,15 +190,13 @@ export default function App() {
             Cruise Fleet Operations Platform
           </a>
           <div className="react-nav-links">
-            <a href="#react-dashboard">Dashboard</a>
             <a href="#react-employer-demo">Overview</a>
             <button type="button" onClick={() => openWorkspace('react-cruise-line-presentation', 'Cruise Line Operations', 'admin')}>Line Operations</button>
-            <a href="#react-employer-demo">Workspaces</a>
             <button type="button" onClick={() => openWorkspace('react-role-selector', 'Role-aware Views')}>Roles</button>
-            <button type="button" onClick={() => openWorkspace('react-hierarchy', 'Admin Operations', 'admin')}>Operations</button>
-            <button type="button" onClick={() => openWorkspace('react-fleet', 'Fleet Directory', 'admin')}>Fleet</button>
+            <button type="button" onClick={() => openWorkspace('react-hierarchy', 'Admin Operations', 'admin')} data-testid={selectedRoleView === 'admin' ? undefined : 'react-workspace-operations-button'}>Operations</button>
+            <button type="button" onClick={() => openWorkspace('react-fleet', 'Fleet Directory', 'admin')} data-testid={selectedRoleView === 'admin' ? undefined : 'react-workspace-fleet-button'}>Fleet</button>
             <button type="button" onClick={() => openWorkspace('react-turnaround-admin-setup', 'Turnaround Admin Setup', 'admin')}>Turnaround Setup</button>
-            <button type="button" onClick={() => openWorkspace('react-quality', 'Quality Console', 'admin')}>Quality</button>
+            <button type="button" onClick={() => openWorkspace('react-quality', 'Quality Console', 'admin')} data-testid={selectedRoleView === 'admin' ? undefined : 'react-workspace-quality-button'}>Quality</button>
           </div>
         </nav>
 
@@ -226,14 +227,16 @@ export default function App() {
         </div>
       </section>
 
-      <EmployerDemoCommandCenter
-        customerCount={snapshot.customers.length}
-        bookingCount={snapshot.bookings.length}
-        cruiseLineCount={cruiseLines.length}
-        demoUsers={demoUsers}
-        selectedRoleView={selectedRoleView}
-        onOpenWorkspace={openWorkspace}
-      />
+      {selectedRoleView === 'admin' && (
+        <EmployerDemoCommandCenter
+          customerCount={snapshot.customers.length}
+          bookingCount={snapshot.bookings.length}
+          cruiseLineCount={cruiseLines.length}
+          demoUsers={demoUsers}
+          selectedRoleView={selectedRoleView}
+          onOpenWorkspace={openWorkspace}
+        />
+      )}
       {/* Workspace controls are rendered by EmployerDemoCommandCenter.
           Static accessibility contract anchors retained here:
           id="react-workspaces"

@@ -14,7 +14,7 @@ const ROLE_VALUES = {
 
 const ROLE_PERSON_SEARCH = {
   admin: 'Admin Demo User',
-  passenger: 'Passenger View',
+  passenger: 'Ryan Parker Passenger View',
   'group-leader': 'Group Leader'
 }
 
@@ -87,7 +87,7 @@ async function selectDemoUserThroughAppBridge(page, roleValue, personText = '') 
       const expectedPerson = String(person || '').toLowerCase()
       return users.some(user => {
         const roleMatches = !role || user.roleView === role
-        const nameMatches = !expectedPerson || String(user.name || '').toLowerCase().includes(expectedPerson)
+        const nameMatches = !expectedPerson || [user.displayName, user.name].filter(Boolean).join(' ').toLowerCase().includes(expectedPerson)
         return roleMatches && nameMatches
       })
     },
@@ -116,7 +116,12 @@ async function selectDemoUserThroughAppBridge(page, roleValue, personText = '') 
       const selectedUserMatches = userId && state.selectedDemoUserId === userId
       const selectedRoleMatches = role && state.selectedRoleView === role
       const summaryMatches = expectedText && summaryText.includes(expectedText)
-      return selectedUserMatches || (selectedRoleMatches && (!expectedText || summaryMatches || summaryText.length > 0))
+
+      if (expectedText || userId) {
+        return selectedUserMatches || summaryMatches
+      }
+
+      return selectedRoleMatches
     },
     {
       userId: selection.userId || '',
@@ -334,6 +339,86 @@ async function selectDemoUserByRole(page, roleText) {
 }
 
 
+async function waitForPassengerBookingDetailToggles(page, options = {}) {
+  const timeout = options.timeout || 20000
+  await expect(page.getByTestId('react-passenger-dashboard')).toBeVisible({ timeout })
+  await page.waitForFunction(
+    () => {
+      const cards = Array.from(document.querySelectorAll('[data-testid="react-role-booking-card"]'))
+      return cards.length > 0 && cards.some(card => {
+        const toggle = card.querySelector('[data-testid="react-role-booking-details-toggle"]')
+        return toggle && !toggle.disabled
+      })
+    },
+    {},
+    { timeout }
+  )
+
+  const firstBookingCard = page.getByTestId('react-role-booking-card').first()
+  await expect(firstBookingCard).toBeVisible({ timeout })
+
+  const firstToggle = firstBookingCard.getByTestId('react-role-booking-details-toggle')
+  await expect(firstToggle).toBeVisible({ timeout })
+  await expect(firstToggle).toBeEnabled({ timeout })
+  return page.getByTestId('react-role-booking-details-toggle')
+}
+
+async function waitForPassengerItineraryDetails(page, options = {}) {
+  const timeout = options.timeout || 30000
+  const retryCount = options.retries || 3
+
+  await waitForPassengerBookingDetailToggles(page, { timeout })
+
+  for (let attempt = 0; attempt < retryCount; attempt += 1) {
+    const toggles = page.getByTestId('react-role-booking-details-toggle')
+    const toggleCount = await toggles.count()
+
+    for (let index = 0; index < toggleCount; index += 1) {
+      const toggle = toggles.nth(index)
+      await expect(toggle).toBeVisible({ timeout })
+      await expect(toggle).toBeEnabled({ timeout })
+
+      if (await toggle.getAttribute('aria-expanded') !== 'true') {
+        const bookingResponsePromise = page.waitForResponse(
+          response => response.url().includes('/cruise/bookings/') && response.status() === 200,
+          { timeout: Math.min(timeout, 20000) }
+        ).catch(() => null)
+
+        await clickStableControl(toggle, { timeout })
+        await expect(toggle).toHaveAttribute('aria-expanded', 'true', { timeout: 10000 })
+        await bookingResponsePromise
+      }
+
+      await page.getByTestId('react-role-booking-details-loading').first()
+        .waitFor({ state: 'hidden', timeout: Math.min(timeout, 20000) })
+        .catch(() => {})
+
+      const itineraryDay = page.getByTestId('react-role-itinerary-day').first()
+      if (await itineraryDay.isVisible({ timeout: 5000 }).catch(() => false)) {
+        return itineraryDay
+      }
+
+      if (await page.getByTestId('react-role-booking-details-error').first().isVisible({ timeout: 500 }).catch(() => false)) {
+        continue
+      }
+
+      // Give React one more commit turn after the API response has settled before
+      // resetting the panel. Pixel/Chromium occasionally reported the button as
+      // expanded while the lazy-loaded itinerary commit was still pending.
+      await page.waitForTimeout(250)
+      if (await itineraryDay.isVisible({ timeout: 5000 }).catch(() => false)) {
+        return itineraryDay
+      }
+
+      if (await toggle.getAttribute('aria-expanded') === 'true') {
+        await clickStableControl(toggle, { timeout: 10000 })
+        await expect(toggle).toHaveAttribute('aria-expanded', 'false', { timeout: 10000 }).catch(() => {})
+      }
+    }
+  }
+
+  throw new Error('Unable to open a passenger booking with itinerary details on mobile.')
+}
 
 async function selectPassengerProfileUser(page) {
   await selectRoleAndPerson(page, 'passenger', 'Ryan Parker Passenger View')
@@ -343,27 +428,45 @@ async function selectPassengerProfileUser(page) {
 }
 
 async function openFleetShipsBySearch(page, searchText, expectedHeadingPattern = null) {
-  const fleetSearch = page.getByTestId('react-fleet-search')
-  await expect(fleetSearch).toBeVisible({ timeout: 15000 })
-  await fleetSearch.fill(searchText)
-
-  const matchingFleetCard = page
-    .getByTestId('react-fleet-card')
-    .filter({ hasText: searchText })
-    .first()
-  await expect(matchingFleetCard).toBeVisible({ timeout: 15000 })
-
-  const viewShipsButton = matchingFleetCard.getByTestId('react-view-ships-button')
-  await viewShipsButton.scrollIntoViewIfNeeded()
-  await expect(viewShipsButton).toBeVisible({ timeout: 15000 })
-  await expect(viewShipsButton).toBeEnabled({ timeout: 15000 })
-  await viewShipsButton.click()
-
+  const expectedPanelText = expectedHeadingPattern || new RegExp(`${searchText}.*ships`, 'i')
   const selectedShipsPanel = page.getByTestId('react-selected-ships-panel')
-  await expect(selectedShipsPanel).toBeVisible({ timeout: 15000 })
-  await expect(selectedShipsPanel).toContainText(expectedHeadingPattern || new RegExp(`${searchText}.*ships`, 'i'), { timeout: 15000 })
-  await expect(selectedShipsPanel.getByTestId('react-ship-card').first()).toBeVisible({ timeout: 15000 })
+  const fleetSearch = page.getByTestId('react-fleet-search')
 
+  await expect(fleetSearch).toBeVisible({ timeout: 15000 })
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await fleetSearch.fill('')
+    await fleetSearch.fill(searchText)
+
+    const matchingFleetCard = page
+      .getByTestId('react-fleet-card')
+      .filter({ hasText: searchText })
+      .first()
+    await expect(matchingFleetCard).toBeVisible({ timeout: 15000 })
+
+    const viewShipsButton = matchingFleetCard.getByTestId('react-view-ships-button')
+    await clickStableControl(viewShipsButton, { timeout: 15000 })
+
+    await expect(selectedShipsPanel).toBeVisible({ timeout: 15000 })
+
+    const opened = await selectedShipsPanel
+      .waitFor({ state: 'visible', timeout: 15000 })
+      .then(async () => {
+        await expect(selectedShipsPanel).toContainText(expectedPanelText, { timeout: 5000 })
+        await expect(selectedShipsPanel.getByTestId('react-ship-card').first()).toBeVisible({ timeout: 5000 })
+        return true
+      })
+      .catch(() => false)
+
+    if (opened) {
+      return selectedShipsPanel
+    }
+
+    await page.waitForTimeout(250)
+  }
+
+  await expect(selectedShipsPanel).toContainText(expectedPanelText, { timeout: 15000 })
+  await expect(selectedShipsPanel.getByTestId('react-ship-card').first()).toBeVisible({ timeout: 15000 })
   return selectedShipsPanel
 }
 
@@ -482,6 +585,8 @@ module.exports = {
   openFleetShipsBySearch,
   openCustomerWorkflows,
   openFleetSailingsBySearch,
+  waitForPassengerBookingDetailToggles,
+  waitForPassengerItineraryDetails,
   selectDemoUserByRole,
   selectPassengerProfileUser,
   selectRoleAndPerson,

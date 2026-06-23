@@ -10,7 +10,7 @@ const appUserTable = pgTable('app_users', {
   userType: varchar({ length: 50 }).notNull(),
   primaryCustomerId: varchar({ length: 10 }).references(() => customerTable.id),
   cruiseLineId: uuid().references(() => cruiseLineTable.id),
-  assignedShipId: uuid().references(() => shipTable.id),
+  assignedShipId: uuid().references(() => shipTable.id, { onDelete: 'set null' }),
   status: varchar({ length: 50 }).notNull()
 })
 

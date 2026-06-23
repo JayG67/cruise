@@ -1,5 +1,5 @@
 const { reactSelectorKeys: rs } = require('./support/reactSelectors')
-const { visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
+const { visitReactAppAsAdmin, selectDemoUserByVisibleRole } = require('./support/reactTestHelpers.js')
 
 describe('Cruise operations product surface coverage', () => {
   beforeEach(() => {
@@ -14,6 +14,15 @@ describe('Cruise operations product surface coverage', () => {
     cy.contains('Portfolio evidence for cruise-line software engineering roles').should('not.exist')
     cy.contains('Cruise operations command center').should('not.exist')
     cy.getByTestId(rs.employerDemoCommandCenter).should('be.visible')
+  })
+
+
+
+  it('shows the operations overview only for admin users', () => {
+    cy.getByTestId(rs.employerDemoCommandCenter).should('be.visible')
+    selectDemoUserByVisibleRole('Turnaround Manager')
+    cy.getByTestId(rs.turnaroundManagerDashboard).should('be.visible')
+    cy.getByTestId(rs.employerDemoCommandCenter).should('not.exist')
   })
 
   it('keeps product shortcuts focused on real application sections', () => {

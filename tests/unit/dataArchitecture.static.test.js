@@ -26,7 +26,9 @@ describe('Production data architecture hardening guardrails', () => {
       'idx_sailings_ship_id_departure_date',
       'idx_sailings_departure_route',
       'idx_itinerary_days_sailing_day',
+      'idx_itinerary_days_updated',
       'idx_activity_schedules_itinerary_day',
+      'idx_activity_schedules_updated',
       'idx_bookings_sailing_status',
       'idx_bookings_created_by_customer',
       'idx_booking_passengers_booking_id',
@@ -539,6 +541,8 @@ describe('Production data architecture hardening guardrails', () => {
     expect(platformAuditService).toContain('async function getSailingAuditScope(sailingOrId)')
     expect(platformAuditService).toContain('async function getBookingAuditScope(bookingOrId)')
     expect(platformAuditService).toContain('source: PLATFORM_AUDIT_SOURCE')
+    expect(platformAuditService).toContain("userType: 'SYSTEM'")
+    expect(platformAuditService).not.toContain("userType: 'PLATFORM'")
 
     for (const eventType of [
       'CRUISE_LINE_CREATED',
@@ -569,6 +573,191 @@ describe('Production data architecture hardening guardrails', () => {
       'CUSTOMER',
       'BOOKING',
       'BOOKING_PASSENGER'
+    ]) {
+      expect(controller).toContain(`entityType: '${entityType}'`)
+    }
+  })
+
+
+
+
+  it('hardens core fleet, customer, and booking entities with UUID bridges, timestamps, and rich audit payloads', () => {
+    const initializer = read('services/initializeDatabase.service.js')
+    const controller = read('controllers/cruise.controller.js')
+    const auditModel = read('models/auditEvent.model.js')
+    const auditService = read('services/auditEvent.service.js')
+    const entityHistoryService = read('services/entityHistory.service.js')
+    const customerModel = read('models/customer.model.js')
+    const bookingModel = read('models/booking.model.js')
+    const sailingModel = read('models/sailing.model.js')
+    const shipModel = read('models/ship.model.js')
+    const cruiseLineModel = read('models/cruiseline.model.js')
+
+    for (const column of [
+      'ALTER TABLE customers ADD COLUMN IF NOT EXISTS "customerUuid" uuid DEFAULT gen_random_uuid()',
+      'ALTER TABLE bookings ADD COLUMN IF NOT EXISTS "bookingUuid" uuid DEFAULT gen_random_uuid()',
+      'ALTER TABLE bookings ADD COLUMN IF NOT EXISTS "createdByUserId" varchar(40) REFERENCES app_users(id) ON DELETE SET NULL',
+      'ALTER TABLE cruise_lines ADD COLUMN IF NOT EXISTS "createdAt" varchar(40)',
+      'ALTER TABLE ships ADD COLUMN IF NOT EXISTS "createdAt" varchar(40)',
+      'ALTER TABLE sailings ADD COLUMN IF NOT EXISTS "createdAt" varchar(40)',
+      'ALTER TABLE customers ADD COLUMN IF NOT EXISTS "createdAt" varchar(40)',
+      'ALTER TABLE bookings ADD COLUMN IF NOT EXISTS "createdAt" varchar(40)',
+      'ALTER TABLE audit_events ADD COLUMN IF NOT EXISTS "createdAtTimestamp" timestamptz'
+    ]) {
+      expect(initializer).toContain(column)
+    }
+
+    for (const indexName of [
+      'idx_customers_customer_uuid',
+      'idx_bookings_booking_uuid',
+      'idx_customers_updated_timestamp',
+      'idx_bookings_updated_timestamp',
+      'idx_bookings_created_by_user',
+      'idx_cruise_lines_updated_timestamp',
+      'idx_ships_updated_timestamp',
+      'idx_sailings_updated_timestamp',
+      'idx_audit_events_created_timestamp'
+    ]) {
+      expect(initializer).toContain(`CREATE ${indexName.includes('_uuid') ? 'UNIQUE ' : ''}INDEX IF NOT EXISTS ${indexName}`)
+    }
+
+    for (const modelSource of [customerModel, bookingModel, sailingModel, shipModel, cruiseLineModel]) {
+      expect(modelSource).toContain('createdAt: varchar({ length: 40 })')
+      expect(modelSource).toContain('updatedAtTimestamp: timestamp({ withTimezone: true })')
+    }
+
+    expect(customerModel).toContain('customerUuid: uuid().defaultRandom()')
+    expect(bookingModel).toContain('bookingUuid: uuid().defaultRandom()')
+    expect(bookingModel).toContain('createdByUserId')
+    expect(auditModel).toContain('createdAtTimestamp: timestamp({ withTimezone: true })')
+    expect(auditService).toContain('createdAtTimestamp = new Date(createdAt)')
+    expect(entityHistoryService).toContain('function buildChangedFields')
+    expect(entityHistoryService).toContain('function buildEntityHistoryPayload')
+    expect(entityHistoryService).toContain('function buildEntityLifecycleTimestamps')
+    expect(entityHistoryService).toContain('function buildEntityUpdateTimestamp')
+
+    for (const controllerFragment of [
+      'buildEntityHistoryPayload({',
+      'buildEntityLifecycleTimestamps()',
+      'buildEntityUpdateTimestamp()',
+      'resolvePlatformAuditActor(req)',
+      'createdByUserId: platformActor.actorUserId',
+      "metadata: { operation: 'create' }",
+      "metadata: { operation: 'update' }",
+      "metadata: { operation: 'delete' }",
+      'changedFields'
+    ]) {
+      expect(controller + entityHistoryService).toContain(controllerFragment)
+    }
+  })
+
+
+  it('hardens itinerary administration with timestamps and audit events', () => {
+    const initializer = read('services/initializeDatabase.service.js')
+    const controller = read('controllers/cruise.controller.js')
+    const itineraryDayModel = read('models/itineraryDay.model.js')
+    const activityScheduleModel = read('models/activitySchedule.model.js')
+    const integration = read('tests/integration/sailings.integration.test.js')
+
+    for (const column of [
+      'ALTER TABLE itinerary_days ADD COLUMN IF NOT EXISTS "createdAt" varchar(40)',
+      'ALTER TABLE itinerary_days ADD COLUMN IF NOT EXISTS "createdAtTimestamp" timestamptz',
+      'ALTER TABLE itinerary_days ADD COLUMN IF NOT EXISTS "updatedAt" varchar(40)',
+      'ALTER TABLE itinerary_days ADD COLUMN IF NOT EXISTS "updatedAtTimestamp" timestamptz',
+      'ALTER TABLE activity_schedules ADD COLUMN IF NOT EXISTS "createdAt" varchar(40)',
+      'ALTER TABLE activity_schedules ADD COLUMN IF NOT EXISTS "createdAtTimestamp" timestamptz',
+      'ALTER TABLE activity_schedules ADD COLUMN IF NOT EXISTS "updatedAt" varchar(40)',
+      'ALTER TABLE activity_schedules ADD COLUMN IF NOT EXISTS "updatedAtTimestamp" timestamptz'
+    ]) {
+      expect(initializer).toContain(column)
+    }
+
+    for (const indexName of [
+      'idx_itinerary_days_updated',
+      'idx_activity_schedules_updated'
+    ]) {
+      expect(initializer).toContain(`CREATE INDEX IF NOT EXISTS ${indexName}`)
+    }
+
+    expect(itineraryDayModel).toContain('createdAtTimestamp: timestamp({ withTimezone: true })')
+    expect(itineraryDayModel).toContain('updatedAtTimestamp: timestamp({ withTimezone: true })')
+    expect(activityScheduleModel).toContain('createdAtTimestamp: timestamp({ withTimezone: true })')
+    expect(activityScheduleModel).toContain('updatedAtTimestamp: timestamp({ withTimezone: true })')
+    expect(controller).toContain('function buildTimestampBridgeValues')
+    expect(controller).toContain('function buildTimestampUpdateValues')
+    expect(controller).toContain('async function getItineraryDayAuditScope')
+
+    for (const eventType of [
+      'ITINERARY_DAY_CREATED',
+      'ITINERARY_DAY_UPDATED',
+      'ITINERARY_DAY_DELETED',
+      'ITINERARY_ACTIVITY_CREATED',
+      'ITINERARY_ACTIVITY_UPDATED',
+      'ITINERARY_ACTIVITY_DELETED'
+    ]) {
+      expect(controller).toContain(`eventType: '${eventType}'`)
+    }
+
+    for (const entityType of [
+      'ITINERARY_DAY',
+      'ITINERARY_ACTIVITY'
+    ]) {
+      expect(controller).toContain(`entityType: '${entityType}'`)
+    }
+
+    expect(integration).toContain('records itinerary administration audit events with scoped sailing context')
+    expect(integration).toContain('/cruise/audit-events?entityType=ITINERARY_DAY')
+    expect(integration).toContain('/cruise/audit-events?entityType=ITINERARY_ACTIVITY')
+  })
+
+  it('hardens passenger self-service data with timestamps and audit events', () => {
+    const initializer = read('services/initializeDatabase.service.js')
+    const controller = read('controllers/cruise.controller.js')
+    const checklistModel = read('models/customerPreCruiseChecklist.model.js')
+    const favoriteModel = read('models/customerItineraryFavorite.model.js')
+    const bookingPassengerModel = read('models/bookingPassenger.model.js')
+
+    for (const column of [
+      'ALTER TABLE booking_passengers ADD COLUMN IF NOT EXISTS "updatedAt" varchar(40)',
+      'ALTER TABLE booking_passengers ADD COLUMN IF NOT EXISTS "updatedAtTimestamp" timestamptz',
+      'ALTER TABLE customer_itinerary_favorites ADD COLUMN IF NOT EXISTS "createdAt" varchar(40)',
+      'ALTER TABLE customer_itinerary_favorites ADD COLUMN IF NOT EXISTS "createdAtTimestamp" timestamptz',
+      'ALTER TABLE customer_pre_cruise_checklists ADD COLUMN IF NOT EXISTS "updatedAt" varchar(40)',
+      'ALTER TABLE customer_pre_cruise_checklists ADD COLUMN IF NOT EXISTS "updatedAtTimestamp" timestamptz'
+    ]) {
+      expect(initializer).toContain(column)
+    }
+
+    for (const indexName of [
+      'idx_customer_itinerary_favorites_customer_created',
+      'idx_customer_pre_cruise_checklists_updated',
+      'idx_booking_passengers_customer_updated'
+    ]) {
+      expect(initializer).toContain(`CREATE INDEX IF NOT EXISTS ${indexName}`)
+    }
+
+    expect(checklistModel).toContain('updatedAt: varchar({ length: 40 })')
+    expect(favoriteModel).toContain('createdAt: varchar({ length: 40 })')
+    expect(bookingPassengerModel).toContain('updatedAt: varchar({ length: 40 })')
+    expect(controller).toContain('function buildChecklistStorageValues')
+    expect(controller).toContain('async function getActivityAuditScope(activityScheduleId)')
+    expect(controller).toContain('async function refreshPassengerPreferenceTimestamp(customerId)')
+    expect(controller).toContain('async function refreshPreCruiseChecklistTimestamp(customerId)')
+    expect(controller).toContain('async function refreshItineraryFavoriteTimestamp(favoriteId)')
+
+    for (const eventType of [
+      'PASSENGER_PROFILE_UPDATED',
+      'PASSENGER_CHECKLIST_UPDATED',
+      'PASSENGER_BOOKING_PREFERENCES_UPDATED',
+      'PASSENGER_ITINERARY_FAVORITE_SAVED',
+      'PASSENGER_ITINERARY_FAVORITE_REMOVED'
+    ]) {
+      expect(controller).toContain(`eventType: '${eventType}'`)
+    }
+
+    for (const entityType of [
+      'CUSTOMER_PRE_CRUISE_CHECKLIST',
+      'CUSTOMER_ITINERARY_FAVORITE'
     ]) {
       expect(controller).toContain(`entityType: '${entityType}'`)
     }
@@ -881,11 +1070,10 @@ describe('Production data architecture hardening guardrails', () => {
 })
 
 describe('Turnaround reviewer packet guardrails', () => {
-  it('adds a cruise-line reviewer packet generated from executive and operational evidence', () => {
+  it('keeps cruise-line reviewer packet evidence out of the operational UI', () => {
     const controller = read('controllers/cruise.controller.js')
     const packetService = read('services/turnaroundReviewerPacket.service.js')
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
 
     expect(controller).toContain("const { buildTurnaroundReviewerPacket } = require('../services/turnaroundReviewerPacket.service')")
     expect(controller).toContain('const reviewerPacket = buildTurnaroundReviewerPacket({')
@@ -894,11 +1082,9 @@ describe('Turnaround reviewer packet guardrails', () => {
     expect(packetService).toContain('buildReviewerProofPoints')
     expect(packetService).toContain('buildReviewerDataQuality')
     expect(packetService).toContain('READY_FOR_CRUISE_LINE_REVIEW')
-    expect(dashboard).toContain('data-testid="react-operations-reviewer-packet"')
-    expect(dashboard).toContain('selectedOperation.reviewerPacket.proofPoints')
-    expect(dashboard).toContain('Presentation-ready operational evidence packet')
-    expect(styles).toContain('.operations-reviewer-packet')
-    expect(styles).toContain('.operations-reviewer-packet-grid')
+    expect(dashboard).not.toContain('data-testid="react-operations-reviewer-packet"')
+    expect(dashboard).not.toContain('selectedOperation.reviewerPacket.proofPoints')
+    expect(dashboard).not.toContain('Presentation-ready operational evidence packet')
   })
 })
 
@@ -925,11 +1111,10 @@ describe('Turnaround outreach board guardrails', () => {
 })
 
 describe('Turnaround management status guardrails', () => {
-  it('adds a continuation-ready management status map generated from all turnaround evidence layers', () => {
+  it('keeps internal management status and maturity mapping out of the operational UI', () => {
     const controller = read('controllers/cruise.controller.js')
     const completionService = read('services/turnaroundCompletion.service.js')
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
 
     expect(controller).toContain("const { buildTurnaroundManagementStatus } = require('../services/turnaroundCompletion.service')")
     expect(controller).toContain('const managementStatus = buildTurnaroundManagementStatus({')
@@ -938,20 +1123,17 @@ describe('Turnaround management status guardrails', () => {
     expect(completionService).toContain('buildTurnaroundCapabilityMap')
     expect(completionService).toContain('buildContinuationSummary')
     expect(completionService).toContain('FLAGSHIP_READY')
-    expect(dashboard).toContain('data-testid="react-operations-management-status"')
-    expect(dashboard).toContain('selectedOperation.managementStatus.capabilities')
-    expect(dashboard).toContain('Production-demo completion map')
-    expect(styles).toContain('.operations-management-status')
-    expect(styles).toContain('.operations-management-status-grid')
+    expect(dashboard).not.toContain('data-testid="react-operations-management-status"')
+    expect(dashboard).not.toContain('selectedOperation.managementStatus.capabilities')
+    expect(dashboard).not.toContain('Production-demo completion map')
   })
 })
 
 describe('Turnaround launch plan guardrails', () => {
-  it('adds reviewer-demo launch certification gates generated from management and reviewer evidence', () => {
+  it('keeps reviewer-demo launch certification content out of the operational UI', () => {
     const controller = read('controllers/cruise.controller.js')
     const launchService = read('services/turnaroundLaunchPlan.service.js')
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
 
     expect(controller).toContain("const { buildTurnaroundLaunchPlan } = require('../services/turnaroundLaunchPlan.service')")
     expect(controller).toContain('const launchPlan = buildTurnaroundLaunchPlan({')
@@ -960,11 +1142,9 @@ describe('Turnaround launch plan guardrails', () => {
     expect(launchService).toContain('buildCertificationGates')
     expect(launchService).toContain('buildDemoRunbook')
     expect(launchService).toContain('READY_FOR_REVIEWER_DEMO')
-    expect(dashboard).toContain('data-testid="react-operations-launch-plan"')
-    expect(dashboard).toContain('selectedOperation.launchPlan.certificationGates')
-    expect(dashboard).toContain('Reviewer demo certification gates')
-    expect(styles).toContain('.operations-launch-plan')
-    expect(styles).toContain('.operations-launch-plan-grid')
+    expect(dashboard).not.toContain('data-testid="react-operations-launch-plan"')
+    expect(dashboard).not.toContain('selectedOperation.launchPlan.certificationGates')
+    expect(dashboard).not.toContain('Reviewer demo certification gates')
   })
 })
 
@@ -1062,5 +1242,379 @@ describe('Turnaround closeout packet guardrails', () => {
     expect(dashboard).toContain('Final management closeout and reusable operation proof')
     expect(styles).toContain('.operations-closeout-packet')
     expect(styles).toContain('.operations-closeout-packet-grid')
+  })
+})
+
+describe('Phase 1 passenger audit history payload guardrails', () => {
+  it('keeps passenger self-service audit events on the shared before and after entity history contract', () => {
+    const controller = read('controllers/cruise.controller.js')
+    const integration = read('tests/integration/customersBookings.integration.test.js')
+    const hardeningPlan = read('docs/data-architecture-hardening.md')
+
+    expect(controller).toContain('async function getCustomerPreCruiseChecklistRow(customerId)')
+    expect(controller).toContain('async function getCustomerItineraryFavoriteRow(favoriteId)')
+    expect(controller).toContain("operation: previousChecklistRow ? 'passenger-checklist-update' : 'passenger-checklist-create'")
+    expect(controller).toContain("operation: 'passenger-booking-preferences-update'")
+    expect(controller).toContain("operation: previousFavoriteRow ? 'passenger-itinerary-favorite-already-saved' : 'passenger-itinerary-favorite-create'")
+    expect(controller).toContain("operation: previousFavoriteRow ? 'passenger-itinerary-favorite-delete' : 'passenger-itinerary-favorite-delete-missing'")
+
+    for (const eventType of [
+      'PASSENGER_CHECKLIST_UPDATED',
+      'PASSENGER_BOOKING_PREFERENCES_UPDATED',
+      'PASSENGER_ITINERARY_FAVORITE_SAVED',
+      'PASSENGER_ITINERARY_FAVORITE_REMOVED'
+    ]) {
+      expect(controller).toContain(`eventType: '${eventType}'`)
+    }
+
+    for (const requiredFragment of [
+      'previous: previousChecklistRow',
+      'next: nextChecklistRow',
+      'previous: existingRows[0]',
+      'next: nextPassengerPreferences',
+      'previous: previousFavoriteRow',
+      'next: nextFavoriteRow',
+      "entityRefs: { bookingId, customerId }",
+      "entityRefs: { customerId, activityScheduleId }"
+    ]) {
+      expect(controller).toContain(requiredFragment)
+    }
+
+    expect(integration).toContain('records passenger self-service audit events with before and after history payloads')
+    expect(integration).toContain('/cruise/audit-events?demoUserId=UADMIN0001&entityType=CUSTOMER_PRE_CRUISE_CHECKLIST')
+    expect(integration).toContain("event.eventType === 'PASSENGER_BOOKING_PREFERENCES_UPDATED'")
+    expect(hardeningPlan).toContain('Passenger self-service audit history consistency bridge')
+  })
+})
+
+
+describe('Phase 1 passenger relationship identity bridge guardrails', () => {
+  it('adds UUID bridges for passenger relationship records without removing readable IDs', () => {
+    const initializer = read('services/initializeDatabase.service.js')
+    const bookingPassengerModel = read('models/bookingPassenger.model.js')
+    const favoriteModel = read('models/customerItineraryFavorite.model.js')
+    const checklistModel = read('models/customerPreCruiseChecklist.model.js')
+    const controller = read('controllers/cruise.controller.js')
+    const integration = read('tests/integration/customersBookings.integration.test.js')
+    const hardeningPlan = read('docs/data-architecture-hardening.md')
+
+    for (const bridgeColumn of [
+      '"bookingPassengerUuid" uuid DEFAULT gen_random_uuid()',
+      '"favoriteUuid" uuid DEFAULT gen_random_uuid()',
+      '"checklistUuid" uuid DEFAULT gen_random_uuid()'
+    ]) {
+      expect(initializer).toContain(bridgeColumn)
+    }
+
+    for (const indexName of [
+      'idx_booking_passengers_uuid',
+      'idx_customer_itinerary_favorites_uuid',
+      'idx_customer_pre_cruise_checklists_uuid'
+    ]) {
+      expect(initializer).toContain(`CREATE UNIQUE INDEX IF NOT EXISTS ${indexName}`)
+    }
+
+    expect(bookingPassengerModel).toContain('bookingPassengerUuid: uuid().defaultRandom()')
+    expect(favoriteModel).toContain('favoriteUuid: uuid().defaultRandom()')
+    expect(checklistModel).toContain('checklistUuid: uuid().defaultRandom()')
+    expect(controller).toContain('function buildBookingPassengerStorageValues')
+    expect(controller).toContain('existingPassenger?.bookingPassengerUuid')
+    expect(controller).toContain('values.bookingPassengerUuid = existingPassenger.bookingPassengerUuid')
+    expect(integration).toContain('booking passenger UUID bridge')
+    expect(hardeningPlan).toContain('Passenger Relationship Identity Bridge')
+  })
+})
+
+describe('Phase 1 turnaround audit history payload guardrails', () => {
+  it('keeps turnaround operational mutation audit events on the shared before and after entity history contract', () => {
+    const controller = read('controllers/cruise.controller.js')
+    const integration = read('tests/integration/turnaroundOperations.integration.test.js')
+    const hardeningPlan = read('docs/data-architecture-hardening.md')
+
+    expect(controller).toContain('function buildTurnaroundHistoryPayload')
+    expect(controller).toContain("historyShape: 'TURNAROUND_BEFORE_AFTER_V1'")
+    expect(controller).toContain("domain: 'turnaround-operations'")
+    expect(controller).toContain('function mergeTurnaroundEntity')
+    expect((controller.match(/eventPayload: buildTurnaroundHistoryPayload/g) || []).length).toBeGreaterThanOrEqual(10)
+
+    for (const action of [
+      'update-command-plan',
+      'create-escalation',
+      'update-escalation',
+      'update-task-status',
+      'create-task',
+      'create-task-update',
+      'delete-task',
+      'update-task-details',
+      'update-handoff'
+    ]) {
+      expect(controller).toContain(`action: '${action}'`)
+    }
+
+    expect(controller).toContain("existingStaffing[0] ? 'update-staffing' : 'create-staffing'")
+    expect(controller).toContain("existingSignoffs[0] ? 'update-signoff' : 'create-signoff'")
+    expect(integration).toContain('records turnaround command audit events with shared before and after history payloads')
+    expect(integration).toContain("historyShape: 'TURNAROUND_BEFORE_AFTER_V1'")
+    expect(integration).toContain('/cruise/turnaround-operations/${operation.id}/audit-events?limit=10')
+    expect(hardeningPlan).toContain('Turnaround Operational Audit History Consistency Bridge')
+  })
+})
+
+describe('Phase 1 durable API identity contract guardrails', () => {
+  it('promotes durable API identity metadata without replacing existing readable IDs', () => {
+    const identityBridge = read('services/apiIdentityBridge.service.js')
+    const controller = read('controllers/cruise.controller.js')
+    const integration = read('tests/integration/customersBookings.integration.test.js')
+    const hardeningPlan = read('docs/data-architecture-hardening.md')
+
+    for (const helperName of [
+      'withCruiseLineApiIdentity',
+      'withShipApiIdentity',
+      'withSailingApiIdentity',
+      'withCustomerApiIdentity',
+      'withBookingApiIdentity',
+      'withBookingPassengerApiIdentity',
+      'withPreCruiseChecklistApiIdentity'
+    ]) {
+      expect(identityBridge).toContain(helperName)
+      expect(controller).toContain(helperName)
+    }
+
+    expect(identityBridge).toContain('apiIdentity')
+    expect(identityBridge).toContain('durableId')
+    expect(identityBridge).toContain('displayId')
+    expect(identityBridge).toContain('tenantScope')
+    expect(identityBridge).toContain('relationships')
+    expect(controller).toContain('cruiseLines.map(withCruiseLineApiIdentity)')
+    expect(controller).toContain('ships.map(withShipApiIdentity)')
+    expect(controller).toContain('(sailings || []).map(withSailingApiIdentity)')
+    expect(controller).toContain('withBookingPassengerApiIdentity')
+    expect(controller).toContain('withBookingApiIdentity')
+    expect(integration).toContain('durable API identity metadata')
+    expect(hardeningPlan).toContain('Durable API Identity Contract Bridge')
+  })
+})
+
+describe('Phase 1 API payload profile guardrails', () => {
+  it('keeps compact booking list payload shaping centralized and opt-in', () => {
+    const payloadProfile = read('services/apiPayloadProfile.service.js')
+    const controller = read('controllers/cruise.controller.js')
+    const integration = read('tests/integration/customersBookings.integration.test.js')
+    const serviceTest = read('tests/unit/apiPayloadProfile.service.test.js')
+    const hardeningPlan = read('docs/data-architecture-hardening.md')
+
+    expect(payloadProfile).toContain('function normalizePayloadProfile')
+    expect(payloadProfile).toContain('function compactBooking')
+    expect(payloadProfile).toContain('function compactCustomer')
+    expect(payloadProfile).toContain('function applyBookingPayloadProfile')
+    expect(payloadProfile).toContain('function applyCustomerPayloadProfile')
+    expect(payloadProfile).toContain('passengerCount')
+    expect(payloadProfile).toContain('primaryPassenger')
+    expect(payloadProfile).toContain('apiIdentity')
+    expect(controller).toContain('getRequestedPayloadProfile(req)')
+    expect(controller).toContain('applyBookingPayloadProfile(bookingDetails, getRequestedPayloadProfile(req))')
+    expect(controller).toContain('applyCustomerPayloadProfile(customerDetails, getRequestedPayloadProfile(req))')
+    expect(integration).toContain('GET /cruise/bookings?payload=compact')
+    expect(integration).toContain('GET /cruise/customers?payload=compact')
+    expect(integration).toContain('booking.itineraryDays).toBeUndefined()')
+    expect(serviceTest).toContain('builds compact customer payloads')
+    expect(serviceTest).toContain('leaves full payloads unchanged unless compact is requested')
+    expect(hardeningPlan).toContain('Phase 1 API Payload Profile Bridge')
+    expect(hardeningPlan).toContain('customer list responses now share the same opt-in compact payload profile')
+  })
+})
+
+describe('Phase 1 tenant boundary foundation guardrails', () => {
+  it('centralizes tenant boundary checks without changing existing readable API contracts', () => {
+    const tenantBoundary = read('services/tenantBoundary.service.js')
+    const serviceTest = read('tests/unit/tenantBoundary.service.test.js')
+    const hardeningPlan = read('docs/data-architecture-hardening.md')
+
+    for (const helperName of [
+      'buildTenantBoundary',
+      'tenantBoundaryFromEntity',
+      'tenantBoundaryFromRequest',
+      'isTenantBoundaryCompatible',
+      'filterRowsByTenantBoundary',
+      'assertTenantBoundary'
+    ]) {
+      expect(tenantBoundary).toContain(helperName)
+      expect(serviceTest).toContain(helperName)
+    }
+
+    expect(tenantBoundary).toContain('x-cruise-tenant-id')
+    expect(tenantBoundary).toContain('TENANT_BOUNDARY_MISMATCH')
+    expect(tenantBoundary).toContain('apiIdentity')
+    expect(serviceTest).toContain('backward-compatible')
+    expect(serviceTest).toContain('legacy-row-without-scope')
+    expect(hardeningPlan).toContain('Phase 1 Tenant Boundary Foundation Bridge')
+    expect(hardeningPlan).toContain('filter legacy rows out merely because older records have not yet gained every tenant bridge field')
+  })
+})
+
+describe('Phase 1 user actor identity bridge guardrails', () => {
+  it('centralizes resolved actor shapes before completing production user normalization', () => {
+    const authorizationService = read('services/requestAuthorization.service.js')
+    const authorizationTest = read('tests/unit/requestAuthorization.service.test.js')
+    const hardeningPlan = read('docs/data-architecture-hardening.md')
+
+    for (const helperName of [
+      'ACTOR_IDENTITY_SOURCES',
+      'buildActorIdentity',
+      'buildProductionActor',
+      'buildDemoActor',
+      'buildAnonymousActor',
+      'assertResolvedActor',
+      'normalizeActorRole',
+      'normalizeActorDisplayName'
+    ]) {
+      expect(authorizationService).toContain(helperName)
+      expect(authorizationTest).toContain(helperName)
+    }
+
+    expect(authorizationService).toContain('ACTOR_IDENTITY_SOURCE_REQUIRED')
+    expect(authorizationService).toContain('ACTOR_DISPLAY_NAME_REQUIRED')
+    expect(authorizationService).toContain('return assertResolvedActor(buildProductionActor(principal))')
+    expect(authorizationService).toContain('return assertResolvedActor(buildDemoActor(demoUser) || buildAnonymousActor())')
+    expect(hardeningPlan).toContain('Phase 1 User Actor Identity Bridge')
+    expect(hardeningPlan).toContain('resolved actor shape for production principals, demo users, and anonymous requests')
+  })
+})
+
+
+describe('Phase 1 audit event query contract guardrails', () => {
+  it('centralizes audit history query filtering before deeper event history expansion', () => {
+    const controller = read('controllers/cruise.controller.js')
+    const queryService = read('services/auditEventQuery.service.js')
+    const queryServiceTest = read('tests/unit/auditEventQuery.service.test.js')
+    const hardeningPlan = read('docs/data-architecture-hardening.md')
+
+    expect(controller).toContain("require('../services/auditEventQuery.service')")
+    expect(controller).toContain('buildAuditEventQueryContract(req.query')
+    expect(controller).toContain('buildAuditEventListResponse(auditEvents, auditEventQuery)')
+    expect(queryService).toContain('AUDIT_EVENT_FILTER_FIELDS')
+    expect(queryService).toContain('normalizeAuditEventFilters')
+    expect(queryService).toContain('normalizeAuditEventLimit')
+    expect(queryServiceTest).toContain('unexpectedTenantBypass')
+    expect(queryServiceTest).toContain('queryLimit')
+    expect(hardeningPlan).toContain('Phase 1 Audit Event Query Contract Bridge')
+    expect(hardeningPlan).toContain('centralizes audit history filters and limit normalization')
+  })
+})
+
+describe('Phase 1 seed data decoupling bridge guardrails', () => {
+  it('documents seed JSON as a demo/reset input while production data moves to migrations and workflows', () => {
+    const seedManifestService = read('services/seedDataManifest.service.js')
+    const seedManifestTest = read('tests/unit/seedDataManifest.service.test.js')
+    const hardeningPlan = read('docs/data-architecture-hardening.md')
+
+    for (const helperName of [
+      'DEFAULT_SEED_MANIFEST',
+      'normalizeSeedEntityName',
+      'uniqueSeedEntities',
+      'buildSeedDataManifest',
+      'describeSeedDataDecoupling',
+      'assertSeedDataManifest'
+    ]) {
+      expect(seedManifestService).toContain(helperName)
+      expect(seedManifestTest).toContain(helperName)
+    }
+
+    expect(seedManifestService).toContain('data/cruise.json')
+    expect(seedManifestService).toContain('database-migrations-and-admin-workflows')
+    expect(seedManifestService).toContain('forbidRuntimeSeedMutation')
+    expect(seedManifestTest).toContain('not the runtime source of truth')
+    expect(seedManifestTest).toContain('production data changes flow through migrations, APIs, and admin workflows')
+    expect(hardeningPlan).toContain('Phase 1 Seed Data Decoupling Bridge')
+    expect(hardeningPlan).toContain('seed JSON remains a demo/reset input rather than the production runtime source of truth')
+  })
+})
+
+describe('Phase 1 production indexing strategy guardrails', () => {
+  it('centralizes implemented and planned index contracts before final database index propagation', () => {
+    const indexStrategyService = read('services/productionIndexStrategy.service.js')
+    const indexStrategyTest = read('tests/unit/productionIndexStrategy.service.test.js')
+    const hardeningPlan = read('docs/data-architecture-hardening.md')
+
+    for (const helperName of [
+      'DEFAULT_INDEX_STRATEGY',
+      'normalizeIndexPhase',
+      'normalizeIndexDefinition',
+      'buildProductionIndexStrategy',
+      'groupIndexesByPhase',
+      'findIndexesForTable',
+      'assertProductionIndexStrategy',
+      'describeProductionIndexStrategy'
+    ]) {
+      expect(indexStrategyService).toContain(helperName)
+      expect(indexStrategyTest).toContain(helperName)
+    }
+
+    expect(indexStrategyService).toContain('idx_bookings_sailing_status')
+    expect(indexStrategyService).toContain('idx_audit_events_entity_created_at')
+    expect(indexStrategyService).toContain('production-index-strategy-finalization')
+    expect(indexStrategyTest).toContain('planned production index work')
+    expect(hardeningPlan).toContain('Phase 1 Production Index Strategy Bridge')
+    expect(hardeningPlan).toContain('production-index-strategy-finalization')
+  })
+})
+
+describe('Phase 1 closeout readiness bridge guardrails', () => {
+  it('centralizes the Phase 1 completion handoff before moving into final productionization', () => {
+    const closeoutService = read('services/phaseOneCloseoutReadiness.service.js')
+    const closeoutTest = read('tests/unit/phaseOneCloseoutReadiness.service.test.js')
+    const hardeningPlan = read('docs/data-architecture-hardening.md')
+
+    for (const helperName of [
+      'DEFAULT_CLOSEOUT_AREAS',
+      'CLOSEOUT_STATUSES',
+      'normalizeCloseoutStatus',
+      'normalizeCloseoutArea',
+      'buildPhaseOneCloseoutReadiness',
+      'assertPhaseOneCloseoutReadiness',
+      'describePhaseOneCloseoutReadiness'
+    ]) {
+      expect(closeoutService).toContain(helperName)
+      expect(closeoutTest).toContain(helperName)
+    }
+
+    expect(closeoutService).toContain('phase-one-closeout-readiness')
+    expect(closeoutService).toContain('date-time-normalization')
+    expect(closeoutTest).toContain('without reopening completed bridge slices')
+    expect(hardeningPlan).toContain('Phase 1 Closeout Readiness Bridge')
+    expect(hardeningPlan).toContain('phase-one-closeout-readiness')
+  })
+})
+
+describe('Phase 1 completion handoff guardrails', () => {
+  it('closes Phase 1 with a final completion handoff and Phase 2 productionization boundaries', () => {
+    const completionService = read('services/phaseOneCompletionHandoff.service.js')
+    const completionTest = read('tests/unit/phaseOneCompletionHandoff.service.test.js')
+    const hardeningPlan = read('docs/data-architecture-hardening.md')
+
+    for (const helperName of [
+      'PHASE_ONE_COMPLETION_GUARDRAIL',
+      'PHASE_ONE_COMPLETION_AREAS',
+      'PHASE_ONE_PRODUCTIONIZATION_HANDOFF',
+      'normalizeCompletionStatus',
+      'normalizeCompletionArea',
+      'buildPhaseOneCompletionHandoff',
+      'assertPhaseOneCompletionHandoff',
+      'describePhaseOneCompletionHandoff'
+    ]) {
+      expect(completionService).toContain(helperName)
+      expect(completionTest).toContain(helperName)
+    }
+
+    expect(completionService).toContain('phase-one-completion-handoff')
+    expect(completionService).toContain('Phase 1 Data Architecture Hardening')
+    expect(completionService).toContain('database-migrations')
+    expect(completionService).toContain('production-authentication')
+    expect(completionService).toContain('tenant-enforcement')
+    expect(completionTest).toContain('without reopening Phase 1 bridge slices')
+    expect(hardeningPlan).toContain('Phase 1 Completion Handoff Bridge')
+    expect(hardeningPlan).toContain('phase-one-completion-handoff')
+    expect(hardeningPlan).toContain('Phase 1 Data Architecture Hardening is 100% complete')
+    expect(hardeningPlan).toContain('Phase 2 Productionization')
   })
 })

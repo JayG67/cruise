@@ -175,6 +175,106 @@ describe('Sailing and itinerary API integration tests', () => {
     expect(deleteDayRes.statusCode).toBe(200)
   })
 
+  it('records itinerary administration audit events with scoped sailing context', async () => {
+    const { sailing } = await getSeededShipAndSailing()
+    const adminHeaders = {
+      'X-Cruise-User-Id': 'integration-admin',
+      'X-Cruise-User-Name': 'Integration Admin',
+      'X-Cruise-User-Role': 'ADMIN'
+    }
+
+    const createDayRes = await request(app)
+      .post(`/cruise/sailings/${sailing.id}/itinerary`)
+      .set(adminHeaders)
+      .send({
+        day: 22,
+        title: 'Audited Architecture Port Day',
+        port: 'Juneau, Alaska',
+        activitySchedule: [{ time: '10:00 AM', activity: 'Audited glacier briefing' }]
+      })
+
+    expect(createDayRes.statusCode).toBe(201)
+
+    const updateDayRes = await request(app)
+      .patch(`/cruise/itinerary-days/${createDayRes.body.id}`)
+      .set(adminHeaders)
+      .send({
+        day: 23,
+        title: 'Updated Audited Architecture Port Day',
+        port: 'Skagway, Alaska'
+      })
+
+    expect(updateDayRes.statusCode).toBe(200)
+
+    const createActivityRes = await request(app)
+      .post(`/cruise/itinerary-days/${createDayRes.body.id}/activities`)
+      .set(adminHeaders)
+      .send({
+        time: '1:00 PM',
+        activity: 'Audited salmon bake excursion'
+      })
+
+    expect(createActivityRes.statusCode).toBe(201)
+
+    const updateActivityRes = await request(app)
+      .patch(`/cruise/activities/${createActivityRes.body.id}`)
+      .set(adminHeaders)
+      .send({
+        time: '1:30 PM',
+        activity: 'Updated audited salmon bake excursion'
+      })
+
+    expect(updateActivityRes.statusCode).toBe(200)
+
+    const deleteActivityRes = await request(app)
+      .delete(`/cruise/activities/${createActivityRes.body.id}`)
+      .set(adminHeaders)
+
+    expect(deleteActivityRes.statusCode).toBe(200)
+
+    const deleteDayRes = await request(app)
+      .delete(`/cruise/itinerary-days/${createDayRes.body.id}`)
+      .set(adminHeaders)
+
+    expect(deleteDayRes.statusCode).toBe(200)
+
+    const itineraryDayAuditRes = await request(app)
+      .get(`/cruise/audit-events?entityType=ITINERARY_DAY&entityId=${createDayRes.body.id}`)
+      .set(adminHeaders)
+
+    expect(itineraryDayAuditRes.statusCode).toBe(200)
+    expect(itineraryDayAuditRes.body.auditEvents.map(event => event.eventType)).toEqual(
+      expect.arrayContaining([
+        'ITINERARY_DAY_CREATED',
+        'ITINERARY_DAY_UPDATED',
+        'ITINERARY_DAY_DELETED'
+      ])
+    )
+    itineraryDayAuditRes.body.auditEvents.forEach(event => {
+      expect(event.sailingId).toBe(sailing.id)
+      expect(event.actorUserId).toBe('integration-admin')
+      expect(event.source).toBe('PLATFORM_ADMIN_API')
+    })
+
+    const activityAuditRes = await request(app)
+      .get(`/cruise/audit-events?entityType=ITINERARY_ACTIVITY&entityId=${createActivityRes.body.id}`)
+      .set(adminHeaders)
+
+    expect(activityAuditRes.statusCode).toBe(200)
+    expect(activityAuditRes.body.auditEvents.map(event => event.eventType)).toEqual(
+      expect.arrayContaining([
+        'ITINERARY_ACTIVITY_CREATED',
+        'ITINERARY_ACTIVITY_UPDATED',
+        'ITINERARY_ACTIVITY_DELETED'
+      ])
+    )
+    activityAuditRes.body.auditEvents.forEach(event => {
+      expect(event.sailingId).toBe(sailing.id)
+      expect(event.actorDisplayName).toBe('Integration Admin')
+      expect(event.eventPayload).toEqual(expect.any(Object))
+    })
+  })
+
   it('persists created sailing values and removes the sailing after delete', async () => {
     const ship = await createIsolatedShipForSailingTest()
 

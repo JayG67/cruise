@@ -13,6 +13,7 @@ describe('React role and person selector', () => {
     cy.getByTestId(rs.roleTypeSelect).select('passenger')
     cy.getByTestId(rs.passengerFinderPanel).should('be.visible')
     cy.getByTestId(rs.passengerFinderResults).should('be.visible')
+    cy.get('.passenger-finder-card-chips').should('not.exist')
     cy.getByTestId(rs.personFinderResultCard).first().invoke('text').should((text) => {
       expect(text).to.match(/\d{4}-\d{2}-\d{2}/)
       expect(text).to.include(' · ')
@@ -200,6 +201,17 @@ describe('React role and person selector', () => {
     cy.getByTestId(rs.operationalSelectorSummary).should('contain.text', 'Royal Caribbean International')
     cy.getByTestId(rs.operationalSelectorSummary).should('contain.text', '20 people')
     cy.getByTestId(rs.personFinderResultCard).should('have.length', 16)
+    cy.getByTestId(rs.personFinderResultCard).first().should('contain.text', 'Angela Brooks').and('contain.text', 'Guest Services Lead').and('contain.text', 'Freedom of the Seas')
+    cy.getByTestId(rs.personFinderResultCard).first().then(($card) => {
+      const cardStyle = getComputedStyle($card[0])
+      const titleStyle = getComputedStyle($card.find('strong')[0])
+      expect(cardStyle.backgroundColor, 'assignment card background is not the blank white shell').not.to.equal('rgb(255, 255, 255)')
+      expect(titleStyle.color, 'assignment card text remains readable').not.to.equal(cardStyle.backgroundColor)
+    })
+    cy.getByTestId(rs.operationalSelectorSummary).find('strong').first().then(($summary) => {
+      const summaryStyle = getComputedStyle($summary[0])
+      expect(summaryStyle.color, 'summary values remain visible on the dark panel').not.to.equal('rgb(255, 255, 255, 0)')
+    })
     cy.getByTestId(rs.personFinderLimitNote).should('contain.text', 'Showing the best 16 matches')
     cy.getByTestId(rs.personFinderResults).should('contain.text', 'Freedom of the Seas')
     cy.getByTestId(rs.personFinderResults).should('contain.text', 'Navigator of the Seas')

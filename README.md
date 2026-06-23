@@ -67,7 +67,7 @@ Before a public presentation or production-style deployment, use the in-app Qual
 - User-facing language presents a real cruise operations product, not the internal development process.
 - Automated and manual checks both support approval.
 
-Current engineering phase: Data Architecture Hardening with normalized users/roles and an Operational ownership attribution bridge is underway. Completed hardening now includes production query indexes, shared reference-data contracts, database `CHECK` constraints, typed date/time migration bridge columns, and normalized user/role bridge tables for production identity compatibility. The next data-hardening passes should deepen user/role normalization into owner and approver foreign keys, add audit history, introduce multi-cruise-line tenancy, and eventually move application writes fully onto typed temporal columns. See [docs/data-architecture-hardening.md](docs/data-architecture-hardening.md).
+Current engineering phase: Data Architecture Hardening with normalized users/roles, operational ownership attribution, and shared audit-history payload contracts underway. Completed hardening now includes production query indexes, shared reference-data contracts, database `CHECK` constraints, typed date/time migration bridge columns, normalized user/role bridge tables, core entity UUID/timestamp bridges, passenger self-service persistence, and passenger before/after audit-history payload consistency. The next data-hardening passes should continue turning display-name and edge workflow relationships into durable IDs, deepen turnaround before/after audit consistency, introduce multi-cruise-line tenancy, and eventually move application writes fully onto typed temporal columns. See [docs/data-architecture-hardening.md](docs/data-architecture-hardening.md).
 
 ## ✨ Current Application Features
 
@@ -739,3 +739,16 @@ This does not add a full login provider yet. It creates the clean backend seam n
 ### Turnaround playbook template bridge
 
 The turnaround dashboard now derives a reusable operations playbook from each scoped operation. The playbook summarizes template readiness, reusable task order, department baselines, staffing expectations, exception rules, and next best actions so reviewers can see how live turnaround work could become repeatable ship/port operating templates while preserving the demo role-assumption flow.
+### Current Phase 1 Data Architecture Hardening Slice: Passenger Relationship Identity Bridge
+
+The current passing baseline now has the next Phase 1 hardening slice applied: passenger relationship records keep their existing readable portfolio IDs while gaining durable UUID bridge identifiers for production-scale history, API evolution, and integration readiness.
+
+This slice adds:
+
+- `bookingPassengerUuid` on booking-passenger rows;
+- `favoriteUuid` on customer itinerary favorite rows;
+- `checklistUuid` on pre-cruise checklist rows;
+- backfill and unique-index safeguards for existing demo data;
+- update behavior that preserves the booking-passenger UUID when the same passenger remains attached to a booking.
+
+Phase 1 remains active. The strongest remaining targets are durable-ID API contract promotion, remaining turnaround edge-mutation audit consistency, seed-JSON exit work, and shared enum/domain hardening for remaining status-like fields.

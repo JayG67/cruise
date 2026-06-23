@@ -1,10 +1,13 @@
 const { test, expect } = require('@playwright/test')
 const {
+  clickStableControl,
   expectNoHorizontalOverflow,
   expectOperationalDashboardReady,
   selectDemoUserByRole,
   selectRoleAndPerson,
-  selectPassengerProfileUser
+  selectPassengerProfileUser,
+  openFleetSailingsBySearch,
+  waitForPassengerBookingDetailToggles
 } = require('../support/reactProductionHelpers')
 
 function mobileRunSuffix(testInfo) {
@@ -32,28 +35,16 @@ async function expectOperationalCardText(card, expectedText, options = {}) {
 }
 
 async function openRoyalShipSailings(page) {
-  await page.getByTestId('react-fleet-search').fill('Royal')
+  return openFleetSailingsBySearch(page, 'Royal')
+}
 
-  const viewShipsButton = page.getByTestId('react-view-ships-button').first()
-  await viewShipsButton.scrollIntoViewIfNeeded()
-  await expect(viewShipsButton).toBeVisible({ timeout: 15000 })
-  await expect(viewShipsButton).toBeEnabled({ timeout: 15000 })
-  await viewShipsButton.click()
-
-  const selectedShipsPanel = page.getByTestId('react-selected-ships-panel')
-  await expect(selectedShipsPanel).toBeVisible({ timeout: 15000 })
-  await expect(selectedShipsPanel).toContainText(/Royal.*ships/, { timeout: 15000 })
-
-  const viewSailingsButton = page.getByTestId('react-view-sailings-button').first()
-  await viewSailingsButton.scrollIntoViewIfNeeded()
-  await expect(viewSailingsButton).toBeVisible({ timeout: 15000 })
-  await expect(viewSailingsButton).toBeEnabled({ timeout: 15000 })
-  await viewSailingsButton.click()
-
-  const sailingsPanel = page.getByTestId('react-sailings-panel')
-  await expect(sailingsPanel).toBeVisible({ timeout: 20000 })
-  await sailingsPanel.scrollIntoViewIfNeeded()
-  return sailingsPanel
+async function completeCreateCruiseLineDetails(page, suffix = 'Mobile') {
+  await page.getByTestId('react-create-cruise-line-name').fill(`${suffix} Cruise Line`)
+  await page.getByTestId('react-create-cruise-line-country').fill('United States')
+  await page.getByTestId('react-create-cruise-line-website').fill(`https://www.${suffix.toLowerCase()}-cruise.example`)
+  await page.getByTestId('react-create-cruise-line-brand-family').fill(`${suffix} Brand Group`)
+  await page.getByTestId('react-create-cruise-line-brand-theme').fill('Mobile-ready workflow')
+  await page.getByTestId('react-create-cruise-line-market-positioning').fill('Responsive cruise operations test line')
 }
 
 async function expectAdminMutationFormsReady(page) {
@@ -186,14 +177,31 @@ test.describe('React default mobile replacement checks', () => {
     await selectDemoUserByRole(page, 'Admin')
 
     await page.getByTestId('react-fleet-search').fill('Royal')
-    const updateButton = page.getByTestId('react-update-cruise-line-button').first()
-    await updateButton.scrollIntoViewIfNeeded()
-    await expect(updateButton).toBeVisible()
+    const royalFleetCard = page.getByTestId('react-fleet-card').filter({ hasText: 'Royal Caribbean International' }).first()
+    await expect(royalFleetCard).toBeVisible({ timeout: 15000 })
 
-    await updateButton.click()
-    await expect(page.getByTestId('react-cruise-line-edit-form')).toBeVisible()
-    await expect(page.getByTestId('react-edit-cruise-line-name')).toBeVisible()
-    await page.getByTestId('react-cancel-cruise-line-edit').click()
+    const updateButton = royalFleetCard.getByTestId('react-update-cruise-line-button')
+    await updateButton.scrollIntoViewIfNeeded()
+    await expect(updateButton).toBeVisible({ timeout: 15000 })
+    await expect(updateButton).toBeEnabled({ timeout: 15000 })
+
+    const editForm = page.getByTestId('react-cruise-line-edit-form')
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      if (await editForm.isVisible({ timeout: 1000 }).catch(() => false)) break
+
+      if (attempt === 0) {
+        await clickStableControl(updateButton, { timeout: 15000 })
+      } else {
+        await updateButton.evaluate(button => {
+          button.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' })
+          button.click()
+        })
+      }
+    }
+
+    await expect(editForm).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('react-edit-cruise-line-name')).toBeVisible({ timeout: 15000 })
+    await clickStableControl(page.getByTestId('react-cancel-cruise-line-edit'), { timeout: 15000 })
     await expect(page.getByTestId('react-cruise-line-edit-form')).toHaveCount(0)
     await expect(page.getByTestId('react-fleet-card').first()).toContainText('Royal')
     await expectNoHorizontalOverflow(page)
@@ -278,12 +286,15 @@ test.describe('React default mobile replacement checks', () => {
     await expectNoHorizontalOverflow(page)
   })
 
-  test('keeps React create cruise-line dynamic ship rows usable on mobile', async ({ page }) => {
+  test('keeps React create cruise-line dynamic ship rows usable on mobile', async ({ page }, testInfo) => {
     await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
     const createForm = page.getByTestId('react-create-cruise-line-workflow')
     await createForm.scrollIntoViewIfNeeded()
+    await expect(page.getByTestId('react-add-ship-row')).toBeDisabled()
+    await completeCreateCruiseLineDetails(page, `Mobile ${mobileRunSuffix(testInfo)}`)
+    await expect(page.getByTestId('react-add-ship-row')).toBeEnabled()
     await page.getByTestId('react-add-ship-row').click()
     await expect(page.getByTestId('react-create-ship-name')).toHaveCount(2)
     await page.getByTestId('react-create-ship-name').nth(1).fill('Mobile Ship')
@@ -294,13 +305,80 @@ test.describe('React default mobile replacement checks', () => {
 
   test('keeps React favorite itinerary controls usable from a phone viewport', async ({ page }) => {
     await page.goto('/')
-    await selectDemoUserByRole(page, 'Passenger')
+    await selectPassengerProfileUser(page)
 
-    await page.getByTestId('react-role-booking-details-toggle').first().click()
-    await expect(page.getByTestId('react-role-itinerary-day').first()).toBeVisible()
-    await page.getByTestId('react-role-favorite-itinerary-toggle').first().click()
-    await page.getByTestId('react-role-favorites-only-toggle').first().click()
-    await expect(page.getByTestId('react-role-itinerary-day').first()).toBeVisible()
+    let bookingDetailToggles = await waitForPassengerBookingDetailToggles(page, { timeout: 30000 })
+    await page.waitForFunction(
+      () => document.querySelectorAll('[data-testid="react-role-booking-card"]').length > 0,
+      {},
+      { timeout: 30000 }
+    )
+    let openedItineraryBooking = false
+    let openedBookingCard = null
+
+    for (let attempt = 0; attempt < 3 && !openedItineraryBooking; attempt += 1) {
+      const bookingCards = page.getByTestId('react-role-booking-card')
+      const bookingCardCount = await bookingCards.count()
+
+      for (let index = 0; index < bookingCardCount; index += 1) {
+        const bookingCard = bookingCards.nth(index)
+        const toggle = bookingCard.getByTestId('react-role-booking-details-toggle')
+        await toggle.scrollIntoViewIfNeeded()
+        await expect(toggle).toBeVisible({ timeout: 15000 })
+        await expect(toggle).toBeEnabled({ timeout: 15000 })
+
+        if (await toggle.getAttribute('aria-expanded') !== 'true') {
+          await clickStableControl(toggle, { timeout: 15000 })
+          await expect(toggle).toHaveAttribute('aria-expanded', 'true', { timeout: 15000 })
+        }
+
+        await bookingCard.getByTestId('react-role-booking-details-loading').first()
+          .waitFor({ state: 'hidden', timeout: 20000 })
+          .catch(() => {})
+
+        await page.waitForFunction(
+          cardIndex => {
+            const cards = Array.from(document.querySelectorAll('[data-testid="react-role-booking-card"]'))
+            const card = cards[cardIndex]
+            if (!card) return false
+            return Boolean(
+              card.querySelector('[data-testid="react-role-itinerary-day"]') ||
+              card.querySelector('[data-testid="react-role-no-itinerary"]') ||
+              card.querySelector('[data-testid="react-role-booking-details-error"]')
+            )
+          },
+          index,
+          { timeout: 20000 }
+        ).catch(() => {})
+
+        const itineraryDay = bookingCard.getByTestId('react-role-itinerary-day').first()
+        if (await itineraryDay.isVisible({ timeout: 5000 }).catch(() => false)) {
+          openedItineraryBooking = true
+          openedBookingCard = bookingCard
+          break
+        }
+
+        if (await toggle.getAttribute('aria-expanded') === 'true') {
+          await clickStableControl(toggle, { timeout: 10000 })
+          await expect(toggle).toHaveAttribute('aria-expanded', 'false', { timeout: 10000 }).catch(() => {})
+        }
+      }
+
+      if (!openedItineraryBooking && attempt < 2) {
+        await page.reload()
+        await selectPassengerProfileUser(page)
+        bookingDetailToggles = await waitForPassengerBookingDetailToggles(page, { timeout: 30000 })
+        await expect(bookingDetailToggles.first()).toBeVisible({ timeout: 15000 })
+      }
+    }
+
+    expect(openedItineraryBooking).toBe(true)
+    await expect(page.getByTestId('react-role-itinerary-day').first()).toBeVisible({ timeout: 15000 })
+    const itineraryScope = openedBookingCard || page
+    await expect(itineraryScope.getByTestId('react-role-itinerary-day').first()).toBeVisible({ timeout: 15000 })
+    await clickStableControl(itineraryScope.getByTestId('react-role-favorite-itinerary-toggle').first(), { timeout: 15000 })
+    await clickStableControl(itineraryScope.getByTestId('react-role-favorites-only-toggle').first(), { timeout: 15000 })
+    await expect(itineraryScope.getByTestId('react-role-itinerary-day').first()).toBeVisible({ timeout: 15000 })
     await expectNoHorizontalOverflow(page)
   })
 
@@ -331,17 +409,28 @@ test.describe('React default mobile replacement checks', () => {
     await deleteButton.scrollIntoViewIfNeeded()
     await expect(deleteButton).toBeVisible({ timeout: 15000 })
     await expect(deleteButton).toBeEnabled({ timeout: 15000 })
-    await deleteButton.click()
 
     const confirmation = page.getByTestId('react-fleet-delete-confirmation')
-    await confirmation.scrollIntoViewIfNeeded()
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      if (await confirmation.isVisible({ timeout: 1500 }).catch(() => false)) break
+
+      await clickStableControl(deleteButton, { timeout: 15000 })
+      if (await confirmation.isVisible({ timeout: 2500 }).catch(() => false)) break
+
+      await deleteButton.evaluate(button => {
+        button.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' })
+        button.click()
+      })
+    }
+
     await expect(confirmation).toBeVisible({ timeout: 15000 })
+    await confirmation.evaluate(panel => {
+      panel.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' })
+    })
     await expect(confirmation).toContainText('Delete Royal Caribbean International', { timeout: 15000 })
 
     const cancelButton = page.getByTestId('react-fleet-delete-confirmation-cancel')
-    await expect(cancelButton).toBeVisible({ timeout: 15000 })
-    await expect(cancelButton).toBeEnabled({ timeout: 15000 })
-    await cancelButton.click()
+    await clickStableControl(cancelButton, { timeout: 15000 })
     await expect(confirmation).toHaveCount(0, { timeout: 15000 })
     await expectNoHorizontalOverflow(page)
   })

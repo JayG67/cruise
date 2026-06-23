@@ -112,3 +112,13 @@ describe('Cruise operations product presentation guardrails', () => {
   })
 
 })
+
+
+test('top navigation avoids duplicate current-location and workspace links', () => {
+  const appSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/App.jsx'), 'utf8')
+
+  expect(appSource).not.toContain('href="#react-dashboard">Dashboard</a>')
+  expect(appSource).not.toContain('href="#react-employer-demo">Workspaces</a>')
+  expect(appSource).toContain('href="#react-employer-demo">Overview</a>')
+  expect(appSource).toContain('Cruise Fleet Operations Platform')
+})

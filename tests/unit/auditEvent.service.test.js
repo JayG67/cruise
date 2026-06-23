@@ -52,7 +52,8 @@ describe('auditEvent service', () => {
       entityId: 'task-1',
       actorDisplayName: 'Alex Turner',
       eventPayload: { status: 'COMPLETE' },
-      createdAt: '2026-01-01T00:00:00.000Z'
+      createdAt: '2026-01-01T00:00:00.000Z',
+      createdAtTimestamp: new Date('2026-01-01T00:00:00.000Z')
     })
 
     expect(values).toEqual(expect.objectContaining({
@@ -62,7 +63,8 @@ describe('auditEvent service', () => {
       actorDisplayName: 'Alex Turner',
       source: 'APPLICATION',
       eventPayload: '{"status":"COMPLETE"}',
-      createdAt: '2026-01-01T00:00:00.000Z'
+      createdAt: '2026-01-01T00:00:00.000Z',
+      createdAtTimestamp: new Date('2026-01-01T00:00:00.000Z')
     }))
   })
 
@@ -80,7 +82,8 @@ describe('auditEvent service', () => {
       operationId: 'operation-1',
       source: 'TURNAROUND_OPERATIONS_API',
       eventPayload: '{"status":"COMPLETE"}',
-      createdAt: '2026-01-01T00:00:00.000Z'
+      createdAt: '2026-01-01T00:00:00.000Z',
+      createdAtTimestamp: new Date('2026-01-01T00:00:00.000Z')
     })).toEqual({
       id: 'audit-1',
       eventType: 'UPDATED',
@@ -94,7 +97,8 @@ describe('auditEvent service', () => {
       operationId: 'operation-1',
       source: 'TURNAROUND_OPERATIONS_API',
       eventPayload: { status: 'COMPLETE' },
-      createdAt: '2026-01-01T00:00:00.000Z'
+      createdAt: '2026-01-01T00:00:00.000Z',
+      createdAtTimestamp: new Date('2026-01-01T00:00:00.000Z')
     })
   })
 

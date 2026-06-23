@@ -466,17 +466,9 @@ export default function ReactCruiseLinePresentationSuite({ cruiseLines = [], boo
   const featuredShip = ships.find(ship => ship.name === selectedShipName) || ships[0] || {}
   const shipSailings = getShipSailings(featuredShip)
   const featuredSailing = shipSailings.find(sailing => sailing.id === selectedSailingId || sailing.departureDate === selectedSailingId) || shipSailings[0] || {}
-  const featuredItinerary = getSailingItinerary(featuredSailing)
-  const activityHighlights = selectedLine ? getActivityHighlights(selectedLine, bookings) : []
   const manifestPreview = metrics.matchingBookings.slice(0, 4)
   const revenueMix = useMemo(() => selectedLine ? buildRevenueMix(selectedLine, bookings) : [], [selectedLine, bookings])
-  const sailingCalendar = useMemo(() => selectedLine ? buildSailingCalendar(selectedLine, bookings) : [], [selectedLine, bookings])
-  const guestExperienceRows = useMemo(() => selectedLine ? buildGuestExperienceRows(selectedLine, bookings) : [], [selectedLine, bookings])
   const commercialNarrative = useMemo(() => selectedLine ? buildCommercialNarrative(selectedLine, metrics) : [], [selectedLine, metrics])
-  const operationsSequence = useMemo(() => selectedLine ? buildOperationsAgenda(selectedLine, metrics) : [], [selectedLine, metrics])
-  const sailingRevenueBoard = useMemo(() => selectedLine ? buildSailingRevenueBoard(selectedLine, bookings) : [], [selectedLine, bookings])
-  const portOperationsPlan = useMemo(() => selectedLine ? buildPortOperationsPlan(selectedLine, bookings) : [], [selectedLine, bookings])
-  const cruiseLineClosePlan = useMemo(() => selectedLine ? buildCruiseLineClosePlan(selectedLine, metrics) : [], [selectedLine, metrics])
 
   if (!selectedLine) {
     return (
@@ -490,34 +482,38 @@ export default function ReactCruiseLinePresentationSuite({ cruiseLines = [], boo
 
   return (
     <section className="cruise-line-presentation-suite" id="react-cruise-line-presentation" aria-labelledby="react-cruise-line-presentation-heading" data-testid="react-cruise-line-presentation-suite">
-      <div className="presentation-suite-heading">
-        <div>
+      <div className="presentation-control-panel cruise-line-operations-control-panel">
+        <div className="presentation-suite-heading cruise-line-operations-heading">
           <p className="eyebrow">Cruise line operations</p>
           <h2 id="react-cruise-line-presentation-heading">Cruise line operating workspace</h2>
           <p>
             Select the operating scope, then drill into fleet, guest, sailing, or turnaround workflows.
           </p>
         </div>
-        <div className="presentation-scope-controls" aria-label="Cruise line operating scope">
-          <label className="presentation-line-picker">
+
+        <div className="presentation-scope-controls cruise-line-operations-scope-controls" aria-label="Cruise line operating scope">
+          <label className="presentation-line-picker cruise-line-operations-picker">
             <span>Cruise line</span>
             <select value={getLineId(selectedLine)} onChange={event => { setSelectedLineId(event.target.value); setSelectedShipName(''); setSelectedSailingId('') }} data-testid="react-presentation-line-picker">
               {cruiseLines.map(line => (
                 <option key={getLineId(line)} value={getLineId(line)}>{line.name}</option>
               ))}
             </select>
+            <small>Select the cruise line to operate within.</small>
           </label>
-          <label className="presentation-line-picker">
+          <label className="presentation-line-picker cruise-line-operations-picker">
             <span>Ship</span>
             <select value={featuredShip.name || ''} onChange={event => { setSelectedShipName(event.target.value); setSelectedSailingId('') }} data-testid="react-presentation-ship-picker">
               {ships.map(ship => <option key={ship.name} value={ship.name}>{ship.name}</option>)}
             </select>
+            <small>Select the ship to focus on.</small>
           </label>
-          <label className="presentation-line-picker">
+          <label className="presentation-line-picker cruise-line-operations-picker">
             <span>Sailing</span>
             <select value={featuredSailing.id || featuredSailing.departureDate || ''} onChange={event => setSelectedSailingId(event.target.value)} data-testid="react-presentation-sailing-picker">
               {shipSailings.map(sailing => <option key={sailing.id || sailing.departureDate} value={sailing.id || sailing.departureDate}>{sailing.departureDate || 'Date pending'} · {getSailingDestination(sailing)}</option>)}
             </select>
+            <small>Select the sailing to operate.</small>
           </label>
         </div>
       </div>
@@ -561,183 +557,7 @@ export default function ReactCruiseLinePresentationSuite({ cruiseLines = [], boo
         </article>
       </div>
 
-      <div className="presentation-detail-grid">
-        <article className="presentation-detail-card wide-card" data-testid="react-presentation-itinerary-card">
-          <div className="presentation-card-heading">
-            <div>
-              <span className="status-pill">Featured sailing</span>
-              <h3>{featuredShip.name || 'Featured ship'}</h3>
-            </div>
-            <span>{featuredSailing.departureDate || 'Departure date pending'} · {featuredSailing.days || featuredItinerary.length || 3} days</span>
-          </div>
-          <div className="itinerary-strip">
-            {featuredItinerary.slice(0, 6).map(day => (
-              <div key={`${day.day}-${day.title}`} className="itinerary-port-chip">
-                <span>Day {day.day}</span>
-                <strong>{day.port || day.title}</strong>
-                <small>{day.title}</small>
-              </div>
-            ))}
-          </div>
-        </article>
 
-        <article className="presentation-detail-card" data-testid="react-presentation-ports-card">
-          <h3>Route and port footprint</h3>
-          <div className="presentation-chip-list">
-            {metrics.ports.slice(0, 12).map(port => <span key={port}>{port}</span>)}
-          </div>
-        </article>
-
-        <article className="presentation-detail-card" data-testid="react-presentation-manifest-card">
-          <h3>Manifest preview</h3>
-          {manifestPreview.length === 0 ? (
-            <p>No matching bookings are loaded for this brand yet.</p>
-          ) : manifestPreview.map(booking => (
-            <div key={booking.id} className="presentation-manifest-row">
-              <strong>{booking.id}</strong>
-              <span>{getBookingShipName(booking) || featuredShip.name || 'Ship'} · {getPassengerRows(booking).length} guests</span>
-              <small>{getPassengerRows(booking).slice(0, 2).map(getPassengerName).join(', ')}</small>
-            </div>
-          ))}
-        </article>
-
-        <article className="presentation-detail-card" data-testid="react-presentation-activity-card">
-          <h3>Onboard and shore programming</h3>
-          <div className="presentation-activity-list">
-            {activityHighlights.slice(0, 5).map(activity => (
-              <div key={activity.id}>
-                <strong>{activity.time} · {activity.activity}</strong>
-                <span>{activity.dayTitle} aboard {activity.shipName}</span>
-              </div>
-            ))}
-          </div>
-        </article>
-      </div>
-
-      <div className="presentation-commercial-grid" aria-label="Cruise-line operating analysis" data-testid="react-presentation-commercial-grid">
-        <article className="presentation-detail-card wide-card" data-testid="react-presentation-narrative-card">
-          <h3>Operational picture</h3>
-          <div className="presentation-narrative-list">
-            {commercialNarrative.map(item => (
-              <div key={item.id}>
-                <strong>{item.label}</strong>
-                <p>{item.detail}</p>
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="presentation-detail-card" data-testid="react-presentation-revenue-card">
-          <h3>Cabin and fare mix</h3>
-          <div className="presentation-revenue-list">
-            {revenueMix.map(row => (
-              <div key={row.category}>
-                <span>{row.category}</span>
-                <strong>{formatCount(row.guests)} guests</strong>
-                <small>{row.share}% of visible manifest</small>
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="presentation-detail-card" data-testid="react-presentation-agenda-card">
-          <h3>Operating sequence</h3>
-          <div className="presentation-agenda-list">
-            {operationsSequence.map(step => (
-              <div key={step.id}>
-                <span>{step.time}</span>
-                <strong>{step.title}</strong>
-                <p>{step.detail}</p>
-              </div>
-            ))}
-          </div>
-        </article>
-      </div>
-
-      <div className="presentation-calendar-grid" aria-label="Sailing calendar and guest experience" data-testid="react-presentation-calendar-grid">
-        <article className="presentation-detail-card wide-card" data-testid="react-presentation-calendar-card">
-          <h3>Upcoming sailing board</h3>
-          <div className="presentation-sailing-board">
-            {sailingCalendar.length === 0 ? (
-              <p>No sailing records are loaded for this brand yet.</p>
-            ) : sailingCalendar.map(sailing => (
-              <div key={sailing.id} className="presentation-sailing-row">
-                <strong>{sailing.departureDate}</strong>
-                <span>{sailing.shipName} · {sailing.destination}</span>
-                <small>{sailing.departurePort} · {sailing.duration || sailing.itineraryDays} days · {sailing.itineraryDays} itinerary records</small>
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="presentation-detail-card wide-card" data-testid="react-presentation-guest-experience-card">
-          <h3>Guest experience handoff</h3>
-          <div className="presentation-guest-grid">
-            {guestExperienceRows.length === 0 ? (
-              <p>No passenger preference records are loaded for this brand yet.</p>
-            ) : guestExperienceRows.map(row => (
-              <div key={row.id} className="presentation-guest-card">
-                <strong>{row.passengerName}</strong>
-                <span>{row.shipName} · {row.bookingId}</span>
-                <small>{row.preference}</small>
-              </div>
-            ))}
-          </div>
-        </article>
-      </div>
-
-      <div className="presentation-operator-grid" aria-label="Cruise-line commercial and port operations" data-testid="react-presentation-operator-grid">
-        <article className="presentation-detail-card wide-card" data-testid="react-presentation-revenue-board-card">
-          <h3>Sailing revenue and occupancy board</h3>
-          <div className="presentation-revenue-board">
-            {sailingRevenueBoard.map(row => (
-              <div key={row.id} className="presentation-revenue-board-row">
-                <div>
-                  <strong>{row.shipName}</strong>
-                  <span>{row.departureDate} · {row.destination}</span>
-                </div>
-                <div>
-                  <strong>{row.occupancy}%</strong>
-                  <span>visible occupancy</span>
-                </div>
-                <div>
-                  <strong>{row.visibleGuests}/{row.estimatedCapacity}</strong>
-                  <span>guests tracked</span>
-                </div>
-                <div>
-                  <strong>{row.topFare}</strong>
-                  <span>{row.opportunity}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="presentation-detail-card" data-testid="react-presentation-port-plan-card">
-          <h3>Port operations plan</h3>
-          <div className="presentation-port-plan">
-            {portOperationsPlan.map(row => (
-              <div key={row.port}>
-                <strong>{row.port}</strong>
-                <span>{formatCount(row.calls)} calls · {formatCount(row.ships)} ships</span>
-                <small>{row.operatingFocus}</small>
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="presentation-detail-card" data-testid="react-presentation-close-plan-card">
-          <h3>Operational expansion path</h3>
-          <div className="presentation-close-plan">
-            {cruiseLineClosePlan.map(item => (
-              <div key={item.id}>
-                <strong>{item.label}</strong>
-                <p>{item.detail}</p>
-              </div>
-            ))}
-          </div>
-        </article>
-      </div>
 
       <div className="presentation-action-row">
         <button type="button" className="primary-action-button" onClick={() => onOpenWorkspace?.('react-fleet', 'Fleet Directory', 'admin')} data-testid="react-presentation-open-fleet">

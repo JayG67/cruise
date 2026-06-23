@@ -14,8 +14,8 @@ const demoUserTable = pgTable('demo_users', {
   normalizedUserId: varchar({ length: 40 }).references(() => appUserTable.id),
   normalizedRoleId: varchar({ length: 50 }).references(() => appRoleTable.id),
   cruiseLineId: uuid().references(() => cruiseLineTable.id),
-  assignedShipId: uuid().references(() => shipTable.id),
-  assignedSailingId: uuid().references(() => sailingTable.id),
+  assignedShipId: uuid().references(() => shipTable.id, { onDelete: 'set null' }),
+  assignedSailingId: uuid().references(() => sailingTable.id, { onDelete: 'set null' }),
   cruiseLineName: varchar({ length: 255 }),
   assignedShipName: varchar({ length: 255 })
 })

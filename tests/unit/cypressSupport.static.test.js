@@ -181,9 +181,8 @@ describe('browser test helper inventory', () => {
     expect(lifecycleSpec).toContain('operationsCommandCenterCriticalPath')
     expect(lifecycleSpec).toContain('operationsShiftBriefing')
     expect(lifecycleSpec).toContain('operationsShiftBriefingCriticalItems')
-    expect(lifecycleSpec).toContain('operationsPresentationGuide')
-    expect(lifecycleSpec).toContain('operationsPresentationStoryline')
-    expect(lifecycleSpec).toContain('operationsPresentationRisks')
+    expect(lifecycleSpec).toContain('operationsLifecyclePhaseAction')
+    expect(lifecycleSpec).toContain('operationsLifecycleNextActionButton')
   })
 
 

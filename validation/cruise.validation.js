@@ -302,6 +302,13 @@ const bookingPreferenceUpdateSchema = z.object({
   accessibilityNotes: z.string().trim().max(255).optional()
 }).strict()
 
+const preCruiseChecklistSchema = z.object({
+  documents: z.boolean().optional().default(false),
+  luggage: z.boolean().optional().default(false),
+  dining: z.boolean().optional().default(false),
+  excursions: z.boolean().optional().default(false)
+}).strict()
+
 const itineraryFavoriteSchema = z.object({
   customerId: customerIdSchema,
   activityScheduleId: uuidSchema
@@ -464,6 +471,7 @@ module.exports = {
   bookingPassengerCreateSchema,
   passengerCustomerUpdateSchema,
   bookingPreferenceUpdateSchema,
+  preCruiseChecklistSchema,
   itineraryFavoriteSchema,
   turnaroundOperationCommandUpdateSchema,
   turnaroundTaskStatusUpdateSchema,

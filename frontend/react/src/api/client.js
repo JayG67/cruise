@@ -73,13 +73,48 @@ function normalizeStaticCustomers(seedData) {
 function normalizeStaticBookings(seedData) {
   const customersById = new Map(normalizeStaticCustomers(seedData).map(customer => [customer.id, customer]))
 
-  return (Array.isArray(seedData.bookings) ? seedData.bookings : []).map(booking => ({
-    ...booking,
-    passengers: (booking.passengers || []).map(passenger => ({
-      ...passenger,
-      customer: customersById.get(passenger.customerId) || null
-    }))
-  }))
+  return (Array.isArray(seedData.bookings) ? seedData.bookings : []).map(booking => {
+    const matchingCruiseLine = normalizeStaticCruiseLines(seedData).find(line =>
+      (line.ships || []).some(ship =>
+        ship.name === booking.shipName &&
+        (ship.sailings || []).some(sailing => sailing.departureDate === booking.departureDate)
+      )
+    )
+    const matchingShip = matchingCruiseLine
+      ? (matchingCruiseLine.ships || []).find(ship => ship.name === booking.shipName)
+      : null
+    const matchingSailing = matchingShip
+      ? (matchingShip.sailings || []).find(sailing => sailing.departureDate === booking.departureDate)
+      : null
+    const sailingId = matchingCruiseLine && matchingShip && matchingSailing
+      ? getSailingId(matchingCruiseLine, matchingShip, matchingSailing)
+      : booking.sailingId
+    const itineraryDays = Array.isArray(matchingSailing?.itinerary) ? matchingSailing.itinerary : []
+    const sailingWithItinerary = matchingSailing
+      ? {
+          ...matchingSailing,
+          id: sailingId,
+          shipId: matchingShip ? getShipId(matchingCruiseLine, matchingShip) : undefined,
+          shipName: matchingShip?.name,
+          cruiseLineId: matchingCruiseLine?.id,
+          cruiseLineName: matchingCruiseLine?.name,
+          itinerary: itineraryDays,
+          itineraryDays
+        }
+      : null
+
+    return {
+      ...booking,
+      sailingId,
+      sailing: sailingWithItinerary,
+      itinerary: itineraryDays,
+      itineraryDays,
+      passengers: (booking.passengers || []).map(passenger => ({
+        ...passenger,
+        customer: customersById.get(passenger.customerId) || null
+      }))
+    }
+  })
 }
 
 function normalizeStaticDemoUsers(seedData) {
@@ -637,6 +672,10 @@ export async function deleteBooking(bookingId, options = {}) {
   })
 }
 
+export async function getBookingDetails(bookingId, options = {}) {
+  return requestJson(`/cruise/bookings/${encodeURIComponent(bookingId)}`, options)
+}
+
 export async function updateCustomerProfile(customerId, payload, options = {}) {
   return requestJson(`/cruise/customers/${encodeURIComponent(customerId)}`, {
     ...options,
@@ -652,6 +691,19 @@ export async function updateCustomerProfile(customerId, payload, options = {}) {
 
 export async function updatePassengerProfile(customerId, payload, options = {}) {
   return requestJson(`/cruise/customers/${encodeURIComponent(customerId)}/passenger-profile`, {
+    ...options,
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
+
+export async function updatePassengerPreCruiseChecklist(customerId, payload, options = {}) {
+  return requestJson(`/cruise/customers/${encodeURIComponent(customerId)}/pre-cruise-checklist`, {
     ...options,
     method: 'PATCH',
     headers: {

@@ -117,3 +117,69 @@ describe('requestAuthorization service', () => {
     expect(json).toHaveBeenCalledWith({ message: service.ADMIN_FORBIDDEN_MESSAGE })
   })
 })
+
+describe('requestAuthorization actor identity bridge', () => {
+  it('centralizes production, demo, and anonymous actor shapes without adding request-specific fields', () => {
+    expect(service.buildActorIdentity({
+      actorUserId: 'direct-user-1',
+      actorDisplayName: 'Direct User',
+      actorRole: 'ADMIN',
+      identitySource: service.ACTOR_IDENTITY_SOURCES.PRINCIPAL
+    })).toEqual({
+      actorUserId: 'direct-user-1',
+      actorDisplayName: 'Direct User',
+      actorRole: 'ADMIN',
+      identitySource: service.ACTOR_IDENTITY_SOURCES.PRINCIPAL
+    })
+
+    expect(service.buildProductionActor({
+      userId: 'prod-user-1',
+      displayName: 'Production User',
+      role: 'guest-services-lead'
+    })).toEqual({
+      actorUserId: 'prod-user-1',
+      actorDisplayName: 'Production User',
+      actorRole: 'guest-services-lead',
+      identitySource: service.ACTOR_IDENTITY_SOURCES.PRINCIPAL
+    })
+
+    expect(service.buildDemoActor({
+      id: 'UADMIN0001',
+      normalizedUserId: 'UADMIN0001',
+      displayName: 'Admin Reviewer',
+      role: 'ADMIN'
+    })).toEqual({
+      actorUserId: 'UADMIN0001',
+      actorDisplayName: 'Admin Reviewer',
+      actorRole: 'ADMIN',
+      identitySource: service.ACTOR_IDENTITY_SOURCES.DEMO
+    })
+
+    expect(service.buildAnonymousActor()).toEqual({
+      actorUserId: null,
+      actorDisplayName: null,
+      actorRole: null,
+      identitySource: service.ACTOR_IDENTITY_SOURCES.ANONYMOUS
+    })
+  })
+
+  it('validates non-anonymous actor identities before audit attribution uses them', () => {
+    expect(service.assertResolvedActor({
+      actorUserId: 'user-1',
+      actorDisplayName: 'User One',
+      actorRole: 'ADMIN',
+      identitySource: service.ACTOR_IDENTITY_SOURCES.PRINCIPAL
+    })).toEqual(expect.objectContaining({ actorUserId: 'user-1' }))
+
+    expect(() => service.assertResolvedActor({
+      actorUserId: 'user-1',
+      actorRole: 'ADMIN',
+      identitySource: service.ACTOR_IDENTITY_SOURCES.PRINCIPAL
+    })).toThrow('Resolved actor display name is required')
+  })
+
+  it('keeps role normalization explicit for future user and role completion work', () => {
+    expect(service.normalizeActorRole('food beverage lead')).toBe('FOOD_BEVERAGE_LEAD')
+    expect(service.normalizeActorDisplayName({ email: 'leader@example.com', userId: 'user-1' })).toBe('leader@example.com')
+  })
+})

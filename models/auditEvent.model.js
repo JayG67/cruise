@@ -1,4 +1,4 @@
-const { pgTable, uuid, varchar, text } = require('drizzle-orm/pg-core')
+const { pgTable, uuid, varchar, text, timestamp } = require('drizzle-orm/pg-core')
 const appUserTable = require('./appUser.model')
 const cruiseLineTable = require('./cruiseline.model')
 const shipTable = require('./ship.model')
@@ -17,7 +17,8 @@ const auditEventTable = pgTable('audit_events', {
   operationId: uuid(),
   source: varchar({ length: 100 }).notNull().default('APPLICATION'),
   eventPayload: text(),
-  createdAt: varchar({ length: 40 }).notNull()
+  createdAt: varchar({ length: 40 }).notNull(),
+  createdAtTimestamp: timestamp({ withTimezone: true })
 })
 
 module.exports = auditEventTable

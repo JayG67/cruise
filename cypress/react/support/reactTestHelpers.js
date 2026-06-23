@@ -105,7 +105,8 @@ const reactCustomers = [
     lastName: 'Gallagher',
     email: 'jay.react@example.com',
     phone: '555-0101',
-    loyaltyNumber: 'RG-100'
+    loyaltyNumber: 'RG-100',
+    preCruiseChecklist: { documents: false, luggage: true, dining: false, excursions: false }
   },
   {
     id: 'react-customer-2',
@@ -113,7 +114,8 @@ const reactCustomers = [
     lastName: 'Gallagher',
     email: 'alisa.react@example.com',
     phone: '555-0102',
-    loyaltyNumber: 'RG-200'
+    loyaltyNumber: 'RG-200',
+    preCruiseChecklist: { documents: true, luggage: true, dining: false, excursions: false }
   },
   {
     id: 'react-customer-3',
@@ -121,7 +123,8 @@ const reactCustomers = [
     lastName: 'Leader',
     email: 'morgan.leader@example.com',
     phone: '555-0103',
-    loyaltyNumber: 'GL-300'
+    loyaltyNumber: 'GL-300',
+    preCruiseChecklist: { documents: false, luggage: false, dining: false, excursions: false }
   }
 ]
 
