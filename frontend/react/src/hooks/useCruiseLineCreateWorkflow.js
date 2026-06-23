@@ -17,6 +17,17 @@ function normalizeOptional(value) {
   return trimmed || undefined
 }
 
+function hasCompleteCruiseLineDetails(draft) {
+  return [
+    draft.name,
+    draft.country,
+    draft.website,
+    draft.brandFamily,
+    draft.brandTheme,
+    draft.marketPositioning
+  ].every(value => value.trim())
+}
+
 function normalizeShips(ships) {
   const seenNames = new Set()
 
@@ -47,28 +58,43 @@ export default function useCruiseLineCreateWorkflow({ onCreated } = {}) {
   }, [])
 
   const updateShip = useCallback((index, fieldName, value) => {
-    setDraft(current => ({
-      ...current,
-      ships: current.ships.map((ship, shipIndex) =>
-        shipIndex === index ? { ...ship, [fieldName]: value } : ship
-      )
-    }))
+    setDraft(current => {
+      if (!hasCompleteCruiseLineDetails(current)) return current
+
+      return {
+        ...current,
+        ships: current.ships.map((ship, shipIndex) =>
+          shipIndex === index ? { ...ship, [fieldName]: value } : ship
+        )
+      }
+    })
   }, [])
 
   const addShipRow = useCallback(() => {
-    setDraft(current => ({
-      ...current,
-      ships: [...current.ships, { name: '', currentPort: '' }]
-    }))
+    setDraft(current => {
+      if (!hasCompleteCruiseLineDetails(current)) {
+        setMessage('Complete all cruise line details before adding starter ships.')
+        return current
+      }
+
+      return {
+        ...current,
+        ships: [...current.ships, { name: '', currentPort: '' }]
+      }
+    })
   }, [])
 
   const removeShipRow = useCallback(index => {
-    setDraft(current => ({
-      ...current,
-      ships: current.ships.length === 1
-        ? [{ name: '', currentPort: '' }]
-        : current.ships.filter((_, shipIndex) => shipIndex !== index)
-    }))
+    setDraft(current => {
+      if (!hasCompleteCruiseLineDetails(current)) return current
+
+      return {
+        ...current,
+        ships: current.ships.length === 1
+          ? [{ name: '', currentPort: '' }]
+          : current.ships.filter((_, shipIndex) => shipIndex !== index)
+      }
+    })
   }, [])
 
   const reset = useCallback(() => {
@@ -87,6 +113,11 @@ export default function useCruiseLineCreateWorkflow({ onCreated } = {}) {
 
     if (!name) {
       setMessage('Cruise line name is required.')
+      return
+    }
+
+    if (!hasCompleteCruiseLineDetails(draft) && normalizeShips(draft.ships).length) {
+      setMessage('Complete all cruise line details before creating starter ships.')
       return
     }
 

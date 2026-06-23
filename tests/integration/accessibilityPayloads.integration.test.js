@@ -86,7 +86,9 @@ describe('Accessibility-supporting API payload integration tests', () => {
       'HOUSEKEEPING_LEAD',
       'GUEST_SERVICES_LEAD',
       'FOOD_BEVERAGE_LEAD',
-      'ENGINEERING_LEAD'
+      'ENGINEERING_LEAD',
+      'SECURITY_LEAD',
+      'PORT_OPERATIONS_LEAD'
     ]
 
     res.body.forEach(user => {

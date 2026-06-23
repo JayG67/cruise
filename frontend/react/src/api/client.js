@@ -73,13 +73,48 @@ function normalizeStaticCustomers(seedData) {
 function normalizeStaticBookings(seedData) {
   const customersById = new Map(normalizeStaticCustomers(seedData).map(customer => [customer.id, customer]))
 
-  return (Array.isArray(seedData.bookings) ? seedData.bookings : []).map(booking => ({
-    ...booking,
-    passengers: (booking.passengers || []).map(passenger => ({
-      ...passenger,
-      customer: customersById.get(passenger.customerId) || null
-    }))
-  }))
+  return (Array.isArray(seedData.bookings) ? seedData.bookings : []).map(booking => {
+    const matchingCruiseLine = normalizeStaticCruiseLines(seedData).find(line =>
+      (line.ships || []).some(ship =>
+        ship.name === booking.shipName &&
+        (ship.sailings || []).some(sailing => sailing.departureDate === booking.departureDate)
+      )
+    )
+    const matchingShip = matchingCruiseLine
+      ? (matchingCruiseLine.ships || []).find(ship => ship.name === booking.shipName)
+      : null
+    const matchingSailing = matchingShip
+      ? (matchingShip.sailings || []).find(sailing => sailing.departureDate === booking.departureDate)
+      : null
+    const sailingId = matchingCruiseLine && matchingShip && matchingSailing
+      ? getSailingId(matchingCruiseLine, matchingShip, matchingSailing)
+      : booking.sailingId
+    const itineraryDays = Array.isArray(matchingSailing?.itinerary) ? matchingSailing.itinerary : []
+    const sailingWithItinerary = matchingSailing
+      ? {
+          ...matchingSailing,
+          id: sailingId,
+          shipId: matchingShip ? getShipId(matchingCruiseLine, matchingShip) : undefined,
+          shipName: matchingShip?.name,
+          cruiseLineId: matchingCruiseLine?.id,
+          cruiseLineName: matchingCruiseLine?.name,
+          itinerary: itineraryDays,
+          itineraryDays
+        }
+      : null
+
+    return {
+      ...booking,
+      sailingId,
+      sailing: sailingWithItinerary,
+      itinerary: itineraryDays,
+      itineraryDays,
+      passengers: (booking.passengers || []).map(passenger => ({
+        ...passenger,
+        customer: customersById.get(passenger.customerId) || null
+      }))
+    }
+  })
 }
 
 function normalizeStaticDemoUsers(seedData) {
@@ -205,6 +240,92 @@ async function requestStaticFallback(path, options = {}) {
 
   if (requestPath === '/cruise/audit-events') {
     return { auditEvents: [], filters: {}, staticFallback: true }
+  }
+
+
+
+  if (requestPath === '/cruise/portfolio/showcase') {
+    return {
+      title: 'Portfolio Polish Center',
+      overallScore: 50,
+      status: 'watch',
+      summary: 'Bundled static data is available; live portfolio showcase checks require the application API.',
+      gates: [
+        { id: 'portfolio-narrative', label: 'Portfolio narrative', score: 55, status: 'watch', summary: 'Static fallback cannot inspect the full project README and component index.', evidence: ['Read-only fallback mode'], recommendations: ['Start the API for complete portfolio narrative scoring.'] },
+        { id: 'launch-assets', label: 'Launch assets', score: 45, status: 'needs-polish', summary: 'Static fallback cannot inspect launch assets.', evidence: ['Read-only fallback mode'], recommendations: ['Prepare screenshots, architecture diagram, public URL, and resume bullets.'] }
+      ],
+      screenshotPlan: [
+        { id: 'turnaround-command-center', title: 'Turnaround operations command view', purpose: 'Lead with the flagship operational workflow.', capture: 'Show readiness, blockers, and department execution.' }
+      ],
+      resumeBullets: [
+        { id: 'resume-1', text: 'Built a role-aware cruise turnaround operations platform with production-minded readiness gates.', confidence: 'draft' }
+      ],
+      interviewTalkingPoints: [
+        { id: 'product-ownership', prompt: 'Why this project matters', talkingPoint: 'It demonstrates realistic operational workflows beyond CRUD.' }
+      ],
+      launchChecklist: [{ sequence: 1, gateId: 'launch-assets', title: 'Launch assets', status: 'needs-polish', action: 'Prepare screenshots, architecture diagram, public URL, and resume bullets.' }],
+      staticFallback: true
+    }
+  }
+
+  if (requestPath === '/cruise/deployment/readiness') {
+    return {
+      title: 'Deployment Readiness Center',
+      overallScore: 45,
+      status: 'watch',
+      summary: 'Bundled static data is available; live deployment readiness checks require the application API.',
+      gates: [
+        { id: 'platform-target', label: 'Hosting platform target', score: 50, status: 'watch', summary: 'Static fallback cannot inspect live platform configuration.', evidence: ['Read-only fallback mode'], recommendations: ['Start the API for complete deployment target readiness scoring.'] },
+        { id: 'environment', label: 'Environment and secrets plan', score: 40, status: 'needs-work', summary: 'Static fallback cannot inspect environment setup.', evidence: ['Read-only fallback mode'], recommendations: ['Document deployment environment variables before launch.'] }
+      ],
+      launchPlan: [{ sequence: 1, gateId: 'environment', title: 'Environment and secrets plan', status: 'needs-work', action: 'Start the live API for complete deployment readiness checks.' }],
+      deploymentTargets: [
+        { id: 'render', label: 'Render', status: 'candidate', evidence: 'Static fallback mode.', nextStep: 'Verify platform config from the live API.' }
+      ],
+      releaseEvidence: [{ label: 'Full regression gate', value: 'Static fallback' }],
+      staticFallback: true
+    }
+  }
+
+  if (requestPath === '/cruise/production-hardening/readiness') {
+    return {
+      title: 'Production Hardening Center',
+      overallScore: 45,
+      status: 'watch',
+      summary: 'Bundled static data is available; live production hardening checks require the application API.',
+      gates: [
+        { id: 'environment', label: 'Environment configuration', score: 40, status: 'needs-hardening', summary: 'Static fallback cannot inspect live environment variables.', evidence: ['Read-only fallback mode'], recommendations: ['Start the API for complete production environment readiness scoring.'] },
+        { id: 'deployment', label: 'Deployment readiness', score: 50, status: 'watch', summary: 'Static fallback can show the workspace but cannot inspect deployment files.', evidence: ['Read-only fallback mode'], recommendations: ['Add deployment documentation after choosing the hosting target.'] }
+      ],
+      launchSequence: ['Start the live API for complete production hardening checks.'],
+      staticFallback: true
+    }
+  }
+
+  if (requestPath === '/cruise/data-architecture/readiness') {
+    return {
+      title: 'Data Architecture Hardening Center',
+      overallScore: 50,
+      status: 'watch',
+      summary: 'Bundled static data is available; live architecture checks require the application API.',
+      gates: [
+        { id: 'identity', label: 'Identity normalization', score: 50, status: 'watch', summary: 'Static fallback cannot fully inspect normalized user tables.', evidence: ['Read-only fallback mode'], recommendations: ['Start the API for complete architecture readiness scoring.'] },
+        { id: 'dates', label: 'Date and time hardening', score: 40, status: 'needs-hardening', summary: 'Static data still uses date-only values for sailings.', evidence: ['Read-only fallback mode'], recommendations: ['Move operational dates to timezone-aware timestamp fields.'] }
+      ],
+      migrationBacklog: [
+        { id: 'migration-dates', gateId: 'dates', sequence: 1, title: 'Promote operational dates to timezone-aware timestamps', phase: 'Foundation', owner: 'Operations platform', effort: 'M', risk: 'high', status: 'needs-hardening', migration: 'Start the API for complete migration planning.', acceptance: 'Operational execution moments are timezone-aware.' },
+        { id: 'migration-identity', gateId: 'identity', sequence: 2, title: 'Backfill stable person references', phase: 'Foundation', owner: 'Platform data', effort: 'M', risk: 'medium', status: 'watch', migration: 'Start the API for complete identity backfill planning.', acceptance: 'Records join by IDs instead of display names.' }
+      ],
+      migrationTimeline: [
+        { phase: 'Foundation', sequence: 1, status: 'needs-hardening', risk: 'high', items: ['migration-dates', 'migration-identity'], summary: '2 migration workstreams queued for foundation.' }
+      ],
+      schemaContract: [],
+      riskRegister: [
+        { id: 'risk-dates', title: 'Promote operational dates to timezone-aware timestamps', severity: 'high', mitigation: 'Start the live API to inspect real field coverage.', validation: 'Operational execution moments are timezone-aware.' }
+      ],
+      roadmap: ['Start the live API for complete data architecture hardening checks.'],
+      staticFallback: true
+    }
   }
 
   if (requestPath === '/cruise') {
@@ -551,6 +672,10 @@ export async function deleteBooking(bookingId, options = {}) {
   })
 }
 
+export async function getBookingDetails(bookingId, options = {}) {
+  return requestJson(`/cruise/bookings/${encodeURIComponent(bookingId)}`, options)
+}
+
 export async function updateCustomerProfile(customerId, payload, options = {}) {
   return requestJson(`/cruise/customers/${encodeURIComponent(customerId)}`, {
     ...options,
@@ -566,6 +691,19 @@ export async function updateCustomerProfile(customerId, payload, options = {}) {
 
 export async function updatePassengerProfile(customerId, payload, options = {}) {
   return requestJson(`/cruise/customers/${encodeURIComponent(customerId)}/passenger-profile`, {
+    ...options,
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
+
+export async function updatePassengerPreCruiseChecklist(customerId, payload, options = {}) {
+  return requestJson(`/cruise/customers/${encodeURIComponent(customerId)}/pre-cruise-checklist`, {
     ...options,
     method: 'PATCH',
     headers: {
@@ -772,4 +910,60 @@ export async function resetDemoData(options = {}) {
     ...options,
     method: 'POST'
   })
+}
+
+export async function getTurnaroundAdminSetup(options = {}) {
+  return requestJson('/cruise/turnaround-admin/setup', getScopedRequestOptions(options))
+}
+
+export async function createTurnaroundPerson(payload, options = {}) {
+  return requestJson('/cruise/turnaround-admin/people', {
+    ...getScopedRequestOptions(options),
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(getScopedRequestOptions(options).headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function deleteTurnaroundPerson(personId, options = {}) {
+  return requestJson(`/cruise/turnaround-admin/people/${encodeURIComponent(personId)}`, {
+    ...getScopedRequestOptions(options),
+    method: 'DELETE'
+  })
+}
+
+export async function updateTurnaroundPerson(personId, payload, options = {}) {
+  return requestJson(`/cruise/turnaround-admin/people/${encodeURIComponent(personId)}`, {
+    ...getScopedRequestOptions(options),
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(getScopedRequestOptions(options).headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
+
+export async function getDataArchitectureReadiness(options = {}) {
+  return requestJson('/cruise/data-architecture/readiness', getScopedRequestOptions(options))
+}
+
+export async function getProductionHardeningReadiness(options = {}) {
+  return requestJson('/cruise/production-hardening/readiness', getScopedRequestOptions(options))
+}
+
+export async function getDeploymentReadiness(options = {}) {
+  return requestJson('/cruise/deployment/readiness', getScopedRequestOptions(options))
+}
+
+export async function getPortfolioShowcase(options = {}) {
+  return requestJson('/cruise/portfolio/showcase', getScopedRequestOptions(options))
+}
+
+export async function getPublicLaunchReadiness(options = {}) {
+  return requestJson('/cruise/public-launch/readiness', getScopedRequestOptions(options))
 }

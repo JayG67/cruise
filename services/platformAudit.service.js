@@ -4,17 +4,47 @@ const db = require('../db')
 const bookingTable = require('../models/booking.model')
 const sailingTable = require('../models/sailing.model')
 const shipTable = require('../models/ship.model')
+const appUserTable = require('../models/appUser.model')
 const { resolveRequestActor } = require('./requestAuthorization.service')
 const { recordAuditEvent } = require('./auditEvent.service')
 
 const PLATFORM_AUDIT_SOURCE = 'PLATFORM_ADMIN_API'
 
+async function ensurePlatformAuditActor(actor) {
+  if (!actor?.actorUserId) return actor
+
+  const existingRows = await db
+    .select({ id: appUserTable.id })
+    .from(appUserTable)
+    .where(eq(appUserTable.id, actor.actorUserId))
+    .limit(1)
+
+  if (existingRows[0]) return actor
+
+  await db
+    .insert(appUserTable)
+    .values({
+      id: actor.actorUserId,
+      displayName: actor.actorDisplayName || actor.actorUserId,
+      email: `${actor.actorUserId}@cruise-explorer.local`,
+      userType: 'SYSTEM',
+      primaryCustomerId: null,
+      cruiseLineId: null,
+      assignedShipId: null,
+      status: 'ACTIVE'
+    })
+    .onConflictDoNothing()
+
+  return actor
+}
+
 async function resolvePlatformAuditActor(req) {
   const actor = await resolveRequestActor(req)
+  const ensuredActor = await ensurePlatformAuditActor(actor)
 
   return {
-    actorUserId: actor.actorUserId || null,
-    actorDisplayName: actor.actorDisplayName || null
+    actorUserId: ensuredActor.actorUserId || null,
+    actorDisplayName: ensuredActor.actorDisplayName || null
   }
 }
 
@@ -107,6 +137,7 @@ module.exports = {
   getBookingAuditScope,
   getSailingAuditScope,
   getShipAuditScope,
+  ensurePlatformAuditActor,
   recordPlatformAuditEvent,
   resolvePlatformAuditActor
 }

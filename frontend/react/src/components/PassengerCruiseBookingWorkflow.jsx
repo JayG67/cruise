@@ -1,6 +1,67 @@
 import { useMemo, useState } from 'react'
 import { createBooking, createCustomer, getSailingsForShip, getShipsForCruiseLine } from '../api/client.js'
 
+
+const DEFAULT_BOOKING_FARE_OPTIONS = [
+  { value: 'STANDARD', label: 'Standard' },
+  { value: 'BALCONY', label: 'Balcony' },
+  { value: 'SUITE', label: 'Suite' },
+  { value: 'FAMILY', label: 'Family' }
+]
+
+const FARE_CODE_LABELS = {
+  STANDARD: 'Standard',
+  BALCONY: 'Balcony',
+  BAL: 'Balcony',
+  OCE: 'Ocean view',
+  OCEAN: 'Ocean view',
+  INT: 'Interior',
+  INTERIOR: 'Interior',
+  SUITE: 'Suite',
+  FAM: 'Family',
+  FAMILY: 'Family',
+  SOLO: 'Solo traveler',
+  GRP: 'Group fare',
+  AFT: 'Aft cabin',
+  FWD: 'Forward cabin',
+  SPA: 'Spa cabin',
+  AQ: 'Aqua class',
+  HAVEN: 'Haven',
+  CONC: 'Concierge'
+}
+
+function sortByLabel(a, b) {
+  return String(a?.name || a?.label || a || '').localeCompare(String(b?.name || b?.label || b || ''))
+}
+
+function sortByDepartureDate(a, b) {
+  return String(a?.departureDate || '').localeCompare(String(b?.departureDate || ''))
+}
+
+function getFareCodeLabel(code = '') {
+  const normalizedCode = String(code || '').trim().toUpperCase()
+  if (!normalizedCode) return 'Fare option'
+  return FARE_CODE_LABELS[normalizedCode] || normalizedCode.replace(/[-_]+/g, ' ').toLowerCase().replace(/\b\w/g, letter => letter.toUpperCase())
+}
+
+function buildFareOptionsForShip(bookings = [], shipName = '') {
+  const normalizedShipName = normalizeText(shipName)
+  if (!normalizedShipName) return DEFAULT_BOOKING_FARE_OPTIONS
+
+  const shipFareCodes = new Set(
+    bookings
+      .filter(booking => normalizeText(getBookingShipName(booking)) === normalizedShipName)
+      .map(booking => String(booking.fareCode || '').trim().toUpperCase())
+      .filter(Boolean)
+  )
+
+  if (shipFareCodes.size === 0) return DEFAULT_BOOKING_FARE_OPTIONS
+
+  return [...shipFareCodes]
+    .map(code => ({ value: code, label: getFareCodeLabel(code) }))
+    .sort((a, b) => a.label.localeCompare(b.label) || a.value.localeCompare(b.value))
+}
+
 const DINING_OPTIONS = [
   'Anytime dining',
   'Early seating',
@@ -206,8 +267,12 @@ export default function PassengerCruiseBookingWorkflow({
     return cruiseLines.filter(line => {
       if (!cruiseLineFilter) return true
       return normalizeText(line.name).includes(cruiseLineFilter) || normalizeText(line.country).includes(cruiseLineFilter)
-    })
+    }).slice().sort(sortByLabel)
   }, [cruiseLines, searchFilters.cruiseLine])
+
+  const filteredShipOptions = useMemo(() => {
+    return shipOptions.slice().sort(sortByLabel)
+  }, [shipOptions])
 
   const filteredSailings = useMemo(() => {
     const destination = normalizeText(searchFilters.destination)
@@ -219,8 +284,11 @@ export default function PassengerCruiseBookingWorkflow({
       const departureMatches = !departurePort || normalizeText(sailing.departurePort).includes(departurePort)
       const durationMatches = !duration || String(sailing.days) === duration
       return destinationMatches && departureMatches && durationMatches
-    })
+    }).slice().sort(sortByDepartureDate)
   }, [sailingOptions, searchFilters.destination, searchFilters.departurePort, searchFilters.duration])
+
+  const availableFareOptions = useMemo(() => buildFareOptionsForShip(bookings, selectedShip?.name), [bookings, selectedShip?.name])
+  const selectedFareCode = availableFareOptions.some(option => option.value === fareCode) ? fareCode : availableFareOptions[0]?.value || 'STANDARD'
 
 
   const customerFinderOptions = useMemo(() => customers
@@ -248,7 +316,7 @@ export default function PassengerCruiseBookingWorkflow({
 
     try {
       const ships = await getShipsForCruiseLine(value)
-      setShipOptions(ships)
+      setShipOptions(Array.isArray(ships) ? ships.slice().sort(sortByLabel) : [])
       setStatusMessage(ships.length ? 'Choose a ship to load available sailings.' : 'No ships are available for this cruise line yet.')
     } catch (error) {
       setStatusMessage(getActionErrorMessage('Could not load ships for the selected cruise line.', error, 'Try again or choose a different cruise line.'))
@@ -272,7 +340,7 @@ export default function PassengerCruiseBookingWorkflow({
 
     try {
       const sailings = await getSailingsForShip(value)
-      setSailingOptions(sailings)
+      setSailingOptions(Array.isArray(sailings) ? sailings.slice().sort(sortByDepartureDate) : [])
       setStatusMessage(sailings.length ? 'Choose a sailing date and add guests before booking.' : 'No sailings are available for this ship yet.')
     } catch (error) {
       setStatusMessage(getActionErrorMessage('Could not load sailing dates for the selected ship.', error, 'Try again or choose a different ship.'))
@@ -397,7 +465,7 @@ export default function PassengerCruiseBookingWorkflow({
           sailingId: selectedSailingId,
           bookingStatus: 'REQUESTED',
           cabinNumber: cabinNumber.trim() || 'To be assigned',
-          fareCode,
+          fareCode: selectedFareCode,
           embarkationPort: selectedSailing.departurePort,
           debarkationPort: selectedSailing.arrivalPort,
           createdByCustomerId: selectedCustomer?.id || selectedDemoUser?.customerId || resolvedPassengerIds[0],
@@ -474,7 +542,7 @@ export default function PassengerCruiseBookingWorkflow({
             <span>Ship</span>
             <select value={selectedShipId} disabled={!selectedCruiseLineId || isLoadingShips} onChange={event => handleShipChange(event.target.value)} data-testid="react-booking-ship-select">
               <option value="">{isLoadingShips ? 'Loading ships...' : 'Select ship'}</option>
-              {shipOptions.map(ship => <option key={ship.id} value={ship.id}>{ship.name}</option>)}
+              {filteredShipOptions.map(ship => <option key={ship.id} value={ship.id}>{ship.name}</option>)}
             </select>
           </label>
           <label>
@@ -486,11 +554,8 @@ export default function PassengerCruiseBookingWorkflow({
           </label>
           <label>
             <span>Fare preference</span>
-            <select value={fareCode} onChange={event => setFareCode(event.target.value)} data-testid="react-booking-fare-code-select">
-              <option value="STANDARD">Standard</option>
-              <option value="BALCONY">Balcony</option>
-              <option value="SUITE">Suite</option>
-              <option value="FAMILY">Family</option>
+            <select value={selectedFareCode} onChange={event => setFareCode(event.target.value)} data-testid="react-booking-fare-code-select">
+              {availableFareOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
           </label>
         </div>

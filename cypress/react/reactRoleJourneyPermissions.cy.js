@@ -105,8 +105,7 @@ describe('React role journey permissions and validation coverage', () => {
     cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'First name, last name, and email are required')
     cy.get('@unexpectedCustomerCreate.all').should('have.length', 0)
 
-    cy.getByTestId(rs.adminCreateBookingSubmit).click()
-    cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'Customer ID, booking status, and cabin number are required')
+    cy.getByTestId(rs.adminCreateBookingForm).should('not.exist')
     cy.get('@unexpectedBookingCreate.all').should('have.length', 0)
 
     cy.getByTestId(rs.adminDeleteCustomerSubmit).click()
@@ -196,7 +195,7 @@ describe('React role journey permissions and validation coverage', () => {
     }).as('deleteJourneyBooking')
     cy.intercept('GET', '/cruise/bookings', [reactBookings[1]]).as('reloadBookingsAfterJourneyDelete')
 
-    cy.getByTestId(rs.adminDeleteBookingId).type(reactBookings[0].id)
+    cy.getByTestId(rs.adminDeleteBookingId).select(reactBookings[0].id)
     cy.getByTestId(rs.adminDeleteBookingSubmit).click()
     cy.getByTestId(rs.adminDeleteConfirmation).should('contain.text', reactBookings[0].id)
     cy.getByTestId(rs.adminDeleteConfirmationConfirm).click()
@@ -312,10 +311,10 @@ describe('React role journey permissions and validation coverage', () => {
   it('keeps invalid admin delete IDs from sending destructive requests', () => {
     cy.intercept('DELETE', '/cruise/customers/*').as('customerDeleteShouldNotRun')
     cy.intercept('DELETE', '/cruise/bookings/*').as('bookingDeleteShouldNotRun')
-    cy.getByTestId(rs.adminDeleteCustomerId).type('   ')
+    cy.getByTestId(rs.adminDeleteCustomerSubmit).click()
     cy.getByTestId(rs.adminDeleteCustomerSubmit).click()
     cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'Customer ID is required')
-    cy.getByTestId(rs.adminDeleteBookingId).type('   ')
+    cy.getByTestId(rs.adminDeleteBookingSubmit).click()
     cy.getByTestId(rs.adminDeleteBookingSubmit).click()
     cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'Booking ID is required')
     cy.get('@customerDeleteShouldNotRun.all').should('have.length', 0)

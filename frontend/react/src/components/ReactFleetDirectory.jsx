@@ -793,6 +793,8 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
 
     try {
       await deleteCruiseLine(cruiseLine.id)
+      const deletedMessage = `${cruiseLine.name} was deleted from the React fleet directory.`
+      setFleetActionMessage(deletedMessage)
 
       if (selectedCruiseLine?.id === cruiseLine.id) {
         setSelectedCruiseLine(null)
@@ -801,7 +803,7 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
       }
 
       await onRefresh?.()
-      setFleetActionMessage(`${cruiseLine.name} was deleted from the React fleet directory.`)
+      setFleetActionMessage(deletedMessage)
     } catch (deleteError) {
       setFleetActionMessage(deleteError.message || 'Unable to delete this cruise line.')
     } finally {

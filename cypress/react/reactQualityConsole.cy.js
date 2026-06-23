@@ -29,6 +29,18 @@ describe('React quality console coverage expansion', () => {
     })
   })
 
+
+
+  it('keeps the go-live checklist neutral before validation runs', () => {
+    cy.getByTestId(rs.goLiveReadinessPanel)
+      .should('be.visible')
+      .and('contain.text', 'Not checked yet')
+      .and('not.contain.text', 'Application API needs review')
+      .and('not.contain.text', '0 cruise lines available')
+      .and('not.contain.text', '0 customers and 0 bookings available')
+      .and('not.contain.text', '0 turnaround operations available')
+  })
+
   it('runs the React API health validation and writes structured output', () => {
     cy.intercept('GET', '/health', { status: 'ok', database: 'connected' }).as('reactHealthCheck')
     cy.getByTestId(rs.sqaHealthButton).click()

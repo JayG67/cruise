@@ -96,6 +96,28 @@ describe('browser test helper inventory', () => {
   })
 
 
+  it('keeps every React Cypress rs selector reference registered in the selector map', () => {
+    const selectorMapPath = path.join(projectRoot, 'cypress/react/support/reactSelectors.js')
+    const { reactSelectors } = require(selectorMapPath)
+    const reactSpecDir = path.join(projectRoot, 'cypress/react')
+    const specFiles = fs.readdirSync(reactSpecDir)
+      .filter(file => file.endsWith('.cy.js'))
+      .map(file => path.join(reactSpecDir, file))
+    const referencedKeys = new Set()
+
+    for (const specPath of specFiles) {
+      const spec = fs.readFileSync(specPath, 'utf8')
+      for (const match of spec.matchAll(/(?:getByTestId|getReactSelector)\(rs\.([A-Za-z0-9_]+)/g)) {
+        referencedKeys.add(match[1])
+      }
+    }
+
+    const missingKeys = [...referencedKeys].filter(key => !Object.prototype.hasOwnProperty.call(reactSelectors, key)).sort()
+
+    expect(missingKeys).toEqual([])
+    expect(reactSelectors.employerDemoCommandCenter).toBe('react-employer-demo-command-center')
+  })
+
   it('keeps React Cypress selectors centralized behind one authoritative selector map', () => {
     const selectorMapPath = path.join(projectRoot, 'cypress/react/support/reactSelectors.js')
     const duplicateSelectorMapPath = path.join(projectRoot, 'cypress/react/reactSelectors.js')
@@ -124,4 +146,82 @@ describe('browser test helper inventory', () => {
       expect(spec).toContain('reactSelectorKeys: rs')
     }
   })
+
+  it('keeps long-form Cypress lifecycle architecture in place for soup-to-nuts turnaround testing', () => {
+    const lifecycleSpecPath = path.join(projectRoot, 'cypress/react/reactTurnaroundLifecycleGoal.cy.js')
+    const lifecycleSpec = fs.readFileSync(lifecycleSpecPath, 'utf8')
+    const testingArchitecture = fs.readFileSync(path.join(projectRoot, 'docs/testing-architecture.md'), 'utf8')
+
+    expect(fs.existsSync(lifecycleSpecPath)).toBe(true)
+    expect(lifecycleSpec).toContain('Turnaround lifecycle soup-to-nuts Cypress architecture')
+    expect(lifecycleSpec).toContain('walks the deepest current admin-to-turnaround role lifecycle')
+    expect(lifecycleSpec).toContain("selectDemoUserByVisibleRole('Turnaround Manager')")
+    expect(lifecycleSpec).toContain("selectDemoUserByVisibleRole('Engineering Lead', 'David Torres')")
+    expect(lifecycleSpec).toContain('Turnaround task created successfully')
+    expect(lifecycleSpec).toContain('Turnaround staffing plan updated successfully')
+    const helper = fs.readFileSync(path.join(projectRoot, 'cypress/react/support/reactTestHelpers.js'), 'utf8')
+    expect(helper).toContain('function buildReactTurnaroundLifecycleState')
+    expect(helper).toContain('function buildReactTurnaroundPresentationGuide')
+    expect(helper).toContain('function buildReactTurnaroundCommandCenter')
+    expect(helper).toContain('function buildReactTurnaroundContinuityCenter')
+    expect(helper).toContain('function buildReactTurnaroundShiftBriefing')
+    expect(helper).toContain('hydrateReactTurnaroundOperations')
+    expect(helper).toContain('lifecycleState')
+    expect(helper).toContain('lifecycleState: buildReactTurnaroundLifecycleState(operation)')
+    expect(helper).toContain('presentationGuide: buildReactTurnaroundPresentationGuide(operation)')
+    expect(helper).toContain('commandCenter: operation.commandCenter || buildReactTurnaroundCommandCenter(operation)')
+    expect(helper).toContain('continuityCenter: operation.continuityCenter || buildReactTurnaroundContinuityCenter(operation)')
+    expect(helper).toContain('shiftBriefing: operation.shiftBriefing || buildReactTurnaroundShiftBriefing(operation)')
+    expect(helper).not.toContain('lifecycleState: operation.lifecycleState || buildReactTurnaroundLifecycleState(operation)')
+    expect(testingArchitecture).toContain('Full lifecycle workflows')
+    expect(testingArchitecture).toContain('Branch workflows')
+    expect(testingArchitecture).toContain('Do not use mobile Playwright as the primary owner of long CRUD lifecycle coverage')
+    expect(lifecycleSpec).toContain('operationsCommandCenter')
+    expect(lifecycleSpec).toContain('operationsCommandCenterKpis')
+    expect(lifecycleSpec).toContain('operationsCommandCenterCriticalPath')
+    expect(lifecycleSpec).toContain('operationsShiftBriefing')
+    expect(lifecycleSpec).toContain('operationsShiftBriefingCriticalItems')
+    expect(lifecycleSpec).toContain('operationsLifecyclePhaseAction')
+    expect(lifecycleSpec).toContain('operationsLifecycleNextActionButton')
+  })
+
+
+  it('keeps portfolio soup-to-nuts Cypress coverage present for employer-demo workflows', () => {
+    const portfolioSpecPath = path.join(projectRoot, 'cypress/react/reactPortfolioSoupToNuts.cy.js')
+    const portfolioSpec = fs.readFileSync(portfolioSpecPath, 'utf8')
+
+    expect(fs.existsSync(portfolioSpecPath)).toBe(true)
+    expect(portfolioSpec).toContain('Portfolio soup-to-nuts workflow journeys')
+    expect(portfolioSpec).toContain('walks the employer demo runway through every live application workspace')
+    expect(portfolioSpec).toContain('completes an admin data setup journey from cruise line to ship, sailing, and itinerary proof')
+    expect(portfolioSpec).toContain('completes passenger self-service booking from search to verified booking card, then proves group visibility')
+    expect(portfolioSpec).toContain('drives turnaround operations from admin setup through role execution and readiness evidence')
+    expect(portfolioSpec).toContain('finishes with quality, reset, and release-readiness evidence available from the same product surface')
+    expect(portfolioSpec).toContain("selectDemoUserByVisibleRole('Passenger')")
+    expect(portfolioSpec).toContain("selectDemoUserByVisibleRole('Group Leader')")
+    expect(portfolioSpec).toContain("selectDemoUserByVisibleRole('Turnaround Manager')")
+    expect(portfolioSpec).toContain("selectDemoUserByVisibleRole('Housekeeping Lead', 'Maria Rodriguez')")
+    expect(portfolioSpec).toContain("selectDemoUserByVisibleRole('Engineering Lead', 'David Torres')")
+    expect(portfolioSpec).toContain('cy.intercept')
+    expect(portfolioSpec).toContain('cy.wait')
+  })
+
+
+  it('keeps turnaround command center selectors registered for Cypress coverage', () => {
+    const selectors = fs.readFileSync(path.join(projectRoot, 'cypress/react/support/reactSelectors.js'), 'utf8')
+
+    expect(selectors).toContain("operationsCommandCenter: 'react-operations-command-center'")
+    expect(selectors).toContain("operationsCommandCenterDecisions: 'react-operations-command-center-decisions'")
+    expect(selectors).toContain("operationsCommandCenterCriticalPath: 'react-operations-command-center-critical-path'")
+    expect(selectors).toContain("operationsCommandCenterDepartments: 'react-operations-command-center-departments'")
+    expect(selectors).toContain("operationsContinuityCenter: 'react-operations-continuity-center'")
+    expect(selectors).toContain("operationsContinuityScenarios: 'react-operations-continuity-scenarios'")
+    expect(selectors).toContain("operationsContinuityRunbook: 'react-operations-continuity-runbook'")
+    expect(selectors).toContain("operationsContinuityDepartments: 'react-operations-continuity-departments'")
+    expect(selectors).toContain("operationsContinuityWatchlist: 'react-operations-continuity-watchlist'")
+    expect(selectors).toContain("operationsShiftBriefing: 'react-operations-shift-briefing'")
+    expect(selectors).toContain("operationsShiftBriefingCriticalItems: 'react-operations-shift-briefing-critical-items'")
+    expect(selectors).toContain("operationsShiftBriefingDepartments: 'react-operations-shift-briefing-departments'")
+  })
+
 })

@@ -337,8 +337,8 @@ describe('React operational role foundation', () => {
     selectOperationalDemoUserByVisibleRole('Turnaround Manager')
 
     cy.getByTestId(rs.operationsDirectoryPanel).should('be.visible')
-    cy.getByTestId(rs.operationsDirectoryCount).should('contain.text', '5 departments')
-    cy.getByTestId(rs.operationsDirectoryCard).should('have.length', 5)
+    cy.getByTestId(rs.operationsDirectoryCount).should('contain.text', '7 departments')
+    cy.getByTestId(rs.operationsDirectoryCard).should('have.length', 7)
     cy.getByTestId(rs.operationsDirectoryCard).first().should('contain.text', 'Turnaround Manager')
     cy.getByTestId(rs.operationsDirectoryCard).should('contain.text', 'Housekeeping Lead')
     cy.getByTestId(rs.operationsDirectoryCard).should('contain.text', 'Guest Services Lead')

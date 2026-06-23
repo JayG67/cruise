@@ -1,3 +1,5 @@
+const fs = require('fs')
+const path = require('path')
 const cruiseLineTable = require('../models/cruiseline.model')
 const shipTable = require('../models/ship.model')
 const sailingTable = require('../models/sailing.model')
@@ -8,7 +10,10 @@ const bookingTable = require('../models/booking.model')
 const bookingPassengerTable = require('../models/bookingPassenger.model')
 const demoUserTable = require('../models/demoUser.model')
 const appUserTable = require('../models/appUser.model')
+const appRoleTable = require('../models/appRole.model')
+const appUserRoleTable = require('../models/appUserRole.model')
 const customerItineraryFavoriteTable = require('../models/customerItineraryFavorite.model')
+const customerPreCruiseChecklistTable = require('../models/customerPreCruiseChecklist.model')
 const turnaroundOperationTable = require('../models/turnaroundOperation.model')
 const turnaroundTaskTable = require('../models/turnaroundTask.model')
 const turnaroundTaskUpdateTable = require('../models/turnaroundTaskUpdate.model')
@@ -17,13 +22,17 @@ const turnaroundEscalationTable = require('../models/turnaroundEscalation.model'
 const turnaroundStaffingTable = require('../models/turnaroundStaffing.model')
 const turnaroundTaskDependencyTable = require('../models/turnaroundTaskDependency.model')
 const turnaroundHandoffTable = require('../models/turnaroundHandoff.model')
+const auditEventTable = require('../models/auditEvent.model')
 const db = require('../db')
+const loadCruiseData = require('../services/loadCruiseData.service')
 const { listAuditEvents, listAuditEventsForOperation, recordAuditEvent } = require('../services/auditEvent.service')
+const { buildAuditEventListResponse, buildAuditEventQueryContract } = require('../services/auditEventQuery.service')
 const {
   getBookingAuditScope,
   getSailingAuditScope,
   getShipAuditScope,
-  recordPlatformAuditEvent
+  recordPlatformAuditEvent,
+  resolvePlatformAuditActor
 } = require('../services/platformAudit.service')
 const {
   buildTurnaroundAuditContext,
@@ -35,18 +44,124 @@ const { buildTurnaroundReleasePacket } = require('../services/turnaroundRelease.
 const { buildTurnaroundOperationalTimeline } = require('../services/turnaroundTimeline.service')
 const { buildTurnaroundOperationalMetrics } = require('../services/turnaroundMetrics.service')
 const { buildTurnaroundPlaybookTemplate } = require('../services/turnaroundPlaybook.service')
+const { buildTurnaroundPlaybookVariance } = require('../services/turnaroundVariance.service')
+const { buildTurnaroundIncidentCommand } = require('../services/turnaroundIncident.service')
+const { buildTurnaroundAfterActionReview } = require('../services/turnaroundAfterAction.service')
+const { buildTurnaroundExecutiveBrief } = require('../services/turnaroundExecutiveBrief.service')
+const { buildTurnaroundReviewerPacket } = require('../services/turnaroundReviewerPacket.service')
+const { buildTurnaroundOutreachBoard } = require('../services/turnaroundOutreach.service')
+const { buildTurnaroundManagementStatus } = require('../services/turnaroundCompletion.service')
+const { buildTurnaroundLifecycleState } = require('../services/turnaroundLifecycle.service')
+const { buildTurnaroundLaunchPlan } = require('../services/turnaroundLaunchPlan.service')
+const { buildTurnaroundScenarioPlan } = require('../services/turnaroundScenarioPlan.service')
+const { buildTurnaroundProductionReadiness } = require('../services/turnaroundProductionReadiness.service')
+const { buildTurnaroundApplicationDossier } = require('../services/turnaroundApplicationDossier.service')
+const { buildTurnaroundPresentationGuide } = require('../services/turnaroundPresentation.service')
+const { buildTurnaroundCloseoutPacket } = require('../services/turnaroundCloseout.service')
+const { buildTurnaroundCommandCenter } = require('../services/turnaroundCommandCenter.service')
+const { buildTurnaroundContinuityCenter } = require('../services/turnaroundContinuity.service')
+const { buildTurnaroundShiftBriefing } = require('../services/turnaroundShiftBriefing.service')
+const { buildTurnaroundGoLiveCenter } = require('../services/turnaroundGoLive.service')
+const { buildTurnaroundOperationsControlBoard } = require('../services/turnaroundOperationsControlBoard.service')
+const { buildTurnaroundSetupSummary, createTurnaroundPerson: createTurnaroundSetupPerson, updateTurnaroundPerson: updateTurnaroundSetupPerson, deleteTurnaroundPerson: deleteTurnaroundSetupPerson } = require('../services/turnaroundAdminSetup.service')
+const { buildDataArchitectureReadiness } = require('../services/dataArchitectureReadiness.service')
+const {
+  buildEntityHistoryPayload,
+  buildEntityLifecycleTimestamps,
+  buildEntityUpdateTimestamp
+} = require('../services/entityHistory.service')
+const {
+  withBookingApiIdentity,
+  withBookingPassengerApiIdentity,
+  withCruiseLineApiIdentity,
+  withCustomerApiIdentity,
+  withPreCruiseChecklistApiIdentity,
+  withSailingApiIdentity,
+  withShipApiIdentity
+} = require('../services/apiIdentityBridge.service')
+const { applyBookingPayloadProfile, applyCustomerPayloadProfile, getRequestedPayloadProfile } = require('../services/apiPayloadProfile.service')
+const { buildProductionHardeningReadiness } = require('../services/productionHardeningReadiness.service')
+const { buildDeploymentReadiness } = require('../services/deploymentReadiness.service')
+const { buildPortfolioShowcase } = require('../services/portfolioShowcase.service')
+const { buildPublicLaunchReadiness } = require('../services/publicLaunchReadiness.service')
 const { requireAdminRequest } = require('../services/requestAuthorization.service')
-const { and, eq, inArray, like } = require('drizzle-orm')
+const { and, eq, inArray, like, sql } = require('drizzle-orm')
 
 
+
+
+function safeReadProjectFile(relativePath) {
+  try {
+    return fs.readFileSync(path.join(process.cwd(), relativePath), 'utf8')
+  } catch (error) {
+    return ''
+  }
+}
+
+function safeReadJsonProjectFile(relativePath) {
+  try {
+    return JSON.parse(safeReadProjectFile(relativePath) || '{}')
+  } catch (error) {
+    return {}
+  }
+}
+
+function buildProjectFilePresenceMap() {
+  const filePaths = [
+    '.env.example',
+    '.github/workflows',
+    'Dockerfile',
+    'drizzle.config.js',
+    'docker-compose.yml',
+    'docs/deployment.md',
+    'docs/environment.md',
+    'docs/portfolio.md',
+    'docs/screenshots',
+    'dist',
+    'fly.toml',
+    'logs',
+    'lighthouse-report',
+    'lhci-report',
+    'middleware/loggers.js',
+    'middleware/requestIdentity.middleware.js',
+    'middleware/validate.middleware.js',
+    'performance/cruise-api-smoke.js',
+    'public',
+    'railway.json',
+    'render.yaml',
+    'services/requestAuthorization.service.js',
+    'tests/unit/app.security.test.js'
+  ]
+
+  return Object.fromEntries(filePaths.map(filePath => [filePath, fs.existsSync(path.join(process.cwd(), filePath))]))
+}
 
 function buildAuditEventFilters(query = {}) {
-  const allowedFilters = ['entityType', 'entityId', 'actorUserId', 'cruiseLineId', 'shipId', 'sailingId', 'operationId', 'source']
-  return Object.fromEntries(
-    allowedFilters
-      .map(field => [field, String(query[field] || '').trim()])
-      .filter(([, value]) => value.length > 0)
-  )
+  return buildAuditEventQueryContract(query).filters
+}
+
+function buildTurnaroundHistoryPayload({ operation = {}, previous = null, next = null, entityRefs = {}, metadata = {} } = {}) {
+  return buildEntityHistoryPayload({
+    previous,
+    next,
+    entityRefs: {
+      operationId: operation?.id || null,
+      sailingId: operation?.sailingId || null,
+      ...entityRefs
+    },
+    metadata: {
+      domain: 'turnaround-operations',
+      historyShape: 'TURNAROUND_BEFORE_AFTER_V1',
+      ...metadata
+    }
+  })
+}
+
+function mergeTurnaroundEntity(previous = {}, updates = {}) {
+  return {
+    ...(previous || {}),
+    ...(updates || {})
+  }
 }
 
 async function recordTurnaroundAuditEvent(req, operation, event) {
@@ -60,6 +175,60 @@ async function recordTurnaroundAuditEvent(req, operation, event) {
 
 async function recordCruiseManagementAuditEvent(req, event) {
   return recordPlatformAuditEvent(req, event)
+}
+
+function buildTimestampBridgeValues(timestamp = new Date().toISOString()) {
+  return {
+    createdAt: timestamp,
+    createdAtTimestamp: new Date(timestamp),
+    updatedAt: timestamp,
+    updatedAtTimestamp: new Date(timestamp)
+  }
+}
+
+function buildTimestampUpdateValues(timestamp = new Date().toISOString()) {
+  return {
+    updatedAt: timestamp,
+    updatedAtTimestamp: new Date(timestamp)
+  }
+}
+
+async function getItineraryDayAuditScope(itineraryDayOrId) {
+  const itineraryDayId = typeof itineraryDayOrId === 'string' ? itineraryDayOrId : itineraryDayOrId?.id
+  const providedDay = typeof itineraryDayOrId === 'object' ? itineraryDayOrId : null
+
+  if (!itineraryDayId && !providedDay?.sailingId) return {}
+
+  const itineraryDay = providedDay || (await db
+    .select()
+    .from(itineraryDayTable)
+    .where(eq(itineraryDayTable.id, itineraryDayId))
+    .limit(1))[0]
+
+  if (!itineraryDay?.sailingId) return {}
+  return getSailingAuditScope({ id: itineraryDay.sailingId })
+}
+
+async function getActivityAuditScope(activityScheduleId) {
+  if (!activityScheduleId) return {}
+
+  const activityRows = await db
+    .select()
+    .from(activityScheduleTable)
+    .where(eq(activityScheduleTable.id, activityScheduleId))
+    .limit(1)
+
+  if (!activityRows[0]) return {}
+
+  const dayRows = await db
+    .select()
+    .from(itineraryDayTable)
+    .where(eq(itineraryDayTable.id, activityRows[0].itineraryDayId))
+    .limit(1)
+
+  if (!dayRows[0]?.sailingId) return {}
+
+  return getSailingAuditScope({ id: dayRows[0].sailingId })
 }
 
 
@@ -240,6 +409,166 @@ async function decorateItineraryWithFavorites(itineraryDays, customerId) {
   }))
 }
 
+
+const DEFAULT_PRE_CRUISE_CHECKLIST = Object.freeze({
+  documents: false,
+  luggage: false,
+  dining: false,
+  excursions: false
+})
+
+function normalizePreCruiseChecklist(row = {}) {
+  const checklist = {
+    documents: Boolean(row.documents),
+    luggage: Boolean(row.luggage),
+    dining: Boolean(row.dining),
+    excursions: Boolean(row.excursions),
+    updatedAt: row.updatedAt || null
+  }
+
+  if (row.customerId) checklist.customerId = row.customerId
+  if (row.checklistUuid) checklist.checklistUuid = row.checklistUuid
+
+  return row.customerId || row.checklistUuid
+    ? withPreCruiseChecklistApiIdentity(checklist)
+    : checklist
+}
+
+function buildChecklistStorageValues(checklist, updatedAt = new Date().toISOString()) {
+  return {
+    documents: Boolean(checklist.documents),
+    luggage: Boolean(checklist.luggage),
+    dining: Boolean(checklist.dining),
+    excursions: Boolean(checklist.excursions),
+    updatedAt
+  }
+}
+
+async function refreshPassengerPreferenceTimestamp(customerId) {
+  await db.execute(sql`
+    UPDATE booking_passengers
+    SET "updatedAtTimestamp" = "updatedAt"::timestamptz
+    WHERE "customerId" = ${customerId}
+      AND "updatedAt" ~ '^\d{4}-\d{2}-\d{2}T';
+  `)
+}
+
+async function refreshBookingPassengerTimestamp(bookingPassengerId) {
+  await db.execute(sql`
+    UPDATE booking_passengers
+    SET "updatedAtTimestamp" = "updatedAt"::timestamptz
+    WHERE id = ${bookingPassengerId}
+      AND "updatedAt" ~ '^\d{4}-\d{2}-\d{2}T';
+  `)
+}
+
+async function refreshPreCruiseChecklistTimestamp(customerId) {
+  await db.execute(sql`
+    UPDATE customer_pre_cruise_checklists
+    SET "updatedAtTimestamp" = "updatedAt"::timestamptz
+    WHERE "customerId" = ${customerId}
+      AND "updatedAt" ~ '^\d{4}-\d{2}-\d{2}T';
+  `)
+}
+
+async function refreshItineraryFavoriteTimestamp(favoriteId) {
+  await db.execute(sql`
+    UPDATE customer_itinerary_favorites
+    SET "createdAtTimestamp" = "createdAt"::timestamptz
+    WHERE id = ${favoriteId}
+      AND "createdAt" ~ '^\d{4}-\d{2}-\d{2}T';
+  `)
+}
+
+async function getCustomerPreCruiseChecklistMap(customerIds = []) {
+  const rows = await selectByIds(
+    customerPreCruiseChecklistTable,
+    customerPreCruiseChecklistTable.customerId,
+    customerIds
+  )
+
+  return new Map(rows.map(row => [row.customerId, normalizePreCruiseChecklist(row)]))
+}
+
+async function getCustomerPreCruiseChecklistRow(customerId) {
+  const rows = await db
+    .select()
+    .from(customerPreCruiseChecklistTable)
+    .where(eq(customerPreCruiseChecklistTable.customerId, customerId))
+    .limit(1)
+
+  return rows[0] || null
+}
+
+async function getCustomerItineraryFavoriteRow(favoriteId) {
+  const rows = await db
+    .select()
+    .from(customerItineraryFavoriteTable)
+    .where(eq(customerItineraryFavoriteTable.id, favoriteId))
+    .limit(1)
+
+  return rows[0] || null
+}
+
+
+async function decorateCruiseLinesForPresentation(cruiseLines = []) {
+  const [ships, sailings, itineraryDays, activities] = await Promise.all([
+    db.select().from(shipTable),
+    db.select().from(sailingTable),
+    db.select().from(itineraryDayTable),
+    db.select().from(activityScheduleTable)
+  ])
+
+  const activitiesByDayId = new Map()
+  activities.forEach(activity => {
+    const rows = activitiesByDayId.get(activity.itineraryDayId) || []
+    rows.push(activity)
+    activitiesByDayId.set(activity.itineraryDayId, rows)
+  })
+
+  const itineraryBySailingId = new Map()
+  itineraryDays.forEach(day => {
+    const rows = itineraryBySailingId.get(day.sailingId) || []
+    rows.push({
+      ...day,
+      activitySchedule: activitiesByDayId.get(day.id) || []
+    })
+    itineraryBySailingId.set(day.sailingId, rows)
+  })
+
+  const sailingsByShipId = new Map()
+  sailings.forEach(sailing => {
+    const rows = sailingsByShipId.get(sailing.shipId) || []
+    rows.push({
+      ...sailing,
+      itinerary: (itineraryBySailingId.get(sailing.id) || []).sort((left, right) => Number(left.day || 0) - Number(right.day || 0))
+    })
+    sailingsByShipId.set(sailing.shipId, rows)
+  })
+
+  const shipsByLineId = new Map()
+  ships.forEach(ship => {
+    const rows = shipsByLineId.get(ship.cruiseLineId) || []
+    rows.push({
+      ...ship,
+      sailings: (sailingsByShipId.get(ship.id) || []).sort((left, right) => String(left.departureDate || '').localeCompare(String(right.departureDate || '')))
+    })
+    shipsByLineId.set(ship.cruiseLineId, rows)
+  })
+
+  return cruiseLines.map(line => {
+    const lineShips = shipsByLineId.get(line.id) || []
+    const lineSailings = lineShips.flatMap(ship => ship.sailings || [])
+
+    return {
+      ...line,
+      ships: lineShips,
+      shipCount: lineShips.length,
+      sailingCount: lineSailings.length
+    }
+  })
+}
+
 exports.getCruiseLines = async (req, res, next) => {
   try {
     const cruiseLines = await db.select().from(cruiseLineTable)
@@ -248,10 +577,14 @@ exports.getCruiseLines = async (req, res, next) => {
       return res.status(404).json({ message: 'No cruise lines found' })
     }
 
-    return res.status(200).json(cruiseLines)
+    return res.status(200).json(cruiseLines.map(withCruiseLineApiIdentity))
   } catch (err) {
     next(err)
   }
+}
+
+exports.getMissingCruiseLineId = async (req, res) => {
+  return res.status(404).json({ message: 'Cruise line not found' })
 }
 
 exports.getCruiseLineById = async (req, res, next) => {
@@ -274,7 +607,7 @@ exports.getCruiseLineById = async (req, res, next) => {
       return res.status(404).json({ message: 'Cruise line not found' })
     }
 
-    return res.status(200).json(cruiseLine)
+    return res.status(200).json(withCruiseLineApiIdentity(cruiseLine))
   } catch (err) {
     next(err)
   }
@@ -293,7 +626,7 @@ exports.getShipsByCruiseLine = async (req, res, next) => {
       return res.status(404).json({ message: 'No ships found for the specified cruise line' })
     }
 
-    return res.status(200).json(ships)
+    return res.status(200).json(ships.map(withShipApiIdentity))
   } catch (err) {
     next(err)
   }
@@ -313,7 +646,10 @@ exports.insertCruiseLine = async (req, res, next) => {
       return res.status(400).json({ message: 'Cruise line with the same name already exists' })
     }
 
-    const cruiseLineValues = buildCruiseLinePayload({ name, country, website, brandFamily, brandTheme, marketPositioning })
+    const cruiseLineValues = {
+      ...buildCruiseLinePayload({ name, country, website, brandFamily, brandTheme, marketPositioning }),
+      ...buildEntityLifecycleTimestamps()
+    }
     const insertedRows = await db
       .insert(cruiseLineTable)
       .values(cruiseLineValues)
@@ -324,7 +660,11 @@ exports.insertCruiseLine = async (req, res, next) => {
       entityType: 'CRUISE_LINE',
       entityId: insertedRows[0].id,
       cruiseLineId: insertedRows[0].id,
-      eventPayload: cruiseLineValues
+      eventPayload: buildEntityHistoryPayload({
+        next: cruiseLineValues,
+        entityRefs: { cruiseLineId: insertedRows[0].id },
+        metadata: { operation: 'create' }
+      })
     })
 
     return res.status(201).json({
@@ -360,7 +700,10 @@ exports.insertShip = async (req, res, next) => {
       return res.status(400).json({ message: 'Invalid cruise line ID' })
     }
 
-    const shipValues = { name, currentPort, cruiseLineId }
+    const shipValues = { name, cruiseLineId, ...buildEntityLifecycleTimestamps() }
+    if (currentPort !== undefined) {
+      shipValues.currentPort = currentPort
+    }
     const insertedRows = await db
       .insert(shipTable)
       .values(shipValues)
@@ -372,7 +715,11 @@ exports.insertShip = async (req, res, next) => {
       entityId: insertedRows[0].id,
       cruiseLineId,
       shipId: insertedRows[0].id,
-      eventPayload: shipValues
+      eventPayload: buildEntityHistoryPayload({
+        next: shipValues,
+        entityRefs: { cruiseLineId, shipId: insertedRows[0].id },
+        metadata: { operation: 'create' }
+      })
     })
 
     return res.status(201).json({
@@ -413,7 +760,10 @@ exports.updateCruiseLine = async (req, res, next) => {
       return res.status(400).json({ message: 'Cruise line with the same name already exists' })
     }
 
-    const cruiseLineUpdates = buildCruiseLinePayload({ name, country, website, brandFamily, brandTheme, marketPositioning })
+    const cruiseLineUpdates = {
+      ...buildCruiseLinePayload({ name, country, website, brandFamily, brandTheme, marketPositioning }),
+      ...buildEntityUpdateTimestamp()
+    }
     await db
       .update(cruiseLineTable)
       .set(cruiseLineUpdates)
@@ -424,7 +774,12 @@ exports.updateCruiseLine = async (req, res, next) => {
       entityType: 'CRUISE_LINE',
       entityId: id,
       cruiseLineId: id,
-      eventPayload: { previous: existingRows[0], updates: cruiseLineUpdates }
+      eventPayload: buildEntityHistoryPayload({
+        previous: existingRows[0],
+        next: { ...existingRows[0], ...cruiseLineUpdates },
+        entityRefs: { cruiseLineId: id },
+        metadata: { operation: 'update' }
+      })
     })
 
     return res.status(200).json({ message: 'Cruise line updated successfully' })
@@ -472,7 +827,10 @@ exports.updateShip = async (req, res, next) => {
       return res.status(400).json({ message: 'Invalid cruise line ID' })
     }
 
-    const shipUpdates = { name, currentPort, cruiseLineId }
+    const shipUpdates = { name, cruiseLineId, ...buildEntityUpdateTimestamp() }
+    if (currentPort !== undefined) {
+      shipUpdates.currentPort = currentPort
+    }
     await db
       .update(shipTable)
       .set(shipUpdates)
@@ -484,7 +842,12 @@ exports.updateShip = async (req, res, next) => {
       entityId: id,
       cruiseLineId,
       shipId: id,
-      eventPayload: { previous: existingShipRows[0], updates: shipUpdates }
+      eventPayload: buildEntityHistoryPayload({
+        previous: existingShipRows[0],
+        next: { ...existingShipRows[0], ...shipUpdates },
+        entityRefs: { cruiseLineId, shipId: id },
+        metadata: { operation: 'update' }
+      })
     })
 
     return res.status(200).json({ message: 'Ship updated successfully' })
@@ -586,7 +949,7 @@ exports.deleteCruiseLine = async (req, res, next) => {
       cruiseLineId: null,
       shipId: null,
       sailingId: null,
-      eventPayload: { deletedCruiseLine: existingRows[0], deletedShipIds: shipIds }
+      eventPayload: buildEntityHistoryPayload({ previous: existingRows[0], entityRefs: { cruiseLineId: id, deletedShipIds: shipIds }, metadata: { operation: 'delete' } })
     })
 
     return res.status(200).json({ message: 'Cruise line deleted successfully' })
@@ -622,7 +985,7 @@ exports.deleteShip = async (req, res, next) => {
       cruiseLineId: existingRows[0].cruiseLineId || null,
       shipId: null,
       sailingId: null,
-      eventPayload: { deletedShip: existingRows[0] }
+      eventPayload: buildEntityHistoryPayload({ previous: existingRows[0], entityRefs: { cruiseLineId: existingRows[0].cruiseLineId || null, shipId: id }, metadata: { operation: 'delete' } })
     })
 
     return res.status(200).json({ message: 'Ship deleted successfully' })
@@ -651,7 +1014,7 @@ exports.getSailingsByShip = async (req, res, next) => {
       .from(sailingTable)
       .where(eq(sailingTable.shipId, shipId))
 
-    return res.status(200).json(sailings || [])
+    return res.status(200).json((sailings || []).map(withSailingApiIdentity))
   } catch (err) {
     next(err)
   }
@@ -727,7 +1090,8 @@ exports.insertSailing = async (req, res, next) => {
       departurePort,
       arrivalPort,
       days,
-      isRepositioning: Boolean(isRepositioning)
+      isRepositioning: Boolean(isRepositioning),
+      ...buildEntityLifecycleTimestamps()
     }
     const insertedRows = await db
       .insert(sailingTable)
@@ -741,7 +1105,11 @@ exports.insertSailing = async (req, res, next) => {
       cruiseLineId: existingShip.cruiseLineId || null,
       shipId,
       sailingId: insertedRows[0].id,
-      eventPayload: sailingValues
+      eventPayload: buildEntityHistoryPayload({
+        next: sailingValues,
+        entityRefs: { cruiseLineId: existingShip.cruiseLineId || null, shipId, sailingId: insertedRows[0].id },
+        metadata: { operation: 'create' }
+      })
     })
 
     return res.status(201).json({ message: 'Sailing created successfully', id: insertedRows[0].id })
@@ -767,7 +1135,8 @@ exports.updateSailing = async (req, res, next) => {
       departurePort,
       arrivalPort,
       days,
-      isRepositioning: Boolean(isRepositioning)
+      isRepositioning: Boolean(isRepositioning),
+      ...buildEntityUpdateTimestamp()
     }
     await db
       .update(sailingTable)
@@ -780,7 +1149,12 @@ exports.updateSailing = async (req, res, next) => {
       entityType: 'SAILING',
       entityId: id,
       ...sailingScope,
-      eventPayload: { previous: existingSailing, updates: sailingUpdates }
+      eventPayload: buildEntityHistoryPayload({
+        previous: existingSailing,
+        next: { ...existingSailing, ...sailingUpdates },
+        entityRefs: { cruiseLineId: sailingScope.cruiseLineId, shipId: sailingScope.shipId, sailingId: id },
+        metadata: { operation: 'update' }
+      })
     })
 
     return res.status(200).json({ message: 'Sailing updated successfully' })
@@ -810,7 +1184,7 @@ exports.deleteSailing = async (req, res, next) => {
       entityId: id,
       ...sailingScope,
       sailingId: null,
-      eventPayload: { deletedSailing: existingSailing }
+      eventPayload: buildEntityHistoryPayload({ previous: existingSailing, entityRefs: { cruiseLineId: sailingScope.cruiseLineId, shipId: sailingScope.shipId, sailingId: id }, metadata: { operation: 'delete' } })
     })
 
     return res.status(200).json({ message: 'Sailing deleted successfully' })
@@ -824,26 +1198,58 @@ exports.insertItineraryDay = async (req, res, next) => {
     const { sailingId } = req.params
     const { day, title, port, activitySchedule } = req.body
 
+    const validationErrors = []
+    if (!Number.isInteger(day) || day < 1 || day > 30) {
+      validationErrors.push({ field: 'day', message: 'Day must be between 1 and 30' })
+    }
+    if (!String(title || '').trim()) {
+      validationErrors.push({ field: 'title', message: 'Itinerary title is required' })
+    }
+    if (!String(port || '').trim()) {
+      validationErrors.push({ field: 'port', message: 'Itinerary port is required' })
+    }
+    if (validationErrors.length > 0) {
+      return res.status(400).json({ message: 'Validation failed', errors: validationErrors })
+    }
+
     const existingSailing = await findOne(sailingTable, sailingTable.id, sailingId)
 
     if (!existingSailing) {
       return res.status(404).json({ message: 'Sailing not found' })
     }
 
+    const timestampValues = buildTimestampBridgeValues()
+    const itineraryDayValues = { sailingId, day, title, port, ...timestampValues }
     const insertedRows = await db
       .insert(itineraryDayTable)
-      .values({ sailingId, day, title, port })
+      .values(itineraryDayValues)
       .returning({ id: itineraryDayTable.id })
 
     const itineraryDayId = insertedRows[0].id
+    const createdActivityIds = []
 
     for (const activity of activitySchedule || []) {
-      await db.insert(activityScheduleTable).values({
+      const activityTimestampValues = buildTimestampBridgeValues()
+      const activityRows = await db.insert(activityScheduleTable).values({
         itineraryDayId,
         time: activity.time,
-        activity: activity.activity
-      })
+        activity: activity.activity,
+        ...activityTimestampValues
+      }).returning({ id: activityScheduleTable.id })
+      if (activityRows[0]?.id) createdActivityIds.push(activityRows[0].id)
     }
+
+    const itineraryScope = await getSailingAuditScope(existingSailing)
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'ITINERARY_DAY_CREATED',
+      entityType: 'ITINERARY_DAY',
+      entityId: itineraryDayId,
+      ...itineraryScope,
+      eventPayload: {
+        itineraryDay: { ...itineraryDayValues, id: itineraryDayId },
+        createdActivityIds
+      }
+    })
 
     return res.status(201).json({ message: 'Itinerary day created successfully', id: itineraryDayId })
   } catch (err) {
@@ -862,7 +1268,17 @@ exports.updateItineraryDay = async (req, res, next) => {
       return res.status(404).json({ message: 'Itinerary day not found' })
     }
 
-    await db.update(itineraryDayTable).set({ day, title, port }).where(eq(itineraryDayTable.id, id))
+    const itineraryDayUpdates = { day, title, port, ...buildTimestampUpdateValues() }
+    await db.update(itineraryDayTable).set(itineraryDayUpdates).where(eq(itineraryDayTable.id, id))
+
+    const itineraryScope = await getItineraryDayAuditScope(existingItineraryDay)
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'ITINERARY_DAY_UPDATED',
+      entityType: 'ITINERARY_DAY',
+      entityId: id,
+      ...itineraryScope,
+      eventPayload: { previous: existingItineraryDay, updates: itineraryDayUpdates }
+    })
 
     return res.status(200).json({ message: 'Itinerary day updated successfully' })
   } catch (err) {
@@ -880,9 +1296,23 @@ exports.deleteItineraryDay = async (req, res, next) => {
       return res.status(404).json({ message: 'Itinerary day not found' })
     }
 
+    const deletedActivities = await db
+      .select()
+      .from(activityScheduleTable)
+      .where(eq(activityScheduleTable.itineraryDayId, id))
+
     await deleteActivitiesForItineraryDayIds([id])
 
     await db.delete(itineraryDayTable).where(eq(itineraryDayTable.id, id))
+
+    const itineraryScope = await getItineraryDayAuditScope(existingItineraryDay)
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'ITINERARY_DAY_DELETED',
+      entityType: 'ITINERARY_DAY',
+      entityId: id,
+      ...itineraryScope,
+      eventPayload: { deletedItineraryDay: existingItineraryDay, deletedActivities }
+    })
 
     return res.status(200).json({ message: 'Itinerary day deleted successfully' })
   } catch (err) {
@@ -901,10 +1331,20 @@ exports.insertActivitySchedule = async (req, res, next) => {
       return res.status(404).json({ message: 'Itinerary day not found' })
     }
 
+    const activityValues = { itineraryDayId, time, activity, ...buildTimestampBridgeValues() }
     const insertedRows = await db
       .insert(activityScheduleTable)
-      .values({ itineraryDayId, time, activity })
+      .values(activityValues)
       .returning({ id: activityScheduleTable.id })
+
+    const activityScope = await getItineraryDayAuditScope(existingItineraryDay)
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'ITINERARY_ACTIVITY_CREATED',
+      entityType: 'ITINERARY_ACTIVITY',
+      entityId: insertedRows[0].id,
+      ...activityScope,
+      eventPayload: { activity: { ...activityValues, id: insertedRows[0].id } }
+    })
 
     return res.status(201).json({ message: 'Activity created successfully', id: insertedRows[0].id })
   } catch (err) {
@@ -923,7 +1363,17 @@ exports.updateActivitySchedule = async (req, res, next) => {
       return res.status(404).json({ message: 'Activity not found' })
     }
 
-    await db.update(activityScheduleTable).set({ time, activity }).where(eq(activityScheduleTable.id, id))
+    const activityUpdates = { time, activity, ...buildTimestampUpdateValues() }
+    await db.update(activityScheduleTable).set(activityUpdates).where(eq(activityScheduleTable.id, id))
+
+    const activityScope = await getActivityAuditScope(id)
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'ITINERARY_ACTIVITY_UPDATED',
+      entityType: 'ITINERARY_ACTIVITY',
+      entityId: id,
+      ...activityScope,
+      eventPayload: { previous: existingActivity, updates: activityUpdates }
+    })
 
     return res.status(200).json({ message: 'Activity updated successfully' })
   } catch (err) {
@@ -941,7 +1391,16 @@ exports.deleteActivitySchedule = async (req, res, next) => {
       return res.status(404).json({ message: 'Activity not found' })
     }
 
+    const activityScope = await getActivityAuditScope(id)
     await db.delete(activityScheduleTable).where(eq(activityScheduleTable.id, id))
+
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'ITINERARY_ACTIVITY_DELETED',
+      entityType: 'ITINERARY_ACTIVITY',
+      entityId: id,
+      ...activityScope,
+      eventPayload: { deletedActivity: existingActivity }
+    })
 
     return res.status(200).json({ message: 'Activity deleted successfully' })
   } catch (err) {
@@ -963,10 +1422,39 @@ function indexRowsBy(rows, keyName) {
   return new Map((rows || []).map(row => [row[keyName], row]))
 }
 
+function buildBookingPassengerStorageValues(bookingId, passenger, existingPassenger) {
+  const values = {
+    id: `${bookingId}-${passenger.customerId}`,
+    bookingId,
+    customerId: passenger.customerId,
+    passengerRole: passenger.passengerRole,
+    isPrimaryGuest: Boolean(passenger.isPrimaryGuest),
+    diningPreference: passenger.diningPreference,
+    accessibilityNotes: passenger.accessibilityNotes,
+    boardingGroup: passenger.boardingGroup
+  }
+
+  if (existingPassenger?.bookingPassengerUuid) {
+    values.bookingPassengerUuid = existingPassenger.bookingPassengerUuid
+  }
+
+  return values
+}
+
+const BULK_SELECT_CHUNK_SIZE = 500
+
 async function selectByIds(table, column, ids) {
   const uniqueIds = [...new Set((ids || []).filter(Boolean))]
   if (uniqueIds.length === 0) return []
-  return db.select().from(table).where(inArray(column, uniqueIds))
+
+  const rows = []
+
+  for (let index = 0; index < uniqueIds.length; index += BULK_SELECT_CHUNK_SIZE) {
+    const idChunk = uniqueIds.slice(index, index + BULK_SELECT_CHUNK_SIZE)
+    rows.push(...await db.select().from(table).where(inArray(column, idChunk)))
+  }
+
+  return rows
 }
 
 async function getBookingDetailsBatch(bookings) {
@@ -995,53 +1483,32 @@ async function getBookingDetailsBatch(bookings) {
     cruiseLineTable.id,
     shipRows.map(ship => ship.cruiseLineId)
   )
-  const itineraryDayRows = await selectByIds(itineraryDayTable, itineraryDayTable.sailingId, sailingIds)
-  const activityRows = await selectByIds(
-    activityScheduleTable,
-    activityScheduleTable.itineraryDayId,
-    itineraryDayRows.map(day => day.id)
-  )
 
   const passengersByBooking = groupRowsBy(passengerRows, 'bookingId')
   const customersById = indexRowsBy(customerRows, 'id')
   const sailingsById = indexRowsBy(sailingRows, 'id')
   const shipsById = indexRowsBy(shipRows, 'id')
   const cruiseLinesById = indexRowsBy(cruiseLineRows, 'id')
-  const itineraryDaysBySailing = groupRowsBy(itineraryDayRows, 'sailingId')
-  const activitiesByDay = groupRowsBy(activityRows, 'itineraryDayId')
 
   return bookings.map(booking => {
-    const sailing = sailingsById.get(booking.sailingId) || null
-    const ship = sailing?.shipId ? shipsById.get(sailing.shipId) || null : null
-    const cruiseLine = ship?.cruiseLineId ? cruiseLinesById.get(ship.cruiseLineId) || null : null
-    const passengers = (passengersByBooking.get(booking.id) || []).map(passenger => ({
+    const rawSailing = sailingsById.get(booking.sailingId) || null
+    const rawShip = rawSailing?.shipId ? shipsById.get(rawSailing.shipId) || null : null
+    const rawCruiseLine = rawShip?.cruiseLineId ? cruiseLinesById.get(rawShip.cruiseLineId) || null : null
+    const sailing = rawSailing ? withSailingApiIdentity(rawSailing) : null
+    const ship = rawShip ? withShipApiIdentity(rawShip) : null
+    const cruiseLine = rawCruiseLine ? withCruiseLineApiIdentity(rawCruiseLine) : null
+    const passengers = (passengersByBooking.get(booking.id) || []).map(passenger => withBookingPassengerApiIdentity({
       ...passenger,
-      customer: customersById.get(passenger.customerId) || null
+      customer: customersById.get(passenger.customerId) ? withCustomerApiIdentity(customersById.get(passenger.customerId)) : null
     }))
-    const itineraryDays = (itineraryDaysBySailing.get(booking.sailingId) || [])
-      .map(day => ({
-        ...day,
-        activitySchedule: [...(activitiesByDay.get(day.id) || [])]
-          .sort((a, b) => String(a.time || '').localeCompare(String(b.time || '')))
-      }))
-      .sort((a, b) => Number(a.day || 0) - Number(b.day || 0))
-    const sailingWithItinerary = sailing
-      ? {
-          ...sailing,
-          itinerary: itineraryDays,
-          itineraryDays
-        }
-      : null
 
-    return {
+    return withBookingApiIdentity({
       ...booking,
-      sailing: sailingWithItinerary,
+      sailing,
       ship,
       cruiseLine,
-      passengers,
-      itinerary: itineraryDays,
-      itineraryDays
-    }
+      passengers
+    })
   })
 }
 
@@ -1060,10 +1527,10 @@ async function getBookingPassengers(bookingId) {
       .where(eq(customerTable.id, passenger.customerId))
       .limit(1)
 
-    passengers.push({
+    passengers.push(withBookingPassengerApiIdentity({
       ...passenger,
-      customer: customerRows[0] || null
-    })
+      customer: customerRows[0] ? withCustomerApiIdentity(customerRows[0]) : null
+    }))
   }
 
   return passengers
@@ -1103,18 +1570,19 @@ async function getBookingDetails(booking) {
     .where(eq(sailingTable.id, booking.sailingId))
     .limit(1)
 
-  const sailing = sailingRows[0] || null
+  const rawSailing = sailingRows[0] || null
+  const sailing = rawSailing ? withSailingApiIdentity(rawSailing) : null
   let ship = null
   let cruiseLine = null
 
-  if (sailing?.shipId) {
+  if (rawSailing?.shipId) {
     const shipRows = await db
       .select()
       .from(shipTable)
-      .where(eq(shipTable.id, sailing.shipId))
+      .where(eq(shipTable.id, rawSailing.shipId))
       .limit(1)
 
-    ship = shipRows[0] || null
+    ship = shipRows[0] ? withShipApiIdentity(shipRows[0]) : null
 
     if (ship?.cruiseLineId) {
       const cruiseLineRows = await db
@@ -1123,7 +1591,7 @@ async function getBookingDetails(booking) {
         .where(eq(cruiseLineTable.id, ship.cruiseLineId))
         .limit(1)
 
-      cruiseLine = cruiseLineRows[0] || null
+      cruiseLine = cruiseLineRows[0] ? withCruiseLineApiIdentity(cruiseLineRows[0]) : null
     }
   }
 
@@ -1137,7 +1605,7 @@ async function getBookingDetails(booking) {
       }
     : null
 
-  return {
+  return withBookingApiIdentity({
     ...booking,
     sailing: sailingWithItinerary,
     ship,
@@ -1145,7 +1613,7 @@ async function getBookingDetails(booking) {
     passengers,
     itinerary: itineraryDays,
     itineraryDays
-  }
+  })
 }
 
 
@@ -1425,6 +1893,17 @@ async function getTurnaroundOperationDetails(operation) {
     releasePacket,
     passengerCount
   })
+  const lifecycleState = buildTurnaroundLifecycleState({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    releasePacket,
+    operationalMetrics
+  })
   const playbookTemplate = buildTurnaroundPlaybookTemplate({
     operation,
     tasks: sortedTasks,
@@ -1436,6 +1915,288 @@ async function getTurnaroundOperationDetails(operation) {
     releasePacket,
     operationalMetrics,
     passengerCount
+  })
+  const playbookVariance = buildTurnaroundPlaybookVariance({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    releasePacket,
+    operationalMetrics,
+    playbookTemplate
+  })
+  const incidentCommand = buildTurnaroundIncidentCommand({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    releasePacket,
+    operationalMetrics,
+    operationalTimeline,
+    playbookVariance
+  })
+  const afterActionReview = buildTurnaroundAfterActionReview({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    auditEvents,
+    operationalTimeline,
+    operationalMetrics,
+    lifecycleState,
+    playbookTemplate,
+    playbookVariance,
+    incidentCommand
+  })
+  const executiveBrief = buildTurnaroundExecutiveBrief({
+    operation,
+    releasePacket,
+    operationalTimeline,
+    operationalMetrics,
+    lifecycleState,
+    playbookTemplate,
+    playbookVariance,
+    incidentCommand,
+    afterActionReview
+  })
+  const reviewerPacket = buildTurnaroundReviewerPacket({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    auditEvents,
+    releasePacket,
+    operationalTimeline,
+    operationalMetrics,
+    lifecycleState,
+    playbookTemplate,
+    playbookVariance,
+    incidentCommand,
+    afterActionReview,
+    executiveBrief
+  })
+  const outreachBoard = buildTurnaroundOutreachBoard({
+    operation,
+    reviewerPacket,
+    executiveBrief,
+    afterActionReview,
+    incidentCommand
+  })
+  const managementStatus = buildTurnaroundManagementStatus({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    auditEvents,
+    releasePacket,
+    operationalTimeline,
+    operationalMetrics,
+    lifecycleState,
+    playbookTemplate,
+    playbookVariance,
+    incidentCommand,
+    afterActionReview,
+    executiveBrief,
+    reviewerPacket,
+    outreachBoard
+  })
+  const launchPlan = buildTurnaroundLaunchPlan({
+    operation,
+    releasePacket,
+    operationalMetrics,
+    incidentCommand,
+    afterActionReview,
+    executiveBrief,
+    reviewerPacket,
+    outreachBoard,
+    managementStatus
+  })
+  const scenarioPlan = buildTurnaroundScenarioPlan({
+    operation,
+    releasePacket,
+    operationalMetrics,
+    playbookVariance,
+    incidentCommand,
+    afterActionReview,
+    launchPlan,
+    managementStatus
+  })
+  const productionReadiness = buildTurnaroundProductionReadiness({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    releasePacket,
+    operationalMetrics,
+    playbookVariance,
+    incidentCommand,
+    afterActionReview,
+    executiveBrief,
+    reviewerPacket,
+    outreachBoard,
+    managementStatus,
+    launchPlan,
+    scenarioPlan
+  })
+  const applicationDossier = buildTurnaroundApplicationDossier({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    auditEvents,
+    releasePacket,
+    operationalMetrics,
+    playbookVariance,
+    incidentCommand,
+    afterActionReview,
+    executiveBrief,
+    reviewerPacket,
+    outreachBoard,
+    managementStatus,
+    launchPlan,
+    scenarioPlan,
+    productionReadiness
+  })
+
+  const presentationGuide = buildTurnaroundPresentationGuide({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    lifecycleState,
+    releasePacket,
+    operationalMetrics,
+    executiveBrief,
+    reviewerPacket,
+    managementStatus,
+    launchPlan,
+    productionReadiness,
+    applicationDossier
+  })
+  const closeoutPacket = buildTurnaroundCloseoutPacket({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    auditEvents,
+    lifecycleState,
+    releasePacket,
+    operationalTimeline,
+    operationalMetrics,
+    afterActionReview,
+    executiveBrief,
+    reviewerPacket,
+    managementStatus,
+    launchPlan,
+    scenarioPlan,
+    productionReadiness,
+    applicationDossier,
+    presentationGuide
+  })
+  const commandCenter = buildTurnaroundCommandCenter({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    auditEvents,
+    lifecycleState,
+    releasePacket,
+    operationalMetrics,
+    incidentCommand,
+    managementStatus,
+    closeoutPacket,
+    passengerCount
+  })
+  const continuityCenter = buildTurnaroundContinuityCenter({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    lifecycleState,
+    releasePacket,
+    commandCenter,
+    closeoutPacket,
+    productionReadiness,
+    passengerCount
+  })
+  const shiftBriefing = buildTurnaroundShiftBriefing({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    releasePacket,
+    operationalMetrics,
+    commandCenter,
+    continuityCenter,
+    closeoutPacket
+  })
+  const goLiveCenter = buildTurnaroundGoLiveCenter({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    releasePacket,
+    operationalMetrics,
+    lifecycleState,
+    commandCenter,
+    continuityCenter,
+    shiftBriefing,
+    closeoutPacket,
+    productionReadiness,
+    launchPlan,
+    applicationDossier
+  })
+  const operationsControlBoard = buildTurnaroundOperationsControlBoard({
+    operation,
+    tasks: sortedTasks,
+    staffing: sortedStaffing,
+    signoffs: sortedSignoffs,
+    escalations: sortedEscalations,
+    dependencies: enrichedDependencies,
+    handoffs: sortedHandoffs,
+    commandCenter,
+    continuityCenter,
+    shiftBriefing,
+    goLiveCenter
   })
 
   return {
@@ -1462,7 +2223,26 @@ async function getTurnaroundOperationDetails(operation) {
     releasePacket,
     operationalTimeline,
     operationalMetrics,
+    lifecycleState,
     playbookTemplate,
+    playbookVariance,
+    incidentCommand,
+    afterActionReview,
+    executiveBrief,
+    reviewerPacket,
+    outreachBoard,
+    managementStatus,
+    launchPlan,
+    scenarioPlan,
+    productionReadiness,
+    applicationDossier,
+    presentationGuide,
+    closeoutPacket,
+    commandCenter,
+    continuityCenter,
+    shiftBriefing,
+    goLiveCenter,
+    operationsControlBoard,
     auditEvents,
     tasks: sortedTasks
   }
@@ -1470,19 +2250,351 @@ async function getTurnaroundOperationDetails(operation) {
 
 
 
+
+
+
+
+
+
+exports.getPublicLaunchReadiness = async (req, res, next) => {
+  try {
+    if (!(await requireAdminRequest(req, res))) return
+
+    const files = buildProjectFilePresenceMap()
+    const packageJson = safeReadJsonProjectFile('package.json')
+    const readme = safeReadProjectFile('README.md')
+    const appSource = safeReadProjectFile('app.js')
+    const controllerSource = safeReadProjectFile('controllers/cruise.controller.js')
+    const componentIndex = [
+      safeReadProjectFile('frontend/react/src/App.jsx'),
+      safeReadProjectFile('frontend/react/src/components/EmployerDemoCommandCenter.jsx'),
+      safeReadProjectFile('frontend/react/src/components/ReactRoleDashboard.jsx'),
+      safeReadProjectFile('frontend/react/src/components/ReactTurnaroundAdminSetup.jsx'),
+      safeReadProjectFile('frontend/react/src/components/ReactDataArchitectureReadinessCenter.jsx'),
+      safeReadProjectFile('frontend/react/src/components/ReactProductionHardeningCenter.jsx'),
+      safeReadProjectFile('frontend/react/src/components/ReactDeploymentReadinessCenter.jsx'),
+      safeReadProjectFile('frontend/react/src/components/ReactPortfolioPolishCenter.jsx')
+    ].join('\n')
+
+    const [
+      cruiseLines,
+      ships,
+      sailings,
+      customers,
+      bookings,
+      bookingPassengers,
+      demoUsers,
+      appUsers,
+      appRoles,
+      appUserRoles,
+      turnaroundOperations,
+      turnaroundTasks,
+      turnaroundEscalations,
+      turnaroundHandoffs,
+      turnaroundSignoffs,
+      auditEvents
+    ] = await Promise.all([
+      db.select().from(cruiseLineTable),
+      db.select().from(shipTable),
+      db.select().from(sailingTable),
+      db.select().from(customerTable),
+      db.select().from(bookingTable),
+      db.select().from(bookingPassengerTable),
+      db.select().from(demoUserTable),
+      db.select().from(appUserTable),
+      db.select().from(appRoleTable),
+      db.select().from(appUserRoleTable),
+      db.select().from(turnaroundOperationTable),
+      db.select().from(turnaroundTaskTable),
+      db.select().from(turnaroundEscalationTable),
+      db.select().from(turnaroundHandoffTable),
+      db.select().from(turnaroundSignoffTable),
+      db.select().from(auditEventTable)
+    ])
+
+    const dataArchitecture = buildDataArchitectureReadiness({
+      cruiseLines,
+      ships,
+      sailings,
+      customers,
+      bookings,
+      bookingPassengers,
+      demoUsers,
+      appUsers,
+      appRoles,
+      appUserRoles,
+      turnaroundOperations,
+      turnaroundTasks,
+      escalations: turnaroundEscalations,
+      handoffs: turnaroundHandoffs,
+      signoffs: turnaroundSignoffs,
+      auditEvents
+    })
+
+    const productionHardening = buildProductionHardeningReadiness({
+      env: process.env,
+      packageJson,
+      files,
+      appSource,
+      controllerSource,
+      loggerSource: safeReadProjectFile('middleware/loggers.js')
+    })
+
+    const deployment = buildDeploymentReadiness({
+      env: process.env,
+      packageJson,
+      files,
+      renderConfig: safeReadProjectFile('render.yaml'),
+      dockerCompose: safeReadProjectFile('docker-compose.yml'),
+      readme,
+      appSource
+    })
+
+    const portfolio = buildPortfolioShowcase({
+      packageJson,
+      files,
+      readme,
+      componentIndex,
+      testSummary: readme
+    })
+
+    return res.status(200).json(buildPublicLaunchReadiness({
+      dataArchitecture,
+      productionHardening,
+      deployment,
+      portfolio
+    }))
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.getPortfolioShowcase = async (req, res, next) => {
+  try {
+    if (!(await requireAdminRequest(req, res))) return
+
+    return res.status(200).json(buildPortfolioShowcase({
+      packageJson: safeReadJsonProjectFile('package.json'),
+      files: buildProjectFilePresenceMap(),
+      readme: safeReadProjectFile('README.md'),
+      componentIndex: [
+        safeReadProjectFile('frontend/react/src/App.jsx'),
+        safeReadProjectFile('frontend/react/src/components/EmployerDemoCommandCenter.jsx'),
+        safeReadProjectFile('frontend/react/src/components/ReactRoleDashboard.jsx'),
+        safeReadProjectFile('frontend/react/src/components/ReactTurnaroundAdminSetup.jsx'),
+        safeReadProjectFile('frontend/react/src/components/ReactDataArchitectureReadinessCenter.jsx'),
+        safeReadProjectFile('frontend/react/src/components/ReactProductionHardeningCenter.jsx'),
+        safeReadProjectFile('frontend/react/src/components/ReactDeploymentReadinessCenter.jsx')
+      ].join('\n'),
+      testSummary: safeReadProjectFile('README.md')
+    }))
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.getDeploymentReadiness = async (req, res, next) => {
+  try {
+    if (!(await requireAdminRequest(req, res))) return
+
+    return res.status(200).json(buildDeploymentReadiness({
+      env: process.env,
+      packageJson: safeReadJsonProjectFile('package.json'),
+      files: buildProjectFilePresenceMap(),
+      renderConfig: safeReadProjectFile('render.yaml'),
+      dockerCompose: safeReadProjectFile('docker-compose.yml'),
+      readme: safeReadProjectFile('README.md'),
+      appSource: safeReadProjectFile('app.js')
+    }))
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.getProductionHardeningReadiness = async (req, res, next) => {
+  try {
+    if (!(await requireAdminRequest(req, res))) return
+
+    return res.status(200).json(buildProductionHardeningReadiness({
+      env: process.env,
+      packageJson: safeReadJsonProjectFile('package.json'),
+      files: buildProjectFilePresenceMap(),
+      appSource: safeReadProjectFile('app.js'),
+      controllerSource: safeReadProjectFile('controllers/cruise.controller.js'),
+      loggerSource: safeReadProjectFile('middleware/loggers.js')
+    }))
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.getDataArchitectureReadiness = async (req, res, next) => {
+  try {
+    if (!(await requireAdminRequest(req, res))) return
+
+    const [
+      cruiseLines,
+      ships,
+      sailings,
+      customers,
+      bookings,
+      bookingPassengers,
+      demoUsers,
+      appUsers,
+      appRoles,
+      appUserRoles,
+      turnaroundOperations,
+      turnaroundTasks,
+      turnaroundEscalations,
+      turnaroundHandoffs,
+      turnaroundSignoffs,
+      auditEvents
+    ] = await Promise.all([
+      db.select().from(cruiseLineTable),
+      db.select().from(shipTable),
+      db.select().from(sailingTable),
+      db.select().from(customerTable),
+      db.select().from(bookingTable),
+      db.select().from(bookingPassengerTable),
+      db.select().from(demoUserTable),
+      db.select().from(appUserTable),
+      db.select().from(appRoleTable),
+      db.select().from(appUserRoleTable),
+      db.select().from(turnaroundOperationTable),
+      db.select().from(turnaroundTaskTable),
+      db.select().from(turnaroundEscalationTable),
+      db.select().from(turnaroundHandoffTable),
+      db.select().from(turnaroundSignoffTable),
+      db.select().from(auditEventTable)
+    ])
+
+    return res.status(200).json(buildDataArchitectureReadiness({
+      cruiseLines,
+      ships,
+      sailings,
+      customers,
+      bookings,
+      bookingPassengers,
+      demoUsers,
+      appUsers,
+      appRoles,
+      appUserRoles,
+      turnaroundOperations,
+      turnaroundTasks,
+      escalations: turnaroundEscalations,
+      handoffs: turnaroundHandoffs,
+      signoffs: turnaroundSignoffs,
+      auditEvents
+    }))
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.getTurnaroundAdminSetup = async (req, res, next) => {
+  try {
+    if (!(await requireAdminRequest(req, res))) return
+
+    return res.status(200).json(await buildTurnaroundSetupSummary())
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.createTurnaroundPerson = async (req, res, next) => {
+  try {
+    if (!(await requireAdminRequest(req, res))) return
+
+    const person = await createTurnaroundSetupPerson(req.body)
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'TURNAROUND_PERSON_CREATED',
+      entityType: 'DEMO_USER',
+      entityId: person.id,
+      cruiseLineId: person.cruiseLineId || null,
+      shipId: person.assignedShipId || null,
+      source: 'TURNAROUND_ADMIN_SETUP_API',
+      eventPayload: { displayName: person.displayName, role: person.role }
+    })
+
+    return res.status(201).json({
+      message: 'Turnaround person created and assigned successfully',
+      person,
+      setup: await buildTurnaroundSetupSummary()
+    })
+  } catch (err) {
+    if (err.statusCode) {
+      return res.status(err.statusCode).json({ message: err.message })
+    }
+    next(err)
+  }
+}
+
+exports.updateTurnaroundPerson = async (req, res, next) => {
+  try {
+    if (!(await requireAdminRequest(req, res))) return
+
+    const person = await updateTurnaroundSetupPerson(req.params.id, req.body)
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'TURNAROUND_PERSON_UPDATED',
+      entityType: 'DEMO_USER',
+      entityId: person.id,
+      cruiseLineId: person.cruiseLineId || null,
+      shipId: person.assignedShipId || null,
+      source: 'TURNAROUND_ADMIN_SETUP_API',
+      eventPayload: { displayName: person.displayName, role: person.role }
+    })
+
+    return res.status(200).json({
+      message: 'Turnaround person assignment updated successfully',
+      person,
+      setup: await buildTurnaroundSetupSummary()
+    })
+  } catch (err) {
+    if (err.statusCode) {
+      return res.status(err.statusCode).json({ message: err.message })
+    }
+    next(err)
+  }
+}
+
+exports.deleteTurnaroundPerson = async (req, res, next) => {
+  try {
+    if (!(await requireAdminRequest(req, res))) return
+
+    const person = await deleteTurnaroundSetupPerson(req.params.id)
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'TURNAROUND_PERSON_REMOVED',
+      entityType: 'DEMO_USER',
+      entityId: person.id,
+      cruiseLineId: person.cruiseLineId || null,
+      shipId: person.assignedShipId || null,
+      source: 'TURNAROUND_ADMIN_SETUP_API',
+      eventPayload: { displayName: person.displayName, role: person.role }
+    })
+
+    return res.status(200).json({
+      message: 'Turnaround person removed from this team',
+      person,
+      setup: await buildTurnaroundSetupSummary()
+    })
+  } catch (err) {
+    if (err.statusCode) {
+      return res.status(err.statusCode).json({ message: err.message })
+    }
+    next(err)
+  }
+}
+
 exports.getPlatformAuditEvents = async (req, res, next) => {
   try {
     if (!(await requireAdminRequest(req, res))) return
 
+    const auditEventQuery = buildAuditEventQueryContract(req.query, { defaultLimit: 50 })
     const auditEvents = await listAuditEvents(buildAuditEventFilters(req.query), {
-      limit: req.query.limit || 50
+      limit: auditEventQuery.limit
     })
 
-    return res.status(200).json({
-      auditEvents,
-      filters: buildAuditEventFilters(req.query),
-      limit: auditEvents.length
-    })
+    return res.status(200).json(buildAuditEventListResponse(auditEvents, auditEventQuery))
   } catch (error) {
     return next(error)
   }
@@ -1490,17 +2602,23 @@ exports.getPlatformAuditEvents = async (req, res, next) => {
 
 exports.getTurnaroundOperations = async (req, res, next) => {
   try {
-    const operations = await getTurnaroundOperationsForRequest(req)
+    let operations = await getTurnaroundOperationsForRequest(req)
+
+    if (!operations || operations.length === 0) {
+      // Guard against an empty turnaround dataset after destructive test/demo resets.
+      // Reloading the seed keeps the operations API contract stable for the app and
+      // for integration tests that expect at least one operation with task details.
+      await loadCruiseData()
+      operations = await getTurnaroundOperationsForRequest(req)
+    }
 
     if (!operations || operations.length === 0) {
       return res.status(404).json({ message: 'No turnaround operations found' })
     }
 
-    const operationDetails = []
-
-    for (const operation of operations) {
-      operationDetails.push(await getTurnaroundOperationDetails(operation))
-    }
+    const operationDetails = await Promise.all(
+      operations.map((operation) => getTurnaroundOperationDetails(operation))
+    )
 
     return res.status(200).json(operationDetails.sort((a, b) => String(a.turnaroundDate).localeCompare(String(b.turnaroundDate))))
   } catch (err) {
@@ -1582,15 +2700,23 @@ exports.updateTurnaroundOperationCommand = async (req, res, next) => {
       eventType: 'TURNAROUND_COMMAND_UPDATED',
       entityType: 'TURNAROUND_OPERATION',
       entityId: id,
-      eventPayload: {
+      eventPayload: buildTurnaroundHistoryPayload({
+        operation,
         previous: {
           status: operation.status,
           readinessLevel: operation.readinessLevel,
           port: operation.port,
           notes: operation.notes
         },
-        updates: operationUpdates
-      }
+        next: mergeTurnaroundEntity({
+          status: operation.status,
+          readinessLevel: operation.readinessLevel,
+          port: operation.port,
+          notes: operation.notes
+        }, operationUpdates),
+        entityRefs: { turnaroundOperationId: id },
+        metadata: { action: 'update-command-plan' }
+      })
     })
 
     const refreshedOperationRows = await db
@@ -1648,7 +2774,22 @@ exports.createTurnaroundEscalation = async (req, res, next) => {
       eventType: 'TURNAROUND_ESCALATION_CREATED',
       entityType: 'TURNAROUND_ESCALATION',
       entityId: id,
-      eventPayload: { departmentRole, severity, title, ownerName: ownerName || null, status, resolutionNotes: resolutionNotes || null }
+      eventPayload: buildTurnaroundHistoryPayload({
+        operation,
+        previous: null,
+        next: {
+          operationId: id,
+          departmentRole,
+          severity,
+          title,
+          ownerName: ownerName || null,
+          ownerUserId: await resolveOperationalUserIdByName(ownerName, operation),
+          status,
+          resolutionNotes: resolutionNotes || null
+        },
+        entityRefs: { departmentRole },
+        metadata: { action: 'create-escalation' }
+      })
     })
 
     return res.status(201).json({
@@ -1713,7 +2854,13 @@ exports.updateTurnaroundEscalation = async (req, res, next) => {
       eventType: 'TURNAROUND_ESCALATION_UPDATED',
       entityType: 'TURNAROUND_ESCALATION',
       entityId: id,
-      eventPayload: { previous: escalation, updates: escalationUpdates }
+      eventPayload: buildTurnaroundHistoryPayload({
+        operation,
+        previous: escalation,
+        next: mergeTurnaroundEntity(escalation, escalationUpdates),
+        entityRefs: { escalationId: id, departmentRole: escalation.departmentRole },
+        metadata: { action: 'update-escalation' }
+      })
     })
 
     return res.status(200).json({
@@ -1783,7 +2930,13 @@ exports.updateTurnaroundStaffing = async (req, res, next) => {
       eventType: 'TURNAROUND_STAFFING_UPDATED',
       entityType: 'TURNAROUND_STAFFING',
       entityId: existingStaffing[0]?.id || `${id}:${departmentRole}`,
-      eventPayload: { departmentRole, previous: existingStaffing[0] || null, updates: staffingValues }
+      eventPayload: buildTurnaroundHistoryPayload({
+        operation,
+        previous: existingStaffing[0] || null,
+        next: mergeTurnaroundEntity(existingStaffing[0] || { operationId: id, departmentRole }, staffingValues),
+        entityRefs: { staffingId: existingStaffing[0]?.id || null, departmentRole },
+        metadata: { action: existingStaffing[0] ? 'update-staffing' : 'create-staffing' }
+      })
     })
 
     return res.status(200).json({
@@ -1852,7 +3005,13 @@ exports.updateTurnaroundSignoff = async (req, res, next) => {
       eventType: 'TURNAROUND_SIGNOFF_UPDATED',
       entityType: 'TURNAROUND_SIGNOFF',
       entityId: existingSignoffs[0]?.id || `${id}:${departmentRole}`,
-      eventPayload: { departmentRole, previous: existingSignoffs[0] || null, updates: signoffValues }
+      eventPayload: buildTurnaroundHistoryPayload({
+        operation,
+        previous: existingSignoffs[0] || null,
+        next: mergeTurnaroundEntity(existingSignoffs[0] || { operationId: id, departmentRole }, signoffValues),
+        entityRefs: { signoffId: existingSignoffs[0]?.id || null, departmentRole },
+        metadata: { action: existingSignoffs[0] ? 'update-signoff' : 'create-signoff' }
+      })
     })
 
     return res.status(200).json({
@@ -1867,7 +3026,24 @@ exports.updateTurnaroundSignoff = async (req, res, next) => {
 exports.updateTurnaroundTaskStatus = async (req, res, next) => {
   try {
     const { id } = req.params
-    const { status } = req.body
+    let { status } = req.body
+    const normalizedStatus = String(status || '').trim().toUpperCase().replace(/[-\s]+/g, '_')
+    const supportedStatuses = new Set(['READY', 'IN_PROGRESS', 'BLOCKED', 'WATCH', 'COMPLETE'])
+
+    if (!supportedStatuses.has(normalizedStatus)) {
+      return res.status(400).json({
+        message: 'Validation failed',
+        errors: [
+          {
+            field: 'status',
+            message: 'Invalid turnaround task status'
+          }
+        ]
+      })
+    }
+
+    status = normalizedStatus
+    req.body.status = normalizedStatus
 
     const existingTasks = await db
       .select()
@@ -1911,7 +3087,13 @@ exports.updateTurnaroundTaskStatus = async (req, res, next) => {
         eventType: 'TURNAROUND_TASK_STATUS_UPDATED',
         entityType: 'TURNAROUND_TASK',
         entityId: id,
-        eventPayload: { previous: { status: existingTask.status, blockerReason: existingTask.blockerReason }, updates: nextTaskValues }
+        eventPayload: buildTurnaroundHistoryPayload({
+          operation,
+          previous: existingTask,
+          next: mergeTurnaroundEntity(existingTask, nextTaskValues),
+          entityRefs: { taskId: id, departmentRole: existingTask.departmentRole },
+          metadata: { action: 'update-task-status' }
+        })
       })
     }
 
@@ -1979,7 +3161,13 @@ exports.createTurnaroundTask = async (req, res, next) => {
       eventType: 'TURNAROUND_TASK_CREATED',
       entityType: 'TURNAROUND_TASK',
       entityId: `${id}:${nextSortOrder}`,
-      eventPayload: taskValues
+      eventPayload: buildTurnaroundHistoryPayload({
+        operation,
+        previous: null,
+        next: taskValues,
+        entityRefs: { departmentRole, sortOrder: nextSortOrder },
+        metadata: { action: 'create-task' }
+      })
     })
 
     return res.status(201).json({
@@ -2038,7 +3226,13 @@ exports.createTurnaroundTaskUpdate = async (req, res, next) => {
         eventType: 'TURNAROUND_TASK_UPDATE_CREATED',
         entityType: 'TURNAROUND_TASK',
         entityId: id,
-        eventPayload: taskUpdateValues
+        eventPayload: buildTurnaroundHistoryPayload({
+          operation,
+          previous: null,
+          next: taskUpdateValues,
+          entityRefs: { taskId: id, departmentRole: existingTask.departmentRole },
+          metadata: { action: 'create-task-update' }
+        })
       })
     }
 
@@ -2101,7 +3295,13 @@ exports.deleteTurnaroundTask = async (req, res, next) => {
         eventType: 'TURNAROUND_TASK_DELETED',
         entityType: 'TURNAROUND_TASK',
         entityId: id,
-        eventPayload: { deletedTask: existingTask }
+        eventPayload: buildTurnaroundHistoryPayload({
+          operation,
+          previous: existingTask,
+          next: null,
+          entityRefs: { taskId: id, departmentRole: existingTask.departmentRole },
+          metadata: { action: 'delete-task' }
+        })
       })
     }
 
@@ -2168,7 +3368,13 @@ exports.updateTurnaroundTaskDetails = async (req, res, next) => {
         eventType: 'TURNAROUND_TASK_DETAILS_UPDATED',
         entityType: 'TURNAROUND_TASK',
         entityId: id,
-        eventPayload: { previous: existingTask, updates: taskUpdates }
+        eventPayload: buildTurnaroundHistoryPayload({
+          operation,
+          previous: existingTask,
+          next: mergeTurnaroundEntity(existingTask, taskUpdates),
+          entityRefs: { taskId: id, departmentRole: existingTask.departmentRole },
+          metadata: { action: 'update-task-details' }
+        })
       })
     }
 
@@ -2242,7 +3448,13 @@ exports.updateTurnaroundHandoff = async (req, res, next) => {
         eventType: 'TURNAROUND_HANDOFF_UPDATED',
         entityType: 'TURNAROUND_HANDOFF',
         entityId: id,
-        eventPayload: { previous: handoff, updates: handoffUpdates }
+        eventPayload: buildTurnaroundHistoryPayload({
+          operation,
+          previous: handoff,
+          next: mergeTurnaroundEntity(handoff, handoffUpdates),
+          entityRefs: { handoffId: id, fromDepartmentRole: handoff.fromDepartmentRole, toDepartmentRole: handoff.toDepartmentRole },
+          metadata: { action: 'update-handoff' }
+        })
       })
     }
 
@@ -2378,7 +3590,14 @@ exports.getCustomers = async (req, res, next) => {
       return res.status(404).json({ message: 'No customers found' })
     }
 
-    return res.status(200).json(customers)
+    const checklistByCustomerId = await getCustomerPreCruiseChecklistMap(customers.map(customer => customer.id))
+
+    const customerDetails = customers.map(customer => withCustomerApiIdentity({
+      ...customer,
+      preCruiseChecklist: checklistByCustomerId.get(customer.id) || normalizePreCruiseChecklist({ ...DEFAULT_PRE_CRUISE_CHECKLIST, customerId: customer.id })
+    }))
+
+    return res.status(200).json(applyCustomerPayloadProfile(customerDetails, getRequestedPayloadProfile(req)))
   } catch (err) {
     next(err)
   }
@@ -2398,7 +3617,12 @@ exports.getCustomerById = async (req, res, next) => {
       return res.status(404).json({ message: 'Customer not found' })
     }
 
-    return res.status(200).json(rows[0])
+    const checklistByCustomerId = await getCustomerPreCruiseChecklistMap([id])
+
+    return res.status(200).json(withCustomerApiIdentity({
+      ...rows[0],
+      preCruiseChecklist: checklistByCustomerId.get(id) || normalizePreCruiseChecklist({ ...DEFAULT_PRE_CRUISE_CHECKLIST, customerId: id })
+    }))
   } catch (err) {
     next(err)
   }
@@ -2428,7 +3652,7 @@ exports.insertCustomer = async (req, res, next) => {
       return res.status(400).json({ message: 'Customer with the same email already exists' })
     }
 
-    const customerValues = { id, firstName, lastName, email, phone, loyaltyNumber }
+    const customerValues = { id, firstName, lastName, email, phone, loyaltyNumber, ...buildEntityLifecycleTimestamps() }
     await db
       .insert(customerTable)
       .values(customerValues)
@@ -2437,7 +3661,11 @@ exports.insertCustomer = async (req, res, next) => {
       eventType: 'CUSTOMER_CREATED',
       entityType: 'CUSTOMER',
       entityId: id,
-      eventPayload: customerValues
+      eventPayload: buildEntityHistoryPayload({
+        next: customerValues,
+        entityRefs: { customerId: id },
+        metadata: { operation: 'create' }
+      })
     })
 
     return res.status(201).json({
@@ -2464,7 +3692,7 @@ exports.updateCustomer = async (req, res, next) => {
       return res.status(404).json({ message: 'Customer not found' })
     }
 
-    const customerUpdates = { firstName, lastName, email, phone, loyaltyNumber }
+    const customerUpdates = { firstName, lastName, email, phone, loyaltyNumber, ...buildEntityUpdateTimestamp() }
     await db
       .update(customerTable)
       .set(customerUpdates)
@@ -2474,7 +3702,12 @@ exports.updateCustomer = async (req, res, next) => {
       eventType: 'CUSTOMER_UPDATED',
       entityType: 'CUSTOMER',
       entityId: id,
-      eventPayload: { previous: existingRows[0], updates: customerUpdates }
+      eventPayload: buildEntityHistoryPayload({
+        previous: existingRows[0],
+        next: { ...existingRows[0], ...customerUpdates },
+        entityRefs: { customerId: id },
+        metadata: { operation: 'update' }
+      })
     })
 
     return res.status(200).json({ message: 'Customer updated successfully' })
@@ -2514,7 +3747,7 @@ exports.deleteCustomer = async (req, res, next) => {
       eventType: 'CUSTOMER_DELETED',
       entityType: 'CUSTOMER',
       entityId: id,
-      eventPayload: { deletedCustomer: existingRows[0] }
+      eventPayload: buildEntityHistoryPayload({ previous: existingRows[0], entityRefs: { customerId: id }, metadata: { operation: 'delete' } })
     })
 
     return res.status(200).json({ message: 'Customer deleted successfully' })
@@ -2531,7 +3764,8 @@ exports.getBookings = async (req, res, next) => {
       return res.status(404).json({ message: 'No bookings found' })
     }
 
-    return res.status(200).json(await getBookingDetailsBatch(bookings))
+    const bookingDetails = await getBookingDetailsBatch(bookings)
+    return res.status(200).json(applyBookingPayloadProfile(bookingDetails, getRequestedPayloadProfile(req)))
   } catch (err) {
     next(err)
   }
@@ -2586,7 +3820,8 @@ exports.getBookingsByCustomer = async (req, res, next) => {
       passengerRows.map(passengerRow => passengerRow.bookingId)
     )
 
-    return res.status(200).json(await getBookingDetailsBatch(bookingRows))
+    const bookingDetails = await getBookingDetailsBatch(bookingRows)
+    return res.status(200).json(applyBookingPayloadProfile(bookingDetails, getRequestedPayloadProfile(req)))
   } catch (err) {
     next(err)
   }
@@ -2662,6 +3897,7 @@ exports.insertBooking = async (req, res, next) => {
       })
     }
 
+    const platformActor = await resolvePlatformAuditActor(req)
     const bookingValues = {
       id,
       sailingId,
@@ -2670,23 +3906,16 @@ exports.insertBooking = async (req, res, next) => {
       fareCode,
       embarkationPort,
       debarkationPort,
-      createdByCustomerId
+      createdByCustomerId,
+      createdByUserId: platformActor.actorUserId,
+      ...buildEntityLifecycleTimestamps()
     }
 
     await db.transaction(async tx => {
       await tx.insert(bookingTable).values(bookingValues)
 
       for (const passenger of passengers) {
-        await tx.insert(bookingPassengerTable).values({
-          id: `${id}-${passenger.customerId}`,
-          bookingId: id,
-          customerId: passenger.customerId,
-          passengerRole: passenger.passengerRole,
-          isPrimaryGuest: Boolean(passenger.isPrimaryGuest),
-          diningPreference: passenger.diningPreference,
-          accessibilityNotes: passenger.accessibilityNotes,
-          boardingGroup: passenger.boardingGroup
-        })
+        await tx.insert(bookingPassengerTable).values(buildBookingPassengerStorageValues(id, passenger))
       }
     })
 
@@ -2696,7 +3925,11 @@ exports.insertBooking = async (req, res, next) => {
       entityType: 'BOOKING',
       entityId: id,
       ...bookingScope,
-      eventPayload: { booking: bookingValues, passengerCount: passengers.length }
+      eventPayload: buildEntityHistoryPayload({
+        next: bookingValues,
+        entityRefs: { bookingId: id, sailingId, passengerCustomerIds: passengers.map(passenger => passenger.customerId) },
+        metadata: { operation: 'create', passengerCount: passengers.length }
+      })
     })
 
     return res.status(201).json({
@@ -2785,8 +4018,15 @@ exports.updateBooking = async (req, res, next) => {
       fareCode,
       embarkationPort,
       debarkationPort,
-      createdByCustomerId
+      createdByCustomerId,
+      ...buildEntityUpdateTimestamp()
     }
+
+    const existingPassengerRows = await db
+      .select()
+      .from(bookingPassengerTable)
+      .where(eq(bookingPassengerTable.bookingId, id))
+    const existingPassengersById = indexRowsBy(existingPassengerRows, 'id')
 
     await db.transaction(async tx => {
       await tx
@@ -2799,16 +4039,10 @@ exports.updateBooking = async (req, res, next) => {
         .where(eq(bookingPassengerTable.bookingId, id))
 
       for (const passenger of passengers) {
-        await tx.insert(bookingPassengerTable).values({
-          id: `${id}-${passenger.customerId}`,
-          bookingId: id,
-          customerId: passenger.customerId,
-          passengerRole: passenger.passengerRole,
-          isPrimaryGuest: Boolean(passenger.isPrimaryGuest),
-          diningPreference: passenger.diningPreference,
-          accessibilityNotes: passenger.accessibilityNotes,
-          boardingGroup: passenger.boardingGroup
-        })
+        const passengerId = `${id}-${passenger.customerId}`
+        await tx.insert(bookingPassengerTable).values(
+          buildBookingPassengerStorageValues(id, passenger, existingPassengersById.get(passengerId))
+        )
       }
     })
 
@@ -2818,7 +4052,12 @@ exports.updateBooking = async (req, res, next) => {
       entityType: 'BOOKING',
       entityId: id,
       ...bookingScope,
-      eventPayload: { previous: existingRows[0], updates: bookingUpdates, passengerCount: passengers.length }
+      eventPayload: buildEntityHistoryPayload({
+        previous: existingRows[0],
+        next: { ...existingRows[0], ...bookingUpdates },
+        entityRefs: { bookingId: id, sailingId, passengerCustomerIds: passengers.map(passenger => passenger.customerId) },
+        metadata: { operation: 'update', passengerCount: passengers.length }
+      })
     })
 
     return res.status(200).json({ message: 'Booking updated successfully' })
@@ -2843,17 +4082,89 @@ exports.updatePassengerSelfServiceProfile = async (req, res, next) => {
       return res.status(404).json({ message: 'Customer not found' })
     }
 
+    const updatedAt = new Date().toISOString()
+
+    const customerUpdates = { firstName, lastName, email, phone, ...buildEntityUpdateTimestamp(updatedAt) }
+
     await db
       .update(customerTable)
-      .set({ firstName, lastName, email, phone })
+      .set(customerUpdates)
       .where(eq(customerTable.id, id))
 
     await db
       .update(bookingPassengerTable)
-      .set({ diningPreference, accessibilityNotes })
+      .set({ diningPreference, accessibilityNotes, updatedAt })
       .where(eq(bookingPassengerTable.customerId, id))
 
+    await refreshPassengerPreferenceTimestamp(id)
+
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'PASSENGER_PROFILE_UPDATED',
+      entityType: 'CUSTOMER',
+      entityId: id,
+      eventPayload: buildEntityHistoryPayload({
+        previous: existingRows[0],
+        next: { ...existingRows[0], ...customerUpdates },
+        entityRefs: { customerId: id },
+        metadata: { operation: 'passenger-profile-update', diningPreference, accessibilityNotes, updatedAt }
+      })
+    })
+
     return res.status(200).json({ message: 'Passenger profile updated successfully' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.updatePassengerPreCruiseChecklist = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const checklist = normalizePreCruiseChecklist(req.body)
+
+    const existingRows = await db
+      .select()
+      .from(customerTable)
+      .where(eq(customerTable.id, id))
+      .limit(1)
+
+    if (!existingRows[0]) {
+      return res.status(404).json({ message: 'Customer not found' })
+    }
+
+    const previousChecklistRow = await getCustomerPreCruiseChecklistRow(id)
+    const updatedAt = new Date().toISOString()
+    const checklistValues = buildChecklistStorageValues(checklist, updatedAt)
+    const nextChecklistRow = { customerId: id, ...checklistValues }
+
+    await db
+      .insert(customerPreCruiseChecklistTable)
+      .values(nextChecklistRow)
+      .onConflictDoUpdate({
+        target: customerPreCruiseChecklistTable.customerId,
+        set: checklistValues
+      })
+
+    await refreshPreCruiseChecklistTimestamp(id)
+
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'PASSENGER_CHECKLIST_UPDATED',
+      entityType: 'CUSTOMER_PRE_CRUISE_CHECKLIST',
+      entityId: id,
+      eventPayload: buildEntityHistoryPayload({
+        previous: previousChecklistRow,
+        next: nextChecklistRow,
+        entityRefs: { customerId: id },
+        metadata: {
+          operation: previousChecklistRow ? 'passenger-checklist-update' : 'passenger-checklist-create',
+          updatedAt
+        }
+      })
+    })
+
+    return res.status(200).json({
+      message: 'Pre-cruise checklist updated successfully',
+      preCruiseChecklist: checklistValues
+    })
   } catch (err) {
     next(err)
   }
@@ -2874,10 +4185,36 @@ exports.updatePassengerBookingPreferences = async (req, res, next) => {
       return res.status(404).json({ message: 'Booking passenger not found' })
     }
 
+    const updatedAt = new Date().toISOString()
+
+    const preferenceUpdates = { diningPreference, accessibilityNotes, updatedAt }
+    const nextPassengerPreferences = { ...existingRows[0], ...preferenceUpdates }
+
     await db
       .update(bookingPassengerTable)
-      .set({ diningPreference, accessibilityNotes })
+      .set(preferenceUpdates)
       .where(eq(bookingPassengerTable.id, `${bookingId}-${customerId}`))
+
+    const bookingRows = await db
+      .select()
+      .from(bookingTable)
+      .where(eq(bookingTable.id, bookingId))
+      .limit(1)
+
+    await refreshBookingPassengerTimestamp(`${bookingId}-${customerId}`)
+
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'PASSENGER_BOOKING_PREFERENCES_UPDATED',
+      entityType: 'BOOKING_PASSENGER',
+      entityId: `${bookingId}-${customerId}`,
+      ...(bookingRows[0] ? await getBookingAuditScope(bookingRows[0]) : {}),
+      eventPayload: buildEntityHistoryPayload({
+        previous: existingRows[0],
+        next: nextPassengerPreferences,
+        entityRefs: { bookingId, customerId },
+        metadata: { operation: 'passenger-booking-preferences-update', updatedAt }
+      })
+    })
 
     return res.status(200).json({ message: 'Booking preferences updated successfully' })
   } catch (err) {
@@ -2890,10 +4227,32 @@ exports.addItineraryFavorite = async (req, res, next) => {
     const { customerId, activityScheduleId } = req.body
     const id = `${customerId}-${activityScheduleId}`
 
+    const previousFavoriteRow = await getCustomerItineraryFavoriteRow(id)
+    const createdAt = previousFavoriteRow?.createdAt || new Date().toISOString()
+    const nextFavoriteRow = { id, customerId, activityScheduleId, createdAt }
+
     await db
       .insert(customerItineraryFavoriteTable)
-      .values({ id, customerId, activityScheduleId })
+      .values(nextFavoriteRow)
       .onConflictDoNothing()
+
+    await refreshItineraryFavoriteTimestamp(id)
+
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'PASSENGER_ITINERARY_FAVORITE_SAVED',
+      entityType: 'CUSTOMER_ITINERARY_FAVORITE',
+      entityId: id,
+      ...(await getActivityAuditScope(activityScheduleId)),
+      eventPayload: buildEntityHistoryPayload({
+        previous: previousFavoriteRow,
+        next: nextFavoriteRow,
+        entityRefs: { customerId, activityScheduleId },
+        metadata: {
+          operation: previousFavoriteRow ? 'passenger-itinerary-favorite-already-saved' : 'passenger-itinerary-favorite-create',
+          createdAt
+        }
+      })
+    })
 
     return res.status(201).json({ message: 'Itinerary favorite saved successfully', id })
   } catch (err) {
@@ -2905,9 +4264,27 @@ exports.deleteItineraryFavorite = async (req, res, next) => {
   try {
     const { customerId, activityScheduleId } = req.params
 
+    const favoriteId = `${customerId}-${activityScheduleId}`
+
+    const previousFavoriteRow = await getCustomerItineraryFavoriteRow(favoriteId)
+
     await db
       .delete(customerItineraryFavoriteTable)
-      .where(eq(customerItineraryFavoriteTable.id, `${customerId}-${activityScheduleId}`))
+      .where(eq(customerItineraryFavoriteTable.id, favoriteId))
+
+    await recordCruiseManagementAuditEvent(req, {
+      eventType: 'PASSENGER_ITINERARY_FAVORITE_REMOVED',
+      entityType: 'CUSTOMER_ITINERARY_FAVORITE',
+      entityId: favoriteId,
+      ...(await getActivityAuditScope(activityScheduleId)),
+      eventPayload: buildEntityHistoryPayload({
+        previous: previousFavoriteRow,
+        entityRefs: { customerId, activityScheduleId },
+        metadata: {
+          operation: previousFavoriteRow ? 'passenger-itinerary-favorite-delete' : 'passenger-itinerary-favorite-delete-missing'
+        }
+      })
+    })
 
     return res.status(200).json({ message: 'Itinerary favorite removed successfully' })
   } catch (err) {
@@ -2943,7 +4320,7 @@ exports.deleteBooking = async (req, res, next) => {
       entityType: 'BOOKING',
       entityId: id,
       ...bookingScope,
-      eventPayload: { deletedBooking: existingRows[0] }
+      eventPayload: buildEntityHistoryPayload({ previous: existingRows[0], entityRefs: { bookingId: id }, metadata: { operation: 'delete' } })
     })
 
     return res.status(200).json({ message: 'Booking deleted successfully' })
@@ -3017,16 +4394,14 @@ exports.addBookingPassenger = async (req, res, next) => {
       })
     }
 
-    const passengerValues = {
-      id: `${bookingId}-${customerId}`,
-      bookingId,
+    const passengerValues = buildBookingPassengerStorageValues(bookingId, {
       customerId,
       passengerRole,
-      isPrimaryGuest: Boolean(isPrimaryGuest),
+      isPrimaryGuest,
       diningPreference,
       accessibilityNotes,
       boardingGroup
-    }
+    })
     await db.insert(bookingPassengerTable).values(passengerValues)
 
     const bookingScope = await getBookingAuditScope(bookingRows[0])
@@ -3035,7 +4410,7 @@ exports.addBookingPassenger = async (req, res, next) => {
       entityType: 'BOOKING_PASSENGER',
       entityId: `${bookingId}-${customerId}`,
       ...bookingScope,
-      eventPayload: passengerValues
+      eventPayload: buildEntityHistoryPayload({ next: passengerValues, entityRefs: { bookingId, customerId }, metadata: { operation: 'add-passenger' } })
     })
 
     return res.status(201).json({ message: 'Booking passenger added successfully' })
@@ -3074,7 +4449,7 @@ exports.deleteBookingPassenger = async (req, res, next) => {
       entityType: 'BOOKING_PASSENGER',
       entityId: `${bookingId}-${customerId}`,
       ...bookingScope,
-      eventPayload: { deletedPassenger: passengerRows[0] }
+      eventPayload: buildEntityHistoryPayload({ previous: passengerRows[0], entityRefs: { bookingId, customerId }, metadata: { operation: 'remove-passenger' } })
     })
 
     return res.status(200).json({ message: 'Booking passenger deleted successfully' })

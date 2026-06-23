@@ -15,34 +15,70 @@ function createFailure(error) {
 }
 
 
+function buildPendingReadinessChecklist() {
+  return [
+    {
+      label: 'API availability',
+      status: 'pending',
+      detail: 'Not checked yet. Run Go-Live Review to validate API availability.'
+    },
+    {
+      label: 'Fleet data',
+      status: 'pending',
+      detail: 'Not checked yet. Run Go-Live Review to validate cruise-line data.'
+    },
+    {
+      label: 'Customer operations',
+      status: 'pending',
+      detail: 'Not checked yet. Run Go-Live Review to validate customers and bookings.'
+    },
+    {
+      label: 'Turnaround operations',
+      status: 'pending',
+      detail: 'Not checked yet. Run Go-Live Review to validate turnaround operations.'
+    },
+    {
+      label: 'Manual approval path',
+      status: 'ready',
+      detail: 'Review role-specific workflows, fleet management, passenger self-service, and quality reports before publishing.'
+    }
+  ]
+}
+
 function buildReadinessChecklist(result = {}) {
   return [
     {
       label: 'API availability',
-      passed: result.healthStatus === 'ok',
+      status: result.healthStatus === 'ok' ? 'ready' : 'attention',
       detail: result.healthStatus === 'ok' ? 'Application API is responding.' : 'Application API needs review.'
     },
     {
       label: 'Fleet data',
-      passed: result.cruiseLineCount > 0,
+      status: result.cruiseLineCount > 0 ? 'ready' : 'attention',
       detail: `${result.cruiseLineCount || 0} cruise lines available.`
     },
     {
       label: 'Customer operations',
-      passed: result.customerCount > 0 && result.bookingCount > 0,
+      status: result.customerCount > 0 && result.bookingCount > 0 ? 'ready' : 'attention',
       detail: `${result.customerCount || 0} customers and ${result.bookingCount || 0} bookings available.`
     },
     {
       label: 'Turnaround operations',
-      passed: result.turnaroundOperationCount > 0,
+      status: result.turnaroundOperationCount > 0 ? 'ready' : 'attention',
       detail: `${result.turnaroundOperationCount || 0} turnaround operations available.`
     },
     {
       label: 'Manual approval path',
-      passed: true,
+      status: 'ready',
       detail: 'Review role-specific workflows, fleet management, passenger self-service, and quality reports before publishing.'
     }
   ]
+}
+
+function getReadinessItemSymbol(status) {
+  if (status === 'ready') return '✓'
+  if (status === 'attention') return '!'
+  return '•'
 }
 
 export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
@@ -51,7 +87,7 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
   const [isRunning, setIsRunning] = useState(false)
   const [status, setStatus] = useState('Ready for validation')
   const [resetConfirmationVisible, setResetConfirmationVisible] = useState(false)
-  const [readinessChecklist, setReadinessChecklist] = useState(buildReadinessChecklist())
+  const [readinessChecklist, setReadinessChecklist] = useState(buildPendingReadinessChecklist())
 
   const validationActions = useMemo(() => ([
     {
@@ -309,8 +345,8 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
         </div>
         <ul className="go-live-readiness-list" aria-label="Go-live manual approval checklist">
           {readinessChecklist.map(item => (
-            <li key={item.label} className={item.passed ? 'readiness-item ready' : 'readiness-item attention'}>
-              <span aria-hidden="true">{item.passed ? '✓' : '!'}</span>
+            <li key={item.label} className={`readiness-item ${item.status || (item.passed ? 'ready' : 'attention')}`}>
+              <span aria-hidden="true">{getReadinessItemSymbol(item.status || (item.passed ? 'ready' : 'attention'))}</span>
               <div>
                 <strong>{item.label}</strong>
                 <p>{item.detail}</p>

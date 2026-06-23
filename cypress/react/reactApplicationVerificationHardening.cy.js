@@ -70,7 +70,7 @@ describe('React application mutation verification hardening', () => {
     openCustomerWorkflows()
     cy.getByTestId(rs.expandVisibleCustomers).click()
     cy.getByTestId(rs.customerWorkflowTable).should('contain.text', reactBookings[0].id)
-    cy.getByTestId(rs.adminDeleteBookingId).type(reactBookings[0].id)
+    cy.getByTestId(rs.adminDeleteBookingId).select(reactBookings[0].id)
     cy.getByTestId(rs.adminDeleteBookingSubmit).click()
     cy.getByTestId(rs.adminDeleteConfirmationConfirm).click()
 

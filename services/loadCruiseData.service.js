@@ -16,6 +16,7 @@ const appUserTable = require('../models/appUser.model')
 const appRoleTable = require('../models/appRole.model')
 const appUserRoleTable = require('../models/appUserRole.model')
 const customerItineraryFavoriteTable = require('../models/customerItineraryFavorite.model')
+const customerPreCruiseChecklistTable = require('../models/customerPreCruiseChecklist.model')
 const turnaroundOperationTable = require('../models/turnaroundOperation.model')
 const turnaroundTaskTable = require('../models/turnaroundTask.model')
 const turnaroundTaskUpdateTable = require('../models/turnaroundTaskUpdate.model')
@@ -501,7 +502,7 @@ function buildSeedRows(cruiseData) {
   }
 }
 
-async function loadCruiseData() {
+async function performLoadCruiseData() {
   const cruiseData = readCruiseSeedData()
   const rows = buildSeedRows(cruiseData)
 
@@ -518,6 +519,7 @@ async function loadCruiseData() {
     await tx.delete(turnaroundSignoffTable)
     await tx.delete(turnaroundTaskTable)
     await tx.delete(turnaroundOperationTable)
+    await tx.delete(customerPreCruiseChecklistTable)
     await tx.delete(customerItineraryFavoriteTable)
     await tx.delete(bookingPassengerTable)
     await tx.delete(bookingTable)
@@ -577,6 +579,18 @@ async function loadCruiseData() {
     turnaroundHandoffCount: rows.turnaroundHandoffRows.length,
     source: 'data/cruise.json'
   }
+}
+
+let activeSeedLoadPromise = null
+
+async function loadCruiseData() {
+  if (!activeSeedLoadPromise) {
+    activeSeedLoadPromise = performLoadCruiseData().finally(() => {
+      activeSeedLoadPromise = null
+    })
+  }
+
+  return activeSeedLoadPromise
 }
 
 module.exports = loadCruiseData

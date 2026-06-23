@@ -573,4 +573,57 @@ describe('Turnaround operations API integration tests', () => {
     expect(res.body.message).toBe('Validation failed')
   })
 
+
+  it('records turnaround command audit events with shared before and after history payloads', async () => {
+    const operationsRes = await request(app).get('/cruise/turnaround-operations')
+    const operation = operationsRes.body[0]
+    const notes = `History payload verification ${Date.now()}`
+
+    const updateRes = await request(app)
+      .patch(`/cruise/turnaround-operations/${operation.id}`)
+      .send({
+        status: 'in progress',
+        readinessLevel: 'History payload review active',
+        port: operation.port,
+        notes
+      })
+
+    expect(updateRes.statusCode).toBe(200)
+
+    const auditRes = await request(app)
+      .get(`/cruise/turnaround-operations/${operation.id}/audit-events?limit=10`)
+
+    expect(auditRes.statusCode).toBe(200)
+    const commandEvent = auditRes.body.auditEvents.find(event =>
+      event.eventType === 'TURNAROUND_COMMAND_UPDATED' && event.eventPayload?.next?.notes === notes
+    )
+
+    expect(commandEvent).toBeTruthy()
+    expect(commandEvent.eventPayload).toEqual(expect.objectContaining({
+      previous: expect.objectContaining({
+        status: expect.any(String),
+        readinessLevel: expect.any(String),
+        port: expect.any(String)
+      }),
+      next: expect.objectContaining({
+        status: 'IN_PROGRESS',
+        readinessLevel: 'History payload review active',
+        notes
+      }),
+      entityRefs: expect.objectContaining({
+        operationId: operation.id,
+        turnaroundOperationId: operation.id
+      }),
+      metadata: expect.objectContaining({
+        domain: 'turnaround-operations',
+        historyShape: 'TURNAROUND_BEFORE_AFTER_V1',
+        action: 'update-command-plan'
+      })
+    }))
+    expect(commandEvent.eventPayload.changedFields.notes).toEqual({
+      previous: operation.notes,
+      next: notes
+    })
+  })
+
 })

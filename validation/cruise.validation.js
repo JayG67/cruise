@@ -25,6 +25,19 @@ const bookingIdSchema = z
   .trim()
   .regex(/^B[A-Z0-9]{9}$/, 'Booking ID must be 10 characters and start with B')
 
+const requiredAbsoluteUrlSchema = z
+  .string()
+  .trim()
+  .max(255, 'Website URL is too long')
+  .refine((value) => {
+    try {
+      const parsedUrl = new URL(value)
+      return ['http:', 'https:'].includes(parsedUrl.protocol) && Boolean(parsedUrl.hostname.includes('.'))
+    } catch (err) {
+      return false
+    }
+  }, 'Website must be a valid URL')
+
 const cruiseLineSchema = z.object({
   name: z
     .string()
@@ -38,12 +51,7 @@ const cruiseLineSchema = z.object({
     .max(255, 'Country is too long')
     .optional(),
 
-  website: z
-    .string()
-    .trim()
-    .url('Website must be a valid URL')
-    .max(255, 'Website URL is too long')
-    .optional(),
+  website: requiredAbsoluteUrlSchema.optional(),
 
   brandFamily: z
     .string()
@@ -294,11 +302,29 @@ const bookingPreferenceUpdateSchema = z.object({
   accessibilityNotes: z.string().trim().max(255).optional()
 }).strict()
 
+const preCruiseChecklistSchema = z.object({
+  documents: z.boolean().optional().default(false),
+  luggage: z.boolean().optional().default(false),
+  dining: z.boolean().optional().default(false),
+  excursions: z.boolean().optional().default(false)
+}).strict()
+
 const itineraryFavoriteSchema = z.object({
   customerId: customerIdSchema,
   activityScheduleId: uuidSchema
 }).strict()
 
+
+
+const turnaroundPersonAssignmentSchema = z.object({
+  id: z.string().trim().max(20, 'Turnaround person id is too long').optional(),
+  displayName: z.string().trim().min(1, 'Display name is required').max(255, 'Display name is too long'),
+  role: z.string().trim().min(1, 'Operational role is required').max(50, 'Operational role is too long'),
+  cruiseLineId: uuidSchema,
+  assignedShipId: uuidSchema.optional().nullable(),
+  assignedSailingId: uuidSchema.optional().nullable(),
+  sailingId: uuidSchema.optional().nullable()
+}).strict()
 
 const turnaroundOperationCommandUpdateSchema = z.object({
   status: z
@@ -445,6 +471,7 @@ module.exports = {
   bookingPassengerCreateSchema,
   passengerCustomerUpdateSchema,
   bookingPreferenceUpdateSchema,
+  preCruiseChecklistSchema,
   itineraryFavoriteSchema,
   turnaroundOperationCommandUpdateSchema,
   turnaroundTaskStatusUpdateSchema,
@@ -456,6 +483,7 @@ module.exports = {
   turnaroundEscalationCreateSchema,
   turnaroundEscalationUpdateSchema,
   turnaroundHandoffUpdateSchema,
+  turnaroundPersonAssignmentSchema,
   customerIdSchema,
   bookingIdSchema
 }

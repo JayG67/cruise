@@ -28,7 +28,8 @@ function mapAuditEvent(row = {}) {
     operationId: row.operationId,
     source: row.source,
     eventPayload: parseAuditPayload(row.eventPayload),
-    createdAt: row.createdAt
+    createdAt: row.createdAt,
+    createdAtTimestamp: row.createdAtTimestamp || null
   }
 }
 
@@ -58,7 +59,8 @@ function buildAuditEventValues({
   operationId = null,
   source = 'APPLICATION',
   eventPayload = null,
-  createdAt = new Date().toISOString()
+  createdAt = new Date().toISOString(),
+  createdAtTimestamp = new Date(createdAt)
 }) {
   if (!eventType) {
     throw new Error('Audit event type is required.')
@@ -84,7 +86,8 @@ function buildAuditEventValues({
     operationId,
     source,
     eventPayload: typeof eventPayload === 'string' ? eventPayload : serializeAuditPayload(eventPayload),
-    createdAt
+    createdAt,
+    createdAtTimestamp
   }
 }
 

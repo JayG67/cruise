@@ -97,6 +97,60 @@ describe('Passenger booking workflow hardening', () => {
     cy.getByTestId(rs.bookingSailingSelect).should('not.contain.text', 'Nassau')
   })
 
+  it('cascades booking cruise line, ship, sailing, search filters, and ship-aware fare choices', () => {
+    cy.intercept('GET', `/cruise/ships/${royalCaribbeanId}`, [
+      { id: 'ship-react-utopia', cruiseLineId: royalCaribbeanId, name: 'React Utopia', currentPort: 'Port Canaveral, Florida' },
+      passengerBookingShip
+    ]).as('bookingShipsForCascade')
+    cy.intercept('GET', `/cruise/ship/${passengerBookingShip.id}/sailings`, [
+      {
+        ...passengerBookingSailing,
+        id: 'sailing-seven-night-nassau',
+        departureDate: '2027-04-20',
+        departurePort: 'Port Canaveral, Florida',
+        arrivalPort: 'Nassau, Bahamas',
+        days: 7
+      },
+      passengerBookingSailing
+    ]).as('bookingSailingsForCascade')
+
+    cy.getByTestId(rs.bookingCruiseLineSearch).type('Royal')
+    cy.getByTestId(rs.bookingCruiseLineSelect).find('option').then(options => {
+      const optionText = [...options].map(option => option.textContent.trim()).filter(Boolean)
+      expect(optionText).to.deep.eq(['Select cruise line', 'Royal Caribbean International'])
+    })
+
+    cy.getByTestId(rs.bookingCruiseLineSelect).select('Royal Caribbean International')
+    cy.wait('@bookingShipsForCascade')
+    cy.getByTestId(rs.bookingShipSelect).find('option').then(options => {
+      const optionText = [...options].map(option => option.textContent.trim()).filter(Boolean)
+      expect(optionText).to.deep.eq(['Select ship', 'React Icon', 'React Utopia'])
+    })
+
+    cy.getByTestId(rs.bookingShipSelect).select('React Icon')
+    cy.wait('@bookingSailingsForCascade')
+    cy.getByTestId(rs.bookingSailingSelect).find('option').then(options => {
+      const optionText = [...options].map(option => option.textContent.trim()).filter(Boolean)
+      expect(optionText).to.deep.eq([
+        'Select sailing',
+        '2027-03-14 — Miami, Florida to CocoCay (4 nights)',
+        '2027-04-20 — Port Canaveral, Florida to Nassau, Bahamas (7 nights)'
+      ])
+    })
+
+    cy.getByTestId(rs.bookingDestinationSearch).type('Coco')
+    cy.getByTestId(rs.bookingDeparturePortSearch).type('Miami')
+    cy.getByTestId(rs.bookingDurationFilter).select('4')
+    cy.getByTestId(rs.bookingSailingSelect).find('option').should('have.length', 2)
+    cy.getByTestId(rs.bookingSailingSelect).should('contain.text', 'CocoCay')
+    cy.getByTestId(rs.bookingSailingSelect).should('not.contain.text', 'Nassau')
+
+    cy.getByTestId(rs.bookingFareCodeSelect).find('option').then(options => {
+      const optionText = [...options].map(option => option.textContent.trim()).filter(Boolean)
+      expect(optionText).to.deep.eq(['Balcony'])
+    })
+  })
+
   it('blocks malformed new guest email before any customer or booking request is sent', () => {
     cy.intercept('POST', '/cruise/customers').as('customerShouldNotCreate')
     cy.intercept('POST', '/cruise/bookings').as('bookingShouldNotCreate')

@@ -13,6 +13,15 @@ export default function ReactCruiseLineCreateWorkflow({ onCreated }) {
     reset
   } = useCruiseLineCreateWorkflow({ onCreated })
 
+  const isCruiseLineDetailsComplete = [
+    draft.name,
+    draft.country,
+    draft.website,
+    draft.brandFamily,
+    draft.brandTheme,
+    draft.marketPositioning
+  ].every(value => value.trim())
+
   return (
     <section className="react-create-workflow-section" id="react-create-cruise-line" aria-labelledby="react-create-heading" data-testid="react-create-cruise-line-workflow">
       <p className="eyebrow">Create workflow</p>
@@ -96,9 +105,9 @@ export default function ReactCruiseLineCreateWorkflow({ onCreated }) {
             </label>
           </fieldset>
 
-          <fieldset>
+          <fieldset className={isCruiseLineDetailsComplete ? undefined : 'starter-ships-locked'} aria-disabled={!isCruiseLineDetailsComplete}>
             <legend><span>2</span> Starter Ships</legend>
-            <p>Add ships now, or leave this blank and add ships later.</p>
+            <p>{isCruiseLineDetailsComplete ? 'Add ships now, or leave this blank and add ships later.' : 'Complete every cruise line detail first before adding starter ships.'}</p>
 
             {draft.ships.map((ship, index) => (
               <div className="react-ship-row" key={`react-ship-row-${index}`}>
@@ -107,6 +116,7 @@ export default function ReactCruiseLineCreateWorkflow({ onCreated }) {
                   <input
                     value={ship.name}
                     onChange={event => updateShip(index, 'name', event.target.value)}
+                    disabled={!isCruiseLineDetailsComplete}
                     placeholder="Rotterdam"
                     data-testid="react-create-ship-name"
                   />
@@ -116,17 +126,18 @@ export default function ReactCruiseLineCreateWorkflow({ onCreated }) {
                   <input
                     value={ship.currentPort}
                     onChange={event => updateShip(index, 'currentPort', event.target.value)}
+                    disabled={!isCruiseLineDetailsComplete}
                     placeholder="Fort Lauderdale"
                     data-testid="react-create-ship-port"
                   />
                 </label>
-                <button type="button" className="secondary-button" onClick={() => removeShipRow(index)} data-testid="react-remove-ship-row">
+                <button type="button" className="secondary-button" onClick={() => removeShipRow(index)} disabled={!isCruiseLineDetailsComplete} data-testid="react-remove-ship-row">
                   Remove Ship
                 </button>
               </div>
             ))}
 
-            <button type="button" className="secondary-button add-ship-button" onClick={addShipRow} data-testid="react-add-ship-row">
+            <button type="button" className="secondary-button add-ship-button" onClick={addShipRow} disabled={!isCruiseLineDetailsComplete} data-testid="react-add-ship-row">
               + Add Ship
             </button>
           </fieldset>

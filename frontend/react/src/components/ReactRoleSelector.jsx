@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { getOperationalAssignmentShipName, normalizeRole } from '../domain/roleView.js'
+import { getOperationalAssignmentCruiseLineName, getOperationalAssignmentShipName, normalizeRole } from '../domain/roleView.js'
 
 function formatDemoUserRole(role = 'Demo User') {
   return role
@@ -19,6 +19,8 @@ function formatRoleOption(role = '') {
   if (role === 'guest-services-lead') return 'Guest Services Lead'
   if (role === 'food-beverage-lead') return 'Food & Beverage Lead'
   if (role === 'engineering-lead') return 'Engineering Lead'
+  if (role === 'security-lead') return 'Security Lead'
+  if (role === 'port-operations-lead') return 'Port Operations Lead'
   return 'Passenger'
 }
 
@@ -102,16 +104,50 @@ function buildPassengerOption(user = {}, bookings = []) {
   }
 }
 
-function getPassengerFilterOptions(passengerOptions = [], key) {
+
+function sortPassengerOptions(options = []) {
+  return [...options].sort((a, b) => {
+    const aHasContext = a.contexts.length > 0
+    const bHasContext = b.contexts.length > 0
+
+    if (aHasContext !== bHasContext) {
+      return aHasContext ? -1 : 1
+    }
+
+    const aDate = a.contexts[0]?.sailingDate || ''
+    const bDate = b.contexts[0]?.sailingDate || ''
+    const dateComparison = String(aDate).localeCompare(String(bDate))
+
+    if (dateComparison !== 0) return dateComparison
+
+    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+  })
+}
+
+function sortPassengerFilterValues(values = [], key = '') {
+  return [...values].sort((a, b) => {
+    if (key === 'sailingDate') {
+      return String(a).localeCompare(String(b))
+    }
+
+    return String(a).localeCompare(String(b), undefined, { sensitivity: 'base' })
+  })
+}
+
+function getPassengerFilterOptions(passengerOptions = [], key, activeFilters = {}) {
   const values = new Set()
 
   passengerOptions.forEach(option => {
     option.contexts.forEach(context => {
-      if (context[key]) values.add(context[key])
+      const matchesCruiseLine = key === 'cruiseLine' || !activeFilters.cruiseLine || context.cruiseLine === activeFilters.cruiseLine
+      const matchesShip = key === 'ship' || !activeFilters.ship || context.ship === activeFilters.ship
+      const matchesSailingDate = key === 'sailingDate' || !activeFilters.sailingDate || context.sailingDate === activeFilters.sailingDate
+
+      if (matchesCruiseLine && matchesShip && matchesSailingDate && context[key]) values.add(context[key])
     })
   })
 
-  return [...values].sort((a, b) => String(a).localeCompare(String(b)))
+  return sortPassengerFilterValues(values, key)
 }
 
 function passengerMatchesFilter(option, filterKey, value) {
@@ -212,6 +248,37 @@ function condenseWorkspaceUserOptions(options = []) {
   })
 }
 
+
+function isOperationalRole(roleView = '') {
+  return roleView === 'turnaround-manager'
+    || roleView === 'housekeeping-lead'
+    || roleView === 'guest-services-lead'
+    || roleView === 'food-beverage-lead'
+    || roleView === 'engineering-lead'
+}
+
+function getOperationalAssignmentContext(user = {}) {
+  const shipName = getOperationalAssignmentShipName(user)
+  const cruiseLineName = getOperationalAssignmentCruiseLineName(user)
+
+  return {
+    cruiseLineName,
+    shipName,
+    searchText: [cruiseLineName, shipName].filter(Boolean).join(' ').toLowerCase()
+  }
+}
+
+function getOperationalFilterOptions(options = [], key) {
+  const values = new Set()
+
+  options.forEach(option => {
+    const value = option.assignment?.[key]
+    if (value) values.add(value)
+  })
+
+  return [...values].sort((a, b) => String(a).localeCompare(String(b)))
+}
+
 function getRoleSummary(user, customerCount, bookingCount, visibleBookingCount = bookingCount) {
   if (!user) {
     return `Loading people — ${customerCount} customers and ${bookingCount} bookings available.`
@@ -255,21 +322,36 @@ export default function ReactRoleSelector({
   const [passengerShipFilter, setPassengerShipFilter] = useState('')
   const [passengerSailingDateFilter, setPassengerSailingDateFilter] = useState('')
   const [personSearch, setPersonSearch] = useState('')
+  const [operationalCruiseLineFilter, setOperationalCruiseLineFilter] = useState('')
+  const [operationalShipFilter, setOperationalShipFilter] = useState('')
+  const [operationalFilterTouched, setOperationalFilterTouched] = useState(false)
   const roleOptions = availableRoles.length > 0 ? availableRoles : ['admin', 'passenger', 'group-leader']
   const isPassengerFilterActive = selectedRole === 'passenger'
+  const selectedRoleView = normalizeRole(selectedRole)
+  const isOperationalFilterActive = isOperationalRole(selectedRoleView)
 
   const passengerOptions = useMemo(() => {
     if (!isPassengerFilterActive) return []
 
-    return filteredDemoUsers
+    return sortPassengerOptions(filteredDemoUsers
       .filter(user => normalizeRole(user.role || user.userType) === 'passenger')
-      .map(user => buildPassengerOption(user, bookings))
+      .map(user => buildPassengerOption(user, bookings)))
   }, [filteredDemoUsers, bookings, isPassengerFilterActive])
 
   const visiblePassengerOptions = useMemo(() => {
     const search = passengerSearch.trim().toLowerCase()
+    const hasActiveFinderCriteria = Boolean(
+      search
+      || passengerCruiseLineFilter
+      || passengerShipFilter
+      || passengerSailingDateFilter
+    )
 
-    return passengerOptions.filter(option => {
+    if (!hasActiveFinderCriteria && bookings.length === 0) {
+      return []
+    }
+
+    const matchingOptions = passengerOptions.filter(option => {
       const matchesSearch = !search || option.searchText.includes(search)
       const matchesCruiseLine = passengerMatchesFilter(option, 'cruiseLine', passengerCruiseLineFilter)
       const matchesShip = passengerMatchesFilter(option, 'ship', passengerShipFilter)
@@ -277,7 +359,14 @@ export default function ReactRoleSelector({
 
       return matchesSearch && matchesCruiseLine && matchesShip && matchesSailingDate
     })
-  }, [passengerOptions, passengerSearch, passengerCruiseLineFilter, passengerShipFilter, passengerSailingDateFilter])
+
+    if (hasActiveFinderCriteria) {
+      return matchingOptions
+    }
+
+    const contextBackedOptions = matchingOptions.filter(option => option.contexts.length > 0)
+    return contextBackedOptions.length > 0 ? contextBackedOptions : matchingOptions
+  }, [bookings.length, passengerOptions, passengerSearch, passengerCruiseLineFilter, passengerShipFilter, passengerSailingDateFilter])
 
   const personSelectUsers = useMemo(() => {
     if (!isPassengerFilterActive) return filteredDemoUsers
@@ -316,45 +405,121 @@ export default function ReactRoleSelector({
 
   const visibleDemoUsers = personSelectUsers
   const personSearchText = personSearch.trim().toLowerCase()
+  const operationalSourceOptions = useMemo(() => {
+    if (!isOperationalFilterActive) return []
+
+    return filteredDemoUsers
+      .filter(user => normalizeRole(user.role || user.userType) === selectedRoleView)
+      .map(user => ({
+        ...buildWorkspaceUserOption(user, bookings),
+        assignment: getOperationalAssignmentContext(user)
+      }))
+  }, [bookings, filteredDemoUsers, isOperationalFilterActive, selectedRoleView])
+
+  const operationalCruiseLineOptions = useMemo(() => getOperationalFilterOptions(operationalSourceOptions, 'cruiseLineName'), [operationalSourceOptions])
+  const operationalShipOptions = useMemo(() => {
+    if (!operationalCruiseLineFilter) return []
+    return getOperationalFilterOptions(
+      operationalSourceOptions.filter(option => option.assignment?.cruiseLineName === operationalCruiseLineFilter),
+      'shipName'
+    )
+  }, [operationalCruiseLineFilter, operationalSourceOptions])
+
   const personOptionCards = useMemo(() => {
+    if (isOperationalFilterActive) {
+      if (!operationalCruiseLineFilter) return []
+
+      return operationalSourceOptions.filter(option => {
+        const matchesSearch = !personSearchText || (`${option.searchText} ${option.assignment?.searchText || ''}`).includes(personSearchText)
+        const matchesCruiseLine = option.assignment?.cruiseLineName === operationalCruiseLineFilter
+        const matchesShip = !operationalShipFilter || option.assignment?.shipName === operationalShipFilter
+
+        return matchesSearch && matchesCruiseLine && matchesShip
+      })
+    }
+
     const sourceUsers = isPassengerFilterActive ? visibleDemoUsers : filteredDemoUsers
     const matchingOptions = sourceUsers
       .map(user => buildWorkspaceUserOption(user, bookings))
       .filter(option => !personSearchText || option.searchText.includes(personSearchText))
 
-    const roleView = normalizeRole(selectedRole)
-    const isOperationalRole = roleView === 'turnaround-manager'
-      || roleView === 'housekeeping-lead'
-      || roleView === 'guest-services-lead'
-      || roleView === 'food-beverage-lead'
-      || roleView === 'engineering-lead'
-    const exactNameSearch = personSearchText
-      && matchingOptions.length > 1
-      && matchingOptions.every(option => option.name.toLowerCase() === personSearchText)
-
     if (isPassengerFilterActive) return matchingOptions
 
-    return isOperationalRole && !exactNameSearch
-      ? matchingOptions
-      : condenseWorkspaceUserOptions(matchingOptions)
-  }, [bookings, filteredDemoUsers, isPassengerFilterActive, personSearchText, selectedRole, visibleDemoUsers])
+    return condenseWorkspaceUserOptions(matchingOptions)
+  }, [
+    bookings,
+    filteredDemoUsers,
+    isOperationalFilterActive,
+    isPassengerFilterActive,
+    operationalCruiseLineFilter,
+    operationalShipFilter,
+    operationalSourceOptions,
+    personSearchText,
+    visibleDemoUsers
+  ])
 
   const displayedPersonOptionCards = useMemo(() => {
     const selectedOption = selectedDemoUserId
       ? personOptionCards.find(option => option.user.id === selectedDemoUserId)
       : null
-    const visibleOptions = personOptionCards.slice(0, 8)
+    const visibleOptions = personOptionCards.slice(0, 16)
 
     if (selectedOption && !visibleOptions.some(option => option.user.id === selectedOption.user.id)) {
-      return [selectedOption, ...visibleOptions.slice(0, 7)]
+      return [selectedOption, ...visibleOptions.slice(0, 15)]
     }
 
     return visibleOptions
   }, [personOptionCards, selectedDemoUserId])
 
-  const cruiseLineOptions = useMemo(() => getPassengerFilterOptions(passengerOptions, 'cruiseLine'), [passengerOptions])
-  const shipOptions = useMemo(() => getPassengerFilterOptions(passengerOptions, 'ship'), [passengerOptions])
-  const sailingDateOptions = useMemo(() => getPassengerFilterOptions(passengerOptions, 'sailingDate'), [passengerOptions])
+  const visibleSelectorCount = isOperationalFilterActive ? personOptionCards.length : visibleDemoUsers.length
+  const availableRoleCount = isOperationalFilterActive ? operationalSourceOptions.length : filteredDemoUsers.length
+
+  const cruiseLineOptions = useMemo(() => getPassengerFilterOptions(passengerOptions, 'cruiseLine', {
+    ship: passengerShipFilter,
+    sailingDate: passengerSailingDateFilter
+  }), [passengerOptions, passengerShipFilter, passengerSailingDateFilter])
+  const shipOptions = useMemo(() => getPassengerFilterOptions(passengerOptions, 'ship', {
+    cruiseLine: passengerCruiseLineFilter,
+    sailingDate: passengerSailingDateFilter
+  }), [passengerOptions, passengerCruiseLineFilter, passengerSailingDateFilter])
+  const sailingDateOptions = useMemo(() => getPassengerFilterOptions(passengerOptions, 'sailingDate', {
+    cruiseLine: passengerCruiseLineFilter,
+    ship: passengerShipFilter
+  }), [passengerOptions, passengerCruiseLineFilter, passengerShipFilter])
+
+  useEffect(() => {
+    if (!isOperationalFilterActive) return
+    if (operationalFilterTouched || operationalCruiseLineFilter) return
+
+    const selectedAssignmentCruiseLine = getOperationalAssignmentCruiseLineName(selectedDemoUser || {})
+    if (selectedAssignmentCruiseLine && operationalCruiseLineOptions.includes(selectedAssignmentCruiseLine)) {
+      setOperationalCruiseLineFilter(selectedAssignmentCruiseLine)
+    }
+  }, [isOperationalFilterActive, operationalCruiseLineFilter, operationalCruiseLineOptions, operationalFilterTouched, selectedDemoUser])
+
+  useEffect(() => {
+    if (!operationalShipFilter) return
+    if (operationalShipOptions.includes(operationalShipFilter)) return
+    setOperationalShipFilter('')
+  }, [operationalShipFilter, operationalShipOptions])
+
+  useEffect(() => {
+    if (passengerCruiseLineFilter && !cruiseLineOptions.includes(passengerCruiseLineFilter)) {
+      setPassengerCruiseLineFilter('')
+    }
+  }, [cruiseLineOptions, passengerCruiseLineFilter])
+
+  useEffect(() => {
+    if (passengerShipFilter && !shipOptions.includes(passengerShipFilter)) {
+      setPassengerShipFilter('')
+    }
+  }, [passengerShipFilter, shipOptions])
+
+  useEffect(() => {
+    if (passengerSailingDateFilter && !sailingDateOptions.includes(passengerSailingDateFilter)) {
+      setPassengerSailingDateFilter('')
+    }
+  }, [passengerSailingDateFilter, sailingDateOptions])
 
   useEffect(() => {
     if (personOptionCards.length === 0) return
@@ -368,12 +533,21 @@ export default function ReactRoleSelector({
     setPassengerCruiseLineFilter('')
     setPassengerShipFilter('')
     setPassengerSailingDateFilter('')
+    setOperationalCruiseLineFilter('')
+    setOperationalShipFilter('')
+    setOperationalFilterTouched(false)
     setPersonSearch('')
     onSelectRole?.(role)
   }
 
   function handlePassengerSearchChange(value) {
     setPassengerSearch(value)
+  }
+
+  function handleOperationalCruiseLineChange(value) {
+    setOperationalFilterTouched(true)
+    setOperationalCruiseLineFilter(value)
+    setOperationalShipFilter('')
   }
 
   return (
@@ -491,27 +665,141 @@ export default function ReactRoleSelector({
                   type="button"
                   className={`passenger-finder-card${selectedDemoUserId === option.user.id ? ' selected' : ''}`}
                   onClick={() => onSelectDemoUser?.(option.user.id)}
-                  data-testid="react-passenger-finder-result-card"
+                  data-testid="react-person-finder-result-card"
                 >
+                  <span className="selector-compatibility-card-anchor" data-testid="react-passenger-finder-result-card">{option.name}</span>
                   <span className="passenger-finder-card-main">
                     <strong>{option.name}</strong>
                     <span>{option.user.email || option.user.customerId || 'Passenger profile'}</span>
                   </span>
                   <span className="passenger-finder-card-detail">{option.detail}</span>
-                  {option.contexts.length > 0 && (
-                    <span className="passenger-finder-card-chips">
-                      {option.contexts.slice(0, 2).map(context => (
-                        <span key={`${option.user.id}-${context.bookingId}`}>{context.ship} · {context.sailingDate}</span>
-                      ))}
-                    </span>
-                  )}
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        <div className="person-finder-panel" data-testid="react-person-finder-panel">
+
+        {isOperationalFilterActive && (
+          <div className="passenger-finder-panel operational-person-filter-panel" data-testid="react-operational-person-filter-panel">
+            <div className="passenger-finder-heading">
+              <div>
+                <p className="eyebrow">Turnaround person finder</p>
+                <h3>Choose the person whose workspace you want to review</h3>
+                <p className="role-selector-helper-text">
+                  Select a cruise line, optionally narrow to one ship queue, then choose a real assignment card. The selector only shows people inside the selected cruise-line scope.
+                </p>
+              </div>
+            </div>
+
+            <div className="passenger-finder-grid operational-person-filter-grid">
+              <div className="role-selector-field">
+                <label className="react-field-label" htmlFor="react-operational-cruise-line-filter">
+                  Cruise line
+                </label>
+                <select
+                  id="react-operational-cruise-line-filter"
+                  className="react-select"
+                  value={operationalCruiseLineFilter}
+                  onChange={event => handleOperationalCruiseLineChange(event.target.value)}
+                  data-testid="react-operational-cruise-line-filter"
+                >
+                  <option value="">Select a cruise line</option>
+                  {operationalCruiseLineOptions.map(cruiseLine => (
+                    <option key={cruiseLine} value={cruiseLine}>{cruiseLine}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="role-selector-field">
+                <label className="react-field-label" htmlFor="react-operational-ship-filter">
+                  Ship queue
+                </label>
+                <select
+                  id="react-operational-ship-filter"
+                  className="react-select"
+                  value={operationalShipFilter}
+                  onChange={event => setOperationalShipFilter(event.target.value)}
+                  disabled={!operationalCruiseLineFilter}
+                  data-testid="react-operational-ship-filter"
+                >
+                  <option value="">{operationalCruiseLineFilter ? 'All ship queues' : 'Select a cruise line first'}</option>
+                  {operationalShipOptions.map(ship => (
+                    <option key={ship} value={ship}>{ship}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="role-selector-field operational-person-search-field">
+                <label className="react-field-label" htmlFor="react-person-search">
+                  Search assignments
+                </label>
+                <input
+                  id="react-person-search"
+                  className="react-input"
+                  type="search"
+                  value={personSearch}
+                  onChange={event => setPersonSearch(event.target.value)}
+                  placeholder="Search by person, role, cruise line, or ship"
+                  data-testid="react-person-search-input"
+                />
+              </div>
+            </div>
+
+            <div className="operational-selector-summary" data-testid="react-operational-selector-summary">
+              <div>
+                <span>Current scope</span>
+                <strong>{operationalCruiseLineFilter || 'Choose a cruise line'}</strong>
+                <small>{operationalShipFilter || (operationalCruiseLineFilter ? 'All ship queues' : 'No ship queue selected')}</small>
+              </div>
+              <div>
+                <span>Visible assignments</span>
+                <strong>{personOptionCards.length} people</strong>
+                <small>{operationalCruiseLineFilter ? 'Scoped to the selected cruise line' : 'Choose a cruise line to begin'}</small>
+              </div>
+            </div>
+
+            {selectedDemoUser && (
+              <div className="selected-person-card" data-testid="react-selected-person-card">
+                <span>Selected workspace</span>
+                <strong>{formatDemoUserLabel(selectedDemoUser, bookings)}</strong>
+                <small>{getRoleSummary(selectedDemoUser, customerCount, bookingCount, visibleBookingCount)}</small>
+              </div>
+            )}
+
+            <div className="person-finder-results operational-person-results" data-testid="react-person-finder-results">
+              {displayedPersonOptionCards.map(option => (
+                <button
+                  key={option.user.id}
+                  type="button"
+                  className={`person-finder-card${selectedDemoUserId === option.user.id ? ' selected' : ''}`}
+                  onClick={() => onSelectDemoUser?.(option.user.id)}
+                  aria-pressed={selectedDemoUserId === option.user.id}
+                  data-testid="react-person-finder-result-card"
+                >
+                  <span className="person-finder-card-main">
+                    <strong>{option.name}</strong>
+                    <span>{formatDemoUserRole(option.user.role || option.user.userType || 'Demo User')}</span>
+                  </span>
+                  <span className="person-finder-card-detail">{option.detail}</span>
+                </button>
+              ))}
+            </div>
+
+            {personOptionCards.length > displayedPersonOptionCards.length && (
+              <p className="finder-limit-note" data-testid="react-person-finder-limit-note">
+                Showing the best {displayedPersonOptionCards.length} matches. Search or choose a ship queue to narrow the assignment list.
+              </p>
+            )}
+
+            {personOptionCards.length === 0 && (
+              <p className="empty-state compact" data-testid="react-person-finder-empty">{!operationalCruiseLineFilter ? 'Select a cruise line to show assigned turnaround people.' : 'No people match the current filters.'}</p>
+            )}
+          </div>
+        )}
+
+        {!isPassengerFilterActive && !isOperationalFilterActive && (
+          <div className="person-finder-panel" data-testid="react-person-finder-panel">
           <div className="person-finder-heading">
             <div>
               <p className="eyebrow">Person</p>
@@ -569,10 +857,13 @@ export default function ReactRoleSelector({
           )}
 
           {personOptionCards.length === 0 && (
-            <p className="empty-state compact" data-testid="react-person-finder-empty">No people match the current search.</p>
+            <p className="empty-state compact" data-testid="react-person-finder-empty">{isOperationalFilterActive && !operationalCruiseLineFilter ? 'Select a cruise line to show assigned turnaround people.' : 'No people match the current search.'}</p>
           )}
 
-          <label className="sr-only" htmlFor="react-demo-role">Person fallback select</label>
+          </div>
+        )}
+
+        <label className="sr-only" htmlFor="react-demo-role">Person fallback select</label>
           <select
             id="react-demo-role"
             className="react-select person-select sr-only"
@@ -590,7 +881,6 @@ export default function ReactRoleSelector({
               <option key={user.id} value={user.id}>{formatDemoUserLabel(user, bookings)}</option>
             ))}
           </select>
-        </div>
       </div>
 
       {isPassengerFilterActive && visiblePassengerOptions.length === 0 && (
@@ -602,8 +892,8 @@ export default function ReactRoleSelector({
       <div className="role-summary-card" aria-live="polite" data-testid="react-demo-user-summary">
         <strong>{selectedDemoUser ? formatDemoUserLabel(selectedDemoUser, bookings) : 'Loading people'}</strong>
         <span>{getRoleSummary(selectedDemoUser, customerCount, bookingCount, visibleBookingCount)}</span>
-        <span>{visibleDemoUsers.length} people visible in the current selector.</span>
-        <span>{filteredDemoUsers.length} people available for the selected role.</span>
+        <span>{visibleSelectorCount} people visible in the current selector.</span>
+        <span>{availableRoleCount} people available for the selected role.</span>
         <span>{demoUsers.length} total people available.</span>
       </div>
     </section>

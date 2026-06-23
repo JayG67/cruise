@@ -63,8 +63,8 @@ export default function useDemoUsers({ enabled = true } = {}) {
     const selectedUser = demoUsers.find(user => user.id === userId)
     const selectedUserRole = normalizeRole(selectedUser?.role || selectedUser?.userType)
 
-    if (selectedRole && selectedUserRole !== selectedRole) {
-      setSelectedRole('')
+    if (selectedUserRole && selectedUserRole !== selectedRole) {
+      setSelectedRole(selectedUserRole)
     }
   }
 

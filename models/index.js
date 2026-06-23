@@ -11,6 +11,7 @@ const appUserTable = require('./appUser.model')
 const appRoleTable = require('./appRole.model')
 const appUserRoleTable = require('./appUserRole.model')
 const customerItineraryFavoriteTable = require('./customerItineraryFavorite.model')
+const customerPreCruiseChecklistTable = require('./customerPreCruiseChecklist.model')
 const turnaroundOperationTable = require('./turnaroundOperation.model')
 const turnaroundTaskTable = require('./turnaroundTask.model')
 const turnaroundTaskUpdateTable = require('./turnaroundTaskUpdate.model')
@@ -35,6 +36,7 @@ module.exports = {
   appRoleTable,
   appUserRoleTable,
   customerItineraryFavoriteTable,
+  customerPreCruiseChecklistTable,
   turnaroundOperationTable,
   turnaroundTaskTable,
   turnaroundTaskUpdateTable,

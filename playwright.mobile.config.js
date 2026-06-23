@@ -42,8 +42,14 @@ module.exports = defineConfig({
   expect: {
     timeout: 5_000
   },
-  fullyParallel: true,
-  workers: process.env.CI ? 2 : 3,
+  // The mobile suite drives a single shared local server and test database.
+  // Running responsive browser projects in parallel caused cross-device state
+  // races: one device could be changing role/fleet/confirmation state while
+  // another was asserting the same product surface. Keep this suite serialized;
+  // Cypress and Jest still cover broad parallel-safe behavior, while these
+  // checks verify viewport reachability without test-run contention.
+  fullyParallel: false,
+  workers: 1,
   retries: process.env.CI ? 1 : 0,
   reporter: [
     ['list'],

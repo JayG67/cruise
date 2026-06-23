@@ -46,7 +46,11 @@ async function initializeDatabase() {
       "sailingId" uuid NOT NULL REFERENCES sailings(id) ON DELETE CASCADE,
       day integer NOT NULL,
       title varchar(255) NOT NULL,
-      port varchar(255)
+      port varchar(255),
+      "createdAt" varchar(40),
+      "createdAtTimestamp" timestamptz,
+      "updatedAt" varchar(40),
+      "updatedAtTimestamp" timestamptz
     );
   `)
 
@@ -55,7 +59,11 @@ async function initializeDatabase() {
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       "itineraryDayId" uuid NOT NULL REFERENCES itinerary_days(id) ON DELETE CASCADE,
       time varchar(20) NOT NULL,
-      activity varchar(255) NOT NULL
+      activity varchar(255) NOT NULL,
+      "createdAt" varchar(40),
+      "createdAtTimestamp" timestamptz,
+      "updatedAt" varchar(40),
+      "updatedAtTimestamp" timestamptz
     );
   `)
 
@@ -239,6 +247,7 @@ async function initializeDatabase() {
       "normalizedRoleId" varchar(50) REFERENCES app_roles(id) ON DELETE SET NULL,
       "cruiseLineId" uuid REFERENCES cruise_lines(id) ON DELETE SET NULL,
       "assignedShipId" uuid REFERENCES ships(id) ON DELETE SET NULL,
+      "assignedSailingId" uuid REFERENCES sailings(id) ON DELETE SET NULL,
       "cruiseLineName" varchar(255),
       "assignedShipName" varchar(255)
     );
@@ -253,7 +262,10 @@ async function initializeDatabase() {
       "isPrimaryGuest" boolean NOT NULL DEFAULT false,
       "diningPreference" varchar(100),
       "accessibilityNotes" varchar(255),
-      "boardingGroup" varchar(50)
+      "boardingGroup" varchar(50),
+      "bookingPassengerUuid" uuid DEFAULT gen_random_uuid(),
+      "updatedAt" varchar(40),
+      "updatedAtTimestamp" timestamptz
     );
   `)
 
@@ -261,7 +273,22 @@ async function initializeDatabase() {
     CREATE TABLE IF NOT EXISTS customer_itinerary_favorites (
       id varchar(60) PRIMARY KEY,
       "customerId" varchar(10) NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
-      "activityScheduleId" uuid NOT NULL REFERENCES activity_schedules(id) ON DELETE CASCADE
+      "activityScheduleId" uuid NOT NULL REFERENCES activity_schedules(id) ON DELETE CASCADE,
+      "favoriteUuid" uuid DEFAULT gen_random_uuid(),
+      "createdAt" varchar(40),
+      "createdAtTimestamp" timestamptz
+    );
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS customer_pre_cruise_checklists (
+      "customerId" varchar(10) PRIMARY KEY REFERENCES customers(id) ON DELETE CASCADE,
+      "checklistUuid" uuid DEFAULT gen_random_uuid(),
+      documents boolean NOT NULL DEFAULT false,
+      luggage boolean NOT NULL DEFAULT false,
+      dining boolean NOT NULL DEFAULT false,
+      excursions boolean NOT NULL DEFAULT false,
+      "updatedAt" varchar(40)
     );
   `)
 
@@ -498,11 +525,97 @@ async function initializeDatabase() {
   `)
 
   await db.execute(sql`
+    ALTER TABLE demo_users ADD COLUMN IF NOT EXISTS "assignedSailingId" uuid REFERENCES sailings(id) ON DELETE SET NULL;
+  `)
+
+  await db.execute(sql`
+    DO $$
+    DECLARE
+      constraint_record record;
+    BEGIN
+      FOR constraint_record IN
+        SELECT conrelid::regclass::text AS table_name, conname
+        FROM pg_constraint
+        WHERE contype = 'f'
+          AND conrelid IN (
+            'app_users'::regclass,
+            'app_user_roles'::regclass,
+            'demo_users'::regclass,
+            'audit_events'::regclass
+          )
+          AND confrelid IN ('ships'::regclass, 'sailings'::regclass)
+      LOOP
+        EXECUTE format('ALTER TABLE %s DROP CONSTRAINT %I', constraint_record.table_name, constraint_record.conname);
+      END LOOP;
+
+      ALTER TABLE app_users
+        ADD CONSTRAINT app_users_assigned_ship_id_ships_id_fk
+        FOREIGN KEY ("assignedShipId") REFERENCES ships(id) ON DELETE SET NULL;
+
+      ALTER TABLE app_user_roles
+        ADD CONSTRAINT app_user_roles_assigned_ship_id_ships_id_fk
+        FOREIGN KEY ("assignedShipId") REFERENCES ships(id) ON DELETE SET NULL;
+
+      ALTER TABLE demo_users
+        ADD CONSTRAINT demo_users_assigned_ship_id_ships_id_fk
+        FOREIGN KEY ("assignedShipId") REFERENCES ships(id) ON DELETE SET NULL;
+
+      ALTER TABLE demo_users
+        ADD CONSTRAINT demo_users_assigned_sailing_id_sailings_id_fk
+        FOREIGN KEY ("assignedSailingId") REFERENCES sailings(id) ON DELETE SET NULL;
+
+      ALTER TABLE audit_events
+        ADD CONSTRAINT audit_events_ship_id_ships_id_fk
+        FOREIGN KEY ("shipId") REFERENCES ships(id) ON DELETE SET NULL;
+
+      ALTER TABLE audit_events
+        ADD CONSTRAINT audit_events_sailing_id_sailings_id_fk
+        FOREIGN KEY ("sailingId") REFERENCES sailings(id) ON DELETE SET NULL;
+    END $$;
+  `)
+
+  await db.execute(sql`
     ALTER TABLE demo_users ADD COLUMN IF NOT EXISTS "cruiseLineName" varchar(255);
   `)
 
   await db.execute(sql`
     ALTER TABLE demo_users ADD COLUMN IF NOT EXISTS "assignedShipName" varchar(255);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE booking_passengers ADD COLUMN IF NOT EXISTS "bookingPassengerUuid" uuid DEFAULT gen_random_uuid();
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE booking_passengers ADD COLUMN IF NOT EXISTS "updatedAt" varchar(40);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE booking_passengers ADD COLUMN IF NOT EXISTS "updatedAtTimestamp" timestamptz;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE customer_itinerary_favorites ADD COLUMN IF NOT EXISTS "favoriteUuid" uuid DEFAULT gen_random_uuid();
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE customer_itinerary_favorites ADD COLUMN IF NOT EXISTS "createdAt" varchar(40);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE customer_itinerary_favorites ADD COLUMN IF NOT EXISTS "createdAtTimestamp" timestamptz;
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE customer_pre_cruise_checklists ADD COLUMN IF NOT EXISTS "checklistUuid" uuid DEFAULT gen_random_uuid();
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE customer_pre_cruise_checklists ADD COLUMN IF NOT EXISTS "updatedAt" varchar(40);
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE customer_pre_cruise_checklists ADD COLUMN IF NOT EXISTS "updatedAtTimestamp" timestamptz;
   `)
 
   await db.execute(sql`
@@ -1062,6 +1175,154 @@ async function initializeDatabase() {
     ALTER TABLE audit_events ADD COLUMN IF NOT EXISTS "createdAt" varchar(40);
   `)
 
+
+
+  await db.execute(sql`
+    ALTER TABLE cruise_lines ADD COLUMN IF NOT EXISTS "createdAt" varchar(40);
+    ALTER TABLE cruise_lines ADD COLUMN IF NOT EXISTS "createdAtTimestamp" timestamptz;
+    ALTER TABLE cruise_lines ADD COLUMN IF NOT EXISTS "updatedAt" varchar(40);
+    ALTER TABLE cruise_lines ADD COLUMN IF NOT EXISTS "updatedAtTimestamp" timestamptz;
+    UPDATE cruise_lines
+    SET
+      "createdAt" = COALESCE("createdAt", NOW()::text),
+      "createdAtTimestamp" = COALESCE("createdAtTimestamp", NOW()),
+      "updatedAt" = COALESCE("updatedAt", "createdAt", NOW()::text),
+      "updatedAtTimestamp" = COALESCE("updatedAtTimestamp", "createdAtTimestamp", NOW());
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE ships ADD COLUMN IF NOT EXISTS "createdAt" varchar(40);
+    ALTER TABLE ships ADD COLUMN IF NOT EXISTS "createdAtTimestamp" timestamptz;
+    ALTER TABLE ships ADD COLUMN IF NOT EXISTS "updatedAt" varchar(40);
+    ALTER TABLE ships ADD COLUMN IF NOT EXISTS "updatedAtTimestamp" timestamptz;
+    UPDATE ships
+    SET
+      "createdAt" = COALESCE("createdAt", NOW()::text),
+      "createdAtTimestamp" = COALESCE("createdAtTimestamp", NOW()),
+      "updatedAt" = COALESCE("updatedAt", "createdAt", NOW()::text),
+      "updatedAtTimestamp" = COALESCE("updatedAtTimestamp", "createdAtTimestamp", NOW());
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE sailings ADD COLUMN IF NOT EXISTS "createdAt" varchar(40);
+    ALTER TABLE sailings ADD COLUMN IF NOT EXISTS "createdAtTimestamp" timestamptz;
+    ALTER TABLE sailings ADD COLUMN IF NOT EXISTS "updatedAt" varchar(40);
+    ALTER TABLE sailings ADD COLUMN IF NOT EXISTS "updatedAtTimestamp" timestamptz;
+    UPDATE sailings
+    SET
+      "createdAt" = COALESCE("createdAt", NOW()::text),
+      "createdAtTimestamp" = COALESCE("createdAtTimestamp", NOW()),
+      "updatedAt" = COALESCE("updatedAt", "createdAt", NOW()::text),
+      "updatedAtTimestamp" = COALESCE("updatedAtTimestamp", "createdAtTimestamp", NOW());
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE customers ADD COLUMN IF NOT EXISTS "customerUuid" uuid DEFAULT gen_random_uuid();
+    ALTER TABLE customers ADD COLUMN IF NOT EXISTS "createdAt" varchar(40);
+    ALTER TABLE customers ADD COLUMN IF NOT EXISTS "createdAtTimestamp" timestamptz;
+    ALTER TABLE customers ADD COLUMN IF NOT EXISTS "updatedAt" varchar(40);
+    ALTER TABLE customers ADD COLUMN IF NOT EXISTS "updatedAtTimestamp" timestamptz;
+    UPDATE customers
+    SET
+      "customerUuid" = COALESCE("customerUuid", gen_random_uuid()),
+      "createdAt" = COALESCE("createdAt", NOW()::text),
+      "createdAtTimestamp" = COALESCE("createdAtTimestamp", NOW()),
+      "updatedAt" = COALESCE("updatedAt", "createdAt", NOW()::text),
+      "updatedAtTimestamp" = COALESCE("updatedAtTimestamp", "createdAtTimestamp", NOW());
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE bookings ADD COLUMN IF NOT EXISTS "bookingUuid" uuid DEFAULT gen_random_uuid();
+    ALTER TABLE bookings ADD COLUMN IF NOT EXISTS "createdByUserId" varchar(40) REFERENCES app_users(id) ON DELETE SET NULL;
+    ALTER TABLE bookings ADD COLUMN IF NOT EXISTS "createdAt" varchar(40);
+    ALTER TABLE bookings ADD COLUMN IF NOT EXISTS "createdAtTimestamp" timestamptz;
+    ALTER TABLE bookings ADD COLUMN IF NOT EXISTS "updatedAt" varchar(40);
+    ALTER TABLE bookings ADD COLUMN IF NOT EXISTS "updatedAtTimestamp" timestamptz;
+    UPDATE bookings
+    SET
+      "bookingUuid" = COALESCE("bookingUuid", gen_random_uuid()),
+      "createdAt" = COALESCE("createdAt", NOW()::text),
+      "createdAtTimestamp" = COALESCE("createdAtTimestamp", NOW()),
+      "updatedAt" = COALESCE("updatedAt", "createdAt", NOW()::text),
+      "updatedAtTimestamp" = COALESCE("updatedAtTimestamp", "createdAtTimestamp", NOW());
+  `)
+
+  await db.execute(sql`
+    UPDATE bookings
+    SET "createdByUserId" = app_users.id
+    FROM app_users
+    WHERE bookings."createdByUserId" IS NULL
+      AND bookings."createdByCustomerId" = app_users."primaryCustomerId";
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE audit_events ADD COLUMN IF NOT EXISTS "createdAtTimestamp" timestamptz;
+    UPDATE audit_events
+    SET "createdAtTimestamp" = "createdAt"::timestamptz
+    WHERE "createdAtTimestamp" IS NULL
+      AND "createdAt" ~ '^\d{4}-\d{2}-\d{2}T';
+  `)
+
+  await db.execute(sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_customer_uuid ON customers("customerUuid");
+  `)
+
+  await db.execute(sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_bookings_booking_uuid ON bookings("bookingUuid");
+  `)
+
+  await db.execute(sql`
+    UPDATE booking_passengers SET "bookingPassengerUuid" = COALESCE("bookingPassengerUuid", gen_random_uuid());
+  `)
+
+  await db.execute(sql`
+    UPDATE customer_itinerary_favorites SET "favoriteUuid" = COALESCE("favoriteUuid", gen_random_uuid());
+  `)
+
+  await db.execute(sql`
+    UPDATE customer_pre_cruise_checklists SET "checklistUuid" = COALESCE("checklistUuid", gen_random_uuid());
+  `)
+
+  await db.execute(sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_booking_passengers_uuid ON booking_passengers("bookingPassengerUuid");
+  `)
+
+  await db.execute(sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_customer_itinerary_favorites_uuid ON customer_itinerary_favorites("favoriteUuid");
+  `)
+
+  await db.execute(sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_customer_pre_cruise_checklists_uuid ON customer_pre_cruise_checklists("checklistUuid");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_customers_updated_timestamp ON customers("updatedAtTimestamp");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_bookings_updated_timestamp ON bookings("updatedAtTimestamp");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_bookings_created_by_user ON bookings("createdByUserId");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_cruise_lines_updated_timestamp ON cruise_lines("updatedAtTimestamp");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_ships_updated_timestamp ON ships("updatedAtTimestamp");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_sailings_updated_timestamp ON sailings("updatedAtTimestamp");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_audit_events_created_timestamp ON audit_events("createdAtTimestamp");
+  `)
+
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_sailings_departure_date_value ON sailings("departureDateValue");
   `)
@@ -1119,6 +1380,10 @@ async function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_demo_users_operational_assignment ON demo_users("cruiseLineId", "assignedShipId", role);
   `)
 
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_demo_users_turnaround_sailing_assignment ON demo_users("cruiseLineId", "assignedShipId", "assignedSailingId", role);
+  `)
+
 
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_turnaround_tasks_owner_user ON turnaround_tasks("ownerUserId");
@@ -1157,6 +1422,40 @@ async function initializeDatabase() {
   `)
 
   await db.execute(sql`
+    ALTER TABLE itinerary_days ADD COLUMN IF NOT EXISTS "createdAt" varchar(40);
+    ALTER TABLE itinerary_days ADD COLUMN IF NOT EXISTS "createdAtTimestamp" timestamptz;
+    ALTER TABLE itinerary_days ADD COLUMN IF NOT EXISTS "updatedAt" varchar(40);
+    ALTER TABLE itinerary_days ADD COLUMN IF NOT EXISTS "updatedAtTimestamp" timestamptz;
+    UPDATE itinerary_days
+    SET
+      "createdAt" = COALESCE("createdAt", NOW()::text),
+      "createdAtTimestamp" = COALESCE("createdAtTimestamp", NOW()),
+      "updatedAt" = COALESCE("updatedAt", "createdAt", NOW()::text),
+      "updatedAtTimestamp" = COALESCE("updatedAtTimestamp", "createdAtTimestamp", NOW());
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE activity_schedules ADD COLUMN IF NOT EXISTS "createdAt" varchar(40);
+    ALTER TABLE activity_schedules ADD COLUMN IF NOT EXISTS "createdAtTimestamp" timestamptz;
+    ALTER TABLE activity_schedules ADD COLUMN IF NOT EXISTS "updatedAt" varchar(40);
+    ALTER TABLE activity_schedules ADD COLUMN IF NOT EXISTS "updatedAtTimestamp" timestamptz;
+    UPDATE activity_schedules
+    SET
+      "createdAt" = COALESCE("createdAt", NOW()::text),
+      "createdAtTimestamp" = COALESCE("createdAtTimestamp", NOW()),
+      "updatedAt" = COALESCE("updatedAt", "createdAt", NOW()::text),
+      "updatedAtTimestamp" = COALESCE("updatedAtTimestamp", "createdAtTimestamp", NOW());
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_itinerary_days_updated ON itinerary_days("updatedAtTimestamp");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_activity_schedules_updated ON activity_schedules("updatedAtTimestamp");
+  `)
+
+  await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_activity_schedules_itinerary_day ON activity_schedules("itineraryDayId");
   `)
 
@@ -1178,6 +1477,19 @@ async function initializeDatabase() {
 
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_customer_itinerary_favorites_customer_id ON customer_itinerary_favorites("customerId");
+  `)
+
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_customer_itinerary_favorites_customer_created ON customer_itinerary_favorites("customerId", "createdAtTimestamp");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_customer_pre_cruise_checklists_updated ON customer_pre_cruise_checklists("updatedAtTimestamp");
+  `)
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_booking_passengers_customer_updated ON booking_passengers("customerId", "updatedAtTimestamp");
   `)
 
   await db.execute(sql`

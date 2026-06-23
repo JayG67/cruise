@@ -57,7 +57,15 @@ describe('Cruise Controller getCruiseLines', () => {
   expect(db.select).toHaveBeenCalledTimes(1)
   expect(fromMock).toHaveBeenCalledTimes(1)
   expect(res.status).toHaveBeenCalledWith(200)
-  expect(res.json).toHaveBeenCalledWith(fakeCruiseLines)
+  expect(res.json).toHaveBeenCalledWith(fakeCruiseLines.map(cruiseLine => expect.objectContaining({
+    ...cruiseLine,
+    apiIdentity: expect.objectContaining({
+      entityType: 'CRUISE_LINE',
+      durableId: cruiseLine.id,
+      displayId: cruiseLine.name,
+      tenantScope: expect.objectContaining({ cruiseLineId: cruiseLine.id })
+    })
+  })))
 })
 
   it('should return 404 if no cruise lines exist', async () => {
@@ -94,7 +102,15 @@ describe('Cruise Controller getCruiseLineById', () => {
     expect(whereMock).toHaveBeenCalledTimes(1)
     expect(limitMock).toHaveBeenCalledWith(1)
     expect(res.status).toHaveBeenCalledWith(200)
-    expect(res.json).toHaveBeenCalledWith(fakeCruiseLine)
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      ...fakeCruiseLine,
+      apiIdentity: expect.objectContaining({
+        entityType: 'CRUISE_LINE',
+        durableId: fakeCruiseLine.id,
+        displayId: fakeCruiseLine.name,
+        tenantScope: expect.objectContaining({ cruiseLineId: fakeCruiseLine.id })
+      })
+    }))
   })
 
   it('should return 400 if id is missing', async () => {
@@ -143,7 +159,16 @@ describe('Cruise Controller getShipsByCruiseLine', () => {
     expect(fromMock).toHaveBeenCalledTimes(1)
     expect(whereMock).toHaveBeenCalledTimes(1)
     expect(res.status).toHaveBeenCalledWith(200)
-    expect(res.json).toHaveBeenCalledWith(fakeShips)
+    expect(res.json).toHaveBeenCalledWith(fakeShips.map(ship => expect.objectContaining({
+      ...ship,
+      apiIdentity: expect.objectContaining({
+        entityType: 'SHIP',
+        durableId: ship.id,
+        displayId: ship.name,
+        relationships: expect.objectContaining({ cruiseLineId: ship.cruiseLineId }),
+        tenantScope: expect.objectContaining({ cruiseLineId: ship.cruiseLineId, shipId: ship.id })
+      })
+    })))
   })
 
   it('should return 404 if no ships are found', async () => {
@@ -183,11 +208,15 @@ describe('Cruise Controller insertCruiseLine', () => {
 
     expect(db.select).toHaveBeenCalledTimes(1)
     expect(db.insert).toHaveBeenCalledTimes(1)
-    expect(valuesMock).toHaveBeenCalledWith({
+    expect(valuesMock).toHaveBeenCalledWith(expect.objectContaining({
       name: 'Royal Caribbean',
       country: 'USA',
-      website: 'https://www.royalcaribbean.com'
-    })
+      website: 'https://www.royalcaribbean.com',
+      createdAt: expect.any(String),
+      createdAtTimestamp: expect.any(Date),
+      updatedAt: expect.any(String),
+      updatedAtTimestamp: expect.any(Date)
+    }))
     expect(returningMock).toHaveBeenCalledTimes(1)
     expect(res.status).toHaveBeenCalledWith(201)
     expect(res.json).toHaveBeenCalledWith({
@@ -240,10 +269,15 @@ describe('Cruise Controller insertShip', () => {
 
     expect(db.select).toHaveBeenCalledTimes(2)
     expect(db.insert).toHaveBeenCalledTimes(1)
-    expect(valuesMock).toHaveBeenCalledWith({
+    expect(valuesMock).toHaveBeenCalledWith(expect.objectContaining({
       name: 'Icon of the Seas',
-      cruiseLineId: '1'
-    })
+      cruiseLineId: '1',
+      createdAt: expect.any(String),
+      createdAtTimestamp: expect.any(Date),
+      updatedAt: expect.any(String),
+      updatedAtTimestamp: expect.any(Date)
+    }))
+    expect(valuesMock.mock.calls[0][0]).not.toHaveProperty('currentPort')
     expect(res.status).toHaveBeenCalledWith(201)
     expect(res.json).toHaveBeenCalledWith({
       message: 'Ship created successfully',
@@ -311,11 +345,13 @@ describe('Cruise Controller updateCruiseLine', () => {
 
     expect(db.select).toHaveBeenCalledTimes(2)
     expect(db.update).toHaveBeenCalledTimes(1)
-    expect(setMock).toHaveBeenCalledWith({
+    expect(setMock).toHaveBeenCalledWith(expect.objectContaining({
       name: 'Royal Caribbean Updated',
       country: 'USA',
-      website: 'https://www.royalcaribbean.com'
-    })
+      website: 'https://www.royalcaribbean.com',
+      updatedAt: expect.any(String),
+      updatedAtTimestamp: expect.any(Date)
+    }))
     expect(whereMock).toHaveBeenCalledTimes(1)
     expect(res.status).toHaveBeenCalledWith(200)
     expect(res.json).toHaveBeenCalledWith({ message: 'Cruise line updated successfully' })
@@ -372,10 +408,13 @@ describe('Cruise Controller updateShip', () => {
 
     expect(db.select).toHaveBeenCalledTimes(3)
     expect(db.update).toHaveBeenCalledTimes(1)
-    expect(setMock).toHaveBeenCalledWith({
+    expect(setMock).toHaveBeenCalledWith(expect.objectContaining({
       name: 'Icon Updated',
-      cruiseLineId: 'line-1'
-    })
+      cruiseLineId: 'line-1',
+      updatedAt: expect.any(String),
+      updatedAtTimestamp: expect.any(Date)
+    }))
+    expect(setMock.mock.calls[0][0]).not.toHaveProperty('currentPort')
     expect(whereMock).toHaveBeenCalledTimes(1)
     expect(res.status).toHaveBeenCalledWith(200)
     expect(res.json).toHaveBeenCalledWith({ message: 'Ship updated successfully' })

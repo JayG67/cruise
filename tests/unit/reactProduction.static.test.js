@@ -24,8 +24,11 @@ describe('Cruise operations product presentation guardrails', () => {
   it('removes user-facing retired implementation-history calls to action from the production React shell', () => {
     const app = read('frontend/react/src/App.jsx')
 
+    expect(app).toContain('Explore Overview')
     expect(app).toContain('Open Quality Console')
+    expect(app).toContain('data-testid="react-hero-demo-button"')
     expect(app).toContain('data-testid="react-hero-quality-button"')
+    expect(app).toContain("openWorkspace('react-employer-demo', 'Employer Demo Command Center')")
     expect(app).toContain("openWorkspace('react-quality', 'Quality Console', 'admin')")
     expect(app).not.toContain('Open Retired Pre-React App')
     expect(app).not.toContain('href="/retired"')
@@ -59,7 +62,7 @@ describe('Cruise operations product presentation guardrails', () => {
     const sqaConsole = read('frontend/react/src/components/ReactSqaConsole.jsx')
 
     expect(app).toContain('<ReactSqaConsole')
-    expect(app).toContain('Run quality checks')
+    expect(app).toContain('Open Quality Console')
     expect(sqaConsole).toContain('Quality Console')
     expect(sqaConsole).toContain('View Quality Dashboard')
     expect(sqaConsole).toContain('Run Performance Check')
@@ -108,4 +111,14 @@ describe('Cruise operations product presentation guardrails', () => {
     expect(fs.existsSync(path.join(projectRoot, 'frontend/react/public/images/cruise-background-960.webp'))).toBe(false)
   })
 
+})
+
+
+test('top navigation avoids duplicate current-location and workspace links', () => {
+  const appSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/App.jsx'), 'utf8')
+
+  expect(appSource).not.toContain('href="#react-dashboard">Dashboard</a>')
+  expect(appSource).not.toContain('href="#react-employer-demo">Workspaces</a>')
+  expect(appSource).toContain('href="#react-employer-demo">Overview</a>')
+  expect(appSource).toContain('Cruise Fleet Operations Platform')
 })

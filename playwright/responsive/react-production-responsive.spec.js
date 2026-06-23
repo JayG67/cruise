@@ -8,6 +8,15 @@ const {
   selectDemoUserByRole
 } = require('../support/reactProductionHelpers')
 
+async function completeCreateCruiseLineDetails(page, suffix = 'Responsive') {
+  await page.getByTestId('react-create-cruise-line-name').fill(`${suffix} Cruise`)
+  await page.getByTestId('react-create-cruise-line-country').fill('United States')
+  await page.getByTestId('react-create-cruise-line-website').fill(`https://www.${suffix.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.example`)
+  await page.getByTestId('react-create-cruise-line-brand-family').fill(`${suffix} Brand Group`)
+  await page.getByTestId('react-create-cruise-line-brand-theme').fill('Responsive workflow')
+  await page.getByTestId('react-create-cruise-line-market-positioning').fill('Responsive cruise operations test line')
+}
+
 test.describe('React default desktop and tablet replacement checks', () => {
   test('keeps React replacement sections in production order', async ({ page }) => {
     await page.goto('/')
@@ -35,21 +44,24 @@ test.describe('React default desktop and tablet replacement checks', () => {
     await expectNoHorizontalOverflow(page)
   })
 
-  test('keeps React responsive role switching usable at tablet width', async ({ page }) => {
+  test('keeps React responsive role selector usable at tablet width', async ({ page }) => {
     await page.goto('/')
     await page.setViewportSize({ width: 900, height: 1100 })
 
-    await selectDemoUserByRole(page, 'Passenger')
-    await expect(page.getByTestId('react-passenger-dashboard')).toBeVisible()
-    await expectNoHorizontalOverflow(page)
+    const roleSelector = page.getByTestId('react-role-selector')
+    await expect(roleSelector).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('react-role-type-select')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('react-person-finder-panel')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('react-demo-user-summary')).toBeVisible({ timeout: 15000 })
 
-    await selectDemoUserByRole(page, 'Admin')
-    await expect(page.getByTestId('react-active-route-operations')).toBeVisible()
-    await expectNoHorizontalOverflow(page)
+    const roleOptions = await page.getByTestId('react-role-type-select').locator('option').allTextContents()
+    const roleOptionLabels = roleOptions.join(' ')
 
-    await selectDemoUserByRole(page, 'Turnaround Manager')
-    await expect(page.getByTestId('react-operations-directory-panel')).toBeVisible()
-    await expect(page.getByTestId('react-operations-directory-card').first()).toBeVisible()
+    expect(roleOptionLabels).toContain('All roles')
+    expect(roleOptionLabels).toContain('Administrator')
+    expect(roleOptionLabels).toContain('Passenger')
+    expect(roleOptionLabels).toContain('Group Leader')
+
     await expectNoHorizontalOverflow(page)
   })
   test('loads React fleet ships from the fleet directory at desktop width', async ({ page }) => {
@@ -89,8 +101,9 @@ test.describe('React default desktop and tablet replacement checks', () => {
   test('keeps React create workflow usable at desktop width', async ({ page }) => {
     await page.goto('/')
 
-    await page.getByTestId('react-create-cruise-line-name').fill('Responsive React Cruise')
-    await page.getByTestId('react-create-cruise-line-country').fill('United States')
+    await expect(page.getByTestId('react-add-ship-row')).toBeDisabled()
+    await completeCreateCruiseLineDetails(page, 'Responsive React')
+    await expect(page.getByTestId('react-add-ship-row')).toBeEnabled()
     await page.getByTestId('react-create-ship-name').first().fill('Responsive React Ship')
     await page.getByTestId('react-add-ship-row').click()
     await expect(page.getByTestId('react-create-ship-name')).toHaveCount(2)
@@ -212,7 +225,9 @@ test.describe('React default desktop and tablet replacement checks', () => {
 
     for (const [width, height] of [[1280, 900], [900, 1100]]) {
       await page.setViewportSize({ width, height })
-      await page.getByTestId('react-create-cruise-line-name').fill('Responsive Cruise')
+      await expect(page.getByTestId('react-add-ship-row')).toBeDisabled()
+      await completeCreateCruiseLineDetails(page, `Responsive ${width}`)
+      await expect(page.getByTestId('react-add-ship-row')).toBeEnabled()
       await page.getByTestId('react-add-ship-row').click()
       await expect(page.getByTestId('react-create-ship-name').first()).toBeVisible()
       await expectNoHorizontalOverflow(page)

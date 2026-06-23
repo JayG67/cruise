@@ -74,21 +74,25 @@ describe('Cruise validation schemas', () => {
     })
 
     it('should reject an invalid website URL', () => {
-      const result = cruiseLineSchema.safeParse({
-        name: 'Invalid Website Cruise Line',
-        country: 'United States',
-        website: 'not-a-url'
-      })
+      const invalidWebsites = ['not-a-url', 'not-a-real-url']
 
-      expect(result.success).toBe(false)
-      expect(result.error.issues).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            path: ['website'],
-            message: 'Website must be a valid URL'
-          })
-        ])
-      )
+      invalidWebsites.forEach((website) => {
+        const result = cruiseLineSchema.safeParse({
+          name: 'Invalid Website Cruise Line',
+          country: 'United States',
+          website
+        })
+
+        expect(result.success).toBe(false)
+        expect(result.error.issues).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              path: ['website'],
+              message: 'Website must be a valid URL'
+            })
+          ])
+        )
+      })
     })
 
     it('should reject unexpected fields', () => {

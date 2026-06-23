@@ -4,13 +4,92 @@ const db = require('../db')
 const demoUserTable = require('../models/demoUser.model')
 
 const ADMIN_FORBIDDEN_MESSAGE = 'Admin access requires an admin request identity.'
+const ACTOR_IDENTITY_SOURCES = Object.freeze({
+  ANONYMOUS: 'anonymous',
+  DEMO: 'demo',
+  PRINCIPAL: 'principal',
+  JWT: 'jwt'
+})
+
+function compactObject(value = {}) {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, entryValue]) => entryValue !== undefined && entryValue !== null && entryValue !== '')
+  )
+}
 
 function normalizeRole(role = '') {
   return String(role || '').trim().toUpperCase().replace(/[\s-]+/g, '_')
 }
 
+function normalizeActorRole(role = '') {
+  return normalizeRole(role) || null
+}
+
 function isAdminRole(role = '') {
   return normalizeRole(role) === 'ADMIN'
+}
+
+function normalizeActorDisplayName({ displayName, email, userId } = {}) {
+  return String(displayName || email || userId || '').trim() || null
+}
+
+function buildActorIdentity({ actorUserId, actorDisplayName, actorRole, identitySource, sourceUserId } = {}) {
+  const actor = {
+    actorUserId: actorUserId || null,
+    actorDisplayName: actorDisplayName || null,
+    actorRole: actorRole || null,
+    identitySource: identitySource || ACTOR_IDENTITY_SOURCES.ANONYMOUS
+  }
+
+  if (sourceUserId) actor.sourceUserId = sourceUserId
+  return actor
+}
+
+function buildProductionActor(principal = {}) {
+  if (!principal?.userId) return null
+
+  return buildActorIdentity({
+    actorUserId: principal.userId,
+    actorDisplayName: normalizeActorDisplayName(principal),
+    actorRole: principal.role || null,
+    identitySource: principal.identitySource || ACTOR_IDENTITY_SOURCES.PRINCIPAL
+  })
+}
+
+function buildDemoActor(demoUser = {}) {
+  if (!demoUser?.id) return null
+
+  return buildActorIdentity({
+    actorUserId: demoUser.normalizedUserId || null,
+    actorDisplayName: normalizeActorDisplayName(demoUser),
+    actorRole: demoUser.role || null,
+    identitySource: ACTOR_IDENTITY_SOURCES.DEMO
+  })
+}
+
+function buildAnonymousActor() {
+  return buildActorIdentity({
+    actorUserId: null,
+    actorDisplayName: null,
+    actorRole: null,
+    identitySource: ACTOR_IDENTITY_SOURCES.ANONYMOUS
+  })
+}
+
+function assertResolvedActor(actor = {}) {
+  if (!actor.identitySource) {
+    const error = new Error('Resolved actor identity source is required.')
+    error.code = 'ACTOR_IDENTITY_SOURCE_REQUIRED'
+    throw error
+  }
+
+  if (actor.identitySource !== ACTOR_IDENTITY_SOURCES.ANONYMOUS && !actor.actorDisplayName) {
+    const error = new Error('Resolved actor display name is required for non-anonymous actors.')
+    error.code = 'ACTOR_DISPLAY_NAME_REQUIRED'
+    throw error
+  }
+
+  return actor
 }
 
 async function resolveDemoUserForRequest(req = {}) {
@@ -35,21 +114,11 @@ function getProductionPrincipal(req = {}) {
 async function resolveRequestActor(req = {}) {
   const principal = getProductionPrincipal(req)
   if (principal) {
-    return {
-      actorUserId: principal.userId,
-      actorDisplayName: principal.displayName || principal.email || principal.userId,
-      actorRole: principal.role || null,
-      identitySource: principal.identitySource || 'principal'
-    }
+    return assertResolvedActor(buildProductionActor(principal))
   }
 
   const demoUser = await resolveDemoUserForRequest(req)
-  return {
-    actorUserId: demoUser?.normalizedUserId || null,
-    actorDisplayName: demoUser?.displayName || null,
-    actorRole: demoUser?.role || null,
-    identitySource: demoUser ? 'demo' : 'anonymous'
-  }
+  return assertResolvedActor(buildDemoActor(demoUser) || buildAnonymousActor())
 }
 
 async function isAdminRequest(req = {}) {
@@ -67,10 +136,18 @@ async function requireAdminRequest(req, res) {
 }
 
 module.exports = {
+  ACTOR_IDENTITY_SOURCES,
   ADMIN_FORBIDDEN_MESSAGE,
+  assertResolvedActor,
+  buildActorIdentity,
+  buildAnonymousActor,
+  buildDemoActor,
+  buildProductionActor,
   getProductionPrincipal,
   isAdminRequest,
   isAdminRole,
+  normalizeActorDisplayName,
+  normalizeActorRole,
   normalizeRole,
   requireAdminRequest,
   resolveDemoUserForRequest,

@@ -111,6 +111,52 @@ describe('cruise seed data model integrity', () => {
     })
   })
 
+
+
+  it('keeps turnaround operational personnel assigned to one cruise line only', () => {
+    const operationalRoles = new Set([
+      'TURNAROUND_MANAGER',
+      'HOUSEKEEPING_LEAD',
+      'GUEST_SERVICES_LEAD',
+      'FOOD_BEVERAGE_LEAD',
+      'ENGINEERING_LEAD',
+      'SECURITY_LEAD',
+      'PORT_OPERATIONS_LEAD'
+    ])
+    const shipToCruiseLine = new Map(getShips().map(({ cruiseLine, ship }) => [ship.name, cruiseLine.name]))
+    const cruiseLinesByPerson = new Map()
+
+    function getOperationalBaseName(displayName) {
+      return String(displayName || '')
+        .replace(/\s+—\s+.+$/, '')
+        .replace(/\s+(Turnaround Manager|Housekeeping Lead|Guest Services Lead|Food & Beverage Lead|Engineering Lead|Security Lead|Port Operations Lead)$/i, '')
+        .trim()
+    }
+
+    function getAssignedShipName(displayName) {
+      const value = String(displayName || '')
+      return value.includes(' — ') ? value.split(' — ').slice(1).join(' — ').trim() : ''
+    }
+
+    cruiseSeedData.demoUsers
+      .filter(user => operationalRoles.has(user.role))
+      .forEach(user => {
+        const assignedShipName = getAssignedShipName(user.displayName)
+        const cruiseLineName = shipToCruiseLine.get(assignedShipName)
+
+        if (!cruiseLineName) return
+
+        const baseName = getOperationalBaseName(user.displayName)
+        cruiseLinesByPerson.set(baseName, new Set([...(cruiseLinesByPerson.get(baseName) || []), cruiseLineName]))
+      })
+
+    const crossLinePeople = [...cruiseLinesByPerson.entries()]
+      .filter(([, cruiseLines]) => cruiseLines.size > 1)
+      .map(([baseName, cruiseLines]) => `${baseName}: ${[...cruiseLines].join(', ')}`)
+
+    expect(crossLinePeople).toEqual([])
+  })
+
   it('contains ships with a current working port and exactly five sailings', () => {
     const ships = getShips()
 
@@ -573,6 +619,7 @@ describe('demo user seed data integrity', () => {
     expect(roles.has('GUEST_SERVICES_LEAD')).toBe(true)
     expect(roles.has('FOOD_BEVERAGE_LEAD')).toBe(true)
     expect(roles.has('ENGINEERING_LEAD')).toBe(true)
+    expect(roles.has('SECURITY_LEAD')).toBe(true)
   })
 
   it('links passenger and group leader demo users to seeded customers', () => {
@@ -728,7 +775,7 @@ describe('turnaround operation seed data integrity', () => {
 
   it('provides ship-scoped operational personas for every operations role on every seeded ship', () => {
     const demoUsers = cruiseSeedData.demoUsers || []
-    const roleNames = ['TURNAROUND_MANAGER', 'HOUSEKEEPING_LEAD', 'GUEST_SERVICES_LEAD', 'FOOD_BEVERAGE_LEAD', 'ENGINEERING_LEAD']
+    const roleNames = ['TURNAROUND_MANAGER', 'HOUSEKEEPING_LEAD', 'GUEST_SERVICES_LEAD', 'FOOD_BEVERAGE_LEAD', 'ENGINEERING_LEAD', 'SECURITY_LEAD']
 
     getShips().forEach(({ ship }) => {
       roleNames.forEach(role => {
