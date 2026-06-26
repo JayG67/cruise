@@ -1,0 +1,104 @@
+/* Reusable layout primitives. */
+
+.ce-page-shell,
+.react-production-shell :where(.react-role-dashboard, .react-sqa-console, .employer-demo-command-center) {
+  width: min(1120px, calc(100% - 2rem));
+  margin-inline: auto;
+}
+
+.ce-stack {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.ce-stack--lg {
+  gap: var(--space-lg);
+}
+
+.ce-grid {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.ce-grid--cards {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.ce-toolbar,
+.ce-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.ce-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+
+.react-production-shell .ce-action-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ce-space-2);
+}
+
+/* React shell and shared layout primitives migrated out of the legacy design-system layer. */
+
+.react-production-shell .route-panel.ce-command-panel,
+.react-production-shell .react-quality-section.ce-command-panel,
+.react-production-shell .lazy-section-fallback.ce-command-panel {
+  margin-block: var(--ce-space-5);
+}
+
+.react-production-shell .lazy-section-fallback.ce-command-panel {
+  min-height: 10rem;
+  place-content: center;
+}
+
+.react-production-shell .ce-section-heading {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ce-space-3);
+  justify-content: space-between;
+}
+
+.react-production-shell :is(.ce-field-grid, .ce-detail-grid) {
+  display: grid;
+  gap: var(--ce-space-3) !important;
+}
+
+.react-production-shell :is(
+  .ce-section-heading,
+  .ce-action-row,
+  .ce-field-grid,
+  .ce-detail-grid
+) > * {
+  min-width: 0;
+}
+
+.react-production-shell :is(
+  .operational-task-actions,
+  .button-row,
+  .fleet-card-actions,
+  .react-sqa-output-actions,
+  .hero-cta-row,
+  .turnaround-roster-actions
+).ce-action-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ce-space-2);
+}
+
+@media (max-width: 760px) {
+  .react-production-shell .ce-section-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

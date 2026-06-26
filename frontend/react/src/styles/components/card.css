@@ -1,0 +1,103 @@
+/* Shared card primitives for dense enterprise UI surfaces. */
+
+.ce-card,
+.ce-command-card,
+.react-production-shell :where(.role-card, .workspace-card, .metric-card, .release-card, .directory-card, .lifecycle-card) {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  color: var(--text-primary);
+  padding: var(--space-lg);
+}
+
+.ce-card :where(h1, h2, h3, h4, h5, h6),
+.ce-command-card :where(h1, h2, h3, h4, h5, h6) {
+  color: inherit;
+  letter-spacing: -0.02em;
+}
+
+.ce-card :where(p, li, span, strong, dt, dd, small),
+.ce-command-card :where(p, li, span, strong, dt, dd, small) {
+  color: inherit;
+  line-height: var(--line-body);
+}
+
+.ce-card :where(.eyebrow, dt, label > span),
+.ce-command-card :where(.eyebrow, dt, label > span) {
+  color: var(--text-secondary);
+  font-size: var(--font-xs);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ce-card--compact {
+  padding: var(--space-md);
+}
+
+.ce-card--interactive,
+.ce-selector-card,
+.react-production-shell :where(.role-card, .workspace-card, .directory-card) {
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.ce-card--interactive:hover,
+.ce-selector-card:hover,
+.react-production-shell :where(.role-card, .workspace-card, .directory-card):hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-card-strong);
+  transform: translateY(-1px);
+}
+
+.ce-editor-card {
+  background: var(--surface-editor);
+  border: 1px solid var(--border-editor);
+  border-radius: var(--radius-md);
+  box-shadow: none;
+  color: var(--text-editor);
+  display: grid;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+}
+
+.ce-editor-card :where(h1, h2, h3, h4, h5, h6, p, li, span, strong, dt, dd, label, legend, small) {
+  color: var(--text-editor);
+}
+
+.ce-editor-card :where(label > span, dt, small, .muted, .section-summary) {
+  color: var(--text-editor-secondary);
+  font-weight: 800;
+}
+
+.ce-command-panel .ce-editor-card,
+.ce-command-card .ce-editor-card {
+  color: var(--text-editor);
+}
+
+/* Shared empty-state and nested-card guardrails migrated out of design-system.css. */
+
+.react-production-shell .ce-empty-state.ce-editor-card,
+.react-production-shell .ce-command-card.ce-empty-state {
+  border-style: dashed !important;
+  min-height: 4rem;
+  place-content: center;
+}
+
+.react-production-shell :is(.ce-command-panel, .ce-command-card, .ce-editor-card) {
+  contain: layout style;
+}
+
+.react-production-shell :is(.ce-command-panel, .ce-command-card, .ce-editor-card) :is(*, *::before, *::after) {
+  box-sizing: border-box;
+}
+
+.react-production-shell .ce-command-panel :is(.ce-command-card, .ce-editor-card),
+.react-production-shell .ce-command-card :is(.ce-command-card, .ce-editor-card) {
+  width: 100%;
+}
+
+.react-production-shell .ce-editor-card :is(input, select, textarea, button) {
+  max-width: 100%;
+}

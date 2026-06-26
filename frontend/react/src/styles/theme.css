@@ -1,0 +1,7 @@
+/*
+  Retired flat CSS entrypoint.
+
+  This file is intentionally unused. The best-practice CSS architecture now
+  lives under frontend/react/src/styles/foundation, layout, components, and
+  utilities, with import ownership in frontend/react/src/styles/index.css.
+*/

@@ -24,22 +24,22 @@ export default function ReactCruiseLineCreateWorkflow({ onCreated }) {
 
   return (
     <section className="react-create-workflow-section" id="react-create-cruise-line" aria-labelledby="react-create-heading" data-testid="react-create-cruise-line-workflow">
-      <p className="eyebrow">Create workflow</p>
+      <p className="eyebrow ce-kicker">Create workflow</p>
       <h2 id="react-create-heading">Add New Cruise Data</h2>
       <p>Create a new cruise line and optionally add starter ships in a single workflow.</p>
 
-      <div className="react-create-card">
+      <div className="react-create-card ce-command-card">
         <div className="react-create-card-heading">
           <div>
-            <p className="eyebrow">Create workflow</p>
+            <p className="eyebrow ce-kicker">Create workflow</p>
             <h3>Add a Cruise Line</h3>
             <p>Create a cruise line and add starter ships in one guided workflow.</p>
           </div>
           <span className="create-workflow-pill">Create Workflow</span>
         </div>
 
-        <div className="react-create-form-grid">
-          <fieldset>
+        <div className="react-create-form-grid ce-field-grid">
+          <fieldset className="ce-editor-card">
             <legend><span>1</span> Cruise Line Details</legend>
             <p>Name is required. Country, website, brand family, theme, and positioning are stored in the database and managed through this form.</p>
 
@@ -105,7 +105,7 @@ export default function ReactCruiseLineCreateWorkflow({ onCreated }) {
             </label>
           </fieldset>
 
-          <fieldset className={isCruiseLineDetailsComplete ? undefined : 'starter-ships-locked'} aria-disabled={!isCruiseLineDetailsComplete}>
+          <fieldset className={isCruiseLineDetailsComplete ? 'ce-editor-card' : 'ce-editor-card starter-ships-locked'} aria-disabled={!isCruiseLineDetailsComplete}>
             <legend><span>2</span> Starter Ships</legend>
             <p>{isCruiseLineDetailsComplete ? 'Add ships now, or leave this blank and add ships later.' : 'Complete every cruise line detail first before adding starter ships.'}</p>
 
@@ -131,23 +131,23 @@ export default function ReactCruiseLineCreateWorkflow({ onCreated }) {
                     data-testid="react-create-ship-port"
                   />
                 </label>
-                <button type="button" className="secondary-button" onClick={() => removeShipRow(index)} disabled={!isCruiseLineDetailsComplete} data-testid="react-remove-ship-row">
+                <button type="button" className="secondary-button ce-button-secondary" onClick={() => removeShipRow(index)} disabled={!isCruiseLineDetailsComplete} data-testid="react-remove-ship-row">
                   Remove Ship
                 </button>
               </div>
             ))}
 
-            <button type="button" className="secondary-button add-ship-button" onClick={addShipRow} disabled={!isCruiseLineDetailsComplete} data-testid="react-add-ship-row">
+            <button type="button" className="secondary-button add-ship-button ce-button-secondary" onClick={addShipRow} disabled={!isCruiseLineDetailsComplete} data-testid="react-add-ship-row">
               + Add Ship
             </button>
           </fieldset>
         </div>
 
-        <div className="react-create-actions">
-          <button type="button" className="primary-action-button" onClick={save} disabled={isSaving} data-testid="react-save-cruise-line">
+        <div className="react-create-actions ce-action-row">
+          <button type="button" className="primary-action-button ce-button-primary" onClick={save} disabled={isSaving} data-testid="react-save-cruise-line">
             {isSaving ? 'Creating…' : 'Create Cruise Line'}
           </button>
-          <button type="button" className="secondary-button" onClick={reset} data-testid="react-reset-cruise-line">
+          <button type="button" className="secondary-button ce-button-secondary" onClick={reset} data-testid="react-reset-cruise-line">
             Reset
           </button>
           <p className="result-summary" role="status" data-testid="react-create-cruise-line-message">

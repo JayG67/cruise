@@ -23,7 +23,7 @@ export default function BookingCard({
 
   return (
     <article
-      className="booking-card"
+      className="booking-card ce-editor-card"
       key={bookingRowKey}
       data-testid="react-booking-card"
       aria-label={`Booking ${booking.id} for ${passengerSummary}`}
@@ -31,7 +31,7 @@ export default function BookingCard({
       <div className="booking-card-heading">
         <button
           type="button"
-          className="link-button"
+          className="link-button ce-button-secondary"
           aria-expanded={bookingExpanded}
           aria-controls={detailsId}
           onClick={() => onToggleBooking(booking.id)}
@@ -39,11 +39,11 @@ export default function BookingCard({
         >
           {bookingExpanded ? 'Hide' : 'Details'} {booking.id}
         </button>
-        <span className="status-pill">{booking.bookingStatus || 'Status unavailable'}</span>
+        <span className="status-pill ce-status-pill">{booking.bookingStatus || 'Status unavailable'}</span>
       </div>
       <p><strong>{booking.cruiseLine?.name || 'Cruise unavailable'}</strong> · {booking.ship?.name || 'Ship unavailable'}</p>
       <p>Cabin {booking.cabinNumber || 'not assigned'} · {getBookingRoute(booking)}</p>
-      <div className="react-booking-action-row">
+      <div className="react-booking-action-row ce-action-row">
         <button
           type="button"
           className="secondary-button compact-button"
@@ -74,7 +74,7 @@ export default function BookingCard({
         />
       )}
       {bookingExpanded && (
-        <dl className="details-grid" data-testid="react-booking-details" id={detailsId} aria-label={`Details for booking ${booking.id}`}>
+        <dl className="details-grid ce-detail-grid" data-testid="react-booking-details" id={detailsId} aria-label={`Details for booking ${booking.id}`}>
           <div><dt>Fare code</dt><dd>{booking.fareCode || 'Not assigned'}</dd></div>
           <div><dt>Sailing</dt><dd>{booking.sailing?.departureDate || 'Date unavailable'}</dd></div>
           <div><dt>Passengers</dt><dd>{passengerSummary}</dd></div>

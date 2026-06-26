@@ -68,35 +68,35 @@ export default function ReactDeploymentReadinessCenter({ selectedDemoUser }) {
   }, [selectedDemoUser?.id])
 
   return (
-    <section className="react-app-section deployment-readiness-center" id="react-deployment-readiness" aria-labelledby="react-deployment-readiness-heading" data-testid="react-deployment-readiness-center">
-      <div className="section-heading-row deployment-readiness-heading">
+    <section className="react-app-section deployment-readiness-center ce-command-panel" id="react-deployment-readiness" aria-labelledby="react-deployment-readiness-heading" data-testid="react-deployment-readiness-center">
+      <div className="section-heading-row ce-section-heading deployment-readiness-heading">
         <div>
-          <p className="eyebrow">Portfolio deployment</p>
+          <p className="eyebrow ce-kicker">Portfolio deployment</p>
           <h2 id="react-deployment-readiness-heading">Deployment Readiness Center</h2>
           <p>
             Convert the hardened Cruise Explorer application into a public portfolio launch by tracking
             hosting target, environment variables, database continuity, release evidence, and recruiter-ready packaging.
           </p>
         </div>
-        <button type="button" className="secondary-action-button" onClick={loadReadiness} disabled={isLoading} data-testid="react-deployment-readiness-refresh-button">
+        <button type="button" className="secondary-action-button ce-button-secondary" onClick={loadReadiness} disabled={isLoading} data-testid="react-deployment-readiness-refresh-button">
           {isLoading ? 'Refreshing...' : 'Refresh deployment score'}
         </button>
       </div>
 
-      {error ? <p className="draft-message error" role="alert" data-testid="react-deployment-readiness-error">{error}</p> : null}
+      {error ? <p className="draft-message error ce-feedback-message ce-editor-card" role="alert" data-testid="react-deployment-readiness-error">{error}</p> : null}
 
       <div className="deployment-readiness-scoreboard" data-testid="react-deployment-readiness-scoreboard">
-        <article className={`deployment-readiness-score-card ${readiness?.status || 'loading'}`}>
+        <article className={`deployment-readiness-score-card ce-command-card ${readiness?.status || 'loading'}`}>
           <span>Deployment readiness</span>
           <strong>{isLoading && !readiness ? 'Loading' : `${readiness?.overallScore ?? 0}%`}</strong>
           <p>{readiness?.summary || 'Checking deployment gates against the current project baseline.'}</p>
         </article>
-        <article className="deployment-readiness-score-card">
+        <article className="deployment-readiness-score-card ce-command-card">
           <span>Launch blockers</span>
           <strong>{blockers.length}</strong>
           <p>{blockers.length ? 'Resolve before publishing the public URL.' : 'No deployment blockers detected.'}</p>
         </article>
-        <article className="deployment-readiness-score-card">
+        <article className="deployment-readiness-score-card ce-command-card">
           <span>Launch watchlist</span>
           <strong>{watchlist.length}</strong>
           <p>{watchlist.length ? 'Track during platform setup.' : 'No deployment watch items detected.'}</p>
@@ -105,7 +105,7 @@ export default function ReactDeploymentReadinessCenter({ selectedDemoUser }) {
 
       <div className="deployment-readiness-gate-grid" data-testid="react-deployment-readiness-gates">
         {gates.map(gate => (
-          <article key={gate.id} className={`deployment-readiness-gate-card ${gate.status}`} data-testid="react-deployment-readiness-gate-card">
+          <article key={gate.id} className={`deployment-readiness-gate-card ce-command-card ${gate.status}`} data-testid="react-deployment-readiness-gate-card">
             <div className="deployment-readiness-gate-header">
               <div>
                 <span>{getDeploymentStatusLabel(gate.status)}</span>
@@ -117,7 +117,7 @@ export default function ReactDeploymentReadinessCenter({ selectedDemoUser }) {
             <ul aria-label={`${gate.label} evidence`}>
               {(gate.evidence || []).slice(0, 5).map(item => <li key={item}>{item}</li>)}
             </ul>
-            <div className="deployment-readiness-recommendation">
+            <div className="deployment-readiness-recommendation ce-editor-card">
               <span>Launch recommendation</span>
               <p>{gate.recommendations?.[0] || 'Review this deployment gate before launch.'}</p>
             </div>
@@ -125,9 +125,9 @@ export default function ReactDeploymentReadinessCenter({ selectedDemoUser }) {
         ))}
       </div>
 
-      <div className="deployment-readiness-action-plan" data-testid="react-deployment-readiness-action-plan">
+      <div className="deployment-readiness-action-plan ce-command-card" data-testid="react-deployment-readiness-action-plan">
         <div>
-          <p className="eyebrow">Launch runbook</p>
+          <p className="eyebrow ce-kicker">Launch runbook</p>
           <h3>Deployment action sequence</h3>
         </div>
         {actionPlan.length ? (
@@ -143,7 +143,7 @@ export default function ReactDeploymentReadinessCenter({ selectedDemoUser }) {
             ))}
           </ol>
         ) : (
-          <p className="empty-state compact">Deployment launch actions will appear after the first readiness check completes.</p>
+          <p className="empty-state compact ce-empty-state ce-editor-card">Deployment launch actions will appear after the first readiness check completes.</p>
         )}
       </div>
 

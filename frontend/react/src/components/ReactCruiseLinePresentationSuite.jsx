@@ -472,19 +472,19 @@ export default function ReactCruiseLinePresentationSuite({ cruiseLines = [], boo
 
   if (!selectedLine) {
     return (
-      <section className="cruise-line-presentation-suite" id="react-cruise-line-presentation" aria-labelledby="react-cruise-line-presentation-heading">
-        <p className="eyebrow">Cruise line operations</p>
+      <section className="cruise-line-presentation-suite ce-command-panel" id="react-cruise-line-presentation" aria-labelledby="react-cruise-line-presentation-heading">
+        <p className="eyebrow ce-kicker">Cruise line operations</p>
         <h2 id="react-cruise-line-presentation-heading">Cruise-line operations workspace</h2>
-        <p className="status-card compact">Fleet data is loading.</p>
+        <p className="status-card compact ce-command-card">Fleet data is loading.</p>
       </section>
     )
   }
 
   return (
-    <section className="cruise-line-presentation-suite" id="react-cruise-line-presentation" aria-labelledby="react-cruise-line-presentation-heading" data-testid="react-cruise-line-presentation-suite">
-      <div className="presentation-control-panel cruise-line-operations-control-panel">
+    <section className="cruise-line-presentation-suite ce-command-panel" id="react-cruise-line-presentation" aria-labelledby="react-cruise-line-presentation-heading" data-testid="react-cruise-line-presentation-suite">
+      <div className="presentation-control-panel cruise-line-operations-control-panel ce-command-card">
         <div className="presentation-suite-heading cruise-line-operations-heading">
-          <p className="eyebrow">Cruise line operations</p>
+          <p className="eyebrow ce-kicker">Cruise line operations</p>
           <h2 id="react-cruise-line-presentation-heading">Cruise line operating workspace</h2>
           <p>
             Select the operating scope, then drill into fleet, guest, sailing, or turnaround workflows.
@@ -518,9 +518,9 @@ export default function ReactCruiseLinePresentationSuite({ cruiseLines = [], boo
         </div>
       </div>
 
-      <div className="presentation-hero-card">
+      <div className="presentation-hero-card ce-command-card">
         <div>
-          <p className="eyebrow">{selectedLine.brandFamily || selectedLine.country || 'Cruise brand'}</p>
+          <p className="eyebrow ce-kicker">{selectedLine.brandFamily || selectedLine.country || 'Cruise brand'}</p>
           <h3>{selectedLine.name}</h3>
           <p>{selectedLine.marketPositioning || selectedLine.brandTheme || 'Fleet, itinerary, and passenger operations in one application.'}</p>
         </div>
@@ -535,38 +535,38 @@ export default function ReactCruiseLinePresentationSuite({ cruiseLines = [], boo
       </div>
 
       <div className="presentation-demo-flow presentation-action-grid" aria-label="Cruise line operating actions">
-        <article className="presentation-flow-card" data-testid="react-presentation-flow-card">
+        <article className="presentation-flow-card ce-command-card" data-testid="react-presentation-flow-card">
           <strong>Fleet</strong>
           <p>{formatCount(metrics.shipCount)} ships and {formatCount(metrics.sailingCount)} sailings in scope.</p>
-          <button type="button" className="secondary-action-button" onClick={() => onOpenWorkspace?.('react-fleet', 'Fleet Directory', 'admin')}>Open fleet</button>
+          <button type="button" className="secondary-action-button ce-button-secondary" onClick={() => onOpenWorkspace?.('react-fleet', 'Fleet Directory', 'admin')}>Open fleet</button>
         </article>
-        <article className="presentation-flow-card" data-testid="react-presentation-flow-card">
+        <article className="presentation-flow-card ce-command-card" data-testid="react-presentation-flow-card">
           <strong>Guests</strong>
           <p>{formatCount(metrics.bookingCount)} bookings and {formatCount(metrics.passengerCount)} visible passengers.</p>
-          <button type="button" className="secondary-action-button" onClick={() => onOpenWorkspace?.('react-role-selector', 'Role-aware Views')}>Open roles</button>
+          <button type="button" className="secondary-action-button ce-button-secondary" onClick={() => onOpenWorkspace?.('react-role-selector', 'Role-aware Views')}>Open roles</button>
         </article>
-        <article className="presentation-flow-card" data-testid="react-presentation-flow-card">
+        <article className="presentation-flow-card ce-command-card" data-testid="react-presentation-flow-card">
           <strong>Sailing plan</strong>
           <p>{featuredShip.name || 'Selected ship'} · {featuredSailing.departureDate || 'date pending'}.</p>
-          <button type="button" className="secondary-action-button" onClick={() => onOpenWorkspace?.('react-fleet', 'Fleet Directory', 'admin')}>Open sailings</button>
+          <button type="button" className="secondary-action-button ce-button-secondary" onClick={() => onOpenWorkspace?.('react-fleet', 'Fleet Directory', 'admin')}>Open sailings</button>
         </article>
-        <article className="presentation-flow-card" data-testid="react-presentation-flow-card">
+        <article className="presentation-flow-card ce-command-card" data-testid="react-presentation-flow-card">
           <strong>Turnaround</strong>
           <p>Move from voyage data to assigned operational execution.</p>
-          <button type="button" className="secondary-action-button" onClick={() => onOpenWorkspace?.('react-turnaround-admin-setup', 'Turnaround Setup', 'admin')}>Open operations</button>
+          <button type="button" className="secondary-action-button ce-button-secondary" onClick={() => onOpenWorkspace?.('react-turnaround-admin-setup', 'Turnaround Setup', 'admin')}>Open operations</button>
         </article>
       </div>
 
 
 
-      <div className="presentation-action-row">
-        <button type="button" className="primary-action-button" onClick={() => onOpenWorkspace?.('react-fleet', 'Fleet Directory', 'admin')} data-testid="react-presentation-open-fleet">
+      <div className="presentation-action-row ce-action-row">
+        <button type="button" className="primary-action-button ce-button-primary" onClick={() => onOpenWorkspace?.('react-fleet', 'Fleet Directory', 'admin')} data-testid="react-presentation-open-fleet">
           Open fleet details
         </button>
-        <button type="button" className="secondary-action-button" onClick={() => onOpenWorkspace?.('react-role-selector', 'Role-aware Views')} data-testid="react-presentation-open-roles">
+        <button type="button" className="secondary-action-button ce-button-secondary" onClick={() => onOpenWorkspace?.('react-role-selector', 'Role-aware Views')} data-testid="react-presentation-open-roles">
           Open passenger views
         </button>
-        <button type="button" className="secondary-action-button" onClick={() => onOpenWorkspace?.('react-turnaround-admin-setup', 'Turnaround Setup', 'admin')} data-testid="react-presentation-open-turnaround">
+        <button type="button" className="secondary-action-button ce-button-secondary" onClick={() => onOpenWorkspace?.('react-turnaround-admin-setup', 'Turnaround Setup', 'admin')} data-testid="react-presentation-open-turnaround">
           Open turnaround setup
         </button>
       </div>

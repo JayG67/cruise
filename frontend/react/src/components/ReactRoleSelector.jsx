@@ -551,21 +551,21 @@ export default function ReactRoleSelector({
   }
 
   return (
-    <section className="react-app-section role-selector-section" id="react-role-selector" aria-labelledby="react-role-selector-heading" data-testid="react-role-selector">
-      <p className="eyebrow">Workspace selection</p>
+    <section className="react-app-section role-selector-section ce-command-panel" id="react-role-selector" aria-labelledby="react-role-selector-heading" data-testid="react-role-selector">
+      <p className="eyebrow ce-kicker">Workspace selection</p>
       <h2 id="react-role-selector-heading">View application as</h2>
       <p>
         Select a role, then choose the person whose operational view you want to review.
       </p>
 
       <div className="role-selector-grid">
-        <div className="role-selector-field">
-          <label className="react-field-label" htmlFor="react-role-type">
+        <div className="role-selector-field ce-field">
+          <label className="react-field-label ce-field-label" htmlFor="react-role-type">
             Role
           </label>
           <select
             id="react-role-type"
-            className="react-select"
+            className="react-select ce-input"
             value={selectedRole}
             onChange={event => handleRoleChange(event.target.value)}
             disabled={isLoadingDemoUsers || roleOptions.length === 0}
@@ -579,22 +579,22 @@ export default function ReactRoleSelector({
         </div>
 
         {isPassengerFilterActive && (
-          <div className="passenger-finder-panel" data-testid="react-passenger-finder-panel">
+          <div className="passenger-finder-panel ce-command-card" data-testid="react-passenger-finder-panel">
             <div className="passenger-finder-heading">
               <div>
-                <p className="eyebrow">Passenger finder</p>
+                <p className="eyebrow ce-kicker">Passenger finder</p>
                 <h3>Find passenger by sailing context</h3>
               </div>
               <span>{visiblePassengerOptions.length} of {passengerOptions.length} passengers</span>
             </div>
             <div className="passenger-finder-grid">
               <div className="role-selector-field passenger-search-field">
-                <label className="react-field-label" htmlFor="react-passenger-search">
+                <label className="react-field-label ce-field-label" htmlFor="react-passenger-search">
                   Search passengers
                 </label>
                 <input
                   id="react-passenger-search"
-                  className="react-input"
+                  className="react-input ce-input"
                   type="search"
                   value={passengerSearch}
                   onChange={event => handlePassengerSearchChange(event.target.value)}
@@ -603,13 +603,13 @@ export default function ReactRoleSelector({
                 />
               </div>
 
-              <div className="role-selector-field">
-                <label className="react-field-label" htmlFor="react-passenger-cruise-line-filter">
+              <div className="role-selector-field ce-field">
+                <label className="react-field-label ce-field-label" htmlFor="react-passenger-cruise-line-filter">
                   Cruise line
                 </label>
                 <select
                   id="react-passenger-cruise-line-filter"
-                  className="react-select"
+                  className="react-select ce-input"
                   value={passengerCruiseLineFilter}
                   onChange={event => setPassengerCruiseLineFilter(event.target.value)}
                   data-testid="react-passenger-cruise-line-filter"
@@ -621,13 +621,13 @@ export default function ReactRoleSelector({
                 </select>
               </div>
 
-              <div className="role-selector-field">
-                <label className="react-field-label" htmlFor="react-passenger-ship-filter">
+              <div className="role-selector-field ce-field">
+                <label className="react-field-label ce-field-label" htmlFor="react-passenger-ship-filter">
                   Ship
                 </label>
                 <select
                   id="react-passenger-ship-filter"
-                  className="react-select"
+                  className="react-select ce-input"
                   value={passengerShipFilter}
                   onChange={event => setPassengerShipFilter(event.target.value)}
                   data-testid="react-passenger-ship-filter"
@@ -639,13 +639,13 @@ export default function ReactRoleSelector({
                 </select>
               </div>
 
-              <div className="role-selector-field">
-                <label className="react-field-label" htmlFor="react-passenger-sailing-date-filter">
+              <div className="role-selector-field ce-field">
+                <label className="react-field-label ce-field-label" htmlFor="react-passenger-sailing-date-filter">
                   Sailing date
                 </label>
                 <select
                   id="react-passenger-sailing-date-filter"
-                  className="react-select"
+                  className="react-select ce-input"
                   value={passengerSailingDateFilter}
                   onChange={event => setPassengerSailingDateFilter(event.target.value)}
                   data-testid="react-passenger-sailing-date-filter"
@@ -663,16 +663,15 @@ export default function ReactRoleSelector({
                 <button
                   key={option.user.id}
                   type="button"
-                  className={`passenger-finder-card${selectedDemoUserId === option.user.id ? ' selected' : ''}`}
+                  className={`passenger-finder-card ce-selector-card ce-command-card${selectedDemoUserId === option.user.id ? ' selected' : ''}`}
                   onClick={() => onSelectDemoUser?.(option.user.id)}
                   data-testid="react-person-finder-result-card"
                 >
-                  <span className="selector-compatibility-card-anchor" data-testid="react-passenger-finder-result-card">{option.name}</span>
-                  <span className="passenger-finder-card-main">
+                  <span className="passenger-finder-card-main ce-selector-card-main" data-testid="react-passenger-finder-result-card">
                     <strong>{option.name}</strong>
                     <span>{option.user.email || option.user.customerId || 'Passenger profile'}</span>
                   </span>
-                  <span className="passenger-finder-card-detail">{option.detail}</span>
+                  <span className="passenger-finder-card-detail ce-selector-card-detail">{option.detail}</span>
                 </button>
               ))}
             </div>
@@ -681,10 +680,10 @@ export default function ReactRoleSelector({
 
 
         {isOperationalFilterActive && (
-          <div className="passenger-finder-panel operational-person-filter-panel" data-testid="react-operational-person-filter-panel">
+          <div className="passenger-finder-panel ce-command-card operational-person-filter-panel" data-testid="react-operational-person-filter-panel">
             <div className="passenger-finder-heading">
               <div>
-                <p className="eyebrow">Turnaround person finder</p>
+                <p className="eyebrow ce-kicker">Turnaround person finder</p>
                 <h3>Choose the person whose workspace you want to review</h3>
                 <p className="role-selector-helper-text">
                   Select a cruise line, optionally narrow to one ship queue, then choose a real assignment card. The selector only shows people inside the selected cruise-line scope.
@@ -693,13 +692,13 @@ export default function ReactRoleSelector({
             </div>
 
             <div className="passenger-finder-grid operational-person-filter-grid">
-              <div className="role-selector-field">
-                <label className="react-field-label" htmlFor="react-operational-cruise-line-filter">
+              <div className="role-selector-field ce-field">
+                <label className="react-field-label ce-field-label" htmlFor="react-operational-cruise-line-filter">
                   Cruise line
                 </label>
                 <select
                   id="react-operational-cruise-line-filter"
-                  className="react-select"
+                  className="react-select ce-input"
                   value={operationalCruiseLineFilter}
                   onChange={event => handleOperationalCruiseLineChange(event.target.value)}
                   data-testid="react-operational-cruise-line-filter"
@@ -711,13 +710,13 @@ export default function ReactRoleSelector({
                 </select>
               </div>
 
-              <div className="role-selector-field">
-                <label className="react-field-label" htmlFor="react-operational-ship-filter">
+              <div className="role-selector-field ce-field">
+                <label className="react-field-label ce-field-label" htmlFor="react-operational-ship-filter">
                   Ship queue
                 </label>
                 <select
                   id="react-operational-ship-filter"
-                  className="react-select"
+                  className="react-select ce-input"
                   value={operationalShipFilter}
                   onChange={event => setOperationalShipFilter(event.target.value)}
                   disabled={!operationalCruiseLineFilter}
@@ -731,12 +730,12 @@ export default function ReactRoleSelector({
               </div>
 
               <div className="role-selector-field operational-person-search-field">
-                <label className="react-field-label" htmlFor="react-person-search">
+                <label className="react-field-label ce-field-label" htmlFor="react-person-search">
                   Search assignments
                 </label>
                 <input
                   id="react-person-search"
-                  className="react-input"
+                  className="react-input ce-input"
                   type="search"
                   value={personSearch}
                   onChange={event => setPersonSearch(event.target.value)}
@@ -772,16 +771,16 @@ export default function ReactRoleSelector({
                 <button
                   key={option.user.id}
                   type="button"
-                  className={`person-finder-card${selectedDemoUserId === option.user.id ? ' selected' : ''}`}
+                  className={`person-finder-card ce-selector-card ce-command-card${selectedDemoUserId === option.user.id ? ' selected' : ''}`}
                   onClick={() => onSelectDemoUser?.(option.user.id)}
                   aria-pressed={selectedDemoUserId === option.user.id}
                   data-testid="react-person-finder-result-card"
                 >
-                  <span className="person-finder-card-main">
+                  <span className="person-finder-card-main ce-selector-card-main">
                     <strong>{option.name}</strong>
                     <span>{formatDemoUserRole(option.user.role || option.user.userType || 'Demo User')}</span>
                   </span>
-                  <span className="person-finder-card-detail">{option.detail}</span>
+                  <span className="person-finder-card-detail ce-selector-card-detail">{option.detail}</span>
                 </button>
               ))}
             </div>
@@ -793,7 +792,7 @@ export default function ReactRoleSelector({
             )}
 
             {personOptionCards.length === 0 && (
-              <p className="empty-state compact" data-testid="react-person-finder-empty">{!operationalCruiseLineFilter ? 'Select a cruise line to show assigned turnaround people.' : 'No people match the current filters.'}</p>
+              <p className="empty-state compact ce-empty-state ce-editor-card" data-testid="react-person-finder-empty">{!operationalCruiseLineFilter ? 'Select a cruise line to show assigned turnaround people.' : 'No people match the current filters.'}</p>
             )}
           </div>
         )}
@@ -802,19 +801,19 @@ export default function ReactRoleSelector({
           <div className="person-finder-panel" data-testid="react-person-finder-panel">
           <div className="person-finder-heading">
             <div>
-              <p className="eyebrow">Person</p>
+              <p className="eyebrow ce-kicker">Person</p>
               <h3>Choose a person</h3>
             </div>
             <span>{personOptionCards.length} visible</span>
           </div>
 
-          <div className="role-selector-field">
-            <label className="react-field-label" htmlFor="react-person-search">
+          <div className="role-selector-field ce-field">
+            <label className="react-field-label ce-field-label" htmlFor="react-person-search">
               Search people
             </label>
             <input
               id="react-person-search"
-              className="react-input"
+              className="react-input ce-input"
               type="search"
               value={personSearch}
               onChange={event => setPersonSearch(event.target.value)}
@@ -836,16 +835,16 @@ export default function ReactRoleSelector({
               <button
                 key={option.user.id}
                 type="button"
-                className={`person-finder-card${selectedDemoUserId === option.user.id ? ' selected' : ''}`}
+                className={`person-finder-card ce-selector-card ce-command-card${selectedDemoUserId === option.user.id ? ' selected' : ''}`}
                 onClick={() => onSelectDemoUser?.(option.user.id)}
                 aria-pressed={selectedDemoUserId === option.user.id}
                 data-testid="react-person-finder-result-card"
               >
-                <span className="person-finder-card-main">
+                <span className="person-finder-card-main ce-selector-card-main">
                   <strong>{option.name}</strong>
                   <span>{formatDemoUserRole(option.user.role || option.user.userType || 'Demo User')}</span>
                 </span>
-                <span className="person-finder-card-detail">{option.detail}</span>
+                <span className="person-finder-card-detail ce-selector-card-detail">{option.detail}</span>
               </button>
             ))}
           </div>
@@ -857,7 +856,7 @@ export default function ReactRoleSelector({
           )}
 
           {personOptionCards.length === 0 && (
-            <p className="empty-state compact" data-testid="react-person-finder-empty">{isOperationalFilterActive && !operationalCruiseLineFilter ? 'Select a cruise line to show assigned turnaround people.' : 'No people match the current search.'}</p>
+            <p className="empty-state compact ce-empty-state ce-editor-card" data-testid="react-person-finder-empty">{isOperationalFilterActive && !operationalCruiseLineFilter ? 'Select a cruise line to show assigned turnaround people.' : 'No people match the current search.'}</p>
           )}
 
           </div>
@@ -884,12 +883,12 @@ export default function ReactRoleSelector({
       </div>
 
       {isPassengerFilterActive && visiblePassengerOptions.length === 0 && (
-        <p className="empty-state compact" data-testid="react-passenger-finder-empty">No passengers match the current filters.</p>
+        <p className="empty-state compact ce-empty-state ce-editor-card" data-testid="react-passenger-finder-empty">No passengers match the current filters.</p>
       )}
 
       {demoUserError && <p className="error" role="alert">{demoUserError}</p>}
 
-      <div className="role-summary-card" aria-live="polite" data-testid="react-demo-user-summary">
+      <div className="role-summary-card ce-command-card" aria-live="polite" data-testid="react-demo-user-summary">
         <strong>{selectedDemoUser ? formatDemoUserLabel(selectedDemoUser, bookings) : 'Loading people'}</strong>
         <span>{getRoleSummary(selectedDemoUser, customerCount, bookingCount, visibleBookingCount)}</span>
         <span>{visibleSelectorCount} people visible in the current selector.</span>

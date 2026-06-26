@@ -127,10 +127,10 @@ export default function EmployerDemoCommandCenter({
   }
 
   return (
-    <section className="employer-demo-command-center self-guided-overview" id="react-employer-demo" aria-labelledby="react-employer-demo-heading" data-testid="react-employer-demo-command-center">
+    <section className="employer-demo-command-center self-guided-overview ce-command-panel" id="react-employer-demo" aria-labelledby="react-employer-demo-heading" data-testid="react-employer-demo-command-center">
       <div className="employer-demo-heading self-guided-overview-heading">
         <div>
-          <p className="eyebrow">Operations dashboard</p>
+          <p className="eyebrow ce-kicker">Operations dashboard</p>
           <h2 id="react-employer-demo-heading">Cruise operations at a glance</h2>
           <p>
             Monitor passenger booking, fleet administration, role-aware workflows, turnaround management,
@@ -141,7 +141,7 @@ export default function EmployerDemoCommandCenter({
 
       <div className="employer-demo-proof-grid self-guided-proof-grid" aria-label="Application proof points" data-testid="react-employer-demo-proof-grid">
         {proofPoints.map(point => (
-          <article className="employer-demo-proof-card self-guided-proof-card" key={point.id} data-testid="react-employer-demo-proof-card">
+          <article className="employer-demo-proof-card self-guided-proof-card ce-command-card" key={point.id} data-testid="react-employer-demo-proof-card">
             <span>{point.label}</span>
             <strong>{point.value}</strong>
             <p>{point.detail}</p>
@@ -153,7 +153,7 @@ export default function EmployerDemoCommandCenter({
         <div className="self-guided-tour-list" data-testid="react-workspace-card-grid">
         {runOfShow.map(step => (
           <article
-            className="self-guided-tour-card react-workspace-card"
+            className="self-guided-tour-card react-workspace-card ce-command-card"
             key={step.id}
             onClick={() => openStep(step)}
             onKeyDown={event => {
@@ -171,7 +171,7 @@ export default function EmployerDemoCommandCenter({
               <p>{step.detail}</p>
               <span className="visually-hidden">{step.buttonLabel}</span>
             </div>
-            <button type="button" className="employer-demo-step-button" onClick={event => { event.stopPropagation(); openStep(step) }} data-testid={getEmployerDemoTestId(step)}>
+            <button type="button" className="employer-demo-step-button secondary-action-button ce-button-secondary" onClick={event => { event.stopPropagation(); openStep(step) }} data-testid={getEmployerDemoTestId(step)}>
               {step.buttonLabel}
             </button>
           </article>

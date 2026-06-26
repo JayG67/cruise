@@ -132,7 +132,7 @@ function buildRecruiterWalkthroughGate({ files = {}, readme = '', componentIndex
     containsAny(readme, ['walkthrough', 'demo', 'recruiter']),
     containsAny(componentIndex, ['EmployerDemoCommandCenter']),
     containsAny(readme, ['screenshot', 'screenshots']) || hasFile(files, 'docs/screenshots'),
-    containsAny(readme, ['resume', 'talking points', 'interview']) || hasFile(files, 'docs/portfolio.md'),
+    containsAny(readme, ['resume', 'talking points', 'interview']),
     containsAny(componentIndex, ['ReactDeploymentReadinessCenter'])
   ]
   const score = asPercent(checks.filter(Boolean).length, checks.length)
@@ -158,8 +158,8 @@ function buildRecruiterWalkthroughGate({ files = {}, readme = '', componentIndex
 function buildLaunchAssetsGate({ files = {}, readme = '' }) {
   const checks = [
     hasFile(files, 'render.yaml') || hasFile(files, 'railway.json') || hasFile(files, 'fly.toml'),
-    hasFile(files, 'docs/deployment.md') || containsAny(readme, ['deployment', 'deploy']),
-    hasFile(files, 'docs/portfolio.md') || containsAny(readme, ['portfolio']),
+    hasFile(files, 'render.yaml') || hasFile(files, 'railway.json') || hasFile(files, 'fly.toml') || containsAny(readme, ['deployment', 'deploy']),
+    containsAny(readme, ['portfolio']),
     containsAny(readme, ['architecture diagram', 'diagram', 'data model']),
     containsAny(readme, ['public url', 'live demo', 'deployed'])
   ]

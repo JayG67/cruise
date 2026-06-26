@@ -10,7 +10,7 @@ function read(relativePath) {
 describe('turnaround team workspace static contracts', () => {
   it('promotes the cruise-line to ship to sailing to team workflow as the primary staffing workspace', () => {
     const component = read('frontend/react/src/components/ReactTurnaroundAdminSetup.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
+    const styles = read('frontend/react/src/styles/design-system.css')
 
     expect(component).toContain('buildTurnaroundTeamWorkspace')
     expect(component).toContain('data-testid="react-turnaround-team-workspace"')
@@ -26,7 +26,7 @@ describe('turnaround team workspace static contracts', () => {
 
   it('adds role-by-role coverage controls for filling and clearing the selected turnaround team', () => {
     const component = read('frontend/react/src/components/ReactTurnaroundAdminSetup.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
+    const styles = read('frontend/react/src/styles/design-system.css')
 
     expect(component).toContain('data-testid="react-turnaround-admin-role-coverage"')
     expect(component).toContain('data-testid="react-turnaround-admin-role-card"')

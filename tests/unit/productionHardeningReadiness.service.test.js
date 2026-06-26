@@ -61,7 +61,7 @@ describe('productionHardeningReadiness service', () => {
     expect(readiness.launchSequence).toContain('Run Jest, Cypress, Playwright mobile/responsive, k6 smoke, and Lighthouse CI before release.')
   })
 
-  it('flags missing deployment documentation as a launch hardening gap', () => {
+  it('uses platform configuration rather than Markdown docs as the deployment readiness signal', () => {
     const gate = buildDeploymentGate({
       packageJson: {
         scripts: {
@@ -77,7 +77,7 @@ describe('productionHardeningReadiness service', () => {
 
     expect(gate.id).toBe('deployment')
     expect(gate.status).toBe('ready')
-    expect(gate.recommendations[0]).toContain('docs/deployment.md')
+    expect(gate.recommendations[0]).toContain('platform config')
   })
 
   it('identifies missing environment variables before production deployment', () => {

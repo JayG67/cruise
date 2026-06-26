@@ -11,7 +11,7 @@ describe('passenger voyage planner static contracts', () => {
   it('adds a functional passenger-facing voyage planner instead of another development readiness panel', () => {
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
     const app = read('frontend/react/src/App.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
+    const styles = read('frontend/react/src/styles/design-system.css')
 
     expect(dashboard).toContain('function PassengerVoyagePlanner')
     expect(dashboard).toContain('data-testid="react-passenger-voyage-planner"')

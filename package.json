@@ -64,8 +64,10 @@
     "react:default:audit": "npm run react:production:audit",
     "react:production:audit": "npm run react:readiness:audit && npm run react:production:complete && npm run browserTests:react",
     "uiTests:react:ci": "npm run react:build && start-server-and-test start:ci http://localhost:8000 cypress:run:react",
-    "react:production:complete": "node scripts/verify-react-production-complete.js",
-    "lighthouse:assert-report": "node scripts/assert-lighthouse-mobile-report.js"
+    "react:production:complete": "npm run css:foundation:audit && node scripts/verify-react-production-complete.js",
+    "lighthouse:assert-report": "node scripts/assert-lighthouse-mobile-report.js",
+    "css:foundation:audit": "node scripts/verify-css-foundation.js && npm run css:legacy:audit",
+    "css:legacy:audit": "node scripts/verify-css-legacy-retirement.js"
   },
   "dependencies": {
     "compression": "^1.7.5",

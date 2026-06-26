@@ -459,15 +459,15 @@ export default function CustomerBookingHierarchy({
   const hiddenWorkflowRowCount = Math.max(rows.length - visibleWorkflowRows.length, 0)
 
   if (isInitialLoading) {
-    return <p role="status" className="status-card">Loading customer and booking workspace…</p>
+    return <p role="status" className="status-card ce-command-card">Loading customer and booking workspace…</p>
   }
 
   if (error) {
     return (
-      <section className="status-card error" role="alert" aria-label="Customer operations loading error">
+      <section className="status-card error ce-feedback-message ce-editor-card" role="alert" aria-label="Customer operations loading error">
         <p>{error}</p>
         {onRetry && (
-          <button type="button" className="secondary-button" onClick={onRetry}>
+          <button type="button" className="secondary-button ce-button-secondary" onClick={onRetry}>
             Retry loading customer workspace
           </button>
         )}
@@ -476,9 +476,9 @@ export default function CustomerBookingHierarchy({
   }
 
   return (
-    <section className="react-admin-workspace" aria-labelledby="react-admin-workspace-heading" data-testid="react-admin-hierarchy">
+    <section className="react-admin-workspace ce-command-panel" aria-labelledby="react-admin-workspace-heading" data-testid="react-admin-hierarchy">
       <div className="react-admin-heading">
-        <p className="eyebrow">Role-aware view</p>
+        <p className="eyebrow ce-kicker">Role-aware view</p>
         <h2 id="react-admin-workspace-heading">Admin workspace</h2>
         <p>
           Search customers, expand linked bookings inline, review booking details, and edit records
@@ -486,10 +486,10 @@ export default function CustomerBookingHierarchy({
         </p>
       </div>
 
-      <div className="react-admin-management-card" data-testid="react-admin-management-card">
+      <div className="react-admin-management-card ce-command-card" data-testid="react-admin-management-card">
         <div className="react-admin-card-heading">
           <div>
-            <p className="eyebrow">Admin Data Management</p>
+            <p className="eyebrow ce-kicker">Admin Data Management</p>
             <h3>Customer-centered operations</h3>
             <p>
               Search customers first, then expand each customer to manage their bookings and booking
@@ -502,19 +502,19 @@ export default function CustomerBookingHierarchy({
           </div>
         </div>
 
-        <section className="react-admin-mutation-panel" aria-label="React admin create and delete workflows" data-testid="react-admin-mutation-panel">
+        <section className="react-admin-mutation-panel ce-editor-card" aria-label="React admin create and delete workflows" data-testid="react-admin-mutation-panel">
           <div>
-            <p className="eyebrow">Admin CRUD coverage</p>
+            <p className="eyebrow ce-kicker">Admin CRUD coverage</p>
             <h4>Customer records and booking safeguards</h4>
             <p>Create customer records and manage destructive corrections with scoped selectors. Passenger-led booking creation remains in the passenger booking workflow.</p>
           </div>
 
           {(isLoading || isSelectorPending) && (
-            <p className="draft-message" role="status" data-testid="react-admin-refresh-status">{isLoading ? 'Refreshing customer and booking workspace…' : 'Updating selector choices…'}</p>
+            <p className="draft-message ce-feedback-message ce-editor-card" role="status" data-testid="react-admin-refresh-status">{isLoading ? 'Refreshing customer and booking workspace…' : 'Updating selector choices…'}</p>
           )}
 
           {adminMutationMessage && (
-            <p className="draft-message" role="status" data-testid="react-admin-mutation-message">{adminMutationMessage}</p>
+            <p className="draft-message ce-feedback-message ce-editor-card" role="status" data-testid="react-admin-mutation-message">{adminMutationMessage}</p>
           )}
 
           <ConfirmActionPanel
@@ -528,22 +528,22 @@ export default function CustomerBookingHierarchy({
             variant="modal"
           />
 
-          <div className="react-admin-mutation-grid">
+          <div className="react-admin-mutation-grid ce-field-grid">
             <form className="draft-editor" onSubmit={handleCreateCustomer} data-testid="react-admin-create-customer-form">
               <h5>Create Customer</h5>
-              <div className="draft-grid">
+              <div className="draft-grid ce-field-grid">
                 <label><span>First name</span><input value={createCustomerDraft.firstName} onChange={event => updateCreateCustomerDraft('firstName', event.target.value)} data-testid="react-admin-create-customer-first-name" /></label>
                 <label><span>Last name</span><input value={createCustomerDraft.lastName} onChange={event => updateCreateCustomerDraft('lastName', event.target.value)} data-testid="react-admin-create-customer-last-name" /></label>
                 <label><span>Email</span><input value={createCustomerDraft.email} onChange={event => updateCreateCustomerDraft('email', event.target.value)} data-testid="react-admin-create-customer-email" /></label>
                 <label><span>Phone</span><input value={createCustomerDraft.phone} onChange={event => updateCreateCustomerDraft('phone', event.target.value)} data-testid="react-admin-create-customer-phone" /></label>
                 <label><span>Loyalty</span><input value={createCustomerDraft.loyaltyNumber} onChange={event => updateCreateCustomerDraft('loyaltyNumber', event.target.value)} data-testid="react-admin-create-customer-loyalty" /></label>
               </div>
-              <button type="submit" className="primary-button" data-testid="react-admin-create-customer-submit">Create Customer</button>
+              <button type="submit" className="primary-button ce-button-primary" data-testid="react-admin-create-customer-submit">Create Customer</button>
             </form>
 
             <form className="draft-editor admin-delete-selector-card" onSubmit={handleDeleteCustomer} data-testid="react-admin-delete-customer-form">
               <h5>Delete customer</h5>
-              <p className="muted">Narrow the customer list by cruise line and ship, then select the passenger record to remove.</p>
+              <p className="muted ce-muted">Narrow the customer list by cruise line and ship, then select the passenger record to remove.</p>
               <div className="admin-delete-filter-grid">
                 <label>
                   <span>Cruise line</span>
@@ -567,13 +567,13 @@ export default function CustomerBookingHierarchy({
                   </select>
                 </label>
               </div>
-              <p className="muted" role="status">{isSelectorPending ? 'Updating customer choices…' : `${filteredDeleteCustomers.length} matching customers`}</p>
-              <button type="submit" className="fleet-danger-action" disabled={activeDeleteId === `customer:${deleteCustomerId.trim()}`} data-testid="react-admin-delete-customer-submit">Delete Customer</button>
+              <p className="muted ce-muted" role="status">{isSelectorPending ? 'Updating customer choices…' : `${filteredDeleteCustomers.length} matching customers`}</p>
+              <button type="submit" className="fleet-danger-action ce-button-danger" disabled={activeDeleteId === `customer:${deleteCustomerId.trim()}`} data-testid="react-admin-delete-customer-submit">Delete Customer</button>
             </form>
 
             <form className="draft-editor admin-delete-selector-card" onSubmit={handleDeleteBooking} data-testid="react-admin-delete-booking-form">
               <h5>Delete booking</h5>
-              <p className="muted">Narrow the booking list by cruise line and ship, then select the booking to remove.</p>
+              <p className="muted ce-muted">Narrow the booking list by cruise line and ship, then select the booking to remove.</p>
               <div className="admin-delete-filter-grid">
                 <label>
                   <span>Cruise line</span>
@@ -597,17 +597,17 @@ export default function CustomerBookingHierarchy({
                   </select>
                 </label>
               </div>
-              <p className="muted" role="status">{isSelectorPending ? 'Updating booking choices…' : `${filteredDeleteBookings.length} matching bookings`}</p>
-              <button type="submit" className="fleet-danger-action" disabled={activeDeleteId === `booking:${deleteBookingId.trim()}`} data-testid="react-admin-delete-booking-submit">Delete Booking</button>
+              <p className="muted ce-muted" role="status">{isSelectorPending ? 'Updating booking choices…' : `${filteredDeleteBookings.length} matching bookings`}</p>
+              <button type="submit" className="fleet-danger-action ce-button-danger" disabled={activeDeleteId === `booking:${deleteBookingId.trim()}`} data-testid="react-admin-delete-booking-submit">Delete Booking</button>
             </form>
           </div>
         </section>
 
         <section className="react-admin-record-selector" aria-label="Customer workflow selector">
           <div>
-            <p className="eyebrow">Customer workflow selector</p>
+            <p className="eyebrow ce-kicker">Customer workflow selector</p>
             <h4>Find customer records</h4>
-            <p className="muted">Use cruise line, ship, and customer selectors to narrow records without slow text filtering.</p>
+            <p className="muted ce-muted">Use cruise line, ship, and customer selectors to narrow records without slow text filtering.</p>
           </div>
           <div className="admin-delete-filter-grid admin-workflow-filter-grid">
             <label>
@@ -632,7 +632,7 @@ export default function CustomerBookingHierarchy({
               </select>
             </label>
           </div>
-          <p className="muted" role="status">{isSelectorPending ? 'Updating customer records…' : `${filteredWorkflowCustomers.length} matching customer records`}</p>
+          <p className="muted ce-muted" role="status">{isSelectorPending ? 'Updating customer records…' : `${filteredWorkflowCustomers.length} matching customer records`}</p>
           <input
             className="react-admin-legacy-filter-input"
             data-testid="react-hierarchy-search-input"
@@ -651,7 +651,7 @@ export default function CustomerBookingHierarchy({
           </p>
           <button
             type="button"
-            className="primary-action-button"
+            className="primary-action-button ce-button-primary"
             onClick={() => setWorkflowsVisible(currentValue => !currentValue)}
             aria-expanded={workflowsVisible}
             aria-controls="react-customer-workflow-table"
@@ -662,7 +662,7 @@ export default function CustomerBookingHierarchy({
         </div>
 
         {workflowsVisible && (
-          <div id="react-customer-workflow-table" className="react-admin-table-wrap" data-testid="react-customer-workflow-table">
+          <div id="react-customer-workflow-table" className="react-admin-table-wrap ce-editor-card" data-testid="react-customer-workflow-table">
             <div className="react-admin-table-heading">
               <strong>Customer records with linked bookings</strong>
               <span>
@@ -674,18 +674,18 @@ export default function CustomerBookingHierarchy({
               <p className="result-summary">
                 Admin-visible customers with expandable linked bookings and booking details
               </p>
-              <div className="button-row">
-                <button type="button" className="secondary-button" onClick={expandAllVisibleCustomers} data-testid="react-expand-visible-customers">
+              <div className="button-row ce-action-row">
+                <button type="button" className="secondary-button ce-button-secondary" onClick={expandAllVisibleCustomers} data-testid="react-expand-visible-customers">
                   Expand visible customers
                 </button>
-                <button type="button" className="secondary-button" onClick={collapseAllVisibleCustomers} data-testid="react-collapse-visible-customers">
+                <button type="button" className="secondary-button ce-button-secondary" onClick={collapseAllVisibleCustomers} data-testid="react-collapse-visible-customers">
                   Collapse visible customers
                 </button>
               </div>
             </div>
 
             {visibleWorkflowRows.length === 0 ? (
-              <p className="status-card compact" role="status">
+              <p className="status-card compact ce-command-card" role="status">
                 No customer or linked booking records match “{searchTerm.trim()}”.
               </p>
             ) : (

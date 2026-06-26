@@ -6,6 +6,9 @@ const loadCruiseData = require('../../services/loadCruiseData.service')
 
 beforeAll(async () => {
   await initializeDatabase()
+})
+
+beforeEach(async () => {
   await loadCruiseData()
 })
 

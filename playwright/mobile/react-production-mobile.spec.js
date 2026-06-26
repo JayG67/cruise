@@ -38,13 +38,25 @@ async function openRoyalShipSailings(page) {
   return openFleetSailingsBySearch(page, 'Royal')
 }
 
+async function fillCreateCruiseLineField(page, testId, value) {
+  const field = page.getByTestId(testId)
+  await field.scrollIntoViewIfNeeded()
+  await expect(field).toBeVisible({ timeout: 15000 })
+  await field.fill(value)
+  await expect(field).toHaveValue(value, { timeout: 15000 })
+}
+
 async function completeCreateCruiseLineDetails(page, suffix = 'Mobile') {
-  await page.getByTestId('react-create-cruise-line-name').fill(`${suffix} Cruise Line`)
-  await page.getByTestId('react-create-cruise-line-country').fill('United States')
-  await page.getByTestId('react-create-cruise-line-website').fill(`https://www.${suffix.toLowerCase()}-cruise.example`)
-  await page.getByTestId('react-create-cruise-line-brand-family').fill(`${suffix} Brand Group`)
-  await page.getByTestId('react-create-cruise-line-brand-theme').fill('Mobile-ready workflow')
-  await page.getByTestId('react-create-cruise-line-market-positioning').fill('Responsive cruise operations test line')
+  const urlSafeSuffix = suffix.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+
+  await fillCreateCruiseLineField(page, 'react-create-cruise-line-name', `${suffix} Cruise Line`)
+  await fillCreateCruiseLineField(page, 'react-create-cruise-line-country', 'United States')
+  await fillCreateCruiseLineField(page, 'react-create-cruise-line-website', `https://www.${urlSafeSuffix}-cruise.example`)
+  await fillCreateCruiseLineField(page, 'react-create-cruise-line-brand-family', `${suffix} Brand Group`)
+  await fillCreateCruiseLineField(page, 'react-create-cruise-line-brand-theme', 'Mobile-ready workflow')
+  await fillCreateCruiseLineField(page, 'react-create-cruise-line-market-positioning', 'Responsive cruise operations test line')
+
+  await expect(page.getByTestId('react-add-ship-row')).toBeEnabled({ timeout: 15000 })
 }
 
 async function expectAdminMutationFormsReady(page) {

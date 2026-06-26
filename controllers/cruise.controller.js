@@ -4426,7 +4426,10 @@ exports.deleteBookingPassenger = async (req, res, next) => {
     const passengerRows = await db
       .select()
       .from(bookingPassengerTable)
-      .where(eq(bookingPassengerTable.id, `${bookingId}-${customerId}`))
+      .where(and(
+        eq(bookingPassengerTable.bookingId, bookingId),
+        eq(bookingPassengerTable.customerId, customerId)
+      ))
       .limit(1)
 
     if (!passengerRows[0]) {
@@ -4441,7 +4444,10 @@ exports.deleteBookingPassenger = async (req, res, next) => {
 
     await db
       .delete(bookingPassengerTable)
-      .where(eq(bookingPassengerTable.id, `${bookingId}-${customerId}`))
+      .where(and(
+        eq(bookingPassengerTable.bookingId, bookingId),
+        eq(bookingPassengerTable.customerId, customerId)
+      ))
 
     const bookingScope = await getBookingAuditScope(bookingRows[0])
     await recordCruiseManagementAuditEvent(req, {

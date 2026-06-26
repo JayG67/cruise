@@ -1,0 +1,26 @@
+/* Shared feedback message primitives. */
+
+.react-production-shell .ce-feedback-message.ce-editor-card {
+  margin: var(--ce-space-3) 0;
+  min-height: auto;
+  padding: var(--ce-space-3) var(--ce-space-4) !important;
+}
+
+.react-production-shell .ce-feedback-message.error {
+  background: var(--ce-feedback-error-bg) !important;
+  border-color: var(--ce-feedback-error-border) !important;
+  color: var(--ce-feedback-error-text) !important;
+  -webkit-text-fill-color: var(--ce-feedback-error-text) !important;
+}
+
+.react-production-shell .ce-feedback-message:not(.error) {
+  background: var(--ce-feedback-status-bg) !important;
+  border-color: var(--ce-feedback-status-border) !important;
+  color: var(--ce-feedback-status-text) !important;
+  -webkit-text-fill-color: var(--ce-feedback-status-text) !important;
+}
+
+.react-production-shell .ce-feedback-message :is(span, strong, em) {
+  color: inherit !important;
+  -webkit-text-fill-color: inherit !important;
+}

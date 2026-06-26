@@ -73,21 +73,21 @@ export default function ReactPublicLaunchControlCenter({ selectedDemoUser }) {
   }, [selectedDemoUser?.id])
 
   return (
-    <section className="react-app-section public-launch-control-center" id="react-public-launch" aria-labelledby="react-public-launch-heading" data-testid="react-public-launch-control-center">
-      <div className="section-heading-row public-launch-heading">
+    <section className="react-app-section public-launch-control-center ce-command-panel" id="react-public-launch" aria-labelledby="react-public-launch-heading" data-testid="react-public-launch-control-center">
+      <div className="section-heading-row ce-section-heading public-launch-heading">
         <div>
-          <p className="eyebrow">Public launch</p>
+          <p className="eyebrow ce-kicker">Public launch</p>
           <h2 id="react-public-launch-heading">Public Launch Control Center</h2>
           <p>
             Consolidate data architecture, production hardening, deployment readiness, and portfolio packaging into one launch decision board.
           </p>
         </div>
-        <button type="button" className="secondary-action-button" onClick={loadReadiness} disabled={isLoading} data-testid="react-public-launch-refresh-button">
+        <button type="button" className="secondary-action-button ce-button-secondary" onClick={loadReadiness} disabled={isLoading} data-testid="react-public-launch-refresh-button">
           {isLoading ? 'Refreshing...' : 'Refresh launch board'}
         </button>
       </div>
 
-      {error ? <p className="draft-message error" role="alert" data-testid="react-public-launch-error">{error}</p> : null}
+      {error ? <p className="draft-message error ce-feedback-message ce-editor-card" role="alert" data-testid="react-public-launch-error">{error}</p> : null}
 
       <div className="public-launch-decision-grid" data-testid="react-public-launch-scoreboard">
         <article className={`public-launch-decision-card ${readiness?.status || 'loading'}`}>
@@ -95,12 +95,12 @@ export default function ReactPublicLaunchControlCenter({ selectedDemoUser }) {
           <strong>{launchDecision.label}</strong>
           <p>{launchDecision.detail}</p>
         </article>
-        <article className="public-launch-score-card">
+        <article className="public-launch-score-card ce-command-card">
           <span>Overall launch score</span>
           <strong>{isLoading && !readiness ? 'Loading' : `${readiness?.overallScore ?? 0}%`}</strong>
           <p>{readiness?.summary || 'Checking launch tracks across the current project baseline.'}</p>
         </article>
-        <article className="public-launch-score-card">
+        <article className="public-launch-score-card ce-command-card">
           <span>Feature-complete estimate</span>
           <strong>{readiness?.projectStatus?.featureCompleteEstimate ?? 0}%</strong>
           <p>Based on operations UX, architecture, production hardening, deployment, and portfolio packaging readiness.</p>
@@ -126,8 +126,8 @@ export default function ReactPublicLaunchControlCenter({ selectedDemoUser }) {
       </div>
 
       <div className="public-launch-detail-grid">
-        <section className="public-launch-panel" aria-labelledby="public-launch-critical-heading" data-testid="react-public-launch-critical-items">
-          <p className="eyebrow">Launch risks</p>
+        <section className="public-launch-panel ce-command-card" aria-labelledby="public-launch-critical-heading" data-testid="react-public-launch-critical-items">
+          <p className="eyebrow ce-kicker">Launch risks</p>
           <h3 id="public-launch-critical-heading">Critical launch items</h3>
           <ol>
             {(readiness?.criticalItems || []).map(item => (
@@ -144,8 +144,8 @@ export default function ReactPublicLaunchControlCenter({ selectedDemoUser }) {
           </ol>
         </section>
 
-        <section className="public-launch-panel" aria-labelledby="public-launch-runbook-heading" data-testid="react-public-launch-runbook">
-          <p className="eyebrow">Go-live runbook</p>
+        <section className="public-launch-panel ce-command-card" aria-labelledby="public-launch-runbook-heading" data-testid="react-public-launch-runbook">
+          <p className="eyebrow ce-kicker">Go-live runbook</p>
           <h3 id="public-launch-runbook-heading">Release sequence</h3>
           <ol>
             {(readiness?.launchRunbook || []).map(step => (
@@ -162,8 +162,8 @@ export default function ReactPublicLaunchControlCenter({ selectedDemoUser }) {
         </section>
       </div>
 
-      <section className="public-launch-panel project-status-panel" aria-labelledby="project-status-heading" data-testid="react-project-status-panel">
-        <p className="eyebrow">Current project status</p>
+      <section className="public-launch-panel project-status-panel ce-command-card" aria-labelledby="project-status-heading" data-testid="react-project-status-panel">
+        <p className="eyebrow ce-kicker">Current project status</p>
         <h3 id="project-status-heading">Where the portfolio stands now</h3>
         <div className="project-status-grid">
           {statusRows.map(row => (

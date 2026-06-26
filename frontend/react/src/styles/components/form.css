@@ -1,0 +1,97 @@
+/* Shared form primitives. Forms remain light for usability. */
+
+.ce-form,
+.ce-field-grid {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.ce-input,
+.ce-select,
+.ce-textarea,
+.react-production-shell :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+.ce-editor-card :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  background: var(--surface-editor-raised);
+  border: 1px solid var(--border-editor);
+  border-radius: var(--radius-sm);
+  color: var(--text-editor);
+  font: inherit;
+  min-height: var(--control-height);
+  padding: 0.65rem 0.75rem;
+  width: 100%;
+}
+
+.ce-input:focus,
+.ce-select:focus,
+.ce-textarea:focus,
+.ce-editor-card :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.ce-textarea,
+.ce-editor-card textarea {
+  resize: vertical;
+}
+
+/* Shared field/control primitives migrated out of the legacy design-system layer. */
+
+.react-production-shell .ce-field {
+  display: grid;
+  gap: var(--ce-space-1);
+  min-width: 0;
+}
+
+.react-production-shell .ce-field-label {
+  color: var(--ce-data-text-muted) !important;
+  -webkit-text-fill-color: var(--ce-data-text-muted) !important;
+  font-weight: 900;
+}
+
+.react-production-shell .ce-input {
+  background: var(--ce-data-surface-strong) !important;
+  border: 1px solid var(--ce-data-border) !important;
+  border-radius: 0.75rem !important;
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.75rem;
+  width: 100%;
+}
+
+.react-production-shell .ce-input:focus {
+  border-color: var(--ce-editor-border) !important;
+  box-shadow: 0 0 0 3px var(--ce-editor-focus) !important;
+  outline: none !important;
+}
+
+.react-production-shell :is(.ce-input, input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  min-height: var(--ce-control-height);
+}
+
+.react-production-shell textarea.ce-input,
+.react-production-shell .ce-editor-card textarea {
+  resize: vertical;
+}
+
+.react-production-shell :is(
+  .operational-command-form,
+  .operational-task-create-form,
+  .operational-task-detail-form,
+  .operational-task-update-form,
+  .operational-staffing-form,
+  .operational-escalation-create-form,
+  .operational-escalation-update-form,
+  .operational-signoff-form,
+  .operational-handoff-form,
+  .operations-readiness-detail-form,
+  .operations-staffing-detail-form,
+  .operations-escalation-detail-form
+) textarea {
+  line-height: 1.35 !important;
+  min-height: 5.8rem !important;
+  overflow-wrap: anywhere !important;
+  resize: vertical !important;
+  white-space: pre-wrap !important;
+}

@@ -408,16 +408,16 @@ export default function ReactTurnaroundAdminSetup({ selectedDemoUser, onSetupCha
   }
 
   return (
-    <section className="react-app-section turnaround-admin-setup-panel" id="react-turnaround-admin-setup" aria-labelledby="react-turnaround-admin-setup-heading" data-testid="react-turnaround-admin-setup">
-      <div className="section-heading-row compact-turnaround-admin-heading">
+    <section className="react-app-section turnaround-admin-setup-panel ce-command-panel" id="react-turnaround-admin-setup" aria-labelledby="react-turnaround-admin-setup-heading" data-testid="react-turnaround-admin-setup">
+      <div className="section-heading-row ce-section-heading compact-turnaround-admin-heading">
         <div>
-          <p className="eyebrow">Turnaround admin setup</p>
+          <p className="eyebrow ce-kicker">Turnaround admin setup</p>
           <h2 id="react-turnaround-admin-setup-heading">Build the team for one ship turnaround</h2>
           <p>
             Pick a cruise line, ship, and sailing date first. The panel then shows the current team for that turnaround queue and lets you add or remove people in one place.
           </p>
         </div>
-        <button type="button" className="secondary-action-button" onClick={loadSetup} disabled={isLoading} data-testid="react-turnaround-admin-refresh-button">
+        <button type="button" className="secondary-action-button ce-button-secondary" onClick={loadSetup} disabled={isLoading} data-testid="react-turnaround-admin-refresh-button">
           {isLoading ? 'Reloading...' : 'Reload setup data'}
         </button>
       </div>
@@ -432,23 +432,23 @@ export default function ReactTurnaroundAdminSetup({ selectedDemoUser, onSetupCha
         </p>
       </div>
 
-      <div className="turnaround-team-workspace" data-testid="react-turnaround-team-workspace">
-        <article className="turnaround-workspace-card active">
+      <div className="turnaround-team-workspace ce-command-panel" data-testid="react-turnaround-team-workspace">
+        <article className="turnaround-workspace-card ce-command-card active">
           <span>1. Cruise line</span>
           <strong>{selectedCruiseLine?.name || 'Select cruise line'}</strong>
           <p>{peopleForSelectedCruiseLine.length} available turnaround person{peopleForSelectedCruiseLine.length === 1 ? '' : 's'}</p>
         </article>
-        <article className={selectedShip ? 'turnaround-workspace-card active' : 'turnaround-workspace-card'}>
+        <article className={selectedShip ? 'turnaround-workspace-card ce-command-card active' : 'turnaround-workspace-card ce-command-card'}>
           <span>2. Ship</span>
           <strong>{selectedShip?.name || 'Choose ship queue'}</strong>
           <p>{shipsForSelectedCruiseLine.length} ship queue{shipsForSelectedCruiseLine.length === 1 ? '' : 's'} available</p>
         </article>
-        <article className={selectedSailing ? 'turnaround-workspace-card active' : 'turnaround-workspace-card'}>
+        <article className={selectedSailing ? 'turnaround-workspace-card ce-command-card active' : 'turnaround-workspace-card ce-command-card'}>
           <span>3. Sailing</span>
           <strong>{selectedSailing?.departureDate || 'Choose sailing date'}</strong>
           <p>{selectedPort}</p>
         </article>
-        <article className={missingRoles.length === 0 && selectedShip ? 'turnaround-workspace-card ready' : 'turnaround-workspace-card'}>
+        <article className={missingRoles.length === 0 && selectedShip ? 'turnaround-workspace-card ce-command-card ready' : 'turnaround-workspace-card ce-command-card'}>
           <span>4. Team readiness</span>
           <strong>{teamReadinessScore}% staffed</strong>
           <p>{teamWorkspace.staffedRoleCount} of {teamWorkspace.requiredRoleCount} required roles assigned</p>
@@ -456,9 +456,9 @@ export default function ReactTurnaroundAdminSetup({ selectedDemoUser, onSetupCha
       </div>
 
       <div className="turnaround-admin-grid improved-turnaround-admin-grid">
-        <form className="turnaround-admin-form compact-turnaround-admin-form" onSubmit={handleSubmit} data-testid="react-turnaround-admin-person-form">
+        <form className="turnaround-admin-form ce-editor-card compact-turnaround-admin-form" onSubmit={handleSubmit} data-testid="react-turnaround-admin-person-form">
           <h3>1. Choose the turnaround, then add a team member</h3>
-          <div className="turnaround-admin-form-grid">
+          <div className="turnaround-admin-form-grid ce-field-grid">
             <label>
               <span>Person name</span>
               <input value={draft.displayName} onChange={event => updateDraft('displayName', event.target.value)} required maxLength={255} data-testid="react-turnaround-person-name-input" />
@@ -497,10 +497,10 @@ export default function ReactTurnaroundAdminSetup({ selectedDemoUser, onSetupCha
             <p>{selectedShip?.name || 'Select a ship'}{selectedSailing ? ` · ${getSailingDate(selectedSailing) || 'sailing date pending'}` : ' · choose a sailing date before adding people'}</p>
           </div>
 
-          <button type="submit" className="primary-action-button" disabled={isSaving || !draft.cruiseLineId || !draft.assignedShipId || !draft.sailingId} data-testid="react-turnaround-person-submit-button">
+          <button type="submit" className="primary-action-button ce-button-primary" disabled={isSaving || !draft.cruiseLineId || !draft.assignedShipId || !draft.sailingId} data-testid="react-turnaround-person-submit-button">
             {isSaving ? 'Saving team member...' : 'Add to this turnaround team'}
           </button>
-          <p className="draft-message" role="status" aria-live="polite" data-testid="react-turnaround-admin-message">
+          <p className="draft-message ce-feedback-message ce-editor-card" role="status" aria-live="polite" data-testid="react-turnaround-admin-message">
             {error || message || 'Select a ship and sailing date, then add the person who should cover that role.'}
           </p>
         </form>
@@ -509,7 +509,7 @@ export default function ReactTurnaroundAdminSetup({ selectedDemoUser, onSetupCha
           <div className="turnaround-roster-header">
             <div>
               <h3>2. Current team for {selectedTurnaroundLabel}</h3>
-              <p className="muted-copy">
+              <p className="muted-copy ce-muted">
                 {selectedShip ? `${selectedShipTeam.length} assigned team member${selectedShipTeam.length === 1 ? '' : 's'} for this sailing` : 'Choose a ship to see the current turnaround team'}
               </p>
             </div>
@@ -547,9 +547,9 @@ export default function ReactTurnaroundAdminSetup({ selectedDemoUser, onSetupCha
                       <strong>{assignedPerson?.displayName || 'Unassigned'}</strong>
                     </div>
                     {assignedPerson ? (
-                      <button type="button" className="secondary-action-button compact-action" onClick={() => handleRemovePerson(assignedPerson)} disabled={isSaving} data-testid="react-turnaround-admin-clear-role">Clear role</button>
+                      <button type="button" className="secondary-action-button compact-action ce-button-secondary" onClick={() => handleRemovePerson(assignedPerson)} disabled={isSaving} data-testid="react-turnaround-admin-clear-role">Clear role</button>
                     ) : replacementCandidate && draft.sailingId ? (
-                      <button type="button" className="secondary-action-button compact-action" onClick={() => handleAssignRosterPersonToSelectedTurnaround(replacementCandidate)} disabled={isSaving} data-testid="react-turnaround-admin-fill-role">Fill from roster</button>
+                      <button type="button" className="secondary-action-button compact-action ce-button-secondary" onClick={() => handleAssignRosterPersonToSelectedTurnaround(replacementCandidate)} disabled={isSaving} data-testid="react-turnaround-admin-fill-role">Fill from roster</button>
                     ) : null}
                   </article>
                 )
@@ -559,16 +559,16 @@ export default function ReactTurnaroundAdminSetup({ selectedDemoUser, onSetupCha
 
           <div className="turnaround-selected-team" data-testid="react-turnaround-admin-selected-team">
             {!selectedShip ? (
-              <p className="empty-state compact">Select a ship and sailing date to manage that exact turnaround team.</p>
+              <p className="empty-state compact ce-empty-state ce-editor-card">Select a ship and sailing date to manage that exact turnaround team.</p>
             ) : selectedShipTeam.length === 0 ? (
-              <p className="empty-state compact">No team members are assigned to this ship queue yet. Add the first role on the left.</p>
+              <p className="empty-state compact ce-empty-state ce-editor-card">No team members are assigned to this ship queue yet. Add the first role on the left.</p>
             ) : selectedShipTeam.map(person => (
               <article key={person.id} className="turnaround-team-member-card" data-testid="react-turnaround-admin-team-member">
                 <div>
                   <strong>{person.displayName}</strong>
                   <span>{getRoleLabel(person.role)} · {person.assignedShipName || selectedShip.name}{selectedSailing ? ` · ${getSailingDate(selectedSailing) || 'sailing date pending'}` : ''}</span>
                 </div>
-                <button type="button" className="secondary-action-button compact-action" onClick={() => handleRemovePerson(person)} disabled={isSaving} data-testid="react-turnaround-admin-remove-person">Remove</button>
+                <button type="button" className="secondary-action-button compact-action ce-button-secondary" onClick={() => handleRemovePerson(person)} disabled={isSaving} data-testid="react-turnaround-admin-remove-person">Remove</button>
               </article>
             ))}
           </div>
@@ -608,7 +608,7 @@ export default function ReactTurnaroundAdminSetup({ selectedDemoUser, onSetupCha
                     {group.conflicts.length ? `Conflict warning: ${group.conflicts.join(', ')}` : 'No same-day conflict in this roster'}
                   </small>
                   {draft.assignedShipId && draft.sailingId ? (
-                    <button type="button" className="secondary-action-button compact-action" onClick={() => handleAssignRosterPersonToSelectedTurnaround(group.people[0])} disabled={isSaving} data-testid="react-turnaround-admin-assign-existing-person">
+                    <button type="button" className="secondary-action-button compact-action ce-button-secondary" onClick={() => handleAssignRosterPersonToSelectedTurnaround(group.people[0])} disabled={isSaving} data-testid="react-turnaround-admin-assign-existing-person">
                       Assign to selected sailing
                     </button>
                   ) : null}
@@ -618,7 +618,7 @@ export default function ReactTurnaroundAdminSetup({ selectedDemoUser, onSetupCha
           )}
 
           {filteredRosterGroups.length > VISIBLE_ROSTER_LIMIT ? (
-            <button type="button" className="secondary-action-button turnaround-roster-toggle" onClick={() => setShowAllRoster(current => !current)} data-testid="react-turnaround-admin-roster-toggle">
+            <button type="button" className="secondary-action-button turnaround-roster-toggle ce-button-secondary" onClick={() => setShowAllRoster(current => !current)} data-testid="react-turnaround-admin-roster-toggle">
               {showAllRoster ? 'Show fewer people' : `Show all ${filteredRosterGroups.length} roster groups`}
             </button>
           ) : null}

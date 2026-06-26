@@ -44,12 +44,17 @@ describe('cruise line presentation suite expansion', () => {
     expect(component).not.toContain('production readiness')
   })
 
-  it('styles the presentation expansion without adding another readiness control panel', () => {
-    const css = read('frontend/react/src/styles/app.css')
+  it('styles the presentation expansion through the shared design system', () => {
+    const css = read('frontend/react/src/styles/design-system.css')
+    const legacyCss = read('frontend/react/src/styles/app.css')
 
     expect(css).toContain('.presentation-control-panel')
     expect(css).toContain('.presentation-hero-card')
     expect(css).toContain('.presentation-action-grid')
     expect(css).not.toContain('.presentation-readiness-panel')
+    expect(legacyCss).not.toContain('.presentation-demo-flow')
+    expect(legacyCss).not.toContain('.presentation-commercial-grid')
+    expect(legacyCss).not.toContain('.presentation-operator-grid')
+    expect(legacyCss).not.toContain('.operations-presentation-guide')
   })
 })

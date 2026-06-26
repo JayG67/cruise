@@ -56,7 +56,7 @@ function hasFile(files = {}, filePath) {
 function buildEnvironmentGate({ env = {}, requiredEnv = DEFAULT_REQUIRED_ENV, recommendedEnv = DEFAULT_RECOMMENDED_ENV, files = {} }) {
   const presentRequired = requiredEnv.filter(name => Boolean(env[name]))
   const presentRecommended = recommendedEnv.filter(name => Boolean(env[name]))
-  const envExampleCoverage = hasFile(files, '.env.example') || hasFile(files, 'docs/environment.md')
+  const envExampleCoverage = hasFile(files, '.env.example')
   const totalChecks = requiredEnv.length + recommendedEnv.length + 1
   const passedChecks = presentRequired.length + presentRecommended.length + (envExampleCoverage ? 1 : 0)
   const score = asPercent(passedChecks, totalChecks)
@@ -70,11 +70,11 @@ function buildEnvironmentGate({ env = {}, requiredEnv = DEFAULT_REQUIRED_ENV, re
     evidence: [
       `${presentRequired.length} required variables present: ${presentRequired.join(', ') || 'none'}`,
       `${presentRecommended.length} recommended variables present: ${presentRecommended.join(', ') || 'none'}`,
-      envExampleCoverage ? 'Environment documentation or example file is available.' : 'No .env.example or environment documentation detected.'
+      envExampleCoverage ? 'Environment example file is available.' : 'No .env.example detected.'
     ],
     recommendations: envExampleCoverage
       ? ['Keep deployment-specific secrets out of source and document required variables for each target platform.']
-      : ['Add .env.example or docs/environment.md before public deployment so setup is reproducible.']
+      : ['Add .env.example before public deployment so setup is reproducible.']
   })
 }
 
@@ -165,7 +165,7 @@ function buildDeploymentGate({ packageJson = {}, files = {} }) {
     hasScript(packageJson, 'react:build'),
     hasFile(files, 'Dockerfile') || hasFile(files, 'docker-compose.yml'),
     hasFile(files, 'public') || hasFile(files, 'dist'),
-    hasFile(files, 'docs/deployment.md') || hasFile(files, 'render.yaml') || hasFile(files, 'railway.json') || hasFile(files, 'fly.toml')
+    hasFile(files, 'render.yaml') || hasFile(files, 'railway.json') || hasFile(files, 'fly.toml')
   ]
   const score = asPercent(checks.filter(Boolean).length, checks.length)
 
@@ -179,11 +179,11 @@ function buildDeploymentGate({ packageJson = {}, files = {} }) {
       checks[0] ? 'Production start script exists.' : 'Production start script is missing.',
       checks[1] ? 'React build script exists.' : 'React build script is missing.',
       checks[2] ? 'Container or compose configuration exists.' : 'Container configuration is missing.',
-      checks[4] ? 'Deployment target documentation/config exists.' : 'Deployment target documentation/config is not detected.'
+      checks[4] ? 'Deployment target platform config exists.' : 'Deployment target platform config is not detected.'
     ],
     recommendations: checks[4]
-      ? ['Keep deployment docs synchronized with the selected platform and required environment variables.']
-      : ['Add docs/deployment.md or a platform config before the public portfolio launch.']
+      ? ['Keep platform config synchronized with required environment variables.']
+      : ['Add a deployment platform config before the public portfolio launch.']
   })
 }
 

@@ -1,0 +1,33 @@
+/*
+  Minimal global reset for the Cruise Explorer React shell.
+
+  Keep this layer low-specificity. Component appearance belongs in
+  ../components and page-specific compatibility remains in app.css or
+  design-system.css until retired by focused slices.
+*/
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  border: 0;
+}

@@ -189,7 +189,7 @@ describe('Turnaround operations API integration tests', () => {
 
     const res = await request(app)
       .patch(`/cruise/turnaround-tasks/${task.id}/status`)
-      .send({ status: 'complete' })
+      .send({ status: 'COMPLETE' })
 
     expect(res.statusCode).toBe(200)
     expect(res.body.message).toBe('Turnaround task status updated successfully')

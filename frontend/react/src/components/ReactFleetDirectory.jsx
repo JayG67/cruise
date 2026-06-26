@@ -832,21 +832,21 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
   }
 
   return (
-    <section className="react-app-section fleet-directory-section" id="react-fleet" aria-labelledby="react-fleet-heading" data-testid="react-fleet-directory">
-      <div className="section-heading-row fleet-heading-row">
+    <section className="react-app-section fleet-directory-section ce-command-panel" id="react-fleet" aria-labelledby="react-fleet-heading" data-testid="react-fleet-directory">
+      <div className="section-heading-row ce-section-heading fleet-heading-row">
         <div>
-          <p className="eyebrow">Fleet dashboard</p>
+          <p className="eyebrow ce-kicker">Fleet dashboard</p>
           <h2 id="react-fleet-heading">Cruise Line Directory</h2>
           <p>
             Search, review, and manage the cruise lines currently available in the live application dataset.
           </p>
         </div>
-        <button type="button" className="button-link secondary light-action" onClick={onRefresh} disabled={isRefreshing} data-testid="react-fleet-refresh-button">
+        <button type="button" className="button-link secondary light-action ce-button-secondary" onClick={onRefresh} disabled={isRefreshing} data-testid="react-fleet-refresh-button">
           {isRefreshing ? 'Refreshing fleet…' : 'Refresh fleet'}
         </button>
       </div>
 
-      <label className="search-control fleet-search-control">
+      <label className="search-control ce-field fleet-search-control">
         <span>Search cruise lines</span>
         <input
           type="search"
@@ -859,7 +859,7 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
       </label>
 
       {error && <p className="error" role="alert">{error}</p>}
-      {fleetActionMessage && <p className="muted-status" role="status" data-testid="react-fleet-action-message">{fleetActionMessage}</p>}
+      {fleetActionMessage && <p className="muted-status ce-muted" role="status" data-testid="react-fleet-action-message">{fleetActionMessage}</p>}
       <ConfirmActionPanel
         title="Confirm fleet delete"
         message={pendingDelete?.message}
@@ -869,15 +869,15 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
         isWorking={Boolean(deletingCruiseLineId || shipActionId || sailingActionId || itineraryActionId)}
         testId="react-fleet-delete-confirmation"
       />
-      {isLoading && <p className="muted-status">Loading cruise line directory…</p>}
+      {isLoading && <p className="muted-status ce-muted">Loading cruise line directory…</p>}
 
-      <p id="react-fleet-count" className="muted-status" data-testid="react-fleet-count">
+      <p id="react-fleet-count" className="muted-status ce-muted" data-testid="react-fleet-count">
         Showing {visibleCruiseLines.length} of {filteredCruiseLines.length} matching cruise lines.
       </p>
 
       <div className="fleet-card-grid" data-testid="react-fleet-card-grid">
         {visibleCruiseLines.map(cruiseLine => (
-          <article className="fleet-card" key={cruiseLine.id || cruiseLine.name} data-testid="react-fleet-card">
+          <article className="fleet-card ce-command-card" key={cruiseLine.id || cruiseLine.name} data-testid="react-fleet-card">
             <h3>{cruiseLine.name}</h3>
             <p><strong>Country:</strong> {cruiseLine.country || 'Not provided'}</p>
             {cruiseLine.website && (
@@ -897,10 +897,10 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
                 <dd>{cruiseLine.marketPositioning || 'Not provided'}</dd>
               </div>
             </dl>
-            <div className="fleet-card-actions" aria-label={`Actions for ${cruiseLine.name}`}>
+            <div className="fleet-card-actions ce-action-row" aria-label={`Actions for ${cruiseLine.name}`}>
               <button
                 type="button"
-                className="fleet-primary-action"
+                className="fleet-primary-action ce-button-primary"
                 onClick={() => handleViewShips(cruiseLine)}
                 data-testid="react-view-ships-button"
               >
@@ -908,7 +908,7 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
               </button>
               <button
                 type="button"
-                className="fleet-primary-action"
+                className="fleet-primary-action ce-button-primary"
                 onClick={() => openCruiseLineEdit(cruiseLine)}
                 disabled={updatingCruiseLineId === cruiseLine.id}
                 data-testid="react-update-cruise-line-button"
@@ -917,7 +917,7 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
               </button>
               <button
                 type="button"
-                className="fleet-danger-action"
+                className="fleet-danger-action ce-button-danger"
                 onClick={() => requestDeleteCruiseLine(cruiseLine)}
                 disabled={deletingCruiseLineId === cruiseLine.id}
                 data-testid="react-delete-cruise-line-button"
@@ -926,7 +926,7 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
               </button>
             </div>
             {activeCruiseLineEditId === cruiseLine.id && (
-              <form className="react-inline-edit-form" onSubmit={event => handleUpdateCruiseLine(event, cruiseLine)} data-testid="react-cruise-line-edit-form">
+              <form className="react-inline-edit-form ce-editor-card" onSubmit={event => handleUpdateCruiseLine(event, cruiseLine)} data-testid="react-cruise-line-edit-form">
                 <h4>Edit cruise line</h4>
                 <div className="react-inline-edit-grid cruise-line-brand-edit-grid">
                   <label>
@@ -978,11 +978,11 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
                     />
                   </label>
                 </div>
-                <div className="react-inline-edit-actions">
-                  <button type="submit" className="fleet-primary-action" disabled={updatingCruiseLineId === cruiseLine.id} data-testid="react-save-cruise-line-edit">
+                <div className="react-inline-edit-actions ce-action-row">
+                  <button type="submit" className="fleet-primary-action ce-button-primary" disabled={updatingCruiseLineId === cruiseLine.id} data-testid="react-save-cruise-line-edit">
                     {updatingCruiseLineId === cruiseLine.id ? 'Saving…' : 'Save Cruise Line'}
                   </button>
-                  <button type="button" className="fleet-secondary-action" onClick={cancelCruiseLineEdit} data-testid="react-cancel-cruise-line-edit">
+                  <button type="button" className="fleet-secondary-action ce-button-secondary" onClick={cancelCruiseLineEdit} data-testid="react-cancel-cruise-line-edit">
                     Cancel
                   </button>
                 </div>
@@ -993,17 +993,17 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
       </div>
 
       {visibleCruiseLines.length === 0 && !isLoading && (
-        <p className="muted-status" data-testid="react-fleet-empty-state">No cruise lines match the current search.</p>
+        <p className="muted-status ce-muted" data-testid="react-fleet-empty-state">No cruise lines match the current search.</p>
       )}
 
       <section
-        className="react-selected-ships-panel"
+        className="react-selected-ships-panel ce-command-card"
         aria-labelledby="react-selected-ships-heading"
         data-testid="react-selected-ships-panel"
       >
         <div className="selected-ships-heading-row">
           <div>
-            <p className="eyebrow">Selected fleet</p>
+            <p className="eyebrow ce-kicker">Selected fleet</p>
             <h3 id="react-selected-ships-heading">
               {selectedCruiseLine ? `${selectedCruiseLine.name} ships` : 'Select a cruise line to view ships'}
             </h3>
@@ -1016,11 +1016,11 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
         </div>
 
         {!selectedCruiseLine && (
-          <p className="muted-status">Use View Ships on a cruise line card to load its current fleet.</p>
+          <p className="muted-status ce-muted">Use View Ships on a cruise line card to load its current fleet.</p>
         )}
 
         {selectedCruiseLine && (
-          <form className="react-ship-create-form" onSubmit={handleCreateShip} data-testid="react-create-ship-form">
+          <form className="react-ship-create-form ce-editor-card" onSubmit={handleCreateShip} data-testid="react-create-ship-form">
             <h4>Add Ship</h4>
             <div className="react-ship-form-grid">
               <label>
@@ -1042,18 +1042,18 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
                 />
               </label>
             </div>
-            <button type="submit" className="fleet-primary-action" disabled={shipActionId === 'create'} data-testid="react-create-ship-submit-button">
+            <button type="submit" className="fleet-primary-action ce-button-primary" disabled={shipActionId === 'create'} data-testid="react-create-ship-submit-button">
               {shipActionId === 'create' ? 'Creating…' : 'Create Ship'}
             </button>
           </form>
         )}
 
-        {shipsLoading && <p className="muted-status">Loading ships…</p>}
+        {shipsLoading && <p className="muted-status ce-muted">Loading ships…</p>}
         {shipsError && <p className="error" role="alert">{shipsError}</p>}
-        {shipActionMessage && <p className="muted-status" role="status" data-testid="react-ship-action-message">{shipActionMessage}</p>}
+        {shipActionMessage && <p className="muted-status ce-muted" role="status" data-testid="react-ship-action-message">{shipActionMessage}</p>}
 
         {selectedCruiseLine && !shipsLoading && !shipsError && selectedShips.length === 0 && (
-          <p className="muted-status">No ships are currently listed for this cruise line.</p>
+          <p className="muted-status ce-muted">No ships are currently listed for this cruise line.</p>
         )}
 
         {selectedShips.length > 0 && (
@@ -1063,18 +1063,18 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
                 <h4>{ship.name}</h4>
                 <p><strong>Current port:</strong> {getCurrentPortLabel(ship)}</p>
                 <div className="react-ship-card-actions">
-                  <button type="button" className="fleet-primary-action" onClick={() => handleViewSailings(ship)} data-testid="react-view-sailings-button">
+                  <button type="button" className="fleet-primary-action ce-button-primary" onClick={() => handleViewSailings(ship)} data-testid="react-view-sailings-button">
                     View Sailings
                   </button>
-                  <button type="button" className="fleet-primary-action" onClick={() => openShipEdit(ship)} disabled={shipActionId === ship.id} data-testid="react-update-ship-button">
+                  <button type="button" className="fleet-primary-action ce-button-primary" onClick={() => openShipEdit(ship)} disabled={shipActionId === ship.id} data-testid="react-update-ship-button">
                     Update Ship
                   </button>
-                  <button type="button" className="fleet-danger-action" onClick={() => requestDeleteShip(ship)} disabled={shipActionId === ship.id} data-testid="react-delete-ship-button">
+                  <button type="button" className="fleet-danger-action ce-button-danger" onClick={() => requestDeleteShip(ship)} disabled={shipActionId === ship.id} data-testid="react-delete-ship-button">
                     Delete Ship
                   </button>
                 </div>
                 {activeShipEditId === ship.id && (
-                  <form className="react-inline-edit-form" onSubmit={event => handleUpdateShip(event, ship)} data-testid="react-ship-edit-form">
+                  <form className="react-inline-edit-form ce-editor-card" onSubmit={event => handleUpdateShip(event, ship)} data-testid="react-ship-edit-form">
                     <h5>Edit ship</h5>
                     <div className="react-inline-edit-grid react-ship-edit-grid">
                       <label>
@@ -1094,11 +1094,11 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
                         />
                       </label>
                     </div>
-                    <div className="react-inline-edit-actions">
-                      <button type="submit" className="fleet-primary-action" disabled={shipActionId === ship.id} data-testid="react-save-ship-edit">
+                    <div className="react-inline-edit-actions ce-action-row">
+                      <button type="submit" className="fleet-primary-action ce-button-primary" disabled={shipActionId === ship.id} data-testid="react-save-ship-edit">
                         {shipActionId === ship.id ? 'Saving…' : 'Save Ship'}
                       </button>
-                      <button type="button" className="fleet-secondary-action" onClick={cancelShipEdit} data-testid="react-cancel-ship-edit">
+                      <button type="button" className="fleet-secondary-action ce-button-secondary" onClick={cancelShipEdit} data-testid="react-cancel-ship-edit">
                         Cancel
                       </button>
                     </div>
@@ -1114,13 +1114,13 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
         <section className="react-sailings-panel" aria-labelledby="react-sailings-heading" data-testid="react-sailings-panel">
           <div className="selected-ships-heading-row">
             <div>
-              <p className="eyebrow">Selected ship</p>
+              <p className="eyebrow ce-kicker">Selected ship</p>
               <h3 id="react-sailings-heading">{selectedShipForSailings.name} Sailings</h3>
             </div>
             <span className="selected-ships-count" data-testid="react-sailings-count">{sailings.length} sailings</span>
           </div>
 
-          <form className="react-sailing-create-form" onSubmit={handleCreateSailing} data-testid="react-create-sailing-form">
+          <form className="react-sailing-create-form ce-editor-card" onSubmit={handleCreateSailing} data-testid="react-create-sailing-form">
             <h4>Create Sailing</h4>
             <div className="react-sailing-form-grid">
               <label>
@@ -1169,18 +1169,18 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
                 <span>Repositioning sailing</span>
               </label>
             </div>
-            <button type="submit" className="fleet-primary-action" disabled={sailingActionId === 'create'} data-testid="react-create-sailing-submit-button">
+            <button type="submit" className="fleet-primary-action ce-button-primary" disabled={sailingActionId === 'create'} data-testid="react-create-sailing-submit-button">
               {sailingActionId === 'create' ? 'Creating…' : 'Create Sailing'}
             </button>
           </form>
 
-          {sailingActionMessage && <p className="muted-status" role="status" data-testid="react-sailing-action-message">{sailingActionMessage}</p>}
+          {sailingActionMessage && <p className="muted-status ce-muted" role="status" data-testid="react-sailing-action-message">{sailingActionMessage}</p>}
 
-          {sailingsLoading && <p className="muted-status">Loading sailings…</p>}
+          {sailingsLoading && <p className="muted-status ce-muted">Loading sailings…</p>}
           {sailingsError && <p className="error" role="alert">{sailingsError}</p>}
 
           {!sailingsLoading && !sailingsError && sailings.length === 0 && (
-            <p className="muted-status">No sailings found for this ship yet.</p>
+            <p className="muted-status ce-muted">No sailings found for this ship yet.</p>
           )}
 
           {sailings.length > 0 && (
@@ -1195,7 +1195,7 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
                   <div className="react-sailing-card-actions">
                     <button
                       type="button"
-                      className="fleet-primary-action"
+                      className="fleet-primary-action ce-button-primary"
                       onClick={() => handleViewItinerary(sailing)}
                       data-testid="react-view-itinerary-button"
                     >
@@ -1203,7 +1203,7 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
                     </button>
                     <button
                       type="button"
-                      className="fleet-primary-action"
+                      className="fleet-primary-action ce-button-primary"
                       onClick={() => openSailingEdit(sailing)}
                       disabled={sailingActionId === sailing.id}
                       data-testid="react-update-sailing-button"
@@ -1212,7 +1212,7 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
                     </button>
                     <button
                       type="button"
-                      className="fleet-danger-action"
+                      className="fleet-danger-action ce-button-danger"
                       onClick={() => requestDeleteSailing(sailing)}
                       disabled={sailingActionId === sailing.id}
                       data-testid="react-delete-sailing-button"
@@ -1221,7 +1221,7 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
                     </button>
                   </div>
                   {activeSailingEditId === sailing.id && (
-                    <form className="react-inline-edit-form" onSubmit={event => handleUpdateSailing(event, sailing)} data-testid="react-sailing-edit-form">
+                    <form className="react-inline-edit-form ce-editor-card" onSubmit={event => handleUpdateSailing(event, sailing)} data-testid="react-sailing-edit-form">
                       <h5>Edit sailing</h5>
                       <div className="react-inline-edit-grid four-column-edit-grid">
                         <label>
@@ -1245,11 +1245,11 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
                           <span>Repositioning sailing</span>
                         </label>
                       </div>
-                      <div className="react-inline-edit-actions">
-                        <button type="submit" className="fleet-primary-action" disabled={sailingActionId === sailing.id} data-testid="react-save-sailing-edit">
+                      <div className="react-inline-edit-actions ce-action-row">
+                        <button type="submit" className="fleet-primary-action ce-button-primary" disabled={sailingActionId === sailing.id} data-testid="react-save-sailing-edit">
                           {sailingActionId === sailing.id ? 'Saving…' : 'Save Sailing'}
                         </button>
-                        <button type="button" className="fleet-secondary-action" onClick={cancelSailingEdit} data-testid="react-cancel-sailing-edit">
+                        <button type="button" className="fleet-secondary-action ce-button-secondary" onClick={cancelSailingEdit} data-testid="react-cancel-sailing-edit">
                           Cancel
                         </button>
                       </div>
@@ -1266,13 +1266,13 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
         <section className="react-itinerary-panel" aria-labelledby="react-itinerary-heading" data-testid="react-itinerary-panel">
           <div className="selected-ships-heading-row">
             <div>
-              <p className="eyebrow">Selected sailing</p>
+              <p className="eyebrow ce-kicker">Selected sailing</p>
               <h3 id="react-itinerary-heading">{getSailingDateLabel(selectedSailingForItinerary)} Itinerary</h3>
             </div>
             <span className="selected-ships-count" data-testid="react-itinerary-count">{itineraryDays.length} days</span>
           </div>
 
-          <form className="react-itinerary-create-form" onSubmit={handleCreateItineraryDay} data-testid="react-create-itinerary-day-form">
+          <form className="react-itinerary-create-form ce-editor-card" onSubmit={handleCreateItineraryDay} data-testid="react-create-itinerary-day-form">
             <h4>Create Itinerary Day</h4>
             <div className="react-itinerary-form-grid">
               <label>
@@ -1288,12 +1288,12 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
                 <input value={itineraryDayDraft.port} onChange={event => setItineraryDayDraft(current => ({ ...current, port: event.target.value }))} data-testid="react-create-itinerary-day-port" />
               </label>
             </div>
-            <button type="submit" className="fleet-primary-action" disabled={itineraryActionId === 'create-day'} data-testid="react-create-itinerary-day-submit-button">
+            <button type="submit" className="fleet-primary-action ce-button-primary" disabled={itineraryActionId === 'create-day'} data-testid="react-create-itinerary-day-submit-button">
               {itineraryActionId === 'create-day' ? 'Creating…' : 'Create Itinerary Day'}
             </button>
           </form>
 
-          <form className="react-itinerary-create-form" onSubmit={handleCreateItineraryActivity} data-testid="react-create-itinerary-activity-form">
+          <form className="react-itinerary-create-form ce-editor-card" onSubmit={handleCreateItineraryActivity} data-testid="react-create-itinerary-activity-form">
             <h4>Create Activity</h4>
             <div className="react-itinerary-form-grid">
               <label>
@@ -1314,18 +1314,18 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
                 <input value={activityDraft.activity} onChange={event => setActivityDraft(current => ({ ...current, activity: event.target.value }))} data-testid="react-create-itinerary-activity-name" />
               </label>
             </div>
-            <button type="submit" className="fleet-primary-action" disabled={itineraryActionId === 'create-activity'} data-testid="react-create-itinerary-activity-submit-button">
+            <button type="submit" className="fleet-primary-action ce-button-primary" disabled={itineraryActionId === 'create-activity'} data-testid="react-create-itinerary-activity-submit-button">
               {itineraryActionId === 'create-activity' ? 'Creating…' : 'Create Activity'}
             </button>
           </form>
 
-          {itineraryActionMessage && <p className="muted-status" role="status" data-testid="react-itinerary-action-message">{itineraryActionMessage}</p>}
+          {itineraryActionMessage && <p className="muted-status ce-muted" role="status" data-testid="react-itinerary-action-message">{itineraryActionMessage}</p>}
 
-          {itineraryLoading && <p className="muted-status">Loading itinerary…</p>}
+          {itineraryLoading && <p className="muted-status ce-muted">Loading itinerary…</p>}
           {itineraryError && <p className="error" role="alert">{itineraryError}</p>}
 
           {!itineraryLoading && !itineraryError && itineraryDays.length === 0 && (
-            <p className="muted-status">No itinerary found for this sailing yet.</p>
+            <p className="muted-status ce-muted">No itinerary found for this sailing yet.</p>
           )}
 
           {itineraryDays.length > 0 && (
@@ -1335,11 +1335,11 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
                   <h4>{getItineraryDayLabel(day)}</h4>
                   <p><strong>Port:</strong> {day.port || 'At Sea'}</p>
                   <div className="react-itinerary-card-actions">
-                    <button type="button" className="fleet-primary-action" onClick={() => openItineraryDayEdit(day)} disabled={itineraryActionId === day.id} data-testid="react-update-itinerary-day-button">Update Day</button>
-                    <button type="button" className="fleet-danger-action" onClick={() => requestDeleteItineraryDay(day)} disabled={itineraryActionId === day.id} data-testid="react-delete-itinerary-day-button">Delete Day</button>
+                    <button type="button" className="fleet-primary-action ce-button-primary" onClick={() => openItineraryDayEdit(day)} disabled={itineraryActionId === day.id} data-testid="react-update-itinerary-day-button">Update Day</button>
+                    <button type="button" className="fleet-danger-action ce-button-danger" onClick={() => requestDeleteItineraryDay(day)} disabled={itineraryActionId === day.id} data-testid="react-delete-itinerary-day-button">Delete Day</button>
                   </div>
                   {activeItineraryDayEditId === day.id && (
-                    <form className="react-inline-edit-form" onSubmit={event => handleUpdateItineraryDay(event, day)} data-testid="react-itinerary-day-edit-form">
+                    <form className="react-inline-edit-form ce-editor-card" onSubmit={event => handleUpdateItineraryDay(event, day)} data-testid="react-itinerary-day-edit-form">
                       <h5>Edit itinerary day</h5>
                       <div className="react-inline-edit-grid">
                         <label>
@@ -1355,11 +1355,11 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
                           <input value={itineraryDayEditDraft.port} onChange={event => setItineraryDayEditDraft(current => ({ ...current, port: event.target.value }))} data-testid="react-edit-itinerary-day-port" />
                         </label>
                       </div>
-                      <div className="react-inline-edit-actions">
-                        <button type="submit" className="fleet-primary-action" disabled={itineraryActionId === day.id} data-testid="react-save-itinerary-day-edit">
+                      <div className="react-inline-edit-actions ce-action-row">
+                        <button type="submit" className="fleet-primary-action ce-button-primary" disabled={itineraryActionId === day.id} data-testid="react-save-itinerary-day-edit">
                           {itineraryActionId === day.id ? 'Saving…' : 'Save Day'}
                         </button>
-                        <button type="button" className="fleet-secondary-action" onClick={cancelItineraryDayEdit} data-testid="react-cancel-itinerary-day-edit">
+                        <button type="button" className="fleet-secondary-action ce-button-secondary" onClick={cancelItineraryDayEdit} data-testid="react-cancel-itinerary-day-edit">
                           Cancel
                         </button>
                       </div>
@@ -1372,8 +1372,8 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
                       <li key={activity.id || `${day.id}-${activity.time}-${activity.activity}`} data-testid="react-itinerary-activity">
                         <strong>{activity.time || 'Time TBD'}:</strong> {activity.activity || 'Activity TBD'}
                         <div className="react-itinerary-card-actions">
-                          <button type="button" className="fleet-primary-action" onClick={() => openActivityEdit(activity)} disabled={itineraryActionId === activity.id} data-testid="react-update-itinerary-activity-button">Update Activity</button>
-                          <button type="button" className="fleet-danger-action" onClick={() => requestDeleteItineraryActivity(activity)} disabled={itineraryActionId === activity.id} data-testid="react-delete-itinerary-activity-button">Delete Activity</button>
+                          <button type="button" className="fleet-primary-action ce-button-primary" onClick={() => openActivityEdit(activity)} disabled={itineraryActionId === activity.id} data-testid="react-update-itinerary-activity-button">Update Activity</button>
+                          <button type="button" className="fleet-danger-action ce-button-danger" onClick={() => requestDeleteItineraryActivity(activity)} disabled={itineraryActionId === activity.id} data-testid="react-delete-itinerary-activity-button">Delete Activity</button>
                         </div>
                         {activeActivityEditId === activity.id && (
                           <form className="react-inline-edit-form activity-inline-edit-form" onSubmit={event => handleUpdateItineraryActivity(event, activity)} data-testid="react-itinerary-activity-edit-form">
@@ -1388,11 +1388,11 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
                                 <input value={activityEditDraft.activity} onChange={event => setActivityEditDraft(current => ({ ...current, activity: event.target.value }))} data-testid="react-edit-itinerary-activity-name" />
                               </label>
                             </div>
-                            <div className="react-inline-edit-actions">
-                              <button type="submit" className="fleet-primary-action" disabled={itineraryActionId === activity.id} data-testid="react-save-itinerary-activity-edit">
+                            <div className="react-inline-edit-actions ce-action-row">
+                              <button type="submit" className="fleet-primary-action ce-button-primary" disabled={itineraryActionId === activity.id} data-testid="react-save-itinerary-activity-edit">
                                 {itineraryActionId === activity.id ? 'Saving…' : 'Save Activity'}
                               </button>
-                              <button type="button" className="fleet-secondary-action" onClick={cancelActivityEdit} data-testid="react-cancel-itinerary-activity-edit">
+                              <button type="button" className="fleet-secondary-action ce-button-secondary" onClick={cancelActivityEdit} data-testid="react-cancel-itinerary-activity-edit">
                                 Cancel
                               </button>
                             </div>

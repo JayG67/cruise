@@ -146,11 +146,11 @@ function PassengerProfile({
   }
 
   return (
-    <section className="role-profile-card passenger-self-service" aria-labelledby="react-passenger-profile-heading" data-testid="react-passenger-self-service-panel">
+    <section className="role-profile-card passenger-self-service ce-command-card" aria-labelledby="react-passenger-profile-heading" data-testid="react-passenger-self-service-panel">
       <h3 id="react-passenger-profile-heading">My travel profile</h3>
       <p>Passengers can update limited contact and cruise preference information for their booking experience.</p>
 
-      <form className="passenger-profile-form react-passenger-profile-form" onSubmit={handleSubmit} data-testid="react-passenger-profile-form">
+      <form className="passenger-profile-form react-passenger-profile-form ce-editor-card" onSubmit={handleSubmit} data-testid="react-passenger-profile-form">
         <label>
           <span>First name</span>
           <input name="firstName" aria-label="First name" value={draft.firstName} required onChange={event => updateDraft('firstName', event.target.value)} data-testid="react-passenger-profile-first-name" />
@@ -180,10 +180,10 @@ function PassengerProfile({
           <input name="accessibilityNotes" aria-label="Accessibility notes" value={draft.accessibilityNotes} onChange={event => updateDraft('accessibilityNotes', event.target.value)} data-testid="react-passenger-profile-accessibility-notes" />
         </label>
 
-        <button type="submit" className="primary-action-button" disabled={isSaving} data-testid="react-passenger-profile-submit-button">
+        <button type="submit" className="primary-action-button ce-button-primary" disabled={isSaving} data-testid="react-passenger-profile-submit-button">
           {isSaving ? 'Saving profile...' : 'Save profile'}
         </button>
-        <p className="draft-message" role="status" aria-live="polite" data-testid="react-passenger-profile-message">
+        <p className="draft-message ce-feedback-message ce-editor-card" role="status" aria-live="polite" data-testid="react-passenger-profile-message">
           {message || mutationError || 'Profile changes will be announced here.'}
         </p>
       </form>
@@ -206,9 +206,9 @@ function RoleBookingDetails({ booking, favoriteActivityKeys, favoritesOnly, onTo
     : itineraryDays
 
   return (
-    <section className="role-booking-detail-panel" aria-label={`Details for ${getBookingCardTitle(booking)}`} data-testid="react-role-booking-details">
-      <div className="role-booking-detail-grid">
-        <div className="role-detail-card">
+    <section className="role-booking-detail-panel ce-command-card" aria-label={`Details for ${getBookingCardTitle(booking)}`} data-testid="react-role-booking-details">
+      <div className="role-booking-detail-grid ce-detail-grid">
+        <div className="role-detail-card ce-editor-card">
           <h4>Booking details</h4>
           <dl className="role-booking-fields compact-fields">
             {getBookingCardFields(booking).map(([label, value]) => (
@@ -220,7 +220,7 @@ function RoleBookingDetails({ booking, favoriteActivityKeys, favoritesOnly, onTo
           </dl>
         </div>
 
-        <div className="role-detail-card">
+        <div className="role-detail-card ce-editor-card">
           <h4>Passenger manifest</h4>
           {passengers.length === 0 ? (
             <p>No visible passengers for this booking.</p>
@@ -233,7 +233,7 @@ function RoleBookingDetails({ booking, favoriteActivityKeys, favoritesOnly, onTo
         </div>
       </div>
 
-      <div className="role-itinerary-panel">
+      <div className="role-itinerary-panel ce-command-card">
         <div className="role-itinerary-heading">
           <div>
             <h4>Cruise itinerary</h4>
@@ -251,9 +251,9 @@ function RoleBookingDetails({ booking, favoriteActivityKeys, favoritesOnly, onTo
         </div>
 
         {itineraryDays.length === 0 ? (
-          <p className="status-card compact" data-testid="react-role-no-itinerary">No itinerary details are available for this booking yet.</p>
+          <p className="status-card compact ce-command-card" data-testid="react-role-no-itinerary">No itinerary details are available for this booking yet.</p>
         ) : visibleItineraryDays.length === 0 ? (
-          <p className="status-card compact" data-testid="react-role-no-favorite-itinerary">No favorite itinerary activities selected yet.</p>
+          <p className="status-card compact ce-command-card" data-testid="react-role-no-favorite-itinerary">No favorite itinerary activities selected yet.</p>
         ) : (
           <div className="role-itinerary-list">
             {visibleItineraryDays.map(day => {
@@ -264,7 +264,7 @@ function RoleBookingDetails({ booking, favoriteActivityKeys, favoritesOnly, onTo
                 : activities
 
               return (
-                <article className="role-itinerary-day" key={`${booking.id}-${dayKey}`} data-testid="react-role-itinerary-day">
+                <article className="role-itinerary-day ce-editor-card" key={`${booking.id}-${dayKey}`} data-testid="react-role-itinerary-day">
                   <div className="role-itinerary-day-heading">
                     <div>
                       <h5>Day {day.day || '?'} — {day.title || 'Itinerary day'}</h5>
@@ -1261,10 +1261,10 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
   }
 
   return (
-    <section className="operational-turnaround-panel" aria-labelledby="operational-turnaround-heading" data-testid="react-operational-turnaround-panel">
+    <section className="operational-turnaround-panel ce-command-panel" aria-labelledby="operational-turnaround-heading" data-testid="react-operational-turnaround-panel">
       <div className="operational-turnaround-hero">
         <div>
-          <p className="eyebrow">Turnaround readiness</p>
+          <p className="eyebrow ce-kicker">Turnaround readiness</p>
           <h3 id="operational-turnaround-heading">{focusLine}</h3>
           <p>
             {selectedDemoUser?.displayName || 'This operator'} is reviewing database-backed turnaround plans, readiness tasks, and sailing context without exposing admin-only mutation controls.
@@ -1287,10 +1287,10 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
       </div>
 
       {readinessOperations.length > 0 && (
-        <section className="operations-portfolio-board" aria-labelledby="operations-portfolio-board-heading" data-testid="react-operations-portfolio-board">
+        <section className="operations-portfolio-board ce-command-panel" aria-labelledby="operations-portfolio-board-heading" data-testid="react-operations-portfolio-board">
           <div className="operations-portfolio-heading">
             <div>
-              <p className="eyebrow">Fleet operations portfolio</p>
+              <p className="eyebrow ce-kicker">Fleet operations portfolio</p>
               <h4 id="operations-portfolio-board-heading">Turnaround command across active sailings</h4>
               <p>Review every visible turnaround by release readiness, open escalations, blockers, and passenger load before drilling into a single sailing.</p>
             </div>
@@ -1357,7 +1357,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
       {readinessOperations.length > 1 && selectedOperation && (
         <section className="turnaround-selector-panel" aria-labelledby="turnaround-selector-heading" data-testid="react-turnaround-selector-panel">
           <div>
-            <p className="eyebrow">Selected turnaround</p>
+            <p className="eyebrow ce-kicker">Selected turnaround</p>
             <h4 id="turnaround-selector-heading">Focus one sailing at a time</h4>
             <p>Choose a sailing to keep the command center readable. Tasks, handoffs, staffing, dependencies, and escalations below stay scoped to the selected turnaround.</p>
           </div>
@@ -1398,10 +1398,10 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
       )}
 
       {selectedOperation && (
-        <section className="operations-release-board" aria-labelledby="operations-release-board-heading" data-testid="react-operations-release-board">
+        <section className="operations-release-board ce-command-panel" aria-labelledby="operations-release-board-heading" data-testid="react-operations-release-board">
           <div className="operations-release-board-header">
             <div>
-              <p className="eyebrow">Turnaround release board</p>
+              <p className="eyebrow ce-kicker">Turnaround release board</p>
               <h4 id="operations-release-board-heading">Operational readiness at a glance</h4>
               <p>Use the release board to spot the workstream that needs attention before guests arrive at the terminal.</p>
             </div>
@@ -1434,7 +1434,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className={`operations-lifecycle ${String(selectedOperation.lifecycleState.status || '').toLowerCase()}`} aria-labelledby="operations-lifecycle-heading" data-testid="react-operations-lifecycle-state">
           <div className="operations-lifecycle-header" data-testid="react-operations-lifecycle-header">
             <div>
-              <p className="eyebrow">Turnaround lifecycle</p>
+              <p className="eyebrow ce-kicker">Turnaround lifecycle</p>
               <h4 id="operations-lifecycle-heading">{selectedOperation.lifecycleState.currentPhaseLabel} command path</h4>
               <p>{selectedOperation.lifecycleState.completionLanguage}</p>
             </div>
@@ -1443,7 +1443,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
               <small>{String(selectedOperation.lifecycleState.status || 'IN_PROGRESS').replace(/_/g, ' ')}</small>
             </div>
           </div>
-          <div className="operations-lifecycle-story" data-testid="react-operations-lifecycle-story">
+          <div className="operations-lifecycle-story ce-command-card" data-testid="react-operations-lifecycle-story">
             {(selectedOperation.lifecycleState.storyBeats || []).map(beat => (
               <span key={beat}>{beat}</span>
             ))}
@@ -1454,7 +1454,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
               return (
                 <button
                   type="button"
-                  className={`operations-lifecycle-phase ${String(phase.status || '').toLowerCase()}`}
+                  className={`operations-lifecycle-phase ce-command-card ${String(phase.status || '').toLowerCase()}`}
                   key={phase.id}
                   onClick={() => focusOperationsWorkspace(targetWorkspace)}
                   data-testid="react-operations-lifecycle-phase-action"
@@ -1520,7 +1520,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
               </ul>
             </div>
           </div>
-          <div className="operations-lifecycle-next-action" data-testid="react-operations-lifecycle-next-action">
+          <div className="operations-lifecycle-next-action ce-command-card" data-testid="react-operations-lifecycle-next-action">
             <strong>Next best action</strong>
             <button
               type="button"
@@ -1539,7 +1539,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className={`operations-release-packet ${String(selectedOperation.releasePacket.releaseStatus || '').toLowerCase()}`} aria-labelledby="operations-release-packet-heading" data-testid="react-operations-release-packet">
           <div className="operations-release-packet-header">
             <div>
-              <p className="eyebrow">Release packet</p>
+              <p className="eyebrow ce-kicker">Release packet</p>
               <h4 id="operations-release-packet-heading">Final embarkation release readiness</h4>
               <p>{selectedOperation.releasePacket.releaseRecommendation}</p>
             </div>
@@ -1548,7 +1548,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
               <small>{getReleasePacketStatusLabel(selectedOperation.releasePacket.releaseStatus)}</small>
             </div>
           </div>
-          <div className="operations-release-packet-grid" data-testid="react-operations-release-packet-checklist">
+          <div className="operations-release-packet-grid ce-command-card" data-testid="react-operations-release-packet-checklist">
             {(selectedOperation.releasePacket.checklist || []).map(item => (
               <article className={`operations-release-packet-item ${String(item.status || '').toLowerCase()}`} key={item.id}>
                 <strong>{item.label}</strong>
@@ -1557,7 +1557,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
             ))}
           </div>
           {selectedOperation.releasePacket.blockers?.length > 0 && (
-            <div className="operations-release-blockers" data-testid="react-operations-release-blockers">
+            <div className="operations-release-blockers ce-command-card" data-testid="react-operations-release-blockers">
               <strong>Release blockers</strong>
               <ul>
                 {selectedOperation.releasePacket.blockers.slice(0, 5).map((blocker, index) => (
@@ -1578,7 +1578,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-metrics" aria-labelledby="operations-metrics-heading" data-testid="react-operations-metrics">
           <div className="operations-metrics-header">
             <div>
-              <p className="eyebrow">Operational analytics</p>
+              <p className="eyebrow ce-kicker">Operational analytics</p>
               <h4 id="operations-metrics-heading">Turnaround performance signals</h4>
               <p>Release confidence blends readiness, risk, staffing, dependencies, handoffs, escalations, and timeline activity into a command-center view.</p>
             </div>
@@ -1618,7 +1618,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-playbook" aria-labelledby="operations-playbook-heading" data-testid="react-operations-playbook-template">
           <div className="operations-playbook-header">
             <div>
-              <p className="eyebrow">Reusable playbook</p>
+              <p className="eyebrow ce-kicker">Reusable playbook</p>
               <h4 id="operations-playbook-heading">Turnaround template promotion plan</h4>
               <p>{selectedOperation.playbookTemplate.templateName} can be reviewed as a repeatable operating playbook for similar ships, ports, and passenger loads.</p>
             </div>
@@ -1665,7 +1665,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-playbook-variance" aria-labelledby="operations-playbook-variance-heading" data-testid="react-operations-playbook-variance">
           <div className="operations-playbook-variance-header">
             <div>
-              <p className="eyebrow">Playbook variance</p>
+              <p className="eyebrow ce-kicker">Playbook variance</p>
               <h4 id="operations-playbook-variance-heading">Live execution versus template baseline</h4>
               <p>Rehearsal scoring compares this turnaround against the reusable playbook so operators can see whether today is tracking like a repeatable ship and port pattern.</p>
             </div>
@@ -1699,7 +1699,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-incident-command" aria-labelledby="operations-incident-command-heading" data-testid="react-operations-incident-command">
           <div className="operations-incident-command-header">
             <div>
-              <p className="eyebrow">Incident command</p>
+              <p className="eyebrow ce-kicker">Incident command</p>
               <h4 id="operations-incident-command-heading">Release-day exception bridge</h4>
               <p>Incident command converts blockers, staffing gaps, signoffs, handoffs, dependencies, escalations, and timeline risk into one commander-facing action bridge.</p>
             </div>
@@ -1744,7 +1744,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-outreach-board" aria-labelledby="operations-outreach-board-heading" data-testid="react-operations-outreach-board">
           <div className="operations-outreach-board-header">
             <div>
-              <p className="eyebrow">Cruise-line outreach board</p>
+              <p className="eyebrow ce-kicker">Cruise-line outreach board</p>
               <h4 id="operations-outreach-board-heading">Application-ready reviewer strategy</h4>
               <p>{selectedOperation.outreachBoard.narrative?.positioning}</p>
             </div>
@@ -1801,7 +1801,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-scenario-plan" aria-labelledby="operations-scenario-plan-heading" data-testid="react-operations-scenario-plan">
           <div className="operations-scenario-plan-header">
             <div>
-              <p className="eyebrow">Turnaround scenario plan</p>
+              <p className="eyebrow ce-kicker">Turnaround scenario plan</p>
               <h4 id="operations-scenario-plan-heading">Operational resilience drills and contingencies</h4>
               <p>{selectedOperation.scenarioPlan.summary}</p>
             </div>
@@ -1858,7 +1858,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-production-readiness" aria-labelledby="operations-production-readiness-heading" data-testid="react-operations-production-readiness">
           <div className="operations-production-readiness-header">
             <div>
-              <p className="eyebrow">Production readiness cockpit</p>
+              <p className="eyebrow ce-kicker">Production readiness cockpit</p>
               <h4 id="operations-production-readiness-heading">Reviewer demo readiness and test ownership</h4>
               <p>{selectedOperation.productionReadiness.summary}</p>
             </div>
@@ -1914,7 +1914,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-application-dossier" aria-labelledby="operations-application-dossier-heading" data-testid="react-operations-application-dossier">
           <div className="operations-application-dossier-header">
             <div>
-              <p className="eyebrow">Application dossier</p>
+              <p className="eyebrow ce-kicker">Application dossier</p>
               <h4 id="operations-application-dossier-heading">Cruise-line application proof package</h4>
               <p>{selectedOperation.applicationDossier.summary}</p>
             </div>
@@ -1972,7 +1972,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-command-center" aria-labelledby="operations-command-center-heading" data-testid="react-operations-command-center">
           <div className="operations-command-center-header">
             <div>
-              <p className="eyebrow">Turnaround command center</p>
+              <p className="eyebrow ce-kicker">Turnaround command center</p>
               <h4 id="operations-command-center-heading">Live management board from assignment through closeout</h4>
               <p>{selectedOperation.commandCenter.commanderBrief?.summary}</p>
             </div>
@@ -2042,7 +2042,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className={`operations-control-board ${String(selectedOperation.operationsControlBoard.summary?.goNoGoStatus || '').toLowerCase().replace(/_/g, '-')}`} aria-labelledby="operations-control-board-heading" data-testid="react-operations-control-board">
           <div className="operations-control-board-header">
             <div>
-              <p className="eyebrow">Turnaround operations control board</p>
+              <p className="eyebrow ce-kicker">Turnaround operations control board</p>
               <h4 id="operations-control-board-heading">Unified command view for readiness, blockers, continuity, shift priorities, and go/no-go</h4>
               <p>{selectedOperation.operationsControlBoard.summary?.headline}</p>
               <small>{selectedOperation.operationsControlBoard.summary?.nextBestAction}</small>
@@ -2103,7 +2103,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className={`operations-continuity-center ${String(selectedOperation.continuityCenter.commandStatus || '').toLowerCase()}`} aria-labelledby="operations-continuity-center-heading" data-testid="react-operations-continuity-center">
           <div className="operations-continuity-center-header">
             <div>
-              <p className="eyebrow">Turnaround continuity center</p>
+              <p className="eyebrow ce-kicker">Turnaround continuity center</p>
               <h4 id="operations-continuity-center-heading">Exception recovery and passenger-impact control</h4>
               <p>{selectedOperation.continuityCenter.summary}</p>
             </div>
@@ -2172,7 +2172,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-shift-briefing" aria-labelledby="operations-shift-briefing-heading" data-testid="react-operations-shift-briefing">
           <div className="operations-shift-briefing-header">
             <div>
-              <p className="eyebrow">Shift briefing</p>
+              <p className="eyebrow ce-kicker">Shift briefing</p>
               <h4 id="operations-shift-briefing-heading">Next-shift command handoff</h4>
               <p>One focused briefing translates live turnaround risk into what the next operations lead must know: critical items, department focus, and handoff checklist status.</p>
             </div>
@@ -2238,7 +2238,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className={`operations-go-live-center ${String(selectedOperation.goLiveCenter.summary?.goLiveStatus || '').toLowerCase()}`} aria-labelledby="operations-go-live-heading" data-testid="react-operations-go-live-center">
           <div className="operations-go-live-header">
             <div>
-              <p className="eyebrow">Turnaround go-live center</p>
+              <p className="eyebrow ce-kicker">Turnaround go-live center</p>
               <h4 id="operations-go-live-heading">Launch decision, remaining scope, and deployment proof</h4>
               <p>{selectedOperation.goLiveCenter.summary?.launchRecommendation}</p>
               <small>{selectedOperation.goLiveCenter.context}</small>
@@ -2312,7 +2312,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-closeout-packet" aria-labelledby="operations-closeout-packet-heading" data-testid="react-operations-closeout-packet">
           <div className="operations-closeout-packet-header">
             <div>
-              <p className="eyebrow">Turnaround closeout packet</p>
+              <p className="eyebrow ce-kicker">Turnaround closeout packet</p>
               <h4 id="operations-closeout-packet-heading">Final management closeout and reusable operation proof</h4>
               <p>{selectedOperation.closeoutPacket.narrative?.summary}</p>
             </div>
@@ -2373,7 +2373,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-executive-brief" aria-labelledby="operations-executive-brief-heading" data-testid="react-operations-executive-brief">
           <div className="operations-executive-brief-header">
             <div>
-              <p className="eyebrow">Executive brief</p>
+              <p className="eyebrow ce-kicker">Executive brief</p>
               <h4 id="operations-executive-brief-heading">Cruise-line ready turnaround summary</h4>
               <p>Executive brief consolidates release confidence, incident command, playbook variance, after-action lessons, and timeline depth into one reviewer-ready decision summary.</p>
             </div>
@@ -2438,7 +2438,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-after-action" aria-labelledby="operations-after-action-heading" data-testid="react-operations-after-action-review">
           <div className="operations-after-action-header">
             <div>
-              <p className="eyebrow">After-action review</p>
+              <p className="eyebrow ce-kicker">After-action review</p>
               <h4 id="operations-after-action-heading">Turnaround debrief and promotion readiness</h4>
               <p>After-action review converts release confidence, playbook variance, incident risk, timeline activity, blockers, staffing gaps, and department outcomes into follow-up actions before the operation is promoted as a reusable pattern.</p>
             </div>
@@ -2485,7 +2485,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-timeline" aria-labelledby="operations-timeline-heading" data-testid="react-operations-timeline">
           <div className="operations-timeline-header">
             <div>
-              <p className="eyebrow">Operations timeline</p>
+              <p className="eyebrow ce-kicker">Operations timeline</p>
               <h4 id="operations-timeline-heading">Live turnaround event timeline</h4>
               <p>One operational feed combines tasks, notes, staffing, signoffs, dependencies, handoffs, escalations, release readiness, and audit events.</p>
             </div>
@@ -2530,7 +2530,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-audit-trail" aria-labelledby="operations-audit-trail-heading" data-testid="react-operations-audit-trail">
           <div className="operations-audit-trail-header">
             <div>
-              <p className="eyebrow">Audit trail</p>
+              <p className="eyebrow ce-kicker">Audit trail</p>
               <h4 id="operations-audit-trail-heading">Recent operational changes</h4>
               <p>Every listed event is scoped to this turnaround assignment and actor context.</p>
             </div>
@@ -2548,9 +2548,9 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         </section>
       )}
 
-      <section className="operations-workspace-shell" aria-labelledby="operations-workspace-heading" data-testid="react-operations-workspace-shell">
+      <section className="operations-workspace-shell ce-command-panel" aria-labelledby="operations-workspace-heading" data-testid="react-operations-workspace-shell">
         <div className="operations-workspace-heading">
-          <p className="eyebrow">Operations workspace</p>
+          <p className="eyebrow ce-kicker">Operations workspace</p>
           <h4 id="operations-workspace-heading">Focus by operational workstream</h4>
           <p>Select a workstream to orient the command center around the job this role needs to complete.</p>
         </div>
@@ -2568,17 +2568,17 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
             </button>
           ))}
         </nav>
-        <div className="operations-workspace-active-summary" data-testid="react-operations-workspace-active-summary">
+        <div className="operations-workspace-active-summary ce-command-card" data-testid="react-operations-workspace-active-summary">
           <strong>{activeOperationsWorkspaceDetails.label}</strong>
           <span>{activeOperationsWorkspaceDetails.summary}</span>
         </div>
       </section>
 
       {selectedOperation && (
-        <section className="operations-role-brief-panel" aria-labelledby="operations-role-brief-heading" data-testid="react-operations-role-brief-panel">
+        <section className="operations-role-brief-panel ce-command-panel" aria-labelledby="operations-role-brief-heading" data-testid="react-operations-role-brief-panel">
           <div className="operations-role-brief-heading">
             <div>
-              <p className="eyebrow">Role command brief</p>
+              <p className="eyebrow ce-kicker">Role command brief</p>
               <h4 id="operations-role-brief-heading">{roleOperationsBrief.roleLabel} priorities for {selectedOperation.title}</h4>
               <p>Use this department brief to move directly into the highest-value work for the selected turnaround.</p>
             </div>
@@ -2591,7 +2591,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
               <button
                 type="button"
                 key={card.id}
-                className={`operations-role-brief-card ${card.priority}`}
+                className={`operations-role-brief-card ce-command-card ${card.priority}`}
                 onClick={() => focusOperationsWorkspace(card.id)}
                 data-testid="react-operations-role-brief-card"
               >
@@ -2606,10 +2606,10 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
       )}
 
       {operationalDirectory.length > 0 && selectedDirectoryEntry && (
-        <section className="operations-directory-panel" aria-labelledby="operations-directory-heading" data-testid="react-operations-directory-panel">
+        <section className="operations-directory-panel ce-command-panel" aria-labelledby="operations-directory-heading" data-testid="react-operations-directory-panel">
           <div className="operations-directory-heading">
             <div>
-              <p className="eyebrow">Operations directory</p>
+              <p className="eyebrow ce-kicker">Operations directory</p>
               <h4 id="operations-directory-heading">Department command directory</h4>
               <p>Select a department to review contacts, coverage, blockers, and coordination details without scanning every department card at once.</p>
             </div>
@@ -2622,7 +2622,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                 return (
                   <button
                     type="button"
-                    className={`operations-directory-card${entry.role === selectedDirectoryEntry.role ? ' active' : ''}${entry.role === normalizeOperationalRoleName(roleView) ? ' current-role' : ''}`}
+                    className={`operations-directory-card ce-command-card${entry.role === selectedDirectoryEntry.role ? ' active' : ''}${entry.role === normalizeOperationalRoleName(roleView) ? ' current-role' : ''}`}
                     key={entry.role}
                     aria-pressed={entry.role === selectedDirectoryEntry.role}
                     onClick={() => setSelectedDirectoryRole(entry.role)}
@@ -2630,7 +2630,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                   >
                     <span className="operations-directory-card-title">
                       <span>
-                        <span className="eyebrow">{entry.role === normalizeOperationalRoleName(roleView) ? 'Current role' : 'Partner role'}</span>
+                        <span className="eyebrow ce-kicker">{entry.role === normalizeOperationalRoleName(roleView) ? 'Current role' : 'Partner role'}</span>
                         <strong>{entry.label}</strong>
                       </span>
                       <em className={`operations-directory-health ${health.tone}`}>{health.label}</em>
@@ -2642,10 +2642,10 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                 )
               })}
             </div>
-            <article className="operations-directory-detail" aria-label={`${selectedDirectoryEntry.label} department details`} data-testid="react-operations-directory-detail">
+            <article className="operations-directory-detail ce-command-card" aria-label={`${selectedDirectoryEntry.label} department details`} data-testid="react-operations-directory-detail">
               <div className="operations-directory-detail-header">
                 <div>
-                  <p className="eyebrow">Department detail</p>
+                  <p className="eyebrow ce-kicker">Department detail</p>
                   <h5>{selectedDirectoryEntry.label}</h5>
                 </div>
                 <span className={`operations-directory-health ${selectedDirectoryHealth.tone}`}>{selectedDirectoryHealth.label}</span>
@@ -2691,9 +2691,9 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
       {selectedOperation && (
         <section className="operational-readiness-list operational-command-compatibility-panel" aria-label="Selected turnaround command workspace">
           {[selectedOperation].map(item => (
-            <article className="operational-readiness-card" key={`command-${item.id}`} data-testid="react-operational-command-overview-card">
+            <article className="operational-readiness-card ce-command-card" key={`command-${item.id}`} data-testid="react-operational-command-overview-card">
               <div>
-                <p className="eyebrow">{item.status}</p>
+                <p className="eyebrow ce-kicker">{item.status}</p>
                 <h4>{item.title}</h4>
                 <p>{item.shipName} · {item.route}</p>
                 {item.notes && <p>{item.notes}</p>}
@@ -2726,7 +2726,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
               </dl>
 
               {onUpdateOperationCommand && roleView === 'turnaround-manager' && (
-                <form className="operational-command-form" onSubmit={event => { event.preventDefault(); saveOperationCommand(item) }} data-testid="react-operational-command-form">
+                <form className="operational-command-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveOperationCommand(item) }} data-testid="react-operational-command-form">
                   <label>
                     <span>Command status</span>
                     <select value={getOperationCommandDraft(item).status} onChange={event => updateOperationCommandDraft(item, 'status', event.target.value)} aria-label={`${item.title} command status`}>
@@ -2753,12 +2753,12 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                     <span>Command notes</span>
                     <textarea value={getOperationCommandDraft(item).notes} onChange={event => updateOperationCommandDraft(item, 'notes', event.target.value)} aria-label={`${item.title} command notes`} rows="3" />
                   </label>
-                  <button type="submit" className="secondary-action-button compact-button" disabled={updatingOperationId === item.id || !getOperationCommandDraft(item).readinessLevel.trim() || !getOperationCommandDraft(item).port.trim()}>Save command plan</button>
+                  <button type="submit" className="secondary-action-button compact-button ce-button-secondary" disabled={updatingOperationId === item.id || !getOperationCommandDraft(item).readinessLevel.trim() || !getOperationCommandDraft(item).port.trim()}>Save command plan</button>
                 </form>
               )}
 
               {onCreateTask && (
-                <form className="operational-task-create-form" onSubmit={event => { event.preventDefault(); saveTaskCreate(item) }} data-testid="react-operational-task-create-form">
+                <form className="operational-task-create-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveTaskCreate(item) }} data-testid="react-operational-task-create-form">
                   <label>
                     <span>New task department</span>
                     <select value={getTaskCreateDraft(item).departmentRole} onChange={event => updateTaskCreateDraft(item, 'departmentRole', event.target.value)} aria-label={`${item.title} new task department`}>
@@ -2791,7 +2791,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                     <span>Blocker reason</span>
                     <input value={getTaskCreateDraft(item).blockerReason} onChange={event => updateTaskCreateDraft(item, 'blockerReason', event.target.value)} aria-label={`${item.title} new task blocker reason`} />
                   </label>
-                  <button type="submit" className="secondary-action-button compact-button" disabled={creatingTaskId === item.id || !getTaskCreateDraft(item).taskName.trim()}>Add turnaround task</button>
+                  <button type="submit" className="secondary-action-button compact-button ce-button-secondary" disabled={creatingTaskId === item.id || !getTaskCreateDraft(item).taskName.trim()}>Add turnaround task</button>
                 </form>
               )}
 
@@ -2811,23 +2811,23 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         </section>
       )}
 
-      {mutationStatus && <p className="status-card compact" data-testid="react-operational-mutation-status">{mutationStatus}</p>}
-      {mutationError && <p className="status-card compact error" data-testid="react-operational-mutation-error">{mutationError}</p>}
+      {mutationStatus && <p className="status-card compact ce-command-card" data-testid="react-operational-mutation-status">{mutationStatus}</p>}
+      {mutationError && <p className="status-card compact error ce-feedback-message ce-editor-card" data-testid="react-operational-mutation-error">{mutationError}</p>}
 
       {isLoading ? (
-        <p className="status-card compact" data-testid="react-operational-loading-state">Loading turnaround operations from the database...</p>
+        <p className="status-card compact ce-command-card" data-testid="react-operational-loading-state">Loading turnaround operations from the database...</p>
       ) : error ? (
-        <div className="status-card compact" data-testid="react-operational-error-state">
+        <div className="status-card compact ce-command-card" data-testid="react-operational-error-state">
           <p>{error}</p>
-          <button type="button" className="secondary-action-button" onClick={onRetry}>Retry turnaround data</button>
+          <button type="button" className="secondary-action-button ce-button-secondary" onClick={onRetry}>Retry turnaround data</button>
         </div>
       ) : readinessOperations.length === 0 ? (
-        <p className="status-card compact" data-testid="react-operational-empty-state">No turnaround operation records are available yet.</p>
+        <p className="status-card compact ce-command-card" data-testid="react-operational-empty-state">No turnaround operation records are available yet.</p>
       ) : activeOperationsWorkspace === 'readiness' && selectedOperation ? (
         <section className="operations-readiness-workspace" aria-labelledby="operations-readiness-workspace-heading" data-testid="react-operations-readiness-workspace">
           <div className="operations-readiness-workspace-header">
             <div>
-              <p className="eyebrow">Readiness Approvals</p>
+              <p className="eyebrow ce-kicker">Readiness Approvals</p>
               <h4 id="operations-readiness-workspace-heading">Readiness approvals for {selectedOperation.title}</h4>
               <p>Review department release decisions in one approval queue. Select a department to confirm status, approver ownership, and signoff notes before final turnaround release.</p>
             </div>
@@ -2852,7 +2852,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
           </div>
 
           {selectedOperationSignoffs.length === 0 ? (
-            <p className="status-card compact" data-testid="react-operations-readiness-empty-state">No department readiness approvals are assigned to this turnaround yet.</p>
+            <p className="status-card compact ce-command-card" data-testid="react-operations-readiness-empty-state">No department readiness approvals are assigned to this turnaround yet.</p>
           ) : (
             <div className="operations-readiness-layout">
               <div className="operations-readiness-list-panel" aria-label="Department readiness approval queue">
@@ -2889,7 +2889,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                 <article className="operations-readiness-detail-panel" aria-label={`Readiness approval details for ${selectedReadinessSignoff.departmentRole}`} data-testid="react-operations-readiness-detail-panel">
                   <div className="operations-readiness-detail-header">
                     <div>
-                      <p className="eyebrow">Readiness Details</p>
+                      <p className="eyebrow ce-kicker">Readiness Details</p>
                       <h5>{getOperationalRoleLabel(selectedReadinessSignoff.departmentRole)}</h5>
                     </div>
                     <span className={`operations-readiness-status-pill ${String(selectedReadinessSignoff.status || 'PENDING').toLowerCase()}`}>{selectedReadinessSignoff.status || 'PENDING'}</span>
@@ -2939,7 +2939,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                         <span>Signoff notes</span>
                         <textarea value={getSignoffDraft(selectedOperation, selectedReadinessSignoff.departmentRole).notes} onChange={event => updateSignoffDraft(selectedOperation, 'notes', event.target.value, selectedReadinessSignoff.departmentRole)} aria-label={`${selectedOperation.title} ${selectedReadinessSignoff.departmentRole} readiness notes`} rows="3" />
                       </label>
-                      <button type="submit" className="secondary-action-button compact-button" disabled={updatingSignoffKey === `${selectedOperation.id}:${selectedReadinessSignoff.departmentRole}` || !getSignoffDraft(selectedOperation, selectedReadinessSignoff.departmentRole).approverName.trim()}>Save readiness approval</button>
+                      <button type="submit" className="secondary-action-button compact-button ce-button-secondary" disabled={updatingSignoffKey === `${selectedOperation.id}:${selectedReadinessSignoff.departmentRole}` || !getSignoffDraft(selectedOperation, selectedReadinessSignoff.departmentRole).approverName.trim()}>Save readiness approval</button>
                     </form>
                   )}
                 </article>
@@ -2951,7 +2951,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-staffing-workspace" aria-labelledby="operations-staffing-workspace-heading" data-testid="react-operations-staffing-workspace">
           <div className="operations-staffing-workspace-header">
             <div>
-              <p className="eyebrow">Staffing Coverage</p>
+              <p className="eyebrow ce-kicker">Staffing Coverage</p>
               <h4 id="operations-staffing-workspace-heading">Staffing coverage for {selectedOperation.title}</h4>
               <p>Review crew coverage as a dedicated staffing queue. Select one department to update planned headcount, checked-in crew, lead ownership, muster location, and staffing notes without scanning every department card.</p>
             </div>
@@ -2976,7 +2976,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
           </div>
 
           {selectedOperationStaffing.length === 0 ? (
-            <p className="status-card compact" data-testid="react-operations-staffing-empty-state">No staffing plans are assigned to this selected turnaround yet.</p>
+            <p className="status-card compact ce-command-card" data-testid="react-operations-staffing-empty-state">No staffing plans are assigned to this selected turnaround yet.</p>
           ) : (
             <div className="operations-staffing-layout">
               <div className="operations-staffing-list-panel" aria-label="Turnaround staffing queue">
@@ -3016,7 +3016,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                 <article className="operations-staffing-detail-panel" aria-label={`Staffing details for ${selectedStaffing.departmentRole}`} data-testid="react-operations-staffing-detail-panel">
                   <div className="operations-staffing-detail-header">
                     <div>
-                      <p className="eyebrow">Staffing Details</p>
+                      <p className="eyebrow ce-kicker">Staffing Details</p>
                       <h5>{getOperationalRoleLabel(selectedStaffing.departmentRole)}</h5>
                     </div>
                     <span className="operations-staffing-status-pill">{Number(selectedStaffing.plannedCount || 0) > 0 ? Math.round((Number(selectedStaffing.checkedInCount || 0) / Number(selectedStaffing.plannedCount || 0)) * 100) : 0}% staffed</span>
@@ -3070,7 +3070,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                         <span>Staffing notes</span>
                         <textarea value={getStaffingDraft(selectedOperation, selectedStaffing.departmentRole).notes} onChange={event => updateStaffingDraft(selectedOperation, 'notes', event.target.value, selectedStaffing.departmentRole)} aria-label={`${selectedOperation.title} staffing notes`} rows="3" />
                       </label>
-                      <button type="submit" className="secondary-action-button compact-button" disabled={updatingStaffingKey === `${selectedOperation.id}:${selectedStaffing.departmentRole}` || !getStaffingDraft(selectedOperation, selectedStaffing.departmentRole).leadName.trim()}>Save staffing plan</button>
+                      <button type="submit" className="secondary-action-button compact-button ce-button-secondary" disabled={updatingStaffingKey === `${selectedOperation.id}:${selectedStaffing.departmentRole}` || !getStaffingDraft(selectedOperation, selectedStaffing.departmentRole).leadName.trim()}>Save staffing plan</button>
                     </form>
                   )}
                 </article>
@@ -3082,7 +3082,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-dependency-workspace" aria-labelledby="operations-dependency-workspace-heading" data-testid="react-operations-dependency-workspace">
           <div className="operations-dependency-workspace-header">
             <div>
-              <p className="eyebrow">Dependency Gates</p>
+              <p className="eyebrow ce-kicker">Dependency Gates</p>
               <h4 id="operations-dependency-workspace-heading">Dependency gates for {selectedOperation.title}</h4>
               <p>Review blocker gates as a dedicated release queue. Select one dependency to see the blocked task, prerequisite task, status, notes, and operational impact without crowding the main overview.</p>
             </div>
@@ -3103,7 +3103,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
           </div>
 
           {selectedOperationDependencies.length === 0 ? (
-            <p className="status-card compact" data-testid="react-operations-dependency-empty-state">No dependency gates are assigned to this selected turnaround yet.</p>
+            <p className="status-card compact ce-command-card" data-testid="react-operations-dependency-empty-state">No dependency gates are assigned to this selected turnaround yet.</p>
           ) : (
             <div className="operations-dependency-layout">
               <div className="operations-dependency-list-panel" aria-label="Turnaround dependency gate queue">
@@ -3140,7 +3140,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                 <article className="operations-dependency-detail-panel" aria-label={`Dependency details for ${selectedDependency.taskName}`} data-testid="react-operations-dependency-detail-panel">
                   <div className="operations-dependency-detail-header">
                     <div>
-                      <p className="eyebrow">Dependency Details</p>
+                      <p className="eyebrow ce-kicker">Dependency Details</p>
                       <h5>{selectedDependency.taskName}</h5>
                     </div>
                     <span className={`operations-dependency-status-pill ${String(selectedDependency.status).toLowerCase()}`}>{selectedDependency.status}</span>
@@ -3180,7 +3180,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-escalation-workspace" aria-labelledby="operations-escalation-workspace-heading" data-testid="react-operations-escalation-workspace">
           <div className="operations-escalation-workspace-header">
             <div>
-              <p className="eyebrow">Escalation Management</p>
+              <p className="eyebrow ce-kicker">Escalation Management</p>
               <h4 id="operations-escalation-workspace-heading">Escalation command for {selectedOperation.title}</h4>
               <p>Review one operational risk at a time. The queue separates severity, owner, status, and resolution notes so escalations are readable without opening every incident form on the page.</p>
             </div>
@@ -3239,12 +3239,12 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                 <span>Escalation notes</span>
                 <textarea value={getEscalationCreateDraft(selectedOperation).resolutionNotes} onChange={event => updateEscalationCreateDraft(selectedOperation, 'resolutionNotes', event.target.value)} aria-label={`${selectedOperation.title} escalation notes`} rows="3" />
               </label>
-              <button type="submit" className="secondary-action-button compact-button" disabled={creatingEscalationId === selectedOperation.id || !getEscalationCreateDraft(selectedOperation).title.trim()}>Add escalation</button>
+              <button type="submit" className="secondary-action-button compact-button ce-button-secondary" disabled={creatingEscalationId === selectedOperation.id || !getEscalationCreateDraft(selectedOperation).title.trim()}>Add escalation</button>
             </form>
           )}
 
           {selectedOperationEscalations.length === 0 ? (
-            <p className="status-card compact" data-testid="react-operations-escalation-empty-state">No escalation records are active for this selected turnaround.</p>
+            <p className="status-card compact ce-command-card" data-testid="react-operations-escalation-empty-state">No escalation records are active for this selected turnaround.</p>
           ) : (
             <div className="operations-escalation-layout">
               <div className="operations-escalation-list-panel" aria-label="Turnaround escalation queue">
@@ -3281,7 +3281,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                 <article className="operations-escalation-detail-panel" aria-label={`Escalation details for ${selectedEscalation.title}`} data-testid="react-operations-escalation-detail-panel">
                   <div className="operations-escalation-detail-header">
                     <div>
-                      <p className="eyebrow">Escalation Details</p>
+                      <p className="eyebrow ce-kicker">Escalation Details</p>
                       <h5>{selectedEscalation.title}</h5>
                     </div>
                     <span className={`operations-escalation-severity-pill ${String(selectedEscalation.severity || 'WATCH').toLowerCase()}`}>{selectedEscalation.severity || 'WATCH'}</span>
@@ -3339,7 +3339,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                         <span>Resolution notes</span>
                         <textarea value={getEscalationUpdateDraft(selectedEscalation).resolutionNotes} onChange={event => updateEscalationDraft(selectedEscalation, 'resolutionNotes', event.target.value)} aria-label={`${selectedEscalation.title} escalation resolution notes`} rows="3" />
                       </label>
-                      <button type="submit" className="secondary-action-button compact-button" disabled={updatingEscalationId === selectedEscalation.id || !getEscalationUpdateDraft(selectedEscalation).title.trim()}>Save escalation</button>
+                      <button type="submit" className="secondary-action-button compact-button ce-button-secondary" disabled={updatingEscalationId === selectedEscalation.id || !getEscalationUpdateDraft(selectedEscalation).title.trim()}>Save escalation</button>
                     </form>
                   )}
                 </article>
@@ -3351,7 +3351,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-handoff-workspace" aria-labelledby="operations-handoff-workspace-heading" data-testid="react-operations-handoff-workspace">
           <div className="operations-handoff-workspace-header">
             <div>
-              <p className="eyebrow">Department Handoffs</p>
+              <p className="eyebrow ce-kicker">Department Handoffs</p>
               <h4 id="operations-handoff-workspace-heading">Department handoffs for {selectedOperation.title}</h4>
               <p>Work one release handoff at a time. The queue keeps ownership, due time, sender, receiver, status, and notes readable without showing every handoff form in the overview.</p>
             </div>
@@ -3376,7 +3376,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
           </div>
 
           {selectedOperationHandoffs.length === 0 ? (
-            <p className="status-card compact" data-testid="react-operations-handoff-empty-state">No department handoffs are assigned to this selected turnaround yet.</p>
+            <p className="status-card compact ce-command-card" data-testid="react-operations-handoff-empty-state">No department handoffs are assigned to this selected turnaround yet.</p>
           ) : (
             <div className="operations-handoff-layout">
               <div className="operations-handoff-list-panel" aria-label="Turnaround department handoff queue">
@@ -3412,7 +3412,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                 <article className="operations-handoff-detail-panel" aria-label={`Handoff details for ${selectedHandoff.title}`} data-testid="react-operations-handoff-detail-panel">
                   <div className="operations-handoff-detail-header">
                     <div>
-                      <p className="eyebrow">Handoff Details</p>
+                      <p className="eyebrow ce-kicker">Handoff Details</p>
                       <h5>{selectedHandoff.title}</h5>
                     </div>
                     <span className={`operations-handoff-status-pill ${String(selectedHandoff.status).toLowerCase()}`}>{selectedHandoff.status}</span>
@@ -3468,7 +3468,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                         <span>Handoff notes</span>
                         <textarea value={getHandoffDraft(selectedHandoff).notes} onChange={event => updateHandoffDraft(selectedHandoff, 'notes', event.target.value)} aria-label={`${selectedHandoff.title} handoff notes`} rows="3" />
                       </label>
-                      <button type="submit" className="secondary-action-button compact-button" disabled={updatingHandoffId === selectedHandoff.id || !getHandoffDraft(selectedHandoff).ownerName.trim()}>Save handoff</button>
+                      <button type="submit" className="secondary-action-button compact-button ce-button-secondary" disabled={updatingHandoffId === selectedHandoff.id || !getHandoffDraft(selectedHandoff).ownerName.trim()}>Save handoff</button>
                     </form>
                   )}
                 </article>
@@ -3480,7 +3480,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
         <section className="operations-task-workspace" aria-labelledby="operations-task-workspace-heading" data-testid="react-operations-task-workspace">
           <div className="operations-task-workspace-header">
             <div>
-              <p className="eyebrow">Task Management</p>
+              <p className="eyebrow ce-kicker">Task Management</p>
               <h4 id="operations-task-workspace-heading">Task list for {selectedOperation.title}</h4>
               <p>Review the role checklist as a clean queue. Pick one task to update owner, timing, location, blocker notes, status, and shift updates without exposing every operational workflow at once.</p>
             </div>
@@ -3507,7 +3507,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
           {onCreateTask && (
             <form className="operations-task-quick-add operational-task-create-form" onSubmit={event => { event.preventDefault(); saveTaskCreate(selectedOperation) }} data-testid="react-operational-task-create-form">
               <div>
-                <p className="eyebrow">Add task</p>
+                <p className="eyebrow ce-kicker">Add task</p>
                 <h5>New turnaround task</h5>
               </div>
               <label>
@@ -3542,12 +3542,12 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                 <span>Blocker reason</span>
                 <input value={getTaskCreateDraft(selectedOperation).blockerReason} onChange={event => updateTaskCreateDraft(selectedOperation, 'blockerReason', event.target.value)} aria-label={`${selectedOperation.title} new task blocker reason`} />
               </label>
-              <button type="submit" className="secondary-action-button compact-button" disabled={creatingTaskId === selectedOperation.id || !getTaskCreateDraft(selectedOperation).taskName.trim()}>Add turnaround task</button>
+              <button type="submit" className="secondary-action-button compact-button ce-button-secondary" disabled={creatingTaskId === selectedOperation.id || !getTaskCreateDraft(selectedOperation).taskName.trim()}>Add turnaround task</button>
             </form>
           )}
 
           {selectedOperationTasks.length === 0 ? (
-            <p className="status-card compact" data-testid="react-operations-task-empty-state">No tasks are assigned to this selected turnaround yet.</p>
+            <p className="status-card compact ce-command-card" data-testid="react-operations-task-empty-state">No tasks are assigned to this selected turnaround yet.</p>
           ) : (
             <div className="operations-task-layout">
               <div className="operations-task-list-panel" aria-label="Turnaround task queue">
@@ -3576,7 +3576,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                         </button>
                         {isSelected && (
                           <article className="operations-task-detail-panel inline-task-detail-panel" aria-label={`Task details for ${task.taskName}`} data-testid="react-operations-task-detail-panel">
-                            <div className="operations-task-detail-header"><p className="eyebrow">Selected task</p><h5>{task.taskName}</h5><span className="operations-task-status-pill">{task.status}</span></div>
+                            <div className="operations-task-detail-header"><p className="eyebrow ce-kicker">Selected task</p><h5>{task.taskName}</h5><span className="operations-task-status-pill">{task.status}</span></div>
                             <dl className="operational-task-detail-list" data-testid="react-operational-task-details">
                               <div><dt>Owner</dt><dd>{task.ownerDisplayName || task.ownerName || 'Unassigned'}</dd></div>
                               <div><dt>Due</dt><dd>{task.dueTime || 'Timing pending'}</dd></div>
@@ -3590,9 +3590,9 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                               </div>
                             )}
                             {onCreateTaskUpdate && task.id && (
-                              <form className="operational-task-update-form" onSubmit={event => { event.preventDefault(); saveTaskUpdate(task) }} data-testid="react-operational-task-update-form">
+                              <form className="operational-task-update-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveTaskUpdate(task) }} data-testid="react-operational-task-update-form">
                                 <label className="full-width-field"><span>Shift update</span><input value={getTaskUpdateDraft(task)} onChange={event => updateTaskUpdateDraft(task, event.target.value)} aria-label={`${task.taskName} shift update`} /></label>
-                                <button type="submit" className="secondary-action-button compact-button" disabled={creatingTaskUpdateId === task.id || !getTaskUpdateDraft(task).trim()}>Add shift update</button>
+                                <button type="submit" className="secondary-action-button compact-button ce-button-secondary" disabled={creatingTaskUpdateId === task.id || !getTaskUpdateDraft(task).trim()}>Add shift update</button>
                               </form>
                             )}
                             {onUpdateTaskDetails && task.id && (
@@ -3601,11 +3601,11 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                                 <label><span>Due time</span><input value={getTaskDetailDraft(task).dueTime} onChange={event => updateTaskDetailDraft(task, 'dueTime', event.target.value)} aria-label={`${task.taskName} due time`} /></label>
                                 <label><span>Location</span><input value={getTaskDetailDraft(task).location} onChange={event => updateTaskDetailDraft(task, 'location', event.target.value)} aria-label={`${task.taskName} location`} /></label>
                                 <label className="full-width-field"><span>Blocker reason</span><textarea value={getTaskDetailDraft(task).blockerReason} onChange={event => updateTaskDetailDraft(task, 'blockerReason', event.target.value)} aria-label={`${task.taskName} blocker reason`} rows="4" /></label>
-                                <button type="submit" className="secondary-action-button compact-button" disabled={updatingTaskDetailsId === task.id}>Save task details</button>
+                                <button type="submit" className="secondary-action-button compact-button ce-button-secondary" disabled={updatingTaskDetailsId === task.id}>Save task details</button>
                               </form>
                             )}
-                            {onUpdateTaskStatus && task.id && <div className="operational-task-actions" aria-label={`Update ${task.taskName} status`}><button type="button" className="secondary-action-button compact-button" disabled={updatingTaskId === task.id || task.status === 'IN_PROGRESS'} onClick={() => updateStatus(task, 'IN_PROGRESS')}>Start</button><button type="button" className="secondary-action-button compact-button" disabled={updatingTaskId === task.id || task.status === 'BLOCKED'} onClick={() => updateStatus(task, 'BLOCKED')}>Block</button><button type="button" className="secondary-action-button compact-button" disabled={updatingTaskId === task.id || task.status === 'COMPLETE'} onClick={() => updateStatus(task, 'COMPLETE')}>Complete</button></div>}
-                            {onDeleteTask && task.id && <button type="button" className="danger-outline-button compact-button" disabled={deletingTaskId === task.id} onClick={() => removeTask(task)} data-testid="react-operational-task-remove-button">{deletingTaskId === task.id ? 'Removing task...' : 'Remove task'}</button>}
+                            {onUpdateTaskStatus && task.id && <div className="operational-task-actions" aria-label={`Update ${task.taskName} status`}><button type="button" className="secondary-action-button compact-button ce-button-secondary" disabled={updatingTaskId === task.id || task.status === 'IN_PROGRESS'} onClick={() => updateStatus(task, 'IN_PROGRESS')}>Start</button><button type="button" className="secondary-action-button compact-button ce-button-secondary" disabled={updatingTaskId === task.id || task.status === 'BLOCKED'} onClick={() => updateStatus(task, 'BLOCKED')}>Block</button><button type="button" className="secondary-action-button compact-button ce-button-secondary" disabled={updatingTaskId === task.id || task.status === 'COMPLETE'} onClick={() => updateStatus(task, 'COMPLETE')}>Complete</button></div>}
+                            {onDeleteTask && task.id && <button type="button" className="danger-outline-button compact-button ce-button-danger" disabled={deletingTaskId === task.id} onClick={() => removeTask(task)} data-testid="react-operational-task-remove-button">{deletingTaskId === task.id ? 'Removing task...' : 'Remove task'}</button>}
                           </article>
                         )}
                       </li>
@@ -3620,9 +3620,9 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
       ) : (
         <div className="operational-readiness-list" aria-label="Selected turnaround readiness workspace">
           {visibleReadinessOperations.map(item => (
-            <article className="operational-readiness-card" key={item.id} data-testid="react-operational-readiness-card">
+            <article className="operational-readiness-card ce-command-card" key={item.id} data-testid="react-operational-readiness-card">
               <div>
-                <p className="eyebrow">{item.status}</p>
+                <p className="eyebrow ce-kicker">{item.status}</p>
                 <h4>{item.title}</h4>
                 <p>{item.shipName} · {item.route}</p>
                 {item.notes && <p>{item.notes}</p>}
@@ -3655,7 +3655,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
               </dl>
 
               {onUpdateOperationCommand && roleView === 'turnaround-manager' && (
-                <form className="operational-command-form" onSubmit={event => { event.preventDefault(); saveOperationCommand(item) }} data-testid="react-operational-command-form">
+                <form className="operational-command-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveOperationCommand(item) }} data-testid="react-operational-command-form">
                   <label>
                     <span>Command status</span>
                     <select value={getOperationCommandDraft(item).status} onChange={event => updateOperationCommandDraft(item, 'status', event.target.value)} aria-label={`${item.title} command status`}>
@@ -3682,7 +3682,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                     <span>Command notes</span>
                     <textarea value={getOperationCommandDraft(item).notes} onChange={event => updateOperationCommandDraft(item, 'notes', event.target.value)} aria-label={`${item.title} command notes`} rows="3" />
                   </label>
-                  <button type="submit" className="secondary-action-button compact-button" disabled={updatingOperationId === item.id || !getOperationCommandDraft(item).readinessLevel.trim() || !getOperationCommandDraft(item).port.trim()}>Save command plan</button>
+                  <button type="submit" className="secondary-action-button compact-button ce-button-secondary" disabled={updatingOperationId === item.id || !getOperationCommandDraft(item).readinessLevel.trim() || !getOperationCommandDraft(item).port.trim()}>Save command plan</button>
                 </form>
               )}
 
@@ -3747,7 +3747,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                         <p>{handoff.fromDepartmentRole} → {handoff.toDepartmentRole} · {getOperationalOwnerDisplay(handoff)} · {handoff.dueTime || 'Due pending'}</p>
                         {handoff.notes && <p>{handoff.notes}</p>}
                         {onUpdateHandoff && (
-                          <form className="operational-handoff-form" onSubmit={event => { event.preventDefault(); saveHandoffUpdate(handoff) }} data-testid="react-operational-handoff-form">
+                          <form className="operational-handoff-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveHandoffUpdate(handoff) }} data-testid="react-operational-handoff-form">
                             <label>
                               <span>Status</span>
                               <select value={getHandoffDraft(handoff).status} onChange={event => updateHandoffDraft(handoff, 'status', event.target.value)} aria-label={`${handoff.title} handoff status`}>
@@ -3770,7 +3770,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                               <span>Handoff notes</span>
                               <input value={getHandoffDraft(handoff).notes} onChange={event => updateHandoffDraft(handoff, 'notes', event.target.value)} aria-label={`${handoff.title} handoff notes`} />
                             </label>
-                            <button type="submit" className="secondary-action-button compact-button" disabled={updatingHandoffId === handoff.id || !getHandoffDraft(handoff).ownerName.trim()}>Save handoff</button>
+                            <button type="submit" className="secondary-action-button compact-button ce-button-secondary" disabled={updatingHandoffId === handoff.id || !getHandoffDraft(handoff).ownerName.trim()}>Save handoff</button>
                           </form>
                         )}
                       </li>
@@ -3806,7 +3806,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
               )}
 
               {onUpdateStaffing && (
-                <form className="operational-staffing-form" onSubmit={event => { event.preventDefault(); saveStaffing(item) }} data-testid="react-operational-staffing-form">
+                <form className="operational-staffing-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveStaffing(item) }} data-testid="react-operational-staffing-form">
                   <label>
                     <span>Planned staff</span>
                     <input type="number" min="0" value={getStaffingDraft(item).plannedCount} onChange={event => updateStaffingDraft(item, 'plannedCount', event.target.value)} aria-label={`${item.title} planned staff`} />
@@ -3827,12 +3827,12 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                     <span>Staffing notes</span>
                     <input value={getStaffingDraft(item).notes} onChange={event => updateStaffingDraft(item, 'notes', event.target.value)} aria-label={`${item.title} staffing notes`} />
                   </label>
-                  <button type="submit" className="secondary-action-button compact-button" disabled={updatingStaffingKey === `${item.id}:${roleView}` || !getStaffingDraft(item).leadName.trim()}>Save staffing plan</button>
+                  <button type="submit" className="secondary-action-button compact-button ce-button-secondary" disabled={updatingStaffingKey === `${item.id}:${roleView}` || !getStaffingDraft(item).leadName.trim()}>Save staffing plan</button>
                 </form>
               )}
 
               {onCreateEscalation && (
-                <form className="operational-escalation-create-form" onSubmit={event => { event.preventDefault(); saveEscalationCreate(item) }} data-testid="react-operational-escalation-create-form">
+                <form className="operational-escalation-create-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveEscalationCreate(item) }} data-testid="react-operational-escalation-create-form">
                   <label>
                     <span>Escalation department</span>
                     <select value={getEscalationCreateDraft(item).departmentRole} onChange={event => updateEscalationCreateDraft(item, 'departmentRole', event.target.value)} aria-label={`${item.title} escalation department`}>
@@ -3865,7 +3865,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                     <span>Escalation notes</span>
                     <input value={getEscalationCreateDraft(item).resolutionNotes} onChange={event => updateEscalationCreateDraft(item, 'resolutionNotes', event.target.value)} aria-label={`${item.title} escalation notes`} />
                   </label>
-                  <button type="submit" className="secondary-action-button compact-button" disabled={creatingEscalationId === item.id || !getEscalationCreateDraft(item).title.trim()}>Add escalation</button>
+                  <button type="submit" className="secondary-action-button compact-button ce-button-secondary" disabled={creatingEscalationId === item.id || !getEscalationCreateDraft(item).title.trim()}>Add escalation</button>
                 </form>
               )}
 
@@ -3879,7 +3879,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                         <p>{escalation.departmentRole} · {getOperationalOwnerDisplay(escalation)} · {escalation.status}</p>
                         {escalation.resolutionNotes && <p>{escalation.resolutionNotes}</p>}
                         {onUpdateEscalation && (
-                          <form className="operational-escalation-update-form" onSubmit={event => { event.preventDefault(); saveEscalationUpdate(escalation) }} data-testid="react-operational-escalation-update-form">
+                          <form className="operational-escalation-update-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveEscalationUpdate(escalation) }} data-testid="react-operational-escalation-update-form">
                             <label>
                               <span>Status</span>
                               <select value={getEscalationUpdateDraft(escalation).status} onChange={event => updateEscalationDraft(escalation, 'status', event.target.value)} aria-label={`${escalation.title} escalation status`}>
@@ -3904,7 +3904,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                               <span>Resolution notes</span>
                               <input value={getEscalationUpdateDraft(escalation).resolutionNotes} onChange={event => updateEscalationDraft(escalation, 'resolutionNotes', event.target.value)} aria-label={`${escalation.title} escalation resolution notes`} />
                             </label>
-                            <button type="submit" className="secondary-action-button compact-button" disabled={updatingEscalationId === escalation.id || !getEscalationUpdateDraft(escalation).title.trim()}>Save escalation</button>
+                            <button type="submit" className="secondary-action-button compact-button ce-button-secondary" disabled={updatingEscalationId === escalation.id || !getEscalationUpdateDraft(escalation).title.trim()}>Save escalation</button>
                           </form>
                         )}
                       </li>
@@ -3929,7 +3929,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
               )}
 
               {onUpdateSignoff && (
-                <form className="operational-signoff-form" onSubmit={event => { event.preventDefault(); saveSignoff(item) }} data-testid="react-operational-signoff-form">
+                <form className="operational-signoff-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveSignoff(item) }} data-testid="react-operational-signoff-form">
                   <label>
                     <span>Readiness status</span>
                     <select value={getSignoffDraft(item).status} onChange={event => updateSignoffDraft(item, 'status', event.target.value)} aria-label={`${item.title} readiness signoff status`}>
@@ -3946,12 +3946,12 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                     <span>Signoff notes</span>
                     <input value={getSignoffDraft(item).notes} onChange={event => updateSignoffDraft(item, 'notes', event.target.value)} aria-label={`${item.title} readiness notes`} />
                   </label>
-                  <button type="submit" className="secondary-action-button compact-button" disabled={updatingSignoffKey === `${item.id}:${roleView}` || !getSignoffDraft(item).approverName.trim()}>Save readiness signoff</button>
+                  <button type="submit" className="secondary-action-button compact-button ce-button-secondary" disabled={updatingSignoffKey === `${item.id}:${roleView}` || !getSignoffDraft(item).approverName.trim()}>Save readiness signoff</button>
                 </form>
               )}
 
               {onCreateTask && (
-                <form className="operational-task-create-form" onSubmit={event => { event.preventDefault(); saveTaskCreate(item) }} data-testid="react-operational-task-create-form">
+                <form className="operational-task-create-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveTaskCreate(item) }} data-testid="react-operational-task-create-form">
                   <label>
                     <span>New task department</span>
                     <select value={getTaskCreateDraft(item).departmentRole} onChange={event => updateTaskCreateDraft(item, 'departmentRole', event.target.value)} aria-label={`${item.title} new task department`}>
@@ -3984,7 +3984,7 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                     <span>Blocker reason</span>
                     <input value={getTaskCreateDraft(item).blockerReason} onChange={event => updateTaskCreateDraft(item, 'blockerReason', event.target.value)} aria-label={`${item.title} new task blocker reason`} />
                   </label>
-                  <button type="submit" className="secondary-action-button compact-button" disabled={creatingTaskId === item.id || !getTaskCreateDraft(item).taskName.trim()}>Add turnaround task</button>
+                  <button type="submit" className="secondary-action-button compact-button ce-button-secondary" disabled={creatingTaskId === item.id || !getTaskCreateDraft(item).taskName.trim()}>Add turnaround task</button>
                 </form>
               )}
 
@@ -4028,16 +4028,16 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                           </div>
                         )}
                         {onCreateTaskUpdate && task.id && (
-                          <form className="operational-task-update-form" onSubmit={event => { event.preventDefault(); saveTaskUpdate(task) }} data-testid="react-operational-task-update-form">
+                          <form className="operational-task-update-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveTaskUpdate(task) }} data-testid="react-operational-task-update-form">
                             <label className="full-width-field">
                               <span>Shift update</span>
                               <input value={getTaskUpdateDraft(task)} onChange={event => updateTaskUpdateDraft(task, event.target.value)} aria-label={`${task.taskName} shift update`} />
                             </label>
-                            <button type="submit" className="secondary-action-button compact-button" disabled={creatingTaskUpdateId === task.id || !getTaskUpdateDraft(task).trim()}>Add shift update</button>
+                            <button type="submit" className="secondary-action-button compact-button ce-button-secondary" disabled={creatingTaskUpdateId === task.id || !getTaskUpdateDraft(task).trim()}>Add shift update</button>
                           </form>
                         )}
                         {onUpdateTaskDetails && task.id && (
-                          <form className="operational-task-detail-form" onSubmit={event => { event.preventDefault(); saveTaskDetails(task) }} data-testid="react-operational-task-detail-form">
+                          <form className="operational-task-detail-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveTaskDetails(task) }} data-testid="react-operational-task-detail-form">
                             <label>
                               <span>Owner</span>
                               <input value={getTaskDetailDraft(task).ownerName} onChange={event => updateTaskDetailDraft(task, 'ownerName', event.target.value)} aria-label={`${task.taskName} owner`} />
@@ -4054,18 +4054,18 @@ function OperationalTurnaroundDashboard({ roleView, selectedDemoUser, turnaround
                               <span>Blocker reason</span>
                               <input value={getTaskDetailDraft(task).blockerReason} onChange={event => updateTaskDetailDraft(task, 'blockerReason', event.target.value)} aria-label={`${task.taskName} blocker reason`} />
                             </label>
-                            <button type="submit" className="secondary-action-button compact-button" disabled={updatingTaskDetailsId === task.id}>Save task details</button>
+                            <button type="submit" className="secondary-action-button compact-button ce-button-secondary" disabled={updatingTaskDetailsId === task.id}>Save task details</button>
                           </form>
                         )}
                         {onUpdateTaskStatus && task.id && (
                           <div className="operational-task-actions" aria-label={`Update ${task.taskName} status`}>
-                            <button type="button" className="secondary-action-button compact-button" disabled={isUpdating || task.status === 'IN_PROGRESS'} onClick={() => updateStatus(task, 'IN_PROGRESS')}>Start</button>
-                            <button type="button" className="secondary-action-button compact-button" disabled={isUpdating || task.status === 'BLOCKED'} onClick={() => updateStatus(task, 'BLOCKED')}>Block</button>
-                            <button type="button" className="secondary-action-button compact-button" disabled={isUpdating || task.status === 'COMPLETE'} onClick={() => updateStatus(task, 'COMPLETE')}>Complete</button>
+                            <button type="button" className="secondary-action-button compact-button ce-button-secondary" disabled={isUpdating || task.status === 'IN_PROGRESS'} onClick={() => updateStatus(task, 'IN_PROGRESS')}>Start</button>
+                            <button type="button" className="secondary-action-button compact-button ce-button-secondary" disabled={isUpdating || task.status === 'BLOCKED'} onClick={() => updateStatus(task, 'BLOCKED')}>Block</button>
+                            <button type="button" className="secondary-action-button compact-button ce-button-secondary" disabled={isUpdating || task.status === 'COMPLETE'} onClick={() => updateStatus(task, 'COMPLETE')}>Complete</button>
                           </div>
                         )}
                         {onDeleteTask && task.id && (
-                          <button type="button" className="danger-outline-button compact-button" disabled={deletingTaskId === task.id} onClick={() => removeTask(task)} data-testid="react-operational-task-remove-button">
+                          <button type="button" className="danger-outline-button compact-button ce-button-danger" disabled={deletingTaskId === task.id} onClick={() => removeTask(task)} data-testid="react-operational-task-remove-button">
                             {deletingTaskId === task.id ? 'Removing task...' : 'Remove task'}
                           </button>
                         )}
@@ -4178,7 +4178,7 @@ function PassengerVoyagePlanner({ selectedCustomer, visibleBookings = [], favori
     <section className="passenger-voyage-planner" aria-labelledby="react-passenger-voyage-planner-heading" data-testid="react-passenger-voyage-planner">
       <div className="passenger-voyage-heading">
         <div>
-          <p className="eyebrow">Passenger cruise tools</p>
+          <p className="eyebrow ce-kicker">Passenger cruise tools</p>
           <h3 id="react-passenger-voyage-planner-heading">My voyage planner</h3>
           <p>Review sailing context, favorite activities, port days, and pre-cruise checklist progress from one passenger workspace.</p>
         </div>
@@ -4220,7 +4220,7 @@ function PassengerVoyagePlanner({ selectedCustomer, visibleBookings = [], favori
               </label>
             ))}
           </div>
-          <p className="draft-message" aria-live="polite" data-testid="react-voyage-checklist-message">
+          <p className="draft-message ce-feedback-message ce-editor-card" aria-live="polite" data-testid="react-voyage-checklist-message">
             {checklistMessage || 'Checklist progress is saved to this passenger profile.'}
           </p>
         </article>
@@ -4229,7 +4229,7 @@ function PassengerVoyagePlanner({ selectedCustomer, visibleBookings = [], favori
 
       <div className="voyage-booking-strip" aria-label="Voyage booking summaries">
         {bookingPlans.length === 0 ? (
-          <p className="status-card compact">No cruise bookings are visible for this passenger yet.</p>
+          <p className="status-card compact ce-command-card">No cruise bookings are visible for this passenger yet.</p>
         ) : bookingPlans.map(plan => (
           <article key={plan.bookingId} className="voyage-booking-card" data-testid="react-voyage-booking-card">
             <h4>{getBookingCardTitle(plan.booking)}</h4>
@@ -4314,12 +4314,12 @@ function RoleBookingCard({ booking, roleView, isExpanded, favoriteActivityKeys, 
   }, [bookingId])
 
   return (
-    <article className="role-booking-card" data-testid="react-role-booking-card">
+    <article className="role-booking-card ce-command-card" data-testid="react-role-booking-card">
       <div className="role-booking-heading">
         <h3>{getBookingCardTitle(effectiveBooking)}</h3>
         <div className="role-booking-badges">
-          {roleView === 'group-leader' && <span className="status-pill">Group Leader</span>}
-          <span className="status-pill">{booking.bookingStatus || 'Confirmed'}</span>
+          {roleView === 'group-leader' && <span className="status-pill ce-status-pill">Group Leader</span>}
+          <span className="status-pill ce-status-pill">{booking.bookingStatus || 'Confirmed'}</span>
         </div>
       </div>
 
@@ -4355,11 +4355,11 @@ function RoleBookingCard({ booking, roleView, isExpanded, favoriteActivityKeys, 
       </button>
 
       {isExpanded && (isLoadingDetails || isWaitingForItineraryDetails) && (
-        <p className="status-card compact" data-testid="react-role-booking-details-loading">Loading itinerary details…</p>
+        <p className="status-card compact ce-command-card" data-testid="react-role-booking-details-loading">Loading itinerary details…</p>
       )}
 
       {isExpanded && detailLoadError && (
-        <p className="status-card compact error" data-testid="react-role-booking-details-error">{detailLoadError}</p>
+        <p className="status-card compact error ce-feedback-message ce-editor-card" data-testid="react-role-booking-details-error">{detailLoadError}</p>
       )}
 
       {isExpanded && !isLoadingDetails && !isWaitingForItineraryDetails && (
@@ -4472,13 +4472,13 @@ export default function ReactRoleDashboard({
   }
 
   return (
-    <section className="react-role-dashboard" id="react-role-dashboard" aria-labelledby="react-role-dashboard-heading" data-testid={`react-${roleView}-dashboard`}>
+    <section className="react-role-dashboard ce-command-panel" id="react-role-dashboard" aria-labelledby="react-role-dashboard-heading" data-testid={`react-${roleView}-dashboard`}>
       {roleView === 'group-leader' && (
-        <div className="status-card compact" data-testid="react-passenger-dashboard">
+        <div className="status-card compact ce-command-card" data-testid="react-passenger-dashboard">
           Group leader dashboard loaded with passenger-manifest visibility.
         </div>
       )}
-      <p className="eyebrow">Role-aware view</p>
+      <p className="eyebrow ce-kicker">Role-aware view</p>
       <h2 id="react-role-dashboard-heading">{title}</h2>
       <p>
         {getRoleSummaryLine({
@@ -4553,7 +4553,7 @@ export default function ReactRoleDashboard({
       {!isOperationalRoleView(roleView) && (
         <div className="role-booking-list">
           {itineraryReadyVisibleBookings.length === 0 ? (
-            <p className="status-card compact">No bookings are visible for this selected person.</p>
+            <p className="status-card compact ce-command-card">No bookings are visible for this selected person.</p>
           ) : itineraryReadyVisibleBookings.map(booking => {
             const bookingId = booking.id || booking.bookingId
             const favoriteActivityKeys = new Set(favoriteItineraryActivitiesByBooking[bookingId] || [])

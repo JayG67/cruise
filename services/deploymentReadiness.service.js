@@ -83,7 +83,7 @@ function buildEnvironmentGate({ files = {}, env = {}, renderConfig = '', readme 
     visibleRequiredNames.includes('DATABASE_URL'),
     visibleRequiredNames.includes('PORT') || containsAny(renderConfig, ['PORT']),
     containsAny(renderConfig, ['NODE_ENV']) || Boolean(env.NODE_ENV),
-    containsAny(readme, ['environment', 'env', 'DATABASE_URL']) || hasFile(files, 'docs/environment.md')
+    containsAny(readme, ['environment', 'env', 'DATABASE_URL']) || hasFile(files, '.env.example')
   ]
   const score = asPercent(checks.filter(Boolean).length, checks.length)
 
@@ -168,7 +168,7 @@ function buildPortfolioLaunchGate({ files = {}, readme = '' }) {
   const checks = [
     containsAny(readme, ['Cruise', 'portfolio']),
     containsAny(readme, ['turnaround', 'operations']),
-    hasFile(files, 'docs/deployment.md') || containsAny(readme, ['deployment', 'deploy']),
+    hasFile(files, 'render.yaml') || hasFile(files, 'railway.json') || hasFile(files, 'fly.toml') || containsAny(readme, ['deployment', 'deploy']),
     hasFile(files, 'lhci-report') || hasFile(files, 'lighthouse-report') || containsAny(readme, ['lighthouse']),
     containsAny(readme, ['screenshot', 'walkthrough', 'architecture', 'recruiter'])
   ]

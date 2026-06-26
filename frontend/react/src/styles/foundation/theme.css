@@ -1,0 +1,63 @@
+/* Shared command-center theme. New route shells should opt into these primitives
+   instead of defining their own gradients, borders, and text colors. */
+
+body {
+  background: var(--page-background);
+}
+
+.react-production-shell {
+  background: var(--page-background);
+  color: var(--text-primary);
+  min-height: 100vh;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.react-production-shell,
+.react-production-shell * {
+  box-sizing: border-box;
+}
+
+.react-production-shell :is(h1, h2, h3, h4, h5, h6) {
+  color: inherit;
+}
+
+.react-production-shell :is(.eyebrow, .ce-kicker) {
+  color: var(--text-secondary);
+  font-size: var(--font-xs);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.react-production-shell :is(button, input, select, textarea) {
+  font: inherit;
+}
+
+.react-production-shell :is(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 3px;
+}
+
+.react-production-shell :is(button, a, input, select, textarea) {
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.react-production-shell :is(button, a):not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.react-production-shell :is(button, input, select, textarea):disabled,
+.react-production-shell [aria-disabled="true"] {
+  background: var(--disabled-bg);
+  border-color: var(--disabled-border);
+  color: var(--disabled-text);
+  cursor: not-allowed;
+  opacity: 1;
+  transform: none;
+}
