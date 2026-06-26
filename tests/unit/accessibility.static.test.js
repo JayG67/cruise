@@ -5,10 +5,26 @@ describe('static ADA and WCAG-oriented React accessibility safeguards', () => {
   const projectRoot = path.resolve(__dirname, '../..')
   const indexHtml = fs.readFileSync(path.join(projectRoot, 'frontend/react/index.html'), 'utf8')
   const app = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/App.jsx'), 'utf8')
-  const legacyStyles = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/styles/app.css'), 'utf8')
-  const designSystem = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/styles/design-system.css'), 'utf8')
-  const styles = `${legacyStyles}
-${designSystem}`
+  const readCssBundle = (entrypoint, seen = new Set()) => {
+    const absolutePath = path.resolve(entrypoint)
+
+    if (seen.has(absolutePath)) {
+      return ''
+    }
+
+    seen.add(absolutePath)
+
+    const source = fs.readFileSync(absolutePath, 'utf8')
+    const directory = path.dirname(absolutePath)
+    const imports = [...source.matchAll(/@import\s+['"]([^'"]+)['"];?/g)]
+
+    return [
+      source,
+      ...imports.map(([, importPath]) => readCssBundle(path.join(directory, importPath), seen))
+    ].join('\n')
+  }
+
+  const styles = readCssBundle(path.join(projectRoot, 'frontend/react/src/styles/index.css'))
   const roleSelector = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactRoleSelector.jsx'), 'utf8')
   const fleetDirectory = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactFleetDirectory.jsx'), 'utf8')
   const confirmActionPanel = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ConfirmActionPanel.jsx'), 'utf8')

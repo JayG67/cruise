@@ -131,7 +131,7 @@ function buildRecruiterWalkthroughGate({ files = {}, readme = '', componentIndex
   const checks = [
     containsAny(readme, ['walkthrough', 'demo', 'recruiter']),
     containsAny(componentIndex, ['EmployerDemoCommandCenter']),
-    containsAny(readme, ['screenshot', 'screenshots']) || hasFile(files, 'docs/screenshots'),
+    containsAny(readme, ['screenshot', 'screenshots']) || hasFile(files, 'public/screenshots') || hasFile(files, 'lhci-report'),
     containsAny(readme, ['resume', 'talking points', 'interview']),
     containsAny(componentIndex, ['ReactDeploymentReadinessCenter'])
   ]

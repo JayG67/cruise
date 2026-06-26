@@ -1,0 +1,110 @@
+/* Passenger-facing voyage planner and booking summary components. */
+
+/*
+  CSS Foundation Refactor - Phase 21.
+  Passenger voyage planner retirement slice. Passenger-facing checklist and
+  booking summary cards now use the shared design-system layer instead of
+  legacy app.css. This keeps the traveler workflow consistent with the
+  command-center panel system while preserving light editable controls only
+  where passengers enter profile or checklist data.
+*/
+.passenger-voyage-planner {
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 1.5rem !important;
+  background: rgba(6, 30, 45, 0.88) !important;
+  box-shadow: 0 1.5rem 3.75rem rgba(2, 18, 34, 0.24) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  margin: 1.5rem 0 !important;
+  padding: clamp(1rem, 3vw, 1.5rem) !important;
+}
+
+.passenger-voyage-heading,
+.voyage-planner-grid,
+.voyage-booking-strip {
+  display: grid !important;
+  gap: 1rem !important;
+}
+
+.passenger-voyage-heading {
+  align-items: start !important;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 240px) !important;
+}
+
+.passenger-voyage-heading h3,
+.passenger-voyage-heading p,
+.voyage-planner-card h4,
+.voyage-booking-card h4,
+.voyage-booking-card p {
+  margin: 0 !important;
+}
+
+.passenger-voyage-planner :is(h3, h4, p, span, strong, li, label) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.passenger-voyage-planner :is(.eyebrow, .ce-kicker, small, dt) {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+}
+
+.voyage-score-card,
+.voyage-planner-card,
+.voyage-booking-card {
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 1.125rem !important;
+  background: rgba(8, 43, 62, 0.82) !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  padding: 1rem !important;
+}
+
+.voyage-score-card strong {
+  color: #ffffff !important;
+  display: block !important;
+  font-size: 2rem !important;
+  line-height: 1 !important;
+}
+
+.voyage-planner-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  margin-top: 1rem !important;
+}
+
+.voyage-checklist {
+  display: grid !important;
+  gap: 0.65rem !important;
+}
+
+.voyage-booking-strip {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+  margin-top: 1rem !important;
+}
+
+.voyage-booking-card ul {
+  margin: 0.75rem 0 0 !important;
+  padding-left: 1.2rem !important;
+}
+
+.passenger-voyage-planner :is(input, select, textarea) {
+  background: #ffffff !important;
+  border: 1px solid #7dd3fc !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+@media (max-width: 760px) {
+  .passenger-voyage-heading,
+  .voyage-planner-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/*
+  CSS Foundation Refactor - Phase 22.
+  Selector and voyage-planner compatibility retirement marker retained for the
+  foundation audit after the Phase 22 app.css reduction slice.
+*/

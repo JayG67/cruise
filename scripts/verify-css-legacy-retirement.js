@@ -44,6 +44,8 @@ function countMatches(content, pattern) {
 
 const appCss = read('frontend/react/src/styles/app.css')
 const designSystemCss = read('frontend/react/src/styles/design-system.css')
+const heroCss = read('frontend/react/src/styles/components/hero.css')
+const applicationCss = read('frontend/react/src/styles/components/application.css')
 const main = read('frontend/react/src/main.jsx')
 const packageJson = JSON.parse(read('package.json'))
 
@@ -84,8 +86,13 @@ assert(
 )
 
 assert(
-  designSystemCss.includes('CSS Foundation Refactor - Phase 23'),
-  'design-system.css must include the Phase 23 production hero retirement marker'
+  heroCss.includes('CSS Foundation Refactor - Phase 23') && !designSystemCss.includes('CSS Foundation Refactor - Phase 23'),
+  'components/hero.css must own the retired Phase 23 production hero marker'
+)
+
+assert(
+  applicationCss.includes('CSS Foundation Refactor - Phase 25') && !designSystemCss.includes('CSS Foundation Refactor - Phase 25'),
+  'components/application.css must own the retired Phase 25 application workspace marker'
 )
 
 assert(

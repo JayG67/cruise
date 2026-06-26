@@ -23,6 +23,10 @@
   --border: rgba(125, 211, 252, 0.35);
   --border-strong: rgba(125, 211, 252, 0.58);
   --border-editor: #dbe9f5;
+  --border-editor-strong: #b6d2e4;
+  --placeholder-editor: #475569;
+  --selection-editor-bg: #e0f2fe;
+  --selection-editor-text: #082334;
 
   --accent: #7dd3fc;
   --accent-strong: #0ea5e9;
@@ -58,6 +62,11 @@
 
   --focus-color: #facc15;
   --control-height: 2.75rem;
+  --control-height-compact: 2.45rem;
+  --control-readable-min: 12rem;
+  --control-readable-wide: 16rem;
+  --control-padding-x: 0.85rem;
+  --control-padding-y: 0.7rem;
   --control-radius: var(--radius-sm);
   --transition-fast: 160ms ease;
   --transition-medium: 220ms ease;
@@ -107,6 +116,7 @@
   --ce-editor-surface-strong: var(--surface-editor-raised);
   --ce-editor-border: var(--accent);
   --ce-editor-border-muted: var(--border-editor);
+  --ce-editor-border-strong: var(--border-editor-strong);
   --ce-editor-text: var(--text-editor);
   --ce-editor-text-muted: var(--text-editor-secondary);
 
@@ -122,6 +132,11 @@
   --ce-space-6: var(--space-lg);
   --ce-focus-ring: var(--focus-color);
   --ce-control-height: var(--control-height);
+  --ce-control-height-compact: var(--control-height-compact);
+  --ce-control-readable-min: var(--control-readable-min);
+  --ce-control-readable-wide: var(--control-readable-wide);
+  --ce-control-padding-x: var(--control-padding-x);
+  --ce-control-padding-y: var(--control-padding-y);
   --ce-control-radius: var(--control-radius);
   --ce-transition-fast: var(--transition-fast);
   --ce-transition-medium: var(--transition-medium);

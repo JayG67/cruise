@@ -641,7 +641,7 @@ describe('React route preview accessibility contracts', () => {
   it('keeps React passenger booking details and itinerary favorites in coverage with the role dashboard', () => {
     const roleDashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
     const roleView = read('frontend/react/src/domain/roleView.js')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = read('frontend/react/src/styles/components/workflow.css')
     const cypress = read('cypress/react/reactApp.cy.js')
 
     expect(roleDashboard).toContain('RoleBookingDetails')
@@ -672,7 +672,7 @@ describe('React route preview accessibility contracts', () => {
 
   it('keeps React workspace cards usable as Safari mobile touch targets', () => {
     const app = read('frontend/react/src/App.jsx')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = read('frontend/react/src/styles/components/workflow.css')
 
     expect(app).not.toContain('data-testid="react-workspace-demo-button"')
     expect(app).toContain('data-testid="react-workspace-role-button"')
@@ -688,7 +688,7 @@ describe('React route preview accessibility contracts', () => {
 
   it('keeps React workspace buttons guarded with inline Safari-safe touch targets', () => {
     const app = read('frontend/react/src/App.jsx')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = read('frontend/react/src/styles/components/workflow.css')
 
     expect(app).toContain('const workspaceTouchTargetStyle')
     expect(app).toContain("minHeight: '72px'")
@@ -700,7 +700,7 @@ describe('React route preview accessibility contracts', () => {
 
   it('keeps React workspace buttons at an explicit WebKit-safe height', () => {
     const app = read('frontend/react/src/App.jsx')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = read('frontend/react/src/styles/components/workflow.css')
 
     expect(app).toContain("height: '72px'")
     expect(app).toContain("blockSize: '72px'")
@@ -714,7 +714,7 @@ describe('React route preview accessibility contracts', () => {
 
   it('keeps React workspace touch-target styles exposed to Playwright', () => {
     const app = read('frontend/react/src/App.jsx')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = read('frontend/react/src/styles/components/workflow.css')
 
     expect(app).toContain("height: '72px'")
     expect(app).toContain("blockSize: '72px'")
@@ -736,7 +736,7 @@ describe('React route preview accessibility contracts', () => {
   it('keeps React checkbox labels from creating Mobile Safari document overflow', () => {
     const app = read('frontend/react/src/App.jsx')
     const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = read('frontend/react/src/styles/components/workflow.css')
 
     expect(app).toContain('react-production-shell')
     expect(fleet).toContain('className="react-checkbox-label"')
@@ -838,7 +838,7 @@ describe('React route preview accessibility contracts', () => {
     const hierarchy = read('frontend/react/src/components/CustomerBookingHierarchy.jsx')
     const client = read('frontend/react/src/api/client.js')
     const cypress = read('cypress/react/reactApp.cy.js')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = read('frontend/react/src/styles/components/workflow.css')
 
     expect(client).toContain('export async function createCustomer')
     expect(client).toContain('export async function deleteCustomer')
@@ -898,7 +898,7 @@ describe('React route preview accessibility contracts', () => {
     const selectors = read('cypress/react/support/reactSelectors.js')
     const mobile = read('playwright/mobile/react-production-mobile.spec.js')
     const responsive = read('playwright/responsive/react-production-responsive.spec.js')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = read('frontend/react/src/styles/components/workflow.css')
 
     expect(client).toContain('export async function getItineraryForSailing')
     expect(fleet).toContain('handleViewItinerary')
@@ -966,7 +966,7 @@ describe('React route preview accessibility contracts', () => {
     const cypress = read('cypress/react/reactApp.cy.js')
     const mobile = read('playwright/mobile/react-production-mobile.spec.js')
     const responsive = read('playwright/responsive/react-production-responsive.spec.js')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = read('frontend/react/src/styles/components/workflow.css')
 
     expect(client).toContain('export async function createSailing')
     expect(client).toContain('export async function updateSailing')
@@ -1010,7 +1010,7 @@ describe('React route preview accessibility contracts', () => {
     const cypress = read('cypress/react/reactApp.cy.js')
     const mobile = read('playwright/mobile/react-production-mobile.spec.js')
     const responsive = read('playwright/responsive/react-production-responsive.spec.js')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = read('frontend/react/src/styles/components/workflow.css')
 
     expect(client).toContain('export async function createItineraryDay')
     expect(client).toContain('export async function updateItineraryDay')
@@ -1487,19 +1487,41 @@ test('build 489 deep operations workspace styling sweep keeps panels dark and co
 
 
 
-test('phase 23 retires the Build 358 production hero polish into the design system', () => {
+test('phase 23 first-impression hero styles live in the hero component layer', () => {
+  const heroStyles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/hero.css'), 'utf8')
   const designSystem = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
   const legacyStyles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/app.css'), 'utf8')
   const foundationAudit = fs.readFileSync(path.join(__dirname, '../../scripts/verify-css-foundation.js'), 'utf8')
+  const componentIndex = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/index.css'), 'utf8')
 
-  expect(designSystem).toContain('CSS Foundation Refactor - Phase 23')
-  expect(designSystem).toContain('Build 358: first-impression landing page polish for cruise-line presentation')
-  expect(designSystem).toContain('.production-hero::before')
-  expect(designSystem).toContain('.hero-product-card')
-  expect(designSystem).toContain("url('/images/cruise-background-1280.webp')")
+  expect(componentIndex).toContain("@import './hero.css';")
+  expect(heroStyles).toContain('CSS Foundation Refactor - Phase 23')
+  expect(heroStyles).toContain('Build 358: first-impression landing page polish for cruise-line presentation')
+  expect(heroStyles).toContain('.production-hero::before')
+  expect(heroStyles).toContain('.hero-product-card')
+  expect(heroStyles).toContain("url('/images/cruise-background-1280.webp')")
+  expect(designSystem).not.toContain('CSS Foundation Refactor - Phase 23')
+  expect(designSystem).not.toContain('Build 358: first-impression landing page polish for cruise-line presentation')
+  expect(designSystem).not.toContain('.hero-product-card')
   expect(legacyStyles).toContain('Phase 23 CSS retirement: first-impression landing page and production hero styles')
   expect(legacyStyles).not.toContain('Build 358: first-impression landing page polish for cruise-line presentation')
-  expect(foundationAudit).toContain('21, 22, 23')
+  expect(foundationAudit).toContain('styles.hero')
+})
+
+
+test('phase 21 and 22 passenger voyage planner styles live in the passenger component layer', () => {
+  const passengerStyles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/passenger.css'), 'utf8')
+  const designSystem = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const componentIndex = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/index.css'), 'utf8')
+
+  expect(componentIndex).toContain("@import './passenger.css';")
+  expect(passengerStyles).toContain('CSS Foundation Refactor - Phase 21')
+  expect(passengerStyles).toContain('CSS Foundation Refactor - Phase 22')
+  expect(passengerStyles).toContain('.passenger-voyage-planner')
+  expect(passengerStyles).toContain('.voyage-planner-card')
+  expect(passengerStyles).toContain('.voyage-booking-card')
+  expect(designSystem).not.toContain('CSS Foundation Refactor - Phase 21')
+  expect(designSystem).not.toContain('CSS Foundation Refactor - Phase 22')
 })
 
 test('phase 20 retires the Build 437-448 admin workspace stack into the design system', () => {

@@ -61,7 +61,7 @@ describe('productionHardeningReadiness service', () => {
     expect(readiness.launchSequence).toContain('Run Jest, Cypress, Playwright mobile/responsive, k6 smoke, and Lighthouse CI before release.')
   })
 
-  it('uses platform configuration rather than Markdown docs as the deployment readiness signal', () => {
+  it('uses platform configuration as the deployment readiness signal', () => {
     const gate = buildDeploymentGate({
       packageJson: {
         scripts: {

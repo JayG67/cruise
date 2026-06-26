@@ -1,0 +1,850 @@
+/*
+  Application workspace component layer.
+
+  Owns React application workspace, admin workspace, fleet, quality console,
+  and role-dashboard bridge selectors that were previously parked in
+  design-system.css as Phase 25 compatibility CSS.
+*/
+
+/* CSS Foundation Refactor - Phase 25: retired React workspace/admin/fleet/quality/role-dashboard compatibility selectors from legacy app.css. */
+/* Application workspace controls. */
+.react-workspace-card {
+  appearance: none;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.react-workspace-card:hover {
+  border-color: #8ec9df;
+  box-shadow: 0 22px 44px rgba(7, 24, 39, 0.14);
+  transform: translateY(-1px);
+}
+
+.react-workspace-card:focus-visible {
+  outline: 4px solid #ffbf47;
+  outline-offset: 4px;
+}
+
+.workspace-card-title {
+  color: #071827;
+  display: block;
+  font-size: 1rem;
+  font-weight: 900;
+  margin: 0.65rem 0 0.4rem;
+}
+
+.operations-console-panel .react-route-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  max-width: 100%;
+}
+
+.operations-console-panel .route-tab {
+  min-width: 0;
+  overflow-wrap: break-word;
+  width: 100%;
+}
+
+/* Operations workflow controls. */
+.workflow-step-list li {
+  padding: 0;
+}
+
+.workflow-step-button {
+  appearance: none;
+  background: #ffffff;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: grid;
+  gap: 0.65rem;
+  height: 100%;
+  min-height: 132px;
+  padding: 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.workflow-step-button:hover {
+  box-shadow: inset 0 0 0 2px #8ec9df;
+}
+
+.workflow-step-button:focus-visible {
+  outline: 4px solid #ffbf47;
+  outline-offset: 4px;
+}
+
+.admin-workflow-summary-card {
+  align-items: center;
+  background: linear-gradient(135deg, #ffffff, #eef8fb);
+  border: 1px solid #d8e2ef;
+  border-radius: 1rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
+.primary-action-button {
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0b6fa4, #12a4b6);
+  box-shadow: 0 12px 24px rgba(7, 24, 39, 0.16);
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 900;
+  min-height: 42px;
+  padding: 0.65rem 1rem;
+}
+
+.primary-action-button:focus-visible {
+  outline: 4px solid #ffbf47;
+  outline-offset: 4px;
+}
+
+@media (max-width: 720px) {
+  .admin-workflow-summary-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+/* Admin workspace layout. */
+.react-admin-workspace {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 1.5rem auto;
+}
+
+.react-admin-heading {
+  margin: 0 0 1rem;
+}
+
+.react-admin-heading h2 {
+  font-size: clamp(1.9rem, 4vw, 2.7rem);
+}
+
+.react-admin-heading p:not(.eyebrow) {
+  color: #38556e;
+  margin: 0;
+}
+
+.react-admin-management-card {
+  border: 1px solid #cfe3ee;
+  border-radius: 1.35rem;
+  background: linear-gradient(145deg, #ffffff, #f2fbff);
+  box-shadow: 0 18px 44px rgba(7, 24, 39, 0.08);
+  padding: clamp(1rem, 3vw, 1.35rem);
+}
+
+.react-admin-card-heading {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.react-admin-card-heading h3 {
+  font-size: clamp(1.25rem, 3vw, 1.7rem);
+  margin: 0 0 0.35rem;
+}
+
+.react-admin-card-heading p:not(.eyebrow) {
+  color: #38556e;
+  margin: 0;
+}
+
+.react-admin-stat-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}
+
+.react-admin-stat-pills span,
+.linked-booking-pill {
+  background: #dff7ff;
+  border-radius: 999px;
+  color: #0b5f94;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 0.35rem 0.65rem;
+}
+
+.react-admin-search {
+  margin-top: 1rem;
+}
+
+.react-admin-search input {
+  background: #ffffff;
+  border-color: #dbe8f1;
+}
+
+.react-admin-workflow-bar {
+  align-items: center;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin-top: 1rem;
+}
+
+.primary-action-button {
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0b6fa4, #12a4b6);
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 900;
+  padding: 0.7rem 1rem;
+}
+
+.primary-action-button:focus-visible {
+  outline: 4px solid #ffbf47;
+  outline-offset: 4px;
+}
+
+.react-admin-table-wrap {
+  border: 1px solid #d7e6f0;
+  border-radius: 1rem;
+  background: #ffffff;
+  margin-top: 1rem;
+  overflow: hidden;
+}
+
+.react-admin-table-heading {
+  align-items: center;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 420px);
+  padding: 0.85rem 1rem;
+}
+
+.react-admin-table-heading span {
+  color: #52677c;
+  font-weight: 800;
+}
+
+.react-admin-table-scroll {
+  margin-top: 0;
+  max-height: 480px;
+  overflow: auto;
+}
+
+.react-admin-table {
+  min-width: 980px;
+}
+
+.react-admin-table caption {
+  background: #f7fbff;
+  color: #40576f;
+  font-weight: 800;
+  padding: 0.85rem 1rem;
+}
+
+.react-admin-table th {
+  background: #dff3fb;
+  color: #0b5f94;
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.react-admin-table td {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.customer-disclosure-button {
+  color: #071827;
+  white-space: nowrap;
+}
+
+.compact-action-button {
+  padding: 0.5rem 0.8rem;
+}
+
+@media (max-width: 760px) {
+  .react-admin-card-heading,
+  .react-admin-workflow-bar,
+  .react-admin-table-heading {
+    grid-template-columns: 1fr;
+  }
+
+  .react-admin-stat-pills {
+    justify-content: flex-start;
+  }
+}
+
+/* Application section order and admin workspace footprint. */
+.route-panel {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 1.5rem auto;
+}
+
+.react-quality-section {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 1.5rem auto;
+}
+
+.react-admin-workspace {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.react-admin-heading {
+  padding-top: 0.25rem;
+}
+
+.react-admin-heading h2 {
+  margin-bottom: 0.45rem;
+}
+
+.react-admin-management-card {
+  padding: clamp(1.15rem, 2.5vw, 1.6rem);
+}
+
+.react-admin-card-heading {
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr) max-content;
+}
+
+.react-admin-card-heading h3 {
+  margin-bottom: 0.25rem;
+}
+
+.react-admin-search {
+  margin-top: 0.9rem;
+}
+
+.react-admin-search span {
+  color: #071827;
+  font-size: 0.92rem;
+}
+
+.react-admin-search input {
+  min-height: 48px;
+}
+
+.react-admin-workflow-bar {
+  align-items: center;
+  margin-top: 1.15rem;
+}
+
+.react-admin-table-wrap {
+  margin-top: 0.85rem;
+}
+
+.react-admin-table-heading {
+  padding: 0.75rem 0.9rem;
+}
+
+.react-admin-table th,
+.react-admin-table td {
+  padding: 0.75rem 0.9rem;
+}
+
+.react-admin-table tbody tr:hover td {
+  background: #f7fbff;
+}
+
+.fleet-directory-section {
+  margin-top: 3.25rem;
+}
+
+.react-quality-section .status-card {
+  width: 100%;
+}
+
+@media (max-width: 760px) {
+  .route-panel,
+  .react-quality-section {
+    width: min(100% - 1rem, 1120px);
+  }
+
+  .react-admin-card-heading {
+    grid-template-columns: 1fr;
+  }
+
+  .fleet-directory-section {
+    margin-top: 2rem;
+  }
+}
+
+/* Fleet and create workflow actions. */
+.fleet-card-actions {
+  align-items: center;
+}
+
+.fleet-primary-action,
+.fleet-card-actions button:not(.fleet-danger-action) {
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0b6fa4, #12a4b6);
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 900;
+  padding: 0.55rem 0.85rem;
+}
+
+.fleet-danger-action {
+  border: 1px solid #f1b8b8;
+  border-radius: 999px;
+  background: #fffafa;
+  color: #c02626;
+  cursor: pointer;
+  font-weight: 900;
+  padding: 0.5rem 0.8rem;
+}
+
+.react-create-workflow-section {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 3rem auto 1.5rem;
+}
+
+.react-create-workflow-section h2 {
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+}
+
+.react-create-workflow-section > p:not(.eyebrow) {
+  color: #38556e;
+}
+
+.react-create-card {
+  border: 1px solid #cfe3ee;
+  border-top: 6px solid #0b8eb4;
+  border-radius: 1.35rem;
+  background: linear-gradient(135deg, #ffffff, #eefbff);
+  box-shadow: 0 24px 60px rgba(7, 24, 39, 0.1);
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+.react-create-card-heading {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.react-create-card-heading h3 {
+  font-size: clamp(1.7rem, 4vw, 2.4rem);
+  margin: 0 0 0.35rem;
+}
+
+.create-workflow-pill {
+  background: #dff7ff;
+  border: 1px solid #b9e4ef;
+  border-radius: 999px;
+  color: #0b5f94;
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  padding: 0.45rem 0.8rem;
+  text-transform: uppercase;
+}
+
+.react-create-form-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+  margin-top: 1.25rem;
+}
+
+.react-create-form-grid fieldset {
+  border: 1px solid #d7e6f0;
+  border-radius: 1.1rem;
+  background: rgba(255, 255, 255, 0.82);
+  display: grid;
+  gap: 0.85rem;
+  margin: 0;
+  padding: 1rem;
+}
+
+.react-create-form-grid legend {
+  color: #071827;
+  font-weight: 900;
+  padding: 0 0.35rem;
+}
+
+.react-create-form-grid legend span {
+  align-items: center;
+  background: linear-gradient(135deg, #0b6fa4, #12a4b6);
+  border-radius: 999px;
+  color: #ffffff;
+  display: inline-flex;
+  height: 28px;
+  justify-content: center;
+  margin-right: 0.45rem;
+  width: 28px;
+}
+
+.react-create-form-grid fieldset p {
+  color: #52677c;
+  margin: 0;
+}
+
+.react-create-form-grid label,
+.react-ship-row {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.react-create-form-grid input {
+  border: 1px solid #b9c8d8;
+  border-radius: 0.75rem;
+  min-height: 44px;
+  padding: 0.75rem;
+}
+
+.react-ship-row {
+  border: 1px dashed #cfe3ee;
+  border-radius: 0.9rem;
+  padding: 0.85rem;
+}
+
+.add-ship-button {
+  justify-self: start;
+}
+
+.react-create-actions {
+  align-items: center;
+  border-top: 1px solid #d7e6f0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+}
+
+@media (max-width: 820px) {
+  .react-create-card-heading,
+  .react-create-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Quality console dashboard. */
+.react-sqa-console {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 3rem auto 1.5rem;
+  border: 1px solid #cfe3ee;
+  border-top: 6px solid #0b8eb4;
+  border-radius: 1.35rem;
+  background: #ffffff;
+  box-shadow: 0 24px 60px rgba(7, 24, 39, 0.1);
+  padding: clamp(1rem, 3vw, 1.6rem);
+}
+
+.react-sqa-header {
+  align-items: start;
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.react-sqa-header h2 {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  max-width: 760px;
+}
+
+.react-sqa-header p:not(.eyebrow) {
+  color: #38556e;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.react-sqa-status-pill {
+  align-items: center;
+  border: 1px solid #cfe3ee;
+  border-radius: 1rem;
+  background: #f7fbff;
+  display: flex;
+  gap: 0.75rem;
+  min-width: 210px;
+  padding: 0.8rem 1rem;
+}
+
+.react-sqa-status-pill strong,
+.react-sqa-status-pill span:last-child {
+  display: block;
+}
+
+.react-sqa-status-pill strong {
+  color: #52677c;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ready-dot,
+.attention-dot {
+  border-radius: 999px;
+  display: inline-block;
+  height: 14px;
+  width: 14px;
+}
+
+.ready-dot {
+  background: #1dbb73;
+  box-shadow: 0 0 0 6px rgba(29, 187, 115, 0.14);
+}
+
+.attention-dot {
+  background: #e23b3b;
+  box-shadow: 0 0 0 6px rgba(226, 59, 59, 0.14);
+}
+
+.react-sqa-action-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin-top: 1.35rem;
+}
+
+.react-sqa-action-card {
+  border: 1px solid #d7e6f0;
+  border-radius: 1rem;
+  background: linear-gradient(145deg, #ffffff, #f8fbff);
+  box-shadow: 0 14px 28px rgba(7, 24, 39, 0.08);
+  display: grid;
+  gap: 0.65rem;
+  min-height: 170px;
+  padding: 0.9rem;
+}
+
+.react-sqa-action-card h3 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.react-sqa-action-card p {
+  color: #38556e;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.react-sqa-action-card button {
+  align-self: end;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0b6fa4, #12a4b6);
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 900;
+  min-height: 40px;
+  padding: 0.55rem 0.8rem;
+}
+
+.react-sqa-action-card button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.danger-card {
+  border-color: #f1c7c7;
+}
+
+.danger-card .danger-action-button {
+  background: #fffafa;
+  border: 1px solid #f1b8b8;
+  color: #c02626;
+}
+
+.react-sqa-output-header {
+  align-items: end;
+  border-top: 1px solid #d7e6f0;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin-top: 1.4rem;
+  padding-top: 1.2rem;
+}
+
+.react-sqa-output-header h3 {
+  font-size: 1.2rem;
+  margin: 0 0 0.35rem;
+}
+
+.react-sqa-output-header p:not(.eyebrow) {
+  color: #38556e;
+  margin: 0;
+}
+
+.react-sqa-output-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  justify-content: flex-end;
+}
+
+.react-sqa-output-actions span {
+  border: 1px solid #d7e6f0;
+  border-radius: 999px;
+  color: #52677c;
+  font-size: 0.82rem;
+  font-weight: 900;
+  padding: 0.4rem 0.75rem;
+}
+
+.react-sqa-report-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.85rem;
+}
+
+.react-sqa-report-links a {
+  border: 1px solid #9ed9e7;
+  border-radius: 999px;
+  color: #0b5f94;
+  font-weight: 900;
+  padding: 0.45rem 0.75rem;
+}
+
+.react-sqa-output {
+  background: #041927;
+  border-radius: 0.8rem;
+  color: #ecfeff;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  margin: 1rem 0 0;
+  min-height: 140px;
+  overflow: auto;
+  padding: 1rem;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 980px) {
+  .react-sqa-action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .react-sqa-header,
+  .react-sqa-output-header {
+    grid-template-columns: 1fr;
+  }
+
+  .react-sqa-status-pill,
+  .react-sqa-output-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 620px) {
+  .react-sqa-action-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Role switching support: selected person changes the visible application workspace. */
+.react-role-dashboard {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 1.5rem auto;
+}
+
+.react-role-dashboard h2 {
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.react-role-dashboard > p:not(.eyebrow) {
+  color: #38556e;
+  margin-bottom: 1.25rem;
+}
+
+.role-profile-card,
+.role-booking-card {
+  border: 1px solid #d8e2ef;
+  border-radius: 1.25rem;
+  background: #ffffff;
+  box-shadow: 0 18px 44px rgba(7, 24, 39, 0.08);
+  margin-bottom: 1rem;
+  padding: clamp(1rem, 3vw, 1.25rem);
+}
+
+.role-profile-card h3,
+.role-booking-card h3 {
+  margin: 0 0 0.75rem;
+}
+
+.role-profile-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin: 1rem 0;
+}
+
+.role-profile-grid label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 800;
+}
+
+.role-profile-grid input,
+.role-profile-grid select {
+  border: 1px solid #b9c8d8;
+  border-radius: 0.75rem;
+  min-height: 44px;
+  padding: 0.7rem;
+}
+
+.role-booking-heading {
+  align-items: start;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.role-booking-badges {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.role-booking-fields {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 1rem 0;
+}
+
+.visible-passenger-list {
+  display: grid;
+  gap: 0.4rem;
+  margin: 1rem 0;
+}
+
+.visible-passenger-row {
+  align-items: center;
+  background: #f7fbff;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0.8rem;
+}
+
+.full-width-action {
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .role-profile-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .role-booking-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .role-profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
