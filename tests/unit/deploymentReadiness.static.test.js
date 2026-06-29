@@ -23,7 +23,7 @@ describe('deployment readiness center static contracts', () => {
   it('keeps deployment diagnostics available as code without mounting a recruiter-facing workspace', () => {
     const app = read('frontend/react/src/App.jsx')
     const component = read('frontend/react/src/components/ReactDeploymentReadinessCenter.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
+    const styles = read('frontend/react/src/styles/components/readiness-centers.css')
 
     expect(app).not.toContain('ReactDeploymentReadinessCenter')
     expect(app).not.toContain('react-workspace-deployment-readiness-button')

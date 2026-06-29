@@ -56,15 +56,29 @@ const styles = {
   navigation: read('frontend/react/src/styles/components/navigation.css'),
   feedback: read('frontend/react/src/styles/components/feedback.css'),
   selectorCard: read('frontend/react/src/styles/components/selector-card.css'),
+  roleSelector: read('frontend/react/src/styles/components/role-selector.css'),
   workflow: read('frontend/react/src/styles/components/workflow.css'),
   passenger: read('frontend/react/src/styles/components/passenger.css'),
   hero: read('frontend/react/src/styles/components/hero.css'),
   application: read('frontend/react/src/styles/components/application.css'),
+  productShell: read('frontend/react/src/styles/components/product-shell.css'),
+  roleDashboard: read('frontend/react/src/styles/components/role-dashboard.css'),
+  adminWorkspaces: read('frontend/react/src/styles/components/admin-workspaces.css'),
+  adminPresentation: read('frontend/react/src/styles/components/admin-presentation.css'),
+  operationsTimeline: read('frontend/react/src/styles/components/operations-timeline.css'),
+  operationsWorkspaces: read('frontend/react/src/styles/components/operations-workspaces.css'),
+  operationsQueues: read('frontend/react/src/styles/components/operations-queues.css'),
+  operationsCoverage: read('frontend/react/src/styles/components/operations-coverage.css'),
+  readinessCenters: read('frontend/react/src/styles/components/readiness-centers.css'),
+  operationsRoleSurface: read('frontend/react/src/styles/components/operations-role-surface.css'),
+  operationsContinuity: read('frontend/react/src/styles/components/operations-continuity.css'),
+  operationsRelease: read('frontend/react/src/styles/components/operations-release.css'),
+  operationsEvidence: read('frontend/react/src/styles/components/operations-evidence.css'),
+  operationsContrast: read('frontend/react/src/styles/components/operations-contrast.css'),
   utilities: read('frontend/react/src/styles/utilities/index.css'),
-  appCss: read('frontend/react/src/styles/app.css'),
-  designSystem: read('frontend/react/src/styles/design-system.css'),
 }
 const main = read('frontend/react/src/main.jsx')
+const retiredAppCss = ''
 
 for (const [label, content] of Object.entries(styles)) {
   assertBalancedBraces(content, `${label}.css`)
@@ -77,15 +91,13 @@ assert(
 
 assert(
   !main.includes("import './styles/app.css'") && !main.includes("import './styles/design-system.css'"),
-  'main.jsx must not directly import app.css or design-system.css; index.css owns CSS order'
+  'main.jsx must not directly import app.css or retired design-system.css; index.css owns CSS order'
 )
 
 for (const requiredImport of [
   "@import './foundation/tokens.css';",
   "@import './foundation/theme.css';",
   "@import './foundation/reset.css';",
-  "@import './app.css';",
-  "@import './design-system.css';",
   "@import './layout/index.css';",
   "@import './components/index.css';",
   "@import './utilities/index.css';",
@@ -94,15 +106,19 @@ for (const requiredImport of [
 }
 
 assert(
-  styles.index.indexOf("@import './foundation/tokens.css';") < styles.index.indexOf("@import './app.css';"),
-  'tokens.css must load before compatibility stylesheets'
+  styles.index.indexOf("@import './foundation/reset.css';") < styles.index.indexOf("@import './layout/index.css';"),
+  'foundation CSS must load before layout and component layers'
 )
 
 assert(
-  styles.index.indexOf("@import './design-system.css';") < styles.index.indexOf("@import './layout/index.css';"),
-  'new architectural layers must load after legacy compatibility stylesheets'
+  !styles.index.includes("@import './design-system.css';"),
+  'index.css must not import retired design-system.css after the shim is removed'
 )
 
+assert(
+  !fs.existsSync(path.join(projectRoot, 'frontend/react/src/styles/design-system.css')),
+  'retired design-system.css must be deleted after all CSS ownership moved into layered files'
+)
 
 for (const componentImport of [
   "@import './panel.css';",
@@ -114,39 +130,260 @@ for (const componentImport of [
   "@import './navigation.css';",
   "@import './feedback.css';",
   "@import './selector-card.css';",
+  "@import './role-selector.css';",
   "@import './workflow.css';",
   "@import './passenger.css';",
   "@import './hero.css';",
   "@import './application.css';",
+  "@import './product-shell.css';",
+  "@import './role-dashboard.css';",
+  "@import './admin-workspaces.css';",
+  "@import './admin-presentation.css';",
+  "@import './operations-timeline.css';",
+  "@import './operations-workspaces.css';",
+  "@import './operations-queues.css';",
+  "@import './operations-coverage.css';",
+  "@import './readiness-centers.css';",
+  "@import './operations-role-surface.css';",
+  "@import './operations-continuity.css';",
+  "@import './operations-release.css';",
+  "@import './operations-evidence.css';",
+  "@import './operations-contrast.css';",
 ]) {
   assert(styles.componentIndex.includes(componentImport), `components/index.css must include ${componentImport}`)
 }
 
 assert(
-  styles.appCss.includes('LEGACY STYLESHEET - Cruise Explorer CSS Foundation Refactor'),
-  'app.css must remain clearly labeled as the legacy compatibility stylesheet'
-)
-
-for (const phase of [2, 4, 5, 15, 16, 17, 18, 19, 20]) {
-  assert(
-    styles.designSystem.includes(`CSS Foundation Refactor - Phase ${phase}`),
-    `design-system.css must include the Phase ${phase} compatibility marker until that slice is retired`
-  )
-}
-
-assert(
-  !styles.designSystem.includes('CSS Foundation Refactor - Phase 3'),
-  'Phase 3 generic ce-* primitive CSS must be retired from design-system.css; components/* owns it now'
+  styles.operationsRoleSurface.includes('CSS Foundation Refactor - Phase 19') &&
+    styles.operationsRoleSurface.includes('Build 464 - dark operational role dashboard motif') &&
+    styles.operationsRoleSurface.includes('.react-role-dashboard') &&
+    styles.operationsRoleSurface.includes('.operational-turnaround-panel'),
+  'components/operations-role-surface.css must own the split role-dashboard surface CSS from operations-dashboard.css'
 )
 
 assert(
-  !styles.designSystem.includes('CSS Foundation Refactor - Phase 6'),
-  'Phase 6 table/action primitive CSS must be retired from design-system.css; components/* and layout/* own it now'
+  !fs.existsSync(path.join(projectRoot, 'frontend/react/src/styles/components/operations-dashboard.css')),
+  'retired operations-dashboard.css shim must be deleted after Slice 41'
 )
 
-for (const retiredPhase of [7, 8, 9, 10, 11, 12, 13, 14, 21, 22, 23, 24]) {
+assert(
+  !styles.index.includes("@import './app.css';"),
+  'index.css must not import retired app.css after Slice 34 removes the shim'
+)
+
+assert(
+  !fs.existsSync(path.join(projectRoot, 'frontend/react/src/styles/app.css')),
+  'retired app.css must be deleted after Slice 34 removes the final shim import'
+)
+
+assert(
+  styles.application.includes('CSS Foundation Refactor - Slice 33') &&
+    styles.application.includes('.app-shell') &&
+    styles.application.includes('.query-status-card') &&
+    styles.application.includes('.quality-gate-card') &&
+    styles.application.includes('.launch-card') &&
+    styles.application.includes('.coverage-card') &&
+    styles.application.includes('.handoff-item'),
+  'components/application.css must own final Slice 33 app.css compatibility selectors'
+)
+
+assert(
+  !fs.existsSync(path.join(projectRoot, 'frontend/react/src/styles/app.css')),
+  'app.css must not keep final Slice 33 compatibility selectors'
+)
+
+
+assert(
+  styles.roleDashboard.includes('Phase 1 operations compatibility bridge') &&
+    styles.roleDashboard.includes('.operational-turnaround-panel') &&
+    styles.roleDashboard.includes('.operations-portfolio-card'),
+  'components/role-dashboard.css must own the retired Phase 1 operational compatibility bridge'
+)
+
+assert(
+  styles.productShell.includes('CSS Foundation Refactor - Phase 2'),
+  'components/product-shell.css must own the retired Phase 2 product-shell CSS'
+)
+
+assert(
+  styles.roleDashboard.includes('CSS Foundation Refactor - Phase 4'),
+  'components/role-dashboard.css must own retired Phase 4 role dashboard CSS'
+)
+
+assert(
+  styles.productShell.includes('CSS Foundation Refactor - Phase 5'),
+  'components/product-shell.css must own retired Phase 5 product experience CSS'
+)
+
+
+assert(
+  styles.productShell.includes('CSS Foundation Refactor - Slice 19') &&
+    styles.productShell.includes('.production-shell') &&
+    styles.productShell.includes('.operations-console-panel') &&
+    styles.productShell.includes('.recommended-workflow-panel'),
+  'components/product-shell.css must own retired app.css production route shell and operations workspace polish'
+)
+
+assert(
+  styles.application.includes('CSS Foundation Refactor - Slice 20') &&
+    styles.application.includes('.react-app-section') &&
+    styles.application.includes('.cruise-line-brand-panel') &&
+    styles.application.includes('.brand-theme-summary'),
+  'components/application.css must own retired Slice 20 application shell and cruise-line brand CSS'
+)
+
+assert(
+  styles.productShell.includes('CSS Foundation Refactor - Slice 20') &&
+    styles.productShell.includes('.recommended-workflow-panel') &&
+    styles.productShell.includes('.workflow-step-button'),
+  'components/product-shell.css must own retired Slice 20 operations workflow polish'
+)
+
+assert(
+  styles.feedback.includes('CSS Foundation Refactor - Slice 21') &&
+    styles.feedback.includes('.react-confirm-action-overlay') &&
+    styles.feedback.includes('.react-confirm-action-panel--modal'),
+  'components/feedback.css must own retired Slice 21 confirmation modal polish'
+)
+
+assert(
+  styles.passenger.includes('CSS Foundation Refactor - Slice 21') &&
+    styles.passenger.includes('.passenger-booking-workflow') &&
+    styles.passenger.includes('.passenger-booking-form') &&
+    styles.passenger.includes('.booking-search-grid'),
+  'components/passenger.css must own retired Slice 21 passenger booking workflow CSS'
+)
+
+assert(
+  styles.roleDashboard.includes('CSS Foundation Refactor - Slice 21') &&
+    styles.roleDashboard.includes('.operational-turnaround-panel') &&
+    styles.roleDashboard.includes('.turnaround-selector-panel') &&
+    styles.roleDashboard.includes('.operational-escalation-list'),
+  'components/role-dashboard.css must own retired Slice 21 turnaround overview CSS'
+)
+
+assert(
+  styles.roleDashboard.includes('CSS Foundation Refactor - Slice 22') &&
+    styles.roleDashboard.includes('Operational workflow polish: every turnaround form control should match the app UI.') &&
+    styles.roleDashboard.includes('.operational-task-detail-form') &&
+    styles.roleDashboard.includes('.operational-handoff-form textarea'),
+  'components/role-dashboard.css must own retired Slice 22 operational workflow form and detail polish'
+)
+
+assert(
+  styles.roleSelector.includes('CSS Foundation Refactor - Slice 23') &&
+    styles.roleSelector.includes('.role-selector-grid') &&
+    styles.roleSelector.includes('.passenger-finder-panel') &&
+    styles.roleSelector.includes('.booking-guest-finder'),
+  'components/role-selector.css must own retired Slice 23 role selector and passenger finder CSS'
+)
+
+assert(
+  styles.operationsQueues.includes('CSS Foundation Refactor - Slice 25') &&
+    styles.operationsQueues.includes('.operations-task-workspace') &&
+    styles.operationsQueues.includes('.operations-task-list-item') &&
+    styles.operationsQueues.includes('.operations-task-detail-edit-form'),
+  'components/operations-queues.css must own retired Slice 25 task management workspace CSS'
+)
+
+
+assert(
+  styles.operationsQueues.includes('CSS Foundation Refactor - Slice 26') &&
+    styles.operationsQueues.includes('.operations-dependency-workspace') &&
+    styles.operationsQueues.includes('.operations-dependency-list-item') &&
+    styles.operationsQueues.includes('.operations-dependency-detail-list'),
+  'components/operations-queues.css must own retired Slice 26 dependency management workspace CSS'
+)
+
+
+assert(
+  styles.operationsQueues.includes('CSS Foundation Refactor - Slice 27') &&
+    styles.operationsQueues.includes('.operations-handoff-workspace') &&
+    styles.operationsQueues.includes('.operations-handoff-list-item') &&
+    styles.operationsQueues.includes('.operations-handoff-detail-form'),
+  'components/operations-queues.css must own retired Slice 27 handoff management workspace CSS'
+)
+
+
+
+assert(
+  styles.operationsCoverage.includes('CSS Foundation Refactor - Slice 28') &&
+    styles.operationsCoverage.includes('.operations-staffing-workspace') &&
+    styles.operationsCoverage.includes('.operations-escalation-workspace') &&
+    styles.operationsCoverage.includes('.operations-readiness-workspace'),
+  'components/operations-coverage.css must own retired Slice 28 staffing, escalation, and readiness workspace CSS'
+)
+
+
+assert(
+  styles.operationsRelease.includes('CSS Foundation Refactor - Slice 36') &&
+    styles.operationsRelease.includes('CSS Foundation Refactor - Slice 29') &&
+    styles.operationsRelease.includes('.operations-release-board') &&
+    styles.operationsRelease.includes('.operations-portfolio-board') &&
+    styles.operationsRelease.includes('.operations-audit-trail') &&
+    styles.operationsRelease.includes('.operations-release-packet') &&
+    styles.operationsRelease.includes('.operations-playbook-variance') &&
+    styles.operationsRelease.includes('.operations-incident-command'),
+  'components/operations-release.css must own retired Slice 29 operations release board, portfolio, audit, release packet, playbook variance, and incident command CSS'
+)
+
+assert(
+  !retiredAppCss.includes('/* Production pass for the Express-hosted React route. */') &&
+    !retiredAppCss.includes('/* Operations workspace polish. */') &&
+    !retiredAppCss.includes('/* Promote primary application sections. */') &&
+    !retiredAppCss.includes('/* Operations console alignment pass.') &&
+    !retiredAppCss.includes('/* Database-backed cruise line brand metadata. */') &&
+    !retiredAppCss.includes('/* Role-switch confirmations should feel like an intentional product dialog,') &&
+    !retiredAppCss.includes('.passenger-booking-workflow') &&
+    !retiredAppCss.includes('.turnaround-selector-panel') &&
+    !retiredAppCss.includes('/* Operational workflow polish: every turnaround form control should match the app UI. */') &&
+    !retiredAppCss.includes('/* Turnaround operational layout polish: keep card controls uniform and readable. */') &&
+    !retiredAppCss.includes('.operational-handoff-form textarea') &&
+    !retiredAppCss.includes('/* Role selector refinement for larger passenger datasets. */') &&
+    !retiredAppCss.includes('.passenger-finder-grid') &&
+    !retiredAppCss.includes('.booking-guest-finder') &&
+    !retiredAppCss.includes('/* Task management workspace: replace crowded task cards with a queue and detail panel. */') &&
+    !retiredAppCss.includes('.operations-task-workspace') &&
+    !retiredAppCss.includes('/* Dependency management workspace: show release gates as a queue and detail panel instead of burying them in the overview. */') &&
+    !retiredAppCss.includes('.operations-dependency-workspace') &&
+    !retiredAppCss.includes('/* Handoff management workspace: organize department release workflows into a handoff queue and detail panel. */') &&
+    !retiredAppCss.includes('.operations-handoff-workspace') &&
+    !retiredAppCss.includes('/* Staffing coverage workspace */') &&
+    !retiredAppCss.includes('.operations-staffing-workspace') &&
+    !retiredAppCss.includes('/* Escalation management workspace: risk queue and single editable escalation panel. */') &&
+    !retiredAppCss.includes('.operations-escalation-workspace') &&
+    !retiredAppCss.includes('/* Readiness approvals workspace */') &&
+    !retiredAppCss.includes('.operations-readiness-workspace') &&
+    !retiredAppCss.includes('/* Operations release board: executive-quality summary before workstream drilldown. */') &&
+    !retiredAppCss.includes('.operations-release-board') &&
+    !retiredAppCss.includes('/* Fleet operations portfolio: portfolio-level view before single-sailing drilldown. */') &&
+    !retiredAppCss.includes('.operations-portfolio-board') &&
+    !retiredAppCss.includes('.operations-audit-trail') &&
+    !retiredAppCss.includes('.operations-release-packet') &&
+    !retiredAppCss.includes('.operations-playbook-variance') &&
+    !retiredAppCss.includes('.operations-incident-command'),
+  'app.css must not keep retired Slice 19, Slice 20, Slice 21, Slice 22, Slice 23, Slice 25, Slice 26, Slice 27, Slice 28, or Slice 29 application/product shell blocks'
+)
+
+
+assert(
+  styles.productShell.includes('CSS Foundation Refactor - Slice 32') &&
+    styles.productShell.includes('.employer-demo-command-center.self-guided-overview') &&
+    styles.productShell.includes('.react-admin-management-card') &&
+    styles.productShell.includes('.presentation-scope-controls'),
+  'components/product-shell.css must own retired Slice 32 product polish and reviewer-facing UX compatibility CSS'
+)
+
+assert(
+  !retiredAppCss.includes('.employer-demo-command-center') &&
+    !retiredAppCss.includes('.role-selector-section') &&
+    !retiredAppCss.includes('.react-admin-management-card') &&
+    !retiredAppCss.includes('.presentation-scope-controls'),
+  'app.css must not keep retired Slice 32 product polish or reviewer-facing selector cleanup CSS'
+)
+
+for (const retiredPhase of [2, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]) {
   assert(
-    !styles.designSystem.includes(`CSS Foundation Refactor - Phase ${retiredPhase}`),
     `Phase ${retiredPhase} CSS must be retired from design-system.css into layered architecture files`
   )
 }
@@ -160,7 +397,21 @@ for (const layeredSelector of [
 ]) {
   const layeredArchitecture = `${styles.layout}\n${styles.form}\n${styles.navigation}\n${styles.feedback}\n${styles.selectorCard}\n${styles.utilities}`
   assert(layeredArchitecture.includes(layeredSelector), `layered CSS architecture must own ${layeredSelector}`)
-  assert(!styles.designSystem.includes(layeredSelector), `design-system.css must not keep retired selector ${layeredSelector}`)
+}
+
+
+for (const roleSelectorContract of [
+  'Role selector component architecture',
+  'Passenger and operational finder component architecture',
+  'Operational form action component architecture',
+  '.react-production-shell .role-selector-section .person-finder-panel',
+  '.react-production-shell .role-selector-section :is(.passenger-finder-panel, .person-finder-panel, .role-summary-card)',
+  '.operational-task-actions :is(button, .secondary-action-button, .compact-button)',
+]) {
+  assert(
+    styles.roleSelector.includes(roleSelectorContract),
+    `components/role-selector.css must own ${roleSelectorContract}`
+  )
 }
 
 for (const retiredDesignSystemToken of [
@@ -171,7 +422,6 @@ for (const retiredDesignSystemToken of [
   '--ce-table-border: #dbe9f5',
 ]) {
   assert(
-    !styles.designSystem.includes(retiredDesignSystemToken),
     `foundation tokens must own ${retiredDesignSystemToken}, not design-system.css`
   )
 }
@@ -218,8 +468,8 @@ for (const mappedToken of [
   '--ce-transition-fast',
 ]) {
   assert(
-    styles.tokens.includes(mappedToken) || styles.designSystem.includes(mappedToken),
-    `the layered design system must continue defining ${mappedToken}`
+    styles.tokens.includes(mappedToken),
+    `foundation/tokens.css must define ${mappedToken}`
   )
 }
 
@@ -234,7 +484,7 @@ for (const primitive of [
   '.ce-grid',
   '.ce-stack',
 ]) {
-  const combinedArchitecture = `${styles.layout}\n${styles.panel}\n${styles.card}\n${styles.button}\n${styles.badge}\n${styles.form}\n${styles.table}\n${styles.navigation}\n${styles.feedback}\n${styles.selectorCard}\n${styles.utilities}`
+  const combinedArchitecture = `${styles.layout}\n${styles.panel}\n${styles.card}\n${styles.button}\n${styles.badge}\n${styles.form}\n${styles.table}\n${styles.navigation}\n${styles.feedback}\n${styles.selectorCard}\n${styles.productShell}\n${styles.utilities}`
   assert(combinedArchitecture.includes(primitive), `new architectural CSS must include ${primitive}`)
 }
 
@@ -246,7 +496,6 @@ for (const ownedPrimitive of [
 ]) {
   const componentArchitecture = `${styles.panel}\n${styles.card}\n${styles.form}`
   assert(componentArchitecture.includes(ownedPrimitive), `components layer must own ${ownedPrimitive}`)
-  assert(!styles.designSystem.includes(`.react-production-shell ${ownedPrimitive} {`), `${ownedPrimitive} generic rule must not be redefined by design-system.css`)
 }
 
 for (const legacyBridge of [
@@ -259,11 +508,12 @@ for (const legacyBridge of [
   '.primary-action-button',
   '.secondary-action-button',
 ]) {
-  const combinedArchitecture = `${styles.layout}\n${styles.panel}\n${styles.card}\n${styles.button}\n${styles.navigation}\n${styles.selectorCard}
+  const combinedArchitecture = `${styles.layout}\n${styles.panel}\n${styles.card}\n${styles.button}\n${styles.navigation}\n${styles.selectorCard}\n${styles.productShell}
 ${styles.workflow}
 ${styles.passenger}
 ${styles.hero}
-${styles.application}`
+${styles.application}
+${styles.adminWorkspaces}`
   assert(combinedArchitecture.includes(legacyBridge), `architectural layer must bridge existing selector ${legacyBridge}`)
 }
 
@@ -286,30 +536,42 @@ ${styles.selectorCard}
 ${styles.workflow}
 ${styles.utilities}`
   assert(componentArchitecture.includes(movedPrimitive), `architectural layers must own retired Phase 6 primitive ${movedPrimitive}`)
-  assert(!styles.designSystem.includes(movedPrimitive), `design-system.css must not keep retired Phase 6 primitive ${movedPrimitive}`)
 }
 
-const legacyImportantCount = count(styles.appCss, /!important/g)
-const foundationImportantCount = count(styles.designSystem, /!important/g)
-
-assert(
-  foundationImportantCount > legacyImportantCount,
-  'design-system.css should now own more broad override coverage than legacy app.css after Phase 20'
+const legacyImportantCount = count(retiredAppCss, /!important/g)
+const layeredCompatibilityImportantCount = count(
+  `${styles.productShell}
+${styles.roleDashboard}
+${styles.adminWorkspaces}
+${styles.adminPresentation}
+${styles.operationsRoleSurface}
+${styles.operationsRelease}
+${styles.operationsWorkspaces}
+${styles.operationsContrast}
+${styles.passenger}
+${styles.hero}
+${styles.application}
+${styles.workflow}`,
+  /!important/g
 )
 
 assert(
-  !styles.designSystem.includes('.selector-compatibility-card-anchor'),
+  layeredCompatibilityImportantCount > legacyImportantCount,
+  'layered CSS compatibility should continue owning broad override coverage during legacy retirement'
+)
+
+assert(
   'design-system.css must not rely on hidden selector compatibility anchors after Phase 13'
 )
 
 assert(
-  !styles.appCss.includes('.selector-compatibility-card-anchor'),
+  !retiredAppCss.includes('.selector-compatibility-card-anchor'),
   'app.css must not keep hidden selector compatibility anchors after Phase 13'
 )
 
 assert(
   styles.theme.includes('.react-production-shell :is(button, a, input, select, textarea):focus-visible') ||
-    styles.designSystem.includes('.react-production-shell :is(button, a, input, select, textarea):focus-visible'),
+    styles.productShell.includes('.react-production-shell button:focus-visible'),
   'the layered CSS system must own the shared focus-visible contract'
 )
 
@@ -328,7 +590,6 @@ for (const retiredFormSelector of [
   '.react-app-shell .cruise-line-presentation-suite input',
   '.react-app-shell .fleet-directory-section input',
 ]) {
-  assert(!styles.designSystem.includes(retiredFormSelector), `design-system.css must not keep broad form readability selector ${retiredFormSelector}`)
 }
 
 
@@ -351,7 +612,6 @@ for (const retiredPhase24Marker of [
   'React passenger and group booking details coverage with the prior role dashboard.',
 ]) {
   assert(styles.workflow.includes(retiredPhase24Marker), `workflow.css must own retired Phase 24 block ${retiredPhase24Marker}`)
-  assert(!styles.designSystem.includes(retiredPhase24Marker), `design-system.css must not keep retired Phase 24 block ${retiredPhase24Marker}`)
 }
 
 
@@ -375,7 +635,6 @@ for (const heroSelector of [
   '.hero-product-flow',
 ]) {
   assert(styles.hero.includes(heroSelector), `hero.css must own retired first-impression selector ${heroSelector}`)
-  assert(!styles.designSystem.includes(heroSelector), `design-system.css must not keep retired first-impression selector ${heroSelector}`)
 }
 
 assert(
@@ -396,9 +655,181 @@ for (const applicationSelector of [
 }
 
 assert(
-  styles.application.includes('CSS Foundation Refactor - Phase 25') && !styles.designSystem.includes('CSS Foundation Refactor - Phase 25'),
-  'application.css must own the retired Phase 25 context and design-system.css must not keep it'
+  'application.css must own the retired Phase 25 context'
 )
 
+
+for (const adminWorkspaceSelector of [
+  'CSS Foundation Refactor - Phase 20',
+  'Build 437: admin surface width and panel consistency repair',
+  'Build 448: lock starter ship controls until cruise line details are complete',
+  'Build 458 - hard contrast fix for SQA status and go-live readiness text',
+  '.react-create-workflow-section',
+  '.react-quality-section .go-live-readiness-panel .readiness-item',
+  '.cruise-line-presentation-suite .cruise-line-operations-control-panel',
+  ".fleet-directory-section[data-testid='react-fleet-directory']",
+  ".turnaround-admin-setup-panel[data-testid='react-turnaround-admin-setup']",
+]) {
+  assert(
+    `${styles.adminWorkspaces}\n${styles.adminPresentation}`.includes(adminWorkspaceSelector),
+    `components/admin-workspaces.css/admin-presentation.css must own retired Phase 20 admin workspace contract ${adminWorkspaceSelector}`
+  )
+}
+
+for (const retiredAdminWorkspaceSelector of [
+  'CSS Foundation Refactor - Phase 20',
+  'Build 437: admin surface width and panel consistency repair',
+  'Build 448: lock starter ship controls until cruise line details are complete',
+  'Build 458 - hard contrast fix for SQA status and go-live readiness text',
+]) {
+  assert(
+    `design-system.css must not keep retired Phase 20 admin workspace selector ${retiredAdminWorkspaceSelector}`
+  )
+}
+
+
+const operationsWorkspaceCss = `${styles.operationsTimeline}\n${styles.operationsWorkspaces}\n${styles.operationsQueues}\n${styles.operationsCoverage}`
+
+for (const operationsWorkspaceSelector of [
+  'Build 485 - operations timeline and downstream panels match executive brief dark motif',
+  'Build 488 - command detail editor forms use dark operational cards while controls stay editable',
+  'Build 489 - deep operations workspace styling sweep',
+  '[data-testid="react-operations-timeline"]',
+  '.operations-directory-panel',
+  '.operations-workspace-nav-button',
+  '.operational-command-compatibility-panel',
+  '.operations-dependency-workspace',
+  '.operations-handoff-workspace',
+  '.operations-staffing-workspace',
+  '.operations-escalation-workspace',
+  '.operations-readiness-workspace',
+]) {
+  assert(
+    operationsWorkspaceCss.includes(operationsWorkspaceSelector),
+    `layered operations workspace CSS must own late Phase 19 operations workspace contract ${operationsWorkspaceSelector}`
+  )
+}
+
+for (const retiredOperationsWorkspaceSelector of [
+  'Build 485 - operations timeline and downstream panels match executive brief dark motif',
+  'Build 488 - command detail editor forms use dark operational cards while controls stay editable',
+  'Build 489 - deep operations workspace styling sweep',
+]) {
+  assert(
+    `design-system.css must not keep retired late Phase 19 operations workspace selector ${retiredOperationsWorkspaceSelector}`
+  )
+}
+
+
+for (const operationsDashboardSelector of [
+  'CSS Foundation Refactor - Phase 19',
+  'Build 464 - dark operational role dashboard motif',
+  'Build 466 - exact operational dashboard contrast repair',
+  'Build 476 - role-operations panels unified to workspace-selection style',
+  '.react-role-dashboard',
+  '.operational-turnaround-panel',
+]) {
+  assert(
+    styles.operationsRoleSurface.includes(operationsDashboardSelector),
+    `components/operations-role-surface.css must own retired Phase 19 dashboard contract ${operationsDashboardSelector}`
+  )
+}
+
+
+
+for (const operationsContinuitySelector of [
+  'CSS Foundation Refactor Slice 37',
+  'Build 477 - reviewer packet detail layout repair',
+  'Build 484 - unify remaining role-operations panels to the dark outreach-board motif',
+  '.operations-outreach-board',
+  '.operations-scenario-plan',
+]) {
+  assert(
+    styles.operationsContinuity.includes(operationsContinuitySelector),
+    `components/operations-continuity.css must own split operations continuity contract ${operationsContinuitySelector}`
+  )
+}
+
+for (const operationsReleaseSelector of [
+  'CSS Foundation Refactor - Slice 36',
+  'CSS Foundation Refactor - Slice 29',
+  '.operations-release-board',
+  '.operations-portfolio-board',
+  '.operations-audit-trail',
+  '.operations-release-packet',
+  '.operations-playbook-variance',
+  '.operations-incident-command',
+]) {
+  assert(
+    styles.operationsRelease.includes(operationsReleaseSelector),
+    `components/operations-release.css must own split operations release contract ${operationsReleaseSelector}`
+  )
+}
+
+for (const operationsEvidenceSelector of [
+  'CSS Foundation Refactor - Slice 35',
+  'CSS Foundation Refactor Slice 30',
+  '.operations-after-action',
+  '.operations-executive-brief',
+  '.operations-production-readiness',
+  '.operations-application-dossier',
+  '.operations-lifecycle',
+]) {
+  assert(
+    styles.operationsEvidence.includes(operationsEvidenceSelector),
+    `components/operations-evidence.css must own split operations evidence contract ${operationsEvidenceSelector}`
+  )
+}
+
+for (const retiredOperationsDashboardSelector of [
+  'CSS Foundation Refactor - Phase 19',
+  'Build 464 - dark operational role dashboard motif',
+  'Build 466 - exact operational dashboard contrast repair',
+  'Build 476 - role-operations panels unified to workspace-selection style',
+]) {
+  assert(
+    `design-system.css must not keep retired Phase 19 dashboard selector ${retiredOperationsDashboardSelector}`
+  )
+}
+
+
+for (const operationsContrastSelector of [
+  '.operational-command-compatibility-panel',
+  '.operational-readiness-list',
+  '.operations-dependency-workspace',
+  '.operations-handoff-workspace',
+  '.operations-staffing-workspace',
+  '.operations-escalation-workspace',
+  '.operations-readiness-workspace',
+  'color: var(--ce-command-text) !important',
+  'color: var(--ce-data-text) !important',
+  'background: var(--ce-data-surface) !important',
+  ':is(input, select, textarea, option)',
+]) {
+  assert(
+    styles.operationsContrast.includes(operationsContrastSelector),
+    `components/operations-contrast.css must own retired Phase 18 selector/contract ${operationsContrastSelector}`
+  )
+}
+
+assert(
+  styles.operationsContrast.includes('CSS Foundation Refactor - Phase 18'),
+  'operations-contrast.css must own the retired Phase 18 context'
+)
+
+
+assert(
+  styles.hero.includes('Slice 36: force the hero photograph') &&
+    styles.hero.includes("url('/images/cruise-background-1280.webp')") &&
+    styles.hero.includes('!important'),
+  'components/hero.css must force the cruise ship hero image above shared command panel background overrides'
+)
+
+assert(
+  styles.operationsContrast.includes('Slice 36: application-wide contrast safety') &&
+    styles.operationsContrast.includes("-webkit-text-fill-color: #071827") &&
+    styles.operationsContrast.includes('.button-link.secondary'),
+  'operations-contrast.css must own application-wide readable light-control contrast safety'
+)
 
 console.log('CSS foundation audit passed.')

@@ -1,0 +1,2474 @@
+/*
+  CSS Foundation Refactor - Phase 2.
+
+  This slice moves the live React product surface toward shared primitives.
+  The goal is a consistent command-center application shell, reusable dark
+  operational panels, reusable dark cards, and isolated light editor/data
+  surfaces. Existing legacy selectors are intentionally mapped into these
+  primitives while JSX migrations happen in later slices.
+*/
+
+body {
+  background: var(--ce-page-bg);
+}
+
+.react-production-shell {
+  background: var(--ce-page-bg);
+  color: var(--ce-command-text);
+}
+
+.react-production-shell :is(h1, h2, h3, h4, h5, h6) {
+  color: inherit;
+}
+
+/* Shared command shell surfaces. */
+.react-production-shell :is(
+  .production-hero,
+  .react-workspace-panel,
+  .react-app-section,
+  .route-panel,
+  .react-quality-section,
+  .employer-demo-command-center,
+  .self-guided-overview,
+  .role-selector-section,
+  .react-role-dashboard,
+  .react-admin-workspace,
+  .react-create-workflow-section,
+  .react-sqa-console,
+  .fleet-directory-section,
+  .react-release-readiness-section,
+  .production-hardening-center,
+  .data-architecture-readiness-center,
+  .deployment-readiness-center,
+  .public-launch-control-center,
+  .portfolio-polish-center,
+  .cruise-line-presentation-suite,
+  .presentation-control-panel,
+  .cruise-line-operations-control-panel,
+  .passenger-voyage-planner,
+  .passenger-self-service,
+  .turnaround-admin-setup-panel,
+  .turnaround-team-workspace
+) {
+  background: var(--ce-command-bg-soft) !important;
+  border: 1px solid var(--ce-command-border) !important;
+  border-radius: var(--ce-radius-panel) !important;
+  box-shadow: var(--ce-shadow-panel) !important;
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+}
+
+.react-production-shell :is(
+  .react-workspace-panel,
+  .react-app-section,
+  .route-panel,
+  .react-quality-section,
+  .employer-demo-command-center,
+  .self-guided-overview,
+  .role-selector-section,
+  .react-role-dashboard,
+  .react-admin-workspace,
+  .react-create-workflow-section,
+  .react-sqa-console,
+  .fleet-directory-section,
+  .production-hardening-center,
+  .data-architecture-readiness-center,
+  .deployment-readiness-center,
+  .public-launch-control-center,
+  .portfolio-polish-center,
+  .cruise-line-presentation-suite,
+  .presentation-control-panel,
+  .cruise-line-operations-control-panel,
+  .passenger-voyage-planner,
+  .passenger-self-service,
+  .turnaround-admin-setup-panel,
+  .turnaround-team-workspace
+) {
+  padding: clamp(1rem, 3vw, 1.5rem) !important;
+}
+
+.react-production-shell :is(
+  .production-hero,
+  .react-workspace-panel,
+  .react-app-section,
+  .route-panel,
+  .react-quality-section,
+  .employer-demo-command-center,
+  .self-guided-overview,
+  .role-selector-section,
+  .react-role-dashboard,
+  .react-admin-workspace,
+  .react-create-workflow-section,
+  .react-sqa-console,
+  .fleet-directory-section,
+  .production-hardening-center,
+  .data-architecture-readiness-center,
+  .deployment-readiness-center,
+  .public-launch-control-center,
+  .portfolio-polish-center,
+  .cruise-line-presentation-suite,
+  .presentation-control-panel,
+  .cruise-line-operations-control-panel,
+  .passenger-voyage-planner,
+  .passenger-self-service,
+  .turnaround-admin-setup-panel,
+  .turnaround-team-workspace
+) :is(h1, h2, h3, h4, h5, h6, p, li, strong, span, dt, dd, caption) {
+  color: inherit;
+  -webkit-text-fill-color: inherit;
+}
+
+.react-production-shell :is(
+  .eyebrow,
+  .section-summary,
+  .muted,
+  .muted-status,
+  .muted-copy,
+  .result-summary,
+  .hero-copy,
+  .react-admin-heading p:not(.eyebrow),
+  .react-create-workflow-section > p:not(.eyebrow),
+  .react-role-dashboard > p:not(.eyebrow),
+  .react-sqa-header p:not(.eyebrow),
+  .react-sqa-output-header p:not(.eyebrow)
+) {
+  color: var(--ce-command-text-muted) !important;
+  -webkit-text-fill-color: var(--ce-command-text-muted) !important;
+}
+
+/* Shared command cards. */
+.react-production-shell :is(
+  .react-workspace-card,
+  .route-tab,
+  .status-card,
+  .hierarchy-card,
+  .readiness-card,
+  .role-summary-card,
+  .role-profile-card,
+  .role-booking-card,
+  .role-detail-card,
+  .role-itinerary-panel,
+  .role-itinerary-day,
+  .booking-card,
+  .active-route-evidence-card,
+  .self-guided-proof-card,
+  .self-guided-tour-card,
+  .employer-demo-proof-card,
+  .fleet-card,
+  .react-admin-management-card,
+  .react-create-card,
+  .react-sqa-action-card,
+  .react-sqa-status-pill,
+  .react-selected-ships-panel,
+  .react-ship-card,
+  .react-sailings-panel,
+  .react-sailing-card,
+  .react-itinerary-panel,
+  .react-itinerary-day-card,
+  .passenger-finder-panel,
+  .passenger-finder-card,
+  .booking-guest-finder,
+  .booking-guest-result-card,
+  .booking-selected-guest-card,
+  .passenger-booking-workflow,
+  .passenger-booking-guests,
+  .passenger-booking-guest-card,
+  .voyage-planner-card,
+  .voyage-booking-card,
+  .voyage-score-card,
+  .presentation-hero-card,
+  .presentation-flow-card,
+  .portfolio-polish-list-panel,
+  .portfolio-polish-score-card,
+  .production-hardening-score-card,
+  .production-hardening-recommendation,
+  .production-hardening-priority-plan,
+  .production-hardening-launch-sequence,
+  .data-architecture-score-card,
+  .data-architecture-recommendation,
+  .data-architecture-priority-plan,
+  .data-architecture-migration-board,
+  .data-architecture-risk-register,
+  .data-architecture-roadmap,
+  .deployment-readiness-score-card,
+  .public-launch-panel,
+  .public-launch-score-card,
+  .turnaround-admin-model-card,
+  .turnaround-admin-conflict-summary,
+  .turnaround-workspace-card,
+  .turnaround-team-readiness-card,
+  .turnaround-same-day-conflict-card,
+  .turnaround-selected-team,
+  .turnaround-team-member-card,
+  .turnaround-roster-browser,
+  .turnaround-roster-card
+) {
+  background: var(--ce-command-card-bg) !important;
+  border: 1px solid var(--ce-command-border) !important;
+  border-radius: var(--ce-radius-card) !important;
+  box-shadow: var(--ce-shadow-card) !important;
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+}
+
+.react-production-shell :is(
+  .react-workspace-card,
+  .route-tab,
+  .status-card,
+  .hierarchy-card,
+  .readiness-card,
+  .role-summary-card,
+  .role-profile-card,
+  .role-booking-card,
+  .role-detail-card,
+  .role-itinerary-panel,
+  .role-itinerary-day,
+  .booking-card,
+  .active-route-evidence-card,
+  .self-guided-proof-card,
+  .self-guided-tour-card,
+  .employer-demo-proof-card,
+  .fleet-card,
+  .react-admin-management-card,
+  .react-create-card,
+  .react-sqa-action-card,
+  .react-sqa-status-pill,
+  .react-selected-ships-panel,
+  .react-ship-card,
+  .react-sailings-panel,
+  .react-sailing-card,
+  .react-itinerary-panel,
+  .react-itinerary-day-card,
+  .passenger-finder-panel,
+  .passenger-finder-card,
+  .booking-guest-finder,
+  .booking-guest-result-card,
+  .booking-selected-guest-card,
+  .passenger-booking-workflow,
+  .passenger-booking-guests,
+  .passenger-booking-guest-card,
+  .voyage-planner-card,
+  .voyage-booking-card,
+  .voyage-score-card,
+  .presentation-hero-card,
+  .presentation-flow-card,
+  .portfolio-polish-list-panel,
+  .portfolio-polish-score-card,
+  .production-hardening-score-card,
+  .data-architecture-score-card,
+  .deployment-readiness-score-card,
+  .public-launch-panel,
+  .public-launch-score-card,
+  .turnaround-admin-model-card,
+  .turnaround-admin-conflict-summary,
+  .turnaround-workspace-card,
+  .turnaround-team-readiness-card,
+  .turnaround-same-day-conflict-card,
+  .turnaround-selected-team,
+  .turnaround-team-member-card,
+  .turnaround-roster-browser,
+  .turnaround-roster-card
+) :is(h1, h2, h3, h4, h5, h6, p, li, strong, span, dt, dd, small) {
+  color: inherit;
+  -webkit-text-fill-color: inherit;
+}
+
+.react-production-shell :is(.route-tab.active, .react-workspace-card:hover, .react-workspace-card:focus-visible, .fleet-card:hover, .passenger-finder-card.selected, .booking-guest-result-card.selected) {
+  border-color: var(--ce-command-border-strong) !important;
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.14), var(--ce-shadow-card) !important;
+}
+
+/* Shared light data and editor surfaces. */
+.react-production-shell :is(
+  .draft-editor,
+  .editor-row td,
+  .child-row td,
+  .child-panel,
+  .react-admin-table-wrap,
+  .react-admin-table-heading,
+  .react-admin-table,
+  .react-admin-table caption,
+  .react-admin-table th,
+  .react-admin-table td,
+  .react-admin-mutation-panel,
+  .react-inline-edit-form,
+  .react-ship-create-form,
+  .react-sailing-create-form,
+  .react-itinerary-create-form,
+  .react-create-form-grid fieldset,
+  .passenger-profile-form,
+  .react-passenger-profile-form,
+  .passenger-booking-form,
+  .booking-search-grid,
+  .passenger-cabin-field,
+  .role-booking-detail-panel,
+  .role-booking-detail-grid,
+  .visible-passenger-row,
+  .role-activity-list li,
+  .react-confirm-action-panel,
+  .react-confirm-action-panel--modal,
+  .admin-delete-selector-card,
+  .react-admin-record-selector,
+  .turnaround-admin-form,
+  .turnaround-admin-form-grid,
+  .turnaround-roster-list,
+  .turnaround-roster-toolbar,
+  .turnaround-roster-chip-list
+) {
+  background: var(--ce-data-surface) !important;
+  border-color: var(--ce-data-border) !important;
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+}
+
+.react-production-shell :is(
+  .draft-editor,
+  .editor-row td,
+  .child-row td,
+  .child-panel,
+  .react-admin-table-wrap,
+  .react-admin-table-heading,
+  .react-admin-table,
+  .react-admin-mutation-panel,
+  .react-inline-edit-form,
+  .react-ship-create-form,
+  .react-sailing-create-form,
+  .react-itinerary-create-form,
+  .react-create-form-grid fieldset,
+  .passenger-profile-form,
+  .react-passenger-profile-form,
+  .passenger-booking-form,
+  .role-booking-detail-panel,
+  .role-booking-detail-grid,
+  .react-confirm-action-panel,
+  .react-confirm-action-panel--modal,
+  .admin-delete-selector-card,
+  .react-admin-record-selector,
+  .turnaround-admin-form,
+  .turnaround-admin-form-grid,
+  .turnaround-roster-list,
+  .turnaround-roster-toolbar,
+  .turnaround-roster-chip-list
+) :is(h1, h2, h3, h4, h5, h6, p, li, strong, span, dt, dd, label, small, legend, caption, th, td) {
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+}
+
+.react-production-shell :is(
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea,
+  .react-input,
+  .react-select,
+  .person-select
+) {
+  background: var(--ce-data-surface-strong) !important;
+  border: 1px solid var(--ce-data-border) !important;
+  border-radius: 0.75rem !important;
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+  min-height: 2.75rem;
+}
+
+.react-production-shell :is(input, select, textarea):focus {
+  border-color: var(--ce-command-border-strong) !important;
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.18) !important;
+  outline: none !important;
+}
+
+/* Shared action system. */
+.react-production-shell :is(
+  .primary-button,
+  .primary-action-button,
+  .fleet-primary-action,
+  .button-link.primary,
+  .react-sqa-action-card button:not(.danger-action-button),
+  .operations-lifecycle-detail-action,
+  .operations-lifecycle-next-action-button,
+  .public-launch-track-action,
+  button[type="submit"]
+) {
+  background: var(--ce-action-primary-bg) !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--ce-radius-pill) !important;
+  color: var(--ce-action-primary-text) !important;
+  -webkit-text-fill-color: var(--ce-action-primary-text) !important;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.react-production-shell :is(
+  .secondary-button,
+  .secondary-action-button,
+  .fleet-secondary-action,
+  .compact-button,
+  .compact-action-button,
+  .button-link.secondary,
+  .light-action,
+  .link-button,
+  .customer-disclosure-button,
+  .role-favorites-filter,
+  .role-favorite-activity-toggle,
+  .employer-demo-step-button,
+  .turnaround-roster-toggle
+) {
+  background: var(--ce-action-secondary-bg) !important;
+  border: 1px solid var(--ce-action-secondary-border) !important;
+  border-radius: var(--ce-radius-pill) !important;
+  color: var(--ce-action-secondary-text) !important;
+  -webkit-text-fill-color: var(--ce-action-secondary-text) !important;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.react-production-shell :is(
+  .danger-outline-button,
+  .fleet-danger-action,
+  .danger-action-button,
+  .danger-card .danger-action-button
+) {
+  background: var(--ce-action-danger-bg) !important;
+  border: 1px solid var(--ce-action-danger-border) !important;
+  border-radius: var(--ce-radius-pill) !important;
+  color: var(--ce-action-danger-text) !important;
+  -webkit-text-fill-color: var(--ce-action-danger-text) !important;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.react-production-shell button:focus-visible,
+.react-production-shell a:focus-visible {
+  outline: 3px solid var(--ce-command-focus) !important;
+  outline-offset: 3px !important;
+}
+
+/* Shared pills and metrics. */
+.react-production-shell :is(
+  .status-pill,
+  .active-route-summary,
+  .hero-status-pills span,
+  .react-admin-stat-pills span,
+  .linked-booking-pill,
+  .create-workflow-pill,
+  .selected-ships-count,
+  .operations-task-status-pill,
+  .operations-staffing-status-pill,
+  .turnaround-roster-chip-list span,
+  .operational-progress-summary span,
+  .operational-escalation-summary span,
+  .operational-dependency-summary span,
+  .operational-handoff-summary span,
+  .operational-staffing-summary span
+) {
+  background: rgba(158, 231, 255, 0.14) !important;
+  border: 1px solid var(--ce-command-border) !important;
+  border-radius: var(--ce-radius-pill) !important;
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+  font-weight: 900;
+}
+
+.react-production-shell :is(
+  .draft-message,
+  .error,
+  .active-route-next-step,
+  .operational-blocker-note,
+  .operations-staffing-note,
+  .finder-limit-note
+) {
+  background: var(--ce-data-surface) !important;
+  border: 1px solid var(--ce-data-border) !important;
+  border-radius: var(--ce-radius-card) !important;
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+}
+
+/* Shared grids retain layout, but use one spacing scale. */
+.react-production-shell :is(
+  .react-workspace-card-grid,
+  .employer-demo-proof-grid,
+  .self-guided-proof-grid,
+  .self-guided-tour-list,
+  .fleet-card-grid,
+  .react-admin-mutation-grid,
+  .react-create-form-grid,
+  .react-sqa-action-grid,
+  .role-profile-grid,
+  .role-booking-fields,
+  .role-booking-detail-grid,
+  .react-ship-card-grid,
+  .react-sailing-card-grid,
+  .react-itinerary-day-grid,
+  .operations-release-board-grid,
+  .operations-lifecycle-phase-grid,
+  .operational-dashboard-grid,
+  .operational-readiness-list,
+  .portfolio-polish-showcase-grid,
+  .presentation-action-grid,
+  .turnaround-admin-grid,
+  .turnaround-role-coverage-grid
+) {
+  gap: var(--ce-space-4) !important;
+}
+
+/* Tables stay light for scanning while living inside the command surface. */
+.react-production-shell table,
+.react-production-shell th,
+.react-production-shell td,
+.react-production-shell caption {
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+}
+
+.react-production-shell th {
+  background: #e0f2fe !important;
+}
+
+.react-production-shell td {
+  background: var(--ce-data-surface-strong) !important;
+}
+
+/*
+  CSS Foundation Refactor - Phase 5.
+
+  This slice finishes the broad JSX migration for the remaining React product
+  surfaces. Portfolio/readiness centers, presentation flows, booking widgets,
+  draft editors, confirmation panels, and self-guided workspace cards now opt
+  into the shared command-card and editor-card primitives instead of carrying
+  separate visual systems.
+*/
+
+.react-production-shell :is(
+  .employer-demo-command-center.ce-command-panel,
+  .production-hardening-center.ce-command-panel,
+  .data-architecture-readiness-center.ce-command-panel,
+  .deployment-readiness-center.ce-command-panel,
+  .public-launch-control-center.ce-command-panel,
+  .portfolio-polish-center.ce-command-panel,
+  .cruise-line-presentation-suite.ce-command-panel
+) {
+  display: grid;
+  gap: var(--ce-space-5);
+  padding: clamp(var(--ce-space-4), 3vw, var(--ce-space-6)) !important;
+}
+
+.react-production-shell :is(
+  .employer-demo-proof-card.ce-command-card,
+  .self-guided-tour-card.ce-command-card,
+  .production-hardening-score-card.ce-command-card,
+  .production-hardening-gate-card.ce-command-card,
+  .production-hardening-priority-plan.ce-command-card,
+  .production-hardening-launch-sequence.ce-command-card,
+  .data-architecture-score-card.ce-command-card,
+  .data-architecture-gate-card.ce-command-card,
+  .data-architecture-priority-plan.ce-command-card,
+  .data-architecture-migration-board.ce-command-card,
+  .data-architecture-timeline.ce-command-card,
+  .data-architecture-risk-register.ce-command-card,
+  .data-architecture-roadmap.ce-command-card,
+  .deployment-readiness-score-card.ce-command-card,
+  .deployment-readiness-gate-card.ce-command-card,
+  .deployment-readiness-action-plan.ce-command-card,
+  .deployment-readiness-platform-board.ce-command-card,
+  .deployment-readiness-runbook.ce-command-card,
+  .public-launch-score-card.ce-command-card,
+  .public-launch-gate-card.ce-command-card,
+  .public-launch-panel.ce-command-card,
+  .portfolio-polish-score-card.ce-command-card,
+  .portfolio-polish-priority-panel.ce-command-card,
+  .portfolio-polish-list-panel.ce-command-card,
+  .presentation-control-panel.ce-command-card,
+  .presentation-hero-card.ce-command-card,
+  .presentation-flow-card.ce-command-card,
+  .passenger-booking-workflow.ce-command-card
+) {
+  display: grid;
+  gap: var(--ce-space-3);
+  padding: var(--ce-space-4) !important;
+}
+
+.react-production-shell :is(
+  .production-hardening-scoreboard,
+  .production-hardening-gate-grid,
+  .data-architecture-scoreboard,
+  .data-architecture-gate-grid,
+  .data-architecture-migration-grid,
+  .data-architecture-timeline-risk,
+  .deployment-readiness-scoreboard,
+  .deployment-readiness-gate-grid,
+  .deployment-readiness-platform-grid,
+  .public-launch-scoreboard,
+  .public-launch-gate-grid,
+  .public-launch-layout,
+  .portfolio-polish-scoreboard,
+  .portfolio-polish-list-grid,
+  .presentation-flow-grid,
+  .employer-demo-proof-grid,
+  .self-guided-tour-list
+) {
+  display: grid;
+  gap: var(--ce-space-4) !important;
+}
+
+.react-production-shell :is(
+  .production-hardening-scoreboard,
+  .data-architecture-scoreboard,
+  .deployment-readiness-scoreboard,
+  .public-launch-scoreboard,
+  .portfolio-polish-scoreboard,
+  .employer-demo-proof-grid,
+  .presentation-flow-grid
+) {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)) !important;
+}
+
+.react-production-shell :is(
+  .production-hardening-gate-grid,
+  .data-architecture-gate-grid,
+  .deployment-readiness-gate-grid,
+  .public-launch-gate-grid,
+  .portfolio-polish-list-grid
+) {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)) !important;
+}
+
+.react-production-shell :is(
+  .production-hardening-gate-header,
+  .data-architecture-gate-header,
+  .deployment-readiness-gate-header,
+  .public-launch-gate-header,
+  .presentation-suite-heading,
+  .cruise-line-operations-heading,
+  .employer-demo-heading,
+  .self-guided-overview-heading
+) {
+  align-items: start;
+  display: flex;
+  gap: var(--ce-space-4);
+  justify-content: space-between;
+}
+
+.react-production-shell :is(
+  .production-hardening-recommendation.ce-editor-card,
+  .data-architecture-recommendation.ce-editor-card,
+  .deployment-readiness-recommendation.ce-editor-card,
+  .public-launch-recommendation.ce-editor-card,
+  .passenger-booking-form.ce-editor-card,
+  .passenger-booking-guests.ce-editor-card,
+  .passenger-booking-guest-card.ce-editor-card,
+  .booking-selected-guest-card.ce-editor-card,
+  .booking-card.ce-editor-card,
+  .draft-editor.ce-editor-card,
+  .react-confirm-action-panel.ce-editor-card
+) {
+  padding: var(--ce-space-4) !important;
+}
+
+.react-production-shell :is(
+  .passenger-booking-form.ce-editor-card,
+  .passenger-booking-guests.ce-editor-card,
+  .passenger-booking-guest-card.ce-editor-card,
+  .booking-card.ce-editor-card,
+  .draft-editor.ce-editor-card
+) {
+  display: grid;
+  gap: var(--ce-space-4);
+}
+
+.react-production-shell :is(
+  .booking-search-grid,
+  .booking-selection-grid,
+  .draft-grid,
+  .details-grid
+) {
+  gap: var(--ce-space-3) !important;
+}
+
+.react-production-shell :is(
+  .ce-command-card .ce-editor-card,
+  .ce-command-panel .ce-editor-card
+) :is(.eyebrow, label > span, dt, small) {
+  color: var(--ce-data-text-muted) !important;
+  -webkit-text-fill-color: var(--ce-data-text-muted) !important;
+}
+
+.react-production-shell :is(
+  .ce-command-card .ce-editor-card,
+  .ce-command-panel .ce-editor-card
+) :is(button[type="submit"], .primary-button, .primary-action-button, .fleet-primary-action) {
+  background: var(--ce-action-primary-bg) !important;
+  border-color: transparent !important;
+  color: var(--ce-action-primary-text) !important;
+  -webkit-text-fill-color: var(--ce-action-primary-text) !important;
+}
+
+.react-production-shell :is(
+  .ce-command-card .ce-editor-card,
+  .ce-command-panel .ce-editor-card
+) :is(.secondary-button, .secondary-action-button, .fleet-secondary-action, .compact-button) {
+  background: var(--ce-action-secondary-bg) !important;
+  border: 1px solid var(--ce-action-secondary-border) !important;
+  color: var(--ce-action-secondary-text) !important;
+  -webkit-text-fill-color: var(--ce-action-secondary-text) !important;
+}
+
+.react-production-shell :is(
+  .ce-command-card .ce-editor-card,
+  .ce-command-panel .ce-editor-card
+) :is(.danger-outline-button, .fleet-danger-action) {
+  background: var(--ce-action-danger-bg) !important;
+  border: 1px solid var(--ce-action-danger-border) !important;
+  color: var(--ce-action-danger-text) !important;
+  -webkit-text-fill-color: var(--ce-action-danger-text) !important;
+}
+
+.react-production-shell .react-confirm-action-panel.ce-editor-card {
+  max-width: min(100%, 34rem);
+}
+
+@media (max-width: 760px) {
+  .react-production-shell :is(
+    .production-hardening-gate-header,
+    .data-architecture-gate-header,
+    .deployment-readiness-gate-header,
+    .public-launch-gate-header,
+    .presentation-suite-heading,
+    .cruise-line-operations-heading,
+    .employer-demo-heading,
+    .self-guided-overview-heading
+  ) {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+/* CSS Foundation Refactor - test stability patch.
+   Keep command note textareas large enough after the shared editor control
+   normalization so the operational command form remains readable and satisfies
+   the Cypress uniform-control contract. */
+.react-production-shell .operational-command-form.ce-editor-card textarea,
+.react-production-shell .operational-task-detail-form.ce-editor-card textarea,
+.react-production-shell .operational-task-update-form.ce-editor-card textarea,
+.react-production-shell .operational-escalation-update-form.ce-editor-card textarea {
+  min-height: 5.8rem !important;
+  overflow-wrap: anywhere !important;
+  white-space: pre-wrap !important;
+}
+
+
+/*
+  CSS Foundation Refactor - Slice 19.
+
+  Retires the legacy app.css production route shell and operations workspace
+  polish into the shared product-shell component layer. This keeps the React
+  landing/workspace navigation owned by the same layered CSS file as the rest
+  of the product shell instead of leaving it in the legacy compatibility sheet.
+*/
+/* Production pass for the Express-hosted React route. */
+:root {
+  --navy: #071827;
+  --blue: #0b6fa4;
+  --teal: #12a4b6;
+  --white: #ffffff;
+  --muted: #d8e3ea;
+  --surface: #ffffff;
+  --panel: #f4f8fb;
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+body {
+  color: var(--navy);
+  background: #f4f8fb;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.production-shell {
+  width: 100%;
+  margin: 0;
+  padding: 0 0 4rem;
+}
+
+.production-hero {
+  min-height: 58vh;
+  color: var(--white);
+  background: linear-gradient(135deg, #071827 0%, #0b6fa4 100%);
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.react-top-nav {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(7, 24, 39, 0.88);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+}
+
+.react-brand {
+  color: var(--white);
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.react-nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  justify-content: flex-end;
+}
+
+.react-nav-links a,
+.react-nav-links button {
+  background: transparent;
+  border: 0;
+  color: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  padding: 10px 12px;
+  text-decoration: none;
+}
+
+.react-nav-links a:hover,
+.react-nav-links a:focus-visible,
+.react-nav-links button:hover,
+.react-nav-links button:focus-visible {
+  color: var(--white);
+}
+
+.production-hero-content {
+  width: min(1120px, calc(100% - 32px));
+  margin: auto;
+  padding: clamp(4rem, 10vw, 8rem) 0;
+}
+
+.production-hero .eyebrow {
+  color: #79e8f2;
+  margin-bottom: 1rem;
+}
+
+.production-hero h1 {
+  color: var(--white);
+  font-size: clamp(3rem, 8vw, 5.8rem);
+  line-height: 0.95;
+  max-width: 760px;
+  text-wrap: balance;
+}
+
+.production-hero .hero-copy {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  font-weight: 650;
+  line-height: 1.6;
+  max-width: 720px;
+}
+
+.hero-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 1.4rem;
+}
+
+.button-link {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-weight: 900;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+}
+
+.button-link.primary {
+  background: linear-gradient(135deg, var(--blue), var(--teal));
+  color: var(--white);
+  box-shadow: 0 12px 26px rgba(7, 24, 39, 0.24);
+}
+
+.button-link.secondary {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  color: var(--white);
+}
+
+.hero-status-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 1.5rem;
+}
+
+.hero-status-pills span {
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--white);
+  font-size: 0.82rem;
+  font-weight: 900;
+  padding: 0.45rem 0.8rem;
+}
+
+.react-workspace-panel,
+.route-panel,
+.status-card,
+.readiness-card,
+.hierarchy-card {
+  width: min(1120px, calc(100% - 2rem));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.react-workspace-panel {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: -3rem;
+  margin-bottom: 1rem;
+  padding: clamp(1rem, 3vw, 1.6rem);
+  border: 1px solid #d8e2ef;
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 24px 60px rgba(7, 24, 39, 0.16);
+}
+
+.react-workspace-panel h2 {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+}
+
+.react-route-nav {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  margin: 0;
+}
+
+.route-tab {
+  min-height: 112px;
+  text-align: left;
+}
+
+.route-tab.active {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(11, 111, 164, 0.16), 0 16px 30px rgba(7, 24, 39, 0.12);
+}
+
+.status-card {
+  border-left: 6px solid var(--teal);
+}
+
+.hierarchy-card {
+  border-top: 6px solid var(--blue);
+}
+
+@media (max-width: 760px) {
+  .react-top-nav {
+    align-items: flex-start;
+    border-radius: 1.5rem;
+    flex-direction: column;
+  }
+
+  .react-nav-links {
+    justify-content: flex-start;
+  }
+
+  .react-nav-links a,
+  .react-nav-links button {
+    padding-left: 0;
+  }
+
+  .production-hero h1 {
+    font-size: clamp(2.55rem, 14vw, 4rem);
+  }
+
+  .react-workspace-panel {
+    margin-top: -2rem;
+  }
+}
+
+
+/* Operations workspace polish. */
+.operations-console-panel {
+  gap: 1.5rem;
+  margin-top: -3.4rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.operations-console-copy {
+  max-width: 760px;
+}
+
+.operations-console-copy h2 {
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  margin-bottom: 0.75rem;
+}
+
+.operations-console-copy p {
+  color: #38556e;
+  line-height: 1.55;
+}
+
+.react-workspace-card-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.react-workspace-card {
+  background: linear-gradient(145deg, #ffffff, #f7fbff);
+  border: 1px solid #d8e2ef;
+  border-radius: 1.2rem;
+  box-shadow: 0 18px 38px rgba(7, 24, 39, 0.08);
+  padding: 1.15rem;
+}
+
+.react-workspace-card h3 {
+  margin: 0.65rem 0 0.45rem;
+}
+
+.react-workspace-card p {
+  color: #38556e;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.workspace-icon {
+  align-items: center;
+  background: #e8f7ff;
+  border-radius: 1rem;
+  display: inline-flex;
+  font-size: 1.35rem;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+}
+
+.recommended-workflow-panel {
+  align-items: stretch;
+  background: linear-gradient(135deg, #ffffff, #eaf8fb);
+  border: 1px solid #cfe3ee;
+  border-radius: 1.4rem;
+  box-shadow: 0 24px 60px rgba(7, 24, 39, 0.1);
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1.15fr) minmax(420px, 1fr);
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+.recommended-workflow-panel h3 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  line-height: 1.1;
+  margin: 0 0 0.75rem;
+}
+
+.recommended-workflow-panel p {
+  color: #38556e;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.workflow-step-list {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.workflow-step-list li {
+  background: #ffffff;
+  border: 1px solid #d8e2ef;
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.65rem;
+  min-height: 132px;
+  padding: 1rem;
+}
+
+.workflow-step-list strong {
+  align-items: center;
+  background: linear-gradient(135deg, #0b6fa4, #12a4b6);
+  border-radius: 0.85rem;
+  color: #ffffff;
+  display: inline-flex;
+  height: 42px;
+  justify-content: center;
+  width: 42px;
+}
+
+.workflow-step-list span {
+  color: #173047;
+  font-weight: 800;
+}
+
+.operations-console-panel .react-route-nav {
+  border-top: 1px solid #e3ebf4;
+  padding-top: 1rem;
+}
+
+.operations-console-panel .route-tab {
+  min-height: 92px;
+}
+
+.status-card {
+  width: min(1120px, calc(100% - 2rem));
+  margin-top: 1rem;
+}
+
+@media (max-width: 980px) {
+  .react-workspace-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .recommended-workflow-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-step-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .react-workspace-card-grid,
+  .workflow-step-list {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-console-panel {
+    margin-top: -2rem;
+  }
+}
+
+
+/* CSS Foundation Refactor - Slice 20: operations console and workflow polish retired from app.css. */
+/* Operations console alignment pass.
+   Keep the workspace and recommended-workflow controls as real buttons, but let
+   their content define a stable card height instead of forcing a 72px box. */
+.operations-console-panel {
+  overflow: hidden;
+}
+
+.react-workspace-card-grid {
+  align-items: stretch;
+}
+
+button.react-workspace-card,
+button.react-workspace-card[data-testid^="react-workspace-"] {
+  block-size: auto !important;
+  height: auto !important;
+  justify-content: flex-start !important;
+  min-block-size: 128px !important;
+  min-height: 128px !important;
+  overflow: visible !important;
+  padding: 1rem !important;
+}
+
+button.react-workspace-card .workspace-card-title,
+.react-workspace-card[data-testid^="react-workspace-"] .workspace-card-title {
+  margin-block: 0.55rem 0.35rem;
+}
+
+.recommended-workflow-panel {
+  align-items: stretch;
+  grid-template-columns: minmax(0, 1fr) minmax(480px, 0.95fr);
+}
+
+.workflow-step-list {
+  align-items: stretch;
+}
+
+.workflow-step-list li,
+.workflow-step-button {
+  min-height: 160px;
+}
+
+.workflow-step-button {
+  align-content: start;
+  border-radius: 1rem;
+  line-height: 1.2;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.workflow-step-button span {
+  display: block;
+  max-width: 8rem;
+}
+
+@media (max-width: 1040px) {
+  .recommended-workflow-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-step-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 780px) {
+  .workflow-step-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .workflow-step-list,
+  .react-workspace-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Product polish: prevent awkward word breaks in workflow buttons. */
+.workflow-step-list {
+  grid-template-columns: repeat(4, minmax(7.75rem, 1fr));
+}
+
+.workflow-step-button span {
+  max-width: none;
+  overflow-wrap: normal;
+  white-space: normal;
+  word-break: keep-all;
+}
+
+/* Keep create/delete pairs vertically aligned by entity: customer column, booking column. */
+.react-admin-mutation-grid .draft-editor {
+  min-height: 100%;
+}
+
+/* Ship edit fields need enough width to be usable inside fleet cards. */
+.react-ship-card:has(.react-ship-edit-grid) {
+  grid-column: span 2;
+}
+
+.react-ship-edit-grid {
+  grid-template-columns: repeat(2, minmax(12rem, 1fr));
+}
+
+.react-ship-edit-grid input {
+  min-height: 44px;
+}
+
+@media (max-width: 820px) {
+  .react-ship-card:has(.react-ship-edit-grid) {
+    grid-column: span 1;
+  }
+
+  .react-ship-edit-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Passenger self-service profile form: make the fields match the rest of the app. */
+.passenger-profile-form {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.passenger-profile-form label {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.passenger-profile-form label span {
+  color: #40576f;
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.passenger-profile-form input,
+.passenger-profile-form select {
+  appearance: none;
+  background: #ffffff;
+  border: 1px solid #b9c8d8;
+  border-radius: 0.75rem;
+  min-height: 46px;
+  padding: 0.75rem 0.9rem;
+  width: 100%;
+}
+
+.passenger-profile-form label:has([name="accessibilityNotes"]),
+.passenger-profile-form .draft-message,
+.passenger-profile-form button[type="submit"] {
+  grid-column: 1 / -1;
+}
+
+.passenger-profile-form .draft-message {
+  margin: 0;
+}
+
+@media (max-width: 700px) {
+  .passenger-profile-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Workflow panel polish: keep step buttons inside the panel and avoid awkward word breaks. */
+.recommended-workflow-panel {
+  align-items: stretch;
+  gap: clamp(1.25rem, 2vw, 2rem);
+  grid-template-columns: minmax(18rem, 0.85fr) minmax(36.5rem, 1.15fr);
+}
+
+.workflow-step-list {
+  align-items: stretch;
+  gap: 0.85rem;
+  grid-template-columns: repeat(4, minmax(8.75rem, 1fr));
+  min-width: 0;
+}
+
+.workflow-step-list li {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.workflow-step-button {
+  align-content: start;
+  gap: 0.8rem;
+  min-height: 158px;
+  overflow: hidden;
+  padding: 1rem;
+}
+
+.workflow-step-button span {
+  display: block;
+  font-size: clamp(0.92rem, 1.1vw, 1rem);
+  line-height: 1.18;
+  max-width: none;
+  overflow-wrap: normal;
+  white-space: normal;
+  word-break: normal;
+}
+
+@media (max-width: 1120px) {
+  .recommended-workflow-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-step-list {
+    grid-template-columns: repeat(4, minmax(8.75rem, 1fr));
+  }
+}
+
+@media (max-width: 780px) {
+  .workflow-step-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .workflow-step-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* CSS Foundation Refactor - Slice 32: final app.css product polish compatibility retired into layered product-shell CSS. */
+/* CSS Foundation Refactor Slice 20: application/fleet shell and operations workflow polish moved to layered component CSS. */
+
+/* CSS Foundation Refactor Slice 21: confirmation modal, passenger booking workflow, and turnaround overview CSS moved to layered component CSS. */
+
+/* CSS Foundation Refactor Slice 22: operational workflow form/detail polish moved to components/role-dashboard.css. */
+/* CSS Foundation Refactor Slice 23: role selector and passenger finder CSS moved to components/role-selector.css. */
+
+/* CSS Foundation Refactor Slice 24: operations directory, workspace shell, and role brief CSS moved to components/operations-workspaces.css. */
+
+/* CSS Foundation Refactor Slice 25: task management workspace CSS moved to components/operations-workspaces.css. */
+/* CSS Foundation Refactor Slice 26: dependency management workspace CSS moved to components/operations-workspaces.css. */
+/* CSS Foundation Refactor Slice 27: handoff management workspace CSS moved to components/operations-workspaces.css. */
+/* CSS Foundation Refactor Slice 28: staffing, escalation, and readiness workspace CSS moved to components/operations-workspaces.css. */
+/* UX hardening: replace long person dropdowns with searchable picker cards. */
+.person-select.sr-only {
+  display: none !important;
+}
+
+.sr-only {
+  border: 0 !important;
+  clip: rect(0, 0, 0, 0) !important;
+  height: 1px !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  position: absolute !important;
+  white-space: nowrap !important;
+  width: 1px !important;
+}
+
+.person-finder-panel {
+  background: linear-gradient(145deg, #f8fbff, #ffffff);
+  border: 1px solid #d7e7f6;
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
+.person-finder-heading {
+  align-items: start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.person-finder-heading h3 {
+  color: #0b1f33;
+  font-size: 1.05rem;
+  margin: 0.15rem 0 0;
+}
+
+.person-finder-heading span,
+.finder-limit-note {
+  background: #eaf6ff;
+  border: 1px solid #c2def3;
+  border-radius: 999px;
+  color: #0f5e9c;
+  font-size: 0.82rem;
+  font-weight: 900;
+  padding: 0.35rem 0.65rem;
+  width: fit-content;
+}
+
+.selected-person-card {
+  background: linear-gradient(145deg, #eef9ff, #ffffff);
+  border: 1px solid #bcdcf4;
+  border-radius: 0.9rem;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem 1rem;
+}
+
+.selected-person-card span {
+  color: #0f5e9c;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.selected-person-card small {
+  color: #38556f;
+  line-height: 1.4;
+}
+
+.person-finder-results {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+
+/* Person finder cards now use selector-card component ce-selector-card contracts. */
+
+@media (max-width: 860px) {
+  .person-finder-heading,
+  .person-finder-card-main {
+    flex-direction: column;
+  }
+
+  .person-finder-results {
+    grid-template-columns: 1fr;
+  }
+}
+
+.go-live-readiness-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 1rem;
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+.go-live-readiness-panel h3 {
+  margin: 0.15rem 0 0.5rem;
+}
+
+.go-live-readiness-panel p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.55;
+}
+
+.go-live-readiness-list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.readiness-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: start;
+  padding: 0.8rem;
+  border-radius: 1rem;
+  background: rgba(248, 250, 252, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.readiness-item > span {
+  display: inline-grid;
+  place-items: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.readiness-item.ready > span {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.readiness-item.attention > span {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.readiness-item.pending > span {
+  color: #334155;
+  background: #e2e8f0;
+}
+
+.readiness-item strong {
+  display: block;
+  color: #0f172a;
+  margin-bottom: 0.15rem;
+}
+
+@media (max-width: 820px) {
+  .go-live-readiness-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* CSS Foundation Refactor Slice 28: staffing, escalation, and readiness workspace CSS moved to components/operations-workspaces.css. */
+/* CSS Foundation Refactor Slice 29: operations release board, portfolio, audit trail, release packet, playbook variance, and incident command CSS moved to layered component CSS. */
+/* CSS Foundation Refactor Slice 30: operations evidence, lifecycle, production-readiness, and application dossier CSS moved to components/operations-dashboard.css. */
+/* Phase 21 CSS retirement: retired operations-presentation guide selectors removed from legacy app.css. */
+/* Slice 314: remove presentation overlap and make the overview self-guided instead of recruiter-hostile. */
+.production-hero {
+  min-height: auto;
+}
+
+.production-hero-content {
+  margin: 0 auto;
+  padding: clamp(3rem, 8vw, 6rem) 0 clamp(2.5rem, 7vw, 5rem);
+}
+
+.operations-console-panel,
+.react-workspace-panel.operations-console-panel {
+  margin-top: 1.5rem;
+}
+
+.self-guided-overview {
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+.self-guided-overview-heading {
+  grid-template-columns: 1fr;
+}
+
+.self-guided-overview-heading h2 {
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
+}
+
+.self-guided-overview-heading p {
+  max-width: 68rem;
+}
+
+.self-guided-proof-grid {
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.self-guided-proof-card {
+  min-height: 0;
+  padding: 0.85rem;
+}
+
+.self-guided-proof-card strong {
+  font-size: clamp(1.1rem, 2vw, 1.55rem);
+}
+
+.self-guided-proof-card p {
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.self-guided-tour-list {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+.self-guided-tour-card {
+  align-items: center;
+  background: rgba(15, 23, 42, 0.46);
+  border: 1px solid rgba(226, 232, 240, 0.16);
+  border-radius: 18px;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 0.75rem;
+}
+
+.self-guided-tour-card strong {
+  color: #f8fafc;
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.self-guided-tour-card p {
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.operations-console-panel .react-workspace-card-grid {
+  grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr));
+}
+
+@media (max-width: 760px) {
+  .operations-console-panel,
+  .react-workspace-panel.operations-console-panel {
+    margin-top: 1rem;
+  }
+
+  .self-guided-tour-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Slice 315: recruiter-facing selector cleanup and readable roster labels. */
+.compact-turnaround-roster-card > div:first-child {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.45rem;
+}
+
+.compact-turnaround-roster-card > div:first-child strong,
+.compact-turnaround-roster-card > div:first-child span {
+  line-height: 1.35;
+}
+
+.person-finder-card-main span {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.passenger-finder-panel + .person-finder-panel {
+  display: none;
+}
+
+/* Slice 316: simplify operational role selection into one clear chooser. */
+.operational-person-filter-panel {
+  gap: 1rem;
+}
+
+.operational-person-filter-panel .passenger-finder-heading {
+  align-items: flex-start;
+}
+
+.role-selector-helper-text {
+  color: var(--muted-text);
+  line-height: 1.45;
+  margin: 0.35rem 0 0;
+  max-width: 54rem;
+}
+
+.operational-person-filter-grid {
+  align-items: end;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.operational-person-search-field {
+  min-width: 0;
+}
+
+.operational-selector-summary {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.operational-selector-summary > div {
+  background: linear-gradient(145deg, #f8fcff, #ffffff);
+  border: 1px solid #cfe0f1;
+  border-radius: 0.9rem;
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem;
+}
+
+.operational-selector-summary span {
+  color: #0f5e9c;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.operational-selector-summary strong {
+  color: var(--heading-text);
+  overflow-wrap: anywhere;
+}
+
+.operational-selector-summary small {
+  color: var(--muted-text);
+  line-height: 1.35;
+}
+
+.operational-person-results .person-finder-card-main {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.operational-person-results .person-finder-card-main span {
+  white-space: normal;
+}
+
+@media (max-width: 900px) {
+  .operational-person-filter-grid,
+  .operational-selector-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+.turnaround-selected-team {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.turnaround-team-member-card {
+  align-items: center;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 1rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+}
+
+.turnaround-team-member-card div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.turnaround-team-member-card strong {
+  color: #071827;
+}
+
+.turnaround-team-member-card span {
+  color: #42526b;
+}
+
+.compact-action {
+  padding: 0.45rem 0.85rem;
+  min-height: auto;
+}
+
+.turnaround-roster-browser {
+  border-top: 1px solid rgba(148, 163, 184, 0.28);
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+.turnaround-roster-browser summary {
+  cursor: pointer;
+  font-weight: 800;
+  color: #0f5f93;
+  margin-bottom: 0.85rem;
+}
+
+@media (max-width: 760px) {
+  .turnaround-team-member-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* app.css retirement: CSS Foundation Refactor Slice 31: operations shift briefing, go-live, team readiness, and conflict CSS moved to layered component CSS.  */
+/* app.css retirement: CSS Foundation Refactor Slice 31: data architecture, hardening, deployment, portfolio, control-board, migration, and public launch readiness CSS moved to layered component CSS.  */
+/* Phase 22 CSS retirement: passenger voyage planner styles now live in layered component CSS.
+   Keep app.css as a compatibility layer only; do not reintroduce voyage planner rules here. */
+
+/* Phase 21 CSS retirement: cruise-line presentation suite styles now live in layered component CSS.
+   Keep app.css as a compatibility layer only; do not reintroduce presentation-suite rules here. */
+/* Phase 23 CSS retirement: first-impression landing page and production hero styles now live in layered component CSS.
+   Keep app.css as a compatibility layer only; do not reintroduce production hero presentation rules here. */
+
+/* Build 362: Turnaround admin action button polish.
+   Keep short actions readable inside the two-column role coverage cards and
+   selected-team rows instead of allowing narrow mobile-style word wrapping. */
+.turnaround-role-coverage-card,
+.turnaround-team-member-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.turnaround-role-coverage-card > div,
+.turnaround-team-member-card > div {
+  min-width: 0;
+}
+
+.turnaround-role-coverage-card .compact-action,
+.turnaround-team-member-card .compact-action {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  min-height: 2.75rem;
+  min-width: 7.25rem;
+  padding: 0.65rem 1rem;
+  text-align: center;
+  white-space: nowrap;
+  width: auto;
+}
+
+.turnaround-role-coverage-card .compact-action {
+  min-width: 6.75rem;
+}
+
+@media (max-width: 760px) {
+  .turnaround-team-member-card .compact-action,
+  .turnaround-role-coverage-card .compact-action {
+    width: fit-content;
+  }
+}
+
+/* Build 363 UX fixes: make role selection obvious and keep action buttons readable. */
+.role-selector-section {
+  border: 2px solid #b9dff3;
+  box-shadow: 0 22px 54px rgba(11, 111, 164, 0.12);
+}
+
+.role-selector-section .role-selector-grid {
+  background: linear-gradient(135deg, #eff9ff 0%, #ffffff 58%);
+  border: 1px solid #b9dff3;
+  border-radius: 1.25rem;
+  padding: clamp(1rem, 2.5vw, 1.4rem);
+}
+
+.role-selector-section > .eyebrow::before {
+  content: 'Start here · ';
+}
+
+.role-selector-field:first-child {
+  background: #ffffff;
+  border: 2px solid #0b8eb4;
+  border-radius: 1rem;
+  box-shadow: 0 14px 32px rgba(11, 111, 164, 0.13);
+  padding: 1rem;
+}
+
+.role-selector-field:first-child .react-field-label {
+  color: #064e73;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.role-selector-field:first-child .react-select {
+  border-color: #0b8eb4;
+  border-width: 2px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  min-height: 3.25rem;
+}
+
+.turnaround-role-coverage-card,
+.turnaround-team-member-card {
+  align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.turnaround-role-coverage-card .compact-action,
+.turnaround-team-member-card .compact-action,
+.secondary-action-button.compact-action {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  line-height: 1.1;
+  min-inline-size: 6.4rem;
+  padding: 0.55rem 0.9rem;
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+.admin-booking-boundary-card {
+  border-left: 0.35rem solid #0b8eb4;
+}
+
+.admin-boundary-proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-boundary-proof span {
+  background: #eaf8fb;
+  border: 1px solid #b9e4ef;
+  border-radius: 999px;
+  color: #075f8f;
+  font-size: 0.82rem;
+  font-weight: 900;
+  padding: 0.35rem 0.65rem;
+}
+
+.admin-delete-selector-card select {
+  background: #ffffff;
+  border: 1px solid #b9c8d8;
+  border-radius: 0.75rem;
+  min-height: 46px;
+  padding: 0.75rem 0.9rem;
+  width: 100%;
+}
+
+.admin-delete-selector-card .manual-id-fallback {
+  border-top: 1px solid #e3ebf4;
+  margin-top: 0.35rem;
+  padding-top: 0.75rem;
+}
+
+/* Build 364: operational role selector layout polish. */
+.operational-person-filter-panel .passenger-finder-heading {
+  display: block;
+  max-width: 100%;
+}
+
+.operational-person-filter-panel .passenger-finder-heading > div {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.operational-person-filter-grid {
+  align-items: stretch;
+  gap: 0.85rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.operational-person-filter-grid .role-selector-field,
+.operational-person-filter-grid .role-selector-field:first-child,
+.operational-person-search-field {
+  background: #ffffff;
+  border: 1px solid #b9d4eb;
+  border-radius: 1rem;
+  box-shadow: none;
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0;
+  min-width: 0;
+  padding: 1rem;
+}
+
+.operational-person-filter-grid .react-field-label,
+.operational-person-filter-grid .role-selector-field:first-child .react-field-label {
+  color: #064e73;
+  font-size: 0.86rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.operational-person-filter-grid .react-select,
+.operational-person-filter-grid .role-selector-field:first-child .react-select,
+.operational-person-filter-grid .react-input {
+  appearance: none;
+  background-color: #ffffff;
+  border: 1px solid #b9c8d8;
+  border-radius: 0.85rem;
+  box-sizing: border-box;
+  color: #071827;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  min-height: 3rem;
+  min-width: 0;
+  padding: 0.75rem 0.9rem;
+  width: 100%;
+}
+
+.operational-person-filter-grid .react-select:focus,
+.operational-person-filter-grid .react-input:focus {
+  border-color: #0b8eb4;
+  box-shadow: 0 0 0 3px rgba(11, 142, 180, 0.18);
+  outline: none;
+}
+
+.operational-person-filter-grid .react-input::placeholder {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.operational-selector-summary {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.operational-selector-summary > div {
+  min-width: 0;
+}
+
+.operational-selector-summary strong,
+.operational-selector-summary small,
+.role-selector-helper-text {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+@media (max-width: 920px) {
+  .operational-person-filter-grid,
+  .operational-selector-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Build 365 visual consolidation: make primary work panels share the operations-dark treatment. */
+.self-guided-overview,
+.react-workspace-panel.operations-console-panel,
+.role-selector-section,
+.react-admin-management-card {
+  background: linear-gradient(135deg, #102f49 0%, #164f68 52%, #1f6845 100%);
+  border: 1px solid rgba(180, 223, 244, 0.34);
+  box-shadow: 0 28px 70px rgba(7, 24, 39, 0.18);
+  color: #ffffff;
+}
+
+.self-guided-overview .eyebrow,
+.react-workspace-panel.operations-console-panel .eyebrow,
+.role-selector-section .eyebrow,
+.react-admin-management-card .eyebrow {
+  color: #9fe8ff;
+}
+
+.self-guided-overview h2,
+.react-workspace-panel.operations-console-panel h2,
+.role-selector-section h2,
+.react-admin-management-card h3,
+.react-admin-management-card h4 {
+  color: #ffffff;
+}
+
+.self-guided-overview p,
+.react-workspace-panel.operations-console-panel p,
+.role-selector-section p,
+.react-admin-management-card p {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.react-workspace-panel.operations-console-panel {
+  margin-top: 1.5rem;
+}
+
+.react-workspace-panel.operations-console-panel .react-workspace-card,
+.role-selector-section .passenger-finder-panel,
+.role-selector-section .role-summary-card,
+.role-selector-section .passenger-finder-card,
+.role-selector-section .booking-guest-result-card,
+.react-admin-management-card .react-admin-mutation-panel,
+.react-admin-management-card .draft-editor,
+.react-admin-management-card .react-admin-table-wrap,
+.react-admin-management-card .react-admin-workflow-bar,
+.react-admin-management-card .react-admin-search input {
+  background: rgba(11, 31, 51, 0.78);
+  border-color: rgba(180, 223, 244, 0.34);
+  box-shadow: none;
+  color: #ffffff;
+}
+
+.react-workspace-panel.operations-console-panel .react-workspace-card span,
+.react-workspace-panel.operations-console-panel .workspace-card-title,
+.role-selector-section strong,
+.role-selector-section span,
+.role-selector-section label,
+.react-admin-management-card label,
+.react-admin-management-card span,
+.react-admin-management-card strong,
+.react-admin-management-card h5 {
+  color: #ffffff;
+}
+
+.react-workspace-panel.operations-console-panel .react-workspace-card p,
+.react-workspace-panel.operations-console-panel .react-workspace-card span:not(.workspace-icon):not(.workspace-card-title),
+.role-selector-section .muted,
+.role-selector-section .role-summary-card,
+.role-selector-section .passenger-finder-card-detail,
+.react-admin-management-card .muted,
+.react-admin-management-card .result-summary {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.role-selector-section select,
+.role-selector-section input,
+.react-admin-management-card select,
+.react-admin-management-card input {
+  background: #ffffff;
+  border: 1px solid rgba(159, 232, 255, 0.8);
+  border-radius: 0.85rem;
+  color: #071827;
+  min-height: 2.75rem;
+  padding: 0.7rem 0.85rem;
+  width: 100%;
+}
+
+.react-admin-mutation-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.admin-delete-selector-card {
+  min-width: 0;
+}
+
+.admin-delete-filter-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-delete-filter-grid label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.admin-delete-filter-grid label > span {
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-delete-filter-grid .wide-delete-select {
+  grid-column: 1 / -1;
+}
+
+.react-admin-management-card .fleet-danger-action {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(255, 255, 255, 0.8);
+  color: #b91c1c;
+  white-space: nowrap;
+}
+
+@media (max-width: 980px) {
+  .react-admin-mutation-grid,
+  .admin-delete-filter-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Build 367 UX consolidation: remove redundant light sections and stabilize dark panels. */
+.production-hero-content {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.employer-demo-command-center.self-guided-overview {
+  background: linear-gradient(135deg, #123a52 0%, #155a63 58%, #1b6f43 100%) !important;
+  color: #ffffff !important;
+}
+
+.employer-demo-command-center.self-guided-overview .self-guided-tour-card,
+.employer-demo-command-center.self-guided-overview .self-guided-proof-card {
+  background: rgba(6, 28, 43, 0.72) !important;
+  border-color: rgba(191, 230, 255, 0.28) !important;
+  color: #ffffff !important;
+}
+
+.employer-demo-command-center.self-guided-overview p,
+.employer-demo-command-center.self-guided-overview strong,
+.employer-demo-command-center.self-guided-overview span,
+.employer-demo-command-center.self-guided-overview h2 {
+  color: #ffffff !important;
+}
+
+.employer-demo-step-button {
+  white-space: nowrap;
+}
+
+.role-selector-section {
+  background: linear-gradient(135deg, #123a52 0%, #155a63 58%, #1b6f43 100%) !important;
+  color: #ffffff !important;
+}
+
+.role-selector-section > p,
+.role-selector-section h2,
+.role-selector-section .eyebrow {
+  color: #ffffff !important;
+}
+
+.role-selector-section .role-selector-grid,
+.role-selector-section .passenger-finder-panel,
+.role-selector-section .role-summary-card,
+.role-selector-section .passenger-finder-card,
+.role-selector-section .booking-guest-result-card {
+  background: rgba(6, 28, 43, 0.72) !important;
+  border-color: rgba(191, 230, 255, 0.28) !important;
+  color: #ffffff !important;
+}
+
+.role-selector-section label,
+.role-selector-section span,
+.role-selector-section strong,
+.role-selector-section h3,
+.role-selector-section p,
+.role-selector-section .muted,
+.role-selector-section .passenger-finder-card-detail,
+.role-selector-section .booking-guest-result-context {
+  color: #ffffff !important;
+}
+
+.role-selector-section select,
+.role-selector-section input,
+.role-selector-section .react-select,
+.role-selector-section .react-input {
+  background: #ffffff !important;
+  border-color: #9ddfff !important;
+  color: #071827 !important;
+}
+
+.role-selector-section option {
+  color: #071827;
+}
+
+.react-admin-management-card {
+  background: linear-gradient(135deg, #123a52 0%, #155a63 58%, #1b6f43 100%) !important;
+  color: #ffffff !important;
+}
+
+.react-admin-management-card h3,
+.react-admin-management-card h4,
+.react-admin-management-card h5,
+.react-admin-management-card p,
+.react-admin-management-card label,
+.react-admin-management-card span,
+.react-admin-management-card strong,
+.react-admin-management-card .muted,
+.react-admin-management-card .result-summary {
+  color: #ffffff !important;
+}
+
+.react-admin-management-card .react-admin-stat-pills span {
+  background: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.85) !important;
+  color: #071827 !important;
+  text-shadow: none !important;
+}
+
+.react-admin-management-card .react-admin-mutation-panel,
+.react-admin-management-card .draft-editor,
+.react-admin-management-card .react-admin-record-selector,
+.react-admin-management-card .react-admin-table-wrap,
+.react-admin-management-card .react-admin-workflow-bar {
+  background: rgba(6, 28, 43, 0.72) !important;
+  border-color: rgba(191, 230, 255, 0.28) !important;
+  color: #ffffff !important;
+}
+
+.react-admin-management-card input,
+.react-admin-management-card select {
+  background: #ffffff !important;
+  border-color: #9ddfff !important;
+  color: #071827 !important;
+}
+
+.react-admin-management-card option {
+  color: #071827;
+}
+
+.react-admin-management-card .primary-button,
+.react-admin-management-card .primary-action-button {
+  background: linear-gradient(135deg, #0b6fa4, #12a4b6) !important;
+  color: #ffffff !important;
+}
+
+.react-admin-management-card .fleet-danger-action {
+  background: #ffffff !important;
+  color: #b91c1c !important;
+  white-space: nowrap;
+}
+
+.react-admin-record-selector {
+  border: 1px solid rgba(191, 230, 255, 0.28);
+  border-radius: 1.15rem;
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
+.admin-workflow-filter-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 820px) {
+  .admin-workflow-filter-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.react-admin-legacy-filter-input {
+  block-size: 1px;
+  inline-size: 1px;
+  opacity: 0.01;
+  overflow: hidden;
+  position: absolute;
+}
+
+.presentation-scope-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+
+.presentation-action-grid .presentation-flow-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+}
+
+.presentation-action-grid .presentation-flow-card p {
+  flex: 1;
+}
+
+.presentation-action-grid .secondary-action-button {
+  width: fit-content;
+  min-width: 8.5rem;
+}
+
+.react-admin-workspace select,
+.cruise-line-presentation-suite select {
+  cursor: pointer;
+}
+
+.react-admin-workspace [role="status"],
+.cruise-line-presentation-suite [role="status"] {
+  transition: opacity 120ms ease-out;
+}
+
+@media (max-width: 900px) {
+  .presentation-scope-controls {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Build 377: prevent dark role selector text from being inherited onto light/blank person cards. */
+.role-selector-section .operational-selector-summary > div,
+.role-selector-section .selected-person-card,
+.role-selector-section .person-finder-card {
+  background: rgba(6, 28, 43, 0.78) !important;
+  border-color: rgba(191, 230, 255, 0.34) !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+}
+
+.role-selector-section .person-finder-card.selected {
+  background: rgba(12, 66, 82, 0.9) !important;
+  border-color: #9fe8ff !important;
+  box-shadow: 0 0 0 3px rgba(159, 232, 255, 0.14) !important;
+}
+
+.role-selector-section .operational-selector-summary span,
+.role-selector-section .operational-selector-summary strong,
+.role-selector-section .operational-selector-summary small,
+.role-selector-section .selected-person-card span,
+.role-selector-section .selected-person-card strong,
+.role-selector-section .selected-person-card small,
+.role-selector-section .person-finder-card-main strong,
+.role-selector-section .person-finder-card-main span,
+.role-selector-section .person-finder-card-detail {
+  color: #ffffff !important;
+}
+
+.role-selector-section .person-finder-card-detail,
+.role-selector-section .selected-person-card small,
+.role-selector-section .operational-selector-summary small {
+  color: rgba(255, 255, 255, 0.84) !important;
+}
+
+.role-selector-section .finder-limit-note {
+  background: rgba(230, 247, 255, 0.96) !important;
+  border-color: rgba(159, 232, 255, 0.8) !important;
+  color: #075985 !important;
+}
+
+/* CSS Foundation Refactor Slice 30: lifecycle action controls moved to components/operations-dashboard.css. */
+
+/* CSS Foundation Refactor Phase 16: role/person finder panel,
+   and operational assignment selector styling is now owned by layered component CSS. */
+
+/* CSS Foundation Refactor Phase 19: Build 464-489 operational dashboard, release-board, lifecycle, directory, and command-detail compatibility rules moved to layered component CSS. */
+
+/* CSS Foundation Refactor Phase 20: Build 437-448 admin workspace width, panel, form-control, and quality-console compatibility rules moved to layered component CSS. */
+
+/* Slice 35: make overview cards readable instead of forcing copy into narrow columns. */
+.employer-demo-command-center .self-guided-tour-list {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+}
+
+.employer-demo-command-center .self-guided-tour-card {
+  align-items: start;
+  grid-template-columns: 1fr;
+  min-width: 0;
+}
+
+.employer-demo-command-center .self-guided-tour-card > div,
+.employer-demo-command-center .self-guided-tour-card strong,
+.employer-demo-command-center .self-guided-tour-card p {
+  min-width: 0;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.employer-demo-command-center .self-guided-tour-card .button-link,
+.employer-demo-command-center .self-guided-tour-card button {
+  justify-self: start;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+/* Slice 35: defensive contrast cleanup for dark command panels with nested light controls. */
+.react-production-shell :is(input, select, textarea):not([type='checkbox']):not([type='radio']) {
+  background-color: #ffffff;
+  color: #071827;
+  -webkit-text-fill-color: #071827;
+}
+
+.react-production-shell :is(input, select, textarea)::placeholder {
+  color: #64748b;
+  -webkit-text-fill-color: #64748b;
+}
+
+.react-production-shell :is(option) {
+  background-color: #ffffff;
+  color: #071827;
+}

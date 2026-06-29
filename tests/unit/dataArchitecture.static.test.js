@@ -7,6 +7,29 @@ function read(relativePath) {
   return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
 }
 
+function readReactCssBundle() {
+  const stylesRoot = path.join(projectRoot, 'frontend/react/src/styles')
+  const cssFiles = []
+
+  function collectCssFiles(dir) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name)
+      if (entry.isDirectory()) {
+        collectCssFiles(fullPath)
+      } else if (entry.isFile() && entry.name.endsWith('.css')) {
+        cssFiles.push(fullPath)
+      }
+    }
+  }
+
+  collectCssFiles(stylesRoot)
+
+  return cssFiles
+    .sort()
+    .map((filePath) => fs.readFileSync(filePath, 'utf8'))
+    .join('\n')
+}
+
 describe('Production data architecture hardening guardrails', () => {
   it('creates indexes for high-volume cruise, booking, and turnaround query paths', () => {
     const initializer = read('services/initializeDatabase.service.js')
@@ -789,7 +812,7 @@ describe('Production data architecture hardening guardrails', () => {
     const controller = read('controllers/cruise.controller.js')
     const releaseService = read('services/turnaroundRelease.service.js')
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundReleasePacket } = require('../services/turnaroundRelease.service')")
     expect(controller).toContain('const releasePacket = buildTurnaroundReleasePacket({')
@@ -808,7 +831,7 @@ describe('Production data architecture hardening guardrails', () => {
     const controller = read('controllers/cruise.controller.js')
     const metricsService = read('services/turnaroundMetrics.service.js')
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundOperationalMetrics } = require('../services/turnaroundMetrics.service')")
     expect(controller).toContain('const operationalMetrics = buildTurnaroundOperationalMetrics({')
@@ -830,7 +853,7 @@ describe('Production data architecture hardening guardrails', () => {
     const controller = read('controllers/cruise.controller.js')
     const timelineService = read('services/turnaroundTimeline.service.js')
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundOperationalTimeline } = require('../services/turnaroundTimeline.service')")
     expect(controller).toContain('const operationalTimeline = buildTurnaroundOperationalTimeline({')
@@ -853,7 +876,7 @@ describe('Production data architecture hardening guardrails', () => {
     const controller = read('controllers/cruise.controller.js')
     const playbookService = read('services/turnaroundPlaybook.service.js')
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundPlaybookTemplate } = require('../services/turnaroundPlaybook.service')")
     expect(controller).toContain('const playbookTemplate = buildTurnaroundPlaybookTemplate({')
@@ -875,7 +898,7 @@ describe('Production data architecture hardening guardrails', () => {
     const controller = read('controllers/cruise.controller.js')
     const varianceService = read('services/turnaroundVariance.service.js')
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundPlaybookVariance } = require('../services/turnaroundVariance.service')")
     expect(controller).toContain('const playbookVariance = buildTurnaroundPlaybookVariance({')
@@ -897,7 +920,7 @@ describe('Production data architecture hardening guardrails', () => {
     const controller = read('controllers/cruise.controller.js')
     const incidentService = read('services/turnaroundIncident.service.js')
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundIncidentCommand } = require('../services/turnaroundIncident.service')")
     expect(controller).toContain('const incidentCommand = buildTurnaroundIncidentCommand({')
@@ -919,7 +942,7 @@ describe('Production data architecture hardening guardrails', () => {
     const controller = read('controllers/cruise.controller.js')
     const afterActionService = read('services/turnaroundAfterAction.service.js')
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundAfterActionReview } = require('../services/turnaroundAfterAction.service')")
     expect(controller).toContain('const afterActionReview = buildTurnaroundAfterActionReview({')
@@ -941,7 +964,7 @@ describe('Production data architecture hardening guardrails', () => {
     const controller = read('controllers/cruise.controller.js')
     const shiftBriefingService = read('services/turnaroundShiftBriefing.service.js')
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundShiftBriefing } = require('../services/turnaroundShiftBriefing.service')")
     expect(controller).toContain('const shiftBriefing = buildTurnaroundShiftBriefing({')
@@ -963,7 +986,7 @@ describe('Production data architecture hardening guardrails', () => {
     const goLiveService = read('services/turnaroundGoLive.service.js')
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
     const selectors = read('cypress/react/support/reactSelectors.js')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundGoLiveCenter } = require('../services/turnaroundGoLive.service')")
     expect(controller).toContain('const goLiveCenter = buildTurnaroundGoLiveCenter({')
@@ -987,7 +1010,7 @@ describe('Production data architecture hardening guardrails', () => {
     const roleView = read('frontend/react/src/domain/roleView.js')
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
     const selectors = read('cypress/react/support/reactSelectors.js')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundOperationsControlBoard } = require('../services/turnaroundOperationsControlBoard.service')")
     expect(controller).toContain('const operationsControlBoard = buildTurnaroundOperationsControlBoard({')
@@ -1062,7 +1085,7 @@ describe('Turnaround outreach board guardrails', () => {
     const controller = read('controllers/cruise.controller.js')
     const outreachService = read('services/turnaroundOutreach.service.js')
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundOutreachBoard } = require('../services/turnaroundOutreach.service')")
     expect(controller).toContain('const outreachBoard = buildTurnaroundOutreachBoard({')
@@ -1122,7 +1145,7 @@ describe('Turnaround scenario plan guardrails', () => {
     const controller = read('controllers/cruise.controller.js')
     const scenarioService = read('services/turnaroundScenarioPlan.service.js')
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundScenarioPlan } = require('../services/turnaroundScenarioPlan.service')")
     expect(controller).toContain('const scenarioPlan = buildTurnaroundScenarioPlan({')
@@ -1144,7 +1167,7 @@ describe('Turnaround production readiness cockpit guardrails', () => {
     const controller = read('controllers/cruise.controller.js')
     const productionService = read('services/turnaroundProductionReadiness.service.js')
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundProductionReadiness } = require('../services/turnaroundProductionReadiness.service')")
     expect(controller).toContain('const productionReadiness = buildTurnaroundProductionReadiness({')
@@ -1167,7 +1190,7 @@ describe('Turnaround application dossier guardrails', () => {
     const controller = read('controllers/cruise.controller.js')
     const dossierService = read('services/turnaroundApplicationDossier.service.js')
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundApplicationDossier } = require('../services/turnaroundApplicationDossier.service')")
     expect(controller).toContain('const applicationDossier = buildTurnaroundApplicationDossier({')
@@ -1196,7 +1219,7 @@ describe('Turnaround closeout packet guardrails', () => {
     const closeoutService = read('services/turnaroundCloseout.service.js')
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
     const roleViewDomain = read('frontend/react/src/domain/roleView.js')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundCloseoutPacket } = require('../services/turnaroundCloseout.service')")
     expect(controller).toContain('const closeoutPacket = buildTurnaroundCloseoutPacket({')

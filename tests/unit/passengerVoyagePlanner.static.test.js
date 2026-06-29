@@ -11,7 +11,9 @@ describe('passenger voyage planner static contracts', () => {
   it('adds a functional passenger-facing voyage planner instead of another development readiness panel', () => {
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
     const app = read('frontend/react/src/App.jsx')
-    const styles = read('frontend/react/src/styles/design-system.css')
+    const passengerStyles = read('frontend/react/src/styles/components/passenger.css')
+    const productShellStyles = read('frontend/react/src/styles/components/product-shell.css')
+    const componentIndexStyles = read('frontend/react/src/styles/components/index.css')
 
     expect(dashboard).toContain('function PassengerVoyagePlanner')
     expect(dashboard).toContain('data-testid="react-passenger-voyage-planner"')
@@ -22,8 +24,12 @@ describe('passenger voyage planner static contracts', () => {
     expect(dashboard).toContain('favoriteItineraryActivitiesByBooking')
     expect(app).not.toContain('react-workspace-public-launch-button')
     expect(app).not.toContain('react-workspace-production-hardening-button')
-    expect(styles).toContain('.passenger-voyage-planner')
-    expect(styles).toContain('.voyage-booking-card')
+    expect(componentIndexStyles).toContain("@import './passenger.css';")
+    expect(componentIndexStyles).toContain("@import './product-shell.css';")
+    expect(passengerStyles).toContain('.passenger-voyage-planner')
+    expect(passengerStyles).toContain('.voyage-booking-card')
+    expect(productShellStyles).toContain('.passenger-voyage-planner')
+    expect(productShellStyles).toContain('.voyage-booking-card')
   })
 })
 

@@ -246,3 +246,30 @@
     width: 100%;
   }
 }
+
+/* Slice 35: preserve the cruise-ship hero image after shell-level CSS cleanup. */
+.production-hero {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(18, 164, 182, 0.28), transparent 34%),
+    linear-gradient(90deg, rgba(3, 16, 29, 0.94) 0%, rgba(5, 24, 39, 0.78) 43%, rgba(7, 24, 39, 0.48) 100%),
+    url('/images/cruise-background-1280.webp') center / cover no-repeat,
+    linear-gradient(135deg, #071827 0%, #0b6fa4 100%);
+}
+
+/* Slice 36: force the hero photograph above shared command-panel background overrides. */
+.react-production-shell .production-hero.ce-command-panel,
+.react-production-shell .production-hero {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(18, 164, 182, 0.18), transparent 34%),
+    linear-gradient(90deg, rgba(3, 16, 29, 0.92) 0%, rgba(5, 24, 39, 0.70) 38%, rgba(7, 24, 39, 0.20) 100%),
+    url('/images/cruise-background-1280.webp') 82% center / cover no-repeat,
+    url('/images/cruise-background.png') 82% center / cover no-repeat,
+    linear-gradient(135deg, #071827 0%, #0b6fa4 100%) !important;
+  min-height: clamp(700px, 88vh, 880px) !important;
+}
+
+.react-production-shell .production-hero::before {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 28%),
+    radial-gradient(circle at 78% 52%, rgba(255, 255, 255, 0.12), transparent 22%) !important;
+}

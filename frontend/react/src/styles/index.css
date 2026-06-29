@@ -3,8 +3,8 @@
 
   Import order follows a standard layered CSS architecture:
   1. Foundation tokens/theme/reset
-  2. Legacy compatibility stylesheets while route-specific CSS is retired
-  3. Reusable layout and component primitives
+  2. Reusable layout and component primitives
+  3. Shared component layers
   4. Single-purpose utilities
 */
 
@@ -12,9 +12,6 @@
 @import './foundation/theme.css';
 @import './foundation/reset.css';
 
-/* Legacy compatibility layers. Do not add new selectors here. */
-@import './app.css';
-@import './design-system.css';
 
 @import './layout/index.css';
 @import './components/index.css';

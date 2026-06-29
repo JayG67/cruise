@@ -2,8 +2,8 @@
   Minimal global reset for the Cruise Explorer React shell.
 
   Keep this layer low-specificity. Component appearance belongs in
-  ../components and page-specific compatibility remains in app.css or
-  design-system.css until retired by focused slices.
+  ../components, layout, and utility layers. Retired compatibility
+  stylesheets must not be reintroduced.
 */
 
 *,

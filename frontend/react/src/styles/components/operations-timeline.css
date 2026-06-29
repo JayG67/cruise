@@ -1,0 +1,217 @@
+/* Operations workspace component architecture.
+   Retires the late Phase 19 Build 485-489 dark command-center sweep from
+   design-system.css into the component layer. These rules keep deep
+   turnaround workspaces visually consistent while preserving light editable
+   controls for readability. */
+
+/* Build 485 - operations timeline and downstream panels match executive brief dark motif.
+   Fixes the unusable timeline panel by removing light strips, forcing dark nested
+   cards with white text, and extending the executive-brief visual standard to
+   lower command/continuity/closeout panels. */
+
+/* Operations timeline panel */
+.react-role-dashboard .operations-timeline,
+.react-role-dashboard .operations-timeline-panel,
+.react-role-dashboard [data-testid="react-operations-timeline"] {
+  background: linear-gradient(135deg, #082334 0%, #0f5360 52%, #15713f 100%) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 0 24px 60px rgba(7, 24, 39, 0.22) !important;
+  color: #ffffff !important;
+  overflow: hidden !important;
+  padding: clamp(1rem, 2.4vw, 1.5rem) !important;
+}
+
+.react-role-dashboard .operations-timeline-header,
+.react-role-dashboard .operations-timeline-heading {
+  align-items: start !important;
+  background: transparent !important;
+  border: 0 !important;
+  color: #ffffff !important;
+  display: grid !important;
+  gap: 1rem !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  margin: 0 0 1rem !important;
+  padding: 0 !important;
+}
+
+.react-role-dashboard .operations-timeline-header *,
+.react-role-dashboard .operations-timeline-heading *,
+.react-role-dashboard [data-testid="react-operations-timeline"] > header *,
+.react-role-dashboard [data-testid="react-operations-timeline"] > div:first-child * {
+  background: transparent !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operations-timeline .eyebrow,
+.react-role-dashboard [data-testid="react-operations-timeline"] .eyebrow {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+}
+
+.react-role-dashboard .operations-timeline-stats,
+.react-role-dashboard .operations-timeline-kpis,
+.react-role-dashboard .operations-timeline-metrics {
+  background: transparent !important;
+  border: 0 !important;
+  display: grid !important;
+  gap: 0.65rem !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  padding: 0 !important;
+}
+
+.react-role-dashboard .operations-timeline-stats > *,
+.react-role-dashboard .operations-timeline-kpis > *,
+.react-role-dashboard .operations-timeline-metrics > * {
+  background: #f8fbff !important;
+  border: 1px solid #b8cde0 !important;
+  border-radius: 0.9rem !important;
+  color: #0f172a !important;
+  min-width: 0 !important;
+  padding: 0.75rem 0.9rem !important;
+}
+
+.react-role-dashboard .operations-timeline-stats > * *,
+.react-role-dashboard .operations-timeline-kpis > * *,
+.react-role-dashboard .operations-timeline-metrics > * * {
+  background: transparent !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+}
+
+/* Timeline rows/cards: dark card style with white text, matching executive brief. */
+.react-role-dashboard .operations-timeline-list,
+.react-role-dashboard .operations-timeline-events {
+  background: transparent !important;
+  border: 0 !important;
+  display: grid !important;
+  gap: 0.85rem !important;
+  margin-top: 1rem !important;
+  padding: 0 !important;
+}
+
+.react-role-dashboard .operations-timeline-item,
+.react-role-dashboard .operations-timeline-event,
+.react-role-dashboard [data-testid="react-operations-timeline"] li,
+.react-role-dashboard [data-testid="react-operations-timeline"] article {
+  background: rgba(6, 30, 45, 0.88) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 0.95rem !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+  padding: 1rem !important;
+}
+
+.react-role-dashboard .operations-timeline-item *,
+.react-role-dashboard .operations-timeline-event *,
+.react-role-dashboard [data-testid="react-operations-timeline"] li *,
+.react-role-dashboard [data-testid="react-operations-timeline"] article * {
+  background: transparent !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  writing-mode: horizontal-tb !important;
+}
+
+.react-role-dashboard .operations-timeline-item span,
+.react-role-dashboard .operations-timeline-event span,
+.react-role-dashboard [data-testid="react-operations-timeline"] li span,
+.react-role-dashboard [data-testid="react-operations-timeline"] article span {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+}
+
+/* Preserve pill/badge chips as light controls with dark text. */
+.react-role-dashboard .operations-timeline [class*="pill"],
+.react-role-dashboard .operations-timeline [class*="badge"],
+.react-role-dashboard [data-testid="react-operations-timeline"] [class*="pill"],
+.react-role-dashboard [data-testid="react-operations-timeline"] [class*="badge"] {
+  background: #f8fbff !important;
+  border: 1px solid #b8cde0 !important;
+  border-radius: 999px !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  display: inline-flex !important;
+  padding: 0.25rem 0.55rem !important;
+}
+
+/* Extend the executive-brief standard to panels below the timeline. */
+.react-role-dashboard .operations-executive-brief,
+.react-role-dashboard .operations-closeout-packet,
+.react-role-dashboard .operations-command-center,
+.react-role-dashboard .operations-continuity-center,
+.react-role-dashboard .operations-shift-briefing {
+  background: linear-gradient(135deg, #082334 0%, #0f5360 52%, #15713f 100%) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 0 24px 60px rgba(7, 24, 39, 0.22) !important;
+  color: #ffffff !important;
+  overflow: hidden !important;
+}
+
+.react-role-dashboard .operations-executive-brief [class*="grid"] > *,
+.react-role-dashboard .operations-executive-brief [class*="details"] > *,
+.react-role-dashboard .operations-executive-brief [class*="kpis"] > *,
+.react-role-dashboard .operations-closeout-packet [class*="grid"] > *,
+.react-role-dashboard .operations-closeout-packet [class*="details"] > *,
+.react-role-dashboard .operations-closeout-packet [class*="archive"] > *,
+.react-role-dashboard .operations-command-center [class*="grid"] > *,
+.react-role-dashboard .operations-command-center [class*="kpis"] > *,
+.react-role-dashboard .operations-command-center [class*="handoffs"],
+.react-role-dashboard .operations-continuity-center [class*="grid"] > *,
+.react-role-dashboard .operations-continuity-center [class*="watchlist"],
+.react-role-dashboard .operations-continuity-center [class*="checklist"],
+.react-role-dashboard .operations-shift-briefing [class*="grid"] > *,
+.react-role-dashboard .operations-shift-briefing [class*="kpis"] > *,
+.react-role-dashboard .operations-shift-briefing [class*="departments"] > * {
+  background: rgba(6, 30, 45, 0.88) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 0.95rem !important;
+  color: #ffffff !important;
+  min-width: 0 !important;
+  padding: 1rem !important;
+}
+
+.react-role-dashboard .operations-executive-brief [class*="grid"] > * *,
+.react-role-dashboard .operations-executive-brief [class*="details"] > * *,
+.react-role-dashboard .operations-executive-brief [class*="kpis"] > * *,
+.react-role-dashboard .operations-closeout-packet [class*="grid"] > * *,
+.react-role-dashboard .operations-closeout-packet [class*="details"] > * *,
+.react-role-dashboard .operations-closeout-packet [class*="archive"] > * *,
+.react-role-dashboard .operations-command-center [class*="grid"] > * *,
+.react-role-dashboard .operations-command-center [class*="kpis"] > * *,
+.react-role-dashboard .operations-command-center [class*="handoffs"] *,
+.react-role-dashboard .operations-continuity-center [class*="grid"] > * *,
+.react-role-dashboard .operations-continuity-center [class*="watchlist"] *,
+.react-role-dashboard .operations-continuity-center [class*="checklist"] *,
+.react-role-dashboard .operations-shift-briefing [class*="grid"] > * *,
+.react-role-dashboard .operations-shift-briefing [class*="kpis"] > * *,
+.react-role-dashboard .operations-shift-briefing [class*="departments"] > * * {
+  background: transparent !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+@media (max-width: 900px) {
+  .react-role-dashboard .operations-timeline-header,
+  .react-role-dashboard .operations-timeline-heading {
+    grid-template-columns: 1fr !important;
+  }
+
+  .react-role-dashboard .operations-timeline-stats,
+  .react-role-dashboard .operations-timeline-kpis,
+  .react-role-dashboard .operations-timeline-metrics {
+    grid-template-columns: 1fr !important;
+  }
+}

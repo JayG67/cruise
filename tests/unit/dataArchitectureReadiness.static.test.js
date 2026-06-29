@@ -23,7 +23,7 @@ describe('data architecture readiness center static contracts', () => {
   it('keeps architecture diagnostics available as code without mounting a recruiter-facing workspace', () => {
     const app = read('frontend/react/src/App.jsx')
     const component = read('frontend/react/src/components/ReactDataArchitectureReadinessCenter.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
+    const styles = read('frontend/react/src/styles/components/readiness-centers.css')
 
     expect(app).not.toContain('ReactDataArchitectureReadinessCenter')
     expect(app).not.toContain('react-workspace-data-architecture-button')
@@ -40,7 +40,7 @@ describe('data architecture readiness center static contracts', () => {
     const service = read('services/dataArchitectureReadiness.service.js')
     const component = read('frontend/react/src/components/ReactDataArchitectureReadinessCenter.jsx')
     const client = read('frontend/react/src/api/client.js')
-    const styles = read('frontend/react/src/styles/app.css')
+    const styles = read('frontend/react/src/styles/components/readiness-centers.css')
 
     expect(service).toContain('buildMigrationBacklog')
     expect(service).toContain('buildMigrationTimeline')

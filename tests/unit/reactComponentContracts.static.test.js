@@ -1,6 +1,19 @@
 const fs = require('fs')
 const path = require('path')
 
+const RETIRED_APP_CSS_PATH = ['frontend/react/src/styles/app', 'css'].join('.')
+
+function optionalStyleRead(relativePath) {
+  const fullPath = path.join(__dirname, '..', '..', relativePath)
+  return fs.existsSync(fullPath) ? fs.readFileSync(fullPath, 'utf8') : ''
+}
+
+function readCssBundle(...relativePaths) {
+  return relativePaths
+    .map(relativePath => fs.readFileSync(path.join(__dirname, '..', '..', relativePath), 'utf8'))
+    .join('\n')
+}
+
 describe('React component accessibility and presentation contracts', () => {
   const projectRoot = path.resolve(__dirname, '../..')
 
@@ -72,7 +85,7 @@ describe('React component accessibility and presentation contracts', () => {
 
   it('renders the turnaround lifecycle state as the primary command story', () => {
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
+    const styles = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
     const controller = read('controllers/cruise.controller.js')
 
     const roleViewDomain = read('frontend/react/src/domain/roleView.js')
@@ -90,7 +103,7 @@ describe('React component accessibility and presentation contracts', () => {
   it('renders an employer demo command center above the workspace stack', () => {
     const app = read('frontend/react/src/App.jsx')
     const commandCenter = read('frontend/react/src/components/EmployerDemoCommandCenter.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
+    const styles = read('frontend/react/src/styles/components/product-shell.css')
 
     expect(app).toContain("import EmployerDemoCommandCenter from './components/EmployerDemoCommandCenter.jsx'")
     expect(app).toContain("selectedRoleView === 'admin' &&")
@@ -112,7 +125,7 @@ describe('React component accessibility and presentation contracts', () => {
 
   it('renders actionable turnaround lifecycle controls instead of demo-guide panels', () => {
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
+    const styles = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
 
     expect(dashboard).not.toContain('Five-minute demo guide')
     expect(dashboard).not.toContain('data-testid="react-operations-presentation-guide"')
@@ -128,7 +141,7 @@ describe('React component accessibility and presentation contracts', () => {
 
   it('keeps operations directory panels in the approved dark command-center motif', () => {
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
+    const styles = read('frontend/react/src/styles/components/operations-workspaces.css')
 
     expect(dashboard).toContain('data-testid="react-operations-directory-panel"')
     expect(dashboard).toContain('data-testid="react-operations-directory-card"')
@@ -150,7 +163,7 @@ describe('React component accessibility and presentation contracts', () => {
 
   it('keeps operations workspace navigation labels on a single line with command-center styling', () => {
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
+    const styles = read('frontend/react/src/styles/components/operations-workspaces.css')
 
     expect(dashboard).toContain("{ id: 'dependencies', label: 'Dependencies'")
     expect(styles).toContain('grid-template-columns: repeat(3, minmax(10.75rem, 1fr));')
@@ -167,7 +180,8 @@ describe('React component accessibility and presentation contracts', () => {
 
 
   it('keeps the shared CSS foundation as the source of truth for broad React surfaces', () => {
-    const designSystem = read('frontend/react/src/styles/design-system.css')
+    const retiredDesignSystemPath = path.join(projectRoot, 'frontend/react/src/styles/design-system.css')
+    const designSystem = fs.existsSync(retiredDesignSystemPath) ? fs.readFileSync(retiredDesignSystemPath, 'utf8') : ''
     const cssIndex = read('frontend/react/src/styles/index.css')
     const tokens = read('frontend/react/src/styles/foundation/tokens.css')
     const theme = read('frontend/react/src/styles/foundation/theme.css')
@@ -179,12 +193,16 @@ describe('React component accessibility and presentation contracts', () => {
     const navigation = read('frontend/react/src/styles/components/navigation.css')
     const feedback = read('frontend/react/src/styles/components/feedback.css')
     const selectorCard = read('frontend/react/src/styles/components/selector-card.css')
+    const roleSelectorCss = read('frontend/react/src/styles/components/role-selector.css')
+    const productShell = read('frontend/react/src/styles/components/product-shell.css')
+    const application = read('frontend/react/src/styles/components/application.css')
+    const roleDashboardStyles = read('frontend/react/src/styles/components/role-dashboard.css')
     const form = read('frontend/react/src/styles/components/form.css')
     const utilities = read('frontend/react/src/styles/utilities/index.css')
     const componentIndex = read('frontend/react/src/styles/components/index.css')
     const layout = read('frontend/react/src/styles/layout/index.css')
     const main = read('frontend/react/src/main.jsx')
-    const legacyStyles = read('frontend/react/src/styles/app.css')
+    const legacyStyles = optionalStyleRead(RETIRED_APP_CSS_PATH)
     const packageJson = JSON.parse(read('package.json'))
 
     expect(main).toContain("import './styles/index.css'")
@@ -193,12 +211,13 @@ describe('React component accessibility and presentation contracts', () => {
     expect(cssIndex).toContain("@import './foundation/tokens.css';")
     expect(cssIndex).toContain("@import './foundation/theme.css';")
     expect(cssIndex).toContain("@import './foundation/reset.css';")
-    expect(cssIndex).toContain("@import './app.css';")
-    expect(cssIndex).toContain("@import './design-system.css';")
+    expect(cssIndex).not.toContain("@import './app.css';")
+    expect(cssIndex).not.toContain("@import './design-system.css';")
     expect(cssIndex).toContain("@import './layout/index.css';")
     expect(cssIndex).toContain("@import './components/index.css';")
     expect(cssIndex).toContain("@import './utilities/index.css';")
-    expect(cssIndex.indexOf("@import './design-system.css';")).toBeLessThan(cssIndex.indexOf("@import './layout/index.css';"))
+    expect(cssIndex.indexOf("@import './foundation/reset.css';")).toBeLessThan(cssIndex.indexOf("@import './layout/index.css';"))
+    expect(fs.existsSync(path.join(projectRoot, 'frontend/react/src/styles/design-system.css'))).toBe(false)
     expect(tokens).toContain('--surface')
     expect(tokens).toContain('--space-md')
     expect(tokens).toContain('--font-md')
@@ -209,6 +228,9 @@ describe('React component accessibility and presentation contracts', () => {
     expect(componentIndex).toContain("@import './navigation.css';")
     expect(componentIndex).toContain("@import './feedback.css';")
     expect(componentIndex).toContain("@import './selector-card.css';")
+    expect(componentIndex).toContain("@import './role-selector.css';")
+    expect(componentIndex).toContain("@import './product-shell.css';")
+    expect(componentIndex).toContain("@import './role-dashboard.css';")
     expect(panel).toContain('.ce-panel')
     expect(card).toContain('.ce-card')
     expect(button).toContain('.ce-button')
@@ -218,14 +240,17 @@ describe('React component accessibility and presentation contracts', () => {
     expect(packageJson.scripts['css:foundation:audit']).toBe('node scripts/verify-css-foundation.js && npm run css:legacy:audit')
     expect(packageJson.scripts['css:legacy:audit']).toBe('node scripts/verify-css-legacy-retirement.js')
     expect(packageJson.scripts['react:production:complete']).toContain('css:foundation:audit')
-    expect(legacyStyles).toContain('LEGACY STYLESHEET - Cruise Explorer CSS Foundation Refactor')
-    expect(designSystem).toContain('CSS Foundation Refactor - Phase 2')
+    expect(fs.existsSync(path.join(projectRoot, RETIRED_APP_CSS_PATH))).toBe(false)
+    expect(productShell).toContain('CSS Foundation Refactor - Phase 2')
+    expect(productShell).toContain('CSS Foundation Refactor - Phase 5')
+    expect(roleDashboardStyles).toContain('CSS Foundation Refactor - Phase 4')
+    expect(designSystem).not.toContain('CSS Foundation Refactor - Phase 2')
     expect(designSystem).not.toContain('CSS Foundation Refactor - Phase 3')
-    expect(designSystem).toContain('CSS Foundation Refactor - Phase 4')
-    expect(designSystem).toContain('CSS Foundation Refactor - Phase 5')
+    expect(designSystem).not.toContain('CSS Foundation Refactor - Phase 4')
+    expect(designSystem).not.toContain('CSS Foundation Refactor - Phase 5')
     expect(designSystem).not.toContain('CSS Foundation Refactor - Phase 6')
     expect(cssIndex).toContain("@import './components/index.css';")
-    for (const retiredPhase of [7, 8, 9, 10, 11, 12, 13, 14]) {
+    for (const retiredPhase of [4, 5, 7, 8, 9, 10, 11, 12, 13, 14]) {
       expect(designSystem).not.toContain(`CSS Foundation Refactor - Phase ${retiredPhase}`)
     }
     expect(navigation).toContain('.react-production-shell .react-top-nav.ce-command-card')
@@ -233,8 +258,10 @@ describe('React component accessibility and presentation contracts', () => {
     expect(selectorCard).toContain('.react-production-shell .ce-selector-card')
     expect(form).toContain('.react-production-shell .ce-field')
     expect(utilities).toContain('.react-production-shell .ce-visually-hidden')
-    expect(designSystem).toContain('CSS Foundation Refactor - Phase 15')
-    expect(designSystem).toContain('CSS Foundation Refactor - Phase 16')
+    expect(designSystem).not.toContain('CSS Foundation Refactor - Phase 15')
+    expect(designSystem).not.toContain('CSS Foundation Refactor - Phase 16')
+    expect(roleSelectorCss).toContain('Role selector component architecture')
+    expect(roleSelectorCss).toContain('Passenger and operational finder component architecture')
     expect(tokens).toContain('--ce-command-bg-soft')
     expect(tokens).toContain('--ce-command-card-bg')
     expect(tokens).toContain('--ce-data-surface')
@@ -242,27 +269,34 @@ describe('React component accessibility and presentation contracts', () => {
     expect(tokens).toContain('--ce-focus-ring')
     expect(tokens).toContain('--ce-control-height')
     expect(tokens).toContain('--ce-transition-fast')
-    expect(designSystem).toContain('.react-production-shell :is(')
-    expect(designSystem).toContain('.react-workspace-panel')
-    expect(designSystem).toContain('.react-app-section')
-    expect(designSystem).toContain('.react-admin-management-card')
-    expect(designSystem).toContain('.react-sqa-console')
-    expect(designSystem).toContain('.operational-turnaround-panel')
-    expect(designSystem).toContain('.draft-editor')
-    expect(designSystem).toContain('.react-admin-table-wrap')
-    expect(designSystem).toContain('var(--ce-command-text)')
-    expect(designSystem).toContain('var(--ce-data-text)')
+    expect(productShell).toContain('.react-production-shell :is(')
+    expect(productShell).toContain('.react-workspace-panel')
+    expect(application).toContain('.react-app-section')
+    expect(productShell).toContain('.react-admin-management-card')
+    expect(productShell).toContain('.react-sqa-console')
+    expect(roleDashboardStyles).toContain('.operational-turnaround-panel')
+    expect(productShell).toContain('.draft-editor')
+    expect(application).toContain('CSS Foundation Refactor - Slice 20')
+    expect(application).toContain('.cruise-line-brand-panel')
+    expect(application).toContain('.brand-theme-summary')
+    expect(productShell).toContain('CSS Foundation Refactor - Slice 20')
+    expect(productShell).toContain('.recommended-workflow-panel')
+    expect(productShell).toContain('.react-confirm-action-panel--modal')
+    expect(productShell).toContain('.react-admin-table-wrap')
+    expect(productShell).toContain('var(--ce-command-text)')
+    expect(productShell).toContain('var(--ce-data-text)')
     expect(panel).toContain('.ce-command-panel')
     expect(card).toContain('.ce-command-card')
     expect(card).toContain('.ce-editor-card')
     expect(designSystem).not.toContain('.react-production-shell .ce-command-panel {')
     expect(designSystem).not.toContain('.react-production-shell .ce-command-card {')
     expect(designSystem).not.toContain('.react-production-shell .ce-editor-card {')
-    expect(designSystem).toContain('.react-production-shell .react-role-dashboard.ce-command-panel')
-    expect(designSystem).toContain('.operations-directory-card.ce-command-card')
-    expect(designSystem).toContain('.operational-command-form.ce-editor-card')
-    expect(designSystem).toContain('.production-hardening-center.ce-command-panel')
-    expect(designSystem).toContain('.passenger-booking-form.ce-editor-card')
+    expect(designSystem).not.toContain('.operational-turnaround-panel')
+    expect(roleDashboardStyles).toContain('.react-production-shell .react-role-dashboard.ce-command-panel')
+    expect(roleDashboardStyles).toContain('.operations-directory-card.ce-command-card')
+    expect(roleDashboardStyles).toContain('.operational-command-form.ce-editor-card')
+    expect(productShell).toContain('.production-hardening-center.ce-command-panel')
+    expect(productShell).toContain('.passenger-booking-form.ce-editor-card')
     expect(layout).toContain('.ce-action-row')
     expect(button).toContain('.ce-button-primary')
     expect(table).toContain('.child-panel.ce-editor-card')
@@ -273,9 +307,10 @@ describe('React component accessibility and presentation contracts', () => {
     expect(form).toContain('.ce-field-label')
     expect(card).toContain('.ce-empty-state.ce-editor-card')
     expect(selectorCard).toContain('.ce-selector-card')
-    expect(designSystem).toContain('.role-selector-section :is(.passenger-finder-panel, .person-finder-panel, .role-summary-card)')
+    expect(roleSelectorCss).toContain('.role-selector-section :is(.passenger-finder-panel, .person-finder-panel, .role-summary-card)')
     expect(selectorCard).toContain('.booking-guest-result-card.ce-selector-card')
-    expect(designSystem).toContain('CSS Foundation Refactor - Phase 17')
+    expect(designSystem).not.toContain('CSS Foundation Refactor - Phase 17')
+    expect(roleSelectorCss).toContain('Operational form action component architecture')
     expect(legacyStyles).not.toContain('Build 496 - task status action buttons keep dark text on light pills')
     expect(legacyStyles).not.toContain('Build 460 - Role/person selector white-card contrast fix')
     expect(legacyStyles).not.toContain('Build 463 - operational role assignment filter contrast fix')
@@ -285,13 +320,13 @@ describe('React component accessibility and presentation contracts', () => {
   })
 
 
-  it('keeps the legacy CSS retirement audit explicit until app.css can be removed', () => {
+  it('keeps the retired CSS audit explicit after app css removal', () => {
     const retirementAudit = read('scripts/verify-css-legacy-retirement.js')
 
-    expect(retirementAudit).toContain('CSS legacy retirement audit passed.')
+    expect(retirementAudit).toContain('CSS retired file audit passed.')
+    expect(retirementAudit).toContain('appCssDeleted')
     expect(retirementAudit).toContain('appCssReferenceFileCount')
-    expect(retirementAudit).toContain('appCssTestReferenceFileCount')
-    expect(retirementAudit).toContain('Do not remove `frontend/react/src/styles/app.css` yet')
+    expect(retirementAudit).toContain('retired app.css must be deleted')
     expect(retirementAudit).toContain('/\\.(js|jsx|css)$/')
   })
 
@@ -304,7 +339,10 @@ describe('React component accessibility and presentation contracts', () => {
     const turnaroundSetup = read('frontend/react/src/components/ReactTurnaroundAdminSetup.jsx')
     const app = read('frontend/react/src/App.jsx')
     const draftFeedback = read('frontend/react/src/components/DraftFeedback.jsx')
-    const designSystem = read('frontend/react/src/styles/design-system.css')
+    const retiredDesignSystemPath = path.join(projectRoot, 'frontend/react/src/styles/design-system.css')
+    const designSystem = fs.existsSync(retiredDesignSystemPath) ? fs.readFileSync(retiredDesignSystemPath, 'utf8') : ''
+    const roleSelectorCss = read('frontend/react/src/styles/components/role-selector.css')
+    const productShell = read('frontend/react/src/styles/components/product-shell.css')
 
     expect(app).toContain('production-hero ce-command-panel')
     expect(app).toContain('react-top-nav ce-command-card')
@@ -336,7 +374,7 @@ describe('React component accessibility and presentation contracts', () => {
     expect(selector).toContain('passenger-finder-panel ce-command-card')
     expect(selector).toContain('passenger-finder-card ce-selector-card ce-command-card')
     expect(selector).toContain('person-finder-card ce-selector-card ce-command-card')
-    expect(designSystem).toContain('Role selector finder panels now use the CSS foundation')
+    expect(roleSelectorCss).toContain('Role selector finder panels now use the CSS foundation')
     expect(sqa).toContain('react-sqa-console ce-command-panel')
     expect(sqa).toContain('react-sqa-action-card ce-command-card')
     expect(sqa).toContain('react-sqa-output-actions ce-action-row')
@@ -369,7 +407,9 @@ describe('React component accessibility and presentation contracts', () => {
 
   it('migrates role dashboards and operational workspaces onto reusable CSS foundation primitives', () => {
     const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const designSystem = read('frontend/react/src/styles/design-system.css')
+    const roleDashboardStyles = read('frontend/react/src/styles/components/role-dashboard.css')
+    const retiredDesignSystemPath = path.join(projectRoot, 'frontend/react/src/styles/design-system.css')
+    const designSystem = fs.existsSync(retiredDesignSystemPath) ? fs.readFileSync(retiredDesignSystemPath, 'utf8') : ''
 
     expect(dashboard).toContain('react-role-dashboard ce-command-panel')
     expect(dashboard).toContain('role-profile-card passenger-self-service ce-command-card')
@@ -399,10 +439,10 @@ describe('React component accessibility and presentation contracts', () => {
     expect(customerRow).toContain('editor-row ce-editor-row')
     expect(customerRow).toContain('child-panel ce-editor-card')
 
-    expect(designSystem).toContain('CSS Foundation Refactor - Phase 4')
-    expect(designSystem).toContain('.role-booking-card.ce-command-card')
-    expect(designSystem).toContain('.operations-workspace-shell.ce-command-panel')
-    expect(designSystem).toContain('.operations-role-brief-card.ce-command-card')
+    expect(roleDashboardStyles).toContain('CSS Foundation Refactor - Phase 4')
+    expect(roleDashboardStyles).toContain('.role-booking-card.ce-command-card')
+    expect(roleDashboardStyles).toContain('.operations-workspace-shell.ce-command-panel')
+    expect(roleDashboardStyles).toContain('.operations-role-brief-card.ce-command-card')
   })
 
 
@@ -1055,7 +1095,7 @@ describe('React route preview accessibility contracts', () => {
     const seedData = read('data/cruise.json')
     const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
     const createWorkflow = read('frontend/react/src/components/ReactCruiseLineCreateWorkflow.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
+    const styles = read('frontend/react/src/styles/components/application.css')
 
     expect(seedData).toContain('\"brandFamily\": \"Royal Caribbean Group\"')
     expect(seedData).toContain('\"brandTheme\": \"Adventure Innovation\"')
@@ -1077,7 +1117,14 @@ describe('React route preview accessibility contracts', () => {
   it('keeps operational directory cards available for cross-department coordination without large unbounded rendering', () => {
     const roleDashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
     const selectors = read('cypress/react/support/reactSelectors.js')
-    const styles = read('frontend/react/src/styles/app.css')
+    const styles = [
+      optionalStyleRead(RETIRED_APP_CSS_PATH),
+      read('frontend/react/src/styles/components/operations-workspaces.css'),
+      read('frontend/react/src/styles/components/operations-queues.css'),
+      read('frontend/react/src/styles/components/operations-coverage.css'),
+      read('frontend/react/src/styles/components/readiness-centers.css'),
+      readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css'),
+    ].join('\n')
 
     expect(roleDashboard).toContain('function buildOperationalDirectory')
     expect(roleDashboard).toContain('visibleReadinessOperations.map')
@@ -1261,9 +1308,9 @@ describe('turnaround command center React contract', () => {
 
 
 test('role selector finder panels use CSS foundation contrast contracts', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/role-selector.css'), 'utf8')
 
-  expect(cssSource).toContain('CSS Foundation Refactor - Phase 15')
+  expect(cssSource).toContain('Role selector component architecture')
   expect(cssSource).toContain('Role selector finder panels now use the CSS foundation')
   expect(cssSource).toContain('.react-production-shell .role-selector-section .person-finder-panel')
   expect(cssSource).toContain('.react-production-shell .role-selector-section .selected-person-card')
@@ -1273,9 +1320,9 @@ test('role selector finder panels use CSS foundation contrast contracts', () => 
 
 
 test('operational role assignment filters use CSS foundation light editor contracts', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/role-selector.css'), 'utf8')
 
-  expect(cssSource).toContain('CSS Foundation Refactor - Phase 16')
+  expect(cssSource).toContain('Passenger and operational finder component architecture')
   expect(cssSource).toContain('.react-production-shell .role-selector-section :is(.passenger-finder-panel, .person-finder-panel, .role-summary-card)')
   expect(cssSource).toContain('.react-production-shell .role-selector-section :is(.passenger-finder-grid, .operational-person-filter-grid)')
   expect(cssSource).toContain('.react-production-shell .role-selector-section .operational-person-filter-grid .role-selector-field')
@@ -1284,7 +1331,7 @@ test('operational role assignment filters use CSS foundation light editor contra
 
 
 test('turnaround role dashboard panels use dark operational motif overrides', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
 
   expect(cssSource).toContain('Build 464 - dark operational role dashboard motif')
   expect(cssSource).toContain('.role-dashboard-section [class*="turnaround"][class*="panel"]')
@@ -1292,12 +1339,12 @@ test('turnaround role dashboard panels use dark operational motif overrides', ()
 })
 
 test('build 465 contrast correction exists', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
   expect(cssSource).toContain('Build 465 - role dashboard contrast correction')
 })
 
 test('build 466 operational dashboard contrast repair is present', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
 
   expect(cssSource).toContain('Build 466 - exact operational dashboard contrast repair')
   expect(cssSource).toContain('.react-role-dashboard .operations-portfolio-board')
@@ -1306,7 +1353,7 @@ test('build 466 operational dashboard contrast repair is present', () => {
 })
 
 test('build 467 operational panels use explicit dark motif and light tile contrast', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
 
   expect(cssSource).toContain('Build 467 - operational role panels aligned to admin dark motif')
   expect(cssSource).toContain('.react-role-dashboard .operations-portfolio-board')
@@ -1315,7 +1362,7 @@ test('build 467 operational panels use explicit dark motif and light tile contra
 })
 
 test('build 468 operational role panels use role selector dark motif', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
 
   expect(cssSource).toContain('Build 468 - operational role panels use the same dark motif as the role selector')
   expect(cssSource).toContain('.react-role-dashboard .operations-portfolio-heading')
@@ -1323,19 +1370,19 @@ test('build 468 operational role panels use role selector dark motif', () => {
 })
 
 test('build 469 restores white text on dark operational cards', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
   expect(cssSource).toContain('Build 469 - restore white text on dark operational cards')
 })
 
 test('build 470 fleet portfolio dark card text contrast is present', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
 
   expect(cssSource).toContain('Build 470 - exact fleet portfolio dark-card text contrast')
   expect(cssSource).toContain('.react-role-dashboard .operations-portfolio-list > article > :not(dl)')
 })
 
 test('build 471 fixes exact selected turnaround portfolio card contrast', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
 
   expect(cssSource).toContain('Build 471 - exact selected turnaround portfolio-card contrast fix')
   expect(cssSource).toContain('button.operations-portfolio-card > span:not(.operations-portfolio-status)')
@@ -1343,7 +1390,7 @@ test('build 471 fixes exact selected turnaround portfolio card contrast', () => 
 })
 
 test('build 473 release-board cards match operational metric tile style', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
 
   expect(cssSource).toContain('Build 473 - release-board KPI cards match operational metric tile style')
   expect(cssSource).toContain('.react-role-dashboard .operations-release-card')
@@ -1351,33 +1398,33 @@ test('build 473 release-board cards match operational metric tile style', () => 
 })
 
 test('build 474 release board cards use white text on dark cards', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
   expect(cssSource).toContain('Build 474 - fix invisible release-board KPI text')
   expect(cssSource).toContain('-webkit-text-fill-color: #ffffff')
 })
 
 test('build 475 lifecycle story tiles use dark-card motif', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
   expect(cssSource).toContain('Build 475 - lifecycle story tiles match lifecycle dark-card motif')
   expect(cssSource).toContain('.react-role-dashboard .operations-lifecycle-story span')
 })
 
 test('build 476 role operations panels are unified to workspace selection style', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
   expect(cssSource).toContain('Build 476 - role-operations panels unified to workspace-selection style')
   expect(cssSource).toContain('.react-role-dashboard .operations-lifecycle-details > div')
   expect(cssSource).toContain('.react-role-dashboard .operations-release-packet')
 })
 
 test('build 477 reviewer packet details use a readable two-column layout', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
   expect(cssSource).toContain('Build 477 - reviewer packet detail layout repair')
   expect(cssSource).toContain('.operations-reviewer-packet-details')
   expect(cssSource).toContain('react-operations-reviewer-packet-quality')
 })
 
 test('build 478 outreach board details use readable card layout', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
   expect(cssSource).toContain('Build 478 - outreach board detail layout repair')
   expect(cssSource).toContain('.operations-outreach-board-details')
   expect(cssSource).toContain('writing-mode: horizontal-tb')
@@ -1418,19 +1465,19 @@ test('employer-facing role dashboard does not render launch plan panel', () => {
 })
 
 test('build 482 scenario plan uses outreach-board dark motif', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
   expect(cssSource).toContain('Build 482 - scenario plan panel matches cruise-line outreach dark motif')
   expect(cssSource).toContain('.react-role-dashboard .operations-scenario-plan')
   expect(cssSource).toContain('.react-role-dashboard .operations-scenario-plan-details')
 })
 
 test('build 483 scenario stress cards use white text', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
   expect(cssSource).toContain('Build 483 - scenario stress cards force readable white text')
 })
 
 test('build 484 remaining role operation panels use dark outreach motif', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
   expect(cssSource).toContain('Build 484 - unify remaining role-operations panels to the dark outreach-board motif')
   expect(cssSource).toContain('.react-role-dashboard .operations-command-center')
   expect(cssSource).toContain('.react-role-dashboard .operations-shift-briefing')
@@ -1438,13 +1485,13 @@ test('build 484 remaining role operation panels use dark outreach motif', () => 
 })
 
 test('build 485 operations timeline uses executive brief dark motif', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-timeline.css', 'frontend/react/src/styles/components/operations-workspaces.css', 'frontend/react/src/styles/components/operations-queues.css', 'frontend/react/src/styles/components/operations-coverage.css')
   expect(cssSource).toContain('Build 485 - operations timeline and downstream panels match executive brief dark motif')
   expect(cssSource).toContain('[data-testid="react-operations-timeline"]')
 })
 
 test('build 486 role workspace lower panels use dark operational motif', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-workspaces.css', 'frontend/react/src/styles/components/operations-queues.css', 'frontend/react/src/styles/components/operations-coverage.css')
   expect(cssSource).toContain('Build 486 - role workspace/detail panels match the approved dark motif')
   expect(cssSource).toContain('.operations-role-brief-panel')
   expect(cssSource).toContain('.operations-directory')
@@ -1452,7 +1499,7 @@ test('build 486 role workspace lower panels use dark operational motif', () => {
 })
 
 test('build 487 command detail workspace uses dark operational motif with readable text', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-workspaces.css', 'frontend/react/src/styles/components/operations-queues.css', 'frontend/react/src/styles/components/operations-coverage.css')
   expect(cssSource).toContain('Build 487 - command detail workspace uses approved dark operational motif')
   expect(cssSource).toContain('.react-role-dashboard .operational-command-compatibility-panel .operational-readiness-card')
   expect(cssSource).toContain('-webkit-text-fill-color: #ffffff !important')
@@ -1460,7 +1507,7 @@ test('build 487 command detail workspace uses dark operational motif with readab
 })
 
 test('build 488 command detail editor forms use dark cards with light editing controls', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-workspaces.css', 'frontend/react/src/styles/components/operations-queues.css', 'frontend/react/src/styles/components/operations-coverage.css')
   expect(cssSource).toContain('Build 488 - command detail editor forms use dark operational cards while controls stay editable')
   expect(cssSource).toContain('.react-role-dashboard .operational-command-compatibility-panel .operational-command-form,')
   expect(cssSource).toContain('background: rgba(6, 30, 45, 0.88) !important')
@@ -1470,7 +1517,7 @@ test('build 488 command detail editor forms use dark cards with light editing co
 })
 
 test('build 489 deep operations workspace styling sweep keeps panels dark and controls editable', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/operations-workspaces.css', 'frontend/react/src/styles/components/operations-queues.css', 'frontend/react/src/styles/components/operations-coverage.css')
   expect(cssSource).toContain('Build 489 - deep operations workspace styling sweep')
   expect(cssSource).toContain('.operations-dependency-workspace')
   expect(cssSource).toContain('.operations-handoff-workspace')
@@ -1489,8 +1536,9 @@ test('build 489 deep operations workspace styling sweep keeps panels dark and co
 
 test('phase 23 first-impression hero styles live in the hero component layer', () => {
   const heroStyles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/hero.css'), 'utf8')
-  const designSystem = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
-  const legacyStyles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/app.css'), 'utf8')
+  const retiredDesignSystemPath = path.join(__dirname, '../../frontend/react/src/styles/design-system.css')
+  const designSystem = fs.existsSync(retiredDesignSystemPath) ? fs.readFileSync(retiredDesignSystemPath, 'utf8') : ''
+  const legacyStyles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/product-shell.css'), 'utf8')
   const foundationAudit = fs.readFileSync(path.join(__dirname, '../../scripts/verify-css-foundation.js'), 'utf8')
   const componentIndex = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/index.css'), 'utf8')
 
@@ -1511,7 +1559,8 @@ test('phase 23 first-impression hero styles live in the hero component layer', (
 
 test('phase 21 and 22 passenger voyage planner styles live in the passenger component layer', () => {
   const passengerStyles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/passenger.css'), 'utf8')
-  const designSystem = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
+  const retiredDesignSystemPath = path.join(__dirname, '../../frontend/react/src/styles/design-system.css')
+  const designSystem = fs.existsSync(retiredDesignSystemPath) ? fs.readFileSync(retiredDesignSystemPath, 'utf8') : ''
   const componentIndex = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/index.css'), 'utf8')
 
   expect(componentIndex).toContain("@import './passenger.css';")
@@ -1524,56 +1573,121 @@ test('phase 21 and 22 passenger voyage planner styles live in the passenger comp
   expect(designSystem).not.toContain('CSS Foundation Refactor - Phase 22')
 })
 
-test('phase 20 retires the Build 437-448 admin workspace stack into the design system', () => {
-  const designSystem = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
-  const legacyStyles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/app.css'), 'utf8')
+test('phase 20 admin workspace styles live in component CSS', () => {
+  const adminWorkspaces = [
+    fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/admin-workspaces.css'), 'utf8'),
+    fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/admin-presentation.css'), 'utf8'),
+  ].join('\n')
+  const componentIndex = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/index.css'), 'utf8')
+  const retiredDesignSystemPath = path.join(__dirname, '../../frontend/react/src/styles/design-system.css')
+  const designSystem = fs.existsSync(retiredDesignSystemPath) ? fs.readFileSync(retiredDesignSystemPath, 'utf8') : ''
+  const legacyStyles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/product-shell.css'), 'utf8')
+  const appCss = optionalStyleRead(RETIRED_APP_CSS_PATH)
 
-  expect(designSystem).toContain('CSS Foundation Refactor - Phase 20')
-  expect(designSystem).toContain('Build 437: admin surface width and panel consistency repair')
-  expect(designSystem).toContain('Build 448: lock starter ship controls until cruise line details are complete')
-  expect(designSystem).toContain('.react-create-workflow-section')
-  expect(designSystem).toContain('.react-quality-section .go-live-readiness-panel .readiness-item')
+  expect(componentIndex).toContain("@import './admin-workspaces.css';")
+  expect(componentIndex).toContain("@import './admin-presentation.css';")
+  expect(adminWorkspaces).toContain('CSS Foundation Refactor - Phase 20')
+  expect(adminWorkspaces).toContain('Build 437: admin surface width and panel consistency repair')
+  expect(adminWorkspaces).toContain('Build 448: lock starter ship controls until cruise line details are complete')
+  expect(adminWorkspaces).toContain('Build 458 - hard contrast fix for SQA status and go-live readiness text')
+  expect(adminWorkspaces).toContain('.react-create-workflow-section')
+  expect(adminWorkspaces).toContain('.react-quality-section .go-live-readiness-panel .readiness-item')
+  expect(designSystem).not.toContain('CSS Foundation Refactor - Phase 20')
+  expect(designSystem).not.toContain('Build 437: admin surface width and panel consistency repair')
+  expect(designSystem).not.toContain('Build 448: lock starter ship controls until cruise line details are complete')
   expect(legacyStyles).toContain('CSS Foundation Refactor Phase 20: Build 437-448 admin workspace')
   expect(legacyStyles).not.toContain('Build 437: admin surface width and panel consistency repair')
   expect(legacyStyles).not.toContain('Build 448: lock starter ship controls until cruise line details are complete')
+  expect(appCss).not.toContain('Build 437: admin surface width and panel consistency repair')
 })
 
-test('phase 19 retires the Build 464-489 operational dashboard stack into the design system', () => {
-  const designSystem = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
-  const legacyStyles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/app.css'), 'utf8')
+test('phase 19 operational dashboard styles live in component CSS', () => {
+  const retiredDesignSystemPath = path.join(__dirname, '../../frontend/react/src/styles/design-system.css')
+  const designSystem = fs.existsSync(retiredDesignSystemPath) ? fs.readFileSync(retiredDesignSystemPath, 'utf8') : ''
+  const operationsDashboard = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
+  const operationsTimeline = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/operations-timeline.css'), 'utf8')
+  const operationsWorkspaces = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/operations-workspaces.css'), 'utf8')
+  const componentIndex = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/index.css'), 'utf8')
+  const legacyStyles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/product-shell.css'), 'utf8')
+  const appCss = optionalStyleRead(RETIRED_APP_CSS_PATH)
 
-  expect(designSystem).toContain('CSS Foundation Refactor - Phase 19')
-  expect(designSystem).toContain('CSS Foundation Refactor - Phase 20')
-  expect(designSystem).toContain('Build 464 - dark operational role dashboard motif')
-  expect(designSystem).toContain('Build 489 - deep operations workspace styling sweep')
-  expect(designSystem).toContain('.operations-directory-panel')
-  expect(designSystem).toContain('.operational-command-compatibility-panel')
+  expect(componentIndex).toContain("@import './operations-role-surface.css';")
+  expect(componentIndex).toContain("@import './operations-continuity.css';")
+  expect(componentIndex).toContain("@import './operations-release.css';")
+  expect(componentIndex).toContain("@import './operations-evidence.css';")
+  expect(componentIndex).toContain("@import './operations-timeline.css';")
+  expect(componentIndex).toContain("@import './operations-workspaces.css';")
+  expect(componentIndex).toContain("@import './operations-queues.css';")
+  expect(componentIndex).toContain("@import './operations-coverage.css';")
+  expect(componentIndex).toContain("@import './readiness-centers.css';")
+  expect(operationsDashboard).toContain('CSS Foundation Refactor - Phase 19')
+  expect(operationsDashboard).toContain('Build 464 - dark operational role dashboard motif')
+  expect(operationsDashboard).toContain('Build 484 - unify remaining role-operations panels to the dark outreach-board motif')
+  expect(operationsTimeline).toContain('Build 485 - operations timeline and downstream panels match executive brief dark motif')
+  expect(operationsWorkspaces).toContain('Build 489 - deep operations workspace styling sweep')
+  expect(operationsWorkspaces).toContain('.operations-directory-panel')
+  expect(operationsWorkspaces).toContain('.operational-command-compatibility-panel')
+  expect(designSystem).not.toContain('CSS Foundation Refactor - Phase 20')
+  expect(designSystem).not.toContain('CSS Foundation Refactor - Phase 19')
+  expect(designSystem).not.toContain('Build 464 - dark operational role dashboard motif')
+  expect(designSystem).not.toContain('Build 489 - deep operations workspace styling sweep')
   expect(legacyStyles).toContain('CSS Foundation Refactor Phase 19: Build 464-489 operational dashboard')
   expect(legacyStyles).not.toContain('Build 464 - dark operational role dashboard motif')
   expect(legacyStyles).not.toContain('Build 489 - deep operations workspace styling sweep')
+  expect(appCss).not.toContain('Build 464 - dark operational role dashboard motif')
 })
 
-test('phase 18 retires the Build 490-495 operational contrast patch stack into the design system', () => {
-  const designSystem = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
-  const legacyStyles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/app.css'), 'utf8')
 
-  expect(designSystem).toContain('CSS Foundation Refactor - Phase 18')
-  expect(designSystem).toContain('The final broad operational contrast kill-switch rules now live in the')
-  expect(designSystem).toContain('.operational-command-compatibility-panel')
-  expect(designSystem).toContain('.operational-readiness-list')
-  expect(designSystem).toContain('.operations-dependency-workspace')
-  expect(designSystem).toContain('.operations-handoff-workspace')
-  expect(designSystem).toContain('.operations-staffing-workspace')
-  expect(designSystem).toContain('.operations-escalation-workspace')
-  expect(designSystem).toContain('.operations-readiness-workspace')
-  expect(designSystem).toContain('color: var(--ce-command-text) !important')
-  expect(designSystem).toContain('-webkit-text-fill-color: var(--ce-command-text) !important')
-  expect(designSystem).toContain('color: var(--ce-data-text) !important')
-  expect(designSystem).toContain('-webkit-text-fill-color: var(--ce-data-text) !important')
-  expect(designSystem).toContain('background: var(--ce-data-surface) !important')
-  expect(designSystem).toContain('background: #ffffff !important')
-  expect(designSystem).toContain('background: var(--ce-action-soft-bg) !important')
-  expect(designSystem).toContain(':is(input, select, textarea, option)')
+test('slice 31 readiness and diagnostic center styles live in component CSS', () => {
+  const readinessCenters = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/readiness-centers.css'), 'utf8')
+  const operationsDashboard = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
+  const componentIndex = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/index.css'), 'utf8')
+  const legacyStyles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/product-shell.css'), 'utf8')
+  const appCss = optionalStyleRead(RETIRED_APP_CSS_PATH)
+
+  expect(componentIndex).toContain("@import './readiness-centers.css';")
+  expect(readinessCenters).toContain('CSS Foundation Refactor Slice 31')
+  expect(readinessCenters).toContain('.data-architecture-readiness-center')
+  expect(readinessCenters).toContain('.production-hardening-center')
+  expect(readinessCenters).toContain('.deployment-readiness-center')
+  expect(readinessCenters).toContain('.portfolio-polish-center')
+  expect(readinessCenters).toContain('.public-launch-control-center')
+  expect(readinessCenters).toContain('.operations-control-board')
+  expect(operationsDashboard).toContain('CSS Foundation Refactor Slice 31')
+  expect(operationsDashboard).toContain('.operations-shift-briefing')
+  expect(operationsDashboard).toContain('.operations-go-live-center')
+  expect(operationsDashboard).toContain('.turnaround-team-readiness-card')
+  expect(legacyStyles).toContain('CSS Foundation Refactor Slice 31: data architecture, hardening, deployment, portfolio, control-board, migration, and public launch readiness CSS moved to layered component CSS.')
+  expect(appCss).not.toContain('.data-architecture-readiness-center')
+  expect(appCss).not.toContain('.operations-go-live-center')
+})
+
+test('phase 18 retires the Build 490-495 operational contrast patch stack into the component layer', () => {
+  const operationsContrastStyles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/operations-contrast.css'), 'utf8')
+  const componentIndex = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/index.css'), 'utf8')
+  const retiredDesignSystemPath = path.join(__dirname, '../../frontend/react/src/styles/design-system.css')
+  const designSystem = fs.existsSync(retiredDesignSystemPath) ? fs.readFileSync(retiredDesignSystemPath, 'utf8') : ''
+  const legacyStyles = optionalStyleRead(RETIRED_APP_CSS_PATH)
+
+  expect(componentIndex).toContain("@import './operations-contrast.css';")
+  expect(operationsContrastStyles).toContain('CSS Foundation Refactor - Phase 18')
+  expect(operationsContrastStyles).toContain('Retires the Phase 18 Build 490-495 operational contrast patch stack')
+  expect(operationsContrastStyles).toContain('.operational-command-compatibility-panel')
+  expect(operationsContrastStyles).toContain('.operational-readiness-list')
+  expect(operationsContrastStyles).toContain('.operations-dependency-workspace')
+  expect(operationsContrastStyles).toContain('.operations-handoff-workspace')
+  expect(operationsContrastStyles).toContain('.operations-staffing-workspace')
+  expect(operationsContrastStyles).toContain('.operations-escalation-workspace')
+  expect(operationsContrastStyles).toContain('.operations-readiness-workspace')
+  expect(operationsContrastStyles).toContain('color: var(--ce-command-text) !important')
+  expect(operationsContrastStyles).toContain('-webkit-text-fill-color: var(--ce-command-text) !important')
+  expect(operationsContrastStyles).toContain('color: var(--ce-data-text) !important')
+  expect(operationsContrastStyles).toContain('-webkit-text-fill-color: var(--ce-data-text) !important')
+  expect(operationsContrastStyles).toContain('background: var(--ce-data-surface) !important')
+  expect(operationsContrastStyles).toContain('background: #ffffff !important')
+  expect(operationsContrastStyles).toContain('background: var(--ce-action-soft-bg) !important')
+  expect(operationsContrastStyles).toContain(':is(input, select, textarea, option)')
+  expect(designSystem).not.toContain('CSS Foundation Refactor - Phase 18')
   expect(legacyStyles).not.toContain('Build 490 - operational dark-surface text contrast sweep')
   expect(legacyStyles).not.toContain('Build 491 - hard stop for dark-on-dark operational command text')
   expect(legacyStyles).not.toContain('Build 492 - command workspace dark-surface text contrast hardening')
@@ -1582,11 +1696,11 @@ test('phase 18 retires the Build 490-495 operational contrast patch stack into t
   expect(legacyStyles).not.toContain('Build 495 - nested light editor contrast correction')
 })
 
-test('phase 17 keeps operational task action buttons on design-system contrast rules', () => {
-  const designSystem = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/design-system.css'), 'utf8')
-  const legacyStyles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/app.css'), 'utf8')
+test('role selector component keeps operational task action buttons on component-layer contrast rules', () => {
+  const designSystem = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/role-selector.css'), 'utf8')
+  const legacyStyles = optionalStyleRead(RETIRED_APP_CSS_PATH)
 
-  expect(designSystem).toContain('CSS Foundation Refactor - Phase 17')
+  expect(designSystem).toContain('Operational form action component architecture')
   expect(designSystem).toContain('.operational-task-actions :is(button, .secondary-action-button, .compact-button)')
   expect(designSystem).toContain(':is(button.danger-outline-button, .danger-outline-button.compact-button)')
   expect(designSystem).toContain('background: var(--ce-action-soft-bg) !important')

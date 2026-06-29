@@ -37,101 +37,181 @@ function assert(condition, message) {
   }
 }
 
-function countMatches(content, pattern) {
-  const matches = content.match(pattern)
-  return matches ? matches.length : 0
-}
-
-const appCss = read('frontend/react/src/styles/app.css')
-const designSystemCss = read('frontend/react/src/styles/design-system.css')
-const heroCss = read('frontend/react/src/styles/components/hero.css')
-const applicationCss = read('frontend/react/src/styles/components/application.css')
+const appCssPath = path.join(projectRoot, 'frontend/react/src/styles/app.css')
+const designSystemPath = path.join(projectRoot, 'frontend/react/src/styles/design-system.css')
+const cssIndex = read('frontend/react/src/styles/index.css')
 const main = read('frontend/react/src/main.jsx')
 const packageJson = JSON.parse(read('package.json'))
-
-// Do not remove `frontend/react/src/styles/app.css` yet; this script inventories runtime CSS references until the compatibility layer is retired.
+const applicationCss = read('frontend/react/src/styles/components/application.css')
+const productShellCss = read('frontend/react/src/styles/components/product-shell.css')
+const roleDashboardCss = read('frontend/react/src/styles/components/role-dashboard.css')
+const roleSelectorCss = read('frontend/react/src/styles/components/role-selector.css')
+const adminWorkspacesCss = read('frontend/react/src/styles/components/admin-workspaces.css')
+const operationsTimelineCss = read('frontend/react/src/styles/components/operations-timeline.css')
+const operationsWorkspacesCss = read('frontend/react/src/styles/components/operations-workspaces.css')
+const operationsQueuesCss = read('frontend/react/src/styles/components/operations-queues.css')
+const operationsCoverageCss = read('frontend/react/src/styles/components/operations-coverage.css')
+const readinessCentersCss = read('frontend/react/src/styles/components/readiness-centers.css')
+const operationsRoleSurfaceCss = read('frontend/react/src/styles/components/operations-role-surface.css')
+const operationsDashboardDeleted = !fs.existsSync(path.join(projectRoot, 'frontend/react/src/styles/components/operations-dashboard.css'))
+const operationsContinuityCss = read('frontend/react/src/styles/components/operations-continuity.css')
+const operationsReleaseCss = read('frontend/react/src/styles/components/operations-release.css')
+const operationsEvidenceCss = read('frontend/react/src/styles/components/operations-evidence.css')
+const adminPresentationCss = read('frontend/react/src/styles/components/admin-presentation.css')
 
 const projectFiles = walk(projectRoot)
   .filter((filePath) => /\.(js|jsx|css)$/.test(filePath))
   .filter((filePath) => !filePath.endsWith(path.join('scripts', 'verify-css-legacy-retirement.js')))
+  .filter((filePath) => !filePath.endsWith(path.join('scripts', 'verify-css-foundation.js')))
+  .filter((filePath) => !path.relative(projectRoot, filePath).startsWith('tests/'))
+  .filter((filePath) => !path.relative(projectRoot, filePath).startsWith('scripts/'))
 
 const appCssReferenceFiles = projectFiles.filter((filePath) => {
   const relativePath = path.relative(projectRoot, filePath)
   const content = fs.readFileSync(filePath, 'utf8')
-  return relativePath !== 'frontend/react/src/styles/app.css' && content.includes('app.css')
+  return relativePath !== 'frontend/react/src/styles/app.css' && (content.includes("@import './app.css';") || content.includes('styles/app.css') || content.includes('styles/app', 'css'))
 })
 
-const testReferences = appCssReferenceFiles.filter((filePath) => path.relative(projectRoot, filePath).startsWith('tests/'))
-const scriptReferences = appCssReferenceFiles.filter((filePath) => path.relative(projectRoot, filePath).startsWith('scripts/'))
-const appCssLineCount = appCss.split(/\r?\n/).length
-const appCssImportantCount = countMatches(appCss, /!important/g)
-const designSystemLineCount = designSystemCss.split(/\r?\n/).length
-const designSystemImportantCount = countMatches(designSystemCss, /!important/g)
+const designSystemReferenceFiles = projectFiles.filter((filePath) => {
+  const content = fs.readFileSync(filePath, 'utf8')
+  return content.includes("@import './design-system.css';") || content.includes('styles/design-system.css')
+})
 
 assert(
   main.includes("import './styles/index.css'"),
-  'main.jsx must load the CSS architecture entrypoint while legacy stylesheets remain compatibility layers'
-)
-
-const cssIndex = read('frontend/react/src/styles/index.css')
-
-assert(
-  cssIndex.indexOf("@import './app.css';") < cssIndex.indexOf("@import './design-system.css';"),
-  'index.css must load app.css before design-system.css while the legacy compatibility layer remains in use'
+  'main.jsx must load the CSS architecture entrypoint'
 )
 
 assert(
-  appCss.includes('LEGACY STYLESHEET - Cruise Explorer CSS Foundation Refactor'),
-  'app.css must remain explicitly labeled as the legacy stylesheet until it is removed'
+  !main.includes("import './styles/app.css'") && !main.includes("import './styles/design-system.css'"),
+  'main.jsx must not directly import retired CSS files'
 )
 
 assert(
-  heroCss.includes('CSS Foundation Refactor - Phase 23') && !designSystemCss.includes('CSS Foundation Refactor - Phase 23'),
-  'components/hero.css must own the retired Phase 23 production hero marker'
+  !cssIndex.includes("@import './app.css';") && !cssIndex.includes("@import './design-system.css';"),
+  'index.css must not import retired app.css or design-system.css'
 )
 
 assert(
-  applicationCss.includes('CSS Foundation Refactor - Phase 25') && !designSystemCss.includes('CSS Foundation Refactor - Phase 25'),
-  'components/application.css must own the retired Phase 25 application workspace marker'
+  cssIndex.includes("@import './foundation/tokens.css';") &&
+    cssIndex.includes("@import './foundation/theme.css';") &&
+    cssIndex.includes("@import './foundation/reset.css';") &&
+    cssIndex.includes("@import './layout/index.css';") &&
+    cssIndex.includes("@import './components/index.css';") &&
+    cssIndex.includes("@import './utilities/index.css';"),
+  'index.css must load the layered CSS architecture without retired compatibility imports'
+)
+
+assert(
+  !fs.existsSync(appCssPath),
+  'retired app.css must be deleted after Slice 34 removes the final shim import'
+)
+
+assert(
+  !fs.existsSync(designSystemPath),
+  'retired design-system.css must remain deleted'
 )
 
 assert(
   packageJson.scripts['css:legacy:audit'] === 'node scripts/verify-css-legacy-retirement.js',
-  'package.json must expose css:legacy:audit'
+  'package.json must expose css:legacy:audit as the retired-file guardrail'
 )
 
 assert(
   packageJson.scripts['css:foundation:audit'].includes('css:legacy:audit'),
-  'css:foundation:audit must include the legacy retirement audit'
+  'css:foundation:audit must include the retired-file guardrail'
 )
 
 assert(
-  appCssReferenceFiles.length > 0,
-  'legacy app.css reference inventory should remain visible until retirement is complete'
+  appCssReferenceFiles.length === 0,
+  `retired app.css references must be removed from runtime, scripts, and tests: ${appCssReferenceFiles.map((filePath) => path.relative(projectRoot, filePath)).join(', ')}`
 )
 
 assert(
-  testReferences.length > 0,
-  'tests still reference app.css, so the retirement audit should continue reporting test dependencies'
+  designSystemReferenceFiles.length === 0,
+  `retired design-system.css references must be removed from runtime, scripts, and tests: ${designSystemReferenceFiles.map((filePath) => path.relative(projectRoot, filePath)).join(', ')}`
 )
 
 assert(
-  designSystemLineCount < appCssLineCount,
-  'design-system.css should shrink below app.css as mature primitives move into layered architecture files'
+  applicationCss.includes('CSS Foundation Refactor - Slice 33') &&
+    applicationCss.includes('.app-shell') &&
+    applicationCss.includes('.query-status-card') &&
+    applicationCss.includes('.quality-gate-card') &&
+    applicationCss.includes('.launch-card') &&
+    applicationCss.includes('.coverage-card') &&
+    applicationCss.includes('.handoff-item'),
+  'components/application.css must own final former app.css compatibility selectors'
 )
 
 assert(
-  appCssLineCount < 10000,
-  'app.css should stay under 10,000 lines after Phase 25 retired the main React compatibility layer'
+  productShellCss.includes('CSS Foundation Refactor - Slice 32') &&
+    productShellCss.includes('.employer-demo-command-center.self-guided-overview') &&
+    productShellCss.includes('.react-admin-management-card') &&
+    productShellCss.includes('.presentation-scope-controls'),
+  'components/product-shell.css must own retired product polish and reviewer-facing selector cleanup'
 )
 
-console.log('CSS legacy retirement audit passed.')
+assert(
+  roleDashboardCss.includes('CSS Foundation Refactor - Slice 22') &&
+    roleDashboardCss.includes('.operational-task-detail-form') &&
+    roleDashboardCss.includes('.operational-handoff-form textarea'),
+  'components/role-dashboard.css must own retired operational workflow form/detail polish'
+)
+
+assert(
+  roleSelectorCss.includes('CSS Foundation Refactor - Slice 23') &&
+    roleSelectorCss.includes('.role-selector-grid') &&
+    roleSelectorCss.includes('.passenger-finder-panel') &&
+    roleSelectorCss.includes('.booking-guest-finder'),
+  'components/role-selector.css must own retired role selector and passenger finder CSS'
+)
+
+const operationsWorkspaceLayerCss = `${operationsWorkspacesCss}\n${operationsQueuesCss}\n${operationsCoverageCss}`
+const adminWorkspaceLayerCss = `${adminWorkspacesCss}\n${adminPresentationCss}`
+
+assert(
+  operationsWorkspaceLayerCss.includes('CSS Foundation Refactor - Slice 24') &&
+    operationsWorkspaceLayerCss.includes('.operations-directory-panel') &&
+    operationsWorkspaceLayerCss.includes('.operations-workspace-shell') &&
+    operationsWorkspaceLayerCss.includes('.operations-role-brief-panel') &&
+    operationsWorkspaceLayerCss.includes('CSS Foundation Refactor - Slice 25') &&
+    operationsWorkspaceLayerCss.includes('.operations-task-workspace'),
+  'layered operations workspace CSS must own retired operations workspace CSS'
+)
+
+assert(
+  operationsReleaseCss.includes('CSS Foundation Refactor - Slice 36') &&
+    operationsReleaseCss.includes('CSS Foundation Refactor - Slice 29') &&
+    operationsContinuityCss.includes('CSS Foundation Refactor Slice 37') &&
+    operationsContinuityCss.includes('.operations-scenario-plan') &&
+    operationsEvidenceCss.includes('CSS Foundation Refactor Slice 30') &&
+    operationsEvidenceCss.includes('CSS Foundation Refactor Slice 31') &&
+    operationsReleaseCss.includes('.operations-release-board') &&
+    operationsEvidenceCss.includes('.operations-after-action') &&
+    operationsEvidenceCss.includes('.operations-go-live-center'),
+  'components/operations-release.css, operations-continuity.css, and operations-evidence.css must own retired operations dashboard evidence CSS'
+)
+
+assert(
+  operationsRoleSurfaceCss.includes('Build 464 - dark operational role dashboard motif') &&
+    operationsRoleSurfaceCss.includes('Build 476 - role-operations panels unified to workspace-selection style') &&
+    operationsDashboardDeleted,
+  'operations-role-surface.css must own the former operations-dashboard role surface while operations-dashboard.css is deleted'
+)
+
+assert(
+  readinessCentersCss.includes('CSS Foundation Refactor Slice 31') &&
+    readinessCentersCss.includes('.data-architecture-readiness-center') &&
+    readinessCentersCss.includes('.production-hardening-center') &&
+    readinessCentersCss.includes('.deployment-readiness-center') &&
+    readinessCentersCss.includes('.public-launch-control-center'),
+  'components/readiness-centers.css must own retired readiness center CSS'
+)
+
+console.log('CSS retired file audit passed.')
 console.log(JSON.stringify({
-  appCssLineCount,
-  designSystemLineCount,
-  appCssImportantCount,
-  designSystemImportantCount,
+  appCssDeleted: !fs.existsSync(appCssPath),
+  designSystemDeleted: !fs.existsSync(designSystemPath),
   appCssReferenceFileCount: appCssReferenceFiles.length,
-  appCssTestReferenceFileCount: testReferences.length,
-  appCssScriptReferenceFileCount: scriptReferences.length,
+  designSystemReferenceFileCount: designSystemReferenceFiles.length,
 }, null, 2))

@@ -84,7 +84,16 @@ describe('Playwright React coverage inventory', () => {
 
   it('protects React workspace mobile touch-target coverage', () => {
     const mobileReactSpec = fs.readFileSync(mobileReactSpecPath, 'utf8')
-    const styles = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/styles/app.css'), 'utf8')
+    const productShellCss = fs.readFileSync(
+      path.join(projectRoot, 'frontend/react/src/styles/components/product-shell.css'),
+      'utf8'
+    )
+    const applicationCss = fs.readFileSync(
+      path.join(projectRoot, 'frontend/react/src/styles/components/application.css'),
+      'utf8'
+    )
+    const styles = `${productShellCss}
+${applicationCss}`
 
     expect(mobileReactSpec).toContain('react-workspace-card-grid')
     expect(mobileReactSpec).toContain('react-workspace-quality-button')

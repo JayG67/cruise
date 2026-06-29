@@ -23,7 +23,7 @@ describe('production hardening center static contracts', () => {
   it('keeps production diagnostics available as code without mounting a recruiter-facing workspace', () => {
     const app = read('frontend/react/src/App.jsx')
     const component = read('frontend/react/src/components/ReactProductionHardeningCenter.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
+    const styles = read('frontend/react/src/styles/components/readiness-centers.css')
 
     expect(app).not.toContain('ReactProductionHardeningCenter')
     expect(app).not.toContain('react-workspace-production-hardening-button')

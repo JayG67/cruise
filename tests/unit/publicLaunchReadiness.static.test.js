@@ -23,7 +23,7 @@ describe('public launch readiness static contracts', () => {
   it('keeps public launch diagnostics available as code without mounting a recruiter-facing workspace', () => {
     const app = read('frontend/react/src/App.jsx')
     const component = read('frontend/react/src/components/ReactPublicLaunchControlCenter.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
+    const styles = read('frontend/react/src/styles/components/readiness-centers.css')
 
     expect(app).not.toContain('ReactPublicLaunchControlCenter')
     expect(app).not.toContain('react-workspace-public-launch-button')
