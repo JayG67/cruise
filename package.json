@@ -8,12 +8,12 @@
   "main": "index.js",
   "scripts": {
     "start:prod": "npm run react:build && node index.js",
-    "start": "npm run react:build && docker compose up -d && SUPPRESS_DB_LOGS=true DATABASE_URL=postgres://postgres:password@127.0.0.1:5433/cruise node --watch index.js",
+    "start": "npm run react:build && docker compose up -d && SUPPRESS_DB_LOGS=true DATABASE_URL=postgres://postgres:password@127.0.0.1:5433/cruise node index.js",
     "start:ci": "SUPPRESS_DB_LOGS=true node index.js",
     "unitTests": "NODE_NO_WARNINGS=1 jest tests/unit",
     "integrationTests": "npm run db:test:ready && NODE_NO_WARNINGS=1 jest --config jest.integration.config.js --runInBand --detectOpenHandles",
     "test": "npm run jest:coverage:all && npm run uiTests:react",
-    "test:all": "npm run test:inventory:audit && npm run react:production:complete && npm run jest:coverage:all && npm run browserTests:react && npm run perf:smoke:local && npm run lighthouse:ci:local",
+    "test:all": "npm run test:inventory:audit && npm run release:source:audit && npm run production:deployment:audit && npm run production:dependencies:audit && npm run react:production:complete && npm run jest:coverage:all && npm run browserTests:react && npm run perf:smoke:local && npm run lighthouse:ci:local",
     "coverage": "npm run jest:coverage:all",
     "unitTestsWatch": "jest tests/unit --watchAll",
     "uiTests:open": "start-server-and-test start http://localhost:8000 \"npm run cypress:open\"",
@@ -44,7 +44,7 @@
     "playwright:responsive:local": "npm run playwright:responsive:react",
     "playwright:responsive:ci": "npm run react:build && start-server-and-test start:ci http://localhost:8000 \"playwright test --config=playwright.responsive.config.js playwright/responsive/react-production-responsive.spec.js\"",
     "repo:hygiene": "node scripts/verify-repo-hygiene.js",
-    "portfolio:audit": "npm run repo:hygiene && npm run test:all",
+    "portfolio:audit": "npm run repo:hygiene && npm run production:deployment:audit && npm run test:all",
     "react:dev": "vite --config frontend/react/vite.config.js --host 127.0.0.1",
     "react:build": "vite build --config frontend/react/vite.config.js",
     "react:preview": "vite preview --config frontend/react/vite.config.js --host 127.0.0.1",
@@ -67,20 +67,26 @@
     "react:production:complete": "npm run css:foundation:audit && node scripts/verify-react-production-complete.js",
     "lighthouse:assert-report": "node scripts/assert-lighthouse-mobile-report.js",
     "css:foundation:audit": "node scripts/verify-css-foundation.js && npm run css:legacy:audit",
-    "css:legacy:audit": "node scripts/verify-css-legacy-retirement.js"
+    "css:legacy:audit": "node scripts/verify-css-legacy-retirement.js",
+    "start:watch": "npm run react:build && docker compose up -d && SUPPRESS_DB_LOGS=true DATABASE_URL=postgres://postgres:password@127.0.0.1:5433/cruise node --watch index.js",
+    "production:deployment:audit": "node scripts/verify-production-deployment.js",
+    "production:dependencies:audit": "node scripts/verify-production-dependencies.js",
+    "clean:generated": "node scripts/clean-generated-artifacts.js",
+    "release:source:audit": "node scripts/verify-source-package.js",
+    "release:preflight": "npm run repo:hygiene && npm run release:source:audit && npm run production:deployment:audit && npm run production:dependencies:audit && npm run react:production:complete"
   },
   "dependencies": {
+    "@vitejs/plugin-react": "^5.1.2",
     "compression": "^1.7.5",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "express": "^5.2.1",
+    "iconv-lite": "^0.7.2",
     "pg": "^8.20.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
-    "zod": "^4.4.3",
-    "vite": "7.3.3",
-    "@vitejs/plugin-react": "^5.1.2",
-    "iconv-lite": "^0.7.2"
+    "vite": "7.3.6",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@lhci/cli": "^0.15.1",
@@ -96,5 +102,11 @@
     "start-server-and-test": "^3.0.5",
     "supertest": "^7.2.2",
     "trx": "^1.5.0"
+  },
+  "engines": {
+    "node": ">=22 <23"
+  },
+  "overrides": {
+    "qs": "6.15.3"
   }
 }

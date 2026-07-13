@@ -13,6 +13,22 @@ function read(relativePath) {
   return fs.readFileSync(fullPath, 'utf8')
 }
 
+function readCssBundle(relativePath, seen = new Set()) {
+  const fullPath = path.join(projectRoot, relativePath)
+  if (seen.has(fullPath)) {
+    return ''
+  }
+  seen.add(fullPath)
+
+  const content = fs.readFileSync(fullPath, 'utf8')
+  const directory = path.dirname(relativePath)
+
+  return content.replace(/@import\s+['"](.+?)['"];?/g, (_match, importPath) => {
+    const nestedPath = path.normalize(path.join(directory, importPath)).replace(/\\/g, '/')
+    return readCssBundle(nestedPath, seen)
+  })
+}
+
 function walk(dir, files = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === 'dist' || entry.name === 'coverage') {
@@ -42,22 +58,23 @@ const designSystemPath = path.join(projectRoot, 'frontend/react/src/styles/desig
 const cssIndex = read('frontend/react/src/styles/index.css')
 const main = read('frontend/react/src/main.jsx')
 const packageJson = JSON.parse(read('package.json'))
-const applicationCss = read('frontend/react/src/styles/components/application.css')
-const productShellCss = read('frontend/react/src/styles/components/product-shell.css')
-const roleDashboardCss = read('frontend/react/src/styles/components/role-dashboard.css')
-const roleSelectorCss = read('frontend/react/src/styles/components/role-selector.css')
-const adminWorkspacesCss = read('frontend/react/src/styles/components/admin-workspaces.css')
+const applicationCss = readCssBundle('frontend/react/src/styles/components/application.css')
+const productShellCss = readCssBundle('frontend/react/src/styles/components/product-shell.css')
+const productPolishCss = readCssBundle('frontend/react/src/styles/components/product-polish.css')
+const roleDashboardCss = readCssBundle('frontend/react/src/styles/components/role-dashboard.css')
+const roleSelectorCss = readCssBundle('frontend/react/src/styles/components/role-selector.css')
+const adminWorkspacesCss = readCssBundle('frontend/react/src/styles/components/admin-workspaces.css')
 const operationsTimelineCss = read('frontend/react/src/styles/components/operations-timeline.css')
-const operationsWorkspacesCss = read('frontend/react/src/styles/components/operations-workspaces.css')
-const operationsQueuesCss = read('frontend/react/src/styles/components/operations-queues.css')
-const operationsCoverageCss = read('frontend/react/src/styles/components/operations-coverage.css')
-const readinessCentersCss = read('frontend/react/src/styles/components/readiness-centers.css')
-const operationsRoleSurfaceCss = read('frontend/react/src/styles/components/operations-role-surface.css')
+const operationsWorkspacesCss = readCssBundle('frontend/react/src/styles/components/operations-workspaces.css')
+const operationsQueuesCss = readCssBundle('frontend/react/src/styles/components/operations-queues.css')
+const operationsCoverageCss = readCssBundle('frontend/react/src/styles/components/operations-coverage.css')
+const readinessCentersCss = readCssBundle('frontend/react/src/styles/components/readiness-centers.css')
+const operationsRoleSurfaceCss = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css')
 const operationsDashboardDeleted = !fs.existsSync(path.join(projectRoot, 'frontend/react/src/styles/components/operations-dashboard.css'))
-const operationsContinuityCss = read('frontend/react/src/styles/components/operations-continuity.css')
-const operationsReleaseCss = read('frontend/react/src/styles/components/operations-release.css')
-const operationsEvidenceCss = read('frontend/react/src/styles/components/operations-evidence.css')
-const adminPresentationCss = read('frontend/react/src/styles/components/admin-presentation.css')
+const operationsContinuityCss = readCssBundle('frontend/react/src/styles/components/operations-continuity.css')
+const operationsReleaseCss = readCssBundle('frontend/react/src/styles/components/operations-release.css')
+const operationsEvidenceCss = readCssBundle('frontend/react/src/styles/components/operations-evidence.css')
+const adminPresentationCss = readCssBundle('frontend/react/src/styles/components/admin-presentation.css')
 
 const projectFiles = walk(projectRoot)
   .filter((filePath) => /\.(js|jsx|css)$/.test(filePath))
@@ -144,11 +161,12 @@ assert(
 )
 
 assert(
-  productShellCss.includes('CSS Foundation Refactor - Slice 32') &&
-    productShellCss.includes('.employer-demo-command-center.self-guided-overview') &&
-    productShellCss.includes('.react-admin-management-card') &&
-    productShellCss.includes('.presentation-scope-controls'),
-  'components/product-shell.css must own retired product polish and reviewer-facing selector cleanup'
+  productPolishCss.includes('CSS Foundation Refactor - Slice 42') &&
+    productPolishCss.includes('CSS Foundation Refactor - Slice 32') &&
+    productPolishCss.includes('.employer-demo-command-center.self-guided-overview') &&
+    productPolishCss.includes('.react-admin-management-card') &&
+    productPolishCss.includes('.presentation-scope-controls'),
+  'components/product-polish.css must own retired product polish and reviewer-facing selector cleanup'
 )
 
 assert(

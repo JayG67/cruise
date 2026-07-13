@@ -1,0 +1,120 @@
+/*
+  Role selector component architecture.
+
+  Role selector finder panels now use the CSS foundation instead of legacy
+  Build 461/462 contrast patches in app.css. Keep selector panels, summary
+  cards, count notes, and selected-person cards on the shared command-center
+  visual system while form controls remain light and readable.
+*/
+.react-production-shell .role-selector-section .person-finder-panel {
+  background: var(--ce-command-card-bg) !important;
+  border: 1px solid var(--ce-command-border) !important;
+  border-radius: var(--ce-radius-card) !important;
+  box-shadow: var(--ce-shadow-card) !important;
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+  display: grid;
+  gap: var(--ce-space-4);
+  padding: var(--ce-space-5) !important;
+}
+
+.react-production-shell .role-selector-section .person-finder-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--ce-space-4);
+  justify-content: space-between;
+}
+
+.react-production-shell .role-selector-section .person-finder-heading h3,
+.react-production-shell .role-selector-section .selected-person-card strong,
+.react-production-shell .role-selector-section .operational-selector-summary strong {
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+}
+
+.react-production-shell .role-selector-section .person-finder-heading > span,
+.react-production-shell .role-selector-section .finder-limit-note,
+.react-production-shell .role-selector-section .selected-person-card span,
+.react-production-shell .role-selector-section .operational-selector-summary span {
+  background: rgba(125, 211, 252, 0.14) !important;
+  border: 1px solid rgba(125, 211, 252, 0.32) !important;
+  border-radius: var(--ce-radius-pill);
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  padding: 0.35rem 0.65rem;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+.react-production-shell .role-selector-section .selected-person-card,
+.react-production-shell .role-selector-section .operational-selector-summary > div {
+  background: rgba(12, 66, 82, 0.52) !important;
+  border: 1px solid var(--ce-command-border) !important;
+  border-radius: var(--ce-radius-card) !important;
+  box-shadow: none !important;
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+  display: grid;
+  gap: var(--ce-space-2);
+  padding: var(--ce-space-4) !important;
+}
+
+.react-production-shell .role-selector-section .selected-person-card small,
+.react-production-shell .role-selector-section .operational-selector-summary small,
+.react-production-shell .role-selector-section .role-selector-helper-text {
+  color: var(--ce-command-text-muted) !important;
+  -webkit-text-fill-color: var(--ce-command-text-muted) !important;
+  line-height: 1.4;
+}
+
+.react-production-shell .role-selector-section .person-finder-results {
+  display: grid;
+  gap: var(--ce-space-3);
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+
+.react-production-shell .role-selector-section .operational-person-filter-grid,
+.react-production-shell .role-selector-section .operational-selector-summary {
+  display: grid;
+  gap: var(--ce-space-3);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.react-production-shell .role-selector-section .operational-selector-summary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.react-production-shell .role-selector-section .role-selector-field :is(input, select),
+.react-production-shell .role-selector-section .person-finder-panel .react-input,
+.react-production-shell .role-selector-section .person-finder-panel .react-select {
+  background: var(--ce-data-surface) !important;
+  border: 1px solid var(--ce-data-border) !important;
+  border-radius: var(--ce-radius-control) !important;
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+}
+
+.react-production-shell .role-selector-section .person-finder-panel .react-input::placeholder {
+  color: var(--ce-data-text-muted) !important;
+  opacity: 1 !important;
+}
+
+@media (max-width: 900px) {
+  .react-production-shell .role-selector-section .person-finder-heading,
+  .react-production-shell .role-selector-section .operational-person-filter-grid,
+  .react-production-shell .role-selector-section .operational-selector-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .react-production-shell .role-selector-section .person-finder-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .react-production-shell .role-selector-section .person-finder-results {
+    grid-template-columns: 1fr;
+  }
+}

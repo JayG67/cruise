@@ -1,0 +1,110 @@
+/* Shift briefing evidence panels. */
+
+.operations-shift-briefing {
+  background: linear-gradient(135deg, rgba(15, 95, 147, 0.08), rgba(14, 165, 233, 0.08));
+  border: 1px solid rgba(14, 116, 144, 0.24);
+  border-radius: 1.25rem;
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
+.operations-shift-briefing-header,
+.operations-shift-briefing-kpis,
+.operations-shift-briefing-grid,
+.operations-shift-briefing-department-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.operations-shift-briefing-header {
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.operations-shift-briefing-score {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid rgba(14, 116, 144, 0.22);
+  border-radius: 1rem;
+  display: grid;
+  justify-items: center;
+  min-width: 7rem;
+  padding: 0.85rem;
+  text-align: center;
+}
+
+.operations-shift-briefing-score span {
+  color: #0f5f93;
+  font-size: 1.75rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.operations-shift-briefing-score small,
+.operations-shift-briefing-department-grid small {
+  color: #42526b;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.operations-shift-briefing-kpis {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.operations-shift-briefing-kpis div,
+.operations-shift-briefing-grid > div,
+.operations-shift-briefing-department-grid article {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 1rem;
+  padding: 0.85rem;
+}
+
+.operations-shift-briefing-kpis dt {
+  color: #42526b;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.operations-shift-briefing-kpis dd {
+  color: #071827;
+  font-size: 1.1rem;
+  font-weight: 900;
+  margin: 0.2rem 0 0;
+}
+
+.operations-shift-briefing-grid {
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+}
+
+.operations-shift-briefing-grid ul,
+.operations-shift-briefing-grid ol {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0.65rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.operations-shift-briefing-grid li span,
+.operations-shift-briefing-department-grid article span {
+  color: #0f5f93;
+  font-weight: 900;
+}
+
+.operations-shift-briefing-department-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 0.7rem;
+}
+
+@media (max-width: 900px) {
+  .operations-shift-briefing-header,
+  .operations-shift-briefing-grid,
+  .operations-shift-briefing-kpis,
+  .operations-shift-briefing-department-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

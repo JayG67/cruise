@@ -13,6 +13,22 @@ function read(relativePath) {
   return fs.readFileSync(fullPath, 'utf8')
 }
 
+function readCssBundle(relativePath, seen = new Set()) {
+  const fullPath = path.join(projectRoot, relativePath)
+  if (seen.has(fullPath)) {
+    return ''
+  }
+  seen.add(fullPath)
+
+  const content = fs.readFileSync(fullPath, 'utf8')
+  const directory = path.dirname(relativePath)
+
+  return content.replace(/@import\s+['"](.+?)['"];?/g, (_match, importPath) => {
+    const nestedPath = path.normalize(path.join(directory, importPath)).replace(/\\/g, '/')
+    return readCssBundle(nestedPath, seen)
+  })
+}
+
 function assert(condition, message) {
   if (!condition) {
     throw new Error(message)
@@ -49,32 +65,34 @@ const styles = {
   componentIndex: read('frontend/react/src/styles/components/index.css'),
   panel: read('frontend/react/src/styles/components/panel.css'),
   card: read('frontend/react/src/styles/components/card.css'),
-  button: read('frontend/react/src/styles/components/button.css'),
-  badge: read('frontend/react/src/styles/components/badge.css'),
-  form: read('frontend/react/src/styles/components/form.css'),
+  button: readCssBundle('frontend/react/src/styles/components/button.css'),
+  badge: readCssBundle('frontend/react/src/styles/components/badge.css'),
+  form: readCssBundle('frontend/react/src/styles/components/form.css'),
   table: read('frontend/react/src/styles/components/table.css'),
   navigation: read('frontend/react/src/styles/components/navigation.css'),
   feedback: read('frontend/react/src/styles/components/feedback.css'),
   selectorCard: read('frontend/react/src/styles/components/selector-card.css'),
-  roleSelector: read('frontend/react/src/styles/components/role-selector.css'),
-  workflow: read('frontend/react/src/styles/components/workflow.css'),
+  roleSelector: readCssBundle('frontend/react/src/styles/components/role-selector.css'),
+  workflow: readCssBundle('frontend/react/src/styles/components/workflow.css'),
   passenger: read('frontend/react/src/styles/components/passenger.css'),
   hero: read('frontend/react/src/styles/components/hero.css'),
-  application: read('frontend/react/src/styles/components/application.css'),
-  productShell: read('frontend/react/src/styles/components/product-shell.css'),
-  roleDashboard: read('frontend/react/src/styles/components/role-dashboard.css'),
-  adminWorkspaces: read('frontend/react/src/styles/components/admin-workspaces.css'),
-  adminPresentation: read('frontend/react/src/styles/components/admin-presentation.css'),
+  application: readCssBundle('frontend/react/src/styles/components/application.css'),
+  productShell: readCssBundle('frontend/react/src/styles/components/product-shell.css'),
+  productPolish: readCssBundle('frontend/react/src/styles/components/product-polish.css'),
+  roleDashboard: readCssBundle('frontend/react/src/styles/components/role-dashboard.css'),
+  adminWorkspaces: readCssBundle('frontend/react/src/styles/components/admin-workspaces.css'),
+  adminPresentation: readCssBundle('frontend/react/src/styles/components/admin-presentation.css'),
   operationsTimeline: read('frontend/react/src/styles/components/operations-timeline.css'),
-  operationsWorkspaces: read('frontend/react/src/styles/components/operations-workspaces.css'),
-  operationsQueues: read('frontend/react/src/styles/components/operations-queues.css'),
-  operationsCoverage: read('frontend/react/src/styles/components/operations-coverage.css'),
-  readinessCenters: read('frontend/react/src/styles/components/readiness-centers.css'),
-  operationsRoleSurface: read('frontend/react/src/styles/components/operations-role-surface.css'),
-  operationsContinuity: read('frontend/react/src/styles/components/operations-continuity.css'),
-  operationsRelease: read('frontend/react/src/styles/components/operations-release.css'),
-  operationsEvidence: read('frontend/react/src/styles/components/operations-evidence.css'),
+  operationsWorkspaces: readCssBundle('frontend/react/src/styles/components/operations-workspaces.css'),
+  operationsQueues: readCssBundle('frontend/react/src/styles/components/operations-queues.css'),
+  operationsCoverage: readCssBundle('frontend/react/src/styles/components/operations-coverage.css'),
+  readinessCenters: readCssBundle('frontend/react/src/styles/components/readiness-centers.css'),
+  operationsRoleSurface: readCssBundle('frontend/react/src/styles/components/operations-role-surface.css'),
+  operationsContinuity: readCssBundle('frontend/react/src/styles/components/operations-continuity.css'),
+  operationsRelease: readCssBundle('frontend/react/src/styles/components/operations-release.css'),
+  operationsEvidence: readCssBundle('frontend/react/src/styles/components/operations-evidence.css'),
   operationsContrast: read('frontend/react/src/styles/components/operations-contrast.css'),
+  contrastHardening: read('frontend/react/src/styles/components/contrast-hardening.css'),
   utilities: read('frontend/react/src/styles/utilities/index.css'),
 }
 const main = read('frontend/react/src/main.jsx')
@@ -136,6 +154,7 @@ for (const componentImport of [
   "@import './hero.css';",
   "@import './application.css';",
   "@import './product-shell.css';",
+  "@import './product-polish.css';",
   "@import './role-dashboard.css';",
   "@import './admin-workspaces.css';",
   "@import './admin-presentation.css';",
@@ -149,9 +168,18 @@ for (const componentImport of [
   "@import './operations-release.css';",
   "@import './operations-evidence.css';",
   "@import './operations-contrast.css';",
+  "@import './contrast-hardening.css';",
 ]) {
   assert(styles.componentIndex.includes(componentImport), `components/index.css must include ${componentImport}`)
 }
+
+assert(
+  styles.contrastHardening.includes('-webkit-text-fill-color') &&
+    styles.contrastHardening.includes('.react-admin-stat-pills span') &&
+    styles.contrastHardening.includes('.presentation-metric-grid article') &&
+    styles.contrastHardening.includes('Light data/editing surfaces'),
+  'components/contrast-hardening.css must own application-wide text/background contrast guardrails'
+)
 
 assert(
   styles.operationsRoleSurface.includes('CSS Foundation Refactor - Phase 19') &&
@@ -367,11 +395,12 @@ assert(
 
 
 assert(
-  styles.productShell.includes('CSS Foundation Refactor - Slice 32') &&
-    styles.productShell.includes('.employer-demo-command-center.self-guided-overview') &&
-    styles.productShell.includes('.react-admin-management-card') &&
-    styles.productShell.includes('.presentation-scope-controls'),
-  'components/product-shell.css must own retired Slice 32 product polish and reviewer-facing UX compatibility CSS'
+  styles.productPolish.includes('CSS Foundation Refactor - Slice 42') &&
+    styles.productPolish.includes('CSS Foundation Refactor - Slice 32') &&
+    styles.productPolish.includes('.employer-demo-command-center.self-guided-overview') &&
+    styles.productPolish.includes('.react-admin-management-card') &&
+    styles.productPolish.includes('.presentation-scope-controls'),
+  'components/product-polish.css must own retired Slice 32 product polish and reviewer-facing UX compatibility CSS'
 )
 
 assert(
@@ -484,7 +513,7 @@ for (const primitive of [
   '.ce-grid',
   '.ce-stack',
 ]) {
-  const combinedArchitecture = `${styles.layout}\n${styles.panel}\n${styles.card}\n${styles.button}\n${styles.badge}\n${styles.form}\n${styles.table}\n${styles.navigation}\n${styles.feedback}\n${styles.selectorCard}\n${styles.productShell}\n${styles.utilities}`
+  const combinedArchitecture = `${styles.layout}\n${styles.panel}\n${styles.card}\n${styles.button}\n${styles.badge}\n${styles.form}\n${styles.table}\n${styles.navigation}\n${styles.feedback}\n${styles.selectorCard}\n${styles.productShell}\n${styles.productPolish}\n${styles.utilities}`
   assert(combinedArchitecture.includes(primitive), `new architectural CSS must include ${primitive}`)
 }
 
@@ -508,7 +537,7 @@ for (const legacyBridge of [
   '.primary-action-button',
   '.secondary-action-button',
 ]) {
-  const combinedArchitecture = `${styles.layout}\n${styles.panel}\n${styles.card}\n${styles.button}\n${styles.navigation}\n${styles.selectorCard}\n${styles.productShell}
+  const combinedArchitecture = `${styles.layout}\n${styles.panel}\n${styles.card}\n${styles.button}\n${styles.navigation}\n${styles.selectorCard}\n${styles.productShell}\n${styles.productPolish}
 ${styles.workflow}
 ${styles.passenger}
 ${styles.hero}
@@ -541,6 +570,7 @@ ${styles.utilities}`
 const legacyImportantCount = count(retiredAppCss, /!important/g)
 const layeredCompatibilityImportantCount = count(
   `${styles.productShell}
+${styles.productPolish}
 ${styles.roleDashboard}
 ${styles.adminWorkspaces}
 ${styles.adminPresentation}

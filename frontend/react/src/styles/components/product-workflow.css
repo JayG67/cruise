@@ -1,0 +1,380 @@
+/* Operations workspace polish. */
+.operations-console-panel {
+  gap: 1.5rem;
+  margin-top: -3.4rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.operations-console-copy {
+  max-width: 760px;
+}
+
+.operations-console-copy h2 {
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  margin-bottom: 0.75rem;
+}
+
+.operations-console-copy p {
+  color: #38556e;
+  line-height: 1.55;
+}
+
+.react-workspace-card-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.react-workspace-card {
+  background: linear-gradient(145deg, #ffffff, #f7fbff);
+  border: 1px solid #d8e2ef;
+  border-radius: 1.2rem;
+  box-shadow: 0 18px 38px rgba(7, 24, 39, 0.08);
+  padding: 1.15rem;
+}
+
+.react-workspace-card h3 {
+  margin: 0.65rem 0 0.45rem;
+}
+
+.react-workspace-card p {
+  color: #38556e;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.workspace-icon {
+  align-items: center;
+  background: #e8f7ff;
+  border-radius: 1rem;
+  display: inline-flex;
+  font-size: 1.35rem;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+}
+
+.recommended-workflow-panel {
+  align-items: stretch;
+  background: linear-gradient(135deg, #ffffff, #eaf8fb);
+  border: 1px solid #cfe3ee;
+  border-radius: 1.4rem;
+  box-shadow: 0 24px 60px rgba(7, 24, 39, 0.1);
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1.15fr) minmax(420px, 1fr);
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+.recommended-workflow-panel h3 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  line-height: 1.1;
+  margin: 0 0 0.75rem;
+}
+
+.recommended-workflow-panel p {
+  color: #38556e;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.workflow-step-list {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.workflow-step-list li {
+  background: #ffffff;
+  border: 1px solid #d8e2ef;
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.65rem;
+  min-height: 132px;
+  padding: 1rem;
+}
+
+.workflow-step-list strong {
+  align-items: center;
+  background: linear-gradient(135deg, #0b6fa4, #12a4b6);
+  border-radius: 0.85rem;
+  color: #ffffff;
+  display: inline-flex;
+  height: 42px;
+  justify-content: center;
+  width: 42px;
+}
+
+.workflow-step-list span {
+  color: #173047;
+  font-weight: 800;
+}
+
+.operations-console-panel .react-route-nav {
+  border-top: 1px solid #e3ebf4;
+  padding-top: 1rem;
+}
+
+.operations-console-panel .route-tab {
+  min-height: 92px;
+}
+
+.status-card {
+  width: min(1120px, calc(100% - 2rem));
+  margin-top: 1rem;
+}
+
+@media (max-width: 980px) {
+  .react-workspace-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .recommended-workflow-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-step-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .react-workspace-card-grid,
+  .workflow-step-list {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-console-panel {
+    margin-top: -2rem;
+  }
+}
+
+
+/* CSS Foundation Refactor - Slice 20: operations console and workflow polish retired from app.css. */
+/* Operations console alignment pass.
+   Keep the workspace and recommended-workflow controls as real buttons, but let
+   their content define a stable card height instead of forcing a 72px box. */
+.operations-console-panel {
+  overflow: hidden;
+}
+
+.react-workspace-card-grid {
+  align-items: stretch;
+}
+
+button.react-workspace-card,
+button.react-workspace-card[data-testid^="react-workspace-"] {
+  block-size: auto !important;
+  height: auto !important;
+  justify-content: flex-start !important;
+  min-block-size: 128px !important;
+  min-height: 128px !important;
+  overflow: visible !important;
+  padding: 1rem !important;
+}
+
+button.react-workspace-card .workspace-card-title,
+.react-workspace-card[data-testid^="react-workspace-"] .workspace-card-title {
+  margin-block: 0.55rem 0.35rem;
+}
+
+.recommended-workflow-panel {
+  align-items: stretch;
+  grid-template-columns: minmax(0, 1fr) minmax(480px, 0.95fr);
+}
+
+.workflow-step-list {
+  align-items: stretch;
+}
+
+.workflow-step-list li,
+.workflow-step-button {
+  min-height: 160px;
+}
+
+.workflow-step-button {
+  align-content: start;
+  border-radius: 1rem;
+  line-height: 1.2;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.workflow-step-button span {
+  display: block;
+  max-width: 8rem;
+}
+
+@media (max-width: 1040px) {
+  .recommended-workflow-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-step-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 780px) {
+  .workflow-step-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .workflow-step-list,
+  .react-workspace-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Product polish: prevent awkward word breaks in workflow buttons. */
+.workflow-step-list {
+  grid-template-columns: repeat(4, minmax(7.75rem, 1fr));
+}
+
+.workflow-step-button span {
+  max-width: none;
+  overflow-wrap: normal;
+  white-space: normal;
+  word-break: keep-all;
+}
+
+/* Keep create/delete pairs vertically aligned by entity: customer column, booking column. */
+.react-admin-mutation-grid .draft-editor {
+  min-height: 100%;
+}
+
+/* Ship edit fields need enough width to be usable inside fleet cards. */
+.react-ship-card:has(.react-ship-edit-grid) {
+  grid-column: span 2;
+}
+
+.react-ship-edit-grid {
+  grid-template-columns: repeat(2, minmax(12rem, 1fr));
+}
+
+.react-ship-edit-grid input {
+  min-height: 44px;
+}
+
+@media (max-width: 820px) {
+  .react-ship-card:has(.react-ship-edit-grid) {
+    grid-column: span 1;
+  }
+
+  .react-ship-edit-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Passenger self-service profile form: make the fields match the rest of the app. */
+.passenger-profile-form {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.passenger-profile-form label {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.passenger-profile-form label span {
+  color: #40576f;
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.passenger-profile-form input,
+.passenger-profile-form select {
+  appearance: none;
+  background: #ffffff;
+  border: 1px solid #b9c8d8;
+  border-radius: 0.75rem;
+  min-height: 46px;
+  padding: 0.75rem 0.9rem;
+  width: 100%;
+}
+
+.passenger-profile-form label:has([name="accessibilityNotes"]),
+.passenger-profile-form .draft-message,
+.passenger-profile-form button[type="submit"] {
+  grid-column: 1 / -1;
+}
+
+.passenger-profile-form .draft-message {
+  margin: 0;
+}
+
+@media (max-width: 700px) {
+  .passenger-profile-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Workflow panel polish: keep step buttons inside the panel and avoid awkward word breaks. */
+.recommended-workflow-panel {
+  align-items: stretch;
+  gap: clamp(1.25rem, 2vw, 2rem);
+  grid-template-columns: minmax(18rem, 0.85fr) minmax(36.5rem, 1.15fr);
+}
+
+.workflow-step-list {
+  align-items: stretch;
+  gap: 0.85rem;
+  grid-template-columns: repeat(4, minmax(8.75rem, 1fr));
+  min-width: 0;
+}
+
+.workflow-step-list li {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.workflow-step-button {
+  align-content: start;
+  gap: 0.8rem;
+  min-height: 158px;
+  overflow: hidden;
+  padding: 1rem;
+}
+
+.workflow-step-button span {
+  display: block;
+  font-size: clamp(0.92rem, 1.1vw, 1rem);
+  line-height: 1.18;
+  max-width: none;
+  overflow-wrap: normal;
+  white-space: normal;
+  word-break: normal;
+}
+
+@media (max-width: 1120px) {
+  .recommended-workflow-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-step-list {
+    grid-template-columns: repeat(4, minmax(8.75rem, 1fr));
+  }
+}
+
+@media (max-width: 780px) {
+  .workflow-step-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .workflow-step-list {
+    grid-template-columns: 1fr;
+  }
+}

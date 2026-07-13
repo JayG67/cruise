@@ -1,0 +1,219 @@
+/* CSS Foundation Refactor - Slice 26.
+   Retires the dependency management workspace from legacy app.css into the operations workspace component layer. */
+/* Dependency management workspace: show release gates as a queue and detail panel instead of burying them in the overview. */
+.operations-dependency-workspace {
+  background: linear-gradient(135deg, #ffffff, #fffaf4);
+  border: 1px solid #f1d8b8;
+  border-radius: 1.15rem;
+  box-shadow: 0 16px 38px rgba(84, 53, 16, 0.08);
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.operations-dependency-workspace-header {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.45fr);
+}
+
+.operations-dependency-workspace-header h4,
+.operations-dependency-workspace-header p,
+.operations-dependency-list-heading h5,
+.operations-dependency-detail-header h5 {
+  margin: 0.25rem 0 0;
+}
+
+.operations-dependency-workspace-header p {
+  color: #604c35;
+  line-height: 1.5;
+}
+
+.operations-dependency-workspace-metrics {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+}
+
+.operations-dependency-workspace-metrics div {
+  background: #fff5e8;
+  border: 1px solid #efd4b0;
+  border-radius: 0.9rem;
+  padding: 0.75rem;
+}
+
+.operations-dependency-workspace-metrics dt {
+  color: #76604a;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.operations-dependency-workspace-metrics dd {
+  color: #2d2117;
+  font-size: 1.25rem;
+  font-weight: 900;
+  margin: 0.15rem 0 0;
+}
+
+.operations-dependency-layout {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(18rem, 0.85fr) minmax(0, 1.15fr);
+}
+
+.operations-dependency-list-panel,
+.operations-dependency-detail-panel {
+  background: #ffffff;
+  border: 1px solid #ecdcc9;
+  border-radius: 1rem;
+  box-shadow: 0 10px 24px rgba(84, 53, 16, 0.06);
+  padding: 1rem;
+}
+
+.operations-dependency-list-heading,
+.operations-dependency-detail-header {
+  align-items: start;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.operations-dependency-list-heading span {
+  background: #fff5e8;
+  border-radius: 999px;
+  color: #7a4710;
+  font-weight: 900;
+  padding: 0.35rem 0.7rem;
+  white-space: nowrap;
+}
+
+.operations-dependency-list {
+  display: grid;
+  gap: 0.65rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.operations-dependency-list-item {
+  appearance: none;
+  background: #fffdf9;
+  border: 1px solid #ecdcc9;
+  border-radius: 0.95rem;
+  color: #2d2117;
+  cursor: pointer;
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.85rem;
+  text-align: left;
+  width: 100%;
+}
+
+.operations-dependency-list-item strong,
+.operations-dependency-list-item span,
+.operations-dependency-list-item small,
+.operations-dependency-detail-list dd,
+.operations-dependency-note p {
+  overflow-wrap: anywhere;
+}
+
+.operations-dependency-list-item.active,
+.operations-dependency-list-item:hover,
+.operations-dependency-list-item:focus-visible {
+  border-color: #bd6b10;
+  box-shadow: 0 0 0 3px rgba(189, 107, 16, 0.14);
+  outline: none;
+}
+
+.operations-dependency-list-item.active-gate {
+  background: #fff8f0;
+  border-color: #efc28d;
+}
+
+.operations-dependency-status-pill {
+  align-self: start;
+  background: #f1f7ee;
+  border-radius: 999px;
+  color: #286217;
+  display: inline-flex;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.55rem;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+.operations-dependency-status-pill.active {
+  background: #fff0df;
+  color: #9a3d00;
+}
+
+.operations-dependency-status-pill.cleared {
+  background: #e8f8ed;
+  color: #166a2f;
+}
+
+.operations-dependency-detail-panel {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.operations-dependency-detail-list {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.operations-dependency-detail-list div,
+.operations-dependency-note {
+  background: #fffaf4;
+  border: 1px solid #f1dfc8;
+  border-radius: 0.9rem;
+  padding: 0.75rem;
+}
+
+.operations-dependency-detail-list dt {
+  color: #76604a;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.operations-dependency-detail-list dd {
+  color: #2d2117;
+  font-weight: 800;
+  line-height: 1.45;
+  margin: 0.25rem 0 0;
+}
+
+.operations-dependency-note strong {
+  color: #7a4710;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.operations-dependency-note p {
+  line-height: 1.55;
+  margin: 0;
+}
+
+@media (max-width: 980px) {
+  .operations-dependency-workspace-header,
+  .operations-dependency-layout,
+  .operations-dependency-detail-list {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-dependency-workspace-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

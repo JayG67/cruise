@@ -1,0 +1,228 @@
+/* Cruise-line operations panel and table repair. */
+
+/* Build 441: final cruise-line operations header and panel UX repair.
+   Keep the operations workspace visually consistent with the admin cards:
+   one contained panel, a readable dark heading band, centered scope controls,
+   and no horizontal overflow or orphaned plain-text whitespace. */
+:is(.react-production-shell, .react-app-shell) section.cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite'],
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite {
+  background: #ffffff !important;
+  border: 1px solid #cfe0ec !important;
+  border-radius: 1.35rem !important;
+  box-shadow: 0 18px 44px rgba(7, 24, 39, 0.08) !important;
+  box-sizing: border-box !important;
+  color: #071827 !important;
+  display: block !important;
+  margin: 2rem auto !important;
+  max-width: 1120px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  width: min(100% - 2rem, 1120px) !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-suite-heading {
+  background: linear-gradient(135deg, #103f5d 0%, #0b5d62 58%, #11713d 100%) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  box-sizing: border-box !important;
+  color: #ffffff !important;
+  display: block !important;
+  float: none !important;
+  margin: 0 !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  padding: clamp(1.35rem, 3vw, 2rem) !important;
+  position: static !important;
+  text-align: left !important;
+  transform: none !important;
+  width: 100% !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-suite-heading .eyebrow {
+  color: #aee9ff !important;
+  display: block !important;
+  font-size: 0.78rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.16em !important;
+  margin: 0 0 0.65rem !important;
+  position: static !important;
+  text-transform: uppercase !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-suite-heading h2 {
+  color: #ffffff !important;
+  display: block !important;
+  float: none !important;
+  font-size: clamp(2rem, 4vw, 3.1rem) !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.04em !important;
+  line-height: 1.02 !important;
+  margin: 0 0 0.6rem !important;
+  max-width: 780px !important;
+  min-width: 0 !important;
+  opacity: 1 !important;
+  overflow: visible !important;
+  position: static !important;
+  text-align: left !important;
+  text-shadow: none !important;
+  transform: none !important;
+  white-space: normal !important;
+  width: auto !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-suite-heading p:not(.eyebrow) {
+  color: #eaf7ff !important;
+  display: block !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+  max-width: 760px !important;
+  opacity: 1 !important;
+  position: static !important;
+  text-align: left !important;
+  transform: none !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite > .presentation-scope-controls {
+  align-items: stretch !important;
+  background: #f8fbfe !important;
+  border: 0 !important;
+  border-bottom: 1px solid #cfe0ec !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  box-sizing: border-box !important;
+  display: grid !important;
+  gap: 1rem !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+  padding: 1.1rem clamp(1.25rem, 3vw, 2rem) !important;
+  position: static !important;
+  transform: none !important;
+  width: 100% !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite > .presentation-scope-controls .presentation-line-picker {
+  background: #ffffff !important;
+  border: 1px solid #cfe0ec !important;
+  border-radius: 1rem !important;
+  box-shadow: none !important;
+  box-sizing: border-box !important;
+  color: #071827 !important;
+  display: grid !important;
+  gap: 0.5rem !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+  padding: 0.9rem !important;
+  width: 100% !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite > .presentation-scope-controls .presentation-line-picker span {
+  color: #075985 !important;
+  font-size: 0.74rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.14em !important;
+  line-height: 1.2 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite > .presentation-scope-controls .presentation-line-picker select {
+  appearance: auto !important;
+  background: #ffffff !important;
+  border: 1px solid #b6d2e4 !important;
+  border-radius: 0.75rem !important;
+  color: #071827 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.25 !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  padding: 0.78rem 0.85rem !important;
+  width: 100% !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-hero-card,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-demo-flow,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-section-grid,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-card-grid {
+  box-sizing: border-box !important;
+  margin-left: clamp(1.25rem, 3vw, 2rem) !important;
+  margin-right: clamp(1.25rem, 3vw, 2rem) !important;
+  max-width: calc(100% - clamp(2.5rem, 6vw, 4rem)) !important;
+  min-width: 0 !important;
+  width: auto !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-hero-card {
+  margin-top: 1.25rem !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-card-grid:last-child,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-section-grid:last-child {
+  margin-bottom: 2rem !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-hero-card,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-flow-card,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-detail-card,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-commercial-card,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-calendar-card,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-operator-card,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-sailing-row,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-port-plan,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-close-plan,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-activity-list,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-manifest-row {
+  background: #f8fbfe !important;
+  border: 1px solid #cfe0ec !important;
+  border-radius: 1rem !important;
+  box-shadow: none !important;
+  color: #071827 !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-metric-grid article,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-guest-card,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-activity-list div,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-port-plan div,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-close-plan div {
+  background: #ffffff !important;
+  border: 1px solid #cfe0ec !important;
+  color: #071827 !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-hero-card h3,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-hero-card p,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-flow-card h3,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-flow-card p,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-detail-card h3,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-detail-card h4,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-detail-card p,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-commercial-card *,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-calendar-card *,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-operator-card * {
+  color: #071827 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+@media (max-width: 980px) {
+  :is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite > .presentation-scope-controls {
+    grid-template-columns: 1fr !important;
+  }
+
+  :is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-hero-card,
+  :is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-demo-flow,
+  :is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-section-grid,
+  :is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-card-grid {
+    margin-left: 1rem !important;
+    margin-right: 1rem !important;
+    max-width: calc(100% - 2rem) !important;
+  }
+}

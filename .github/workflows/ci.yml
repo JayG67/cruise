@@ -37,6 +37,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify release source contract
+        run: npm run release:source:audit
+
+      - name: Verify production deployment contract
+        run: npm run production:deployment:audit
+
+      - name: Verify production dependencies
+        run: npm run production:dependencies:audit
+
       - name: Run unit tests
         run: npm run unitTests
 

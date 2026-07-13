@@ -1,0 +1,268 @@
+/*
+  Operational role surface aggregate slice: lifecycle and later role-operation workspace unification.
+*/
+
+/* Build 475 - lifecycle story tiles match lifecycle dark-card motif.
+   The four story-beat tiles directly under the Turnaround Lifecycle header were
+   still using the generic light tile style. They now match the dark phase cards
+   in the same panel, while the completion score badge remains the light KPI tile. */
+.react-role-dashboard .operations-lifecycle-story {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  display: grid !important;
+  gap: 0.85rem !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  margin: 1rem 0 !important;
+  padding: 0 !important;
+}
+
+.react-role-dashboard .operations-lifecycle-story span {
+  background: rgba(6, 30, 45, 0.88) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 0.95rem !important;
+  color: #ffffff !important;
+  display: block !important;
+  font-weight: 800 !important;
+  line-height: 1.25 !important;
+  min-height: 5.2rem !important;
+  opacity: 1 !important;
+  padding: 1rem !important;
+  text-shadow: none !important;
+}
+
+@media (max-width: 900px) {
+  .react-role-dashboard .operations-lifecycle-story {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .react-role-dashboard .operations-lifecycle-story {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/* Build 476 - role-operations panels unified to workspace-selection style.
+   This applies the same dark-card motif used by the Turnaround Person Finder:
+   dark panels, dark nested cards, white/light text, and light KPI/input tiles
+   only where they are intentionally metric controls. */
+
+/* Lifecycle lower details: no more white utility panels inside the dark lifecycle panel. */
+.react-role-dashboard .operations-lifecycle-details,
+.react-role-dashboard .operations-lifecycle-next-action {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  display: grid !important;
+  gap: 1rem !important;
+}
+
+.react-role-dashboard .operations-lifecycle-details > div,
+.react-role-dashboard .operations-lifecycle-next-action {
+  background: rgba(6, 30, 45, 0.88) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 0.95rem !important;
+  color: #ffffff !important;
+  padding: 1rem !important;
+}
+
+.react-role-dashboard .operations-lifecycle-details > div *,
+.react-role-dashboard .operations-lifecycle-next-action *,
+.react-role-dashboard .operations-lifecycle-details li,
+.react-role-dashboard .operations-lifecycle-details li *,
+.react-role-dashboard .operations-lifecycle-details ul,
+.react-role-dashboard .operations-lifecycle-details strong {
+  background: transparent !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operations-lifecycle-details li > span,
+.react-role-dashboard .operations-lifecycle-details li > div,
+.react-role-dashboard .operations-lifecycle-details li > p,
+.react-role-dashboard .operations-lifecycle-details li > small,
+.react-role-dashboard .operations-lifecycle-next-action input,
+.react-role-dashboard .operations-lifecycle-next-action output,
+.react-role-dashboard .operations-lifecycle-next-action div {
+  background: rgba(8, 35, 52, 0.95) !important;
+  border: 1px solid rgba(125, 211, 252, 0.28) !important;
+  border-radius: 0.75rem !important;
+  color: #ffffff !important;
+  padding: 0.6rem 0.75rem !important;
+}
+
+/* Later role-operation boards below lifecycle should also use the same dark surface. */
+.react-role-dashboard .operations-release-packet,
+.react-role-dashboard .operations-metrics,
+.react-role-dashboard .operations-playbook,
+.react-role-dashboard .operations-playbook-variance,
+.react-role-dashboard .operations-incident-command,
+.react-role-dashboard .operations-reviewer-packet,
+.react-role-dashboard .operations-outreach-board,
+.react-role-dashboard .operations-after-action,
+.react-role-dashboard .operations-executive-brief,
+.react-role-dashboard .operations-command-center,
+.react-role-dashboard .operations-closeout-packet,
+.react-role-dashboard .operations-production-readiness,
+.react-role-dashboard .operations-application-dossier,
+.react-role-dashboard .operations-go-live-evidence,
+.react-role-dashboard .operations-launch-plan,
+.react-role-dashboard .operations-management-status,
+.react-role-dashboard .operations-audit-trail,
+.react-role-dashboard .operations-continuity-center {
+  background: linear-gradient(135deg, #082334 0%, #0f5360 52%, #15713f 100%) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 0 24px 60px rgba(7, 24, 39, 0.22) !important;
+  color: #ffffff !important;
+}
+
+/* Headers on those boards sit directly on dark surface. */
+.react-role-dashboard [class*="operations-"][class*="-header"],
+.react-role-dashboard .operations-release-packet-header,
+.react-role-dashboard .operations-metrics-header,
+.react-role-dashboard .operations-playbook-header,
+.react-role-dashboard .operations-playbook-variance-header,
+.react-role-dashboard .operations-incident-command-header,
+.react-role-dashboard .operations-reviewer-packet-header,
+.react-role-dashboard .operations-outreach-board-header {
+  background: transparent !important;
+  border: 0 !important;
+  color: #ffffff !important;
+}
+
+.react-role-dashboard [class*="operations-"][class*="-header"] *,
+.react-role-dashboard .operations-release-packet-header *,
+.react-role-dashboard .operations-metrics-header *,
+.react-role-dashboard .operations-playbook-header *,
+.react-role-dashboard .operations-playbook-variance-header *,
+.react-role-dashboard .operations-incident-command-header *,
+.react-role-dashboard .operations-reviewer-packet-header *,
+.react-role-dashboard .operations-outreach-board-header * {
+  background: transparent !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* Nested panels/cards/details within later boards match the selected-workspace/person-card motif. */
+.react-role-dashboard .operations-release-packet [class*="grid"] > *,
+.react-role-dashboard .operations-release-packet [class*="details"],
+.react-role-dashboard .operations-release-packet [class*="blockers"],
+.react-role-dashboard .operations-metrics [class*="grid"] > *,
+.react-role-dashboard .operations-metrics [class*="departments"] > *,
+.react-role-dashboard .operations-playbook [class*="grid"] > *,
+.react-role-dashboard .operations-playbook [class*="details"],
+.react-role-dashboard .operations-playbook-variance [class*="grid"] > *,
+.react-role-dashboard .operations-playbook-variance [class*="actions"],
+.react-role-dashboard .operations-incident-command [class*="grid"] > *,
+.react-role-dashboard .operations-incident-command [class*="footer"],
+.react-role-dashboard .operations-reviewer-packet [class*="grid"] > *,
+.react-role-dashboard .operations-reviewer-packet [class*="details"],
+.react-role-dashboard .operations-outreach-board [class*="grid"] > *,
+.react-role-dashboard .operations-outreach-board [class*="actions"],
+.react-role-dashboard .operations-outreach-board [class*="details"],
+.react-role-dashboard .operations-outreach-board [class*="narrative"],
+.react-role-dashboard .operations-after-action [class*="grid"] > *,
+.react-role-dashboard .operations-after-action [class*="details"],
+.react-role-dashboard .operations-executive-brief [class*="grid"] > *,
+.react-role-dashboard .operations-executive-brief [class*="details"],
+.react-role-dashboard .operations-command-center [class*="grid"] > *,
+.react-role-dashboard .operations-closeout-packet [class*="grid"] > *,
+.react-role-dashboard .operations-production-readiness [class*="grid"] > *,
+.react-role-dashboard .operations-application-dossier [class*="grid"] > *,
+.react-role-dashboard .operations-go-live-evidence [class*="grid"] > *,
+.react-role-dashboard .operations-launch-plan [class*="grid"] > *,
+.react-role-dashboard .operations-management-status [class*="grid"] > *,
+.react-role-dashboard .operations-audit-trail [class*="list"] > *,
+.react-role-dashboard .operations-continuity-center [class*="grid"] > * {
+  background: rgba(6, 30, 45, 0.88) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 0.95rem !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.react-role-dashboard .operations-release-packet [class*="grid"] > * *,
+.react-role-dashboard .operations-release-packet [class*="details"] *,
+.react-role-dashboard .operations-release-packet [class*="blockers"] *,
+.react-role-dashboard .operations-metrics [class*="grid"] > * *,
+.react-role-dashboard .operations-metrics [class*="departments"] > * *,
+.react-role-dashboard .operations-playbook [class*="grid"] > * *,
+.react-role-dashboard .operations-playbook [class*="details"] *,
+.react-role-dashboard .operations-playbook-variance [class*="grid"] > * *,
+.react-role-dashboard .operations-playbook-variance [class*="actions"] *,
+.react-role-dashboard .operations-incident-command [class*="grid"] > * *,
+.react-role-dashboard .operations-incident-command [class*="footer"] *,
+.react-role-dashboard .operations-reviewer-packet [class*="grid"] > * *,
+.react-role-dashboard .operations-reviewer-packet [class*="details"] *,
+.react-role-dashboard .operations-outreach-board [class*="grid"] > * *,
+.react-role-dashboard .operations-outreach-board [class*="actions"] *,
+.react-role-dashboard .operations-outreach-board [class*="details"] *,
+.react-role-dashboard .operations-outreach-board [class*="narrative"] *,
+.react-role-dashboard .operations-after-action [class*="grid"] > * *,
+.react-role-dashboard .operations-after-action [class*="details"] *,
+.react-role-dashboard .operations-executive-brief [class*="grid"] > * *,
+.react-role-dashboard .operations-executive-brief [class*="details"] *,
+.react-role-dashboard .operations-command-center [class*="grid"] > * *,
+.react-role-dashboard .operations-closeout-packet [class*="grid"] > * *,
+.react-role-dashboard .operations-production-readiness [class*="grid"] > * *,
+.react-role-dashboard .operations-application-dossier [class*="grid"] > * *,
+.react-role-dashboard .operations-go-live-evidence [class*="grid"] > * *,
+.react-role-dashboard .operations-launch-plan [class*="grid"] > * *,
+.react-role-dashboard .operations-management-status [class*="grid"] > * *,
+.react-role-dashboard .operations-audit-trail [class*="list"] > * *,
+.react-role-dashboard .operations-continuity-center [class*="grid"] > * * {
+  background: transparent !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+/* Preserve the small score badges as light KPI tiles like the standard panel. */
+.react-role-dashboard [class*="score"],
+.react-role-dashboard [class*="confidence"],
+.react-role-dashboard [class*="percent"] {
+  color: inherit;
+}
+
+.react-role-dashboard .operations-release-packet [class*="score"],
+.react-role-dashboard .operations-metrics [class*="score"],
+.react-role-dashboard .operations-playbook [class*="score"],
+.react-role-dashboard .operations-playbook-variance [class*="score"],
+.react-role-dashboard .operations-incident-command [class*="score"],
+.react-role-dashboard .operations-reviewer-packet [class*="score"],
+.react-role-dashboard .operations-outreach-board [class*="score"] {
+  background: #f8fbff !important;
+  border: 1px solid #b8cde0 !important;
+  color: #0f172a !important;
+}
+
+.react-role-dashboard .operations-release-packet [class*="score"] *,
+.react-role-dashboard .operations-metrics [class*="score"] *,
+.react-role-dashboard .operations-playbook [class*="score"] *,
+.react-role-dashboard .operations-playbook-variance [class*="score"] *,
+.react-role-dashboard .operations-incident-command [class*="score"] *,
+.react-role-dashboard .operations-reviewer-packet [class*="score"] *,
+.react-role-dashboard .operations-outreach-board [class*="score"] * {
+  color: #0f172a !important;
+  opacity: 1 !important;
+}
+
+/* Eyebrows/kickers on dark boards use the light cyan standard. */
+.react-role-dashboard .operations-lifecycle-details .eyebrow,
+.react-role-dashboard .operations-release-packet .eyebrow,
+.react-role-dashboard .operations-metrics .eyebrow,
+.react-role-dashboard .operations-playbook .eyebrow,
+.react-role-dashboard .operations-playbook-variance .eyebrow,
+.react-role-dashboard .operations-incident-command .eyebrow,
+.react-role-dashboard .operations-reviewer-packet .eyebrow,
+.react-role-dashboard .operations-outreach-board .eyebrow {
+  color: #9ee7ff !important;
+}
+
+/* CSS Foundation Refactor Slice 37: operations continuity/reviewer detail panels moved to components/operations-continuity.css. */

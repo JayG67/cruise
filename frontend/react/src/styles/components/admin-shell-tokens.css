@@ -1,0 +1,19 @@
+/* Build 438: unified admin workspace panel system.
+   Replaces the overly broad dark-panel overrides from build 436/437 with a
+   single readable light-card system for every admin-facing workspace panel. */
+:root {
+  --admin-rail-width: 1120px;
+  --admin-shell-bg: #f3f8fb;
+  --admin-card-bg: #ffffff;
+  --admin-card-soft-bg: #f8fbfe;
+  --admin-card-border: #cfe0ec;
+  --admin-card-border-strong: #b6d2e4;
+  --admin-text: #071827;
+  --admin-muted: #3f5872;
+  --admin-accent: #0b87a8;
+  --admin-accent-dark: #075985;
+  --admin-accent-soft: #e7f6fb;
+  --admin-shadow: 0 18px 44px rgba(7, 24, 39, 0.08);
+  --admin-radius: 1.35rem;
+}
+

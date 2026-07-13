@@ -1,0 +1,100 @@
+/* Role dashboard operational layout polish and text wrapping safeguards. */
+
+/* Turnaround operational layout polish: keep card controls uniform and readable. */
+.operational-readiness-list {
+  align-items: start;
+}
+
+.operational-readiness-card {
+  align-self: start;
+}
+
+.operational-command-form,
+.operational-signoff-form,
+.operational-staffing-form,
+.operational-task-create-form,
+.operational-task-detail-form,
+.operational-escalation-create-form,
+.operational-escalation-update-form,
+.operational-handoff-form {
+  align-items: start;
+}
+
+.operational-command-form textarea,
+.operational-signoff-form textarea,
+.operational-task-create-form textarea,
+.operational-task-detail-form textarea,
+.operational-task-update-form textarea,
+.operational-staffing-form textarea,
+.operational-escalation-create-form textarea,
+.operational-escalation-update-form textarea,
+.operational-handoff-form textarea {
+  appearance: none;
+  background-color: #fff;
+  border: 1px solid #c7d8e7;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 0 rgba(18, 50, 79, 0.03);
+  color: #12324f;
+  font: inherit;
+  line-height: 1.35;
+  min-height: 5.8rem;
+  overflow-wrap: break-word;
+  padding: 0.65rem 0.75rem;
+  resize: vertical;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+  white-space: pre-wrap;
+  width: 100%;
+  word-break: normal;
+}
+
+.operational-command-form textarea:focus,
+.operational-signoff-form textarea:focus,
+.operational-task-create-form textarea:focus,
+.operational-task-detail-form textarea:focus,
+.operational-task-update-form textarea:focus,
+.operational-staffing-form textarea:focus,
+.operational-escalation-create-form textarea:focus,
+.operational-escalation-update-form textarea:focus,
+.operational-handoff-form textarea:focus {
+  background-color: #fff;
+  border-color: #0e7490;
+  box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.15);
+  outline: none;
+}
+
+.operational-readiness-card > div:first-child p,
+.role-booking-fields dd,
+.operational-dependency-list li,
+.operational-handoff-list li,
+.operational-task-updates li,
+.operational-staffing-list li,
+.operational-signoff-summary li {
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.operational-progress-summary,
+.operational-escalation-summary,
+.operational-dependency-summary,
+.operational-handoff-summary,
+.operational-staffing-summary {
+  align-items: flex-start;
+  line-height: 1.25;
+}
+
+.operational-progress-summary strong,
+.operational-escalation-summary strong,
+.operational-dependency-summary strong,
+.operational-handoff-summary strong,
+.operational-staffing-summary strong {
+  margin-inline-end: 0.15rem;
+}
+
+.operational-progress-summary span,
+.operational-escalation-summary span,
+.operational-dependency-summary span,
+.operational-handoff-summary span,
+.operational-staffing-summary span {
+  line-height: 1.1;
+  white-space: normal;
+}

@@ -1,0 +1,282 @@
+/* Role dashboard operations compatibility bridge and editor contrast rules. */
+
+/*
+  Phase 1 operations compatibility bridge.
+
+  Kept in the role-dashboard component layer while older operational JSX still
+  maps route-specific selectors onto shared command/editor primitives. Do not
+  add new page-specific selectors here; migrate JSX to ce-* primitives instead.
+*/
+.react-role-dashboard :is(
+  .operational-turnaround-panel,
+  .operations-portfolio-board,
+  .operations-workspace-panel,
+  .operations-release-board,
+  .operations-lifecycle,
+  .operations-release-packet,
+  .operations-metrics,
+  .operations-playbook,
+  .operations-playbook-variance,
+  .operations-incident-command,
+  .operations-scenario-plan,
+  .operations-directory-panel,
+  .operations-production-readiness,
+  .operations-application-dossier,
+  .operational-readiness-card
+) {
+  background: var(--ce-command-bg) !important;
+  border: 1px solid var(--ce-command-border) !important;
+  border-radius: var(--ce-radius-panel) !important;
+  box-shadow: var(--ce-command-shadow);
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+}
+
+.react-role-dashboard :is(
+  .operational-turnaround-panel,
+  .operations-portfolio-board,
+  .operations-workspace-panel,
+  .operations-release-board,
+  .operations-lifecycle,
+  .operations-release-packet,
+  .operations-metrics,
+  .operations-playbook,
+  .operations-playbook-variance,
+  .operations-incident-command,
+  .operations-scenario-plan,
+  .operations-directory-panel,
+  .operations-production-readiness,
+  .operations-application-dossier,
+  .operational-readiness-card
+) :is(h1, h2, h3, h4, h5, h6, p, li, strong, span, dt, dd, caption) {
+  color: inherit;
+  -webkit-text-fill-color: inherit;
+}
+
+.react-role-dashboard :is(
+  .operations-portfolio-card,
+  .operations-release-card,
+  .operations-lifecycle-phase,
+  .operations-lifecycle-details > div,
+  .operations-release-packet-item,
+  .operations-release-blockers,
+  .operations-metrics-signal,
+  .operations-metrics-departments,
+  .operations-playbook-check,
+  .operations-playbook-details > div,
+  .operations-playbook-variance-card,
+  .operations-playbook-variance-actions,
+  .operations-incident-command-card,
+  .operations-incident-command-footer > div,
+  .operations-scenario-plan-card,
+  .operations-scenario-plan-summary,
+  .operations-scenario-plan-details > div,
+  .operations-scenario-plan-runbook,
+  .operations-directory-card,
+  .operations-directory-detail,
+  .operations-directory-metrics div,
+  .operations-directory-contact,
+  .operations-production-readiness-card,
+  .operations-production-readiness-summary,
+  .operations-production-readiness-details > div,
+  .operations-production-readiness-runbook,
+  .operations-application-dossier-card,
+  .operations-application-dossier-summary,
+  .operations-application-dossier-details > div,
+  .operations-application-dossier-steps,
+  .role-booking-fields,
+  .operational-progress-summary,
+  .operational-escalation-summary,
+  .operational-dependency-summary,
+  .operational-handoff-summary,
+  .operational-staffing-summary,
+  .operational-signoff-summary,
+  .operational-dependency-list,
+  .operational-handoff-list,
+  .operational-staffing-list,
+  .operational-escalation-list,
+  .operational-checklist,
+  .operational-task-updates,
+  .operational-task-detail-list,
+  .operational-task-detail-list > div
+) {
+  background: var(--ce-command-surface) !important;
+  border: 1px solid var(--ce-command-border) !important;
+  border-radius: var(--ce-radius-card) !important;
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+}
+
+.react-role-dashboard :is(
+  .operations-portfolio-card,
+  .operations-release-card,
+  .operations-lifecycle-phase,
+  .operations-lifecycle-details > div,
+  .operations-release-packet-item,
+  .operations-release-blockers,
+  .operations-metrics-signal,
+  .operations-metrics-departments,
+  .operations-playbook-check,
+  .operations-playbook-details > div,
+  .operations-playbook-variance-card,
+  .operations-playbook-variance-actions,
+  .operations-incident-command-card,
+  .operations-incident-command-footer > div,
+  .operations-scenario-plan-card,
+  .operations-scenario-plan-summary,
+  .operations-scenario-plan-details > div,
+  .operations-scenario-plan-runbook,
+  .operations-directory-card,
+  .operations-directory-detail,
+  .operations-directory-metrics div,
+  .operations-directory-contact,
+  .operations-production-readiness-card,
+  .operations-production-readiness-summary,
+  .operations-production-readiness-details > div,
+  .operations-production-readiness-runbook,
+  .operations-application-dossier-card,
+  .operations-application-dossier-summary,
+  .operations-application-dossier-details > div,
+  .operations-application-dossier-steps,
+  .role-booking-fields,
+  .operational-progress-summary,
+  .operational-escalation-summary,
+  .operational-dependency-summary,
+  .operational-handoff-summary,
+  .operational-staffing-summary,
+  .operational-signoff-summary,
+  .operational-dependency-list,
+  .operational-handoff-list,
+  .operational-staffing-list,
+  .operational-escalation-list,
+  .operational-checklist,
+  .operational-task-updates,
+  .operational-task-detail-list,
+  .operational-task-detail-list > div
+) :is(h1, h2, h3, h4, h5, h6, p, li, strong, span, dt, dd) {
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard :is(
+  .operational-turnaround-panel,
+  .operations-portfolio-board,
+  .operations-workspace-panel,
+  .operations-release-board,
+  .operations-lifecycle,
+  .operations-release-packet,
+  .operations-metrics,
+  .operations-playbook,
+  .operations-playbook-variance,
+  .operations-incident-command,
+  .operations-scenario-plan,
+  .operations-directory-panel,
+  .operations-production-readiness,
+  .operations-application-dossier,
+  .operational-readiness-card
+) :is(.eyebrow, dt, label > span) {
+  color: var(--ce-command-text-muted) !important;
+  -webkit-text-fill-color: var(--ce-command-text-muted) !important;
+}
+
+/* Light editor surfaces always use dark text, even when nested inside dark
+   command panels. This becomes the single contrast rule for forms going forward. */
+.react-role-dashboard :is(
+  .operational-command-form,
+  .operational-task-create-form,
+  .operational-task-update-form,
+  .operational-task-detail-form,
+  .operational-handoff-form,
+  .operational-staffing-form,
+  .operational-escalation-create-form,
+  .operational-escalation-update-form,
+  .operational-signoff-form,
+  .operations-handoff-item,
+  .operations-escalation-log-item,
+  .operations-readiness-signoff-form
+) {
+  background: var(--ce-editor-surface) !important;
+  border: 1px solid var(--ce-editor-border-muted) !important;
+  border-radius: var(--ce-radius-card) !important;
+  color: var(--ce-editor-text) !important;
+  -webkit-text-fill-color: var(--ce-editor-text) !important;
+}
+
+.react-role-dashboard :is(
+  .operational-command-form,
+  .operational-task-create-form,
+  .operational-task-update-form,
+  .operational-task-detail-form,
+  .operational-handoff-form,
+  .operational-staffing-form,
+  .operational-escalation-create-form,
+  .operational-escalation-update-form,
+  .operational-signoff-form,
+  .operations-handoff-item,
+  .operations-escalation-log-item,
+  .operations-readiness-signoff-form
+) * {
+  color: var(--ce-editor-text) !important;
+  -webkit-text-fill-color: var(--ce-editor-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard :is(
+  .operational-command-form,
+  .operational-task-create-form,
+  .operational-task-update-form,
+  .operational-task-detail-form,
+  .operational-handoff-form,
+  .operational-staffing-form,
+  .operational-escalation-create-form,
+  .operational-escalation-update-form,
+  .operational-signoff-form,
+  .operations-handoff-item,
+  .operations-escalation-log-item,
+  .operations-readiness-signoff-form
+) :is(input, select, textarea, option) {
+  background: var(--ce-editor-surface-strong) !important;
+  border: 1px solid var(--ce-editor-border) !important;
+  color: var(--ce-editor-text) !important;
+  -webkit-text-fill-color: var(--ce-editor-text) !important;
+}
+
+.react-role-dashboard :is(
+  .operational-command-form,
+  .operational-task-create-form,
+  .operational-task-update-form,
+  .operational-task-detail-form,
+  .operational-handoff-form,
+  .operational-staffing-form,
+  .operational-escalation-create-form,
+  .operational-escalation-update-form,
+  .operational-signoff-form,
+  .operations-handoff-item,
+  .operations-escalation-log-item,
+  .operations-readiness-signoff-form
+) :is(button, .secondary-action-button, .compact-button) {
+  background: #e0f2fe !important;
+  border: 1px solid rgba(125, 211, 252, 0.78) !important;
+  color: var(--ce-editor-text) !important;
+  -webkit-text-fill-color: var(--ce-editor-text) !important;
+}
+
+.react-role-dashboard :is(.operational-task-actions, .button-row) :is(button, .secondary-action-button, .compact-button) {
+  background: #e0f2fe !important;
+  border: 1px solid rgba(125, 211, 252, 0.78) !important;
+  border-radius: var(--ce-radius-pill) !important;
+  color: var(--ce-editor-text) !important;
+  -webkit-text-fill-color: var(--ce-editor-text) !important;
+  opacity: 1 !important;
+}
+
+.react-role-dashboard :is(.operational-task-actions, .button-row) :is(button.danger-outline-button, .danger-outline-button) {
+  background: #fff1f2 !important;
+  border-color: rgba(248, 113, 113, 0.82) !important;
+  color: var(--ce-editor-text) !important;
+  -webkit-text-fill-color: var(--ce-editor-text) !important;
+}
+

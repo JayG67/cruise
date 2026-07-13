@@ -1,0 +1,231 @@
+
+.readiness-item strong {
+  color: #0f172a;
+}
+
+.readiness-item div,
+.readiness-item p,
+.readiness-item small {
+  color: #334155;
+}
+
+.readiness-item.pending {
+  background: #f8fafc;
+}
+
+.readiness-item.attention {
+  background: #fff7ed;
+}
+
+.readiness-item.ready {
+  background: #ecfdf5;
+}
+
+
+/* Build 457 - Quality Console contrast hardening */
+.quality-console-card .console-status,
+.sqa-console .console-status,
+.quality-console .console-status,
+[data-testid="react-sqa-console"] .console-status {
+  background: #ffffff;
+  border: 1px solid #94a3b8;
+  color: #0f172a;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.18);
+}
+
+.quality-console-card .console-status *,
+.sqa-console .console-status *,
+.quality-console .console-status *,
+[data-testid="react-sqa-console"] .console-status * {
+  color: #0f172a;
+  opacity: 1;
+}
+
+.quality-console-card .console-status .status-dot,
+.sqa-console .console-status .status-dot,
+.quality-console .console-status .status-dot,
+[data-testid="react-sqa-console"] .console-status .status-dot {
+  background: #16a34a;
+  box-shadow: 0 0 0 7px rgba(22, 163, 74, 0.14);
+}
+
+.go-live-readiness-panel,
+.quality-console-card .go-live-readiness-panel,
+.sqa-console .go-live-readiness-panel,
+.quality-console .go-live-readiness-panel,
+[data-testid="react-sqa-console"] .go-live-readiness-panel {
+  background: linear-gradient(135deg, #ffffff, #eef6ff);
+  border: 1px solid #9db7cc;
+  color: #0f172a;
+}
+
+.go-live-readiness-panel *,
+.quality-console-card .go-live-readiness-panel *,
+.sqa-console .go-live-readiness-panel *,
+.quality-console .go-live-readiness-panel *,
+[data-testid="react-sqa-console"] .go-live-readiness-panel * {
+  color: #0f172a;
+  opacity: 1;
+}
+
+.go-live-readiness-panel .eyebrow,
+.go-live-readiness-panel .section-kicker,
+.go-live-readiness-panel [class*="eyebrow"],
+.go-live-readiness-panel [class*="kicker"] {
+  color: #0369a1;
+  opacity: 1;
+}
+
+.go-live-readiness-panel p,
+.go-live-readiness-panel li,
+.go-live-readiness-panel small,
+.go-live-readiness-panel span {
+  color: #334155;
+}
+
+.go-live-readiness-panel h2,
+.go-live-readiness-panel h3,
+.go-live-readiness-panel h4,
+.go-live-readiness-panel strong {
+  color: #0f172a;
+}
+
+.go-live-readiness-panel .readiness-item,
+.quality-console-card .go-live-readiness-panel .readiness-item,
+.sqa-console .go-live-readiness-panel .readiness-item,
+.quality-console .go-live-readiness-panel .readiness-item,
+[data-testid="react-sqa-console"] .go-live-readiness-panel .readiness-item {
+  background: #ffffff;
+  border: 1px solid #b8c8d8;
+  color: #0f172a;
+}
+
+.go-live-readiness-panel .readiness-item.ready {
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.go-live-readiness-panel .readiness-item.pending {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.go-live-readiness-panel .readiness-item.attention {
+  background: #ffedd5;
+  border-color: #fdba74;
+}
+
+.go-live-readiness-panel .readiness-item *,
+.go-live-readiness-panel .readiness-item.ready *,
+.go-live-readiness-panel .readiness-item.pending *,
+.go-live-readiness-panel .readiness-item.attention * {
+  color: #0f172a;
+  opacity: 1;
+}
+
+.go-live-readiness-panel .readiness-item p,
+.go-live-readiness-panel .readiness-item small,
+.go-live-readiness-panel .readiness-item span:not(.status-dot) {
+  color: #334155;
+}
+
+
+/* Build 458 - hard contrast fix for SQA status and go-live readiness text.
+   These selectors use the actual rendered class names and !important because the
+   admin dark-panel unification layer applies inherited white text with !important. */
+.react-quality-section .react-sqa-status-pill,
+:is(.react-production-shell, .react-app-shell) .react-quality-section .react-sqa-status-pill,
+.react-sqa-console .react-sqa-status-pill {
+  background: #ffffff !important;
+  border: 1px solid #8fa8bd !important;
+  color: #0f172a !important;
+  opacity: 1 !important;
+}
+
+.react-quality-section .react-sqa-status-pill strong,
+.react-quality-section .react-sqa-status-pill span,
+.react-quality-section .react-sqa-status-pill div,
+:is(.react-production-shell, .react-app-shell) .react-quality-section .react-sqa-status-pill strong,
+:is(.react-production-shell, .react-app-shell) .react-quality-section .react-sqa-status-pill span,
+:is(.react-production-shell, .react-app-shell) .react-quality-section .react-sqa-status-pill div,
+.react-sqa-console .react-sqa-status-pill strong,
+.react-sqa-console .react-sqa-status-pill span,
+.react-sqa-console .react-sqa-status-pill div {
+  color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-quality-section .react-sqa-status-pill strong,
+:is(.react-production-shell, .react-app-shell) .react-quality-section .react-sqa-status-pill strong,
+.react-sqa-console .react-sqa-status-pill strong {
+  color: #334155 !important;
+}
+
+.react-quality-section .react-sqa-status-pill .ready-dot,
+:is(.react-production-shell, .react-app-shell) .react-quality-section .react-sqa-status-pill .ready-dot,
+.react-sqa-console .react-sqa-status-pill .ready-dot {
+  background: #16a34a !important;
+  box-shadow: 0 0 0 7px rgba(22, 163, 74, 0.16) !important;
+}
+
+.react-quality-section .go-live-readiness-panel,
+:is(.react-production-shell, .react-app-shell) .react-quality-section .go-live-readiness-panel,
+.react-sqa-console .go-live-readiness-panel {
+  background: #f8fbff !important;
+  border: 1px solid #8fa8bd !important;
+  color: #0f172a !important;
+  opacity: 1 !important;
+}
+
+.react-quality-section .go-live-readiness-panel > div,
+:is(.react-production-shell, .react-app-shell) .react-quality-section .go-live-readiness-panel > div,
+.react-sqa-console .go-live-readiness-panel > div {
+  background: transparent !important;
+  color: #0f172a !important;
+  opacity: 1 !important;
+}
+
+.react-quality-section .go-live-readiness-panel .eyebrow,
+:is(.react-production-shell, .react-app-shell) .react-quality-section .go-live-readiness-panel .eyebrow,
+.react-sqa-console .go-live-readiness-panel .eyebrow {
+  color: #0369a1 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-quality-section .go-live-readiness-panel h3,
+:is(.react-production-shell, .react-app-shell) .react-quality-section .go-live-readiness-panel h3,
+.react-sqa-console .go-live-readiness-panel h3 {
+  color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-quality-section .go-live-readiness-panel p,
+:is(.react-production-shell, .react-app-shell) .react-quality-section .go-live-readiness-panel p,
+.react-sqa-console .go-live-readiness-panel p {
+  color: #334155 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-quality-section .go-live-readiness-panel .readiness-item strong,
+.react-quality-section .go-live-readiness-panel .readiness-item span,
+.react-quality-section .go-live-readiness-panel .readiness-item p,
+:is(.react-production-shell, .react-app-shell) .react-quality-section .go-live-readiness-panel .readiness-item strong,
+:is(.react-production-shell, .react-app-shell) .react-quality-section .go-live-readiness-panel .readiness-item span,
+:is(.react-production-shell, .react-app-shell) .react-quality-section .go-live-readiness-panel .readiness-item p,
+.react-sqa-console .go-live-readiness-panel .readiness-item strong,
+.react-sqa-console .go-live-readiness-panel .readiness-item span,
+.react-sqa-console .go-live-readiness-panel .readiness-item p {
+  color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-quality-section .go-live-readiness-panel .readiness-item p,
+:is(.react-production-shell, .react-app-shell) .react-quality-section .go-live-readiness-panel .readiness-item p,
+.react-sqa-console .go-live-readiness-panel .readiness-item p {
+  color: #334155 !important;
+}

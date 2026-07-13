@@ -1,0 +1,151 @@
+/*
+  CSS Foundation Refactor - Phase 2.
+
+  This slice moves the live React product surface toward shared primitives.
+  The goal is a consistent command-center application shell, reusable dark
+  operational panels, reusable dark cards, and isolated light editor/data
+  surfaces. Existing legacy selectors are intentionally mapped into these
+  primitives while JSX migrations happen in later slices.
+*/
+
+/* Shared command cards. */
+.react-production-shell :is(
+  .react-workspace-card,
+  .route-tab,
+  .status-card,
+  .hierarchy-card,
+  .readiness-card,
+  .role-summary-card,
+  .role-profile-card,
+  .role-booking-card,
+  .role-detail-card,
+  .role-itinerary-panel,
+  .role-itinerary-day,
+  .booking-card,
+  .active-route-evidence-card,
+  .self-guided-proof-card,
+  .self-guided-tour-card,
+  .employer-demo-proof-card,
+  .fleet-card,
+  .react-admin-management-card,
+  .react-create-card,
+  .react-sqa-action-card,
+  .react-sqa-status-pill,
+  .react-selected-ships-panel,
+  .react-ship-card,
+  .react-sailings-panel,
+  .react-sailing-card,
+  .react-itinerary-panel,
+  .react-itinerary-day-card,
+  .passenger-finder-panel,
+  .passenger-finder-card,
+  .booking-guest-finder,
+  .booking-guest-result-card,
+  .booking-selected-guest-card,
+  .passenger-booking-workflow,
+  .passenger-booking-guests,
+  .passenger-booking-guest-card,
+  .voyage-planner-card,
+  .voyage-booking-card,
+  .voyage-score-card,
+  .presentation-hero-card,
+  .presentation-flow-card,
+  .portfolio-polish-list-panel,
+  .portfolio-polish-score-card,
+  .production-hardening-score-card,
+  .production-hardening-recommendation,
+  .production-hardening-priority-plan,
+  .production-hardening-launch-sequence,
+  .data-architecture-score-card,
+  .data-architecture-recommendation,
+  .data-architecture-priority-plan,
+  .data-architecture-migration-board,
+  .data-architecture-risk-register,
+  .data-architecture-roadmap,
+  .deployment-readiness-score-card,
+  .public-launch-panel,
+  .public-launch-score-card,
+  .turnaround-admin-model-card,
+  .turnaround-admin-conflict-summary,
+  .turnaround-workspace-card,
+  .turnaround-team-readiness-card,
+  .turnaround-same-day-conflict-card,
+  .turnaround-selected-team,
+  .turnaround-team-member-card,
+  .turnaround-roster-browser,
+  .turnaround-roster-card
+) {
+  background: var(--ce-command-card-bg) !important;
+  border: 1px solid var(--ce-command-border) !important;
+  border-radius: var(--ce-radius-card) !important;
+  box-shadow: var(--ce-shadow-card) !important;
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+}
+
+.react-production-shell :is(
+  .react-workspace-card,
+  .route-tab,
+  .status-card,
+  .hierarchy-card,
+  .readiness-card,
+  .role-summary-card,
+  .role-profile-card,
+  .role-booking-card,
+  .role-detail-card,
+  .role-itinerary-panel,
+  .role-itinerary-day,
+  .booking-card,
+  .active-route-evidence-card,
+  .self-guided-proof-card,
+  .self-guided-tour-card,
+  .employer-demo-proof-card,
+  .fleet-card,
+  .react-admin-management-card,
+  .react-create-card,
+  .react-sqa-action-card,
+  .react-sqa-status-pill,
+  .react-selected-ships-panel,
+  .react-ship-card,
+  .react-sailings-panel,
+  .react-sailing-card,
+  .react-itinerary-panel,
+  .react-itinerary-day-card,
+  .passenger-finder-panel,
+  .passenger-finder-card,
+  .booking-guest-finder,
+  .booking-guest-result-card,
+  .booking-selected-guest-card,
+  .passenger-booking-workflow,
+  .passenger-booking-guests,
+  .passenger-booking-guest-card,
+  .voyage-planner-card,
+  .voyage-booking-card,
+  .voyage-score-card,
+  .presentation-hero-card,
+  .presentation-flow-card,
+  .portfolio-polish-list-panel,
+  .portfolio-polish-score-card,
+  .production-hardening-score-card,
+  .data-architecture-score-card,
+  .deployment-readiness-score-card,
+  .public-launch-panel,
+  .public-launch-score-card,
+  .turnaround-admin-model-card,
+  .turnaround-admin-conflict-summary,
+  .turnaround-workspace-card,
+  .turnaround-team-readiness-card,
+  .turnaround-same-day-conflict-card,
+  .turnaround-selected-team,
+  .turnaround-team-member-card,
+  .turnaround-roster-browser,
+  .turnaround-roster-card
+) :is(h1, h2, h3, h4, h5, h6, p, li, strong, span, dt, dd, small) {
+  color: inherit;
+  -webkit-text-fill-color: inherit;
+}
+
+.react-production-shell :is(.route-tab.active, .react-workspace-card:hover, .react-workspace-card:focus-visible, .fleet-card:hover, .passenger-finder-card.selected, .booking-guest-result-card.selected) {
+  border-color: var(--ce-command-border-strong) !important;
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.14), var(--ce-shadow-card) !important;
+}

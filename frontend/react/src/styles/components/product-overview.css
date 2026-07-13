@@ -1,0 +1,282 @@
+/* CSS Foundation Refactor - Slice 32: final app.css product polish compatibility retired into layered product-shell CSS. */
+/* CSS Foundation Refactor Slice 20: application/fleet shell and operations workflow polish moved to layered component CSS. */
+
+/* CSS Foundation Refactor Slice 21: confirmation modal, passenger booking workflow, and turnaround overview CSS moved to layered component CSS. */
+
+/* CSS Foundation Refactor Slice 22: operational workflow form/detail polish moved to components/role-dashboard.css. */
+/* CSS Foundation Refactor Slice 23: role selector and passenger finder CSS moved to components/role-selector.css. */
+
+/* CSS Foundation Refactor Slice 24: operations directory, workspace shell, and role brief CSS moved to components/operations-workspaces.css. */
+
+/* CSS Foundation Refactor Slice 25: task management workspace CSS moved to components/operations-workspaces.css. */
+/* CSS Foundation Refactor Slice 26: dependency management workspace CSS moved to components/operations-workspaces.css. */
+/* CSS Foundation Refactor Slice 27: handoff management workspace CSS moved to components/operations-workspaces.css. */
+/* CSS Foundation Refactor Slice 28: staffing, escalation, and readiness workspace CSS moved to components/operations-workspaces.css. */
+/* UX hardening: replace long person dropdowns with searchable picker cards. */
+.person-select.sr-only {
+  display: none !important;
+}
+
+.sr-only {
+  border: 0 !important;
+  clip: rect(0, 0, 0, 0) !important;
+  height: 1px !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  position: absolute !important;
+  white-space: nowrap !important;
+  width: 1px !important;
+}
+
+.person-finder-panel {
+  background: linear-gradient(145deg, #f8fbff, #ffffff);
+  border: 1px solid #d7e7f6;
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
+.person-finder-heading {
+  align-items: start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.person-finder-heading h3 {
+  color: #0b1f33;
+  font-size: 1.05rem;
+  margin: 0.15rem 0 0;
+}
+
+.person-finder-heading span,
+.finder-limit-note {
+  background: #eaf6ff;
+  border: 1px solid #c2def3;
+  border-radius: 999px;
+  color: #0f5e9c;
+  font-size: 0.82rem;
+  font-weight: 900;
+  padding: 0.35rem 0.65rem;
+  width: fit-content;
+}
+
+.selected-person-card {
+  background: linear-gradient(145deg, #eef9ff, #ffffff);
+  border: 1px solid #bcdcf4;
+  border-radius: 0.9rem;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem 1rem;
+}
+
+.selected-person-card span {
+  color: #0f5e9c;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.selected-person-card small {
+  color: #38556f;
+  line-height: 1.4;
+}
+
+.person-finder-results {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+
+/* Person finder cards now use selector-card component ce-selector-card contracts. */
+
+@media (max-width: 860px) {
+  .person-finder-heading,
+  .person-finder-card-main {
+    flex-direction: column;
+  }
+
+  .person-finder-results {
+    grid-template-columns: 1fr;
+  }
+}
+
+.go-live-readiness-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 1rem;
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+.go-live-readiness-panel h3 {
+  margin: 0.15rem 0 0.5rem;
+}
+
+.go-live-readiness-panel p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.55;
+}
+
+.go-live-readiness-list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.readiness-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: start;
+  padding: 0.8rem;
+  border-radius: 1rem;
+  background: rgba(248, 250, 252, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.readiness-item > span {
+  display: inline-grid;
+  place-items: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.readiness-item.ready > span {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.readiness-item.attention > span {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.readiness-item.pending > span {
+  color: #334155;
+  background: #e2e8f0;
+}
+
+.readiness-item strong {
+  display: block;
+  color: #0f172a;
+  margin-bottom: 0.15rem;
+}
+
+@media (max-width: 820px) {
+  .go-live-readiness-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* CSS Foundation Refactor Slice 28: staffing, escalation, and readiness workspace CSS moved to components/operations-workspaces.css. */
+/* CSS Foundation Refactor Slice 29: operations release board, portfolio, audit trail, release packet, playbook variance, and incident command CSS moved to layered component CSS. */
+/* CSS Foundation Refactor Slice 30: operations evidence, lifecycle, production-readiness, and application dossier CSS moved to components/operations-dashboard.css. */
+/* Phase 21 CSS retirement: retired operations-presentation guide selectors removed from legacy app.css. */
+/* Slice 314: remove presentation overlap and make the overview self-guided instead of recruiter-hostile. */
+.production-hero {
+  min-height: auto;
+}
+
+.production-hero-content {
+  margin: 0 auto;
+  padding: clamp(3rem, 8vw, 6rem) 0 clamp(2.5rem, 7vw, 5rem);
+}
+
+.operations-console-panel,
+.react-workspace-panel.operations-console-panel {
+  margin-top: 1.5rem;
+}
+
+.self-guided-overview {
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+.self-guided-overview-heading {
+  grid-template-columns: 1fr;
+}
+
+.self-guided-overview-heading h2 {
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
+}
+
+.self-guided-overview-heading p {
+  max-width: 68rem;
+}
+
+.self-guided-proof-grid {
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.self-guided-proof-card {
+  min-height: 0;
+  padding: 0.85rem;
+}
+
+.self-guided-proof-card strong {
+  font-size: clamp(1.1rem, 2vw, 1.55rem);
+}
+
+.self-guided-proof-card p {
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.self-guided-tour-list {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+.self-guided-tour-card {
+  align-items: center;
+  background: rgba(15, 23, 42, 0.46);
+  border: 1px solid rgba(226, 232, 240, 0.16);
+  border-radius: 18px;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 0.75rem;
+}
+
+.self-guided-tour-card strong {
+  color: #f8fafc;
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.self-guided-tour-card p {
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.operations-console-panel .react-workspace-card-grid {
+  grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr));
+}
+
+@media (max-width: 760px) {
+  .operations-console-panel,
+  .react-workspace-panel.operations-console-panel {
+    margin-top: 1rem;
+  }
+
+  .self-guided-tour-card {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,151 @@
+/* Cruise-line operations suite base layout repair. */
+
+/* Build 439: cruise-line operations UX layout repair.
+   The previous unified-admin overrides left the cruise-line operations header as a
+   wide flex row, so the title and three selectors competed for horizontal space.
+   Keep the workspace on the admin rail, but make the heading vertical and make
+   the operating-scope controls a contained responsive grid. */
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite {
+  background: #ffffff !important;
+  border: 1px solid var(--admin-card-border, #cfe0ec) !important;
+  border-top: 6px solid var(--admin-accent, #0b87a8) !important;
+  border-radius: var(--admin-radius, 1.35rem) !important;
+  box-shadow: var(--admin-shadow, 0 18px 44px rgba(7, 24, 39, 0.08)) !important;
+  color: var(--admin-text, #071827) !important;
+  overflow: hidden !important;
+  padding: clamp(1.25rem, 3vw, 2rem) !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-suite-heading {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 1.15rem !important;
+  margin: 0 0 1.25rem !important;
+  width: 100% !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-suite-heading > div:first-child {
+  min-width: 0 !important;
+  max-width: 72rem !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-suite-heading h2 {
+  color: var(--admin-text, #071827) !important;
+  font-size: clamp(2rem, 4vw, 3rem) !important;
+  line-height: 1.05 !important;
+  margin: 0.25rem 0 0.55rem !important;
+  max-width: none !important;
+  overflow-wrap: anywhere !important;
+  text-shadow: none !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-suite-heading p:not(.eyebrow) {
+  color: var(--admin-muted, #3f5872) !important;
+  margin: 0 !important;
+  max-width: 68rem !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-scope-controls {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0.85rem !important;
+  inline-size: 100% !important;
+  max-inline-size: 100% !important;
+  min-inline-size: 0 !important;
+  overflow: visible !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-line-picker {
+  background: var(--admin-card-soft-bg, #f8fbfe) !important;
+  border: 1px solid var(--admin-card-border, #cfe0ec) !important;
+  border-radius: 1rem !important;
+  box-shadow: none !important;
+  box-sizing: border-box !important;
+  color: var(--admin-text, #071827) !important;
+  display: grid !important;
+  gap: 0.45rem !important;
+  inline-size: 100% !important;
+  max-inline-size: 100% !important;
+  min-inline-size: 0 !important;
+  min-width: 0 !important;
+  padding: 0.9rem !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-line-picker span {
+  color: var(--admin-accent-dark, #075985) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-line-picker select {
+  inline-size: 100% !important;
+  max-inline-size: 100% !important;
+  min-inline-size: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-hero-card,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-flow-card,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-detail-card,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-commercial-card,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-calendar-card,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-operator-card {
+  background: var(--admin-card-soft-bg, #f8fbfe) !important;
+  border: 1px solid var(--admin-card-border, #cfe0ec) !important;
+  color: var(--admin-text, #071827) !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-hero-card {
+  align-items: stretch !important;
+  display: grid !important;
+  gap: 1rem !important;
+  grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.65fr) !important;
+  margin-bottom: 1.25rem !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-metric-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-metric-grid article {
+  background: #ffffff !important;
+  border: 1px solid var(--admin-card-border, #cfe0ec) !important;
+  color: var(--admin-text, #071827) !important;
+  min-width: 0 !important;
+  padding: 0.85rem !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-metric-grid article span,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-metric-grid article strong,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-hero-card h3,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-flow-card strong,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-detail-card h3,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-detail-card h4 {
+  color: var(--admin-text, #071827) !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-demo-flow,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-section-grid,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-card-grid {
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+@media (max-width: 980px) {
+  :is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-scope-controls,
+  :is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-hero-card {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (min-width: 981px) and (max-width: 1180px) {
+  :is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-scope-controls {
+    grid-template-columns: repeat(3, minmax(11rem, 1fr)) !important;
+  }
+}

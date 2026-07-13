@@ -1,0 +1,82 @@
+/* Operations audit trail. */
+
+.react-workspace-panel,
+.route-panel,
+.react-quality-section,
+.react-role-dashboard,
+.react-admin-workspace {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 900px;
+}
+
+@media (max-width: 760px) {
+  .react-top-nav,
+  .react-workspace-panel,
+  .hero-status-pills span,
+  .button-link.primary,
+  .button-link.secondary {
+    box-shadow: none;
+  }
+}
+
+.operations-audit-trail {
+  background: #f7fbff;
+  border: 1px solid #d7e8f7;
+  border-radius: 1.2rem;
+  box-shadow: 0 14px 30px rgba(15, 63, 95, 0.08);
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+.operations-audit-trail-header {
+  align-items: start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.operations-audit-trail-header h4,
+.operations-audit-trail-header p {
+  margin: 0.15rem 0;
+}
+
+.operations-audit-trail-header span {
+  background: #e7f2fb;
+  border-radius: 999px;
+  color: #245a7a;
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 0.35rem 0.65rem;
+  white-space: nowrap;
+}
+
+.operations-audit-event-list {
+  display: grid;
+  gap: 0.6rem;
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.operations-audit-event-list li {
+  background: #ffffff;
+  border: 1px solid #e2edf6;
+  border-radius: 0.9rem;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.75rem;
+}
+
+.operations-audit-event-list strong {
+  color: #12344d;
+}
+
+.operations-audit-event-list span,
+.operations-audit-event-list em {
+  color: #5f7185;
+  font-size: 0.88rem;
+}
+
+.operations-audit-event-list em {
+  font-style: normal;
+}

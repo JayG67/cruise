@@ -1,0 +1,28 @@
+/* Shared compact metadata chips. */
+
+.ce-chip,
+.react-production-shell :where(.linked-booking-pill) {
+  align-items: center;
+  background: rgba(158, 231, 255, 0.14);
+  border: 1px solid var(--ce-command-border);
+  border-radius: var(--radius-pill);
+  color: var(--ce-command-text);
+  display: inline-flex;
+  font-size: var(--font-xs);
+  font-weight: 800;
+  gap: var(--space-xs);
+  justify-content: center;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  min-height: 2rem;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  padding: 0.3rem 0.7rem;
+  text-transform: uppercase;
+}
+
+.ce-chip--light {
+  background: var(--ce-feedback-status-bg);
+  border-color: var(--ce-feedback-status-border);
+  color: var(--ce-feedback-status-text);
+}

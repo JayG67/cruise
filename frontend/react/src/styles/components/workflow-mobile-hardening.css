@@ -1,0 +1,107 @@
+/* React root mobile overflow hardening.
+   The GitHub CI WebKit run caught horizontal document overflow after opening the
+   React ship/sailing and itinerary CRUD panels. Safari sizes flex/grid children
+   from their min-content width more aggressively than Chromium, so long action
+   labels, headings, and form controls must be allowed to shrink and wrap. */
+.react-production-shell,
+.react-production-shell *,
+.react-production-shell *::before,
+.react-production-shell *::after {
+  min-width: 0;
+}
+
+.react-production-shell {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  overflow-x: clip;
+  width: 100%;
+}
+
+.react-production-shell section,
+.react-production-shell article,
+.react-production-shell form,
+.react-production-shell div,
+.react-production-shell h1,
+.react-production-shell h2,
+.react-production-shell h3,
+.react-production-shell h4,
+.react-production-shell h5,
+.react-production-shell p,
+.react-production-shell li {
+  max-width: 100%;
+}
+
+.react-production-shell input,
+.react-production-shell select,
+.react-production-shell textarea {
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
+}
+
+.react-production-shell button,
+.react-production-shell .fleet-primary-action,
+.react-production-shell .fleet-secondary-action,
+.react-production-shell .fleet-danger-action,
+.react-production-shell .primary-action-button {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+@media (max-width: 560px) {
+  .react-production-shell .react-ship-card-actions,
+  .react-production-shell .react-sailing-card-actions,
+  .react-production-shell .react-itinerary-card-actions,
+  .react-production-shell .react-inline-edit-actions,
+  .react-production-shell .react-confirm-action-row {
+    align-items: stretch;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .react-production-shell .fleet-primary-action,
+  .react-production-shell .fleet-secondary-action,
+  .react-production-shell .fleet-danger-action,
+  .react-production-shell .primary-action-button {
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+  }
+}
+
+
+.react-production-shell .fleet-danger-action,
+.react-production-shell .fleet-primary-action,
+.react-production-shell .fleet-secondary-action {
+  animation: none;
+  transform: none;
+  transition: none;
+}
+
+/* React Mobile Safari checkbox overflow fix.
+   The global mobile overflow hardening intentionally makes text inputs fill
+   their containers, but checkbox controls must keep intrinsic sizing inside
+   flex labels. WebKit counts the full-width checkbox plus its label text as
+   document overflow in the / ship/sailing and itinerary panels. */
+.react-production-shell input[type="checkbox"],
+.react-production-shell input[type="radio"] {
+  flex: 0 0 auto;
+  inline-size: 1rem;
+  max-inline-size: 1rem;
+  max-width: 1rem;
+  min-inline-size: 1rem;
+  min-width: 1rem;
+  width: 1rem;
+}
+
+.react-production-shell .react-checkbox-label {
+  align-items: center;
+  flex-wrap: wrap;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+

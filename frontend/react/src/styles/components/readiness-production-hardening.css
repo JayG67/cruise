@@ -1,0 +1,196 @@
+/* Production hardening readiness diagnostics. */
+
+.production-hardening-center {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.94));
+  color: #f8fafc;
+}
+
+.production-hardening-center h2,
+.production-hardening-center h3,
+.production-hardening-center strong {
+  color: #ffffff;
+}
+
+.production-hardening-center p,
+.production-hardening-center li {
+  color: rgba(248, 250, 252, 0.82);
+}
+
+.production-hardening-heading {
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.production-hardening-scoreboard {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 1.5rem 0;
+}
+
+.production-hardening-score-card {
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.62);
+  padding: 1rem;
+}
+
+.production-hardening-score-card.ready {
+  border-color: rgba(34, 197, 94, 0.55);
+}
+
+.production-hardening-score-card.watch {
+  border-color: rgba(250, 204, 21, 0.62);
+}
+
+.production-hardening-score-card.needs-hardening {
+  border-color: rgba(248, 113, 113, 0.68);
+}
+
+.production-hardening-score-card span,
+.production-hardening-gate-header span,
+.production-hardening-recommendation span {
+  display: block;
+  color: rgba(226, 232, 240, 0.78);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.production-hardening-score-card strong {
+  display: block;
+  font-size: 2rem;
+  margin: 0.35rem 0;
+}
+
+.production-hardening-score-card p {
+  margin: 0;
+}
+
+.production-hardening-gate-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 1.5rem;
+}
+
+.production-hardening-gate-card {
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.48);
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.18);
+  padding: 1rem;
+}
+
+.production-hardening-gate-card.ready {
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+.production-hardening-gate-card.watch {
+  border-color: rgba(250, 204, 21, 0.55);
+}
+
+.production-hardening-gate-card.needs-hardening {
+  border-color: rgba(248, 113, 113, 0.62);
+}
+
+.production-hardening-gate-header {
+  align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.production-hardening-gate-header h3 {
+  margin: 0.25rem 0 0;
+}
+
+.production-hardening-gate-header strong {
+  font-size: 1.55rem;
+}
+
+.production-hardening-gate-card ul,
+.production-hardening-launch-sequence ul {
+  margin: 0.85rem 0;
+  padding-left: 1.2rem;
+}
+
+.production-hardening-gate-card li + li,
+.production-hardening-launch-sequence li + li {
+  margin-top: 0.35rem;
+}
+
+.production-hardening-recommendation {
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.08);
+  margin-top: 1rem;
+  padding: 0.85rem;
+}
+
+.production-hardening-recommendation p {
+  margin: 0.25rem 0 0;
+}
+
+.production-hardening-priority-plan,
+.production-hardening-launch-sequence {
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.4);
+  padding: 1rem;
+}
+
+.production-hardening-priority-plan ol {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.production-hardening-priority-plan li {
+  align-items: flex-start;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: auto 1fr;
+}
+
+.production-hardening-priority-plan li > span {
+  align-items: center;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.22);
+  color: #dbeafe;
+  display: inline-flex;
+  font-size: 0.8rem;
+  font-weight: 800;
+  height: 2rem;
+  justify-content: center;
+  width: 2rem;
+}
+
+.production-hardening-priority-plan p {
+  margin: 0.25rem 0 0;
+}
+
+.production-hardening-launch-sequence {
+  margin-top: 1rem;
+}
+
+.production-hardening-launch-sequence summary {
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.production-hardening-launch-sequence ul {
+  margin-bottom: 0;
+}
+
+@media (max-width: 900px) {
+  .production-hardening-scoreboard,
+  .production-hardening-gate-grid {
+    grid-template-columns: 1fr;
+  }
+}

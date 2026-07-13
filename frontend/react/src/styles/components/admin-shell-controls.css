@@ -1,0 +1,35 @@
+/* Pills, metrics, and status badges share the same visual language. */
+:is(.react-production-shell, .react-app-shell) .react-admin-stat-pills span,
+:is(.react-production-shell, .react-app-shell) .create-workflow-pill,
+:is(.react-production-shell, .react-app-shell) .console-status,
+:is(.react-production-shell, .react-app-shell) .status-pill,
+:is(.react-production-shell, .react-app-shell) .quality-status-pill,
+:is(.react-production-shell, .react-app-shell) .presentation-metric-grid article,
+:is(.react-production-shell, .react-app-shell) .presentation-metric-grid article *,
+:is(.react-production-shell, .react-app-shell) .presentation-suite-metric,
+:is(.react-production-shell, .react-app-shell) .presentation-suite-metric * {
+  background: var(--admin-accent-soft) !important;
+  border-color: var(--admin-card-border-strong) !important;
+  color: var(--admin-text) !important;
+}
+
+/* Buttons: consistent teal primary and white secondary buttons. */
+:is(.react-production-shell, .react-app-shell) .primary-action-button,
+:is(.react-production-shell, .react-app-shell) .sqa-action-button,
+:is(.react-production-shell, .react-app-shell) .react-sqa-action-card button,
+:is(.react-production-shell, .react-app-shell) .fleet-primary-action,
+:is(.react-production-shell, .react-app-shell) .fleet-card-actions button:not(.fleet-danger-action),
+:is(.react-production-shell, .react-app-shell) button:not(.secondary-action-button):not(.fleet-danger-action):not([aria-label]) {
+  background: linear-gradient(135deg, #0878a8, #12a4b6) !important;
+  border: 0 !important;
+  color: #ffffff !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .secondary-action-button,
+:is(.react-production-shell, .react-app-shell) button[type='reset'],
+:is(.react-production-shell, .react-app-shell) .fleet-danger-action {
+  background: #ffffff !important;
+  border: 1px solid var(--admin-card-border-strong) !important;
+  color: var(--admin-accent-dark) !important;
+}
+

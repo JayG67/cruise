@@ -1,0 +1,25 @@
+/* Do not let one panel on the admin page become wider than the rest. */
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite > *,
+:is(.react-production-shell, .react-app-shell) .fleet-directory-section,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section,
+:is(.react-production-shell, .react-app-shell) .turnaround-admin-setup-panel,
+:is(.react-production-shell, .react-app-shell) .react-quality-section,
+:is(.react-production-shell, .react-app-shell) .react-admin-workspace {
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 900px) {
+  :is(.react-production-shell, .react-app-shell) .react-admin-workspace,
+  :is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite,
+  :is(.react-production-shell, .react-app-shell) .fleet-directory-section,
+  :is(.react-production-shell, .react-app-shell) .react-create-workflow-section,
+  :is(.react-production-shell, .react-app-shell) .turnaround-admin-setup-panel,
+  :is(.react-production-shell, .react-app-shell) .react-quality-section {
+    width: min(100% - 1rem, var(--admin-rail-width)) !important;
+  }
+
+  :is(.react-production-shell, .react-app-shell) .presentation-suite-heading {
+    display: block !important;
+  }
+}

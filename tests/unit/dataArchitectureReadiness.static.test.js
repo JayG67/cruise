@@ -7,6 +7,22 @@ function read(relativePath) {
   return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
 }
 
+function readCssBundle(relativePath, seen = new Set()) {
+  const fullPath = path.join(projectRoot, relativePath)
+  if (seen.has(fullPath)) {
+    return ''
+  }
+  seen.add(fullPath)
+
+  const content = fs.readFileSync(fullPath, 'utf8')
+  const directory = path.dirname(relativePath)
+
+  return content.replace(/@import\s+['"](.+?)['"];?/g, (_match, importPath) => {
+    const nestedPath = path.normalize(path.join(directory, importPath)).replace(/\\/g, '/')
+    return readCssBundle(nestedPath, seen)
+  })
+}
+
 describe('data architecture readiness center static contracts', () => {
   it('exposes a live admin API and React client for architecture hardening readiness', () => {
     const routes = read('routes/cruise.routes.js')
@@ -23,7 +39,7 @@ describe('data architecture readiness center static contracts', () => {
   it('keeps architecture diagnostics available as code without mounting a recruiter-facing workspace', () => {
     const app = read('frontend/react/src/App.jsx')
     const component = read('frontend/react/src/components/ReactDataArchitectureReadinessCenter.jsx')
-    const styles = read('frontend/react/src/styles/components/readiness-centers.css')
+    const styles = readCssBundle('frontend/react/src/styles/components/readiness-centers.css')
 
     expect(app).not.toContain('ReactDataArchitectureReadinessCenter')
     expect(app).not.toContain('react-workspace-data-architecture-button')
@@ -40,7 +56,7 @@ describe('data architecture readiness center static contracts', () => {
     const service = read('services/dataArchitectureReadiness.service.js')
     const component = read('frontend/react/src/components/ReactDataArchitectureReadinessCenter.jsx')
     const client = read('frontend/react/src/api/client.js')
-    const styles = read('frontend/react/src/styles/components/readiness-centers.css')
+    const styles = readCssBundle('frontend/react/src/styles/components/readiness-centers.css')
 
     expect(service).toContain('buildMigrationBacklog')
     expect(service).toContain('buildMigrationTimeline')

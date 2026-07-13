@@ -1,0 +1,728 @@
+/* Final compatibility selectors and reviewer-facing application polish. */
+
+/* CSS Foundation Refactor - Slice 33: final app.css compatibility selectors retired into layered application components. */
+.visually-hidden {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  color: #102033;
+  background: #f4f7fb;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+}
+
+button, input {
+  font: inherit;
+}
+
+.app-shell {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 2rem 0 4rem;
+}
+
+.hero, .readiness-card, .hierarchy-card, .status-card {
+  background: #ffffff;
+  border: 1px solid #d8e2ef;
+  border-radius: 1.25rem;
+  box-shadow: 0 1rem 2rem rgba(16, 32, 51, 0.08);
+  margin-bottom: 1.25rem;
+  padding: clamp(1rem, 3vw, 2rem);
+}
+
+.hero {
+  background: linear-gradient(135deg, #ffffff, #eaf4ff);
+}
+
+.eyebrow {
+  color: #1761a0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+}
+
+h1, h2 {
+  line-height: 1.1;
+  margin: 0 0 0.75rem;
+}
+
+h1 {
+  font-size: clamp(2rem, 6vw, 4rem);
+}
+
+h2 {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+}
+
+.readiness-card li + li {
+  margin-top: 0.45rem;
+}
+
+.section-heading-row {
+  align-items: end;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
+}
+
+.search-control {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.search-control span {
+  font-weight: 700;
+}
+
+.search-control input {
+  border: 1px solid #b9c8d8;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+}
+
+.table-scroll {
+  margin-top: 1rem;
+  overflow-x: auto;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 760px;
+  width: 100%;
+}
+
+caption {
+  color: #52677c;
+  padding: 0.5rem 0 1rem;
+  text-align: left;
+}
+
+th, td {
+  border-bottom: 1px solid #e3ebf4;
+  padding: 0.85rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: #f8fbff;
+}
+
+.link-button {
+  background: transparent;
+  border: 0;
+  color: #0f5e9c;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 0.2rem 0;
+  text-align: left;
+}
+
+.link-button:focus-visible {
+  outline: 3px solid #f5b342;
+  outline-offset: 3px;
+}
+
+.child-row td {
+  background: #f9fbfe;
+}
+
+.child-panel {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.booking-card {
+  background: #ffffff;
+  border: 1px solid #dce7f2;
+  border-radius: 0.9rem;
+  padding: 1rem;
+}
+
+.booking-card p {
+  margin: 0.35rem 0 0;
+}
+
+.details-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  margin: 1rem 0 0;
+}
+
+dt {
+  color: #52677c;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+dd {
+  margin: 0.15rem 0 0;
+}
+
+.error {
+  border-color: #d9534f;
+  color: #9f2723;
+}
+
+@media (max-width: 720px) {
+  .app-shell {
+    width: min(100% - 1rem, 1120px);
+  }
+
+  .section-heading-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.section-summary {
+  color: #52677c;
+  margin: 0.5rem 0 0;
+}
+
+.hierarchy-toolbar {
+  align-items: center;
+  background: #f8fbff;
+  border: 1px solid #e1eaf4;
+  border-radius: 1rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding: 0.85rem;
+}
+
+.result-summary {
+  color: #40576f;
+  font-weight: 700;
+  margin: 0;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.secondary-button {
+  background: #ffffff;
+  border: 1px solid #b9c8d8;
+  border-radius: 999px;
+  color: #0f5e9c;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 0.55rem 0.8rem;
+}
+
+.secondary-button:focus-visible {
+  outline: 3px solid #f5b342;
+  outline-offset: 3px;
+}
+
+.compact {
+  box-shadow: none;
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
+.booking-card-heading {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.status-pill {
+  background: #eaf4ff;
+  border: 1px solid #c8dff5;
+  border-radius: 999px;
+  color: #0f5e9c;
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 0.25rem 0.55rem;
+}
+
+.muted {
+  color: #52677c;
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .hierarchy-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .button-row {
+    flex-direction: column;
+  }
+
+  .secondary-button {
+    width: 100%;
+  }
+}
+
+.error .secondary-button {
+  margin-top: 0.75rem;
+}
+
+
+.compact-button {
+  display: block;
+  margin-top: 0.5rem;
+  width: fit-content;
+}
+
+.editor-row td {
+  background: #f6f9fd;
+}
+
+.draft-editor {
+  background: #ffffff;
+  border: 1px solid #d8e2ef;
+  border-radius: 1rem;
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.draft-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.draft-grid label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.draft-grid span {
+  color: #40576f;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.draft-grid input {
+  border: 1px solid #b9c8d8;
+  border-radius: 0.65rem;
+  padding: 0.65rem;
+}
+
+.draft-message {
+  background: #eef7ff;
+  border: 1px solid #c8dff5;
+  border-radius: 0.75rem;
+  color: #0f5e9c;
+  font-weight: 700;
+  margin: 0;
+  padding: 0.75rem;
+}
+
+
+.primary-button {
+  background: #0f5e9c;
+  border: 1px solid #0f5e9c;
+  border-radius: 999px;
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 0.55rem 0.8rem;
+}
+
+.primary-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.primary-button:focus-visible {
+  outline: 3px solid #f5b342;
+  outline-offset: 3px;
+}
+
+.booking-draft-editor {
+  margin-top: 0.85rem;
+}
+
+.booking-draft-editor .secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+
+.react-route-nav {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  margin: 1rem 0;
+}
+
+.route-tab {
+  align-items: flex-start;
+  background: #ffffff;
+  border: 1px solid #d7e1ef;
+  border-radius: 1rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-height: 6rem;
+  padding: 1rem;
+  text-align: left;
+}
+
+.route-tab span {
+  color: #17324d;
+  font-weight: 700;
+}
+
+.route-tab small {
+  color: #52667a;
+  line-height: 1.35;
+}
+
+.route-tab.active {
+  border-color: #1f6feb;
+  box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.14);
+}
+
+.route-panel {
+  margin-top: 1rem;
+}
+
+.roadmap-card {
+  background: #ffffff;
+  border: 1px solid #d7e1ef;
+  border-radius: 1.25rem;
+  box-shadow: 0 1rem 2rem rgba(15, 23, 42, 0.08);
+  padding: 1.25rem;
+}
+
+.roadmap-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  margin: 1rem 0;
+}
+
+.roadmap-tile {
+  background: #f8fbff;
+  border: 1px solid #dfe9f5;
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.roadmap-list {
+  margin-bottom: 0;
+}
+
+.query-status-card {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #d7e1ef;
+  border-radius: 1.25rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+.query-status-card.error {
+  border-color: #f5b8b8;
+}
+
+.query-status-card h2 {
+  font-size: 1.15rem;
+  margin: 0.15rem 0;
+}
+
+.query-status-card p {
+  margin: 0;
+}
+
+.query-status-metrics {
+  display: flex;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.query-status-metrics div {
+  background: #f8fbff;
+  border: 1px solid #dfe9f5;
+  border-radius: 0.85rem;
+  padding: 0.6rem 0.75rem;
+}
+
+.query-status-metrics dt {
+  color: #52667a;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.query-status-metrics dd {
+  color: #17324d;
+  font-weight: 700;
+  margin: 0.15rem 0 0;
+}
+
+@media (max-width: 720px) {
+  .query-status-card {
+    grid-template-columns: 1fr;
+  }
+
+  .query-status-metrics {
+    flex-direction: column;
+  }
+}
+
+
+.quality-gate-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.quality-gate-summary {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.quality-gate-summary span {
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+  border-radius: 999px;
+  color: #075985;
+  font-weight: 800;
+  padding: 0.45rem 0.75rem;
+}
+
+.quality-gate-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.quality-gate {
+  background: #ffffff;
+  border: 1px solid #d7e5ee;
+  border-radius: 1rem;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  padding: 1rem;
+}
+
+.quality-gate.ready {
+  border-color: #86efac;
+}
+
+.quality-gate.watch {
+  border-color: #fde68a;
+}
+
+.quality-gate.blocked {
+  border-color: #fecaca;
+}
+
+.gate-status {
+  color: #0f6f8f;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+}
+
+
+.launch-card {
+  background: #ffffff;
+  border: 1px solid #d7e1ef;
+  border-radius: 1.25rem;
+  box-shadow: 0 1rem 2rem rgba(15, 23, 42, 0.08);
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.launch-summary {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.launch-summary span {
+  background: #eef7ff;
+  border: 1px solid #c8dff5;
+  border-radius: 999px;
+  color: #0f5e9c;
+  font-weight: 800;
+  padding: 0.45rem 0.75rem;
+}
+
+.launch-step-list {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.launch-step {
+  background: #f8fbff;
+  border: 1px solid #dfe9f5;
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.launch-step.ready {
+  border-color: #86efac;
+}
+
+.launch-step.watch {
+  border-color: #fde68a;
+}
+
+.launch-step.blocked {
+  border-color: #fecaca;
+}
+
+.launch-step small {
+  color: #52667a;
+  font-weight: 700;
+}
+
+
+.coverage-card {
+  background: #ffffff;
+  border: 1px solid #d7e1ef;
+  border-radius: 1.25rem;
+  box-shadow: 0 1rem 2rem rgba(15, 23, 42, 0.08);
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.coverage-summary {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.coverage-summary span {
+  background: #eefdf7;
+  border: 1px solid #bbf7d0;
+  border-radius: 999px;
+  color: #166534;
+  font-weight: 800;
+  padding: 0.45rem 0.75rem;
+}
+
+.coverage-check-list {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.coverage-check {
+  background: #f8fbff;
+  border: 1px solid #dfe9f5;
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.coverage-check.covered {
+  border-color: #86efac;
+}
+
+.coverage-check.watch {
+  border-color: #fde68a;
+}
+
+.coverage-check.gap {
+  border-color: #fecaca;
+}
+
+.coverage-check small {
+  color: #52667a;
+  font-weight: 700;
+}
+
+
+.handoff-summary,
+.coverage-summary,
+.launch-summary,
+.quality-gate-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.handoff-summary span,
+.coverage-summary span,
+.launch-summary span,
+.quality-gate-summary span {
+  border: 1px solid #d9e2ec;
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  background: #f8fafc;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.handoff-item-list {
+  display: grid;
+  gap: 1rem;
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.handoff-item {
+  border: 1px solid #d9e2ec;
+  border-radius: 1rem;
+  padding: 1rem;
+  background: #ffffff;
+}
+
+.handoff-item.complete {
+  border-left: 0.35rem solid #2f855a;
+}
+
+.handoff-item.watch {
+  border-left: 0.35rem solid #b7791f;
+}
+
+.handoff-item.blocked {
+  border-left: 0.35rem solid #c53030;
+}
+
+/* CSS Foundation Refactor Slice 32: remaining product polish, selector cleanup, and reviewer-facing UX overrides moved to layered component CSS. */

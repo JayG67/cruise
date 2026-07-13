@@ -1,0 +1,295 @@
+/*
+  Operational role surface aggregate slice: dark-card text contrast, portfolio card, and release KPI repairs.
+*/
+
+/* Build 469 - restore white text on dark operational cards */
+.react-role-dashboard .operations-portfolio-list > *,
+.react-role-dashboard .operations-release-card,
+.react-role-dashboard .operations-readiness-card {
+  color: #ffffff !important;
+}
+
+.react-role-dashboard .operations-portfolio-list > * h1,
+.react-role-dashboard .operations-portfolio-list > * h2,
+.react-role-dashboard .operations-portfolio-list > * h3,
+.react-role-dashboard .operations-portfolio-list > * h4,
+.react-role-dashboard .operations-portfolio-list > * p,
+.react-role-dashboard .operations-portfolio-list > * span,
+.react-role-dashboard .operations-portfolio-list > * div,
+.react-role-dashboard .operations-release-card h1,
+.react-role-dashboard .operations-release-card h2,
+.react-role-dashboard .operations-release-card h3,
+.react-role-dashboard .operations-release-card h4,
+.react-role-dashboard .operations-release-card p,
+.react-role-dashboard .operations-release-card span,
+.react-role-dashboard .operations-release-card div,
+.react-role-dashboard .operations-readiness-card h1,
+.react-role-dashboard .operations-readiness-card h2,
+.react-role-dashboard .operations-readiness-card h3,
+.react-role-dashboard .operations-readiness-card h4,
+.react-role-dashboard .operations-readiness-card p,
+.react-role-dashboard .operations-readiness-card span,
+.react-role-dashboard .operations-readiness-card div {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* keep metric tiles dark text */
+.react-role-dashboard .operations-portfolio-list > * dl,
+.react-role-dashboard .operations-portfolio-list > * dl *,
+.react-role-dashboard .operations-release-card dl,
+.react-role-dashboard .operations-release-card dl * {
+  color: #0f172a !important;
+}
+
+
+/* Build 470 - exact fleet portfolio dark-card text contrast.
+   The selected turnaround card inside .operations-portfolio-list was still using
+   inherited navy text on a dark teal card. Match the standard dark motif: white
+   text on dark cards, with metric tiles kept dark-on-light. */
+.react-role-dashboard .operations-portfolio-list > article,
+.react-role-dashboard .operations-portfolio-list > div,
+.react-role-dashboard .operations-portfolio-list > li,
+.react-role-dashboard .operations-portfolio-list > * {
+  background: rgba(6, 30, 45, 0.86) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  color: #ffffff !important;
+}
+
+.react-role-dashboard .operations-portfolio-list > article > :not(dl),
+.react-role-dashboard .operations-portfolio-list > div > :not(dl),
+.react-role-dashboard .operations-portfolio-list > li > :not(dl),
+.react-role-dashboard .operations-portfolio-list > * > :not(dl),
+.react-role-dashboard .operations-portfolio-list > article > :not(dl) *,
+.react-role-dashboard .operations-portfolio-list > div > :not(dl) *,
+.react-role-dashboard .operations-portfolio-list > li > :not(dl) *,
+.react-role-dashboard .operations-portfolio-list > * > :not(dl) * {
+  background: transparent !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operations-portfolio-list > article .eyebrow,
+.react-role-dashboard .operations-portfolio-list > div .eyebrow,
+.react-role-dashboard .operations-portfolio-list > li .eyebrow,
+.react-role-dashboard .operations-portfolio-list > * .eyebrow {
+  color: #9ee7ff !important;
+}
+
+.react-role-dashboard .operations-portfolio-list > article dl,
+.react-role-dashboard .operations-portfolio-list > div dl,
+.react-role-dashboard .operations-portfolio-list > li dl,
+.react-role-dashboard .operations-portfolio-list > * dl {
+  background: #f8fbff !important;
+  border: 1px solid #b8cde0 !important;
+  color: #0f172a !important;
+}
+
+.react-role-dashboard .operations-portfolio-list > article dl *,
+.react-role-dashboard .operations-portfolio-list > div dl *,
+.react-role-dashboard .operations-portfolio-list > li dl *,
+.react-role-dashboard .operations-portfolio-list > * dl * {
+  color: #0f172a !important;
+  opacity: 1 !important;
+}
+
+
+/* Build 471 - exact selected turnaround portfolio-card contrast fix.
+   The invisible text is inside the actual rendered button:
+   .operations-portfolio-card. Previous broad dashboard rules were still letting
+   button text inherit dark navy. This final exact selector fixes that one card
+   surface directly and leaves the metric strip light with dark text. */
+.react-role-dashboard .operations-portfolio-list button.operations-portfolio-card,
+.react-role-dashboard .operations-portfolio-list .operations-portfolio-card {
+  background: rgba(6, 30, 45, 0.92) !important;
+  border: 1px solid rgba(125, 211, 252, 0.42) !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operations-portfolio-list button.operations-portfolio-card > span:not(.operations-portfolio-status),
+.react-role-dashboard .operations-portfolio-list button.operations-portfolio-card > strong,
+.react-role-dashboard .operations-portfolio-list .operations-portfolio-card > span:not(.operations-portfolio-status),
+.react-role-dashboard .operations-portfolio-list .operations-portfolio-card > strong {
+  background: transparent !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operations-portfolio-list button.operations-portfolio-card > strong,
+.react-role-dashboard .operations-portfolio-list .operations-portfolio-card > strong {
+  color: #ffffff !important;
+  font-weight: 900 !important;
+}
+
+.react-role-dashboard .operations-portfolio-list button.operations-portfolio-card > span:not(.operations-portfolio-status),
+.react-role-dashboard .operations-portfolio-list .operations-portfolio-card > span:not(.operations-portfolio-status) {
+  color: #d7edf7 !important;
+}
+
+.react-role-dashboard .operations-portfolio-list button.operations-portfolio-card .operations-portfolio-status,
+.react-role-dashboard .operations-portfolio-list .operations-portfolio-card .operations-portfolio-status {
+  background: rgba(158, 231, 255, 0.16) !important;
+  border: 1px solid rgba(158, 231, 255, 0.35) !important;
+  border-radius: 999px !important;
+  color: #9ee7ff !important;
+  display: inline-block !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operations-portfolio-list button.operations-portfolio-card .operations-portfolio-status.needs-attention,
+.react-role-dashboard .operations-portfolio-list button.operations-portfolio-card .operations-portfolio-status.attention,
+.react-role-dashboard .operations-portfolio-list .operations-portfolio-card .operations-portfolio-status.needs-attention,
+.react-role-dashboard .operations-portfolio-list .operations-portfolio-card .operations-portfolio-status.attention {
+  background: rgba(251, 191, 36, 0.18) !important;
+  border-color: rgba(251, 191, 36, 0.45) !important;
+  color: #fde68a !important;
+}
+
+.react-role-dashboard .operations-portfolio-list button.operations-portfolio-card dl,
+.react-role-dashboard .operations-portfolio-list .operations-portfolio-card dl {
+  background: #f8fbff !important;
+  border: 1px solid #b8cde0 !important;
+  border-radius: 0.75rem !important;
+  color: #0f172a !important;
+  opacity: 1 !important;
+}
+
+.react-role-dashboard .operations-portfolio-list button.operations-portfolio-card dl *,
+.react-role-dashboard .operations-portfolio-list .operations-portfolio-card dl * {
+  background: transparent !important;
+  color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+
+/* Build 473 - release-board KPI cards match operational metric tile style.
+   The release-board cards now use the same light, rounded metric tile treatment
+   as the Turnaround Plans / Passengers Visible / High Coordination tiles. */
+.react-role-dashboard .operations-release-board-grid {
+  background: transparent !important;
+  border: 0 !important;
+  color: #0f172a !important;
+  display: grid !important;
+  gap: 0.85rem !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  padding: 0 !important;
+}
+
+.react-role-dashboard .operations-release-card,
+.react-role-dashboard button.operations-release-card {
+  align-content: start !important;
+  background: #f8fbff !important;
+  border: 1px solid #cfe0f1 !important;
+  border-radius: 0.95rem !important;
+  box-shadow: inset 0 -18px 0 rgba(15, 23, 42, 0.02) !important;
+  color: #0f172a !important;
+  display: grid !important;
+  gap: 0.25rem !important;
+  min-height: 5.8rem !important;
+  padding: 0.85rem 1rem !important;
+  text-align: left !important;
+}
+
+.react-role-dashboard .operations-release-card *,
+.react-role-dashboard button.operations-release-card * {
+  background: transparent !important;
+  color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operations-release-card span,
+.react-role-dashboard button.operations-release-card span {
+  color: #0f172a !important;
+  font-size: 0.72rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1.05 !important;
+  text-transform: uppercase !important;
+}
+
+.react-role-dashboard .operations-release-card strong,
+.react-role-dashboard button.operations-release-card strong {
+  color: #0f172a !important;
+  font-size: clamp(1.45rem, 2.4vw, 2rem) !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+}
+
+.react-role-dashboard .operations-release-card em,
+.react-role-dashboard button.operations-release-card em {
+  color: #334155 !important;
+  font-size: 0.8rem !important;
+  font-style: normal !important;
+  font-weight: 900 !important;
+  line-height: 1.1 !important;
+}
+
+.react-role-dashboard .operations-release-card:hover,
+.react-role-dashboard button.operations-release-card:hover,
+.react-role-dashboard .operations-release-card:focus-visible,
+.react-role-dashboard button.operations-release-card:focus-visible {
+  border-color: #7dd3fc !important;
+  box-shadow: 0 10px 24px rgba(15, 41, 67, 0.12) !important;
+  outline: none !important;
+}
+
+@media (max-width: 900px) {
+  .react-role-dashboard .operations-release-board-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .react-role-dashboard .operations-release-board-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/* Build 474 - fix invisible release-board KPI text.
+   The cards are dark themed; all card labels/values must render white. */
+.react-role-dashboard .operations-release-card,
+.react-role-dashboard button.operations-release-card {
+  background: rgba(4, 36, 54, 0.92) !important;
+  border: 1px solid rgba(125,211,252,.35) !important;
+  color: #ffffff !important;
+}
+
+.react-role-dashboard .operations-release-card *,
+.react-role-dashboard button.operations-release-card *,
+.react-role-dashboard .operations-release-card span,
+.react-role-dashboard button.operations-release-card span,
+.react-role-dashboard .operations-release-card strong,
+.react-role-dashboard button.operations-release-card strong,
+.react-role-dashboard .operations-release-card em,
+.react-role-dashboard button.operations-release-card em,
+.react-role-dashboard .operations-release-card h1,
+.react-role-dashboard .operations-release-card h2,
+.react-role-dashboard .operations-release-card h3,
+.react-role-dashboard .operations-release-card h4,
+.react-role-dashboard .operations-release-card p {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+.react-role-dashboard .operations-release-card span,
+.react-role-dashboard button.operations-release-card span {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+}
+
+.react-role-dashboard .operations-release-card em,
+.react-role-dashboard button.operations-release-card em {
+  color: #d7edf7 !important;
+  -webkit-text-fill-color: #d7edf7 !important;
+}
+
+

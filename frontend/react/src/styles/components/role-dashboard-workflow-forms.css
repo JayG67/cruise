@@ -1,0 +1,276 @@
+/* Role dashboard operational workflow form/detail polish. */
+
+/* CSS Foundation Refactor - Slice 22: operational workflow form/detail polish retired from legacy app.css. */
+/* Operational workflow polish: every turnaround form control should match the app UI. */
+.operational-command-form,
+.operational-signoff-form,
+.operational-staffing-form,
+.operational-task-create-form,
+.operational-task-detail-form,
+.operational-task-update-form,
+.operational-staffing-form,
+.operational-escalation-create-form,
+.operational-escalation-update-form {
+  background: #f8fbff;
+  border: 1px solid #dbe9f5;
+  border-radius: 0.9rem;
+  box-shadow: 0 1px 0 rgba(18, 50, 79, 0.03);
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.75rem;
+}
+
+.operational-command-form,
+.operational-signoff-form,
+.operational-staffing-form,
+.operational-task-create-form,
+.operational-task-detail-form,
+.operational-escalation-create-form,
+.operational-escalation-update-form {
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+.operational-command-form label,
+.operational-signoff-form label,
+.operational-task-create-form label,
+.operational-task-detail-form label,
+.operational-task-update-form label,
+.operational-staffing-form label,
+.operational-escalation-create-form label,
+.operational-escalation-update-form label {
+  color: #45627e;
+  display: grid;
+  font-size: 0.78rem;
+  font-weight: 800;
+  gap: 0.25rem;
+  letter-spacing: 0.01em;
+}
+
+.operational-command-form label > span,
+.operational-signoff-form label > span,
+.operational-task-create-form label > span,
+.operational-task-detail-form label > span,
+.operational-task-update-form label > span,
+.operational-staffing-form label > span,
+.operational-escalation-create-form label > span,
+.operational-escalation-update-form label > span {
+  color: #45627e;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.operational-command-form input:not([type="checkbox"]),
+.operational-command-form select,
+.operational-signoff-form input:not([type="checkbox"]),
+.operational-signoff-form select,
+.operational-task-create-form input:not([type="checkbox"]),
+.operational-task-create-form select,
+.operational-task-detail-form input:not([type="checkbox"]),
+.operational-task-detail-form select,
+.operational-task-update-form input:not([type="checkbox"]),
+.operational-task-update-form select,
+.operational-staffing-form input:not([type="checkbox"]),
+.operational-staffing-form select,
+.operational-escalation-create-form input:not([type="checkbox"]),
+.operational-escalation-create-form select,
+.operational-escalation-update-form input:not([type="checkbox"]),
+.operational-escalation-update-form select {
+  appearance: none;
+  background-color: #fff;
+  border: 1px solid #c7d8e7;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 0 rgba(18, 50, 79, 0.03);
+  color: #12324f;
+  font: inherit;
+  line-height: 1.25;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.75rem;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+  width: 100%;
+}
+
+.operational-command-form select,
+.operational-signoff-form select,
+.operational-task-create-form select,
+.operational-task-detail-form select,
+.operational-task-update-form select,
+.operational-staffing-form select,
+.operational-escalation-create-form select,
+.operational-escalation-update-form select {
+  background-image: linear-gradient(45deg, transparent 50%, #45627e 50%), linear-gradient(135deg, #45627e 50%, transparent 50%);
+  background-position: calc(100% - 1.05rem) 50%, calc(100% - 0.72rem) 50%;
+  background-repeat: no-repeat;
+  background-size: 0.36rem 0.36rem, 0.36rem 0.36rem;
+  padding-inline-end: 2.15rem;
+}
+
+.operational-command-form input:not([type="checkbox"]):focus,
+.operational-command-form select:focus,
+.operational-signoff-form input:not([type="checkbox"]):focus,
+.operational-signoff-form select:focus,
+.operational-task-create-form input:not([type="checkbox"]):focus,
+.operational-task-create-form select:focus,
+.operational-task-detail-form input:not([type="checkbox"]):focus,
+.operational-task-detail-form select:focus,
+.operational-task-update-form input:not([type="checkbox"]):focus,
+.operational-task-update-form select:focus,
+.operational-staffing-form input:not([type="checkbox"]):focus,
+.operational-staffing-form select:focus,
+.operational-escalation-create-form input:not([type="checkbox"]):focus,
+.operational-escalation-create-form select:focus,
+.operational-escalation-update-form input:not([type="checkbox"]):focus,
+.operational-escalation-update-form select:focus {
+  background-color: #ffffff;
+  border-color: #0e7490;
+  box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.15);
+  outline: none;
+}
+
+.operational-task-create-form {
+  margin-block: 0.25rem 0.75rem;
+}
+
+.operational-task-create-form .secondary-action-button,
+.operational-task-update-form .secondary-action-button,
+.operational-task-detail-form .secondary-action-button,
+.operational-signoff-form .secondary-action-button,
+.operational-staffing-form .secondary-action-button,
+.operational-command-form .secondary-action-button,
+.operational-escalation-create-form .secondary-action-button,
+.operational-escalation-update-form .secondary-action-button {
+  justify-self: start;
+}
+
+.operational-escalation-summary {
+  gap: 0.55rem;
+}
+
+.operational-escalation-summary strong,
+.operational-escalation-summary span {
+  display: inline-flex;
+  align-items: center;
+}
+
+.operational-staffing-summary {
+  gap: 0.55rem;
+}
+
+.operational-staffing-summary strong,
+.operational-staffing-summary span {
+  align-items: center;
+  display: inline-flex;
+}
+
+.operational-staffing-list {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid #d7e6f2;
+  border-radius: 0.85rem;
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem;
+}
+
+.operational-staffing-list ul {
+  display: grid;
+  gap: 0.45rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.operational-staffing-list li {
+  align-items: center;
+  border-block-start: 1px solid #dbe8f3;
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: 1.2fr 0.65fr 1fr 1fr;
+  padding-block-start: 0.45rem;
+}
+
+.operational-staffing-list span {
+  color: #12324f;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .operational-staffing-list li {
+    grid-template-columns: 1fr;
+  }
+}
+
+.operational-dependency-summary,
+.operational-handoff-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+  margin-block: 0.85rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 16px;
+  background: rgba(248, 250, 252, 0.92);
+}
+
+.operational-dependency-summary span,
+.operational-handoff-summary span {
+  border-radius: 999px;
+  background: rgba(14, 165, 233, 0.12);
+  color: #0f172a;
+  font-weight: 700;
+  padding: 0.35rem 0.7rem;
+}
+
+.operational-dependency-list,
+.operational-handoff-list {
+  margin-block: 0.9rem;
+  padding: 1rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.96));
+}
+
+.operational-dependency-list ul,
+.operational-handoff-list ul {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0.8rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.operational-dependency-list li,
+.operational-handoff-list li {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.92);
+}
+
+.operational-handoff-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+}
+
+.operational-handoff-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 700;
+}
+
+.operational-handoff-form input,
+.operational-handoff-form select {
+  width: 100%;
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  border-radius: 12px;
+  background: #fff;
+  color: #0f172a;
+  font: inherit;
+  padding: 0.7rem 0.85rem;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+

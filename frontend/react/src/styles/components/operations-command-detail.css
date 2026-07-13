@@ -1,0 +1,306 @@
+/* Operations command detail and deep workspace styling. */
+
+/* Build 487 - command detail workspace uses approved dark operational motif. */
+.react-role-dashboard .operational-command-compatibility-panel {
+  grid-template-columns: 1fr;
+}
+
+.react-role-dashboard .operational-command-compatibility-panel .operational-readiness-card {
+  background: rgba(6, 30, 45, 0.88) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 1rem;
+  box-shadow: 0 20px 48px rgba(2, 12, 23, 0.2);
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.react-role-dashboard .operational-command-compatibility-panel .operational-readiness-card > div:first-child,
+.react-role-dashboard .operational-command-compatibility-panel .operational-readiness-card > div:first-child *,
+.react-role-dashboard .operational-command-compatibility-panel .operational-readiness-card h4,
+.react-role-dashboard .operational-command-compatibility-panel .operational-readiness-card p,
+.react-role-dashboard .operational-command-compatibility-panel .operational-readiness-card strong,
+.react-role-dashboard .operational-command-compatibility-panel .operational-readiness-card dt,
+.react-role-dashboard .operational-command-compatibility-panel .operational-readiness-card dd,
+.react-role-dashboard .operational-command-compatibility-panel .operational-checklist,
+.react-role-dashboard .operational-command-compatibility-panel .operational-checklist * {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.react-role-dashboard .operational-command-compatibility-panel .eyebrow,
+.react-role-dashboard .operational-command-compatibility-panel .role-booking-fields dt,
+.react-role-dashboard .operational-command-compatibility-panel .operational-checklist strong {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+}
+
+.react-role-dashboard .operational-command-compatibility-panel .role-booking-fields > div,
+.react-role-dashboard .operational-command-compatibility-panel .operational-checklist li {
+  background: rgba(6, 30, 45, 0.88) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 0.9rem;
+}
+
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form,
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form {
+  background: #f8fbff !important;
+  border: 1px solid #dbe9f5 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form label,
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form label > span,
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form label,
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form label > span {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form input,
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form select,
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form textarea,
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form input,
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form select,
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form textarea {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+/* Build 488 - command detail editor forms use dark operational cards while controls stay editable. */
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form,
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form {
+  background: rgba(6, 30, 45, 0.88) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 20px 48px rgba(2, 12, 23, 0.22) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form *,
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form * {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form label,
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form label > span,
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form label,
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form label > span {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+}
+
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form input,
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form select,
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form textarea,
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form input,
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form select,
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form textarea {
+  background: #ffffff !important;
+  border: 1px solid #7dd3fc !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form input::placeholder,
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form textarea::placeholder,
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form input::placeholder,
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form textarea::placeholder {
+  color: #475569 !important;
+  -webkit-text-fill-color: #475569 !important;
+}
+
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form .secondary-action-button,
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form .secondary-action-button {
+  background: rgba(14, 116, 144, 0.18) !important;
+  border: 1px solid rgba(125, 211, 252, 0.58) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Build 489 - deep operations workspace styling sweep.
+   Ensures all operational workstream panels use the approved dark command-center
+   language while preserving light backgrounds only for editable controls. */
+.react-role-dashboard :is(
+  .operations-dependency-workspace,
+  .operations-handoff-workspace,
+  .operations-staffing-workspace,
+  .operations-escalation-workspace,
+  .operations-readiness-workspace,
+  .operational-command-compatibility-panel
+) :is(
+  [class*="workspace-header"],
+  [class*="list-panel"],
+  [class*="detail-panel"],
+  [class*="summary"],
+  [class*="watch"],
+  [class*="gate"],
+  [class*="dependencies"],
+  [class*="handoff"],
+  [class*="staffing"],
+  [class*="escalation"],
+  [class*="signoff"],
+  [class*="readiness"],
+  [class*="note"],
+  [class*="log"],
+  [class*="plan"],
+  [class*="queue"],
+  [class*="list-item"],
+  [class*="detail-list"] > div,
+  table,
+  tbody,
+  tr,
+  td,
+  th,
+  li,
+  article
+) {
+  background: rgba(6, 30, 45, 0.88) !important;
+  border-color: rgba(125, 211, 252, 0.35) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.react-role-dashboard :is(
+  .operations-dependency-workspace,
+  .operations-handoff-workspace,
+  .operations-staffing-workspace,
+  .operations-escalation-workspace,
+  .operations-readiness-workspace,
+  .operational-command-compatibility-panel
+) :is(
+  [class*="workspace-header"],
+  [class*="list-panel"],
+  [class*="detail-panel"],
+  [class*="summary"],
+  [class*="watch"],
+  [class*="gate"],
+  [class*="dependencies"],
+  [class*="handoff"],
+  [class*="staffing"],
+  [class*="escalation"],
+  [class*="signoff"],
+  [class*="readiness"],
+  [class*="note"],
+  [class*="log"],
+  [class*="plan"],
+  [class*="queue"],
+  [class*="list-item"],
+  [class*="detail-list"] > div,
+  table,
+  tbody,
+  tr,
+  td,
+  th,
+  li,
+  article
+) :is(h1, h2, h3, h4, h5, h6, p, span, strong, em, small, dt, dd, li, td, th, label) {
+  background: transparent !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard :is(
+  .operations-dependency-workspace,
+  .operations-handoff-workspace,
+  .operations-staffing-workspace,
+  .operations-escalation-workspace,
+  .operations-readiness-workspace,
+  .operational-command-compatibility-panel
+) :is(.eyebrow, dt, [class*="heading"] span, [class*="pill"], [class*="status"]:not(.status-card)) {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+}
+
+.react-role-dashboard :is(
+  .operations-dependency-workspace,
+  .operations-handoff-workspace,
+  .operations-staffing-workspace,
+  .operations-escalation-workspace,
+  .operations-readiness-workspace,
+  .operational-command-compatibility-panel
+) :is(
+  form,
+  [class*="form"],
+  [class*="editor"]
+) {
+  background: rgba(6, 30, 45, 0.88) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 1rem !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.react-role-dashboard :is(
+  .operations-dependency-workspace,
+  .operations-handoff-workspace,
+  .operations-staffing-workspace,
+  .operations-escalation-workspace,
+  .operations-readiness-workspace,
+  .operational-command-compatibility-panel
+) :is(form, [class*="form"], [class*="editor"]) :is(label, span, p, strong) {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+}
+
+.react-role-dashboard :is(
+  .operations-dependency-workspace,
+  .operations-handoff-workspace,
+  .operations-staffing-workspace,
+  .operations-escalation-workspace,
+  .operations-readiness-workspace,
+  .operational-command-compatibility-panel
+) :is(input, select, textarea) {
+  background: #ffffff !important;
+  border: 1px solid #7dd3fc !important;
+  border-radius: 0.7rem !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  box-shadow: none !important;
+}
+
+.react-role-dashboard :is(
+  .operations-dependency-workspace,
+  .operations-handoff-workspace,
+  .operations-staffing-workspace,
+  .operations-escalation-workspace,
+  .operations-readiness-workspace,
+  .operational-command-compatibility-panel
+) :is(input, select, textarea)::placeholder {
+  color: #475569 !important;
+  -webkit-text-fill-color: #475569 !important;
+}
+
+.react-role-dashboard :is(
+  .operations-dependency-workspace,
+  .operations-handoff-workspace,
+  .operations-staffing-workspace,
+  .operations-escalation-workspace,
+  .operations-readiness-workspace,
+  .operational-command-compatibility-panel
+) .secondary-action-button {
+  background: rgba(14, 116, 144, 0.18) !important;
+  border: 1px solid rgba(125, 211, 252, 0.58) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.react-role-dashboard :is(
+  .operations-dependency-workspace,
+  .operations-handoff-workspace,
+  .operations-staffing-workspace,
+  .operations-escalation-workspace,
+  .operations-readiness-workspace,
+  .operational-command-compatibility-panel
+) :is([class*="layout"], [class*="grid"], ul, ol, dl) {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+

@@ -7,6 +7,22 @@ function read(relativePath) {
   return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
 }
 
+function readCssBundle(relativePath, seen = new Set()) {
+  const fullPath = path.join(projectRoot, relativePath)
+  if (seen.has(fullPath)) {
+    return ''
+  }
+  seen.add(fullPath)
+
+  const content = fs.readFileSync(fullPath, 'utf8')
+  const directory = path.dirname(relativePath)
+
+  return content.replace(/@import\s+['"](.+?)['"];?/g, (_match, importPath) => {
+    const nestedPath = path.normalize(path.join(directory, importPath)).replace(/\\/g, '/')
+    return readCssBundle(nestedPath, seen)
+  })
+}
+
 function optionalRead(relativePath) {
   const fullPath = path.join(projectRoot, relativePath)
   return fs.existsSync(fullPath) ? fs.readFileSync(fullPath, 'utf8') : ''
@@ -50,7 +66,7 @@ describe('cruise line presentation suite expansion', () => {
   })
 
   it('styles the presentation expansion through the shared design system', () => {
-    const productShellCss = read('frontend/react/src/styles/components/product-shell.css')
+    const productShellCss = readCssBundle('frontend/react/src/styles/components/product-shell.css')
     const componentIndexCss = read('frontend/react/src/styles/components/index.css')
     const legacyCss = optionalRead('frontend/react/src/styles/app.css')
 

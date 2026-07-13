@@ -1,0 +1,143 @@
+/* Operations workspace shell navigation and active command summary styles. */
+
+/* Operations workspace shell: give turnaround operations a navigable command-center structure. */
+.operations-workspace-shell {
+  align-items: start;
+  background: linear-gradient(135deg, #082334 0%, #0f5360 52%, #15713f 100%);
+  border: 1px solid rgba(125, 211, 252, 0.35);
+  border-radius: 1.25rem;
+  box-shadow: 0 24px 60px rgba(7, 24, 39, 0.22);
+  color: #ffffff;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(13rem, 0.55fr) minmax(34rem, 1.2fr) minmax(17rem, 0.7fr);
+  margin: 0.25rem 0 0.75rem;
+  min-width: 0;
+  overflow: visible;
+  padding: 1rem;
+}
+
+.operations-workspace-shell,
+.operations-workspace-shell * {
+  box-sizing: border-box;
+}
+
+.operations-workspace-heading h4,
+.operations-workspace-heading p {
+  margin: 0.25rem 0 0;
+}
+
+.operations-workspace-heading p,
+.operations-workspace-active-summary span {
+  color: #9ee7ff;
+  line-height: 1.45;
+}
+
+.operations-workspace-nav {
+  align-items: stretch;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(3, minmax(10.75rem, 1fr));
+  min-width: 0;
+}
+
+.operations-workspace-nav-button {
+  appearance: none;
+  background: rgba(6, 30, 45, 0.88);
+  border: 1px solid rgba(125, 211, 252, 0.35);
+  border-radius: 999px;
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  min-height: 2.65rem;
+  min-width: 0;
+  padding: 0.65rem 0.85rem;
+  text-align: center;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+  transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.operations-workspace-nav-button:hover,
+.operations-workspace-nav-button:focus-visible,
+.operations-workspace-nav-button.active {
+  background: linear-gradient(135deg, #0f5e9c, #15713f);
+  border-color: rgba(158, 231, 255, 0.75);
+  box-shadow: 0 12px 28px rgba(7, 24, 39, 0.26);
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.operations-workspace-active-summary {
+  background: rgba(6, 30, 45, 0.88);
+  border: 1px solid rgba(125, 211, 252, 0.35);
+  border-radius: 1rem;
+  color: #ffffff;
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  overflow: visible;
+  padding: 0.9rem;
+}
+
+.operations-workspace-active-summary strong {
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+  font-size: 1rem;
+}
+
+.operational-command-form input,
+.operational-command-form select,
+.operational-signoff-form input,
+.operational-signoff-form select,
+.operational-staffing-form input,
+.operational-task-create-form input,
+.operational-task-create-form select,
+.operational-task-detail-form input,
+.operational-escalation-create-form input,
+.operational-escalation-create-form select,
+.operational-escalation-update-form input,
+.operational-escalation-update-form select,
+.operational-handoff-form input,
+.operational-handoff-form select {
+  min-height: 2.85rem;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+@media (max-width: 1180px) {
+  .operations-workspace-shell {
+    grid-template-columns: minmax(13rem, 0.55fr) minmax(34rem, 1fr);
+  }
+
+  .operations-workspace-active-summary {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 980px) {
+  .operations-workspace-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-workspace-active-summary {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .operations-workspace-nav {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .operations-workspace-nav-button {
+    border-radius: 0.85rem;
+  }
+}
+

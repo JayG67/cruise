@@ -1,0 +1,113 @@
+/* Cruise-line operations header hard layout repair. */
+
+/* Build 440: hard layout fix for cruise-line operations header.
+   The operating scope controls are no longer allowed to share a row with the
+   title. They sit in a centered rail above the content panels, matching the
+   width of the cards below and preventing horizontal overflow. */
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite {
+  max-width: var(--admin-rail-width, 1120px) !important;
+  width: min(100% - 2rem, var(--admin-rail-width, 1120px)) !important;
+  overflow-x: clip !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-suite-heading {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 0 1.1rem !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-suite-heading > div,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-suite-heading > * {
+  max-width: 100% !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-suite-heading .eyebrow {
+  color: #075985 !important;
+  margin: 0 0 0.5rem !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-suite-heading h2 {
+  color: #071827 !important;
+  font-size: clamp(2rem, 4vw, 3rem) !important;
+  line-height: 1.04 !important;
+  margin: 0 0 0.55rem !important;
+  max-width: 100% !important;
+  white-space: normal !important;
+  overflow-wrap: normal !important;
+  text-wrap: balance;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-suite-heading p:not(.eyebrow) {
+  color: #3f5872 !important;
+  font-size: 1rem !important;
+  margin: 0 !important;
+  max-width: 68rem !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite > .presentation-scope-controls {
+  align-items: stretch !important;
+  background: #f8fbfe !important;
+  border: 1px solid #cfe0ec !important;
+  border-radius: 1.1rem !important;
+  display: grid !important;
+  gap: 0.85rem !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  margin: 0 0 1.25rem !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  padding: 1rem !important;
+  position: static !important;
+  transform: none !important;
+  width: 100% !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite > .presentation-scope-controls .presentation-line-picker {
+  background: #ffffff !important;
+  border: 1px solid #b6d2e4 !important;
+  border-radius: 0.95rem !important;
+  box-shadow: none !important;
+  box-sizing: border-box !important;
+  display: grid !important;
+  gap: 0.45rem !important;
+  min-width: 0 !important;
+  padding: 0.85rem !important;
+  width: 100% !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite > .presentation-scope-controls .presentation-line-picker span {
+  color: #075985 !important;
+  font-size: 0.78rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.1em !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite > .presentation-scope-controls .presentation-line-picker select {
+  background: #ffffff !important;
+  border: 1px solid #b6d2e4 !important;
+  border-radius: 0.75rem !important;
+  color: #071827 !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  padding: 0.78rem 0.85rem !important;
+  width: 100% !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-hero-card,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-demo-flow,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-section-grid,
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite .presentation-card-grid {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+@media (max-width: 980px) {
+  :is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite > .presentation-scope-controls {
+    grid-template-columns: 1fr !important;
+  }
+}

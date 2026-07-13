@@ -1,0 +1,245 @@
+/*
+  CSS Foundation Refactor - Slice 19.
+
+  Retires the legacy app.css production route shell and operations workspace
+  polish into the shared product-shell component layer. This keeps the React
+  landing/workspace navigation owned by the same layered CSS file as the rest
+  of the product shell instead of leaving it in the legacy compatibility sheet.
+*/
+/* Production pass for the Express-hosted React route. */
+:root {
+  --navy: #071827;
+  --blue: #0b6fa4;
+  --teal: #12a4b6;
+  --white: #ffffff;
+  --muted: #d8e3ea;
+  --surface: #ffffff;
+  --panel: #f4f8fb;
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+body {
+  color: var(--navy);
+  background: #f4f8fb;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.production-shell {
+  width: 100%;
+  margin: 0;
+  padding: 0 0 4rem;
+}
+
+.production-hero {
+  min-height: 58vh;
+  color: var(--white);
+  background: linear-gradient(135deg, #071827 0%, #0b6fa4 100%);
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.react-top-nav {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(7, 24, 39, 0.88);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+}
+
+.react-brand {
+  color: var(--white);
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.react-nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  justify-content: flex-end;
+}
+
+.react-nav-links a,
+.react-nav-links button {
+  background: transparent;
+  border: 0;
+  color: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  padding: 10px 12px;
+  text-decoration: none;
+}
+
+.react-nav-links a:hover,
+.react-nav-links a:focus-visible,
+.react-nav-links button:hover,
+.react-nav-links button:focus-visible {
+  color: var(--white);
+}
+
+.production-hero-content {
+  width: min(1120px, calc(100% - 32px));
+  margin: auto;
+  padding: clamp(4rem, 10vw, 8rem) 0;
+}
+
+.production-hero .eyebrow {
+  color: #79e8f2;
+  margin-bottom: 1rem;
+}
+
+.production-hero h1 {
+  color: var(--white);
+  font-size: clamp(3rem, 8vw, 5.8rem);
+  line-height: 0.95;
+  max-width: 760px;
+  text-wrap: balance;
+}
+
+.production-hero .hero-copy {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  font-weight: 650;
+  line-height: 1.6;
+  max-width: 720px;
+}
+
+.hero-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 1.4rem;
+}
+
+.button-link {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-weight: 900;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+}
+
+.button-link.primary {
+  background: linear-gradient(135deg, var(--blue), var(--teal));
+  color: var(--white);
+  box-shadow: 0 12px 26px rgba(7, 24, 39, 0.24);
+}
+
+.button-link.secondary {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  color: var(--white);
+}
+
+.hero-status-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 1.5rem;
+}
+
+.hero-status-pills span {
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--white);
+  font-size: 0.82rem;
+  font-weight: 900;
+  padding: 0.45rem 0.8rem;
+}
+
+.react-workspace-panel,
+.route-panel,
+.status-card,
+.readiness-card,
+.hierarchy-card {
+  width: min(1120px, calc(100% - 2rem));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.react-workspace-panel {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: -3rem;
+  margin-bottom: 1rem;
+  padding: clamp(1rem, 3vw, 1.6rem);
+  border: 1px solid #d8e2ef;
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 24px 60px rgba(7, 24, 39, 0.16);
+}
+
+.react-workspace-panel h2 {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+}
+
+.react-route-nav {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  margin: 0;
+}
+
+.route-tab {
+  min-height: 112px;
+  text-align: left;
+}
+
+.route-tab.active {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(11, 111, 164, 0.16), 0 16px 30px rgba(7, 24, 39, 0.12);
+}
+
+.status-card {
+  border-left: 6px solid var(--teal);
+}
+
+.hierarchy-card {
+  border-top: 6px solid var(--blue);
+}
+
+@media (max-width: 760px) {
+  .react-top-nav {
+    align-items: flex-start;
+    border-radius: 1.5rem;
+    flex-direction: column;
+  }
+
+  .react-nav-links {
+    justify-content: flex-start;
+  }
+
+  .react-nav-links a,
+  .react-nav-links button {
+    padding-left: 0;
+  }
+
+  .production-hero h1 {
+    font-size: clamp(2.55rem, 14vw, 4rem);
+  }
+
+  .react-workspace-panel {
+    margin-top: -2rem;
+  }
+}

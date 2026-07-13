@@ -1,0 +1,103 @@
+/*
+  Operational form action component architecture.
+
+  Operational nested editor surfaces and task action pills now live in the
+  shared design-system layer. This retires the late Build 490/496 compatibility
+  patches from app.css while preserving the established contrast contract:
+  dark operational cards use white command text, light editor controls and
+  light task action pills use dark readable text.
+*/
+.react-role-dashboard :is(
+  .operations-escalation-workspace .operations-escalation-log-item,
+  .operations-handoff-workspace .operations-handoff-item,
+  .operations-readiness-workspace .operations-readiness-signoff-form,
+  .operations-escalation-workspace form,
+  .operations-handoff-workspace form,
+  .operations-staffing-workspace form,
+  .operations-readiness-workspace form
+) {
+  background: var(--ce-data-surface) !important;
+  border: 1px solid var(--ce-data-border) !important;
+  border-radius: var(--ce-radius-card) !important;
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+}
+
+.react-role-dashboard :is(
+  .operations-escalation-workspace .operations-escalation-log-item,
+  .operations-handoff-workspace .operations-handoff-item,
+  .operations-readiness-workspace .operations-readiness-signoff-form,
+  .operations-escalation-workspace form,
+  .operations-handoff-workspace form,
+  .operations-staffing-workspace form,
+  .operations-readiness-workspace form
+) * {
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard :is(
+  .operations-escalation-workspace,
+  .operations-handoff-workspace,
+  .operations-readiness-workspace
+) :is(input, select, textarea, option) {
+  background: #ffffff !important;
+  border: 1px solid var(--ce-data-border-strong) !important;
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+}
+
+#react-role-dashboard.react-role-dashboard :is(
+  .operational-readiness-list,
+  .operational-command-compatibility-panel
+) .operational-task-actions :is(button, .secondary-action-button, .compact-button),
+#react-role-dashboard.react-role-dashboard :is(
+  .operational-readiness-list,
+  .operational-command-compatibility-panel
+) :is(button.danger-outline-button, .danger-outline-button.compact-button) {
+  background: var(--ce-action-soft-bg) !important;
+  border: 1px solid rgba(125, 211, 252, 0.78) !important;
+  border-radius: var(--ce-radius-pill) !important;
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+#react-role-dashboard.react-role-dashboard :is(
+  .operational-readiness-list,
+  .operational-command-compatibility-panel
+) .operational-task-actions :is(button, .secondary-action-button, .compact-button) *,
+#react-role-dashboard.react-role-dashboard :is(
+  .operational-readiness-list,
+  .operational-command-compatibility-panel
+) :is(button.danger-outline-button, .danger-outline-button.compact-button) * {
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+#react-role-dashboard.react-role-dashboard :is(
+  .operational-readiness-list,
+  .operational-command-compatibility-panel
+) :is(button.danger-outline-button, .danger-outline-button.compact-button) {
+  background: #fff1f2 !important;
+  border-color: rgba(248, 113, 113, 0.82) !important;
+}
+
+#react-role-dashboard.react-role-dashboard :is(
+  .operational-readiness-list,
+  .operational-command-compatibility-panel
+) .operational-task-actions :is(button, .secondary-action-button, .compact-button):disabled,
+#react-role-dashboard.react-role-dashboard :is(
+  .operational-readiness-list,
+  .operational-command-compatibility-panel
+) :is(button.danger-outline-button, .danger-outline-button.compact-button):disabled {
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+  filter: none !important;
+  opacity: 1 !important;
+}

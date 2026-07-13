@@ -1,0 +1,245 @@
+/*
+  Operational role surface aggregate slice: contrast repairs for light tiles inside dark panels.
+*/
+
+/* Build 465 - role dashboard contrast correction.
+   Previous dark motif introduced white-on-light text inside nested metric cards.
+   Force readable dark typography for all light surfaced content blocks. */
+
+.role-dashboard-section [class*="turnaround"] [class*="card"],
+.role-dashboard-section [class*="turnaround"] [class*="metric"],
+.role-dashboard-section [class*="turnaround"] [class*="summary"],
+.role-dashboard-section [class*="release"] [class*="card"],
+.role-dashboard-section [class*="analytics"] [class*="card"],
+.role-dashboard-section [class*="playbook"] [class*="card"],
+.role-dashboard-section [class*="incident"] [class*="card"],
+.role-dashboard-section [class*="reviewer"] [class*="card"],
+.role-dashboard-section [class*="outreach"] [class*="card"],
+.react-role-dashboard [class*="turnaround"] [class*="card"],
+.react-role-dashboard [class*="turnaround"] [class*="metric"],
+.react-role-dashboard [class*="turnaround"] [class*="summary"],
+.react-role-dashboard [class*="release"] [class*="card"],
+.react-role-dashboard [class*="analytics"] [class*="card"],
+.react-role-dashboard [class*="playbook"] [class*="card"],
+.react-role-dashboard [class*="incident"] [class*="card"],
+.react-role-dashboard [class*="reviewer"] [class*="card"],
+.react-role-dashboard [class*="outreach"] [class*="card"] {
+  color: #0f172a !important;
+}
+
+.role-dashboard-section [class*="turnaround"] [class*="card"] *,
+.role-dashboard-section [class*="turnaround"] [class*="metric"] *,
+.role-dashboard-section [class*="turnaround"] [class*="summary"] *,
+.role-dashboard-section [class*="release"] [class*="card"] *,
+.role-dashboard-section [class*="analytics"] [class*="card"] *,
+.role-dashboard-section [class*="playbook"] [class*="card"] *,
+.role-dashboard-section [class*="incident"] [class*="card"] *,
+.role-dashboard-section [class*="reviewer"] [class*="card"] *,
+.role-dashboard-section [class*="outreach"] [class*="card"] *,
+.react-role-dashboard [class*="turnaround"] [class*="card"] *,
+.react-role-dashboard [class*="turnaround"] [class*="metric"] *,
+.react-role-dashboard [class*="turnaround"] [class*="summary"] *,
+.react-role-dashboard [class*="release"] [class*="card"] *,
+.react-role-dashboard [class*="analytics"] [class*="card"] *,
+.react-role-dashboard [class*="playbook"] [class*="card"] *,
+.react-role-dashboard [class*="incident"] [class*="card"] *,
+.react-role-dashboard [class*="reviewer"] [class*="card"] *,
+.react-role-dashboard [class*="outreach"] [class*="card"] * {
+  color: #0f172a !important;
+}
+
+.role-dashboard-section [class*="card"] .eyebrow,
+.role-dashboard-section [class*="metric"] .eyebrow,
+.react-role-dashboard [class*="card"] .eyebrow,
+.react-role-dashboard [class*="metric"] .eyebrow {
+  color: #1d4ed8 !important;
+}
+
+.role-dashboard-section [class*="card"] [class*="value"],
+.role-dashboard-section [class*="metric"] [class*="value"],
+.react-role-dashboard [class*="card"] [class*="value"],
+.react-role-dashboard [class*="metric"] [class*="value"] {
+  color: #0f172a !important;
+}
+
+
+/* Build 466 - exact operational dashboard contrast repair.
+   Build 464/465 left inherited white text on light cards and dark text on dark cards.
+   This uses the actual rendered operation dashboard class names shown in the failing screen. */
+
+/* Page heading sits on the light app background, so it must be dark. */
+.react-role-dashboard > h2,
+.react-role-dashboard > p:not(.eyebrow) {
+  color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+/* Main dark readiness wrapper keeps white text. */
+.react-role-dashboard .operational-turnaround-panel,
+.react-role-dashboard .operational-turnaround-panel > *,
+.react-role-dashboard .operational-turnaround-hero,
+.react-role-dashboard .operational-turnaround-hero * {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operational-metric-grid > div,
+.react-role-dashboard .operational-metric-grid > div * {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operational-metric-grid dt {
+  color: #0f172a !important;
+}
+
+.react-role-dashboard .operational-metric-grid dd {
+  color: #0f172a !important;
+}
+
+/* Fleet operations portfolio is a light panel. All text inside the light panel must be dark. */
+.react-role-dashboard .operations-portfolio-board,
+.react-role-dashboard .operations-portfolio-heading,
+.react-role-dashboard .operations-portfolio-heading *,
+.react-role-dashboard .operations-portfolio-summary,
+.react-role-dashboard .operations-portfolio-summary * {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operations-portfolio-board .eyebrow,
+.react-role-dashboard .operations-portfolio-heading .eyebrow {
+  color: #0369a1 !important;
+}
+
+.react-role-dashboard .operations-portfolio-card {
+  background: #334b5c !important;
+  border-color: #6b879b !important;
+  color: #ffffff !important;
+}
+
+.react-role-dashboard .operations-portfolio-card *,
+.react-role-dashboard .operations-portfolio-card strong,
+.react-role-dashboard .operations-portfolio-card span {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operations-portfolio-card dl,
+.react-role-dashboard .operations-portfolio-card dl *,
+.react-role-dashboard .operations-portfolio-card [class*="metric"],
+.react-role-dashboard .operations-portfolio-card [class*="metric"] * {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* Release board is a light panel. Keep the score badge dark, but make all light-card copy dark. */
+.react-role-dashboard .operations-release-board,
+.react-role-dashboard .operations-release-board-header,
+.react-role-dashboard .operations-release-board-header *,
+.react-role-dashboard .operations-release-board-grid {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operations-release-board .eyebrow,
+.react-role-dashboard .operations-release-board-header .eyebrow {
+  color: #0369a1 !important;
+}
+
+.react-role-dashboard .operations-release-score,
+.react-role-dashboard .operations-release-score * {
+  background: #071827 !important;
+  color: #ffffff !important;
+}
+
+.react-role-dashboard .operations-release-card,
+.react-role-dashboard .operations-release-card *,
+.react-role-dashboard .operations-release-card span,
+.react-role-dashboard .operations-release-card strong,
+.react-role-dashboard .operations-release-card em {
+  background-color: #334b5c !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+/* Lifecycle panel uses dark/brown backgrounds plus light summary cards. */
+.react-role-dashboard .operations-lifecycle,
+.react-role-dashboard .operations-lifecycle-header,
+.react-role-dashboard .operations-lifecycle-header *,
+.react-role-dashboard .operations-lifecycle > p,
+.react-role-dashboard .operations-lifecycle h4 {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operations-lifecycle .eyebrow {
+  color: #9ee7ff !important;
+}
+
+.react-role-dashboard .operations-lifecycle-score,
+.react-role-dashboard .operations-lifecycle-score * {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  opacity: 1 !important;
+}
+
+.react-role-dashboard .operations-lifecycle-details > div,
+.react-role-dashboard .operations-lifecycle-details > div *,
+.react-role-dashboard .operations-lifecycle-story,
+.react-role-dashboard .operations-lifecycle-story *,
+.react-role-dashboard .operations-lifecycle-summary > div,
+.react-role-dashboard .operations-lifecycle-summary > div * {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operations-lifecycle-phase,
+.react-role-dashboard .operations-lifecycle-phase * {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operations-lifecycle-phase.setup,
+.react-role-dashboard .operations-lifecycle-phase.complete,
+.react-role-dashboard .operations-lifecycle-phase.completed {
+  background: #ecfdf5 !important;
+  color: #0f172a !important;
+}
+
+.react-role-dashboard .operations-lifecycle-phase.setup *,
+.react-role-dashboard .operations-lifecycle-phase.complete *,
+.react-role-dashboard .operations-lifecycle-phase.completed * {
+  color: #0f172a !important;
+}
+
+.react-role-dashboard .operations-lifecycle-phase.blocked,
+.react-role-dashboard .operations-lifecycle-phase.watch,
+.react-role-dashboard .operations-lifecycle-phase.active,
+.react-role-dashboard .operations-lifecycle-phase.pending {
+  background: rgba(120, 53, 15, 0.58) !important;
+  color: #ffffff !important;
+}
+
+.react-role-dashboard .operations-lifecycle-phase.blocked *,
+.react-role-dashboard .operations-lifecycle-phase.watch *,
+.react-role-dashboard .operations-lifecycle-phase.active *,
+.react-role-dashboard .operations-lifecycle-phase.pending * {
+  color: #ffffff !important;
+}
+
+

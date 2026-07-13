@@ -1,0 +1,299 @@
+/*
+  Admin workspace component architecture.
+
+  Owns the retired Phase 20 admin workspace stack: admin rail, create workflow,
+  cruise-line operations, fleet directory, turnaround setup, and quality console
+  readability rules. This keeps live admin UX compatibility out of the legacy
+  design-system.css compatibility layer while the JSX migrates toward reusable
+  ce-* primitives.
+*/
+
+/*
+  CSS Foundation Refactor - Phase 20.
+
+  Legacy Build 437-448 admin workspace rail, panel consistency, create-workflow
+  control contrast, and quality-console readability compatibility rules now live
+  in the shared design-system layer instead of app.css.
+*/
+/* Build 437: admin surface width and panel consistency repair.
+   Keep all administration workspaces on the same max-width rail and use the
+   readable customer-management treatment without forcing white text into
+   light nested cards. */
+.cruise-line-presentation-suite,
+.fleet-directory-section,
+.react-create-workflow-section,
+.turnaround-admin-setup-panel,
+.react-quality-section,
+.react-admin-workspace {
+  width: min(1120px, calc(100% - 2rem)) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.cruise-line-presentation-suite,
+.react-create-workflow-section,
+.turnaround-admin-setup-panel,
+.react-quality-section {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #071827 !important;
+  overflow: visible !important;
+}
+
+.cruise-line-presentation-suite .presentation-suite-heading,
+.react-create-workflow-section,
+.turnaround-admin-setup-panel,
+.react-quality-section {
+  border-radius: 1.35rem !important;
+}
+
+.cruise-line-presentation-suite,
+.react-create-workflow-section,
+.turnaround-admin-setup-panel,
+.react-quality-section {
+  padding: 0 !important;
+}
+
+.cruise-line-presentation-suite > .presentation-suite-heading,
+.react-create-workflow-section > .eyebrow,
+.react-create-workflow-section > h2,
+.react-create-workflow-section > p,
+.turnaround-admin-setup-panel > .eyebrow,
+.turnaround-admin-setup-panel > h2,
+.turnaround-admin-setup-panel > p,
+.react-quality-section > .eyebrow,
+.react-quality-section > h2,
+.react-quality-section > p,
+.react-quality-section > .console-status {
+  color: #071827 !important;
+}
+
+.react-create-card,
+.turnaround-admin-setup-panel > .turnaround-admin-setup-card,
+.turnaround-admin-setup-panel > section,
+.react-quality-section > .react-sqa-console,
+.react-quality-section > .quality-console-panel,
+.react-quality-section > section,
+.cruise-line-presentation-suite .presentation-suite-body,
+.cruise-line-presentation-suite .presentation-hero-card,
+.cruise-line-presentation-suite .presentation-flow-card,
+.cruise-line-presentation-suite .presentation-detail-card,
+.cruise-line-presentation-suite .presentation-commercial-card,
+.cruise-line-presentation-suite .presentation-calendar-card,
+.cruise-line-presentation-suite .presentation-operator-card,
+.cruise-line-presentation-suite .presentation-sailing-row,
+.cruise-line-presentation-suite .presentation-revenue-board-row,
+.cruise-line-presentation-suite .presentation-port-plan,
+.cruise-line-presentation-suite .presentation-close-plan,
+.cruise-line-presentation-suite .presentation-activity-list,
+.cruise-line-presentation-suite .presentation-line-picker {
+  background: linear-gradient(145deg, #123a52 0%, #155a63 58%, #1b6f43 100%) !important;
+  border: 1px solid rgba(180, 223, 244, 0.34) !important;
+  border-radius: 1.35rem !important;
+  box-shadow: 0 18px 44px rgba(7, 24, 39, 0.12) !important;
+  color: #ffffff !important;
+}
+
+.react-create-card {
+  border-top: 6px solid #0b8eb4 !important;
+  padding: clamp(1rem, 3vw, 1.5rem) !important;
+}
+
+.react-create-card *,
+.turnaround-admin-setup-panel > section *,
+.react-quality-section > section *,
+.cruise-line-presentation-suite .presentation-hero-card *,
+.cruise-line-presentation-suite .presentation-flow-card *,
+.cruise-line-presentation-suite .presentation-detail-card *,
+.cruise-line-presentation-suite .presentation-commercial-card *,
+.cruise-line-presentation-suite .presentation-calendar-card *,
+.cruise-line-presentation-suite .presentation-operator-card *,
+.cruise-line-presentation-suite .presentation-sailing-row *,
+.cruise-line-presentation-suite .presentation-revenue-board-row *,
+.cruise-line-presentation-suite .presentation-port-plan *,
+.cruise-line-presentation-suite .presentation-close-plan *,
+.cruise-line-presentation-suite .presentation-activity-list *,
+.cruise-line-presentation-suite .presentation-line-picker * {
+  color: inherit;
+}
+
+.react-create-card h3,
+.react-create-card h4,
+.react-create-card p,
+.react-create-card label,
+.react-create-card legend,
+.react-create-card .eyebrow,
+.turnaround-admin-setup-panel section h3,
+.turnaround-admin-setup-panel section h4,
+.turnaround-admin-setup-panel section p,
+.turnaround-admin-setup-panel section label,
+.react-quality-section section h3,
+.react-quality-section section h4,
+.react-quality-section section p,
+.react-quality-section section label,
+.cruise-line-presentation-suite article h3,
+.cruise-line-presentation-suite article h4,
+.cruise-line-presentation-suite article p,
+.cruise-line-presentation-suite article label {
+  color: #ffffff !important;
+}
+
+.react-create-card .eyebrow,
+.react-create-card legend,
+.turnaround-admin-setup-panel section .eyebrow,
+.react-quality-section section .eyebrow,
+.cruise-line-presentation-suite article .eyebrow {
+  color: #9fe8ff !important;
+}
+
+.react-create-form-grid fieldset,
+.react-create-workflow-section .starter-ship-card,
+.turnaround-admin-form,
+.turnaround-admin-roster,
+.turnaround-roster-card,
+.turnaround-admin-model-card,
+.turnaround-team-readiness-card,
+.turnaround-same-day-conflict-card,
+.turnaround-role-coverage-card,
+.turnaround-team-member-card,
+.react-quality-section .status-card,
+.react-quality-section .quality-gate-card,
+.react-quality-section .quality-gate,
+.react-quality-section .react-sqa-action-card,
+.react-quality-section .sqa-action-card,
+.react-quality-section .quality-output,
+.react-quality-section .diagnostic-card,
+.cruise-line-presentation-suite .presentation-metric-grid article,
+.cruise-line-presentation-suite .presentation-guest-card,
+.cruise-line-presentation-suite .presentation-manifest-row,
+.cruise-line-presentation-suite .presentation-activity-list div,
+.cruise-line-presentation-suite .presentation-port-plan div,
+.cruise-line-presentation-suite .presentation-close-plan div {
+  background: rgba(6, 28, 43, 0.68) !important;
+  border: 1px solid rgba(191, 230, 255, 0.28) !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+}
+
+.react-create-form-grid input,
+.react-create-form-grid select,
+.react-create-form-grid textarea,
+.react-create-workflow-section input,
+.react-create-workflow-section select,
+.react-create-workflow-section textarea,
+.turnaround-admin-setup-panel input,
+.turnaround-admin-setup-panel select,
+.turnaround-admin-setup-panel textarea,
+.react-quality-section input,
+.react-quality-section select,
+.react-quality-section textarea,
+.cruise-line-presentation-suite input,
+.cruise-line-presentation-suite select,
+.cruise-line-presentation-suite textarea {
+  background: #ffffff !important;
+  border: 1px solid #b8d5e7 !important;
+  color: #071827 !important;
+}
+
+.react-create-form-grid input::placeholder,
+.react-create-workflow-section input::placeholder,
+.turnaround-admin-setup-panel input::placeholder,
+.react-quality-section input::placeholder {
+  color: #667085 !important;
+}
+
+.create-workflow-pill,
+.react-quality-section .console-status,
+.react-quality-section .status-pill,
+.react-quality-section .quality-status-pill,
+.cruise-line-presentation-suite .presentation-metric-grid article,
+.cruise-line-presentation-suite .presentation-metric-grid article * {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: rgba(255, 255, 255, 0.85) !important;
+  color: #071827 !important;
+}
+
+.react-create-workflow-section .primary-action-button,
+.turnaround-admin-setup-panel .primary-action-button,
+.react-quality-section .primary-action-button,
+.react-quality-section .sqa-action-button,
+.react-quality-section .react-sqa-action-card button,
+.cruise-line-presentation-suite button:not(.secondary-action-button),
+.fleet-primary-action,
+.fleet-card-actions button:not(.fleet-danger-action) {
+  background: linear-gradient(135deg, #0b6fa4, #12a4b6) !important;
+  color: #ffffff !important;
+}
+
+.react-create-workflow-section .secondary-action-button,
+.react-create-workflow-section button[type='reset'],
+.turnaround-admin-setup-panel .secondary-action-button,
+.react-quality-section .secondary-action-button,
+.cruise-line-presentation-suite .secondary-action-button,
+.fleet-danger-action {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-color: rgba(255, 255, 255, 0.8) !important;
+  color: #075985 !important;
+}
+
+.fleet-directory-section {
+  background: #ffffff !important;
+  border: 1px solid #d8e7f3 !important;
+  border-radius: 1.35rem !important;
+  box-shadow: 0 18px 44px rgba(7, 24, 39, 0.08) !important;
+  color: #071827 !important;
+  padding: clamp(1rem, 3vw, 1.35rem) !important;
+}
+
+.fleet-directory-section h2,
+.fleet-directory-section h3,
+.fleet-directory-section h4,
+.fleet-directory-section p,
+.fleet-directory-section span,
+.fleet-directory-section label,
+.fleet-directory-section strong {
+  color: #071827 !important;
+}
+
+.fleet-directory-section .eyebrow {
+  color: #0b5f94 !important;
+}
+
+.fleet-card,
+.brand-theme-summary,
+.react-selected-ships-panel,
+.react-selected-sailings-panel,
+.react-selected-itinerary-panel,
+.ship-management-panel,
+.ship-card,
+.sailing-card,
+.itinerary-day-card {
+  background: #ffffff !important;
+  border-color: #d8e7f3 !important;
+  color: #071827 !important;
+}
+
+.fleet-card *,
+.brand-theme-summary *,
+.react-selected-ships-panel *,
+.react-selected-sailings-panel *,
+.react-selected-itinerary-panel *,
+.ship-management-panel *,
+.ship-card *,
+.sailing-card *,
+.itinerary-day-card * {
+  color: inherit;
+}
+
+@media (max-width: 760px) {
+  .cruise-line-presentation-suite,
+  .fleet-directory-section,
+  .react-create-workflow-section,
+  .turnaround-admin-setup-panel,
+  .react-quality-section,
+  .react-admin-workspace {
+    width: min(100% - 1rem, 1120px) !important;
+  }
+}
+

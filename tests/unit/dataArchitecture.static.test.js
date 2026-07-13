@@ -7,6 +7,24 @@ function read(relativePath) {
   return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
 }
 
+function readOperationalDashboardSurface() {
+  return [
+    read('frontend/react/src/components/ReactRoleDashboard.jsx'),
+    read('frontend/react/src/components/operations/OperationalTurnaroundDashboard.jsx'),
+    read('frontend/react/src/components/operations/OperationsEvidencePanels.jsx'),
+    read('frontend/react/src/components/operations/OperationsReadinessEvidencePanels.jsx'),
+    read('frontend/react/src/components/operations/OperationsReleasePacketPanel.jsx'),
+    read('frontend/react/src/components/operations/OperationsMetricsPanel.jsx'),
+    read('frontend/react/src/components/operations/OperationsPlaybookPanels.jsx'),
+    read('frontend/react/src/components/operations/OperationsIncidentOutreachScenarioPanels.jsx'),
+    read('frontend/react/src/components/operations/OperationsDormantReadinessPanels.jsx'),
+    read('frontend/react/src/components/operations/OperationsCommandContinuityPanels.jsx'),
+    read('frontend/react/src/components/operations/OperationsLaunchCloseoutPanels.jsx'),
+    read('frontend/react/src/components/operations/OperationsTimelineAuditPanels.jsx'),
+    read('frontend/react/src/components/operations/operationalDashboardUtils.js')
+  ].join('\n')
+}
+
 function readReactCssBundle() {
   const stylesRoot = path.join(projectRoot, 'frontend/react/src/styles')
   const cssFiles = []
@@ -299,7 +317,7 @@ describe('Production data architecture hardening guardrails', () => {
 
   it('returns assignment-qualified operational person display names from turnaround APIs', () => {
     const controller = read('controllers/cruise.controller.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readOperationalDashboardSurface()
 
     expect(controller).toContain('async function buildAppUserDisplayLookup')
     expect(controller).toContain("enrichOperationalPerson(signoff, userDisplayById, 'approverUserId', 'approverDisplayName')")
@@ -786,7 +804,7 @@ describe('Production data architecture hardening guardrails', () => {
     const controller = read('controllers/cruise.controller.js')
     const auditService = read('services/auditEvent.service.js')
     const authorizationService = read('services/requestAuthorization.service.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readOperationalDashboardSurface()
     const client = read('frontend/react/src/api/client.js')
 
     expect(routes).toContain("'/turnaround-operations/:id/audit-events'")
@@ -811,7 +829,7 @@ describe('Production data architecture hardening guardrails', () => {
   it('adds a production turnaround release packet for final embarkation readiness', () => {
     const controller = read('controllers/cruise.controller.js')
     const releaseService = read('services/turnaroundRelease.service.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundReleasePacket } = require('../services/turnaroundRelease.service')")
@@ -822,7 +840,7 @@ describe('Production data architecture hardening guardrails', () => {
     expect(releaseService).toContain("id: 'audit'")
     expect(dashboard).toContain('data-testid="react-operations-release-packet"')
     expect(dashboard).toContain('data-testid="react-operations-release-packet-checklist"')
-    expect(dashboard).toContain('selectedOperation.releasePacket.releaseRecommendation')
+    expect(dashboard).toContain('releasePacket.releaseRecommendation')
     expect(styles).toContain('.operations-release-packet')
   })
 
@@ -830,7 +848,7 @@ describe('Production data architecture hardening guardrails', () => {
   it('adds turnaround operational analytics for release-day performance review', () => {
     const controller = read('controllers/cruise.controller.js')
     const metricsService = read('services/turnaroundMetrics.service.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundOperationalMetrics } = require('../services/turnaroundMetrics.service')")
@@ -842,7 +860,7 @@ describe('Production data architecture hardening guardrails', () => {
     expect(metricsService).toContain('departmentMetrics')
     expect(metricsService).toContain('bottleneckDepartment')
     expect(dashboard).toContain('data-testid="react-operations-metrics"')
-    expect(dashboard).toContain('selectedOperation.operationalMetrics.signals')
+    expect(dashboard).toContain('operationalMetrics.signals')
     expect(dashboard).toContain('Department risk ranking')
     expect(styles).toContain('.operations-metrics')
     expect(styles).toContain('.operations-metrics-signal-grid')
@@ -852,7 +870,7 @@ describe('Production data architecture hardening guardrails', () => {
   it('adds a unified turnaround operational timeline for release-day command review', () => {
     const controller = read('controllers/cruise.controller.js')
     const timelineService = read('services/turnaroundTimeline.service.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundOperationalTimeline } = require('../services/turnaroundTimeline.service')")
@@ -875,7 +893,7 @@ describe('Production data architecture hardening guardrails', () => {
   it('adds reusable turnaround playbook templates for repeatable operations planning', () => {
     const controller = read('controllers/cruise.controller.js')
     const playbookService = read('services/turnaroundPlaybook.service.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundPlaybookTemplate } = require('../services/turnaroundPlaybook.service')")
@@ -887,7 +905,7 @@ describe('Production data architecture hardening guardrails', () => {
     expect(playbookService).toContain('exceptionRules')
     expect(playbookService).toContain('nextBestActions')
     expect(dashboard).toContain('data-testid="react-operations-playbook-template"')
-    expect(dashboard).toContain('selectedOperation.playbookTemplate.departmentPlaybooks')
+    expect(dashboard).toContain('playbookTemplate.departmentPlaybooks')
     expect(dashboard).toContain('Template readiness')
     expect(styles).toContain('.operations-playbook')
     expect(styles).toContain('.operations-playbook-grid')
@@ -897,7 +915,7 @@ describe('Production data architecture hardening guardrails', () => {
   it('adds playbook variance rehearsal scoring for live turnaround execution comparison', () => {
     const controller = read('controllers/cruise.controller.js')
     const varianceService = read('services/turnaroundVariance.service.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundPlaybookVariance } = require('../services/turnaroundVariance.service')")
@@ -909,7 +927,7 @@ describe('Production data architecture hardening guardrails', () => {
     expect(varianceService).toContain('departmentVariances')
     expect(varianceService).toContain('rehearsalActions')
     expect(dashboard).toContain('data-testid="react-operations-playbook-variance"')
-    expect(dashboard).toContain('selectedOperation.playbookVariance.departmentVariances')
+    expect(dashboard).toContain('playbookVariance.departmentVariances')
     expect(dashboard).toContain('Live execution versus template baseline')
     expect(styles).toContain('.operations-playbook-variance')
     expect(styles).toContain('.operations-playbook-variance-grid')
@@ -919,7 +937,7 @@ describe('Production data architecture hardening guardrails', () => {
   it('adds turnaround incident command bridging for release-day exception management', () => {
     const controller = read('controllers/cruise.controller.js')
     const incidentService = read('services/turnaroundIncident.service.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundIncidentCommand } = require('../services/turnaroundIncident.service')")
@@ -931,7 +949,7 @@ describe('Production data architecture hardening guardrails', () => {
     expect(incidentService).toContain('incidentSignals')
     expect(incidentService).toContain('commandActions')
     expect(dashboard).toContain('data-testid="react-operations-incident-command"')
-    expect(dashboard).toContain('selectedOperation.incidentCommand.incidentSignals')
+    expect(dashboard).toContain('incidentCommand.incidentSignals')
     expect(dashboard).toContain('Release-day exception bridge')
     expect(styles).toContain('.operations-incident-command')
     expect(styles).toContain('.operations-incident-command-grid')
@@ -941,7 +959,7 @@ describe('Production data architecture hardening guardrails', () => {
   it('adds turnaround after-action review for post-operation production debriefs', () => {
     const controller = read('controllers/cruise.controller.js')
     const afterActionService = read('services/turnaroundAfterAction.service.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundAfterActionReview } = require('../services/turnaroundAfterAction.service')")
@@ -963,7 +981,7 @@ describe('Production data architecture hardening guardrails', () => {
   it('adds turnaround shift briefing for next-shift handoff readiness', () => {
     const controller = read('controllers/cruise.controller.js')
     const shiftBriefingService = read('services/turnaroundShiftBriefing.service.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundShiftBriefing } = require('../services/turnaroundShiftBriefing.service')")
@@ -984,7 +1002,7 @@ describe('Production data architecture hardening guardrails', () => {
   it('adds turnaround go-live center for final launch readiness', () => {
     const controller = read('controllers/cruise.controller.js')
     const goLiveService = read('services/turnaroundGoLive.service.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readOperationalDashboardSurface()
     const selectors = read('cypress/react/support/reactSelectors.js')
     const styles = readReactCssBundle()
 
@@ -1008,7 +1026,7 @@ describe('Production data architecture hardening guardrails', () => {
     const controller = read('controllers/cruise.controller.js')
     const controlBoardService = read('services/turnaroundOperationsControlBoard.service.js')
     const roleView = read('frontend/react/src/domain/roleView.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readOperationalDashboardSurface()
     const selectors = read('cypress/react/support/reactSelectors.js')
     const styles = readReactCssBundle()
 
@@ -1065,7 +1083,7 @@ describe('Turnaround reviewer packet guardrails', () => {
   it('keeps cruise-line reviewer packet evidence out of the operational UI', () => {
     const controller = read('controllers/cruise.controller.js')
     const packetService = read('services/turnaroundReviewerPacket.service.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readOperationalDashboardSurface()
 
     expect(controller).toContain("const { buildTurnaroundReviewerPacket } = require('../services/turnaroundReviewerPacket.service')")
     expect(controller).toContain('const reviewerPacket = buildTurnaroundReviewerPacket({')
@@ -1084,7 +1102,7 @@ describe('Turnaround outreach board guardrails', () => {
   it('adds a cruise-line outreach board generated from reviewer and executive evidence', () => {
     const controller = read('controllers/cruise.controller.js')
     const outreachService = read('services/turnaroundOutreach.service.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundOutreachBoard } = require('../services/turnaroundOutreach.service')")
@@ -1095,7 +1113,7 @@ describe('Turnaround outreach board guardrails', () => {
     expect(outreachService).toContain('buildTargetRecommendations')
     expect(outreachService).toContain('READY_TO_SEND')
     expect(dashboard).toContain('data-testid="react-operations-outreach-board"')
-    expect(dashboard).toContain('selectedOperation.outreachBoard.targetRecommendations')
+    expect(dashboard).toContain('outreachBoard.targetRecommendations')
     expect(dashboard).toContain('Application-ready reviewer strategy')
     expect(styles).toContain('.operations-outreach-board')
     expect(styles).toContain('.operations-outreach-board-grid')
@@ -1106,7 +1124,7 @@ describe('Turnaround management status guardrails', () => {
   it('keeps internal management status and maturity mapping out of the operational UI', () => {
     const controller = read('controllers/cruise.controller.js')
     const completionService = read('services/turnaroundCompletion.service.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readOperationalDashboardSurface()
 
     expect(controller).toContain("const { buildTurnaroundManagementStatus } = require('../services/turnaroundCompletion.service')")
     expect(controller).toContain('const managementStatus = buildTurnaroundManagementStatus({')
@@ -1125,7 +1143,7 @@ describe('Turnaround launch plan guardrails', () => {
   it('keeps reviewer-demo launch certification content out of the operational UI', () => {
     const controller = read('controllers/cruise.controller.js')
     const launchService = read('services/turnaroundLaunchPlan.service.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readOperationalDashboardSurface()
 
     expect(controller).toContain("const { buildTurnaroundLaunchPlan } = require('../services/turnaroundLaunchPlan.service')")
     expect(controller).toContain('const launchPlan = buildTurnaroundLaunchPlan({')
@@ -1144,7 +1162,7 @@ describe('Turnaround scenario plan guardrails', () => {
   it('adds operational resilience scenarios generated from launch and management evidence', () => {
     const controller = read('controllers/cruise.controller.js')
     const scenarioService = read('services/turnaroundScenarioPlan.service.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundScenarioPlan } = require('../services/turnaroundScenarioPlan.service')")
@@ -1155,7 +1173,7 @@ describe('Turnaround scenario plan guardrails', () => {
     expect(scenarioService).toContain('buildContingencyActions')
     expect(scenarioService).toContain('NEEDS_CONTINGENCY_REVIEW')
     expect(dashboard).toContain('data-testid="react-operations-scenario-plan"')
-    expect(dashboard).toContain('selectedOperation.scenarioPlan.stressCases')
+    expect(dashboard).toContain('scenarioPlan.stressCases')
     expect(dashboard).toContain('Operational resilience drills and contingencies')
     expect(styles).toContain('.operations-scenario-plan')
     expect(styles).toContain('.operations-scenario-plan-grid')
@@ -1166,7 +1184,7 @@ describe('Turnaround production readiness cockpit guardrails', () => {
   it('adds production readiness evidence without putting deep workflows back into Playwright', () => {
     const controller = read('controllers/cruise.controller.js')
     const productionService = read('services/turnaroundProductionReadiness.service.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundProductionReadiness } = require('../services/turnaroundProductionReadiness.service')")
@@ -1189,7 +1207,7 @@ describe('Turnaround application dossier guardrails', () => {
   it('adds cruise-line application proof package without expanding brittle Playwright workflow depth', () => {
     const controller = read('controllers/cruise.controller.js')
     const dossierService = read('services/turnaroundApplicationDossier.service.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
     expect(controller).toContain("const { buildTurnaroundApplicationDossier } = require('../services/turnaroundApplicationDossier.service')")
@@ -1217,7 +1235,7 @@ describe('Turnaround closeout packet guardrails', () => {
   it('adds a final closeout packet generated from operational, readiness, debrief, and reviewer proof layers', () => {
     const controller = read('controllers/cruise.controller.js')
     const closeoutService = read('services/turnaroundCloseout.service.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readOperationalDashboardSurface()
     const roleViewDomain = read('frontend/react/src/domain/roleView.js')
     const styles = readReactCssBundle()
 

@@ -1,0 +1,43 @@
+/* Fix the cruise-line operating workspace specifically: no clipped title,
+   no horizontal overflow, no mismatched dark metric tiles. */
+:is(.react-production-shell, .react-app-shell) .cruise-line-presentation-suite {
+  padding: clamp(1.25rem, 3vw, 2rem) !important;
+  overflow-x: hidden !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .presentation-suite-heading {
+  display: flex !important;
+  gap: 1rem !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  color: var(--admin-text) !important;
+  margin-bottom: 1.25rem !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .presentation-suite-heading h2,
+:is(.react-production-shell, .react-app-shell) .presentation-suite-heading p {
+  color: var(--admin-text) !important;
+  text-shadow: none !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .presentation-line-picker,
+:is(.react-production-shell, .react-app-shell) .presentation-scope-controls,
+:is(.react-production-shell, .react-app-shell) .presentation-scope-control {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .presentation-suite-body,
+:is(.react-production-shell, .react-app-shell) .presentation-section-grid,
+:is(.react-production-shell, .react-app-shell) .presentation-card-grid,
+:is(.react-production-shell, .react-app-shell) .presentation-metric-grid {
+  max-width: 100% !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .presentation-metric-grid article {
+  min-width: 0 !important;
+  overflow-wrap: anywhere !important;
+}
+

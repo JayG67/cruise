@@ -1,0 +1,117 @@
+/* Launch plan evidence panels. */
+
+.operations-launch-plan {
+  margin: 1.25rem 0;
+  padding: 1rem;
+  border: 1px solid #93c5fd;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #eff6ff, #ffffff);
+}
+
+.operations-launch-plan-header,
+.operations-launch-plan-details {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+}
+
+.operations-launch-plan-score {
+  min-width: 8rem;
+  padding: 0.85rem;
+  border-radius: 1rem;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid #60a5fa;
+}
+
+.operations-launch-plan-score span {
+  display: block;
+  color: #1d4ed8;
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.operations-launch-plan-score small,
+.operations-launch-plan-card span,
+.operations-launch-plan-details span,
+.operations-launch-plan-quality span {
+  color: #1e40af;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.operations-launch-plan-summary,
+.operations-launch-plan-details > div,
+.operations-launch-plan-quality article {
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border-radius: 0.85rem;
+  background: #ffffff;
+  border: 1px solid #bfdbfe;
+}
+
+.operations-launch-plan-grid,
+.operations-launch-plan-quality {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.operations-launch-plan-card {
+  padding: 0.85rem;
+  border-radius: 0.85rem;
+  background: #ffffff;
+  border: 1px solid #bfdbfe;
+}
+
+.operations-launch-plan-card.red {
+  border-color: #fecaca;
+}
+
+.operations-launch-plan-card.yellow,
+.operations-launch-plan-score.ready_with_watch_items,
+.operations-launch-plan-score.needs_hardening {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.operations-launch-plan-card.green,
+.operations-launch-plan-score.ready_for_reviewer_demo {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.operations-launch-plan-card strong,
+.operations-launch-plan-summary strong,
+.operations-launch-plan-details strong,
+.operations-launch-plan-quality strong {
+  display: block;
+  color: #0f172a;
+}
+
+.operations-launch-plan-details ul,
+.operations-launch-plan-details ol {
+  margin: 0.75rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.operations-launch-plan-details li {
+  margin: 0.45rem 0;
+}
+
+@media (max-width: 760px) {
+  .operations-launch-plan-header,
+  .operations-launch-plan-details {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-launch-plan-score {
+    width: 100%;
+  }
+}
+

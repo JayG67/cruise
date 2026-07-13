@@ -1,0 +1,107 @@
+/*
+  CSS Foundation Refactor - Phase 2.
+
+  This slice moves the live React product surface toward shared primitives.
+  The goal is a consistent command-center application shell, reusable dark
+  operational panels, reusable dark cards, and isolated light editor/data
+  surfaces. Existing legacy selectors are intentionally mapped into these
+  primitives while JSX migrations happen in later slices.
+*/
+
+/* Shared light data and editor surfaces. */
+.react-production-shell :is(
+  .draft-editor,
+  .editor-row td,
+  .child-row td,
+  .child-panel,
+  .react-admin-table-wrap,
+  .react-admin-table-heading,
+  .react-admin-table,
+  .react-admin-table caption,
+  .react-admin-table th,
+  .react-admin-table td,
+  .react-admin-mutation-panel,
+  .react-inline-edit-form,
+  .react-ship-create-form,
+  .react-sailing-create-form,
+  .react-itinerary-create-form,
+  .react-create-form-grid fieldset,
+  .passenger-profile-form,
+  .react-passenger-profile-form,
+  .passenger-booking-form,
+  .booking-search-grid,
+  .passenger-cabin-field,
+  .role-booking-detail-panel,
+  .role-booking-detail-grid,
+  .visible-passenger-row,
+  .role-activity-list li,
+  .react-confirm-action-panel,
+  .react-confirm-action-panel--modal,
+  .admin-delete-selector-card,
+  .react-admin-record-selector,
+  .turnaround-admin-form,
+  .turnaround-admin-form-grid,
+  .turnaround-roster-list,
+  .turnaround-roster-toolbar,
+  .turnaround-roster-chip-list
+) {
+  background: var(--ce-data-surface) !important;
+  border-color: var(--ce-data-border) !important;
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+}
+
+.react-production-shell :is(
+  .draft-editor,
+  .editor-row td,
+  .child-row td,
+  .child-panel,
+  .react-admin-table-wrap,
+  .react-admin-table-heading,
+  .react-admin-table,
+  .react-admin-mutation-panel,
+  .react-inline-edit-form,
+  .react-ship-create-form,
+  .react-sailing-create-form,
+  .react-itinerary-create-form,
+  .react-create-form-grid fieldset,
+  .passenger-profile-form,
+  .react-passenger-profile-form,
+  .passenger-booking-form,
+  .role-booking-detail-panel,
+  .role-booking-detail-grid,
+  .react-confirm-action-panel,
+  .react-confirm-action-panel--modal,
+  .admin-delete-selector-card,
+  .react-admin-record-selector,
+  .turnaround-admin-form,
+  .turnaround-admin-form-grid,
+  .turnaround-roster-list,
+  .turnaround-roster-toolbar,
+  .turnaround-roster-chip-list
+) :is(h1, h2, h3, h4, h5, h6, p, li, strong, span, dt, dd, label, small, legend, caption, th, td) {
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+}
+
+.react-production-shell :is(
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea,
+  .react-input,
+  .react-select,
+  .person-select
+) {
+  background: var(--ce-data-surface-strong) !important;
+  border: 1px solid var(--ce-data-border) !important;
+  border-radius: 0.75rem !important;
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+  min-height: 2.75rem;
+}
+
+.react-production-shell :is(input, select, textarea):focus {
+  border-color: var(--ce-command-border-strong) !important;
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.18) !important;
+  outline: none !important;
+}

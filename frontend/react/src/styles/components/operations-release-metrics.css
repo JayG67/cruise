@@ -1,0 +1,130 @@
+/* Operations release metrics surface. */
+
+.operations-metrics {
+  border: 1px solid var(--border-color, #d7dee8);
+  border-radius: 24px;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(237, 246, 255, 0.86));
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+}
+
+.operations-metrics-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.operations-metrics-header h4,
+.operations-metrics-header p {
+  margin: 0.2rem 0;
+}
+
+.operations-metrics-confidence {
+  min-width: 9rem;
+  border-radius: 20px;
+  padding: 1rem;
+  text-align: center;
+  background: #0f172a;
+  color: #fff;
+}
+
+.operations-metrics-confidence span {
+  display: block;
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.operations-metrics-confidence small {
+  display: block;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.operations-metrics-signal-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.operations-metrics-signal {
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 18px;
+  padding: 0.95rem;
+  background: #fff;
+}
+
+.operations-metrics-signal span,
+.operations-metrics-signal em {
+  display: block;
+  color: #64748b;
+}
+
+.operations-metrics-signal strong {
+  display: block;
+  margin: 0.25rem 0;
+  font-size: 1.35rem;
+}
+
+.operations-metrics-signal.action {
+  border-color: rgba(220, 38, 38, 0.4);
+  background: rgba(254, 242, 242, 0.92);
+}
+
+.operations-metrics-signal.watch {
+  border-color: rgba(217, 119, 6, 0.4);
+  background: rgba(255, 251, 235, 0.92);
+}
+
+.operations-metrics-signal.pass {
+  border-color: rgba(22, 163, 74, 0.38);
+  background: rgba(240, 253, 244, 0.92);
+}
+
+.operations-metrics-departments {
+  margin-top: 1rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.32);
+  padding-top: 1rem;
+}
+
+.operations-metrics-departments > strong {
+  display: block;
+  margin-bottom: 0.65rem;
+}
+
+.operations-metrics-departments ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.operations-metrics-departments li {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 16px;
+  padding: 0.8rem;
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.operations-metrics-departments span,
+.operations-metrics-departments strong,
+.operations-metrics-departments em {
+  display: block;
+}
+
+.operations-metrics-departments em {
+  color: #64748b;
+}
+
+@media (max-width: 900px) {
+  .operations-metrics-header {
+    flex-direction: column;
+  }
+
+  .operations-metrics-signal-grid,
+  .operations-metrics-departments ol {
+    grid-template-columns: 1fr;
+  }
+}

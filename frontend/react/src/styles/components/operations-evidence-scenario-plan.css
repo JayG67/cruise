@@ -1,0 +1,118 @@
+/* Scenario plan evidence panels. */
+
+.operations-scenario-plan {
+  margin: 1.25rem 0;
+  padding: 1rem;
+  border: 1px solid #a78bfa;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #f5f3ff, #ffffff);
+}
+
+.operations-scenario-plan-header,
+.operations-scenario-plan-details {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+}
+
+.operations-scenario-plan-score {
+  min-width: 8rem;
+  padding: 0.85rem;
+  border-radius: 1rem;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid #8b5cf6;
+}
+
+.operations-scenario-plan-score span {
+  display: block;
+  color: #6d28d9;
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.operations-scenario-plan-score small,
+.operations-scenario-plan-card span,
+.operations-scenario-plan-details span,
+.operations-scenario-plan-runbook span {
+  color: #5b21b6;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.operations-scenario-plan-summary,
+.operations-scenario-plan-details > div,
+.operations-scenario-plan-runbook {
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border-radius: 0.85rem;
+  background: #ffffff;
+  border: 1px solid #ddd6fe;
+}
+
+.operations-scenario-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.operations-scenario-plan-card {
+  padding: 0.85rem;
+  border-radius: 0.85rem;
+  background: #ffffff;
+  border: 1px solid #ddd6fe;
+}
+
+.operations-scenario-plan-card.action_required,
+.operations-scenario-plan-score.needs_contingency_review {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.operations-scenario-plan-card.watch,
+.operations-scenario-plan-score.watch_items_present {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.operations-scenario-plan-card.ready,
+.operations-scenario-plan-score.drill_ready {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.operations-scenario-plan-card strong,
+.operations-scenario-plan-summary strong,
+.operations-scenario-plan-details strong,
+.operations-scenario-plan-runbook strong {
+  display: block;
+  color: #0f172a;
+}
+
+.operations-scenario-plan-details ul,
+.operations-scenario-plan-runbook ol {
+  margin: 0.75rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.operations-scenario-plan-details li,
+.operations-scenario-plan-runbook li {
+  margin: 0.45rem 0;
+}
+
+@media (max-width: 760px) {
+  .operations-scenario-plan-header,
+  .operations-scenario-plan-details {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-scenario-plan-score {
+    width: 100%;
+  }
+}
+

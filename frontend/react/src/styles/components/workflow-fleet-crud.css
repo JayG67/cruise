@@ -1,0 +1,118 @@
+/* React ship CRUD and sailings coverage. */
+.react-ship-create-form,
+.react-sailings-panel {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid #d8e2ef;
+  border-radius: 1rem;
+  background: #ffffff;
+  padding: 1rem;
+}
+
+.react-ship-create-form h4,
+.react-sailings-panel h3 {
+  margin: 0;
+}
+
+.react-ship-form-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.react-ship-form-grid label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.react-ship-form-grid span {
+  color: #40576f;
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.react-ship-form-grid input {
+  border: 1px solid #b9c8d8;
+  border-radius: 0.65rem;
+  padding: 0.65rem;
+}
+
+.react-ship-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.react-sailings-panel {
+  border-left: 6px solid #2f855a;
+  margin-top: 1.25rem;
+}
+
+.react-sailing-card-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.react-sailing-card {
+  border: 1px solid #d8e2ef;
+  border-radius: 1rem;
+  background: #ffffff;
+  padding: 1rem;
+}
+
+.react-sailing-card h4,
+.react-sailing-card p {
+  margin-top: 0;
+}
+
+@media (max-width: 820px) {
+  .react-ship-form-grid,
+  .react-sailing-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* React admin create/delete coverage. */
+.react-admin-mutation-panel {
+  background: #f8fbff;
+  border: 1px solid #dfe9f5;
+  border-left: 6px solid #1f6feb;
+  border-radius: 1.1rem;
+  display: grid;
+  gap: 1rem;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+.react-admin-mutation-panel h4,
+.react-admin-mutation-panel h5,
+.react-admin-mutation-panel p {
+  margin-top: 0;
+}
+
+.react-admin-mutation-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.react-admin-mutation-grid .draft-editor {
+  align-content: start;
+}
+
+.react-admin-mutation-grid .draft-editor > label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+@media (max-width: 900px) {
+  .react-admin-mutation-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+

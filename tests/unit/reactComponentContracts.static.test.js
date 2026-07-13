@@ -3,15 +3,44 @@ const path = require('path')
 
 const RETIRED_APP_CSS_PATH = ['frontend/react/src/styles/app', 'css'].join('.')
 
+function readAdminHierarchySurface() {
+  const projectRoot = path.join(__dirname, '..', '..')
+  return [
+    'frontend/react/src/components/CustomerBookingHierarchy.jsx',
+    'frontend/react/src/components/admin/useCustomerBookingHierarchyState.js',
+    'frontend/react/src/components/admin/AdminCustomerBookingMutationPanel.jsx',
+    'frontend/react/src/components/admin/AdminCustomerWorkflowSelector.jsx',
+    'frontend/react/src/components/admin/AdminCustomerWorkflowTable.jsx',
+    'frontend/react/src/components/CustomerHierarchyRow.jsx',
+    'frontend/react/src/components/BookingCard.jsx'
+  ].map(relativePath => fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')).join('\n')
+}
+
 function optionalStyleRead(relativePath) {
   const fullPath = path.join(__dirname, '..', '..', relativePath)
   return fs.existsSync(fullPath) ? fs.readFileSync(fullPath, 'utf8') : ''
 }
 
 function readCssBundle(...relativePaths) {
-  return relativePaths
-    .map(relativePath => fs.readFileSync(path.join(__dirname, '..', '..', relativePath), 'utf8'))
-    .join('\n')
+  const projectRoot = path.join(__dirname, '..', '..')
+
+  function readRecursive(relativePath, seen = new Set()) {
+    const fullPath = path.join(projectRoot, relativePath)
+    if (seen.has(fullPath)) {
+      return ''
+    }
+    seen.add(fullPath)
+
+    const content = fs.readFileSync(fullPath, 'utf8')
+    const directory = path.dirname(relativePath)
+
+    return content.replace(/@import\s+['"](.+?)['"];?/g, (_match, importPath) => {
+      const nestedPath = path.normalize(path.join(directory, importPath)).replace(/\\/g, '/')
+      return readRecursive(nestedPath, seen)
+    })
+  }
+
+  return relativePaths.map(relativePath => readRecursive(relativePath)).join('\n')
 }
 
 describe('React component accessibility and presentation contracts', () => {
@@ -19,6 +48,58 @@ describe('React component accessibility and presentation contracts', () => {
 
   function read(relativePath) {
     return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
+  }
+
+  function readFleetDirectorySurface() {
+    return [
+      read('frontend/react/src/components/ReactFleetDirectory.jsx'),
+      read('frontend/react/src/components/fleet/ReactFleetCruiseLineGrid.jsx'),
+      read('frontend/react/src/components/fleet/ReactFleetShipPanel.jsx'),
+      read('frontend/react/src/components/fleet/ReactFleetSailingPanel.jsx'),
+      read('frontend/react/src/components/fleet/ReactFleetItineraryPanel.jsx'),
+      read('frontend/react/src/components/fleet/fleetDirectoryUtils.js'),
+      read('frontend/react/src/components/fleet/useFleetDirectoryState.js'),
+      read('frontend/react/src/components/fleet/useFleetCruiseLineActions.js'),
+      read('frontend/react/src/components/fleet/useFleetShipActions.js'),
+      read('frontend/react/src/components/fleet/useFleetSailingActions.js'),
+      read('frontend/react/src/components/fleet/useFleetItineraryActions.js')
+    ].join('\n')
+  }
+
+  function readRoleDashboardSurface() {
+    return [
+      read('frontend/react/src/components/ReactRoleDashboard.jsx'),
+      read('frontend/react/src/components/operations/OperationalTurnaroundDashboard.jsx'),
+      read('frontend/react/src/components/operations/OperationsLifecyclePanel.jsx'),
+      read('frontend/react/src/components/operations/OperationsWorkspaceRouter.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandOverviewCompatibility.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandOverviewCard.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandSummarySection.jsx'),
+      read('frontend/react/src/components/operations/OperationsDependencyHandoffSection.jsx'),
+      read('frontend/react/src/components/operations/OperationsStaffingSignoffSection.jsx'),
+      read('frontend/react/src/components/operations/OperationsEscalationSection.jsx'),
+      read('frontend/react/src/components/operations/OperationsTaskChecklistSection.jsx'),
+      read('frontend/react/src/components/operations/OperationalOverviewBoards.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsStaffingReadinessWorkspaces.jsx'),
+      read('frontend/react/src/components/operations/OperationsTaskFlowWorkspaces.jsx'),
+      read('frontend/react/src/components/operations/OperationsDependencyWorkspace.jsx'),
+      read('frontend/react/src/components/operations/OperationsEscalationWorkspace.jsx'),
+      read('frontend/react/src/components/operations/OperationsHandoffWorkspace.jsx'),
+      read('frontend/react/src/components/operations/OperationsTaskWorkspace.jsx'),
+      read('frontend/react/src/components/operations/OperationsEvidencePanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsReadinessEvidencePanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsReleasePacketPanel.jsx'),
+      read('frontend/react/src/components/operations/OperationsMetricsPanel.jsx'),
+      read('frontend/react/src/components/operations/OperationsPlaybookPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsIncidentOutreachScenarioPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsDormantReadinessPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandContinuityPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsLaunchCloseoutPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsTimelineAuditPanels.jsx'),
+      read('frontend/react/src/components/operations/operationalDashboardUtils.js'),
+      read('frontend/react/src/components/operations/useOperationalDashboardDrafts.js')
+    ].join('\n')
   }
 
   it('links customer expansion controls to the controlled booking panel', () => {
@@ -54,7 +135,7 @@ describe('React component accessibility and presentation contracts', () => {
   it('scopes operational turnaround workspaces to the selected person before rendering the dashboard', () => {
     const app = read('frontend/react/src/App.jsx')
     const roleViewDomain = read('frontend/react/src/domain/roleView.js')
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readRoleDashboardSurface()
 
     expect(roleViewDomain).toContain('export function getVisibleTurnaroundOperations')
     expect(roleViewDomain).toContain('getWorkspaceUserBaseName')
@@ -84,7 +165,7 @@ describe('React component accessibility and presentation contracts', () => {
 
 
   it('renders the turnaround lifecycle state as the primary command story', () => {
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readRoleDashboardSurface()
     const styles = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
     const controller = read('controllers/cruise.controller.js')
 
@@ -103,7 +184,7 @@ describe('React component accessibility and presentation contracts', () => {
   it('renders an employer demo command center above the workspace stack', () => {
     const app = read('frontend/react/src/App.jsx')
     const commandCenter = read('frontend/react/src/components/EmployerDemoCommandCenter.jsx')
-    const styles = read('frontend/react/src/styles/components/product-shell.css')
+    const styles = readCssBundle('frontend/react/src/styles/components/product-shell.css')
 
     expect(app).toContain("import EmployerDemoCommandCenter from './components/EmployerDemoCommandCenter.jsx'")
     expect(app).toContain("selectedRoleView === 'admin' &&")
@@ -124,7 +205,7 @@ describe('React component accessibility and presentation contracts', () => {
   })
 
   it('renders actionable turnaround lifecycle controls instead of demo-guide panels', () => {
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const dashboard = readRoleDashboardSurface()
     const styles = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
 
     expect(dashboard).not.toContain('Five-minute demo guide')
@@ -140,8 +221,8 @@ describe('React component accessibility and presentation contracts', () => {
 
 
   it('keeps operations directory panels in the approved dark command-center motif', () => {
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/components/operations-workspaces.css')
+    const dashboard = readRoleDashboardSurface()
+    const styles = readCssBundle('frontend/react/src/styles/components/operations-workspaces.css')
 
     expect(dashboard).toContain('data-testid="react-operations-directory-panel"')
     expect(dashboard).toContain('data-testid="react-operations-directory-card"')
@@ -162,8 +243,8 @@ describe('React component accessibility and presentation contracts', () => {
   })
 
   it('keeps operations workspace navigation labels on a single line with command-center styling', () => {
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const styles = read('frontend/react/src/styles/components/operations-workspaces.css')
+    const dashboard = readRoleDashboardSurface()
+    const styles = readCssBundle('frontend/react/src/styles/components/operations-workspaces.css')
 
     expect(dashboard).toContain("{ id: 'dependencies', label: 'Dependencies'")
     expect(styles).toContain('grid-template-columns: repeat(3, minmax(10.75rem, 1fr));')
@@ -179,6 +260,37 @@ describe('React component accessibility and presentation contracts', () => {
   })
 
 
+  it('keeps production contrast guardrails stronger than legacy compatibility selectors', () => {
+    const contrastHardening = read('frontend/react/src/styles/components/contrast-hardening.css')
+    const componentDirectory = path.join(projectRoot, 'frontend/react/src/styles/components')
+    const componentCssFiles = fs.readdirSync(componentDirectory).filter(file => file.endsWith('.css'))
+    const cssFilesWithLegacyRootOnly = componentCssFiles.filter(file => {
+      const css = fs.readFileSync(path.join(componentDirectory, file), 'utf8')
+      return css.includes('.react-app-shell') && !css.includes('.react-production-shell')
+    })
+
+    expect(cssFilesWithLegacyRootOnly).toEqual([])
+    expect(contrastHardening).toContain('Build 283 audited contrast enforcement')
+    expect(contrastHardening).toContain('.react-production-shell .react-admin-management-card .react-admin-stat-pills span')
+    expect(contrastHardening).toContain('.react-production-shell .cruise-line-presentation-suite .presentation-hero-card .presentation-metric-grid article')
+    expect(contrastHardening).toContain('.react-production-shell .cruise-line-presentation-suite .presentation-hero-card .presentation-metric-grid article span')
+    expect(contrastHardening).toContain('background: #ffffff !important;')
+    expect(contrastHardening).toContain('color: #071827 !important;')
+    expect(contrastHardening).toContain('-webkit-text-fill-color: #071827 !important;')
+  })
+
+  it('keeps quality-console controls reachable after contrast hardening', () => {
+    const contrastHardening = read('frontend/react/src/styles/components/contrast-hardening.css')
+
+    expect(contrastHardening).toContain('Build 284 production-surface visibility regression fix')
+    expect(contrastHardening).toContain('.react-production-shell .react-sqa-console')
+    expect(contrastHardening).toContain('.react-production-shell [data-testid="react-sqa-console"]')
+    expect(contrastHardening).toContain('.react-production-shell .react-sqa-action-card button')
+    expect(contrastHardening).toContain('.react-production-shell .react-sqa-report-links a')
+    expect(contrastHardening).toContain('overflow: visible !important;')
+    expect(contrastHardening).toContain('max-height: none !important;')
+  })
+
   it('keeps the shared CSS foundation as the source of truth for broad React surfaces', () => {
     const retiredDesignSystemPath = path.join(projectRoot, 'frontend/react/src/styles/design-system.css')
     const designSystem = fs.existsSync(retiredDesignSystemPath) ? fs.readFileSync(retiredDesignSystemPath, 'utf8') : ''
@@ -187,17 +299,18 @@ describe('React component accessibility and presentation contracts', () => {
     const theme = read('frontend/react/src/styles/foundation/theme.css')
     const panel = read('frontend/react/src/styles/components/panel.css')
     const card = read('frontend/react/src/styles/components/card.css')
-    const button = read('frontend/react/src/styles/components/button.css')
-    const badge = read('frontend/react/src/styles/components/badge.css')
+    const button = readCssBundle('frontend/react/src/styles/components/button.css')
+    const badge = readCssBundle('frontend/react/src/styles/components/badge.css')
     const table = read('frontend/react/src/styles/components/table.css')
     const navigation = read('frontend/react/src/styles/components/navigation.css')
     const feedback = read('frontend/react/src/styles/components/feedback.css')
     const selectorCard = read('frontend/react/src/styles/components/selector-card.css')
-    const roleSelectorCss = read('frontend/react/src/styles/components/role-selector.css')
-    const productShell = read('frontend/react/src/styles/components/product-shell.css')
-    const application = read('frontend/react/src/styles/components/application.css')
-    const roleDashboardStyles = read('frontend/react/src/styles/components/role-dashboard.css')
-    const form = read('frontend/react/src/styles/components/form.css')
+    const roleSelectorCss = readCssBundle('frontend/react/src/styles/components/role-selector.css')
+    const productShell = readCssBundle('frontend/react/src/styles/components/product-shell.css')
+    const application = readCssBundle('frontend/react/src/styles/components/application.css')
+    const roleDashboardStyles = readCssBundle('frontend/react/src/styles/components/role-dashboard.css')
+    const form = readCssBundle('frontend/react/src/styles/components/form.css')
+    const contrastHardening = read('frontend/react/src/styles/components/contrast-hardening.css')
     const utilities = read('frontend/react/src/styles/utilities/index.css')
     const componentIndex = read('frontend/react/src/styles/components/index.css')
     const layout = read('frontend/react/src/styles/layout/index.css')
@@ -230,7 +343,15 @@ describe('React component accessibility and presentation contracts', () => {
     expect(componentIndex).toContain("@import './selector-card.css';")
     expect(componentIndex).toContain("@import './role-selector.css';")
     expect(componentIndex).toContain("@import './product-shell.css';")
+    expect(componentIndex).toContain("@import './product-polish.css';")
     expect(componentIndex).toContain("@import './role-dashboard.css';")
+    expect(componentIndex).toContain("@import './contrast-hardening.css';")
+    expect(componentIndex.indexOf("@import './operations-contrast.css';")).toBeLessThan(componentIndex.indexOf("@import './contrast-hardening.css';"))
+    expect(contrastHardening).toContain('.react-admin-stat-pills span')
+    expect(contrastHardening).toContain('.presentation-metric-grid article')
+    expect(contrastHardening).toContain('.react-production-shell')
+    expect(contrastHardening).toContain('Build 282 contrast safety net')
+    expect(contrastHardening).toContain('-webkit-text-fill-color: var(--ce-light-surface-text)')
     expect(panel).toContain('.ce-panel')
     expect(card).toContain('.ce-card')
     expect(button).toContain('.ce-button')
@@ -240,6 +361,9 @@ describe('React component accessibility and presentation contracts', () => {
     expect(packageJson.scripts['css:foundation:audit']).toBe('node scripts/verify-css-foundation.js && npm run css:legacy:audit')
     expect(packageJson.scripts['css:legacy:audit']).toBe('node scripts/verify-css-legacy-retirement.js')
     expect(packageJson.scripts['react:production:complete']).toContain('css:foundation:audit')
+    expect(packageJson.scripts.start).toContain('node index.js')
+    expect(packageJson.scripts.start).not.toContain('node --watch index.js')
+    expect(packageJson.scripts['start:watch']).toContain('node --watch index.js')
     expect(fs.existsSync(path.join(projectRoot, RETIRED_APP_CSS_PATH))).toBe(false)
     expect(productShell).toContain('CSS Foundation Refactor - Phase 2')
     expect(productShell).toContain('CSS Foundation Refactor - Phase 5')
@@ -331,8 +455,8 @@ describe('React component accessibility and presentation contracts', () => {
   })
 
   it('migrates major React surfaces onto reusable CSS foundation primitives', () => {
-    const hierarchy = read('frontend/react/src/components/CustomerBookingHierarchy.jsx')
-    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const hierarchy = readAdminHierarchySurface()
+    const fleet = readFleetDirectorySurface()
     const createWorkflow = read('frontend/react/src/components/ReactCruiseLineCreateWorkflow.jsx')
     const selector = read('frontend/react/src/components/ReactRoleSelector.jsx')
     const sqa = read('frontend/react/src/components/ReactSqaConsole.jsx')
@@ -341,8 +465,8 @@ describe('React component accessibility and presentation contracts', () => {
     const draftFeedback = read('frontend/react/src/components/DraftFeedback.jsx')
     const retiredDesignSystemPath = path.join(projectRoot, 'frontend/react/src/styles/design-system.css')
     const designSystem = fs.existsSync(retiredDesignSystemPath) ? fs.readFileSync(retiredDesignSystemPath, 'utf8') : ''
-    const roleSelectorCss = read('frontend/react/src/styles/components/role-selector.css')
-    const productShell = read('frontend/react/src/styles/components/product-shell.css')
+    const roleSelectorCss = readCssBundle('frontend/react/src/styles/components/role-selector.css')
+    const productShell = readCssBundle('frontend/react/src/styles/components/product-shell.css')
 
     expect(app).toContain('production-hero ce-command-panel')
     expect(app).toContain('react-top-nav ce-command-card')
@@ -406,8 +530,42 @@ describe('React component accessibility and presentation contracts', () => {
 
 
   it('migrates role dashboards and operational workspaces onto reusable CSS foundation primitives', () => {
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
-    const roleDashboardStyles = read('frontend/react/src/styles/components/role-dashboard.css')
+    const dashboard = [
+      read('frontend/react/src/components/ReactRoleDashboard.jsx'),
+      read('frontend/react/src/components/passenger/RolePassengerSurface.jsx'),
+      read('frontend/react/src/components/passenger/RoleBookingCard.jsx'),
+      read('frontend/react/src/components/operations/OperationalTurnaroundDashboard.jsx'),
+      read('frontend/react/src/components/operations/OperationsLifecyclePanel.jsx'),
+      read('frontend/react/src/components/operations/OperationsWorkspaceRouter.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandOverviewCompatibility.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandOverviewCard.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandSummarySection.jsx'),
+      read('frontend/react/src/components/operations/OperationsDependencyHandoffSection.jsx'),
+      read('frontend/react/src/components/operations/OperationsStaffingSignoffSection.jsx'),
+      read('frontend/react/src/components/operations/OperationsEscalationSection.jsx'),
+      read('frontend/react/src/components/operations/OperationsTaskChecklistSection.jsx'),
+      read('frontend/react/src/components/operations/OperationalOverviewBoards.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsStaffingReadinessWorkspaces.jsx'),
+      read('frontend/react/src/components/operations/OperationsTaskFlowWorkspaces.jsx'),
+      read('frontend/react/src/components/operations/OperationsDependencyWorkspace.jsx'),
+      read('frontend/react/src/components/operations/OperationsEscalationWorkspace.jsx'),
+      read('frontend/react/src/components/operations/OperationsHandoffWorkspace.jsx'),
+      read('frontend/react/src/components/operations/OperationsTaskWorkspace.jsx'),
+      read('frontend/react/src/components/operations/OperationsEvidencePanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsReadinessEvidencePanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsReleasePacketPanel.jsx'),
+      read('frontend/react/src/components/operations/OperationsMetricsPanel.jsx'),
+      read('frontend/react/src/components/operations/OperationsPlaybookPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsIncidentOutreachScenarioPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsDormantReadinessPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandContinuityPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsLaunchCloseoutPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsTimelineAuditPanels.jsx'),
+      read('frontend/react/src/components/operations/operationalDashboardUtils.js'),
+      read('frontend/react/src/components/operations/useOperationalDashboardDrafts.js')
+    ].join('\n')
+    const roleDashboardStyles = readCssBundle('frontend/react/src/styles/components/role-dashboard.css')
     const retiredDesignSystemPath = path.join(projectRoot, 'frontend/react/src/styles/design-system.css')
     const designSystem = fs.existsSync(retiredDesignSystemPath) ? fs.readFileSync(retiredDesignSystemPath, 'utf8') : ''
 
@@ -447,15 +605,32 @@ describe('React component accessibility and presentation contracts', () => {
 
 
   it('loads full booking details before rendering passenger itinerary controls when bulk booking payloads are compact', () => {
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const roleBookingCard = read('frontend/react/src/components/passenger/RoleBookingCard.jsx')
     const apiClient = read('frontend/react/src/api/client.js')
 
     expect(apiClient).toContain('export async function getBookingDetails')
-    expect(dashboard).toContain("import { getBookingDetails, getItineraryForSailing, updatePassengerPreCruiseChecklist } from '../api/client.js'")
-    expect(dashboard).toContain('const needsItineraryDetails = isExpanded && bookingId && getBookingItineraryDays(effectiveBooking).length === 0')
-    expect(dashboard).toContain('const nextBooking = await getBookingDetails(bookingId)')
-    expect(dashboard).toContain('data-testid="react-role-booking-details-loading"')
-    expect(dashboard).toContain('booking={effectiveBooking}')
+    expect(roleBookingCard).toContain("import { getBookingDetails, getItineraryForSailing } from '../../api/client.js'")
+    expect(roleBookingCard).toContain('const needsItineraryDetails = isExpanded && bookingId && getBookingItineraryDays(effectiveBooking).length === 0')
+    expect(roleBookingCard).toContain('const nextBooking = await getBookingDetails(bookingId)')
+    expect(roleBookingCard).toContain('data-testid="react-role-booking-details-loading"')
+    expect(roleBookingCard).toContain('booking={effectiveBooking}')
+  })
+
+
+  it('keeps role booking list state isolated in the passenger domain component', () => {
+    const dashboard = readRoleDashboardSurface()
+    const roleBookingList = read('frontend/react/src/components/passenger/RoleBookingList.jsx')
+
+    expect(dashboard).toContain("import RoleBookingList from './passenger/RoleBookingList.jsx'")
+    expect(dashboard).toContain('<RoleBookingList')
+    expect(roleBookingList).toContain('export default function RoleBookingList')
+    expect(roleBookingList).toContain('const [expandedBookingIds, setExpandedBookingIds] = useState(() => new Set())')
+    expect(roleBookingList).toContain('function toggleBookingDetails')
+    expect(roleBookingList).toContain('function toggleFavoriteItineraryActivity')
+    expect(roleBookingList).toContain('function toggleFavoritesOnly')
+    expect(roleBookingList).toContain('role-booking-list')
+    expect(roleBookingList).toContain('RoleBookingCard')
+    expect(roleBookingList).toContain('getBookingItineraryDays')
   })
 
 
@@ -467,6 +642,58 @@ describe('React route preview accessibility contracts', () => {
 
   function read(relativePath) {
     return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
+  }
+
+  function readFleetDirectorySurface() {
+    return [
+      read('frontend/react/src/components/ReactFleetDirectory.jsx'),
+      read('frontend/react/src/components/fleet/ReactFleetCruiseLineGrid.jsx'),
+      read('frontend/react/src/components/fleet/ReactFleetShipPanel.jsx'),
+      read('frontend/react/src/components/fleet/ReactFleetSailingPanel.jsx'),
+      read('frontend/react/src/components/fleet/ReactFleetItineraryPanel.jsx'),
+      read('frontend/react/src/components/fleet/fleetDirectoryUtils.js'),
+      read('frontend/react/src/components/fleet/useFleetDirectoryState.js'),
+      read('frontend/react/src/components/fleet/useFleetCruiseLineActions.js'),
+      read('frontend/react/src/components/fleet/useFleetShipActions.js'),
+      read('frontend/react/src/components/fleet/useFleetSailingActions.js'),
+      read('frontend/react/src/components/fleet/useFleetItineraryActions.js')
+    ].join('\n')
+  }
+
+  function readRoleDashboardSurface() {
+    return [
+      read('frontend/react/src/components/ReactRoleDashboard.jsx'),
+      read('frontend/react/src/components/operations/OperationalTurnaroundDashboard.jsx'),
+      read('frontend/react/src/components/operations/OperationsLifecyclePanel.jsx'),
+      read('frontend/react/src/components/operations/OperationsWorkspaceRouter.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandOverviewCompatibility.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandOverviewCard.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandSummarySection.jsx'),
+      read('frontend/react/src/components/operations/OperationsDependencyHandoffSection.jsx'),
+      read('frontend/react/src/components/operations/OperationsStaffingSignoffSection.jsx'),
+      read('frontend/react/src/components/operations/OperationsEscalationSection.jsx'),
+      read('frontend/react/src/components/operations/OperationsTaskChecklistSection.jsx'),
+      read('frontend/react/src/components/operations/OperationalOverviewBoards.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsStaffingReadinessWorkspaces.jsx'),
+      read('frontend/react/src/components/operations/OperationsTaskFlowWorkspaces.jsx'),
+      read('frontend/react/src/components/operations/OperationsDependencyWorkspace.jsx'),
+      read('frontend/react/src/components/operations/OperationsEscalationWorkspace.jsx'),
+      read('frontend/react/src/components/operations/OperationsHandoffWorkspace.jsx'),
+      read('frontend/react/src/components/operations/OperationsTaskWorkspace.jsx'),
+      read('frontend/react/src/components/operations/OperationsEvidencePanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsReadinessEvidencePanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsReleasePacketPanel.jsx'),
+      read('frontend/react/src/components/operations/OperationsMetricsPanel.jsx'),
+      read('frontend/react/src/components/operations/OperationsPlaybookPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsIncidentOutreachScenarioPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsDormantReadinessPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandContinuityPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsLaunchCloseoutPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsTimelineAuditPanels.jsx'),
+      read('frontend/react/src/components/operations/operationalDashboardUtils.js'),
+      read('frontend/react/src/components/operations/useOperationalDashboardDrafts.js')
+    ].join('\n')
   }
 
   it('keeps React workspace controls accessible and discoverable', () => {
@@ -486,7 +713,7 @@ describe('React route preview accessibility contracts', () => {
   it('keeps the self-guided overview concise and separate from workspace cards', () => {
     const app = read('frontend/react/src/App.jsx')
     const overview = read('frontend/react/src/components/EmployerDemoCommandCenter.jsx')
-    const hierarchy = read('frontend/react/src/components/CustomerBookingHierarchy.jsx')
+    const hierarchy = readAdminHierarchySurface()
 
     expect(app).not.toContain('aria-label="Recommended workflow controls"')
     expect(app).not.toContain('type="button" className="workflow-step-button"')
@@ -500,7 +727,7 @@ describe('React route preview accessibility contracts', () => {
 
 
   it('keeps React admin workspace table semantics aligned with the operations workflow table', () => {
-    const hierarchy = read('frontend/react/src/components/CustomerBookingHierarchy.jsx')
+    const hierarchy = readAdminHierarchySurface()
     const row = read('frontend/react/src/components/CustomerHierarchyRow.jsx')
 
     expect(hierarchy).toContain('aria-labelledby="react-admin-workspace-heading"')
@@ -513,7 +740,7 @@ describe('React route preview accessibility contracts', () => {
 
 
   it('keeps admin customer records sorted and displayed by last name first', () => {
-    const hierarchy = read('frontend/react/src/components/CustomerBookingHierarchy.jsx')
+    const hierarchy = readAdminHierarchySurface()
     const adminHierarchyDomain = read('frontend/react/src/domain/adminHierarchy.js')
 
     expect(hierarchy).toContain('getCustomerDirectoryName(customer)')
@@ -585,7 +812,10 @@ describe('React route preview accessibility contracts', () => {
   it('keeps React passenger self-service profile saves wired to the passenger-profile API', () => {
     const client = read('frontend/react/src/api/client.js')
     const hook = read('frontend/react/src/hooks/useCustomerProfileMutation.js')
-    const roleDashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const roleDashboard = [
+      read('frontend/react/src/components/ReactRoleDashboard.jsx'),
+      read('frontend/react/src/components/passenger/RolePassengerSurface.jsx')
+    ].join('\n')
     const cypress = read('cypress/react/reactApp.cy.js')
 
     expect(client).toContain('updatePassengerProfile')
@@ -662,7 +892,41 @@ describe('React route preview accessibility contracts', () => {
 
 
   it('keeps React passenger and group dashboards accessible after role switching', () => {
-    const roleDashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const roleDashboard = [
+      read('frontend/react/src/components/ReactRoleDashboard.jsx'),
+      read('frontend/react/src/components/passenger/RolePassengerSurface.jsx'),
+      read('frontend/react/src/components/passenger/RoleBookingCard.jsx'),
+      read('frontend/react/src/components/operations/OperationalTurnaroundDashboard.jsx'),
+      read('frontend/react/src/components/operations/OperationsLifecyclePanel.jsx'),
+      read('frontend/react/src/components/operations/OperationsWorkspaceRouter.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandOverviewCompatibility.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandOverviewCard.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandSummarySection.jsx'),
+      read('frontend/react/src/components/operations/OperationsDependencyHandoffSection.jsx'),
+      read('frontend/react/src/components/operations/OperationsStaffingSignoffSection.jsx'),
+      read('frontend/react/src/components/operations/OperationsEscalationSection.jsx'),
+      read('frontend/react/src/components/operations/OperationsTaskChecklistSection.jsx'),
+      read('frontend/react/src/components/operations/OperationalOverviewBoards.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsStaffingReadinessWorkspaces.jsx'),
+      read('frontend/react/src/components/operations/OperationsTaskFlowWorkspaces.jsx'),
+      read('frontend/react/src/components/operations/OperationsDependencyWorkspace.jsx'),
+      read('frontend/react/src/components/operations/OperationsEscalationWorkspace.jsx'),
+      read('frontend/react/src/components/operations/OperationsHandoffWorkspace.jsx'),
+      read('frontend/react/src/components/operations/OperationsTaskWorkspace.jsx'),
+      read('frontend/react/src/components/operations/OperationsEvidencePanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsReadinessEvidencePanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsReleasePacketPanel.jsx'),
+      read('frontend/react/src/components/operations/OperationsMetricsPanel.jsx'),
+      read('frontend/react/src/components/operations/OperationsPlaybookPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsIncidentOutreachScenarioPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsDormantReadinessPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandContinuityPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsLaunchCloseoutPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsTimelineAuditPanels.jsx'),
+      read('frontend/react/src/components/operations/operationalDashboardUtils.js'),
+      read('frontend/react/src/components/operations/useOperationalDashboardDrafts.js')
+    ].join('\n')
     const app = read('frontend/react/src/App.jsx')
 
     expect(roleDashboard).toContain('aria-labelledby="react-role-dashboard-heading"')
@@ -679,9 +943,43 @@ describe('React route preview accessibility contracts', () => {
 
 
   it('keeps React passenger booking details and itinerary favorites in coverage with the role dashboard', () => {
-    const roleDashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const roleDashboard = [
+      read('frontend/react/src/components/ReactRoleDashboard.jsx'),
+      read('frontend/react/src/components/passenger/RolePassengerSurface.jsx'),
+      read('frontend/react/src/components/passenger/RoleBookingCard.jsx'),
+      read('frontend/react/src/components/operations/OperationalTurnaroundDashboard.jsx'),
+      read('frontend/react/src/components/operations/OperationsLifecyclePanel.jsx'),
+      read('frontend/react/src/components/operations/OperationsWorkspaceRouter.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandOverviewCompatibility.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandOverviewCard.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandSummarySection.jsx'),
+      read('frontend/react/src/components/operations/OperationsDependencyHandoffSection.jsx'),
+      read('frontend/react/src/components/operations/OperationsStaffingSignoffSection.jsx'),
+      read('frontend/react/src/components/operations/OperationsEscalationSection.jsx'),
+      read('frontend/react/src/components/operations/OperationsTaskChecklistSection.jsx'),
+      read('frontend/react/src/components/operations/OperationalOverviewBoards.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsStaffingReadinessWorkspaces.jsx'),
+      read('frontend/react/src/components/operations/OperationsTaskFlowWorkspaces.jsx'),
+      read('frontend/react/src/components/operations/OperationsDependencyWorkspace.jsx'),
+      read('frontend/react/src/components/operations/OperationsEscalationWorkspace.jsx'),
+      read('frontend/react/src/components/operations/OperationsHandoffWorkspace.jsx'),
+      read('frontend/react/src/components/operations/OperationsTaskWorkspace.jsx'),
+      read('frontend/react/src/components/operations/OperationsEvidencePanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsReadinessEvidencePanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsReleasePacketPanel.jsx'),
+      read('frontend/react/src/components/operations/OperationsMetricsPanel.jsx'),
+      read('frontend/react/src/components/operations/OperationsPlaybookPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsIncidentOutreachScenarioPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsDormantReadinessPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsCommandContinuityPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsLaunchCloseoutPanels.jsx'),
+      read('frontend/react/src/components/operations/OperationsTimelineAuditPanels.jsx'),
+      read('frontend/react/src/components/operations/operationalDashboardUtils.js'),
+      read('frontend/react/src/components/operations/useOperationalDashboardDrafts.js')
+    ].join('\n')
     const roleView = read('frontend/react/src/domain/roleView.js')
-    const styles = read('frontend/react/src/styles/components/workflow.css')
+    const styles = readCssBundle('frontend/react/src/styles/components/workflow.css')
     const cypress = read('cypress/react/reactApp.cy.js')
 
     expect(roleDashboard).toContain('RoleBookingDetails')
@@ -702,7 +1000,7 @@ describe('React route preview accessibility contracts', () => {
 
   it('keeps React role dashboard tolerant of loading demo-user data', () => {
     const roleView = read('frontend/react/src/domain/roleView.js')
-    const roleDashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const roleDashboard = readRoleDashboardSurface()
 
     expect(roleView).toContain('selectedDemoUser?.displayName')
     expect(roleDashboard).toContain('selectedDemoUser={selectedDemoUser}')
@@ -712,7 +1010,7 @@ describe('React route preview accessibility contracts', () => {
 
   it('keeps React workspace cards usable as Safari mobile touch targets', () => {
     const app = read('frontend/react/src/App.jsx')
-    const styles = read('frontend/react/src/styles/components/workflow.css')
+    const styles = readCssBundle('frontend/react/src/styles/components/workflow.css')
 
     expect(app).not.toContain('data-testid="react-workspace-demo-button"')
     expect(app).toContain('data-testid="react-workspace-role-button"')
@@ -728,7 +1026,7 @@ describe('React route preview accessibility contracts', () => {
 
   it('keeps React workspace buttons guarded with inline Safari-safe touch targets', () => {
     const app = read('frontend/react/src/App.jsx')
-    const styles = read('frontend/react/src/styles/components/workflow.css')
+    const styles = readCssBundle('frontend/react/src/styles/components/workflow.css')
 
     expect(app).toContain('const workspaceTouchTargetStyle')
     expect(app).toContain("minHeight: '72px'")
@@ -740,7 +1038,7 @@ describe('React route preview accessibility contracts', () => {
 
   it('keeps React workspace buttons at an explicit WebKit-safe height', () => {
     const app = read('frontend/react/src/App.jsx')
-    const styles = read('frontend/react/src/styles/components/workflow.css')
+    const styles = readCssBundle('frontend/react/src/styles/components/workflow.css')
 
     expect(app).toContain("height: '72px'")
     expect(app).toContain("blockSize: '72px'")
@@ -754,7 +1052,7 @@ describe('React route preview accessibility contracts', () => {
 
   it('keeps React workspace touch-target styles exposed to Playwright', () => {
     const app = read('frontend/react/src/App.jsx')
-    const styles = read('frontend/react/src/styles/components/workflow.css')
+    const styles = readCssBundle('frontend/react/src/styles/components/workflow.css')
 
     expect(app).toContain("height: '72px'")
     expect(app).toContain("blockSize: '72px'")
@@ -775,8 +1073,8 @@ describe('React route preview accessibility contracts', () => {
 
   it('keeps React checkbox labels from creating Mobile Safari document overflow', () => {
     const app = read('frontend/react/src/App.jsx')
-    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
-    const styles = read('frontend/react/src/styles/components/workflow.css')
+    const fleet = readFleetDirectorySurface()
+    const styles = readCssBundle('frontend/react/src/styles/components/workflow.css')
 
     expect(app).toContain('react-production-shell')
     expect(fleet).toContain('className="react-checkbox-label"')
@@ -790,7 +1088,7 @@ describe('React route preview accessibility contracts', () => {
 
 
   it('keeps React fleet directory wired to the real View Ships API workflow', () => {
-    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const fleet = readFleetDirectorySurface()
     const client = read('frontend/react/src/api/client.js')
     const cypress = read('cypress/react/reactApp.cy.js')
     const responsive = read('playwright/responsive/react-production-responsive.spec.js')
@@ -808,7 +1106,7 @@ describe('React route preview accessibility contracts', () => {
 
 
   it('keeps React fleet delete coverage wired through the real API', () => {
-    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const fleet = readFleetDirectorySurface()
     const client = read('frontend/react/src/api/client.js')
     const cypress = read('cypress/react/reactApp.cy.js')
     const responsive = read('playwright/responsive/react-production-responsive.spec.js')
@@ -846,7 +1144,7 @@ describe('React route preview accessibility contracts', () => {
 
 
   it('keeps React ship CRUD and sailing lookup coverage wired through browser coverage', () => {
-    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const fleet = readFleetDirectorySurface()
     const client = read('frontend/react/src/api/client.js')
     const cypress = read('cypress/react/reactApp.cy.js')
     const selectors = read('cypress/react/support/reactSelectors.js')
@@ -875,10 +1173,10 @@ describe('React route preview accessibility contracts', () => {
 
 
   it('keeps React admin create and delete coverage wired through browser coverage', () => {
-    const hierarchy = read('frontend/react/src/components/CustomerBookingHierarchy.jsx')
+    const hierarchy = readAdminHierarchySurface()
     const client = read('frontend/react/src/api/client.js')
     const cypress = read('cypress/react/reactApp.cy.js')
-    const styles = read('frontend/react/src/styles/components/workflow.css')
+    const styles = readCssBundle('frontend/react/src/styles/components/workflow.css')
 
     expect(client).toContain('export async function createCustomer')
     expect(client).toContain('export async function deleteCustomer')
@@ -904,7 +1202,7 @@ describe('React route preview accessibility contracts', () => {
 
   it('keeps React role dashboard test ids based on normalized role views', () => {
     const roleView = read('frontend/react/src/domain/roleView.js')
-    const roleDashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const roleDashboard = readRoleDashboardSurface()
     const cypress = read('cypress/react/reactApp.cy.js')
     const selectors = read('cypress/react/support/reactSelectors.js')
 
@@ -932,13 +1230,13 @@ describe('React route preview accessibility contracts', () => {
 
 
   it('keeps React itinerary detail coverage wired through browser coverage', () => {
-    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const fleet = readFleetDirectorySurface()
     const client = read('frontend/react/src/api/client.js')
     const cypress = read('cypress/react/reactApp.cy.js')
     const selectors = read('cypress/react/support/reactSelectors.js')
     const mobile = read('playwright/mobile/react-production-mobile.spec.js')
     const responsive = read('playwright/responsive/react-production-responsive.spec.js')
-    const styles = read('frontend/react/src/styles/components/workflow.css')
+    const styles = readCssBundle('frontend/react/src/styles/components/workflow.css')
 
     expect(client).toContain('export async function getItineraryForSailing')
     expect(fleet).toContain('handleViewItinerary')
@@ -956,7 +1254,7 @@ describe('React route preview accessibility contracts', () => {
 
 
   it('keeps React cruise line update coverage wired through browser coverage', () => {
-    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const fleet = readFleetDirectorySurface()
     const client = read('frontend/react/src/api/client.js')
     const cypress = read('cypress/react/reactApp.cy.js')
     const mobile = read('playwright/mobile/react-production-mobile.spec.js')
@@ -1001,12 +1299,12 @@ describe('React route preview accessibility contracts', () => {
 
 
   it('keeps React sailing CRUD coverage wired through browser coverage', () => {
-    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const fleet = readFleetDirectorySurface()
     const client = read('frontend/react/src/api/client.js')
     const cypress = read('cypress/react/reactApp.cy.js')
     const mobile = read('playwright/mobile/react-production-mobile.spec.js')
     const responsive = read('playwright/responsive/react-production-responsive.spec.js')
-    const styles = read('frontend/react/src/styles/components/workflow.css')
+    const styles = readCssBundle('frontend/react/src/styles/components/workflow.css')
 
     expect(client).toContain('export async function createSailing')
     expect(client).toContain('export async function updateSailing')
@@ -1029,7 +1327,7 @@ describe('React route preview accessibility contracts', () => {
 
   it('keeps React sailing CRUD covered through controlled edit forms instead of prompts', () => {
     const cypress = read('cypress/react/reactApp.cy.js')
-    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const fleet = readFleetDirectorySurface()
     const testStart = cypress.indexOf("manages React ship CRUD and sailing lookup from the selected fleet panel")
     const testEnd = cypress.indexOf("runs a React quality health check and writes output", testStart)
     const testBlock = cypress.slice(testStart, testEnd)
@@ -1045,12 +1343,12 @@ describe('React route preview accessibility contracts', () => {
 
 
   it('keeps React itinerary day and activity CRUD coverage wired through browser coverage', () => {
-    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const fleet = readFleetDirectorySurface()
     const client = read('frontend/react/src/api/client.js')
     const cypress = read('cypress/react/reactApp.cy.js')
     const mobile = read('playwright/mobile/react-production-mobile.spec.js')
     const responsive = read('playwright/responsive/react-production-responsive.spec.js')
-    const styles = read('frontend/react/src/styles/components/workflow.css')
+    const styles = readCssBundle('frontend/react/src/styles/components/workflow.css')
 
     expect(client).toContain('export async function createItineraryDay')
     expect(client).toContain('export async function updateItineraryDay')
@@ -1093,9 +1391,9 @@ describe('React route preview accessibility contracts', () => {
 
   it('keeps cruise-line brand metadata professional, specific, and database seeded for every fleet card', () => {
     const seedData = read('data/cruise.json')
-    const fleet = read('frontend/react/src/components/ReactFleetDirectory.jsx')
+    const fleet = readFleetDirectorySurface()
     const createWorkflow = read('frontend/react/src/components/ReactCruiseLineCreateWorkflow.jsx')
-    const styles = read('frontend/react/src/styles/components/application.css')
+    const styles = readCssBundle('frontend/react/src/styles/components/application.css')
 
     expect(seedData).toContain('\"brandFamily\": \"Royal Caribbean Group\"')
     expect(seedData).toContain('\"brandTheme\": \"Adventure Innovation\"')
@@ -1115,14 +1413,14 @@ describe('React route preview accessibility contracts', () => {
   })
 
   it('keeps operational directory cards available for cross-department coordination without large unbounded rendering', () => {
-    const roleDashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const roleDashboard = readRoleDashboardSurface()
     const selectors = read('cypress/react/support/reactSelectors.js')
     const styles = [
       optionalStyleRead(RETIRED_APP_CSS_PATH),
-      read('frontend/react/src/styles/components/operations-workspaces.css'),
-      read('frontend/react/src/styles/components/operations-queues.css'),
-      read('frontend/react/src/styles/components/operations-coverage.css'),
-      read('frontend/react/src/styles/components/readiness-centers.css'),
+      readCssBundle('frontend/react/src/styles/components/operations-workspaces.css'),
+      readCssBundle('frontend/react/src/styles/components/operations-queues.css'),
+      readCssBundle('frontend/react/src/styles/components/operations-coverage.css'),
+      readCssBundle('frontend/react/src/styles/components/readiness-centers.css'),
       readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css'),
     ].join('\n')
 
@@ -1245,13 +1543,13 @@ describe('React route preview accessibility contracts', () => {
   })
 
   it('keeps passenger booking detail expansion resilient when compact booking payloads omit itinerary rows', () => {
-    const dashboard = read('frontend/react/src/components/ReactRoleDashboard.jsx')
+    const roleBookingCard = read('frontend/react/src/components/passenger/RoleBookingCard.jsx')
     const mobileSpec = read('playwright/mobile/react-production-mobile.spec.js')
 
-    expect(dashboard).toContain('getBookingDetails, getItineraryForSailing')
-    expect(dashboard).toContain('const nextItineraryDays = getBookingItineraryDays(nextBooking)')
-    expect(dashboard).toContain('const itineraryDays = await getItineraryForSailing(nextSailingId)')
-    expect(dashboard).toContain('itineraryDays')
+    expect(roleBookingCard).toContain('getBookingDetails, getItineraryForSailing')
+    expect(roleBookingCard).toContain('const nextItineraryDays = getBookingItineraryDays(nextBooking)')
+    expect(roleBookingCard).toContain('const itineraryDays = await getItineraryForSailing(nextSailingId)')
+    expect(roleBookingCard).toContain('itineraryDays')
     expect(mobileSpec).toContain('openedItineraryBooking')
     expect(mobileSpec).toContain('waitForPassengerBookingDetailToggles(page')
     expect(mobileSpec).toContain('clickStableControl(toggle')
@@ -1284,7 +1582,19 @@ describe('turnaround command center React contract', () => {
   it('keeps the turnaround command center wired from API assembly to role dashboard render', () => {
     const controller = fs.readFileSync(path.join(projectRoot, 'controllers/cruise.controller.js'), 'utf8')
     const roleView = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/roleView.js'), 'utf8')
-    const dashboard = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactRoleDashboard.jsx'), 'utf8')
+    const dashboard = [
+      fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactRoleDashboard.jsx'), 'utf8'),
+      fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/operations/OperationalTurnaroundDashboard.jsx'), 'utf8'),
+      fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/operations/OperationsStaffingReadinessWorkspaces.jsx'), 'utf8'),
+      fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/operations/OperationsEvidencePanels.jsx'), 'utf8'),
+      fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/operations/OperationsReadinessEvidencePanels.jsx'), 'utf8'),
+      fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/operations/OperationsDormantReadinessPanels.jsx'), 'utf8'),
+      fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/operations/OperationsCommandContinuityPanels.jsx'), 'utf8'),
+      fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/operations/OperationsLaunchCloseoutPanels.jsx'), 'utf8'),
+      fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/operations/OperationsTimelineAuditPanels.jsx'), 'utf8'),
+      fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/operations/operationalDashboardUtils.js'), 'utf8'),
+      fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/operations/useOperationalDashboardDrafts.js'), 'utf8')
+    ].join('\n')
 
     expect(controller).toContain("buildTurnaroundCommandCenter")
     expect(controller).toContain("buildTurnaroundContinuityCenter")
@@ -1308,7 +1618,7 @@ describe('turnaround command center React contract', () => {
 
 
 test('role selector finder panels use CSS foundation contrast contracts', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/role-selector.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/role-selector.css')
 
   expect(cssSource).toContain('Role selector component architecture')
   expect(cssSource).toContain('Role selector finder panels now use the CSS foundation')
@@ -1320,7 +1630,7 @@ test('role selector finder panels use CSS foundation contrast contracts', () => 
 
 
 test('operational role assignment filters use CSS foundation light editor contracts', () => {
-  const cssSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/role-selector.css'), 'utf8')
+  const cssSource = readCssBundle('frontend/react/src/styles/components/role-selector.css')
 
   expect(cssSource).toContain('Passenger and operational finder component architecture')
   expect(cssSource).toContain('.react-production-shell .role-selector-section :is(.passenger-finder-panel, .person-finder-panel, .role-summary-card)')
@@ -1432,7 +1742,7 @@ test('build 478 outreach board details use readable card layout', () => {
 
 
 test('employer-facing role dashboard does not render reviewer or system-readiness packet', () => {
-  const source = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/components/ReactRoleDashboard.jsx'), 'utf8')
+  const source = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/components/operations/OperationalTurnaroundDashboard.jsx'), 'utf8')
 
   expect(source).not.toContain('selectedOperation?.reviewerPacket')
   expect(source).not.toContain('react-operations-reviewer-packet')
@@ -1444,7 +1754,7 @@ test('employer-facing role dashboard does not render reviewer or system-readines
 
 
 test('employer-facing role dashboard does not render turnaround management status panel', () => {
-  const source = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/components/ReactRoleDashboard.jsx'), 'utf8')
+  const source = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/components/operations/OperationalTurnaroundDashboard.jsx'), 'utf8')
 
   expect(source).not.toContain('selectedOperation?.managementStatus')
   expect(source).not.toContain('react-operations-management-status')
@@ -1456,7 +1766,7 @@ test('employer-facing role dashboard does not render turnaround management statu
 
 
 test('employer-facing role dashboard does not render launch plan panel', () => {
-  const source = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/components/ReactRoleDashboard.jsx'), 'utf8')
+  const source = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/components/operations/OperationalTurnaroundDashboard.jsx'), 'utf8')
 
   expect(source).not.toContain('selectedOperation?.launchPlan')
   expect(source).not.toContain('react-operations-launch-plan')
@@ -1538,7 +1848,7 @@ test('phase 23 first-impression hero styles live in the hero component layer', (
   const heroStyles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/hero.css'), 'utf8')
   const retiredDesignSystemPath = path.join(__dirname, '../../frontend/react/src/styles/design-system.css')
   const designSystem = fs.existsSync(retiredDesignSystemPath) ? fs.readFileSync(retiredDesignSystemPath, 'utf8') : ''
-  const legacyStyles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/product-shell.css'), 'utf8')
+  const legacyStyles = readCssBundle('frontend/react/src/styles/components/product-shell.css', 'frontend/react/src/styles/components/product-polish.css')
   const foundationAudit = fs.readFileSync(path.join(__dirname, '../../scripts/verify-css-foundation.js'), 'utf8')
   const componentIndex = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/index.css'), 'utf8')
 
@@ -1574,14 +1884,14 @@ test('phase 21 and 22 passenger voyage planner styles live in the passenger comp
 })
 
 test('phase 20 admin workspace styles live in component CSS', () => {
-  const adminWorkspaces = [
-    fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/admin-workspaces.css'), 'utf8'),
-    fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/admin-presentation.css'), 'utf8'),
-  ].join('\n')
+  const adminWorkspaces = readCssBundle(
+    'frontend/react/src/styles/components/admin-workspaces.css',
+    'frontend/react/src/styles/components/admin-presentation.css'
+  )
   const componentIndex = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/index.css'), 'utf8')
   const retiredDesignSystemPath = path.join(__dirname, '../../frontend/react/src/styles/design-system.css')
   const designSystem = fs.existsSync(retiredDesignSystemPath) ? fs.readFileSync(retiredDesignSystemPath, 'utf8') : ''
-  const legacyStyles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/product-shell.css'), 'utf8')
+  const legacyStyles = readCssBundle('frontend/react/src/styles/components/product-shell.css', 'frontend/react/src/styles/components/product-polish.css')
   const appCss = optionalStyleRead(RETIRED_APP_CSS_PATH)
 
   expect(componentIndex).toContain("@import './admin-workspaces.css';")
@@ -1606,9 +1916,9 @@ test('phase 19 operational dashboard styles live in component CSS', () => {
   const designSystem = fs.existsSync(retiredDesignSystemPath) ? fs.readFileSync(retiredDesignSystemPath, 'utf8') : ''
   const operationsDashboard = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
   const operationsTimeline = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/operations-timeline.css'), 'utf8')
-  const operationsWorkspaces = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/operations-workspaces.css'), 'utf8')
+  const operationsWorkspaces = readCssBundle('frontend/react/src/styles/components/operations-workspaces.css')
   const componentIndex = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/index.css'), 'utf8')
-  const legacyStyles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/product-shell.css'), 'utf8')
+  const legacyStyles = readCssBundle('frontend/react/src/styles/components/product-shell.css', 'frontend/react/src/styles/components/product-polish.css')
   const appCss = optionalStyleRead(RETIRED_APP_CSS_PATH)
 
   expect(componentIndex).toContain("@import './operations-role-surface.css';")
@@ -1639,10 +1949,10 @@ test('phase 19 operational dashboard styles live in component CSS', () => {
 
 
 test('slice 31 readiness and diagnostic center styles live in component CSS', () => {
-  const readinessCenters = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/readiness-centers.css'), 'utf8')
+  const readinessCenters = readCssBundle('frontend/react/src/styles/components/readiness-centers.css')
   const operationsDashboard = readCssBundle('frontend/react/src/styles/components/operations-role-surface.css', 'frontend/react/src/styles/components/operations-continuity.css', 'frontend/react/src/styles/components/operations-release.css', 'frontend/react/src/styles/components/operations-evidence.css')
   const componentIndex = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/index.css'), 'utf8')
-  const legacyStyles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/product-shell.css'), 'utf8')
+  const legacyStyles = readCssBundle('frontend/react/src/styles/components/product-shell.css', 'frontend/react/src/styles/components/product-polish.css')
   const appCss = optionalStyleRead(RETIRED_APP_CSS_PATH)
 
   expect(componentIndex).toContain("@import './readiness-centers.css';")
@@ -1697,7 +2007,7 @@ test('phase 18 retires the Build 490-495 operational contrast patch stack into t
 })
 
 test('role selector component keeps operational task action buttons on component-layer contrast rules', () => {
-  const designSystem = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/role-selector.css'), 'utf8')
+  const designSystem = readCssBundle('frontend/react/src/styles/components/role-selector.css')
   const legacyStyles = optionalStyleRead(RETIRED_APP_CSS_PATH)
 
   expect(designSystem).toContain('Operational form action component architecture')

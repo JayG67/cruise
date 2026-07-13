@@ -1,0 +1,124 @@
+/* React passenger and group booking details coverage with the prior role dashboard. */
+.role-booking-detail-panel {
+  background: #f8fbff;
+  border: 1px solid #dbe8f5;
+  border-radius: 1rem;
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+  max-width: 100%;
+  min-width: 0;
+  padding: 1rem;
+}
+
+.role-booking-detail-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  max-width: 100%;
+  min-width: 0;
+}
+
+.role-detail-card,
+.role-itinerary-panel,
+.role-itinerary-day {
+  background: #ffffff;
+  border: 1px solid #d7e1ef;
+  border-radius: 1rem;
+  max-width: 100%;
+  min-width: 0;
+  padding: 1rem;
+}
+
+.role-detail-card h4,
+.role-itinerary-panel h4,
+.role-itinerary-day h5 {
+  margin: 0 0 0.5rem;
+}
+
+.compact-fields {
+  gap: 0.5rem;
+}
+
+.role-itinerary-heading,
+.role-itinerary-day-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.role-itinerary-heading p,
+.role-itinerary-day-heading p {
+  margin: 0;
+}
+
+.role-favorites-filter,
+.role-favorite-activity-toggle {
+  flex: 0 1 auto;
+  max-width: 100%;
+  min-width: 0;
+  width: auto;
+}
+
+.role-itinerary-list,
+.role-activity-list {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.role-itinerary-list {
+  margin-top: 1rem;
+}
+
+.role-activity-list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+}
+
+.role-activity-list li {
+  align-items: center;
+  background: #f7fafc;
+  border: 1px solid #e5eef7;
+  border-radius: 0.75rem;
+  display: flex;
+  gap: 0.65rem;
+  justify-content: space-between;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: break-word;
+  padding: 0.65rem;
+}
+
+.role-activity-list li > div {
+  align-items: center;
+  display: flex;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.role-favorite-activity-toggle {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.role-activity-list strong {
+  color: #315d83;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 48rem) {
+  .role-itinerary-heading,
+  .role-itinerary-day-heading,
+  .role-activity-list li,
+  .role-activity-list li > div {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+

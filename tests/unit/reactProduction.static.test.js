@@ -112,7 +112,7 @@ describe('Cruise operations product presentation guardrails', () => {
     const viteConfig = read('frontend/react/vite.config.js')
     const indexHtml = read('frontend/react/index.html')
     const styles = readCssBundle('frontend/react/src/styles/index.css')
-    const productShellCss = read('frontend/react/src/styles/components/product-shell.css')
+    const productShellCss = readCssBundle('frontend/react/src/styles/components/product-shell.css')
 
     expect(app).toContain("const seedDataDir = path.join(__dirname, 'data')")
     expect(app).toContain("app.use('/data', express.static(seedDataDir")

@@ -1,0 +1,112 @@
+/* Operations control board readiness surface. */
+
+.operations-control-board {
+  background: rgba(8, 22, 43, 0.92);
+  border: 1px solid rgba(125, 211, 252, 0.28);
+  border-radius: 28px;
+  box-shadow: 0 22px 70px rgba(2, 6, 23, 0.3);
+  color: #e5f4ff;
+  margin-block: 1.5rem;
+  padding: clamp(1rem, 3vw, 2rem);
+}
+
+.operations-control-board-header,
+.operations-control-board-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.35fr);
+}
+
+.operations-control-board-header h4,
+.operations-control-board-header p,
+.operations-control-board-header small,
+.operations-control-board-grid li,
+.operations-control-board-lane p {
+  color: #e5f4ff;
+}
+
+.operations-control-board-score {
+  align-items: center;
+  align-self: stretch;
+  background: rgba(14, 165, 233, 0.14);
+  border: 1px solid rgba(125, 211, 252, 0.3);
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 150px;
+  text-align: center;
+}
+
+.operations-control-board-score span {
+  display: block;
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.operations-control-board-score small,
+.operations-control-board-lane span,
+.operations-control-board-grid span {
+  color: #bae6fd;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.operations-control-board-kpis,
+.operations-control-board-lanes {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  margin-block: 1rem;
+}
+
+.operations-control-board-kpis div,
+.operations-control-board-lane,
+.operations-control-board-grid > div {
+  background: rgba(15, 23, 42, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 20px;
+  padding: 1rem;
+}
+
+.operations-control-board-kpis dt {
+  color: #bae6fd;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.operations-control-board-kpis dd {
+  color: #ffffff;
+  font-size: 1.8rem;
+  font-weight: 900;
+  margin: 0.2rem 0 0;
+}
+
+.operations-control-board-lane strong,
+.operations-control-board-grid strong {
+  color: #ffffff;
+  display: block;
+  margin-block: 0.35rem;
+}
+
+.operations-control-board-grid ol {
+  margin: 0.75rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.operations-control-board-grid li + li {
+  margin-top: 0.65rem;
+}
+
+@media (max-width: 760px) {
+  .operations-control-board-header,
+  .operations-control-board-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

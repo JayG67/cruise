@@ -1,0 +1,225 @@
+/* Build 445: hard-scoped Fleet Directory dark admin panel repair.
+   The Fleet Directory sits directly below the cruise-line operations workspace
+   and should share the same dark teal/green command-panel language instead of
+   rendering as a plain white card. These rules are intentionally unscoped from
+   :is(.react-production-shell, .react-app-shell) and live at the end of the stylesheet so older Build 437-444
+   light-card rescue rules cannot override the live route. */
+.fleet-directory-section[data-testid='react-fleet-directory'],
+section.fleet-directory-section#react-fleet {
+  background:
+    radial-gradient(circle at 92% 12%, rgba(96, 165, 250, 0.14), transparent 18rem),
+    radial-gradient(circle at 88% 100%, rgba(34, 197, 94, 0.2), transparent 20rem),
+    linear-gradient(135deg, #061827 0%, #07324a 50%, #0c674e 100%) !important;
+  border: 1px solid rgba(174, 233, 255, 0.22) !important;
+  border-radius: clamp(1.25rem, 2.2vw, 1.75rem) !important;
+  box-shadow: 0 24px 58px rgba(7, 24, 39, 0.22) !important;
+  box-sizing: border-box !important;
+  color: #ffffff !important;
+  margin: clamp(1.75rem, 3vw, 2.75rem) auto !important;
+  max-width: 1180px !important;
+  overflow: hidden !important;
+  padding: clamp(1.5rem, 3.4vw, 2.65rem) !important;
+  position: relative !important;
+  width: min(100% - 2rem, 1180px) !important;
+}
+
+.fleet-directory-section[data-testid='react-fleet-directory']::after,
+section.fleet-directory-section#react-fleet::after {
+  color: rgba(255, 255, 255, 0.06) !important;
+  content: '⚓' !important;
+  font-size: clamp(5rem, 12vw, 9rem) !important;
+  line-height: 1 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  right: clamp(1rem, 4vw, 3.5rem) !important;
+  top: clamp(1rem, 3vw, 2.25rem) !important;
+}
+
+.fleet-directory-section .fleet-heading-row,
+.fleet-directory-section .section-heading-row.fleet-heading-row {
+  align-items: start !important;
+  color: #ffffff !important;
+  display: flex !important;
+  gap: 1rem !important;
+  justify-content: space-between !important;
+  margin: 0 0 1.25rem !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.fleet-directory-section .fleet-heading-row > div {
+  max-width: 760px !important;
+}
+
+.fleet-directory-section .eyebrow,
+.fleet-directory-section .fleet-heading-row .eyebrow {
+  color: #60a5fa !important;
+  font-size: 0.78rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.18em !important;
+  line-height: 1.2 !important;
+  margin: 0 0 0.45rem !important;
+  text-transform: uppercase !important;
+}
+
+.fleet-directory-section h2#react-fleet-heading,
+.fleet-directory-section .fleet-heading-row h2 {
+  color: #ffffff !important;
+  font-size: clamp(2.25rem, 5vw, 4rem) !important;
+  font-weight: 950 !important;
+  letter-spacing: -0.055em !important;
+  line-height: 0.98 !important;
+  margin: 0 0 0.65rem !important;
+  max-width: 780px !important;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.22) !important;
+}
+
+.fleet-directory-section .fleet-heading-row p,
+.fleet-directory-section > p,
+.fleet-directory-section .muted-status {
+  color: rgba(255, 255, 255, 0.82) !important;
+  font-weight: 550 !important;
+  line-height: 1.5 !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.fleet-directory-section .fleet-search-control {
+  background: rgba(7, 24, 39, 0.34) !important;
+  border: 1px solid rgba(174, 233, 255, 0.18) !important;
+  border-radius: 1.25rem !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  box-sizing: border-box !important;
+  color: #ffffff !important;
+  display: grid !important;
+  gap: 0.65rem !important;
+  margin: 0 0 1.15rem !important;
+  padding: clamp(1rem, 2vw, 1.35rem) !important;
+  position: relative !important;
+  width: 100% !important;
+  z-index: 1 !important;
+}
+
+.fleet-directory-section .fleet-search-control span {
+  color: #ffffff !important;
+  font-size: 0.78rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.17em !important;
+  line-height: 1.2 !important;
+  text-transform: uppercase !important;
+}
+
+.fleet-directory-section .fleet-search-control input,
+.fleet-directory-section input,
+.fleet-directory-section select,
+.fleet-directory-section textarea {
+  background: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.32) !important;
+  border-radius: 0.72rem !important;
+  box-shadow: 0 8px 22px rgba(7, 24, 39, 0.14) !important;
+  color: #071827 !important;
+  min-height: 3rem !important;
+  padding: 0.82rem 1rem !important;
+}
+
+.fleet-directory-section input::placeholder,
+.fleet-directory-section textarea::placeholder {
+  color: #667085 !important;
+}
+
+.fleet-directory-section .fleet-card-grid,
+.fleet-directory-section .react-selected-ships-panel,
+.fleet-directory-section .react-selected-sailings-panel,
+.fleet-directory-section .react-selected-itinerary-panel,
+.fleet-directory-section .ship-management-panel {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.fleet-directory-section .fleet-card,
+.fleet-directory-section .brand-theme-summary,
+.fleet-directory-section .react-selected-ships-panel,
+.fleet-directory-section .react-selected-sailings-panel,
+.fleet-directory-section .react-selected-itinerary-panel,
+.fleet-directory-section .ship-management-panel,
+.fleet-directory-section .ship-card,
+.fleet-directory-section .sailing-card,
+.fleet-directory-section .itinerary-day-card {
+  background: rgba(7, 24, 39, 0.42) !important;
+  border: 1px solid rgba(174, 233, 255, 0.18) !important;
+  border-radius: 1rem !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  color: #ffffff !important;
+}
+
+.fleet-directory-section .brand-theme-summary {
+  background: rgba(6, 28, 43, 0.56) !important;
+}
+
+.fleet-directory-section .fleet-card h3,
+.fleet-directory-section .fleet-card h4,
+.fleet-directory-section .ship-card h3,
+.fleet-directory-section .sailing-card h3,
+.fleet-directory-section .itinerary-day-card h3,
+.fleet-directory-section .brand-theme-summary dt,
+.fleet-directory-section .brand-theme-summary dd,
+.fleet-directory-section .fleet-card strong,
+.fleet-directory-section .ship-card strong,
+.fleet-directory-section .sailing-card strong,
+.fleet-directory-section .itinerary-day-card strong {
+  color: #ffffff !important;
+}
+
+.fleet-directory-section .fleet-card p,
+.fleet-directory-section .ship-card p,
+.fleet-directory-section .sailing-card p,
+.fleet-directory-section .itinerary-day-card p,
+.fleet-directory-section .brand-theme-summary p,
+.fleet-directory-section .fleet-card li {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.fleet-directory-section a {
+  color: #9fe8ff !important;
+  font-weight: 800 !important;
+}
+
+.fleet-directory-section .fleet-primary-action,
+.fleet-directory-section .fleet-card-actions button:not(.fleet-danger-action),
+.fleet-directory-section .light-action,
+.fleet-directory-section .button-link.secondary.light-action {
+  background: linear-gradient(135deg, #0878a8, #12a4b6) !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  box-shadow: 0 10px 22px rgba(7, 24, 39, 0.2) !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+}
+
+.fleet-directory-section .fleet-danger-action {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: #9fe8ff !important;
+  font-weight: 900 !important;
+}
+
+.fleet-directory-section .react-inline-edit-form,
+.fleet-directory-section .confirm-action-panel {
+  background: rgba(7, 24, 39, 0.5) !important;
+  border: 1px solid rgba(174, 233, 255, 0.18) !important;
+  border-radius: 1rem !important;
+  color: #ffffff !important;
+}
+
+@media (max-width: 760px) {
+  .fleet-directory-section[data-testid='react-fleet-directory'],
+  section.fleet-directory-section#react-fleet {
+    padding: 1.15rem !important;
+    width: min(100% - 1rem, 1180px) !important;
+  }
+
+  .fleet-directory-section .fleet-heading-row,
+  .fleet-directory-section .section-heading-row.fleet-heading-row {
+    display: grid !important;
+  }
+}

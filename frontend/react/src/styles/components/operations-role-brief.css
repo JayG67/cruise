@@ -1,0 +1,121 @@
+/* Operations role command brief and priority card styles. */
+
+/* Role command brief: surface role-specific priorities so each operations lead can move directly into the right workflow. */
+.operations-role-brief-panel {
+  background: linear-gradient(135deg, #ffffff, #f8fcff);
+  border: 1px solid #cfe3f2;
+  border-radius: 1.1rem;
+  box-shadow: 0 14px 34px rgba(18, 50, 79, 0.07);
+  display: grid;
+  gap: 1rem;
+  margin: 0 0 0.75rem;
+  padding: 1rem;
+}
+
+.operations-role-brief-heading {
+  align-items: start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.operations-role-brief-heading h4,
+.operations-role-brief-heading p {
+  margin: 0.25rem 0 0;
+}
+
+.operations-role-brief-heading p,
+.operations-role-brief-card small {
+  color: #39516b;
+  line-height: 1.45;
+}
+
+.operations-role-brief-alert {
+  background: #e8f8ed;
+  border: 1px solid #bde6c8;
+  border-radius: 999px;
+  color: #166a2f;
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  padding: 0.45rem 0.75rem;
+  text-transform: uppercase;
+}
+
+.operations-role-brief-alert.needs-attention {
+  background: #fff3e8;
+  border-color: #f3c28f;
+  color: #9a3d00;
+}
+
+.operations-role-brief-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.operations-role-brief-card {
+  appearance: none;
+  background: #ffffff;
+  border: 1px solid #d8e7f4;
+  border-radius: 1rem;
+  color: #12324f;
+  cursor: pointer;
+  display: grid;
+  font: inherit;
+  gap: 0.35rem;
+  min-height: 9.5rem;
+  padding: 0.85rem;
+  text-align: left;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.operations-role-brief-card:hover,
+.operations-role-brief-card:focus-visible {
+  border-color: #0f5e9c;
+  box-shadow: 0 12px 26px rgba(15, 94, 156, 0.16);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.operations-role-brief-card.attention {
+  background: #fffaf4;
+  border-color: #efc79c;
+}
+
+.operations-role-brief-card span {
+  color: #1761a0;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.operations-role-brief-card strong {
+  color: #10243a;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.operations-role-brief-card em {
+  color: #5d4328;
+  font-style: normal;
+  font-weight: 900;
+}
+
+@media (max-width: 1100px) {
+  .operations-role-brief-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .operations-role-brief-heading {
+    display: grid;
+  }
+
+  .operations-role-brief-grid {
+    grid-template-columns: 1fr;
+  }
+}

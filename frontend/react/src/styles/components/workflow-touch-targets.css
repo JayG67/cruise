@@ -1,0 +1,61 @@
+/* Shared workflow surfaces: workspace cards, CRUD detail panels, route evidence, and role detail layouts.
+   This layer owns reusable runtime workflow CSS that was retired from design-system.css. */
+
+/* React workspace mobile touch target stabilization.
+   Keep / workspace buttons above the 32px mobile touch-target contract in Safari. */
+button.react-workspace-card,
+.react-workspace-card[data-testid^="react-workspace-"] {
+  align-items: flex-start;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 72px;
+  padding-block: 1rem;
+  width: 100%;
+}
+
+button.react-workspace-card .workspace-card-title,
+.react-workspace-card[data-testid^="react-workspace-"] .workspace-card-title {
+  display: block;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+button.react-workspace-card .workspace-icon,
+.react-workspace-card[data-testid^="react-workspace-"] .workspace-icon {
+  display: inline-flex;
+  line-height: 1;
+}
+
+
+/* React workspace button hard guarantee.
+   This mirrors the inline style and protects Safari/WebKit from collapsing the button box. */
+button.react-workspace-card[data-testid^="react-workspace-"] {
+  display: flex !important;
+  min-height: 72px !important;
+  padding-block: 1rem !important;
+  width: 100% !important;
+}
+
+
+/* React workspace explicit WebKit height contract.
+   Safari reported the workspace button at text height, so use an explicit block height
+   in addition to min-height for the Playwright mobile touch-target contract. */
+button.react-workspace-card[data-testid^="react-workspace-"] {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  block-size: 72px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  height: 72px !important;
+  line-height: 1.25 !important;
+  min-block-size: 72px !important;
+  min-height: 72px !important;
+  overflow: visible !important;
+  padding-bottom: 1rem !important;
+  padding-top: 1rem !important;
+  width: 100% !important;
+}
+
+
