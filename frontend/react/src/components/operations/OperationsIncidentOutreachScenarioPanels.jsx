@@ -9,8 +9,8 @@ export function OperationsIncidentOutreachScenarioPanels({ incidentCommand, outr
               <h4 id="operations-incident-command-heading">Release-day exception bridge</h4>
               <p>Incident command converts blockers, staffing gaps, signoffs, handoffs, dependencies, escalations, and timeline risk into one commander-facing action bridge.</p>
             </div>
-            <div className={`operations-incident-command-score ${String(incidentCommand.incidentSeverity || '').toLowerCase()}`}>
-              <span>{incidentCommand.incidentScore || 0}</span>
+            <div className={`operations-incident-command-score ce-surface-light ${String(incidentCommand.incidentSeverity || '').toLowerCase()}`}>
+              <span>{incidentCommand.incidentScore || 0}%</span>
               <small>{String(incidentCommand.incidentStatus || 'STABLE').replace(/_/g, ' ')}</small>
             </div>
           </div>
@@ -53,7 +53,7 @@ export function OperationsIncidentOutreachScenarioPanels({ incidentCommand, outr
               <h4 id="operations-outreach-board-heading">Application-ready reviewer strategy</h4>
               <p>{outreachBoard.narrative?.positioning}</p>
             </div>
-            <div className={`operations-outreach-board-score ${String(outreachBoard.readiness?.readinessStatus || '').toLowerCase()}`} aria-label={`Outreach readiness score ${outreachBoard.readiness?.readinessScore || 0}%`}>
+            <div className={`operations-outreach-board-score ce-surface-light ${String(outreachBoard.readiness?.readinessStatus || '').toLowerCase()}`} aria-label={`Outreach readiness score ${outreachBoard.readiness?.readinessScore || 0}%`}>
               <span>{outreachBoard.readiness?.readinessScore || 0}%</span>
               <small>{String(outreachBoard.readiness?.readinessStatus || 'REVIEW_BEFORE_SEND').replace(/_/g, ' ')}</small>
             </div>
@@ -109,7 +109,7 @@ export function OperationsIncidentOutreachScenarioPanels({ incidentCommand, outr
               <h4 id="operations-scenario-plan-heading">Operational resilience drills and contingencies</h4>
               <p>{scenarioPlan.summary}</p>
             </div>
-            <div className={`operations-scenario-plan-score ${String(scenarioPlan.scenarioStatus || '').toLowerCase()}`} aria-label={`Scenario resilience score ${scenarioPlan.resilienceScore || 0}%`}>
+            <div className={`operations-scenario-plan-score ce-surface-light ${String(scenarioPlan.scenarioStatus || '').toLowerCase()}`} aria-label={`Scenario resilience score ${scenarioPlan.resilienceScore || 0}%`}>
               <span>{scenarioPlan.resilienceScore || 0}%</span>
               <small>{String(scenarioPlan.scenarioStatus || 'WATCH_ITEMS_PRESENT').replace(/_/g, ' ')}</small>
             </div>
@@ -146,7 +146,7 @@ export function OperationsIncidentOutreachScenarioPanels({ incidentCommand, outr
               </ul>
             </div>
           </div>
-          <div className="operations-scenario-plan-runbook" data-testid="react-operations-scenario-runbook">
+          <div className="operations-scenario-plan-runbook ce-surface-dark" data-testid="react-operations-scenario-runbook">
             <strong>Reviewer-safe drill runbook</strong>
             <ol>
               {(scenarioPlan.drillRunbook || []).slice(0, 6).map(step => (

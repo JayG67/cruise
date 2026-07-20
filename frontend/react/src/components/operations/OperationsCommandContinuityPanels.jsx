@@ -1,3 +1,28 @@
+const CONTINUITY_STATUS_LABELS = {
+  AT_RISK: 'At risk',
+  WATCH: 'Watch',
+  READY: 'Ready',
+  STABLE: 'Stable',
+  BLOCKED: 'Blocked',
+  CRITICAL: 'Critical',
+}
+
+function formatContinuityStatus(value) {
+  const normalized = String(value || 'WATCH').trim().toUpperCase()
+  return CONTINUITY_STATUS_LABELS[normalized] || normalized
+    .toLowerCase()
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, character => character.toUpperCase())
+}
+
+function formatDepartmentRole(value) {
+  return String(value || 'Department')
+    .trim()
+    .toLowerCase()
+    .replace(/[_-]+/g, ' ')
+    .replace(/\b\w/g, character => character.toUpperCase())
+}
+
 export function OperationsCommandContinuityPanels({ selectedOperation }) {
   return (
     <>
@@ -9,7 +34,7 @@ export function OperationsCommandContinuityPanels({ selectedOperation }) {
               <h4 id="operations-command-center-heading">Live management board from assignment through closeout</h4>
               <p>{selectedOperation.commandCenter.commanderBrief?.summary}</p>
             </div>
-            <div className={`operations-command-center-score ${String(selectedOperation.commandCenter.commandStatus || '').toLowerCase()}`} aria-label={`Command center score ${selectedOperation.commandCenter.commandScore || 0}%`}>
+            <div className={`operations-command-center-score ce-surface-light ${String(selectedOperation.commandCenter.commandStatus || '').toLowerCase()}`} aria-label={`Command center score ${selectedOperation.commandCenter.commandScore || 0}%`}>
               <span>{selectedOperation.commandCenter.commandScore || 0}%</span>
               <small>{String(selectedOperation.commandCenter.commandStatus || 'ACTIVE_COMMAND').replace(/_/g, ' ')}</small>
             </div>
@@ -50,9 +75,12 @@ export function OperationsCommandContinuityPanels({ selectedOperation }) {
             <strong>Department command board</strong>
             <div className="operations-command-center-department-grid">
               {(selectedOperation.commandCenter.departmentBoard || []).slice(0, 8).map(department => (
-                <article key={department.departmentRole}>
-                  <span>{department.readinessScore}% · {department.status}</span>
-                  <strong>{department.departmentRole}</strong>
+                <article key={department.departmentRole} className="operations-command-center-department-card">
+                  <div className="operations-command-center-department-heading">
+                    <span className="operations-command-center-department-score">{department.readinessScore}%</span>
+                    <span className="operations-command-center-department-status">{formatContinuityStatus(department.status)}</span>
+                    <strong className="operations-command-center-department-role">{formatDepartmentRole(department.departmentRole)}</strong>
+                  </div>
                   <p>{department.nextAction}</p>
                   <small>{department.taskCount} tasks · {department.openEscalations} escalations · {department.signoffCompletion}% signoff</small>
                 </article>
@@ -80,7 +108,7 @@ export function OperationsCommandContinuityPanels({ selectedOperation }) {
               <p>{selectedOperation.operationsControlBoard.summary?.headline}</p>
               <small>{selectedOperation.operationsControlBoard.summary?.nextBestAction}</small>
             </div>
-            <div className={`operations-control-board-score ${String(selectedOperation.operationsControlBoard.summary?.goNoGoStatus || '').toLowerCase().replace(/_/g, '-')}`} aria-label={`Operations control board score ${selectedOperation.operationsControlBoard.summary?.controlScore || 0}%`}>
+            <div className={`operations-control-board-score ce-surface-light ${String(selectedOperation.operationsControlBoard.summary?.goNoGoStatus || '').toLowerCase().replace(/_/g, '-')}`} aria-label={`Operations control board score ${selectedOperation.operationsControlBoard.summary?.controlScore || 0}%`}>
               <span>{selectedOperation.operationsControlBoard.summary?.controlScore || 0}%</span>
               <small>{String(selectedOperation.operationsControlBoard.summary?.goNoGoStatus || 'WATCH').replace(/_/g, ' ')}</small>
             </div>
@@ -140,7 +168,7 @@ export function OperationsCommandContinuityPanels({ selectedOperation }) {
               <h4 id="operations-continuity-center-heading">Exception recovery and passenger-impact control</h4>
               <p>{selectedOperation.continuityCenter.summary}</p>
             </div>
-            <div className={`operations-continuity-center-score ${String(selectedOperation.continuityCenter.commandStatus || '').toLowerCase()}`} aria-label={`Continuity score ${selectedOperation.continuityCenter.continuityScore || 0}%`}>
+            <div className={`operations-continuity-center-score ce-surface-light ${String(selectedOperation.continuityCenter.commandStatus || '').toLowerCase()}`} aria-label={`Continuity score ${selectedOperation.continuityCenter.continuityScore || 0}%`}>
               <span>{selectedOperation.continuityCenter.continuityScore || 0}%</span>
               <small>{String(selectedOperation.continuityCenter.commandStatus || 'CONTINUITY_WATCH').replace(/_/g, ' ')}</small>
             </div>
@@ -172,9 +200,12 @@ export function OperationsCommandContinuityPanels({ selectedOperation }) {
             <strong>Department continuity board</strong>
             <div className="operations-continuity-department-grid">
               {(selectedOperation.continuityCenter.departmentContinuity || []).slice(0, 8).map(department => (
-                <article key={department.departmentRole}>
-                  <span>{department.score}% · {department.status}</span>
-                  <strong>{department.departmentRole}</strong>
+                <article key={department.departmentRole} className="operations-continuity-department-card">
+                  <div className="operations-continuity-department-heading">
+                    <span className="operations-continuity-department-score">{department.score}%</span>
+                    <span className="operations-continuity-department-status">{formatContinuityStatus(department.status)}</span>
+                    <strong className="operations-continuity-department-role">{formatDepartmentRole(department.departmentRole)}</strong>
+                  </div>
                   <p>{department.nextAction}</p>
                   <small>{department.openTasks} open tasks · {department.openEscalations} escalations · {department.openDependencies} dependencies</small>
                 </article>

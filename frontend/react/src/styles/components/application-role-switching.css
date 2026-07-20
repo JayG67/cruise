@@ -73,6 +73,26 @@
   margin: 1rem 0;
 }
 
+/* Booking summary tiles own their internal spacing. Labels and values must not
+   sit flush against the bordered light surface, especially at desktop widths. */
+.role-booking-fields > .role-booking-field {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+  padding: 0.75rem 0.9rem 0.8rem;
+}
+
+.role-booking-fields > .role-booking-field dt,
+.role-booking-fields > .role-booking-field dd {
+  margin: 0;
+  min-width: 0;
+}
+
+.role-booking-fields > .role-booking-field dd {
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
 .visible-passenger-list {
   display: grid;
   gap: 0.4rem;

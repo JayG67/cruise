@@ -23,9 +23,9 @@ function RoleBookingDetails({ booking, favoriteActivityKeys, favoritesOnly, onTo
     : itineraryDays
 
   return (
-    <section className="role-booking-detail-panel ce-command-card" aria-label={`Details for ${getBookingCardTitle(booking)}`} data-testid="react-role-booking-details">
+    <section className="role-booking-detail-panel ce-command-card ce-surface-dark" aria-label={`Details for ${getBookingCardTitle(booking)}`} data-testid="react-role-booking-details">
       <div className="role-booking-detail-grid ce-detail-grid">
-        <div className="role-detail-card ce-editor-card">
+        <div className="role-detail-card ce-editor-card ce-surface-light">
           <h4>Booking details</h4>
           <dl className="role-booking-fields compact-fields">
             {getBookingCardFields(booking).map(([label, value]) => (
@@ -37,7 +37,7 @@ function RoleBookingDetails({ booking, favoriteActivityKeys, favoritesOnly, onTo
           </dl>
         </div>
 
-        <div className="role-detail-card ce-editor-card">
+        <div className="role-detail-card ce-editor-card ce-surface-light">
           <h4>Passenger manifest</h4>
           {passengers.length === 0 ? (
             <p>No visible passengers for this booking.</p>
@@ -50,13 +50,13 @@ function RoleBookingDetails({ booking, favoriteActivityKeys, favoritesOnly, onTo
         </div>
       </div>
 
-      <div className="role-itinerary-panel ce-command-card">
+      <div className="role-itinerary-panel ce-command-card ce-surface-dark">
         <div className="role-itinerary-heading">
           <div>
             <h4>Cruise itinerary</h4>
             <p>Passengers can review port days, activities, and save favorite itinerary activities.</p>
           </div>
-          <label className="react-checkbox-label role-favorites-filter">
+          <label className="react-checkbox-label role-favorites-filter ce-surface-light">
             <input
               type="checkbox"
               checked={favoritesOnly}
@@ -81,7 +81,7 @@ function RoleBookingDetails({ booking, favoriteActivityKeys, favoritesOnly, onTo
                 : activities
 
               return (
-                <article className="role-itinerary-day ce-editor-card" key={`${booking.id}-${dayKey}`} data-testid="react-role-itinerary-day">
+                <article className="role-itinerary-day ce-editor-card ce-surface-light" key={`${booking.id}-${dayKey}`} data-testid="react-role-itinerary-day">
                   <div className="role-itinerary-day-heading">
                     <div>
                       <h5>Day {day.day || '?'} — {day.title || 'Itinerary day'}</h5>
@@ -211,7 +211,7 @@ export default function RoleBookingCard({ booking, roleView, isExpanded, favorit
   }, [bookingId])
 
   return (
-    <article className="role-booking-card ce-command-card" data-testid="react-role-booking-card">
+    <article className="role-booking-card ce-command-card ce-surface-dark" data-testid="react-role-booking-card">
       <div className="role-booking-heading">
         <h3>{getBookingCardTitle(effectiveBooking)}</h3>
         <div className="role-booking-badges">
@@ -222,7 +222,7 @@ export default function RoleBookingCard({ booking, roleView, isExpanded, favorit
 
       <dl className="role-booking-fields">
         {getBookingCardFields(effectiveBooking).map(([label, value]) => (
-          <div key={`${bookingId}-${label}`}>
+          <div key={`${bookingId}-${label}`} className="role-booking-field ce-surface-light">
             <dt>{label}</dt>
             <dd>{value}</dd>
           </div>
@@ -234,7 +234,7 @@ export default function RoleBookingCard({ booking, roleView, isExpanded, favorit
         {passengers.length === 0 ? (
           <p>No visible passengers for this booking.</p>
         ) : passengers.map(passenger => (
-          <div key={passenger.id} className="visible-passenger-row">
+          <div key={passenger.id} className="visible-passenger-row ce-surface-light">
             <span>{passenger.name}</span>
             <span>{passenger.role}</span>
           </div>

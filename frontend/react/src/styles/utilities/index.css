@@ -28,6 +28,7 @@
 
 /* Shared text and accessibility utilities migrated out of the legacy design-system layer. */
 
+
 .react-production-shell .ce-kicker {
   color: var(--ce-command-text-muted) !important;
   -webkit-text-fill-color: var(--ce-command-text-muted) !important;
@@ -38,8 +39,10 @@
 }
 
 .react-production-shell .ce-muted {
-  color: var(--ce-command-text-muted) !important;
-  -webkit-text-fill-color: var(--ce-command-text-muted) !important;
+  color: var(--ce-light-surface-muted-text, #1f3a56) !important;
+  -webkit-text-fill-color: var(--ce-light-surface-muted-text, #1f3a56) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
 }
 
 .react-production-shell .ce-visually-hidden,
@@ -109,4 +112,18 @@
   .react-production-shell :is(button, a):not(:disabled):hover {
     transform: none !important;
   }
+}
+
+/*
+  Semantic muted text reads from the nearest surface context.
+
+  Dark and light components define --ce-surface-muted-text themselves in the
+  final contrast-hardening layer. This avoids brittle descendant-selector
+  competition when a light card is nested inside a dark dashboard.
+*/
+:is(.react-production-shell, .react-app-shell) :is(.muted, .ce-muted) {
+  color: var(--ce-surface-muted-text, var(--ce-light-surface-muted-text, #1f3a56)) !important;
+  -webkit-text-fill-color: var(--ce-surface-muted-text, var(--ce-light-surface-muted-text, #1f3a56)) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
 }

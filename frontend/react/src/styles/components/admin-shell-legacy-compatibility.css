@@ -74,20 +74,7 @@
 .turnaround-admin-setup-panel > section,
 .react-quality-section > .react-sqa-console,
 .react-quality-section > .quality-console-panel,
-.react-quality-section > section,
-.cruise-line-presentation-suite .presentation-suite-body,
-.cruise-line-presentation-suite .presentation-hero-card,
-.cruise-line-presentation-suite .presentation-flow-card,
-.cruise-line-presentation-suite .presentation-detail-card,
-.cruise-line-presentation-suite .presentation-commercial-card,
-.cruise-line-presentation-suite .presentation-calendar-card,
-.cruise-line-presentation-suite .presentation-operator-card,
-.cruise-line-presentation-suite .presentation-sailing-row,
-.cruise-line-presentation-suite .presentation-revenue-board-row,
-.cruise-line-presentation-suite .presentation-port-plan,
-.cruise-line-presentation-suite .presentation-close-plan,
-.cruise-line-presentation-suite .presentation-activity-list,
-.cruise-line-presentation-suite .presentation-line-picker {
+.react-quality-section > section {
   background: linear-gradient(145deg, #123a52 0%, #155a63 58%, #1b6f43 100%) !important;
   border: 1px solid rgba(180, 223, 244, 0.34) !important;
   border-radius: 1.35rem !important;
@@ -102,19 +89,7 @@
 
 .react-create-card *,
 .turnaround-admin-setup-panel > section *,
-.react-quality-section > section *,
-.cruise-line-presentation-suite .presentation-hero-card *,
-.cruise-line-presentation-suite .presentation-flow-card *,
-.cruise-line-presentation-suite .presentation-detail-card *,
-.cruise-line-presentation-suite .presentation-commercial-card *,
-.cruise-line-presentation-suite .presentation-calendar-card *,
-.cruise-line-presentation-suite .presentation-operator-card *,
-.cruise-line-presentation-suite .presentation-sailing-row *,
-.cruise-line-presentation-suite .presentation-revenue-board-row *,
-.cruise-line-presentation-suite .presentation-port-plan *,
-.cruise-line-presentation-suite .presentation-close-plan *,
-.cruise-line-presentation-suite .presentation-activity-list *,
-.cruise-line-presentation-suite .presentation-line-picker * {
+.react-quality-section > section * {
   color: inherit;
 }
 
@@ -127,23 +102,13 @@
 .turnaround-admin-setup-panel section h3,
 .turnaround-admin-setup-panel section h4,
 .turnaround-admin-setup-panel section p,
-.turnaround-admin-setup-panel section label,
-.react-quality-section section h3,
-.react-quality-section section h4,
-.react-quality-section section p,
-.react-quality-section section label,
-.cruise-line-presentation-suite article h3,
-.cruise-line-presentation-suite article h4,
-.cruise-line-presentation-suite article p,
-.cruise-line-presentation-suite article label {
+.turnaround-admin-setup-panel section label {
   color: #ffffff !important;
 }
 
 .react-create-card .eyebrow,
 .react-create-card legend,
-.turnaround-admin-setup-panel section .eyebrow,
-.react-quality-section section .eyebrow,
-.cruise-line-presentation-suite article .eyebrow {
+.turnaround-admin-setup-panel section .eyebrow {
   color: #9fe8ff !important;
 }
 
@@ -156,20 +121,7 @@
 .turnaround-team-readiness-card,
 .turnaround-same-day-conflict-card,
 .turnaround-role-coverage-card,
-.turnaround-team-member-card,
-.react-quality-section .status-card,
-.react-quality-section .quality-gate-card,
-.react-quality-section .quality-gate,
-.react-quality-section .react-sqa-action-card,
-.react-quality-section .sqa-action-card,
-.react-quality-section .quality-output,
-.react-quality-section .diagnostic-card,
-.cruise-line-presentation-suite .presentation-metric-grid article,
-.cruise-line-presentation-suite .presentation-guest-card,
-.cruise-line-presentation-suite .presentation-manifest-row,
-.cruise-line-presentation-suite .presentation-activity-list div,
-.cruise-line-presentation-suite .presentation-port-plan div,
-.cruise-line-presentation-suite .presentation-close-plan div {
+.turnaround-team-member-card {
   background: rgba(6, 28, 43, 0.68) !important;
   border: 1px solid rgba(191, 230, 255, 0.28) !important;
   box-shadow: none !important;
@@ -207,7 +159,6 @@
 .react-quality-section .console-status,
 .react-quality-section .status-pill,
 .react-quality-section .quality-status-pill,
-.cruise-line-presentation-suite .presentation-metric-grid article,
 .cruise-line-presentation-suite .presentation-metric-grid article * {
   background: rgba(255, 255, 255, 0.94) !important;
   border-color: rgba(255, 255, 255, 0.85) !important;

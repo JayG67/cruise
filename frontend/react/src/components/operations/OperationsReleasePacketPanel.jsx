@@ -16,7 +16,7 @@ export function OperationsReleasePacketPanel({ releasePacket }) {
           <h4 id="operations-release-packet-heading">Final embarkation release readiness</h4>
           <p>{releasePacket.releaseRecommendation}</p>
         </div>
-        <div className="operations-release-packet-score" aria-label={`Release packet score ${releasePacket.readinessScore}%`}>
+        <div className="operations-release-packet-score ce-surface-light" aria-label={`Release packet score ${releasePacket.readinessScore}%`}>
           <span>{releasePacket.readinessScore}%</span>
           <small>{getReleasePacketStatusLabel(releasePacket.releaseStatus)}</small>
         </div>

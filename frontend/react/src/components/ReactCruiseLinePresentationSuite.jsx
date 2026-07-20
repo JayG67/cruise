@@ -482,7 +482,7 @@ export default function ReactCruiseLinePresentationSuite({ cruiseLines = [], boo
 
   return (
     <section className="cruise-line-presentation-suite ce-command-panel" id="react-cruise-line-presentation" aria-labelledby="react-cruise-line-presentation-heading" data-testid="react-cruise-line-presentation-suite">
-      <div className="presentation-control-panel cruise-line-operations-control-panel ce-command-card">
+      <div className="presentation-control-panel cruise-line-operations-control-panel ce-command-card ce-surface-dark">
         <div className="presentation-suite-heading cruise-line-operations-heading">
           <p className="eyebrow ce-kicker">Cruise line operations</p>
           <h2 id="react-cruise-line-presentation-heading">Cruise line operating workspace</h2>
@@ -491,8 +491,8 @@ export default function ReactCruiseLinePresentationSuite({ cruiseLines = [], boo
           </p>
         </div>
 
-        <div className="presentation-scope-controls cruise-line-operations-scope-controls" aria-label="Cruise line operating scope">
-          <label className="presentation-line-picker cruise-line-operations-picker">
+        <div className="presentation-scope-controls cruise-line-operations-scope-controls ce-surface-dark" aria-label="Cruise line operating scope">
+          <label className="presentation-line-picker cruise-line-operations-picker ce-surface-dark">
             <span>Cruise line</span>
             <select value={getLineId(selectedLine)} onChange={event => { setSelectedLineId(event.target.value); setSelectedShipName(''); setSelectedSailingId('') }} data-testid="react-presentation-line-picker">
               {cruiseLines.map(line => (
@@ -501,14 +501,14 @@ export default function ReactCruiseLinePresentationSuite({ cruiseLines = [], boo
             </select>
             <small>Select the cruise line to operate within.</small>
           </label>
-          <label className="presentation-line-picker cruise-line-operations-picker">
+          <label className="presentation-line-picker cruise-line-operations-picker ce-surface-dark">
             <span>Ship</span>
             <select value={featuredShip.name || ''} onChange={event => { setSelectedShipName(event.target.value); setSelectedSailingId('') }} data-testid="react-presentation-ship-picker">
               {ships.map(ship => <option key={ship.name} value={ship.name}>{ship.name}</option>)}
             </select>
             <small>Select the ship to focus on.</small>
           </label>
-          <label className="presentation-line-picker cruise-line-operations-picker">
+          <label className="presentation-line-picker cruise-line-operations-picker ce-surface-dark">
             <span>Sailing</span>
             <select value={featuredSailing.id || featuredSailing.departureDate || ''} onChange={event => setSelectedSailingId(event.target.value)} data-testid="react-presentation-sailing-picker">
               {shipSailings.map(sailing => <option key={sailing.id || sailing.departureDate} value={sailing.id || sailing.departureDate}>{sailing.departureDate || 'Date pending'} · {getSailingDestination(sailing)}</option>)}
@@ -518,19 +518,19 @@ export default function ReactCruiseLinePresentationSuite({ cruiseLines = [], boo
         </div>
       </div>
 
-      <div className="presentation-hero-card ce-command-card">
+      <div className="presentation-hero-card ce-command-card ce-surface-light">
         <div>
           <p className="eyebrow ce-kicker">{selectedLine.brandFamily || selectedLine.country || 'Cruise brand'}</p>
           <h3>{selectedLine.name}</h3>
           <p>{selectedLine.marketPositioning || selectedLine.brandTheme || 'Fleet, itinerary, and passenger operations in one application.'}</p>
         </div>
         <div className="presentation-metric-grid" aria-label={`${selectedLine.name} operational metrics`}>
-          <article><span>Ships</span><strong>{formatCount(metrics.shipCount)}</strong></article>
-          <article><span>Sailings</span><strong>{formatCount(metrics.sailingCount)}</strong></article>
-          <article><span>Bookings</span><strong>{formatCount(metrics.bookingCount)}</strong></article>
-          <article><span>Passengers</span><strong>{formatCount(metrics.passengerCount)}</strong></article>
-          <article><span>Itinerary days</span><strong>{formatCount(metrics.itineraryDayCount)}</strong></article>
-          <article><span>Ports</span><strong>{formatCount(metrics.portCount)}</strong></article>
+          <article className="ce-surface-light"><span>Ships</span><strong>{formatCount(metrics.shipCount)}</strong></article>
+          <article className="ce-surface-light"><span>Sailings</span><strong>{formatCount(metrics.sailingCount)}</strong></article>
+          <article className="ce-surface-light"><span>Bookings</span><strong>{formatCount(metrics.bookingCount)}</strong></article>
+          <article className="ce-surface-light"><span>Passengers</span><strong>{formatCount(metrics.passengerCount)}</strong></article>
+          <article className="ce-surface-light"><span>Itinerary days</span><strong>{formatCount(metrics.itineraryDayCount)}</strong></article>
+          <article className="ce-surface-light"><span>Ports</span><strong>{formatCount(metrics.portCount)}</strong></article>
         </div>
       </div>
 

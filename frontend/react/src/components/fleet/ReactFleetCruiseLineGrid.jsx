@@ -16,13 +16,13 @@ export default function ReactFleetCruiseLineGrid({
     <>
       <div className="fleet-card-grid" data-testid="react-fleet-card-grid">
         {visibleCruiseLines.map(cruiseLine => (
-          <article className="fleet-card ce-command-card" key={cruiseLine.id || cruiseLine.name} data-testid="react-fleet-card">
+          <article className="fleet-card ce-command-card ce-surface-dark" key={cruiseLine.id || cruiseLine.name} data-testid="react-fleet-card">
             <h3>{cruiseLine.name}</h3>
             <p><strong>Country:</strong> {cruiseLine.country || 'Not provided'}</p>
             {cruiseLine.website && (
               <a href={cruiseLine.website} target="_blank" rel="noreferrer">Visit website</a>
             )}
-            <dl className="brand-theme-summary" data-testid="react-fleet-brand-summary">
+            <dl className="brand-theme-summary ce-surface-dark" data-testid="react-fleet-brand-summary">
               <div>
                 <dt>Brand family</dt>
                 <dd>{cruiseLine.brandFamily || 'Not provided'}</dd>

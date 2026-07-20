@@ -9,7 +9,7 @@ export function OperationsLifecyclePanel({ selectedOperation, focusOperationsWor
               <h4 id="operations-lifecycle-heading">{selectedOperation.lifecycleState.currentPhaseLabel} command path</h4>
               <p>{selectedOperation.lifecycleState.completionLanguage}</p>
             </div>
-            <div className="operations-lifecycle-score" aria-label={`Lifecycle completion ${selectedOperation.lifecycleState.completionPercent || 0}%`}>
+            <div className="operations-lifecycle-score ce-surface-light" aria-label={`Lifecycle completion ${selectedOperation.lifecycleState.completionPercent || 0}%`}>
               <span>{selectedOperation.lifecycleState.completionPercent || 0}%</span>
               <small>{String(selectedOperation.lifecycleState.status || 'IN_PROGRESS').replace(/_/g, ' ')}</small>
             </div>
@@ -25,7 +25,7 @@ export function OperationsLifecyclePanel({ selectedOperation, focusOperationsWor
               return (
                 <button
                   type="button"
-                  className={`operations-lifecycle-phase ce-command-card ${String(phase.status || '').toLowerCase()}`}
+                  className={`operations-lifecycle-phase ce-command-card ${['setup', 'complete', 'completed'].includes(String(phase.status || '').toLowerCase()) ? 'ce-surface-light' : 'ce-surface-dark'} ${String(phase.status || '').toLowerCase()}`}
                   key={phase.id}
                   onClick={() => focusOperationsWorkspace(targetWorkspace)}
                   data-testid="react-operations-lifecycle-phase-action"

@@ -62,7 +62,7 @@ export default function ReactRoleDashboard({
   return (
     <section className="react-role-dashboard ce-command-panel" id="react-role-dashboard" aria-labelledby="react-role-dashboard-heading" data-testid={`react-${roleView}-dashboard`}>
       {roleView === 'group-leader' && (
-        <div className="status-card compact ce-command-card" data-testid="react-passenger-dashboard">
+        <div className="status-card compact group-leader-dashboard-status ce-surface-light" data-testid="react-passenger-dashboard">
           Group leader dashboard loaded with passenger-manifest visibility.
         </div>
       )}

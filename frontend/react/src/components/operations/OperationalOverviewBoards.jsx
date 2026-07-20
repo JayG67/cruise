@@ -14,15 +14,15 @@ export function OperationalTurnaroundHero({ focusLine, selectedDemoUser, readine
         </p>
       </div>
       <dl className="operational-metric-grid" aria-label="Turnaround readiness metrics">
-        <div data-testid="react-operational-readiness-bookings">
+        <div className="ce-surface-light" data-testid="react-operational-readiness-bookings">
           <dt>Turnaround plans</dt>
           <dd>{readinessCount}</dd>
         </div>
-        <div data-testid="react-operational-readiness-passengers">
+        <div className="ce-surface-light" data-testid="react-operational-readiness-passengers">
           <dt>Passengers visible</dt>
           <dd>{passengerTotal}</dd>
         </div>
-        <div data-testid="react-operational-readiness-alerts">
+        <div className="ce-surface-light" data-testid="react-operational-readiness-alerts">
           <dt>High coordination</dt>
           <dd>{highCoordinationCount}</dd>
         </div>
@@ -51,19 +51,19 @@ export function OperationsPortfolioBoard({
           <p>Review every visible turnaround by release readiness, open escalations, blockers, and passenger load before drilling into a single sailing.</p>
         </div>
         <dl className="operations-portfolio-summary" aria-label="Fleet turnaround summary" data-testid="react-operations-portfolio-summary">
-          <div>
+          <div className="ce-surface-light">
             <dt>Average readiness</dt>
             <dd>{portfolioAverageReadiness}%</dd>
           </div>
-          <div>
+          <div className="ce-surface-light">
             <dt>Needs attention</dt>
             <dd>{portfolioNeedsAttention}</dd>
           </div>
-          <div>
+          <div className="ce-surface-light">
             <dt>Watch</dt>
             <dd>{portfolioWatchCount}</dd>
           </div>
-          <div>
+          <div className="ce-surface-light">
             <dt>Open escalations</dt>
             <dd>{portfolioOpenEscalations}</dd>
           </div>
@@ -85,19 +85,19 @@ export function OperationsPortfolioBoard({
               <strong>{operation.title}</strong>
               <span>{operation.shipName} · {operation.port || operation.arrivalPort}</span>
               <dl>
-                <div>
+                <div className="ce-surface-light">
                   <dt>Ready</dt>
                   <dd>{metrics.releaseScore}%</dd>
                 </div>
-                <div>
+                <div className="ce-surface-light">
                   <dt>Tasks</dt>
                   <dd>{metrics.completeTasks}/{metrics.totalTasks}</dd>
                 </div>
-                <div>
+                <div className="ce-surface-light">
                   <dt>Blocked</dt>
                   <dd>{metrics.blockedTasks}</dd>
                 </div>
-                <div>
+                <div className="ce-surface-light">
                   <dt>Escalations</dt>
                   <dd>{metrics.openEscalations}</dd>
                 </div>
@@ -168,7 +168,7 @@ export function OperationsReleaseBoard({ selectedOperation, operationReleaseScor
           <h4 id="operations-release-board-heading">Operational readiness at a glance</h4>
           <p>Use the release board to spot the workstream that needs attention before guests arrive at the terminal.</p>
         </div>
-        <div className="operations-release-score" data-testid="react-operations-release-score" aria-label={`Overall release readiness ${operationReleaseScore}%`}>
+        <div className="operations-release-score ce-surface-light" data-testid="react-operations-release-score" aria-label={`Overall release readiness ${operationReleaseScore}%`}>
           <span>{operationReleaseScore}%</span>
           <small>overall readiness</small>
         </div>

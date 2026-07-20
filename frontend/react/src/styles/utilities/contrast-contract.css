@@ -1,0 +1,938 @@
+/*
+  Final application-wide surface contrast contract.
+
+  This file is loaded after every component and utility stylesheet. It is the
+  final authority for text contrast. Light surfaces own dark text; dark surfaces
+  own light text. Explicit surface classes are preferred, while the shared
+  component selectors keep existing application surfaces protected.
+*/
+
+:root {
+  --ce-contrast-light-text: #071827;
+  --ce-contrast-light-muted: #1f3a56;
+  --ce-contrast-light-kicker: #075985;
+  --ce-contrast-dark-text: #ffffff;
+  --ce-contrast-dark-muted: #d8f3ff;
+}
+
+/* Explicit semantic surface contexts for current and future components. */
+:is(.react-production-shell, .react-app-shell) .ce-surface-light {
+  --ce-surface-text: var(--ce-contrast-light-text);
+  --ce-surface-muted-text: var(--ce-contrast-light-muted);
+  --ce-surface-kicker-text: var(--ce-contrast-light-kicker);
+  color: var(--ce-contrast-light-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-text) !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .ce-surface-dark {
+  --ce-surface-text: var(--ce-contrast-dark-text);
+  --ce-surface-muted-text: var(--ce-contrast-dark-muted);
+  --ce-surface-kicker-text: var(--ce-contrast-dark-muted);
+  color: var(--ce-contrast-dark-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-dark-text) !important;
+}
+
+/* Existing shared light surfaces. The combined selectors deliberately carry
+   more specificity than historical feature rules. */
+:is(.react-production-shell, .react-app-shell) :is(
+  .ce-surface-light,
+  .ce-card,
+  .ce-editor-card,
+  .ce-data-card,
+  .draft-editor,
+  .admin-delete-selector-card,
+  .react-admin-management-card,
+  .react-admin-mutation-panel,
+  .react-admin-record-selector,
+  .react-admin-table-wrap,
+  .ship-card,
+  .sailing-card,
+  .itinerary-card,
+  .role-profile-card,
+  .presentation-hero-card,
+  .presentation-flow-card,
+  .presentation-detail-card,
+  .presentation-commercial-card,
+  .presentation-calendar-card,
+  .presentation-operator-card,
+  .query-status-card,
+  .quality-gate-card,
+  .launch-card,
+  .coverage-card,
+  .react-sqa-console,
+  .react-sqa-status-pill,
+  .go-live-readiness-panel,
+  .readiness-item,
+  .react-sqa-action-card
+) {
+  --ce-surface-text: var(--ce-contrast-light-text);
+  --ce-surface-muted-text: var(--ce-contrast-light-muted);
+  --ce-surface-kicker-text: var(--ce-contrast-light-kicker);
+}
+
+:is(.react-production-shell, .react-app-shell) :is(
+  .ce-surface-light,
+  .ce-card,
+  .ce-editor-card,
+  .ce-data-card,
+  .draft-editor,
+  .admin-delete-selector-card,
+  .react-admin-management-card,
+  .react-admin-mutation-panel,
+  .react-admin-record-selector,
+  .react-admin-table-wrap,
+  .ship-card,
+  .sailing-card,
+  .itinerary-card,
+  .role-profile-card,
+  .presentation-hero-card,
+  .presentation-flow-card,
+  .presentation-detail-card,
+  .presentation-commercial-card,
+  .presentation-calendar-card,
+  .presentation-operator-card,
+  .query-status-card,
+  .quality-gate-card,
+  .launch-card,
+  .coverage-card
+) :is(.muted.ce-muted, .muted, .ce-muted, .muted-copy, .muted-status, .section-summary, .result-summary) {
+  color: var(--ce-contrast-light-muted) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-muted) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:is(.react-production-shell, .react-app-shell) :is(
+  .ce-surface-light,
+  .ce-card,
+  .ce-editor-card,
+  .ce-data-card,
+  .draft-editor,
+  .admin-delete-selector-card,
+  .react-admin-management-card,
+  .react-admin-mutation-panel,
+  .react-admin-record-selector,
+  .react-admin-table-wrap,
+  .ship-card,
+  .sailing-card,
+  .itinerary-card,
+  .role-profile-card,
+  .react-sqa-console,
+  .react-sqa-status-pill,
+  .go-live-readiness-panel,
+  .readiness-item,
+  .react-sqa-action-card
+) :is(.eyebrow, .ce-kicker) {
+  color: var(--ce-contrast-light-kicker) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-kicker) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+/* Exact admin hierarchy guardrail. These selectors intentionally outrank the
+   historical command-card rules that repeatedly recolored nested light cards. */
+.react-production-shell .react-admin-management-card.ce-surface-light
+  .react-admin-mutation-panel.ce-surface-light
+  .draft-editor.ce-surface-light
+  :is(.muted.ce-muted, .muted, .ce-muted),
+.react-app-shell .react-admin-management-card.ce-surface-light
+  .react-admin-mutation-panel.ce-surface-light
+  .draft-editor.ce-surface-light
+  :is(.muted.ce-muted, .muted, .ce-muted),
+.react-production-shell .react-admin-management-card.ce-surface-light
+  .react-admin-record-selector.ce-surface-light
+  :is(.muted.ce-muted, .muted, .ce-muted),
+.react-app-shell .react-admin-management-card.ce-surface-light
+  .react-admin-record-selector.ce-surface-light
+  :is(.muted.ce-muted, .muted, .ce-muted) {
+  color: var(--ce-contrast-light-muted) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-muted) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+/* Cruise-line presentation cards are white product surfaces. The legacy admin
+   compatibility layer must never force white presentation text onto them. */
+:is(.react-production-shell, .react-app-shell)
+  .cruise-line-presentation-suite
+  .presentation-hero-card.ce-surface-light,
+:is(.react-production-shell, .react-app-shell)
+  .cruise-line-presentation-suite
+  .presentation-hero-card.ce-surface-light
+  .presentation-metric-grid article.ce-surface-light {
+  --ce-surface-text: var(--ce-contrast-light-text);
+  --ce-surface-muted-text: var(--ce-contrast-light-muted);
+  --ce-surface-kicker-text: var(--ce-contrast-light-kicker);
+  color: var(--ce-contrast-light-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-text) !important;
+}
+
+:is(.react-production-shell, .react-app-shell)
+  .cruise-line-presentation-suite
+  .presentation-hero-card.ce-surface-light
+  :is(h3, p, span, strong) {
+  color: var(--ce-contrast-light-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:is(.react-production-shell, .react-app-shell)
+  .cruise-line-presentation-suite
+  .presentation-hero-card.ce-surface-light
+  :is(.eyebrow, .ce-kicker) {
+  color: var(--ce-contrast-light-kicker) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-kicker) !important;
+}
+
+/* Dark surfaces retain light text, but never recolor content nested inside an
+   explicit or shared light surface. */
+:is(.react-production-shell, .react-app-shell) :is(
+  .ce-surface-dark,
+  .ce-command-panel,
+  .ce-command-card,
+  .react-role-dashboard,
+  .operational-turnaround-panel,
+  .operations-dashboard-shell
+) :is(.muted, .ce-muted, .muted-copy, .muted-status, .section-summary, .result-summary):not(
+  .ce-surface-light *,
+  .ce-card *,
+  .ce-editor-card *,
+  .ce-data-card *,
+  .draft-editor *,
+  .admin-delete-selector-card *,
+  .react-admin-management-card *,
+  .react-admin-mutation-panel *,
+  .react-admin-record-selector *,
+  .react-admin-table-wrap *,
+  .fleet-card *,
+  .ship-card *,
+  .sailing-card *,
+  .itinerary-card *,
+  .role-booking-card *,
+  .role-profile-card *,
+  .role-booking-detail-panel *,
+  .role-itinerary-panel *
+) {
+  color: var(--ce-contrast-dark-muted) !important;
+  -webkit-text-fill-color: var(--ce-contrast-dark-muted) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+
+/* Dark summary/action bars nested inside light management cards explicitly
+   restore the dark-surface text contract. */
+:is(.react-production-shell, .react-app-shell) .react-admin-workflow-bar.ce-surface-dark {
+  --ce-surface-text: var(--ce-contrast-dark-text);
+  --ce-surface-muted-text: var(--ce-contrast-dark-muted);
+  --ce-surface-kicker-text: var(--ce-contrast-dark-muted);
+  color: var(--ce-contrast-dark-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-dark-text) !important;
+}
+
+:is(.react-production-shell, .react-app-shell)
+  .react-admin-management-card.ce-surface-light
+  .react-admin-workflow-bar.ce-surface-dark
+  :is(p, .result-summary, span, strong) {
+  color: var(--ce-contrast-dark-muted) !important;
+  -webkit-text-fill-color: var(--ce-contrast-dark-muted) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+/* Fleet directory cards are intentionally dark operational surfaces.
+   Their foreground must never inherit the light-surface text contract. */
+:is(.react-production-shell, .react-app-shell)
+  .fleet-directory-section
+  .fleet-card.ce-surface-dark,
+:is(.react-production-shell, .react-app-shell)
+  .fleet-directory-section
+  .fleet-card.ce-surface-dark
+  .brand-theme-summary.ce-surface-dark {
+  --ce-surface-text: var(--ce-contrast-dark-text);
+  --ce-surface-muted-text: var(--ce-contrast-dark-muted);
+  --ce-surface-kicker-text: var(--ce-contrast-dark-muted);
+  color: var(--ce-contrast-dark-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-dark-text) !important;
+}
+
+:is(.react-production-shell, .react-app-shell)
+  .fleet-directory-section
+  .fleet-card.ce-surface-dark
+  :is(h1, h2, h3, h4, h5, h6, p, li, label, strong, small, dt, dd, span) {
+  color: var(--ce-contrast-dark-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-dark-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:is(.react-production-shell, .react-app-shell)
+  .fleet-directory-section
+  .fleet-card.ce-surface-dark
+  :is(.muted, .ce-muted, .eyebrow, .ce-kicker) {
+  color: var(--ce-contrast-dark-muted) !important;
+  -webkit-text-fill-color: var(--ce-contrast-dark-muted) !important;
+}
+
+:is(.react-production-shell, .react-app-shell)
+  .fleet-directory-section
+  .fleet-card.ce-surface-dark a {
+  color: #9fe8ff !important;
+  -webkit-text-fill-color: #9fe8ff !important;
+}
+
+/* Interactive dark controls keep white labels even when placed on light cards. */
+:is(.react-production-shell, .react-app-shell) :is(
+  button.ce-button-primary,
+  button.ce-button-danger,
+  .primary-action-button,
+  .primary-button,
+  .fleet-danger-action,
+  .fleet-primary-action,
+  .sqa-action-button
+) {
+  color: var(--ce-contrast-dark-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-dark-text) !important;
+}
+
+
+/*
+  Global readable typography contract.
+  Surface classes own the foreground color for every normal text role, not only
+  muted helper copy. This prevents a broad dark ancestor from forcing white text
+  into a nested white card and prevents dark text from leaking into dark panels.
+*/
+:is(.react-production-shell, .react-app-shell) .ce-surface-light :is(
+  h1, h2, h3, h4, h5, h6,
+  p, li, label, legend, strong, small,
+  dt, dd, caption, th, td,
+  span:not(.ready-dot):not(.attention-dot)
+) {
+  color: var(--ce-contrast-light-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .ce-surface-light :is(
+  .muted, .ce-muted, .muted-copy, .muted-status,
+  .section-summary, .result-summary
+) {
+  color: var(--ce-contrast-light-muted) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-muted) !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .ce-surface-light :is(.eyebrow, .ce-kicker) {
+  color: var(--ce-contrast-light-kicker) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-kicker) !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .ce-surface-dark :is(
+  h1, h2, h3, h4, h5, h6,
+  p, li, label, legend, strong, small,
+  dt, dd, caption, th, td,
+  span:not(.ready-dot):not(.attention-dot)
+) {
+  color: var(--ce-contrast-dark-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-dark-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .ce-surface-dark :is(
+  .muted, .ce-muted, .muted-copy, .muted-status,
+  .section-summary, .result-summary, .eyebrow, .ce-kicker
+) {
+  color: var(--ce-contrast-dark-muted) !important;
+  -webkit-text-fill-color: var(--ce-contrast-dark-muted) !important;
+}
+
+/* Quality Console is a white product surface nested inside a dark section. */
+:is(.react-production-shell, .react-app-shell) .react-quality-section
+  .react-sqa-console.ce-surface-light,
+:is(.react-production-shell, .react-app-shell) .react-quality-section
+  .react-sqa-console.ce-surface-light :is(
+    .react-sqa-status-pill,
+    .go-live-readiness-panel,
+    .readiness-item,
+    .react-sqa-action-card
+  ) {
+  --ce-surface-text: var(--ce-contrast-light-text);
+  --ce-surface-muted-text: var(--ce-contrast-light-muted);
+  --ce-surface-kicker-text: var(--ce-contrast-light-kicker);
+  color: var(--ce-contrast-light-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-text) !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .react-quality-section
+  .react-sqa-console.ce-surface-light :is(
+    .react-sqa-header,
+    .react-sqa-status-pill,
+    .go-live-readiness-panel,
+    .readiness-item,
+    .react-sqa-action-card,
+    .react-sqa-output-header
+  ) :is(h1, h2, h3, h4, h5, h6, p, li, label, strong, small, span) {
+  color: var(--ce-contrast-light-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .react-quality-section
+  .react-sqa-console.ce-surface-light :is(
+    .react-sqa-header,
+    .go-live-readiness-panel,
+    .readiness-item,
+    .react-sqa-action-card,
+    .react-sqa-output-header
+  ) p {
+  color: var(--ce-contrast-light-muted) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-muted) !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .react-quality-section
+  .react-sqa-console.ce-surface-light :is(.eyebrow, .ce-kicker) {
+  color: var(--ce-contrast-light-kicker) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-kicker) !important;
+}
+
+/* Buttons and the output terminal are intentionally dark surfaces. */
+:is(.react-production-shell, .react-app-shell) .react-sqa-console.ce-surface-light
+  :is(button, .react-sqa-output) {
+  color: var(--ce-contrast-dark-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-dark-text) !important;
+}
+
+
+/* Cruise-line operating controls are dark surfaces containing light form controls.
+   Explicit ownership prevents a surrounding light product surface from leaking
+   dark label and helper text into the dark operating-scope panel. */
+:is(.react-production-shell, .react-app-shell)
+  .cruise-line-presentation-suite
+  .presentation-control-panel.ce-surface-dark,
+:is(.react-production-shell, .react-app-shell)
+  .cruise-line-presentation-suite
+  .presentation-scope-controls.ce-surface-dark,
+:is(.react-production-shell, .react-app-shell)
+  .cruise-line-presentation-suite
+  .presentation-line-picker.ce-surface-dark {
+  --ce-surface-text: var(--ce-contrast-dark-text);
+  --ce-surface-muted-text: var(--ce-contrast-dark-muted);
+  --ce-surface-kicker-text: var(--ce-contrast-dark-muted);
+  color: var(--ce-contrast-dark-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-dark-text) !important;
+}
+
+:is(.react-production-shell, .react-app-shell)
+  .cruise-line-presentation-suite
+  .presentation-line-picker.ce-surface-dark
+  :is(span, small, label) {
+  color: var(--ce-contrast-dark-muted) !important;
+  -webkit-text-fill-color: var(--ce-contrast-dark-muted) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+/* Native text-entry controls remain light editing surfaces even when they are
+   nested inside a dark command surface. */
+:is(.react-production-shell, .react-app-shell) .ce-surface-dark :is(
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
+  select,
+  textarea
+) {
+  background-color: #ffffff !important;
+  color: var(--ce-contrast-light-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-text) !important;
+  opacity: 1 !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .ce-surface-dark select option {
+  background-color: #ffffff !important;
+  color: var(--ce-contrast-light-text) !important;
+}
+
+/* Turnaround workspace summary cards are light surfaces nested in a dark command panel. */
+:is(.react-production-shell, .react-app-shell)
+  .turnaround-admin-setup-panel
+  .turnaround-team-workspace
+  .turnaround-workspace-card.ce-surface-light {
+  --ce-surface-text: var(--ce-contrast-light-text);
+  --ce-surface-muted-text: var(--ce-contrast-light-muted);
+  --ce-surface-kicker-text: var(--ce-contrast-light-kicker);
+  color: var(--ce-contrast-light-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-text) !important;
+}
+
+:is(.react-production-shell, .react-app-shell)
+  .turnaround-admin-setup-panel
+  .turnaround-team-workspace
+  .turnaround-workspace-card.ce-surface-light
+  :is(h1, h2, h3, h4, h5, h6, p, strong, span, small, dt, dd, li) {
+  color: var(--ce-surface-text) !important;
+  -webkit-text-fill-color: var(--ce-surface-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:is(.react-production-shell, .react-app-shell)
+  .turnaround-admin-setup-panel
+  .turnaround-team-workspace
+  .turnaround-workspace-card.ce-surface-light
+  > span {
+  color: var(--ce-surface-kicker-text) !important;
+  -webkit-text-fill-color: var(--ce-surface-kicker-text) !important;
+}
+
+/* The selected-turnaround summary is an intentionally dark status surface
+   nested inside the light turnaround editor. It must retain light text even
+   when the surrounding form establishes a light-surface context. */
+:is(.react-production-shell, .react-app-shell)
+  .turnaround-admin-setup-panel
+  .turnaround-admin-form.ce-editor-card
+  .turnaround-admin-draft-summary.ce-surface-dark {
+  --ce-surface-text: var(--ce-contrast-dark-text);
+  --ce-surface-muted-text: var(--ce-contrast-dark-muted);
+  --ce-surface-kicker-text: var(--ce-contrast-dark-muted);
+  color: var(--ce-contrast-dark-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-dark-text) !important;
+}
+
+:is(.react-production-shell, .react-app-shell)
+  .turnaround-admin-setup-panel
+  .turnaround-admin-form.ce-editor-card
+  .turnaround-admin-draft-summary.ce-surface-dark
+  :is(span, strong, p, small) {
+  color: var(--ce-contrast-dark-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-dark-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:is(.react-production-shell, .react-app-shell)
+  .turnaround-admin-setup-panel
+  .turnaround-admin-form.ce-editor-card
+  .turnaround-admin-draft-summary.ce-surface-dark
+  > span {
+  color: var(--ce-contrast-dark-muted) !important;
+  -webkit-text-fill-color: var(--ce-contrast-dark-muted) !important;
+}
+
+
+/*
+  Nested light-surface precedence contract.
+
+  A dark command surface may contain editor, data, and card surfaces. Those
+  nested light surfaces must always re-establish dark typography for every
+  normal text role. This rule intentionally appears after the dark-surface
+  descendant contract so a dark ancestor can never recolor content inside a
+  light child surface.
+*/
+:is(.react-production-shell, .react-app-shell) :is(
+  .ce-surface-light,
+  .ce-editor-card,
+  .ce-data-card,
+  .ce-card
+) {
+  --ce-surface-text: var(--ce-contrast-light-text);
+  --ce-surface-muted-text: var(--ce-contrast-light-muted);
+  --ce-surface-kicker-text: var(--ce-contrast-light-kicker);
+  color: var(--ce-contrast-light-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-text) !important;
+  text-shadow: none !important;
+}
+
+:is(.react-production-shell, .react-app-shell) :is(
+  .ce-surface-light,
+  .ce-editor-card,
+  .ce-data-card,
+  .ce-card
+) :is(
+  h1, h2, h3, h4, h5, h6,
+  p, li, label, legend, strong, small,
+  dt, dd, caption, th, td,
+  span:not(.ready-dot):not(.attention-dot)
+) {
+  color: var(--ce-contrast-light-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:is(.react-production-shell, .react-app-shell) :is(
+  .ce-surface-light,
+  .ce-editor-card,
+  .ce-data-card,
+  .ce-card
+) :is(
+  .muted, .ce-muted, .muted-copy, .muted-status,
+  .section-summary, .result-summary
+) {
+  color: var(--ce-contrast-light-muted) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-muted) !important;
+}
+
+:is(.react-production-shell, .react-app-shell) :is(
+  .ce-surface-light,
+  .ce-editor-card,
+  .ce-data-card,
+  .ce-card
+) :is(.eyebrow, .ce-kicker) {
+  color: var(--ce-contrast-light-kicker) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-kicker) !important;
+}
+
+/* Dark interactive controls remain dark even when nested in a light editor. */
+:is(.react-production-shell, .react-app-shell) :is(
+  .ce-surface-light,
+  .ce-editor-card,
+  .ce-data-card,
+  .ce-card
+) :is(
+  button.ce-button-primary,
+  button.ce-button-danger,
+  .primary-action-button,
+  .primary-button,
+  .fleet-danger-action,
+  .fleet-primary-action,
+  .sqa-action-button
+) {
+  color: var(--ce-contrast-dark-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-dark-text) !important;
+}
+
+
+/* Passenger booking cards are dark command surfaces containing light data
+   tiles and passenger rows. Each nested light surface owns dark typography so
+   the parent command-card foreground cannot make pale content unreadable. */
+:is(.react-production-shell, .react-app-shell)
+  .role-booking-card.ce-surface-dark
+  :is(.role-booking-field.ce-surface-light, .visible-passenger-row.ce-surface-light) {
+  --ce-surface-text: var(--ce-contrast-light-text);
+  --ce-surface-muted-text: var(--ce-contrast-light-muted);
+  --ce-surface-kicker-text: var(--ce-contrast-light-kicker);
+  color: var(--ce-contrast-light-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-text) !important;
+}
+
+:is(.react-production-shell, .react-app-shell)
+  .role-booking-card.ce-surface-dark
+  :is(.role-booking-field.ce-surface-light, .visible-passenger-row.ce-surface-light)
+  :is(dt, dd, span, strong, small, p) {
+  color: var(--ce-contrast-light-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:is(.react-production-shell, .react-app-shell)
+  .role-booking-card.ce-surface-dark
+  .role-booking-field.ce-surface-light dt {
+  color: var(--ce-contrast-light-kicker) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-kicker) !important;
+}
+
+
+/* Favorites-only is a light secondary control inside the dark itinerary panel.
+   It must re-establish dark text for both the label and nested span after the
+   dark-surface descendant rule above. */
+:is(.react-production-shell, .react-app-shell)
+  .role-itinerary-panel.ce-surface-dark
+  .role-favorites-filter.ce-surface-light,
+:is(.react-production-shell, .react-app-shell)
+  .role-itinerary-panel.ce-surface-dark
+  .role-favorites-filter.ce-surface-light span {
+  color: var(--ce-action-secondary-text) !important;
+  -webkit-text-fill-color: var(--ce-action-secondary-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+/* Group-leader readiness status is a pale notification inside a dark role
+   dashboard. It owns dark text and must not inherit the command surface color. */
+:is(.react-production-shell, .react-app-shell)
+  .group-leader-dashboard-status.ce-surface-light {
+  color: var(--ce-contrast-light-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+/* Operational score tiles are light status surfaces inside dark turnaround
+   panels. They must always use dark typography, regardless of parent surface. */
+:is(.react-production-shell, .react-app-shell) :is(
+  .operations-release-packet-score.ce-surface-light,
+  .operations-playbook-score.ce-surface-light,
+  .operations-playbook-variance-score.ce-surface-light,
+  .operations-incident-command-score.ce-surface-light,
+  .operations-outreach-board-score.ce-surface-light,
+  .operations-scenario-plan-score.ce-surface-light
+),
+:is(.react-production-shell, .react-app-shell) :is(
+  .operations-release-packet-score.ce-surface-light,
+  .operations-playbook-score.ce-surface-light,
+  .operations-playbook-variance-score.ce-surface-light,
+  .operations-incident-command-score.ce-surface-light,
+  .operations-outreach-board-score.ce-surface-light,
+  .operations-scenario-plan-score.ce-surface-light
+) :is(span, small, strong, p) {
+  color: var(--ce-contrast-light-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-light-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+/* The scenario runbook is a dark command surface. Explicit ownership prevents
+   generic light-card rules from producing an empty white panel with white text. */
+:is(.react-production-shell, .react-app-shell)
+  .operations-scenario-plan-runbook.ce-surface-dark {
+  background: rgba(6, 30, 45, 0.88) !important;
+  border-color: rgba(125, 211, 252, 0.35) !important;
+  color: var(--ce-contrast-dark-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-dark-text) !important;
+}
+
+:is(.react-production-shell, .react-app-shell)
+  .operations-scenario-plan-runbook.ce-surface-dark
+  :is(strong, li, span, p) {
+  color: var(--ce-contrast-dark-text) !important;
+  -webkit-text-fill-color: var(--ce-contrast-dark-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+/* Operational analytics and scenario summary scores use the same light-card
+   treatment as the other turnaround score panels. */
+:is(.react-production-shell, .react-app-shell) :is(
+  .operations-metrics-confidence.ce-surface-light,
+  .operations-scenario-plan-score.ce-surface-light
+) {
+  background: #f8fbff !important;
+  border: 1px solid #b8cde0 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:is(.react-production-shell, .react-app-shell) :is(
+  .operations-metrics-confidence.ce-surface-light,
+  .operations-scenario-plan-score.ce-surface-light
+) :is(span, small, strong, p) {
+  background: transparent !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+
+
+/* Turnaround percentage/status summaries share one light score-card treatment.
+   These cards sit inside dark operational panels but must remain visually
+   consistent with the established outreach score card. */
+:is(.react-production-shell, .react-app-shell) :is(
+  .operations-release-score.ce-surface-light,
+  .operations-lifecycle-score.ce-surface-light,
+  .operations-command-center-score.ce-surface-light,
+  .operations-control-board-score.ce-surface-light,
+  .operations-continuity-center-score.ce-surface-light,
+  .operations-shift-briefing-score.ce-surface-light,
+  .operations-go-live-score.ce-surface-light,
+  .operations-closeout-packet-score.ce-surface-light
+) {
+  background: #f8fbff !important;
+  border: 1px solid #b8cde0 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:is(.react-production-shell, .react-app-shell) :is(
+  .operations-release-score.ce-surface-light,
+  .operations-lifecycle-score.ce-surface-light,
+  .operations-command-center-score.ce-surface-light,
+  .operations-control-board-score.ce-surface-light,
+  .operations-continuity-center-score.ce-surface-light,
+  .operations-shift-briefing-score.ce-surface-light,
+  .operations-go-live-score.ce-surface-light,
+  .operations-closeout-packet-score.ce-surface-light
+) :is(span, small, strong, p) {
+  background: transparent !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+
+/* Shared operations score-card sizing contract. Percentage summaries must fit
+   three-digit values such as 100% without clipping or dropping the percent sign. */
+:is(.react-production-shell, .react-app-shell) :is(
+  .operations-release-packet-score,
+  .operations-playbook-score,
+  .operations-playbook-variance-score,
+  .operations-incident-command-score,
+  .operations-outreach-board-score,
+  .operations-scenario-plan-score,
+  .operations-metrics-confidence,
+  .operations-release-score,
+  .operations-lifecycle-score,
+  .operations-command-center-score,
+  .operations-control-board-score,
+  .operations-continuity-center-score,
+  .operations-shift-briefing-score,
+  .operations-go-live-score,
+  .operations-closeout-packet-score
+) {
+  box-sizing: border-box !important;
+  flex: 0 0 8.75rem !important;
+  inline-size: 8.75rem !important;
+  min-inline-size: 8.75rem !important;
+  max-inline-size: 100% !important;
+  padding-inline: 0.9rem !important;
+}
+
+:is(.react-production-shell, .react-app-shell) :is(
+  .operations-release-packet-score,
+  .operations-playbook-score,
+  .operations-playbook-variance-score,
+  .operations-incident-command-score,
+  .operations-outreach-board-score,
+  .operations-scenario-plan-score,
+  .operations-metrics-confidence,
+  .operations-release-score,
+  .operations-lifecycle-score,
+  .operations-command-center-score,
+  .operations-control-board-score,
+  .operations-continuity-center-score,
+  .operations-shift-briefing-score,
+  .operations-go-live-score,
+  .operations-closeout-packet-score
+) > span {
+  display: block !important;
+  line-height: 1.05 !important;
+  white-space: nowrap !important;
+}
+
+/* Shared operations score-card typography contract. Every percentage/status
+   summary uses the same hierarchy as the scenario score card: a prominent
+   percentage on its own line with a compact uppercase status beneath it. */
+:is(.react-production-shell, .react-app-shell) :is(
+  .operations-release-packet-score,
+  .operations-playbook-score,
+  .operations-playbook-variance-score,
+  .operations-incident-command-score,
+  .operations-outreach-board-score,
+  .operations-scenario-plan-score,
+  .operations-metrics-confidence,
+  .operations-release-score,
+  .operations-lifecycle-score,
+  .operations-command-center-score,
+  .operations-control-board-score,
+  .operations-continuity-center-score,
+  .operations-shift-briefing-score,
+  .operations-go-live-score,
+  .operations-closeout-packet-score
+) > span {
+  display: block !important;
+  font-size: 2rem !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
+}
+
+:is(.react-production-shell, .react-app-shell) :is(
+  .operations-release-packet-score,
+  .operations-playbook-score,
+  .operations-playbook-variance-score,
+  .operations-incident-command-score,
+  .operations-outreach-board-score,
+  .operations-scenario-plan-score,
+  .operations-metrics-confidence,
+  .operations-release-score,
+  .operations-lifecycle-score,
+  .operations-command-center-score,
+  .operations-control-board-score,
+  .operations-continuity-center-score,
+  .operations-shift-briefing-score,
+  .operations-go-live-score,
+  .operations-closeout-packet-score
+) > small {
+  display: block !important;
+  font-size: 0.72rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1.35 !important;
+  margin-top: 0.45rem !important;
+  text-transform: uppercase !important;
+}
+
+
+/* Executive brief, after-action review, and timeline summary cards use the same
+   light score-card presentation as the established closeout summary. */
+:is(.react-production-shell, .react-app-shell) :is(
+  .operations-executive-brief-score.ce-surface-light,
+  .operations-after-action-score.ce-surface-light,
+  .operations-timeline-summary > .ce-surface-light
+) {
+  background: #f8fbff !important;
+  border: 1px solid #b8cde0 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:is(.react-production-shell, .react-app-shell) :is(
+  .operations-executive-brief-score.ce-surface-light,
+  .operations-after-action-score.ce-surface-light,
+  .operations-timeline-summary > .ce-surface-light
+) :is(span, small, strong, p, dt, dd) {
+  background: transparent !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:is(.react-production-shell, .react-app-shell) :is(
+  .operations-executive-brief-score.ce-surface-light,
+  .operations-after-action-score.ce-surface-light
+) {
+  box-sizing: border-box !important;
+  flex: 0 0 8.75rem !important;
+  inline-size: 8.75rem !important;
+  min-inline-size: 8.75rem !important;
+  max-inline-size: 100% !important;
+  min-height: 8rem !important;
+  padding: 0.9rem !important;
+}
+
+:is(.react-production-shell, .react-app-shell) :is(
+  .operations-executive-brief-score.ce-surface-light,
+  .operations-after-action-score.ce-surface-light
+) > span {
+  display: block !important;
+  font-size: 2rem !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
+}
+
+:is(.react-production-shell, .react-app-shell) :is(
+  .operations-executive-brief-score.ce-surface-light,
+  .operations-after-action-score.ce-surface-light
+) > small {
+  display: block !important;
+  font-size: 0.72rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1.35 !important;
+  margin-top: 0.45rem !important;
+  text-transform: uppercase !important;
+}

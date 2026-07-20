@@ -53,7 +53,7 @@ export default function CustomerBookingHierarchy({
         <p>Search customers, expand linked bookings inline, review booking details, and edit records from the same workflow table.</p>
       </div>
 
-      <div className="react-admin-management-card ce-command-card" data-testid="react-admin-management-card">
+      <div className="react-admin-management-card ce-command-card ce-surface-light" data-testid="react-admin-management-card">
         <div className="react-admin-card-heading">
           <div>
             <p className="eyebrow ce-kicker">Admin Data Management</p>
@@ -81,6 +81,10 @@ export default function CustomerBookingHierarchy({
           updateDeleteCustomerFilter={state.updateDeleteCustomerFilter}
           customerCruiseLineOptions={state.customerCruiseLineOptions}
           customerShipOptions={state.customerShipOptions}
+          customerLastNameOptions={state.customerLastNameOptions}
+          customerFirstNameInitialOptions={state.customerFirstNameInitialOptions}
+          customerSelectorNeedsNarrowing={state.customerSelectorNeedsNarrowing}
+          allFilteredDeleteCustomers={state.allFilteredDeleteCustomers}
           deleteCustomerId={state.deleteCustomerId}
           filteredDeleteCustomers={state.filteredDeleteCustomers}
           getCustomerDeleteLabel={state.getCustomerDeleteLabel}
@@ -89,6 +93,10 @@ export default function CustomerBookingHierarchy({
           updateDeleteBookingFilter={state.updateDeleteBookingFilter}
           bookingCruiseLineOptions={state.bookingCruiseLineOptions}
           bookingShipOptions={state.bookingShipOptions}
+          bookingPassengerLastNameOptions={state.bookingPassengerLastNameOptions}
+          bookingPassengerFirstNameInitialOptions={state.bookingPassengerFirstNameInitialOptions}
+          bookingSelectorNeedsNarrowing={state.bookingSelectorNeedsNarrowing}
+          allFilteredDeleteBookings={state.allFilteredDeleteBookings}
           deleteBookingId={state.deleteBookingId}
           filteredDeleteBookings={state.filteredDeleteBookings}
           getBookingDeleteLabel={state.getBookingDeleteLabel}
@@ -100,6 +108,10 @@ export default function CustomerBookingHierarchy({
           updateWorkflowFilter={state.updateWorkflowFilter}
           workflowCruiseLineOptions={state.workflowCruiseLineOptions}
           workflowShipOptions={state.workflowShipOptions}
+          workflowLastNameOptions={state.workflowLastNameOptions}
+          workflowFirstNameInitialOptions={state.workflowFirstNameInitialOptions}
+          workflowSelectorNeedsNarrowing={state.workflowSelectorNeedsNarrowing}
+          allFilteredWorkflowCustomers={state.allFilteredWorkflowCustomers}
           filteredWorkflowCustomers={state.filteredWorkflowCustomers}
           getCustomerDeleteLabel={state.getCustomerDeleteLabel}
           isSelectorPending={state.isSelectorPending}
@@ -107,7 +119,7 @@ export default function CustomerBookingHierarchy({
           updateSearchTerm={state.updateSearchTerm}
         />
 
-        <div className="react-admin-workflow-bar">
+        <div className="react-admin-workflow-bar ce-surface-dark">
           <p id="react-hierarchy-summary" className="result-summary" role="status" data-testid="react-hierarchy-summary">
             {summary.customerCount} customers and {summary.uniqueBookingCount} linked bookings available.
             {workflowsVisible ? ' Customer records are visible with linked bookings.' : ' Open customer workflows to view parent and child records.'}

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createBooking, createCustomer, getSailingsForShip, getShipsForCruiseLine } from '../api/client.js'
 
 
@@ -258,6 +258,36 @@ export default function PassengerCruiseBookingWorkflow({
   const [statusMessage, setStatusMessage] = useState('Select a cruise line, ship, and sailing to start a new booking.')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const selectedPrimaryGuestId = selectedCustomer?.id || selectedDemoUser?.customerId || ''
+
+  useEffect(() => {
+    const nextPrimaryGuest = buildPrimaryGuestDraft(selectedCustomer, selectedDemoUser)
+
+    setGuestDrafts(currentGuests => {
+      if (currentGuests.length === 0) return [nextPrimaryGuest]
+
+      const currentPrimaryGuest = currentGuests[0]
+      const synchronizedPrimaryGuest = {
+        ...currentPrimaryGuest,
+        ...nextPrimaryGuest,
+        diningPreference: currentPrimaryGuest.diningPreference || nextPrimaryGuest.diningPreference,
+        accessibilityNotes: currentPrimaryGuest.accessibilityNotes || '',
+        boardingGroup: currentPrimaryGuest.boardingGroup || nextPrimaryGuest.boardingGroup
+      }
+
+      return [synchronizedPrimaryGuest, ...currentGuests.slice(1)]
+    })
+  }, [
+    selectedPrimaryGuestId,
+    selectedCustomer?.firstName,
+    selectedCustomer?.lastName,
+    selectedCustomer?.email,
+    selectedCustomer?.phone,
+    selectedCustomer?.loyaltyNumber,
+    selectedDemoUser?.displayName,
+    selectedDemoUser?.email
+  ])
+
   const selectedCruiseLine = cruiseLines.find(line => line.id === selectedCruiseLineId)
   const selectedShip = shipOptions.find(ship => ship.id === selectedShipId)
   const selectedSailing = sailingOptions.find(sailing => sailing.id === selectedSailingId)
@@ -498,12 +528,12 @@ export default function PassengerCruiseBookingWorkflow({
   }
 
   return (
-    <section className="role-profile-card passenger-booking-workflow ce-command-card" aria-labelledby="react-passenger-booking-heading" data-testid="react-passenger-booking-workflow">
+    <section className="role-profile-card passenger-booking-workflow ce-command-card ce-surface-dark" aria-labelledby="react-passenger-booking-heading" data-testid="react-passenger-booking-workflow">
       <p className="eyebrow ce-kicker">New cruise booking</p>
       <h3 id="react-passenger-booking-heading">Find and book a cruise</h3>
       <p>Search by cruise line, ship, destination, departure port, or sailing length, then add guests and request a booking.</p>
 
-      <form className="passenger-booking-form ce-editor-card" noValidate onSubmit={handleSubmit} data-testid="react-passenger-booking-form">
+      <form className="passenger-booking-form ce-editor-card ce-surface-light" noValidate onSubmit={handleSubmit} data-testid="react-passenger-booking-form">
         <div className="booking-search-grid ce-field-grid">
           <label>
             <span>Cruise line search</span>
@@ -565,7 +595,7 @@ export default function PassengerCruiseBookingWorkflow({
           <input value={cabinNumber} onChange={event => setCabinNumber(event.target.value)} data-testid="react-booking-cabin-input" />
         </label>
 
-        <div className="passenger-booking-guests ce-editor-card" data-testid="react-booking-guest-list">
+        <div className="passenger-booking-guests ce-editor-card ce-surface-light" data-testid="react-booking-guest-list">
           <div className="section-heading-row ce-section-heading">
             <div>
               <h4>Guests</h4>
@@ -575,13 +605,17 @@ export default function PassengerCruiseBookingWorkflow({
           </div>
 
           {guestDrafts.map((guest, index) => (
-            <fieldset className="passenger-booking-guest-card ce-editor-card" key={`guest-${index}`} data-testid="react-booking-guest-card">
+            <fieldset className={`passenger-booking-guest-card ce-editor-card ce-surface-light${index === 0 ? ' is-primary-guest' : ' is-additional-guest'}`} key={`guest-${index}`} data-testid="react-booking-guest-card">
               <legend>{index === 0 ? 'Primary guest' : `Guest ${index + 1}`}</legend>
-              <div className="booking-search-grid ce-field-grid">
-                <label>
-                  <span>Guest source</span>
+              <div className="booking-guest-card-intro">
+                <strong>{index === 0 ? 'Your passenger profile' : 'Choose who is joining this booking'}</strong>
+                <span>{index === 0 ? 'This profile will be the booking owner and primary point of contact.' : 'Select an existing customer or create a new guest profile.'}</span>
+              </div>
+              <div className="booking-search-grid ce-field-grid booking-guest-fields">
+                <label className="booking-guest-source-field">
+                  <span>{index === 0 ? 'Profile source' : 'Guest source'}</span>
                   <select value={guest.customerMode} disabled={index === 0} onChange={event => updateGuest(index, 'customerMode', event.target.value)} data-testid="react-booking-guest-mode-select">
-                    <option value="existing">Existing customer</option>
+                    <option value="existing">{index === 0 ? 'Your passenger profile' : 'Existing customer'}</option>
                     <option value="new">New guest</option>
                   </select>
                 </label>
@@ -589,8 +623,8 @@ export default function PassengerCruiseBookingWorkflow({
                 {guest.customerMode === 'existing' ? (
                   <div className="booking-guest-finder" data-testid="react-booking-guest-finder">
                     {index === 0 ? (
-                      <div className="booking-selected-guest-card ce-editor-card" data-testid="react-booking-selected-guest-card">
-                        <span className="eyebrow ce-kicker">Selected profile</span>
+                      <div className="booking-selected-guest-card ce-editor-card ce-surface-light" data-testid="react-booking-selected-guest-card">
+                        <span className="booking-selected-guest-label">Selected profile</span>
                         <strong>{getGuestLabel(guest)}</strong>
                         <span>{guest.email || 'Primary passenger profile'}</span>
                       </div>
@@ -631,8 +665,8 @@ export default function PassengerCruiseBookingWorkflow({
                         </div>
 
                         {guest.customerId && (
-                          <div className="booking-selected-guest-card ce-editor-card" data-testid="react-booking-selected-guest-card">
-                            <span className="eyebrow ce-kicker">Selected guest</span>
+                          <div className="booking-selected-guest-card ce-editor-card ce-surface-light" data-testid="react-booking-selected-guest-card">
+                            <span className="booking-selected-guest-label">Selected guest</span>
                             <strong>{getCustomerDisplayName(customers.find(customer => customer.id === guest.customerId) || {})}</strong>
                             <span>{customers.find(customer => customer.id === guest.customerId)?.email || 'Existing customer profile'}</span>
                           </div>
@@ -640,7 +674,7 @@ export default function PassengerCruiseBookingWorkflow({
 
                         <div className="booking-guest-results" data-testid="react-booking-guest-results">
                           {getVisibleCustomerFinderOptions(index).length === 0 ? (
-                            <p className="empty-state compact ce-empty-state ce-editor-card" data-testid="react-booking-guest-finder-empty">No existing guests match the current search.</p>
+                            <p className="empty-state compact ce-empty-state ce-editor-card ce-surface-light" data-testid="react-booking-guest-finder-empty">No existing guests match the current search.</p>
                           ) : getVisibleCustomerFinderOptions(index).map(option => (
                             <button
                               key={option.customer.id}
@@ -692,7 +726,7 @@ export default function PassengerCruiseBookingWorkflow({
         <button type="submit" className="primary-action-button ce-button-primary" disabled={isSubmitting} data-testid="react-booking-submit-button">
           {isSubmitting ? 'Creating booking...' : 'Request Booking'}
         </button>
-        <p className="draft-message ce-feedback-message ce-editor-card" role="status" aria-live="polite" data-testid="react-booking-status-message">{statusMessage}</p>
+        <p className="draft-message ce-feedback-message ce-editor-card ce-surface-light" role="status" aria-live="polite" data-testid="react-booking-status-message">{statusMessage}</p>
       </form>
     </section>
   )

@@ -9,7 +9,7 @@ export function OperationsPlaybookPanels({ playbookTemplate, playbookVariance })
               <h4 id="operations-playbook-heading">Turnaround template promotion plan</h4>
               <p>{playbookTemplate.templateName} can be reviewed as a repeatable operating playbook for similar ships, ports, and passenger loads.</p>
             </div>
-            <div className="operations-playbook-score" aria-label={`Template readiness ${playbookTemplate.summary?.templateReadinessScore || 0}%`}>
+            <div className="operations-playbook-score ce-surface-light" aria-label={`Template readiness ${playbookTemplate.summary?.templateReadinessScore || 0}%`}>
               <span>{playbookTemplate.summary?.templateReadinessScore || 0}%</span>
               <small>{String(playbookTemplate.summary?.templateReadinessStatus || 'REVIEW').replace(/_/g, ' ')}</small>
             </div>
@@ -55,7 +55,7 @@ export function OperationsPlaybookPanels({ playbookTemplate, playbookVariance })
               <h4 id="operations-playbook-variance-heading">Live execution versus template baseline</h4>
               <p>Rehearsal scoring compares this turnaround against the reusable playbook so operators can see whether today is tracking like a repeatable ship and port pattern.</p>
             </div>
-            <div className={`operations-playbook-variance-score ${String(playbookVariance.status || '').toLowerCase()}`}>
+            <div className={`operations-playbook-variance-score ce-surface-light ${String(playbookVariance.status || '').toLowerCase()}`}>
               <span>{playbookVariance.summary?.rehearsalScore || 0}%</span>
               <small>{String(playbookVariance.summary?.rehearsalStatus || 'REVIEW').replace(/_/g, ' ')}</small>
             </div>

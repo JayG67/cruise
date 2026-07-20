@@ -1,3 +1,16 @@
+const formatOperationalStatus = value => String(value || 'Review')
+  .replace(/_/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim()
+  .toLowerCase()
+  .replace(/\b\w/g, character => character.toUpperCase())
+
+const formatOperationalRole = value => String(value || 'Operations')
+  .replace(/[-_]+/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim()
+  .replace(/\b\w/g, character => character.toUpperCase())
+
 export function OperationsLaunchCloseoutPanels({ selectedOperation }) {
   return (
     <>
@@ -9,7 +22,7 @@ export function OperationsLaunchCloseoutPanels({ selectedOperation }) {
               <h4 id="operations-shift-briefing-heading">Next-shift command handoff</h4>
               <p>One focused briefing translates live turnaround risk into what the next operations lead must know: critical items, department focus, and handoff checklist status.</p>
             </div>
-            <div className={`operations-shift-briefing-score ${String(selectedOperation.shiftBriefing.summary?.handoffStatus || '').toLowerCase()}`} aria-label={`Shift briefing score ${selectedOperation.shiftBriefing.summary?.briefingScore || 0}%`}>
+            <div className={`operations-shift-briefing-score ce-surface-light ${String(selectedOperation.shiftBriefing.summary?.handoffStatus || '').toLowerCase()}`} aria-label={`Shift briefing score ${selectedOperation.shiftBriefing.summary?.briefingScore || 0}%`}>
               <span>{selectedOperation.shiftBriefing.summary?.briefingScore || 0}%</span>
               <small>{String(selectedOperation.shiftBriefing.summary?.handoffStatus || 'WATCH_HANDOFF').replace(/_/g, ' ')}</small>
             </div>
@@ -54,9 +67,10 @@ export function OperationsLaunchCloseoutPanels({ selectedOperation }) {
             <strong>Department briefing focus</strong>
             <div className="operations-shift-briefing-department-grid">
               {(selectedOperation.shiftBriefing.departmentBriefs || []).slice(0, 6).map(department => (
-                <article key={department.departmentRole}>
-                  <span>{department.completionPercent}% complete · {department.signoffStatus}</span>
-                  <strong>{department.departmentRole}</strong>
+                <article className="operations-structured-status-card" key={department.departmentRole}>
+                  <span className="operations-status-score">{department.completionPercent}% complete</span>
+                  <span className="operations-status-label">{formatOperationalStatus(department.signoffStatus)}</span>
+                  <strong className="operations-status-title">{formatOperationalRole(department.departmentRole)}</strong>
                   <p>{department.briefingFocus}</p>
                   <small>{department.blockedTasks} blocked · {department.staffingGap} staffing gap · {department.openEscalations} escalations</small>
                 </article>
@@ -76,7 +90,7 @@ export function OperationsLaunchCloseoutPanels({ selectedOperation }) {
               <p>{selectedOperation.goLiveCenter.summary?.launchRecommendation}</p>
               <small>{selectedOperation.goLiveCenter.context}</small>
             </div>
-            <div className={`operations-go-live-score ${String(selectedOperation.goLiveCenter.summary?.goLiveStatus || '').toLowerCase()}`} aria-label={`Go-live score ${selectedOperation.goLiveCenter.summary?.goLiveScore || 0}%`}>
+            <div className={`operations-go-live-score ce-surface-light ${String(selectedOperation.goLiveCenter.summary?.goLiveStatus || '').toLowerCase()}`} aria-label={`Go-live score ${selectedOperation.goLiveCenter.summary?.goLiveScore || 0}%`}>
               <span>{selectedOperation.goLiveCenter.summary?.goLiveScore || 0}%</span>
               <small>{String(selectedOperation.goLiveCenter.summary?.goLiveStatus || 'NO_GO').replace(/_/g, ' ')}</small>
             </div>
@@ -121,9 +135,9 @@ export function OperationsLaunchCloseoutPanels({ selectedOperation }) {
             <strong>Deployment proof checklist</strong>
             <div className="operations-go-live-evidence-grid">
               {(selectedOperation.goLiveCenter.evidence || []).slice(0, 6).map(item => (
-                <article key={item.id}>
-                  <span>{item.status}</span>
-                  <strong>{item.label}</strong>
+                <article className="operations-structured-status-card" key={item.id}>
+                  <span className="operations-status-label">{formatOperationalStatus(item.status)}</span>
+                  <strong className="operations-status-title">{item.label}</strong>
                   <p>{item.detail}</p>
                 </article>
               ))}
@@ -149,7 +163,7 @@ export function OperationsLaunchCloseoutPanels({ selectedOperation }) {
               <h4 id="operations-closeout-packet-heading">Final management closeout and reusable operation proof</h4>
               <p>{selectedOperation.closeoutPacket.narrative?.summary}</p>
             </div>
-            <div className={`operations-closeout-packet-score ${String(selectedOperation.closeoutPacket.closeoutStatus || '').toLowerCase()}`} aria-label={`Closeout score ${selectedOperation.closeoutPacket.closeoutScore || 0}%`}>
+            <div className={`operations-closeout-packet-score ce-surface-light ${String(selectedOperation.closeoutPacket.closeoutStatus || '').toLowerCase()}`} aria-label={`Closeout score ${selectedOperation.closeoutPacket.closeoutScore || 0}%`}>
               <span>{selectedOperation.closeoutPacket.closeoutScore || 0}%</span>
               <small>{String(selectedOperation.closeoutPacket.closeoutStatus || 'NOT_READY_TO_CLOSE').replace(/_/g, ' ')}</small>
             </div>
@@ -161,9 +175,10 @@ export function OperationsLaunchCloseoutPanels({ selectedOperation }) {
           </div>
           <div className="operations-closeout-packet-grid" data-testid="react-operations-closeout-gates">
             {(selectedOperation.closeoutPacket.gates || []).slice(0, 8).map(gate => (
-              <article className={`operations-closeout-packet-card ${String(gate.status || '').toLowerCase()}`} key={gate.id}>
-                <span>{gate.readinessScore}% · {String(gate.status || 'REVIEW').replace(/_/g, ' ')}</span>
-                <strong>{gate.label}</strong>
+              <article className={`operations-closeout-packet-card operations-structured-status-card ${String(gate.status || '').toLowerCase()}`} key={gate.id}>
+                <span className="operations-status-score">{gate.readinessScore}%</span>
+                <span className="operations-status-label">{formatOperationalStatus(gate.status || 'Review')}</span>
+                <strong className="operations-status-title">{gate.label}</strong>
                 <p>{gate.detail}</p>
               </article>
             ))}
@@ -190,9 +205,9 @@ export function OperationsLaunchCloseoutPanels({ selectedOperation }) {
             <strong>Evidence archive</strong>
             <div className="operations-closeout-packet-archive-grid">
               {(selectedOperation.closeoutPacket.evidenceArchive || []).slice(0, 6).map(evidence => (
-                <article key={evidence.id}>
-                  <span>{evidence.status}</span>
-                  <strong>{evidence.label}</strong>
+                <article className="operations-structured-status-card" key={evidence.id}>
+                  <span className="operations-status-label">{formatOperationalStatus(evidence.status)}</span>
+                  <strong className="operations-status-title">{evidence.label}</strong>
                   <p>{evidence.detail}</p>
                 </article>
               ))}
@@ -210,7 +225,7 @@ export function OperationsLaunchCloseoutPanels({ selectedOperation }) {
               <h4 id="operations-executive-brief-heading">Cruise-line ready turnaround summary</h4>
               <p>Executive brief consolidates release confidence, incident command, playbook variance, after-action lessons, and timeline depth into one reviewer-ready decision summary.</p>
             </div>
-            <div className={`operations-executive-brief-score ${String(selectedOperation.executiveBrief.summary?.decisionTone || '').toLowerCase()}`} aria-label={`Executive readiness score ${selectedOperation.executiveBrief.summary?.decisionScore || 0}%`}>
+            <div className={`operations-executive-brief-score ce-surface-light ${String(selectedOperation.executiveBrief.summary?.decisionTone || '').toLowerCase()}`} aria-label={`Executive readiness score ${selectedOperation.executiveBrief.summary?.decisionScore || 0}%`}>
               <span>{selectedOperation.executiveBrief.summary?.decisionScore || 0}%</span>
               <small>{String(selectedOperation.executiveBrief.summary?.decisionStatus || 'NEEDS_COMMAND_REVIEW').replace(/_/g, ' ')}</small>
             </div>
@@ -275,7 +290,7 @@ export function OperationsLaunchCloseoutPanels({ selectedOperation }) {
               <h4 id="operations-after-action-heading">Turnaround debrief and promotion readiness</h4>
               <p>After-action review converts release confidence, playbook variance, incident risk, timeline activity, blockers, staffing gaps, and department outcomes into follow-up actions before the operation is promoted as a reusable pattern.</p>
             </div>
-            <div className={`operations-after-action-score ${String(selectedOperation.afterActionReview.summary?.reviewStatus || '').toLowerCase()}`} aria-label={`After-action review score ${selectedOperation.afterActionReview.summary?.reviewScore || 0}%`}>
+            <div className={`operations-after-action-score ce-surface-light ${String(selectedOperation.afterActionReview.summary?.reviewStatus || '').toLowerCase()}`} aria-label={`After-action review score ${selectedOperation.afterActionReview.summary?.reviewScore || 0}%`}>
               <span>{selectedOperation.afterActionReview.summary?.reviewScore || 0}%</span>
               <small>{String(selectedOperation.afterActionReview.summary?.reviewStatus || 'FOLLOW_UP').replace(/_/g, ' ')}</small>
             </div>
@@ -290,18 +305,19 @@ export function OperationsLaunchCloseoutPanels({ selectedOperation }) {
             ))}
           </div>
           <div className="operations-after-action-details">
-            <div data-testid="react-operations-after-action-departments">
+            <div className="operations-after-action-departments" data-testid="react-operations-after-action-departments">
               <strong>Department lessons</strong>
               <ul>
                 {(selectedOperation.afterActionReview.departmentLessons || []).slice(0, 4).map(department => (
                   <li key={department.departmentRole}>
-                    <span>{department.departmentRole}</span>
-                    <em>Score {department.lessonScore} · {department.completionPercent}% complete · {department.recommendation}</em>
+                    <span>{formatOperationalRole(department.departmentRole)}</span>
+                    <em>Score {department.lessonScore} · {department.completionPercent}% complete</em>
+                    <p>{department.recommendation}</p>
                   </li>
                 ))}
               </ul>
             </div>
-            <div data-testid="react-operations-after-action-followups">
+            <div className="operations-after-action-followups" data-testid="react-operations-after-action-followups">
               <strong>Follow-up actions</strong>
               <ul>
                 {(selectedOperation.afterActionReview.followUpActions || []).slice(0, 5).map(action => (

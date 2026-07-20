@@ -13,7 +13,7 @@ export function OperationsMetricsPanel({ operationalMetrics }) {
           <h4 id="operations-metrics-heading">Turnaround performance signals</h4>
           <p>Release confidence blends readiness, risk, staffing, dependencies, handoffs, escalations, and timeline activity into a command-center view.</p>
         </div>
-        <div className="operations-metrics-confidence" aria-label={`Release confidence ${operationalMetrics.summary?.releaseConfidence || 0}%`}>
+        <div className="operations-metrics-confidence ce-surface-light" aria-label={`Release confidence ${operationalMetrics.summary?.releaseConfidence || 0}%`}>
           <span>{operationalMetrics.summary?.releaseConfidence || 0}%</span>
           <small>Release confidence</small>
         </div>

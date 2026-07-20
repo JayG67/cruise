@@ -149,3 +149,14 @@
     grid-template-columns: repeat(3, minmax(11rem, 1fr)) !important;
   }
 }
+
+/* Cruise-line action cards need visible separation when the responsive layout
+   stacks them vertically. Grid gap is used instead of per-card margins so the
+   spacing remains consistent in both single- and multi-column layouts. */
+:is(.react-production-shell, .react-app-shell)
+  .cruise-line-presentation-suite
+  .presentation-demo-flow.presentation-action-grid {
+  display: grid !important;
+  gap: var(--ce-space-4, 1rem) !important;
+  row-gap: var(--ce-space-4, 1rem) !important;
+}

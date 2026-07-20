@@ -67,6 +67,36 @@
   overflow-wrap: anywhere;
 }
 
+.react-production-shell .role-selector-section :is(.passenger-finder-card, .person-finder-card).ce-selector-card {
+  align-content: start;
+  gap: var(--ce-space-3, 0.75rem);
+  grid-auto-rows: max-content;
+  height: auto;
+  min-height: 10.5rem;
+  overflow: hidden;
+  padding: 1.15rem 1.2rem 1.35rem !important;
+}
+
+.react-production-shell .role-selector-section :is(.passenger-finder-card, .person-finder-card).ce-selector-card .ce-selector-card-main {
+  gap: var(--ce-space-3, 0.75rem);
+}
+
+.react-production-shell .role-selector-section :is(.passenger-finder-card, .person-finder-card).ce-selector-card .ce-selector-card-detail {
+  display: -webkit-box;
+  line-height: 1.45;
+  max-width: 100%;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.react-production-shell .role-selector-section :is(.passenger-finder-results, .person-finder-results) {
+  align-items: stretch;
+  grid-auto-rows: minmax(10.5rem, auto);
+  padding-bottom: var(--ce-space-4, 1rem);
+  scroll-padding-bottom: var(--ce-space-4, 1rem);
+}
+
 .react-production-shell .booking-guest-result-card.ce-selector-card {
   min-height: 5.25rem;
 }

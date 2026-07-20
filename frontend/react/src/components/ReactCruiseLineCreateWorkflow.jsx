@@ -105,7 +105,7 @@ export default function ReactCruiseLineCreateWorkflow({ onCreated }) {
             </label>
           </fieldset>
 
-          <fieldset className={isCruiseLineDetailsComplete ? 'ce-editor-card' : 'ce-editor-card starter-ships-locked'} aria-disabled={!isCruiseLineDetailsComplete}>
+          <fieldset className={isCruiseLineDetailsComplete ? 'ce-editor-card starter-ships-panel ce-surface-light' : 'ce-editor-card starter-ships-panel starter-ships-locked ce-surface-light'} aria-disabled={!isCruiseLineDetailsComplete}>
             <legend><span>2</span> Starter Ships</legend>
             <p>{isCruiseLineDetailsComplete ? 'Add ships now, or leave this blank and add ships later.' : 'Complete every cruise line detail first before adding starter ships.'}</p>
 

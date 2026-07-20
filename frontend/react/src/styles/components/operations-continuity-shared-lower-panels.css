@@ -337,3 +337,147 @@
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Department continuity cards present score, status, and role as separate human-readable lines. */
+.react-role-dashboard .operations-continuity-department-card {
+  display: grid !important;
+  gap: 0.9rem !important;
+  min-width: 0 !important;
+  padding: 1rem !important;
+}
+
+.react-role-dashboard .operations-continuity-department-heading {
+  align-items: start !important;
+  display: grid !important;
+  gap: 0.3rem !important;
+}
+
+.react-role-dashboard .operations-continuity-department-score,
+.react-role-dashboard .operations-continuity-department-status,
+.react-role-dashboard .operations-continuity-department-role {
+  display: block !important;
+  margin: 0 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.react-role-dashboard .operations-continuity-department-score {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-size: 1.35rem !important;
+  font-weight: 900 !important;
+  line-height: 1.1 !important;
+}
+
+.react-role-dashboard .operations-continuity-department-status {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+  font-size: 0.76rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1.25 !important;
+  text-transform: uppercase !important;
+}
+
+.react-role-dashboard .operations-continuity-department-role {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-size: 1rem !important;
+  line-height: 1.3 !important;
+}
+
+/* Department command cards use the same business-readable hierarchy as continuity cards. */
+.react-role-dashboard .operations-command-center-department-card {
+  display: grid !important;
+  gap: 0.9rem !important;
+  min-width: 0 !important;
+  padding: 1rem !important;
+}
+
+.react-role-dashboard .operations-command-center-department-heading {
+  align-items: start !important;
+  display: grid !important;
+  gap: 0.3rem !important;
+}
+
+.react-role-dashboard .operations-command-center-department-score,
+.react-role-dashboard .operations-command-center-department-status,
+.react-role-dashboard .operations-command-center-department-role {
+  display: block !important;
+  margin: 0 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.react-role-dashboard .operations-command-center-department-score {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-size: 1.35rem !important;
+  font-weight: 900 !important;
+  line-height: 1.1 !important;
+}
+
+.react-role-dashboard .operations-command-center-department-status {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+  font-size: 0.76rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1.25 !important;
+  text-transform: uppercase !important;
+}
+
+.react-role-dashboard .operations-command-center-department-role {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-size: 1rem !important;
+  line-height: 1.3 !important;
+}
+
+/* Shared readable hierarchy for lower operations status/evidence cards. */
+.react-role-dashboard .operations-structured-status-card {
+  align-content: start;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.react-role-dashboard .operations-structured-status-card .operations-status-score,
+.react-role-dashboard .operations-structured-status-card .operations-status-label,
+.react-role-dashboard .operations-structured-status-card .operations-status-title {
+  display: block;
+  margin: 0;
+  white-space: normal !important;
+}
+
+.react-role-dashboard .operations-structured-status-card .operations-status-score {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-size: 1.15rem;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.react-role-dashboard .operations-structured-status-card .operations-status-label {
+  color: #bae6fd !important;
+  -webkit-text-fill-color: #bae6fd !important;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.react-role-dashboard .operations-structured-status-card .operations-status-title {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.react-role-dashboard .operations-structured-status-card p {
+  margin: 0.55rem 0 0;
+}
+
+.react-role-dashboard .operations-structured-status-card small {
+  display: block;
+  margin-top: 0.45rem;
+}

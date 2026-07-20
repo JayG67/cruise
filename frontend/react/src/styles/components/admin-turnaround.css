@@ -142,6 +142,28 @@ section.turnaround-admin-setup-panel#react-turnaround-admin-setup::after {
   text-transform: uppercase !important;
 }
 
+/* Keep each workspace summary field readable as label, value, then supporting detail. */
+.turnaround-admin-setup-panel .turnaround-workspace-step-label,
+.turnaround-admin-setup-panel .turnaround-workspace-step-value,
+.turnaround-admin-setup-panel .turnaround-workspace-step-detail {
+  display: block !important;
+  width: 100% !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-workspace-step-label {
+  margin: 0 0 0.45rem !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-workspace-step-value {
+  line-height: 1.35 !important;
+  margin: 0 !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-workspace-step-detail {
+  line-height: 1.45 !important;
+  margin: 0.8rem 0 0 !important;
+}
+
 .turnaround-admin-setup-panel .turnaround-workspace-card strong,
 .turnaround-admin-setup-panel .turnaround-workspace-card p {
   color: #071827 !important;
@@ -186,6 +208,18 @@ section.turnaround-admin-setup-panel#react-turnaround-admin-setup::after {
 .turnaround-admin-setup-panel input::placeholder,
 .turnaround-admin-setup-panel textarea::placeholder {
   color: #667085 !important;
+}
+
+/* Dark turnaround summary surfaces need comfortable internal spacing so labels,
+   selected values, and supporting detail never touch the component edges. */
+.turnaround-admin-setup-panel .turnaround-admin-draft-summary {
+  display: grid !important;
+  gap: 0.55rem !important;
+  padding: 1rem 1.1rem !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-admin-draft-summary > :is(span, strong, p) {
+  margin: 0 !important;
 }
 
 .turnaround-admin-setup-panel .turnaround-admin-draft-summary,

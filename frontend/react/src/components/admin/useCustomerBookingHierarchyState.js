@@ -70,9 +70,9 @@ export default function useCustomerBookingHierarchyState({
   })
   const [deleteCustomerId, setDeleteCustomerId] = useState('')
   const [deleteBookingId, setDeleteBookingId] = useState('')
-  const [deleteCustomerFilters, setDeleteCustomerFilters] = useState({ cruiseLine: '', ship: '', customerId: '' })
-  const [deleteBookingFilters, setDeleteBookingFilters] = useState({ cruiseLine: '', ship: '', bookingId: '' })
-  const [workflowFilters, setWorkflowFilters] = useState({ cruiseLine: '', ship: '', customerId: '' })
+  const [deleteCustomerFilters, setDeleteCustomerFilters] = useState({ cruiseLine: '', ship: '', lastName: '', firstNameInitial: '', customerId: '' })
+  const [deleteBookingFilters, setDeleteBookingFilters] = useState({ cruiseLine: '', ship: '', passengerLastName: '', passengerFirstNameInitial: '', bookingId: '' })
+  const [workflowFilters, setWorkflowFilters] = useState({ cruiseLine: '', ship: '', lastName: '', firstNameInitial: '', customerId: '' })
   const [activeDeleteId, setActiveDeleteId] = useState('')
   const [pendingDelete, setPendingDelete] = useState(null)
   const [isSelectorPending, startSelectorTransition] = useTransition()
@@ -209,7 +209,7 @@ export default function useCustomerBookingHierarchyState({
     try {
       await deleteCustomer(customerId)
       setDeleteCustomerId('')
-      setDeleteCustomerFilters({ cruiseLine: '', ship: '', customerId: '' })
+      setDeleteCustomerFilters({ cruiseLine: '', ship: '', lastName: '', firstNameInitial: '', customerId: '' })
       setAdminMutationMessage(`${label} customer was deleted through the React admin workspace.`)
       await onRetry?.()
     } catch (error) {
@@ -225,7 +225,7 @@ export default function useCustomerBookingHierarchyState({
     try {
       await deleteBooking(bookingId)
       setDeleteBookingId('')
-      setDeleteBookingFilters({ cruiseLine: '', ship: '', bookingId: '' })
+      setDeleteBookingFilters({ cruiseLine: '', ship: '', passengerLastName: '', passengerFirstNameInitial: '', bookingId: '' })
       setAdminMutationMessage(`${label} booking was deleted through the React admin workspace.`)
       await onRetry?.()
     } catch (error) {
@@ -359,9 +359,20 @@ export default function useCustomerBookingHierarchyState({
       const next = { ...current, [fieldName]: value }
       if (fieldName === 'cruiseLine') {
         next.ship = ''
+        next.lastName = ''
+        next.firstNameInitial = ''
         next.customerId = ''
       }
-      if (fieldName === 'ship') next.customerId = ''
+      if (fieldName === 'ship') {
+        next.lastName = ''
+        next.firstNameInitial = ''
+        next.customerId = ''
+      }
+      if (fieldName === 'lastName') {
+        next.firstNameInitial = ''
+        next.customerId = ''
+      }
+      if (fieldName === 'firstNameInitial') next.customerId = ''
       setDeleteCustomerId(next.customerId)
       return next
     }))
@@ -372,9 +383,20 @@ export default function useCustomerBookingHierarchyState({
       const next = { ...current, [fieldName]: value }
       if (fieldName === 'cruiseLine') {
         next.ship = ''
+        next.passengerLastName = ''
+        next.passengerFirstNameInitial = ''
         next.bookingId = ''
       }
-      if (fieldName === 'ship') next.bookingId = ''
+      if (fieldName === 'ship') {
+        next.passengerLastName = ''
+        next.passengerFirstNameInitial = ''
+        next.bookingId = ''
+      }
+      if (fieldName === 'passengerLastName') {
+        next.passengerFirstNameInitial = ''
+        next.bookingId = ''
+      }
+      if (fieldName === 'passengerFirstNameInitial') next.bookingId = ''
       setDeleteBookingId(next.bookingId)
       return next
     }))
@@ -386,7 +408,11 @@ export default function useCustomerBookingHierarchyState({
       const shipNames = getCustomerShipNames(customer)
       const lineMatches = !filters.cruiseLine || lineNames.includes(filters.cruiseLine)
       const shipMatches = !filters.ship || shipNames.includes(filters.ship)
-      return lineMatches && shipMatches
+      const personParts = getPersonParts(customer)
+      const lastNameMatches = !filters.lastName || personParts.lastName === filters.lastName
+      const firstNameInitial = personParts.firstName.slice(0, 1).toUpperCase()
+      const firstInitialMatches = !filters.firstNameInitial || firstNameInitial === filters.firstNameInitial
+      return lineMatches && shipMatches && lastNameMatches && firstInitialMatches
     }).sort(compareCustomerNames)
   }
 
@@ -394,7 +420,11 @@ export default function useCustomerBookingHierarchyState({
     return bookingSelectorRows.filter(row => {
       const lineMatches = !filters.cruiseLine || row.lineName === filters.cruiseLine
       const shipMatches = !filters.ship || row.shipName === filters.ship
-      return lineMatches && shipMatches
+      const passengerParts = getPersonParts(row.primaryPassenger)
+      const lastNameMatches = !filters.passengerLastName || passengerParts.lastName === filters.passengerLastName
+      const firstNameInitial = passengerParts.firstName.slice(0, 1).toUpperCase()
+      const firstInitialMatches = !filters.passengerFirstNameInitial || firstNameInitial === filters.passengerFirstNameInitial
+      return lineMatches && shipMatches && lastNameMatches && firstInitialMatches
     }).map(row => row.booking).sort(compareBookingPassengerNames)
   }
 
@@ -429,9 +459,20 @@ export default function useCustomerBookingHierarchyState({
       const next = { ...current, [fieldName]: value }
       if (fieldName === 'cruiseLine') {
         next.ship = ''
+        next.lastName = ''
+        next.firstNameInitial = ''
         next.customerId = ''
       }
-      if (fieldName === 'ship') next.customerId = ''
+      if (fieldName === 'ship') {
+        next.lastName = ''
+        next.firstNameInitial = ''
+        next.customerId = ''
+      }
+      if (fieldName === 'lastName') {
+        next.firstNameInitial = ''
+        next.customerId = ''
+      }
+      if (fieldName === 'firstNameInitial') next.customerId = ''
       const selectedCustomer = customers.find(customer => customer.id === next.customerId)
       const nextSearchTerm = selectedCustomer
         ? getCustomerDirectoryName(selectedCustomer)
@@ -441,15 +482,49 @@ export default function useCustomerBookingHierarchyState({
     }))
   }
 
+  const MAX_SELECTOR_OPTIONS = 75
   const customerCruiseLineOptions = getScopedLineOptions(deleteCustomerFilters, 'customer')
   const bookingCruiseLineOptions = getScopedLineOptions(deleteBookingFilters, 'booking')
   const customerShipOptions = getScopedShipOptions(deleteCustomerFilters, 'customer')
   const bookingShipOptions = getScopedShipOptions(deleteBookingFilters, 'booking')
-  const filteredDeleteCustomers = getScopedCustomerRows(deleteCustomerFilters).slice(0, 500)
-  const filteredDeleteBookings = getScopedBookingRows(deleteBookingFilters).slice(0, 500)
+  const customerLastNameOptions = uniqueSorted(getScopedCustomerRows({
+    cruiseLine: deleteCustomerFilters.cruiseLine,
+    ship: deleteCustomerFilters.ship
+  }).map(customer => getPersonParts(customer).lastName))
+  const customerFirstNameInitialOptions = uniqueSorted(getScopedCustomerRows({
+    cruiseLine: deleteCustomerFilters.cruiseLine,
+    ship: deleteCustomerFilters.ship,
+    lastName: deleteCustomerFilters.lastName
+  }).map(customer => getPersonParts(customer).firstName.slice(0, 1).toUpperCase()))
+  const bookingPassengerLastNameOptions = uniqueSorted(getScopedBookingRows({
+    cruiseLine: deleteBookingFilters.cruiseLine,
+    ship: deleteBookingFilters.ship
+  }).map(booking => getPersonParts(getBookingPrimaryPassenger(booking)).lastName))
+  const bookingPassengerFirstNameInitialOptions = uniqueSorted(getScopedBookingRows({
+    cruiseLine: deleteBookingFilters.cruiseLine,
+    ship: deleteBookingFilters.ship,
+    passengerLastName: deleteBookingFilters.passengerLastName
+  }).map(booking => getPersonParts(getBookingPrimaryPassenger(booking)).firstName.slice(0, 1).toUpperCase()))
+  const allFilteredDeleteCustomers = getScopedCustomerRows(deleteCustomerFilters)
+  const allFilteredDeleteBookings = getScopedBookingRows(deleteBookingFilters)
+  const customerSelectorNeedsNarrowing = allFilteredDeleteCustomers.length > MAX_SELECTOR_OPTIONS
+  const bookingSelectorNeedsNarrowing = allFilteredDeleteBookings.length > MAX_SELECTOR_OPTIONS
+  const filteredDeleteCustomers = customerSelectorNeedsNarrowing ? [] : allFilteredDeleteCustomers
+  const filteredDeleteBookings = bookingSelectorNeedsNarrowing ? [] : allFilteredDeleteBookings
   const workflowCruiseLineOptions = getScopedLineOptions(workflowFilters, 'customer')
   const workflowShipOptions = getScopedShipOptions(workflowFilters, 'customer')
-  const filteredWorkflowCustomers = getScopedCustomerRows(workflowFilters).slice(0, 500)
+  const workflowLastNameOptions = uniqueSorted(getScopedCustomerRows({
+    cruiseLine: workflowFilters.cruiseLine,
+    ship: workflowFilters.ship
+  }).map(customer => getPersonParts(customer).lastName))
+  const workflowFirstNameInitialOptions = uniqueSorted(getScopedCustomerRows({
+    cruiseLine: workflowFilters.cruiseLine,
+    ship: workflowFilters.ship,
+    lastName: workflowFilters.lastName
+  }).map(customer => getPersonParts(customer).firstName.slice(0, 1).toUpperCase()))
+  const allFilteredWorkflowCustomers = getScopedCustomerRows(workflowFilters)
+  const workflowSelectorNeedsNarrowing = allFilteredWorkflowCustomers.length > MAX_SELECTOR_OPTIONS
+  const filteredWorkflowCustomers = workflowSelectorNeedsNarrowing ? [] : allFilteredWorkflowCustomers
 
   const isInitialLoading = isLoading && customers.length === 0 && bookings.length === 0
   const hasActiveHierarchySearch = Boolean(searchTerm.trim())
@@ -466,7 +541,8 @@ export default function useCustomerBookingHierarchyState({
     updateCreateCustomerDraft, updateCreateBookingDraft, handleCreateCustomer, handleCreateBooking,
     requestDeleteCustomerById, requestDeleteBookingById, confirmPendingDelete, cancelPendingDelete, handleDeleteCustomer, handleDeleteBooking,
     getBookingDeleteLabel, getCustomerDeleteLabel, updateDeleteCustomerFilter, updateDeleteBookingFilter, updateWorkflowFilter,
-    customerCruiseLineOptions, bookingCruiseLineOptions, customerShipOptions, bookingShipOptions, filteredDeleteCustomers, filteredDeleteBookings,
-    workflowCruiseLineOptions, workflowShipOptions, filteredWorkflowCustomers, isInitialLoading, hasActiveHierarchySearch, visibleWorkflowRows, hiddenWorkflowRowCount
+    customerCruiseLineOptions, bookingCruiseLineOptions, customerShipOptions, bookingShipOptions, customerLastNameOptions, customerFirstNameInitialOptions, bookingPassengerLastNameOptions, bookingPassengerFirstNameInitialOptions,
+    filteredDeleteCustomers, filteredDeleteBookings, customerSelectorNeedsNarrowing, bookingSelectorNeedsNarrowing, allFilteredDeleteCustomers, allFilteredDeleteBookings,
+    workflowCruiseLineOptions, workflowShipOptions, workflowLastNameOptions, workflowFirstNameInitialOptions, filteredWorkflowCustomers, workflowSelectorNeedsNarrowing, allFilteredWorkflowCustomers, isInitialLoading, hasActiveHierarchySearch, visibleWorkflowRows, hiddenWorkflowRowCount
   }
 }

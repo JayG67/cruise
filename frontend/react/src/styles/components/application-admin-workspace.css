@@ -165,3 +165,25 @@
   }
 }
 
+
+/* Shared admin workflow summary/action bar. */
+.react-admin-workflow-bar {
+  background: linear-gradient(135deg, #0a2f4d 0%, #123f62 58%, #0b3353 100%);
+  border: 1px solid rgba(125, 211, 252, 0.38);
+  border-radius: 1rem;
+  box-shadow: 0 12px 28px rgba(7, 24, 39, 0.16);
+  padding: 0.8rem 0.9rem;
+  overflow: hidden;
+}
+
+.react-admin-workflow-bar .result-summary {
+  color: #d8f3ff !important;
+  -webkit-text-fill-color: #d8f3ff !important;
+  line-height: 1.45;
+}
+
+.react-admin-workflow-bar .primary-action-button {
+  border: 1px solid rgba(191, 230, 255, 0.5);
+  box-shadow: 0 8px 20px rgba(3, 105, 161, 0.24);
+  white-space: nowrap;
+}

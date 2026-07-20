@@ -51,6 +51,16 @@ describe('production deployment static contracts', () => {
     expect(app).toContain("app.get('/health'")
     expect(app).toContain("res.status(200).json({ status: 'ok' })")
 
+    const healthRouteIndex = app.indexOf("app.get('/health'")
+    const reactStaticIndex = app.indexOf('app.use(express.static(reactBuildDir')
+    const reactFallbackIndex = app.indexOf('app.get(/^\\/(?!cruise|admin|health')
+
+    expect(healthRouteIndex).toBeGreaterThan(-1)
+    expect(reactStaticIndex).toBeGreaterThan(-1)
+    expect(reactFallbackIndex).toBeGreaterThan(-1)
+    expect(healthRouteIndex).toBeLessThan(reactStaticIndex)
+    expect(healthRouteIndex).toBeLessThan(reactFallbackIndex)
+
     for (const ignoredPath of ['dist/', 'coverage/', 'lhci-report/', '.lighthouseci/', 'playwright-report/', 'test-results/']) {
       expect(gitignore).toContain(ignoredPath)
     }

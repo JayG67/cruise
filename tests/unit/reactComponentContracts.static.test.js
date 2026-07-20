@@ -2,6 +2,11 @@ const fs = require('fs')
 const path = require('path')
 
 const RETIRED_APP_CSS_PATH = ['frontend/react/src/styles/app', 'css'].join('.')
+const PROJECT_ROOT = path.resolve(__dirname, '../..')
+
+function readProjectFile(relativePath) {
+  return fs.readFileSync(path.join(PROJECT_ROOT, relativePath), 'utf8')
+}
 
 function readAdminHierarchySurface() {
   const projectRoot = path.join(__dirname, '..', '..')
@@ -44,6 +49,19 @@ function readCssBundle(...relativePaths) {
 }
 
 describe('React component accessibility and presentation contracts', () => {
+  test('keeps semantic muted text dark by default and light only on known dark command surfaces', () => {
+    const utilitiesCss = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/styles/utilities/index.css'), 'utf8')
+    const contrastContract = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/styles/utilities/contrast-contract.css'), 'utf8')
+
+    expect(utilitiesCss).toContain('.react-production-shell .ce-muted')
+    expect(utilitiesCss).toContain('var(--ce-light-surface-muted-text, #1f3a56)')
+    expect(contrastContract).toContain('.ce-command-panel')
+    expect(contrastContract).toContain('var(--ce-contrast-dark-muted)')
+    expect(contrastContract).toContain('--ce-contrast-light-muted: #1f3a56;')
+    expect(contrastContract).toContain('--ce-contrast-dark-muted: #d8f3ff;')
+    expect(utilitiesCss).not.toContain('.react-production-shell .ce-muted {\n  color: var(--ce-command-text-muted)')
+  })
+
   const projectRoot = path.resolve(__dirname, '../..')
 
   function read(relativePath) {
@@ -279,6 +297,62 @@ describe('React component accessibility and presentation contracts', () => {
     expect(contrastHardening).toContain('-webkit-text-fill-color: #071827 !important;')
   })
 
+  it('prevents oversized customer and booking selectors with coordinated narrowing fields', () => {
+    const hierarchyState = read('frontend/react/src/components/admin/useCustomerBookingHierarchyState.js')
+    const mutationPanel = read('frontend/react/src/components/admin/AdminCustomerBookingMutationPanel.jsx')
+    const workflowSelector = read('frontend/react/src/components/admin/AdminCustomerWorkflowSelector.jsx')
+
+    expect(hierarchyState).toContain('const MAX_SELECTOR_OPTIONS = 75')
+    expect(hierarchyState).toContain('customerSelectorNeedsNarrowing')
+    expect(hierarchyState).toContain('bookingSelectorNeedsNarrowing')
+    expect(hierarchyState).toContain('workflowSelectorNeedsNarrowing')
+    expect(hierarchyState).not.toContain('.slice(0, 500)')
+
+    expect(mutationPanel).toContain('data-testid="react-admin-delete-customer-last-name"')
+    expect(mutationPanel).toContain('data-testid="react-admin-delete-customer-first-initial"')
+    expect(mutationPanel).toContain('data-testid="react-admin-delete-booking-passenger-last-name"')
+    expect(mutationPanel).toContain('data-testid="react-admin-delete-booking-passenger-first-initial"')
+    expect(mutationPanel).toContain('disabled={customerSelectorNeedsNarrowing}')
+    expect(mutationPanel).toContain('disabled={bookingSelectorNeedsNarrowing}')
+    expect(mutationPanel).toContain('Narrow the customer list first')
+    expect(mutationPanel).toContain('Narrow the booking list first')
+
+    expect(workflowSelector).toContain('data-testid="react-hierarchy-customer-last-name-filter"')
+    expect(workflowSelector).toContain('data-testid="react-hierarchy-customer-first-initial-filter"')
+    expect(workflowSelector).toContain('disabled={workflowSelectorNeedsNarrowing}')
+  })
+
+  it('keeps shared muted text readable on light surfaces and admin summary bars rounded', () => {
+    const utilities = read('frontend/react/src/styles/utilities/index.css')
+    const contrastContract = read('frontend/react/src/styles/utilities/contrast-contract.css')
+    const cssIndex = read('frontend/react/src/styles/index.css')
+    const adminHierarchy = readAdminHierarchySurface()
+    const adminWorkspace = read('frontend/react/src/styles/components/application-admin-workspace.css')
+    const contrastHardening = read('frontend/react/src/styles/components/contrast-hardening.css')
+
+    expect(utilities).toContain('Semantic muted text reads from the nearest surface context.')
+    expect(utilities).toContain('var(--ce-surface-muted-text, var(--ce-light-surface-muted-text, #1f3a56))')
+    expect(contrastHardening).toContain('Surface-owned contrast context.')
+    expect(cssIndex.trim().endsWith("@import './utilities/contrast-contract.css';")).toBe(true)
+    expect(contrastContract).toContain('Final application-wide surface contrast contract.')
+    expect(contrastContract).toContain('--ce-contrast-light-muted: #1f3a56;')
+    expect(contrastContract).toContain('--ce-contrast-dark-muted: #d8f3ff;')
+    expect(contrastContract).toContain('.react-admin-management-card.ce-surface-light')
+    expect(contrastContract).toContain('.react-admin-mutation-panel.ce-surface-light')
+    expect(contrastContract).toContain('.react-admin-record-selector.ce-surface-light')
+    expect(contrastContract).toContain('color: var(--ce-contrast-light-muted) !important;')
+    expect(contrastContract).toContain('color: var(--ce-contrast-dark-muted) !important;')
+    expect(adminHierarchy).toContain('react-admin-management-card ce-command-card ce-surface-light')
+    expect(adminHierarchy).toContain('react-admin-mutation-panel ce-editor-card ce-surface-light')
+    expect(adminHierarchy).toContain('draft-editor admin-delete-selector-card ce-surface-light')
+    expect(adminHierarchy).toContain('react-admin-record-selector ce-surface-light')
+    expect(adminWorkspace).toContain('Shared admin workflow summary/action bar.')
+    expect(adminWorkspace).toContain('.react-admin-workflow-bar {')
+    expect(adminWorkspace).toContain('border-radius: 1rem;')
+    expect(adminWorkspace).toContain('overflow: hidden;')
+    expect(adminWorkspace).toContain('.react-admin-workflow-bar .result-summary')
+  })
+
   it('keeps quality-console controls reachable after contrast hardening', () => {
     const contrastHardening = read('frontend/react/src/styles/components/contrast-hardening.css')
 
@@ -307,6 +381,7 @@ describe('React component accessibility and presentation contracts', () => {
     const selectorCard = read('frontend/react/src/styles/components/selector-card.css')
     const roleSelectorCss = readCssBundle('frontend/react/src/styles/components/role-selector.css')
     const productShell = readCssBundle('frontend/react/src/styles/components/product-shell.css')
+    const contrastContract = read('frontend/react/src/styles/utilities/contrast-contract.css')
     const application = readCssBundle('frontend/react/src/styles/components/application.css')
     const roleDashboardStyles = readCssBundle('frontend/react/src/styles/components/role-dashboard.css')
     const form = readCssBundle('frontend/react/src/styles/components/form.css')
@@ -368,6 +443,10 @@ describe('React component accessibility and presentation contracts', () => {
     expect(productShell).toContain('CSS Foundation Refactor - Phase 2')
     expect(productShell).toContain('CSS Foundation Refactor - Phase 5')
     expect(roleDashboardStyles).toContain('CSS Foundation Refactor - Phase 4')
+    const commandCardStyles = read('frontend/react/src/styles/components/product-surface-command-cards.css')
+    expect(commandCardStyles).not.toContain('  .role-detail-card,')
+    expect(commandCardStyles).not.toContain('  .role-itinerary-day,')
+    expect(contrastContract).not.toContain('  .role-itinerary-panel,')
     expect(designSystem).not.toContain('CSS Foundation Refactor - Phase 2')
     expect(designSystem).not.toContain('CSS Foundation Refactor - Phase 3')
     expect(designSystem).not.toContain('CSS Foundation Refactor - Phase 4')
@@ -433,6 +512,13 @@ describe('React component accessibility and presentation contracts', () => {
     expect(selectorCard).toContain('.ce-selector-card')
     expect(roleSelectorCss).toContain('.role-selector-section :is(.passenger-finder-panel, .person-finder-panel, .role-summary-card)')
     expect(selectorCard).toContain('.booking-guest-result-card.ce-selector-card')
+    expect(selectorCard).toContain(':is(.passenger-finder-card, .person-finder-card).ce-selector-card')
+    expect(selectorCard).toContain('min-height: 10.5rem;')
+    expect(selectorCard).toContain('grid-auto-rows: minmax(10.5rem, auto);')
+    expect(selectorCard).toContain('-webkit-line-clamp: 3;')
+    expect(selectorCard).toContain('overflow: hidden;')
+    expect(selectorCard).toContain('padding: 1.15rem 1.2rem 1.35rem !important;')
+    expect(selectorCard).toContain('grid-auto-rows: max-content;')
     expect(designSystem).not.toContain('CSS Foundation Refactor - Phase 17')
     expect(roleSelectorCss).toContain('Operational form action component architecture')
     expect(legacyStyles).not.toContain('Build 496 - task status action buttons keep dark text on light pills')
@@ -467,6 +553,7 @@ describe('React component accessibility and presentation contracts', () => {
     const designSystem = fs.existsSync(retiredDesignSystemPath) ? fs.readFileSync(retiredDesignSystemPath, 'utf8') : ''
     const roleSelectorCss = readCssBundle('frontend/react/src/styles/components/role-selector.css')
     const productShell = readCssBundle('frontend/react/src/styles/components/product-shell.css')
+    const contrastContract = read('frontend/react/src/styles/utilities/contrast-contract.css')
 
     expect(app).toContain('production-hero ce-command-panel')
     expect(app).toContain('react-top-nav ce-command-card')
@@ -486,14 +573,31 @@ describe('React component accessibility and presentation contracts', () => {
     expect(hierarchy).toContain('react-admin-management-card ce-command-card')
     expect(hierarchy).toContain('react-admin-table-wrap ce-editor-card')
     expect(fleet).toContain('fleet-directory-section ce-command-panel')
-    expect(fleet).toContain('fleet-card ce-command-card')
+    expect(fleet).toContain('fleet-card ce-command-card ce-surface-dark')
     expect(fleet).toContain('react-inline-edit-form ce-editor-card')
+    expect(fleet).toContain('brand-theme-summary ce-surface-dark')
+    expect(contrastContract).toContain('.fleet-card.ce-surface-dark')
+    expect(contrastContract).toContain('.brand-theme-summary.ce-surface-dark')
+    expect(contrastContract).toContain('color: var(--ce-contrast-dark-text) !important;')
+    const presentationControls = read('frontend/react/src/components/ReactCruiseLinePresentationSuite.jsx')
+    expect(presentationControls).toContain('presentation-control-panel cruise-line-operations-control-panel ce-command-card ce-surface-dark')
+    expect(presentationControls).toContain('presentation-scope-controls cruise-line-operations-scope-controls ce-surface-dark')
+    expect(presentationControls).toContain('presentation-line-picker cruise-line-operations-picker ce-surface-dark')
+    expect(contrastContract).toContain('Cruise-line operating controls are dark surfaces')
+    expect(contrastContract).toContain('.presentation-control-panel.ce-surface-dark')
+    expect(contrastContract).toContain('.presentation-line-picker.ce-surface-dark')
+    expect(contrastContract).toContain("input:not([type='checkbox']):not([type='radio'])")
     expect(fleet).toContain('fleet-card-actions ce-action-row')
     expect(fleet).toContain('button-link secondary light-action ce-button-secondary')
     expect(fleet).toContain('search-control ce-field fleet-search-control')
     expect(createWorkflow).toContain('react-create-card ce-command-card')
     expect(createWorkflow).toContain('secondary-button add-ship-button ce-button-secondary')
-    expect(createWorkflow).toContain('ce-editor-card starter-ships-locked')
+    expect(createWorkflow).toContain('ce-editor-card starter-ships-panel starter-ships-locked ce-surface-light')
+    const adminCreateCss = read('frontend/react/src/styles/components/admin-create.css')
+    expect(adminCreateCss).toContain('Starter Ships is the second step of the same light editing workflow.')
+    expect(adminCreateCss).toContain('.starter-ships-panel')
+    expect(adminCreateCss).toContain('background: var(--admin-card-soft-bg, #f8fbff) !important;')
+    expect(adminCreateCss).not.toContain('linear-gradient(145deg, rgba(5, 32, 46, 0.78), rgba(7, 64, 65, 0.66))')
     expect(selector).toContain('role-selector-section ce-command-panel')
     expect(selector).toContain('passenger-finder-panel ce-command-card')
     expect(selector).toContain('passenger-finder-card ce-selector-card ce-command-card')
@@ -503,6 +607,22 @@ describe('React component accessibility and presentation contracts', () => {
     expect(sqa).toContain('react-sqa-action-card ce-command-card')
     expect(sqa).toContain('react-sqa-output-actions ce-action-row')
     expect(turnaroundSetup).toContain('turnaround-admin-setup-panel ce-command-panel')
+    expect(turnaroundSetup).toContain('turnaround-workspace-card ce-command-card ce-surface-light')
+    expect(turnaroundSetup).toContain('turnaround-workspace-step-label')
+    expect(turnaroundSetup).toContain('turnaround-workspace-step-value')
+    expect(turnaroundSetup).toContain('turnaround-workspace-step-detail')
+    const turnaroundCss = read('frontend/react/src/styles/components/admin-turnaround.css')
+    expect(turnaroundCss).toContain('Keep each workspace summary field readable as label, value, then supporting detail.')
+    expect(turnaroundCss).toContain('.turnaround-workspace-step-label')
+    expect(turnaroundCss).toContain('display: block !important;')
+    expect(contrastContract).toContain('Turnaround workspace summary cards are light surfaces nested in a dark command panel.')
+    expect(contrastContract).toContain('.turnaround-workspace-card.ce-surface-light')
+    expect(turnaroundSetup).toContain('turnaround-admin-draft-summary ce-surface-dark')
+    expect(contrastContract).toContain('The selected-turnaround summary is an intentionally dark status surface')
+    expect(contrastContract).toContain('.turnaround-admin-draft-summary.ce-surface-dark')
+    expect(turnaroundCss).toContain('Dark turnaround summary surfaces need comfortable internal spacing')
+    expect(turnaroundCss).toContain('padding: 1rem 1.1rem !important;')
+    expect(turnaroundCss).toContain('gap: 0.55rem !important;')
     expect(turnaroundSetup).toContain('turnaround-admin-form ce-editor-card')
     expect(turnaroundSetup).toContain('secondary-action-button compact-action ce-button-secondary')
 
@@ -518,8 +638,12 @@ describe('React component accessibility and presentation contracts', () => {
     expect(demo).toContain('employer-demo-command-center self-guided-overview ce-command-panel')
     expect(demo).toContain('employer-demo-step-button secondary-action-button ce-button-secondary')
     expect(demo).toContain('employer-demo-proof-card self-guided-proof-card ce-command-card')
-    expect(passengerBooking).toContain('passenger-booking-workflow ce-command-card')
+    expect(passengerBooking).toContain('passenger-booking-workflow ce-command-card ce-surface-dark')
     expect(passengerBooking).toContain('passenger-booking-form ce-editor-card')
+    expect(passengerBooking).toContain("import { useEffect, useMemo, useState } from 'react'")
+    expect(passengerBooking).toContain('const selectedPrimaryGuestId = selectedCustomer?.id || selectedDemoUser?.customerId ||')
+    expect(passengerBooking).toContain('setGuestDrafts(currentGuests =>')
+    expect(passengerBooking).toContain('return [synchronizedPrimaryGuest, ...currentGuests.slice(1)]')
     expect(hardening).toContain('production-hardening-center ce-command-panel')
     expect(architecture).toContain('data-architecture-readiness-center ce-command-panel')
     expect(deployment).toContain('deployment-readiness-center ce-command-panel')
@@ -570,11 +694,16 @@ describe('React component accessibility and presentation contracts', () => {
     const designSystem = fs.existsSync(retiredDesignSystemPath) ? fs.readFileSync(retiredDesignSystemPath, 'utf8') : ''
 
     expect(dashboard).toContain('react-role-dashboard ce-command-panel')
+    expect(dashboard).toContain('role-profile-card passenger-self-service ce-command-card ce-surface-dark')
+    expect(dashboard).toContain('role-booking-card ce-command-card ce-surface-dark')
+    expect(dashboard).toContain('role-booking-detail-panel ce-command-card ce-surface-dark')
+    expect(dashboard).toContain('role-itinerary-panel ce-command-card ce-surface-dark')
+    expect(dashboard).toContain('role-itinerary-day ce-editor-card ce-surface-light')
     expect(dashboard).toContain('role-profile-card passenger-self-service ce-command-card')
     expect(dashboard).toContain('passenger-profile-form react-passenger-profile-form ce-editor-card')
     expect(dashboard).toContain('role-booking-card ce-command-card')
     expect(dashboard).toContain('role-booking-detail-panel ce-command-card')
-    expect(dashboard).toContain('role-detail-card ce-editor-card')
+    expect(dashboard).toContain('role-detail-card ce-editor-card ce-surface-light')
     expect(dashboard).toContain('operations-portfolio-board ce-command-panel')
     expect(dashboard).toContain('operations-release-board ce-command-panel')
     expect(dashboard).toContain('operations-workspace-shell ce-command-panel')
@@ -979,6 +1108,9 @@ describe('React route preview accessibility contracts', () => {
       read('frontend/react/src/components/operations/useOperationalDashboardDrafts.js')
     ].join('\n')
     const roleView = read('frontend/react/src/domain/roleView.js')
+    const passengerRoleSurface = read('frontend/react/src/components/passenger/RolePassengerSurface.jsx')
+    const roleBookingCard = read('frontend/react/src/components/passenger/RoleBookingCard.jsx')
+    const contrastContract = read('frontend/react/src/styles/utilities/contrast-contract.css')
     const styles = readCssBundle('frontend/react/src/styles/components/workflow.css')
     const cypress = read('cypress/react/reactApp.cy.js')
 
@@ -988,6 +1120,12 @@ describe('React route preview accessibility contracts', () => {
     expect(roleDashboard).toContain('data-testid="react-role-itinerary-day"')
     expect(roleDashboard).toContain('data-testid="react-role-favorite-itinerary-toggle"')
     expect(roleDashboard).toContain('data-testid="react-role-favorites-only-toggle"')
+    expect(roleDashboard).toContain('role-favorites-filter ce-surface-light')
+    expect(passengerRoleSurface).toContain('role-favorites-filter ce-surface-light')
+    expect(roleBookingCard).toContain('role-favorites-filter ce-surface-light')
+    expect(contrastContract).toContain('.role-favorites-filter.ce-surface-light span')
+    expect(roleDashboard).toContain('group-leader-dashboard-status ce-surface-light')
+    expect(contrastContract).toContain('.group-leader-dashboard-status.ce-surface-light')
     expect(roleDashboard).toContain('aria-expanded={isExpanded}')
     expect(roleView).toContain('getBookingItineraryDays')
     expect(roleView).toContain('getItineraryDayActivities')
@@ -2018,4 +2156,235 @@ test('role selector component keeps operational task action buttons on component
   expect(designSystem).toContain('-webkit-text-fill-color: var(--ce-data-text) !important')
   expect(designSystem).toContain(':disabled')
   expect(legacyStyles).not.toContain('Build 496 - task status action buttons keep dark text on light pills')
+})
+
+
+test('quality console light surfaces cannot inherit the retired dark compatibility stack', () => {
+  const consoleSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/components/ReactSqaConsole.jsx'), 'utf8')
+  const contrastContract = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/utilities/contrast-contract.css'), 'utf8')
+  const legacyCompatibility = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/admin-shell-legacy-compatibility.css'), 'utf8')
+
+  expect(consoleSource).toContain('react-sqa-console ce-command-panel ce-surface-light')
+  expect(consoleSource).toContain('react-sqa-status-pill ce-command-card ce-surface-light')
+  expect(consoleSource).toContain('go-live-readiness-panel ce-surface-light')
+  expect(consoleSource).toContain('react-sqa-action-card ce-command-card ce-surface-light')
+  expect(contrastContract).toContain('Global readable typography contract.')
+  expect(contrastContract).toContain('.react-quality-section')
+  expect(contrastContract).toContain('.react-sqa-console.ce-surface-light')
+  expect(contrastContract).toContain('color: var(--ce-contrast-light-text) !important;')
+  expect(contrastContract).toContain('color: var(--ce-contrast-light-muted) !important;')
+  expect(legacyCompatibility).not.toContain('.react-quality-section section h3,')
+  expect(legacyCompatibility).not.toContain('.react-quality-section .react-sqa-action-card,')
+})
+
+test('keeps cruise-line presentation light cards readable and retires legacy white-text overrides', () => {
+  const presentation = readProjectFile('frontend/react/src/components/ReactCruiseLinePresentationSuite.jsx')
+  const contrastContract = readProjectFile('frontend/react/src/styles/utilities/contrast-contract.css')
+  const legacyCompatibility = readProjectFile('frontend/react/src/styles/components/admin-shell-legacy-compatibility.css')
+
+  expect(presentation).toContain('presentation-hero-card ce-command-card ce-surface-light')
+  expect(presentation).toContain('className="ce-surface-light"><span>Ships</span>')
+  expect(presentation).toContain('className="ce-surface-light"><span>Ports</span>')
+  expect(contrastContract).toContain('.presentation-hero-card.ce-surface-light')
+  expect(contrastContract).toContain('.presentation-metric-grid article.ce-surface-light')
+  expect(contrastContract).toContain(':is(h3, p, span, strong)')
+  expect(legacyCompatibility).not.toContain('.cruise-line-presentation-suite .presentation-hero-card *')
+  expect(legacyCompatibility).not.toContain('.cruise-line-presentation-suite article h3')
+  expect(legacyCompatibility).not.toContain('.cruise-line-presentation-suite article p')
+
+  const presentationLayout = readProjectFile('frontend/react/src/styles/components/admin-presentation-layout.css')
+  expect(presentationLayout).toContain('.presentation-demo-flow.presentation-action-grid')
+  expect(presentationLayout).toContain('display: grid !important;')
+  expect(presentationLayout).toContain('row-gap: var(--ce-space-4, 1rem) !important;')
+})
+
+describe('Passenger booking summary spacing contract', () => {
+  test('keeps booking field labels and values away from bordered tile edges', () => {
+    const roleSwitchingCss = readProjectFile('frontend/react/src/styles/components/application-role-switching.css')
+
+    expect(roleSwitchingCss).toContain('.role-booking-fields > .role-booking-field {')
+    expect(roleSwitchingCss).toContain('padding: 0.75rem 0.9rem 0.8rem;')
+    expect(roleSwitchingCss).toContain('.role-booking-fields > .role-booking-field dt,')
+    expect(roleSwitchingCss).toContain('overflow-wrap: anywhere;')
+  })
+
+  it('keeps operational KPI tiles dark-on-light inside dark command surfaces', () => {
+    const overview = readProjectFile('frontend/react/src/components/operations/OperationalOverviewBoards.jsx')
+    const workspaceCss = readProjectFile('frontend/react/src/styles/components/operations-role-surface-workspaces.css')
+
+    expect((overview.match(/className="ce-surface-light"/g) || []).length).toBeGreaterThanOrEqual(11)
+    expect(workspaceCss).toContain('Final operational light-tile contrast contract.')
+    expect(workspaceCss).toContain('.operations-portfolio-card dl')
+    expect(workspaceCss).toContain('-webkit-text-fill-color: #0f172a !important;')
+    expect(workspaceCss).toContain('-webkit-text-fill-color: #075985 !important;')
+  })
+
+  it('keeps operational score tiles and the scenario runbook on explicit readable surfaces', () => {
+    const releasePacket = readProjectFile('frontend/react/src/components/operations/OperationsReleasePacketPanel.jsx')
+    const playbook = readProjectFile('frontend/react/src/components/operations/OperationsPlaybookPanels.jsx')
+    const incidentOutreach = readProjectFile('frontend/react/src/components/operations/OperationsIncidentOutreachScenarioPanels.jsx')
+    const contrastContract = readProjectFile('frontend/react/src/styles/utilities/contrast-contract.css')
+
+    expect(releasePacket).toContain('operations-release-packet-score ce-surface-light')
+    expect(playbook).toContain('operations-playbook-score ce-surface-light')
+    expect(playbook).toContain('operations-playbook-variance-score ce-surface-light')
+    expect(incidentOutreach).toContain('operations-incident-command-score ce-surface-light')
+    expect(incidentOutreach).toContain('operations-outreach-board-score ce-surface-light')
+    expect(incidentOutreach).toContain('operations-scenario-plan-score ce-surface-light')
+    expect(incidentOutreach).toContain('operations-scenario-plan-runbook ce-surface-dark')
+    expect(contrastContract).toContain('Operational score tiles are light status surfaces')
+    expect(contrastContract).toContain('.operations-scenario-plan-runbook.ce-surface-dark')
+  })
+
+  it('keeps analytics and scenario score panels dark-on-light like peer score cards', () => {
+    const metrics = readProjectFile('frontend/react/src/components/operations/OperationsMetricsPanel.jsx')
+    const scenario = readProjectFile('frontend/react/src/components/operations/OperationsIncidentOutreachScenarioPanels.jsx')
+    const contrastContract = readProjectFile('frontend/react/src/styles/utilities/contrast-contract.css')
+
+    expect(metrics).toContain('operations-metrics-confidence ce-surface-light')
+    expect(scenario).toContain('operations-scenario-plan-score ce-surface-light')
+    expect(contrastContract).toContain('Operational analytics and scenario summary scores use the same light-card')
+    expect(contrastContract).toContain('.operations-metrics-confidence.ce-surface-light')
+    expect(contrastContract).toContain('background: #f8fbff !important;')
+    expect(contrastContract).toContain('-webkit-text-fill-color: #0f172a !important;')
+  })
+
+  it('keeps lifecycle phase text readable on both light and dark phase surfaces', () => {
+    const lifecycle = readProjectFile('frontend/react/src/components/operations/OperationsLifecyclePanel.jsx')
+    const workspaceCss = readProjectFile('frontend/react/src/styles/components/operations-role-surface-workspaces.css')
+
+    expect(lifecycle).toContain("? 'ce-surface-light' : 'ce-surface-dark'")
+    expect(workspaceCss).toContain('.operations-lifecycle-phase.ce-surface-light')
+    expect(workspaceCss).toContain('-webkit-text-fill-color: #0f172a !important;')
+    expect(workspaceCss).toContain('.operations-lifecycle-phase.ce-surface-dark')
+    expect(workspaceCss).toContain('-webkit-text-fill-color: #ffffff !important;')
+  })
+
+  it('keeps operations percentage score cards wide enough for three-digit values', () => {
+    const incident = readProjectFile('frontend/react/src/components/operations/OperationsIncidentOutreachScenarioPanels.jsx')
+    const contrastContract = readProjectFile('frontend/react/src/styles/utilities/contrast-contract.css')
+
+    expect(incident).toContain('{incidentCommand.incidentScore || 0}%')
+    expect(contrastContract).toContain('Shared operations score-card sizing contract.')
+    expect(contrastContract).toContain('min-inline-size: 8.75rem !important;')
+    expect(contrastContract).toContain('flex: 0 0 8.75rem !important;')
+    expect(contrastContract).toContain('white-space: nowrap !important;')
+  })
+
+  it('keeps operations score-card typography consistent across command and scenario panels', () => {
+    const contrastContract = readProjectFile('frontend/react/src/styles/utilities/contrast-contract.css')
+
+    expect(contrastContract).toContain('Shared operations score-card typography contract.')
+    expect(contrastContract).toContain('font-size: 2rem !important;')
+    expect(contrastContract).toContain('font-weight: 900 !important;')
+    expect(contrastContract).toContain('font-size: 0.72rem !important;')
+    expect(contrastContract).toContain('letter-spacing: 0.08em !important;')
+    expect(contrastContract).toContain('text-transform: uppercase !important;')
+    expect(contrastContract).toContain('.operations-command-center-score,')
+    expect(contrastContract).toContain('.operations-scenario-plan-score,')
+  })
+
+  it('keeps all turnaround percentage summaries on the shared light score-card surface', () => {
+    const overview = readProjectFile('frontend/react/src/components/operations/OperationalOverviewBoards.jsx')
+    const lifecycle = readProjectFile('frontend/react/src/components/operations/OperationsLifecyclePanel.jsx')
+    const commandContinuity = readProjectFile('frontend/react/src/components/operations/OperationsCommandContinuityPanels.jsx')
+    const launchCloseout = readProjectFile('frontend/react/src/components/operations/OperationsLaunchCloseoutPanels.jsx')
+    const contrastContract = readProjectFile('frontend/react/src/styles/utilities/contrast-contract.css')
+
+    expect(overview).toContain('operations-release-score ce-surface-light')
+    expect(lifecycle).toContain('operations-lifecycle-score ce-surface-light')
+    expect(commandContinuity).toContain('operations-command-center-score ce-surface-light')
+    expect(commandContinuity).toContain('operations-control-board-score ce-surface-light')
+    expect(commandContinuity).toContain('operations-continuity-center-score ce-surface-light')
+    expect(launchCloseout).toContain('operations-shift-briefing-score ce-surface-light')
+    expect(launchCloseout).toContain('operations-go-live-score ce-surface-light')
+    expect(launchCloseout).toContain('operations-closeout-packet-score ce-surface-light')
+    expect(contrastContract).toContain('Turnaround percentage/status summaries share one light score-card treatment.')
+    expect(contrastContract).toContain('.operations-command-center-score.ce-surface-light')
+    expect(contrastContract).toContain('.operations-closeout-packet-score.ce-surface-light')
+  })
+
+})
+
+
+
+describe('Operations summary score-card consistency contract', () => {
+  it('keeps executive, after-action, and timeline summaries on light surfaces', () => {
+    const launchPanels = readProjectFile('frontend/react/src/components/operations/OperationsLaunchCloseoutPanels.jsx')
+    const timelinePanels = readProjectFile('frontend/react/src/components/operations/OperationsTimelineAuditPanels.jsx')
+    const contrastCss = readProjectFile('frontend/react/src/styles/utilities/contrast-contract.css')
+
+    expect(launchPanels).toContain('operations-executive-brief-score ce-surface-light')
+    expect(launchPanels).toContain('operations-after-action-score ce-surface-light')
+    expect((timelinePanels.match(/className="ce-surface-light"/g) || []).length).toBeGreaterThanOrEqual(3)
+    expect(contrastCss).toContain('.operations-executive-brief-score.ce-surface-light')
+    expect(contrastCss).toContain('.operations-after-action-score.ce-surface-light')
+    expect(contrastCss).toContain('.operations-timeline-summary > .ce-surface-light')
+  })
+})
+
+
+describe('Department continuity presentation contract', () => {
+  it('separates score, plain-language status, and human-readable role labels', () => {
+    const continuityPanels = readProjectFile('frontend/react/src/components/operations/OperationsCommandContinuityPanels.jsx')
+    const continuityCss = readProjectFile('frontend/react/src/styles/components/operations-continuity-shared-lower-panels.css')
+
+    expect(continuityPanels).toContain("AT_RISK: 'At risk'")
+    expect(continuityPanels).toContain("replace(/[_-]+/g, ' ')")
+    expect(continuityPanels).toContain('operations-continuity-department-score')
+    expect(continuityPanels).toContain('operations-continuity-department-status')
+    expect(continuityPanels).toContain('operations-continuity-department-role')
+    expect(continuityCss).toContain('Department continuity cards present score, status, and role as separate human-readable lines.')
+    expect(continuityCss).toContain('.operations-continuity-department-heading')
+    expect(continuityCss).toContain('text-transform: uppercase !important;')
+  })
+})
+
+
+describe('Department command presentation contract', () => {
+  it('separates score, plain-language status, and human-readable role labels', () => {
+    const commandPanels = readProjectFile('frontend/react/src/components/operations/OperationsCommandContinuityPanels.jsx')
+    const continuityCss = readProjectFile('frontend/react/src/styles/components/operations-continuity-shared-lower-panels.css')
+
+    expect(commandPanels).toContain('operations-command-center-department-score')
+    expect(commandPanels).toContain('operations-command-center-department-status')
+    expect(commandPanels).toContain('operations-command-center-department-role')
+    expect(commandPanels).toContain('{formatContinuityStatus(department.status)}')
+    expect(commandPanels).toContain('{formatDepartmentRole(department.departmentRole)}')
+    expect(continuityCss).toContain('Department command cards use the same business-readable hierarchy as continuity cards.')
+    expect(continuityCss).toContain('.operations-command-center-department-heading')
+  })
+})
+
+
+describe('Lower operations evidence-card presentation contract', () => {
+  it('separates score, status, and business labels across briefing, deployment, closeout, and archive cards', () => {
+    const panels = readProjectFile('frontend/react/src/components/operations/OperationsLaunchCloseoutPanels.jsx')
+    const lowerPanelCss = readProjectFile('frontend/react/src/styles/components/operations-continuity-shared-lower-panels.css')
+
+    expect(panels).toContain('const formatOperationalStatus')
+    expect(panels).toContain('const formatOperationalRole')
+    expect((panels.match(/operations-structured-status-card/g) || []).length).toBeGreaterThanOrEqual(4)
+    expect(panels).toContain('operations-status-score')
+    expect(panels).toContain('operations-status-label')
+    expect(panels).toContain('operations-status-title')
+    expect(lowerPanelCss).toContain('Shared readable hierarchy for lower operations status/evidence cards.')
+    expect(lowerPanelCss).toContain('.operations-structured-status-card .operations-status-label')
+    expect(lowerPanelCss).toContain('text-transform: uppercase;')
+  })
+})
+
+
+describe('After-action department lessons layout contract', () => {
+  it('keeps department lessons wide, readable, and responsive beside follow-up actions', () => {
+    const panels = readProjectFile('frontend/react/src/components/operations/OperationsLaunchCloseoutPanels.jsx')
+    const afterActionCss = readProjectFile('frontend/react/src/styles/components/operations-evidence-after-action.css')
+
+    expect(panels).toContain('operations-after-action-departments')
+    expect(panels).toContain('operations-after-action-followups')
+    expect(panels).toContain('{formatOperationalRole(department.departmentRole)}')
+    expect(afterActionCss).toContain('Keep after-action department lessons usable beside the follow-up action list.')
+    expect(afterActionCss).toContain('grid-template-columns: minmax(18rem, 0.85fr) minmax(0, 2.15fr);')
+    expect(afterActionCss).toContain('@media (max-width: 980px)')
+  })
 })

@@ -213,3 +213,166 @@
   }
 }
 
+
+/* Passenger booking guest experience: one coherent, calm editor surface. */
+.react-production-shell .passenger-booking-guests.ce-editor-card {
+  background: #f3f8fb !important;
+  border: 1px solid #b9d3df !important;
+  border-radius: 1.15rem !important;
+  box-shadow: 0 14px 34px rgba(15, 39, 52, 0.09) !important;
+  gap: 1.25rem !important;
+  padding: clamp(1rem, 2vw, 1.4rem) !important;
+}
+
+.react-production-shell .passenger-booking-guests .section-heading-row {
+  align-items: flex-start;
+  border-bottom: 1px solid #d4e4eb;
+  padding-bottom: 1rem;
+}
+
+.react-production-shell .passenger-booking-guests .section-heading-row h4 {
+  color: #102a3a !important;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.2rem;
+  -webkit-text-fill-color: #102a3a !important;
+}
+
+.react-production-shell .passenger-booking-guests .section-heading-row p {
+  color: #536b79 !important;
+  line-height: 1.5;
+  max-width: 48rem;
+  -webkit-text-fill-color: #536b79 !important;
+}
+
+.react-production-shell .passenger-booking-guests .secondary-action-button {
+  align-self: center;
+  min-height: 2.65rem;
+  padding-inline: 1.05rem !important;
+  white-space: nowrap;
+}
+
+.react-production-shell .passenger-booking-guest-card.ce-editor-card {
+  background: #ffffff !important;
+  border: 1px solid #c9dce5 !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 8px 22px rgba(15, 39, 52, 0.07) !important;
+  gap: 1rem !important;
+  min-width: 0;
+  padding: 1.15rem !important;
+}
+
+.react-production-shell .passenger-booking-guest-card.ce-editor-card legend {
+  background: #ffffff;
+  border: 1px solid #c9dce5;
+  border-radius: 999px;
+  color: #123247 !important;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  margin-left: 0.25rem;
+  padding: 0.34rem 0.75rem;
+  -webkit-text-fill-color: #123247 !important;
+}
+
+.react-production-shell .booking-guest-card-intro {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.react-production-shell .booking-guest-card-intro strong {
+  color: #102a3a !important;
+  font-size: 1rem;
+  -webkit-text-fill-color: #102a3a !important;
+}
+
+.react-production-shell .booking-guest-card-intro span {
+  color: #607583 !important;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  -webkit-text-fill-color: #607583 !important;
+}
+
+.react-production-shell .booking-guest-fields.booking-search-grid {
+  align-items: end;
+  background: transparent !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.react-production-shell .booking-guest-source-field {
+  grid-column: 1 / -1;
+  max-width: 22rem;
+}
+
+.react-production-shell .booking-guest-source-field select:disabled {
+  background: #eef4f7 !important;
+  color: #435b69 !important;
+  cursor: default;
+  opacity: 1;
+  -webkit-text-fill-color: #435b69 !important;
+}
+
+.react-production-shell .booking-guest-finder {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.react-production-shell .booking-selected-guest-card.ce-editor-card {
+  background: linear-gradient(135deg, #eaf6fb 0%, #f6fbfd 100%) !important;
+  border: 1px solid #acd6e7 !important;
+  border-left: 0.3rem solid #1685a6 !important;
+  border-radius: 0.9rem !important;
+  box-shadow: none !important;
+  display: grid;
+  gap: 0.25rem;
+  min-height: 0;
+  padding: 1rem 1.1rem !important;
+}
+
+.react-production-shell .booking-selected-guest-card .booking-selected-guest-label {
+  color: #28718d !important;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  -webkit-text-fill-color: #28718d !important;
+}
+
+.react-production-shell .booking-selected-guest-card strong {
+  color: #102a3a !important;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+  -webkit-text-fill-color: #102a3a !important;
+}
+
+.react-production-shell .booking-selected-guest-card > span:last-child {
+  color: #516b79 !important;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+  text-transform: none;
+  -webkit-text-fill-color: #516b79 !important;
+}
+
+.react-production-shell .passenger-booking-guest-card :is(input, select) {
+  min-height: 2.85rem;
+}
+
+.react-production-shell .passenger-booking-guest-card label > span {
+  color: #425d6c !important;
+  font-size: 0.74rem;
+  letter-spacing: 0.055em;
+  -webkit-text-fill-color: #425d6c !important;
+}
+
+.react-production-shell .passenger-booking-guest-card .danger-outline-button {
+  margin-top: 0.15rem;
+}
+
+@media (max-width: 760px) {
+  .react-production-shell .booking-guest-fields.booking-search-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .react-production-shell .booking-guest-source-field {
+    max-width: none;
+  }
+}

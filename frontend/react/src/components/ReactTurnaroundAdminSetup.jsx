@@ -433,25 +433,25 @@ export default function ReactTurnaroundAdminSetup({ selectedDemoUser, onSetupCha
       </div>
 
       <div className="turnaround-team-workspace ce-command-panel" data-testid="react-turnaround-team-workspace">
-        <article className="turnaround-workspace-card ce-command-card active">
-          <span>1. Cruise line</span>
-          <strong>{selectedCruiseLine?.name || 'Select cruise line'}</strong>
-          <p>{peopleForSelectedCruiseLine.length} available turnaround person{peopleForSelectedCruiseLine.length === 1 ? '' : 's'}</p>
+        <article className="turnaround-workspace-card ce-command-card ce-surface-light active">
+          <span className="turnaround-workspace-step-label">1. Cruise line</span>
+          <strong className="turnaround-workspace-step-value">{selectedCruiseLine?.name || 'Select cruise line'}</strong>
+          <p className="turnaround-workspace-step-detail">{peopleForSelectedCruiseLine.length} available turnaround person{peopleForSelectedCruiseLine.length === 1 ? '' : 's'}</p>
         </article>
-        <article className={selectedShip ? 'turnaround-workspace-card ce-command-card active' : 'turnaround-workspace-card ce-command-card'}>
-          <span>2. Ship</span>
-          <strong>{selectedShip?.name || 'Choose ship queue'}</strong>
-          <p>{shipsForSelectedCruiseLine.length} ship queue{shipsForSelectedCruiseLine.length === 1 ? '' : 's'} available</p>
+        <article className={selectedShip ? 'turnaround-workspace-card ce-command-card ce-surface-light active' : 'turnaround-workspace-card ce-command-card ce-surface-light'}>
+          <span className="turnaround-workspace-step-label">2. Ship</span>
+          <strong className="turnaround-workspace-step-value">{selectedShip?.name || 'Choose ship queue'}</strong>
+          <p className="turnaround-workspace-step-detail">{shipsForSelectedCruiseLine.length} ship queue{shipsForSelectedCruiseLine.length === 1 ? '' : 's'} available</p>
         </article>
-        <article className={selectedSailing ? 'turnaround-workspace-card ce-command-card active' : 'turnaround-workspace-card ce-command-card'}>
-          <span>3. Sailing</span>
-          <strong>{selectedSailing?.departureDate || 'Choose sailing date'}</strong>
-          <p>{selectedPort}</p>
+        <article className={selectedSailing ? 'turnaround-workspace-card ce-command-card ce-surface-light active' : 'turnaround-workspace-card ce-command-card ce-surface-light'}>
+          <span className="turnaround-workspace-step-label">3. Sailing</span>
+          <strong className="turnaround-workspace-step-value">{selectedSailing?.departureDate || 'Choose sailing date'}</strong>
+          <p className="turnaround-workspace-step-detail">{selectedPort}</p>
         </article>
-        <article className={missingRoles.length === 0 && selectedShip ? 'turnaround-workspace-card ce-command-card ready' : 'turnaround-workspace-card ce-command-card'}>
-          <span>4. Team readiness</span>
-          <strong>{teamReadinessScore}% staffed</strong>
-          <p>{teamWorkspace.staffedRoleCount} of {teamWorkspace.requiredRoleCount} required roles assigned</p>
+        <article className={missingRoles.length === 0 && selectedShip ? 'turnaround-workspace-card ce-command-card ce-surface-light ready' : 'turnaround-workspace-card ce-command-card ce-surface-light'}>
+          <span className="turnaround-workspace-step-label">4. Team readiness</span>
+          <strong className="turnaround-workspace-step-value">{teamReadinessScore}% staffed</strong>
+          <p className="turnaround-workspace-step-detail">{teamWorkspace.staffedRoleCount} of {teamWorkspace.requiredRoleCount} required roles assigned</p>
         </article>
       </div>
 
@@ -491,7 +491,7 @@ export default function ReactTurnaroundAdminSetup({ selectedDemoUser, onSetupCha
             </label>
           </div>
 
-          <div className="turnaround-admin-draft-summary" data-testid="react-turnaround-admin-draft-summary">
+          <div className="turnaround-admin-draft-summary ce-surface-dark" data-testid="react-turnaround-admin-draft-summary">
             <span>Selected turnaround</span>
             <strong>{selectedCruiseLine?.name || 'No cruise line'} · {selectedPort}</strong>
             <p>{selectedShip?.name || 'Select a ship'}{selectedSailing ? ` · ${getSailingDate(selectedSailing) || 'sailing date pending'}` : ' · choose a sailing date before adding people'}</p>

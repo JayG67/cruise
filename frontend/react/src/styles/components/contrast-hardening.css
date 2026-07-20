@@ -10,7 +10,7 @@
 
 :root {
   --ce-light-surface-text: #071827;
-  --ce-light-surface-muted-text: #334155;
+  --ce-light-surface-muted-text: #1f3a56;
   --ce-light-surface-kicker-text: #075985;
   --ce-light-surface-bg: #ffffff;
   --ce-light-surface-soft-bg: #f8fbfe;
@@ -25,6 +25,8 @@
   .ce-data-card,
   .react-admin-management-card,
   .react-admin-mutation-panel,
+  .react-admin-record-selector,
+  .admin-delete-selector-card,
   .react-admin-table-wrap,
   .react-admin-stat-pills span,
   .linked-booking-pill,
@@ -71,6 +73,8 @@
   .ce-data-card,
   .react-admin-management-card,
   .react-admin-mutation-panel,
+  .react-admin-record-selector,
+  .admin-delete-selector-card,
   .react-admin-table-wrap,
   .presentation-line-picker,
   .presentation-flow-card,
@@ -109,6 +113,8 @@
   .ce-data-card,
   .react-admin-management-card,
   .react-admin-mutation-panel,
+  .react-admin-record-selector,
+  .admin-delete-selector-card,
   .react-admin-table-wrap,
   .presentation-line-picker,
   .presentation-flow-card,
@@ -146,6 +152,8 @@
   .ce-data-card,
   .react-admin-management-card,
   .react-admin-mutation-panel,
+  .react-admin-record-selector,
+  .admin-delete-selector-card,
   .react-admin-table-wrap,
   .presentation-line-picker,
   .presentation-flow-card,
@@ -603,4 +611,85 @@
   display: flex !important;
   flex-wrap: wrap !important;
   gap: 0.75rem !important;
+}
+
+
+/*
+  Surface-owned contrast context.
+
+  Text color follows the nearest rendered surface, not a distant dashboard
+  ancestor. Dark components provide light readable helper text. Light cards,
+  editors, selectors, tables, pills, and workflow surfaces reset that context
+  to dark readable text, including when nested inside dark command containers.
+*/
+:is(.react-production-shell, .react-app-shell) {
+  --ce-surface-text: var(--ce-light-surface-text);
+  --ce-surface-muted-text: var(--ce-light-surface-muted-text);
+  --ce-surface-kicker-text: var(--ce-light-surface-kicker-text);
+}
+
+:is(.react-production-shell, .react-app-shell) :is(
+  .ce-command-panel,
+  .ce-command-card,
+  .react-role-dashboard,
+  .operational-turnaround-panel,
+  .operations-dashboard-shell
+) {
+  --ce-surface-text: var(--ce-dark-surface-text);
+  --ce-surface-muted-text: var(--ce-dark-surface-muted-text);
+  --ce-surface-kicker-text: var(--ce-dark-surface-muted-text);
+}
+
+:is(.react-production-shell, .react-app-shell) :is(
+  .ce-card,
+  .ce-editor-card,
+  .ce-data-card,
+  .react-admin-management-card,
+  .react-admin-mutation-panel,
+  .react-admin-record-selector,
+  .react-admin-table-wrap,
+  .admin-delete-selector-card,
+  .draft-editor,
+  .react-admin-stat-pills span,
+  .linked-booking-pill,
+  .create-workflow-pill,
+  .presentation-metric-grid article,
+  .presentation-suite-metric,
+  .presentation-line-picker,
+  .presentation-flow-card,
+  .presentation-detail-card,
+  .presentation-commercial-card,
+  .presentation-calendar-card,
+  .presentation-operator-card,
+  .presentation-sailing-row,
+  .presentation-port-plan,
+  .presentation-close-plan,
+  .presentation-activity-list,
+  .presentation-manifest-row,
+  .presentation-guest-card,
+  .query-status-card,
+  .status-card,
+  .quality-gate-card,
+  .launch-card,
+  .coverage-card,
+  .handoff-item,
+  .fleet-card,
+  .ship-card,
+  .sailing-card,
+  .itinerary-card,
+  .role-booking-card,
+  .role-profile-card,
+  .role-booking-detail-panel,
+  .role-itinerary-panel
+) {
+  --ce-surface-text: var(--ce-light-surface-text);
+  --ce-surface-muted-text: var(--ce-light-surface-muted-text);
+  --ce-surface-kicker-text: var(--ce-light-surface-kicker-text);
+}
+
+:is(.react-production-shell, .react-app-shell) :is(.muted, .ce-muted) {
+  color: var(--ce-surface-muted-text, #1f3a56) !important;
+  -webkit-text-fill-color: var(--ce-surface-muted-text, #1f3a56) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
 }

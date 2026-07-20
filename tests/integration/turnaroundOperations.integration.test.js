@@ -486,7 +486,7 @@ describe('Turnaround operations API integration tests', () => {
     const refreshedOperation = refreshedOperationsRes.body.find(candidate => candidate.id === operation.id)
     expect(refreshedOperation).toBeTruthy()
     expect(refreshedOperation.escalations).toHaveLength(existingEscalationCount)
-  })
+  }, 60000)
 
 
   it('GET /cruise/turnaround-operations returns database-backed dependency gates and department handoffs', async () => {

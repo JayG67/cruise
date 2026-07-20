@@ -266,3 +266,84 @@
 }
 
 /* CSS Foundation Refactor Slice 37: operations continuity/reviewer detail panels moved to components/operations-continuity.css. */
+
+
+/* Final operational light-tile contrast contract.
+   These KPI tiles are nested inside dark command surfaces and must never inherit light text. */
+.react-role-dashboard :is(
+  .operational-metric-grid,
+  .operations-portfolio-summary,
+  .operations-portfolio-card dl
+) > .ce-surface-light {
+  background: #f8fbff !important;
+  border-color: #b8cde0 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard :is(
+  .operational-metric-grid,
+  .operations-portfolio-summary,
+  .operations-portfolio-card dl
+) > .ce-surface-light * {
+  background: transparent !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard :is(
+  .operational-metric-grid,
+  .operations-portfolio-summary,
+  .operations-portfolio-card dl
+) > .ce-surface-light dt {
+  color: #075985 !important;
+  -webkit-text-fill-color: #075985 !important;
+}
+
+.react-role-dashboard :is(
+  .operational-metric-grid,
+  .operations-portfolio-summary,
+  .operations-portfolio-card dl
+) > .ce-surface-light dd {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+
+/* Build 476 - lifecycle phase surface ownership.
+   Completed/setup phases use a pale success surface and therefore must explicitly
+   restore dark typography after all command-card rules have loaded. Remaining
+   lifecycle phases stay dark with light typography. */
+.react-role-dashboard .operations-lifecycle-phase.ce-surface-light {
+  background: #ecfdf5 !important;
+  border-color: #86efac !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+.react-role-dashboard .operations-lifecycle-phase.ce-surface-light * {
+  background: transparent !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operations-lifecycle-phase.ce-surface-dark {
+  background: rgba(6, 30, 45, 0.88) !important;
+  border-color: rgba(125, 211, 252, 0.35) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.react-role-dashboard .operations-lifecycle-phase.ce-surface-dark * {
+  background: transparent !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}

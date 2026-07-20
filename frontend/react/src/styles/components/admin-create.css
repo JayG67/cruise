@@ -65,22 +65,49 @@
   margin-top: 0.25rem !important;
 }
 
-/* Build 448: lock starter ship controls until cruise line details are complete. */
+/* Build 448: lock starter ship controls until cruise line details are complete.
+   Starter Ships is the second step of the same light editing workflow.
+   Keep it visually consistent with Cruise Line Details in both enabled and
+   locked states; the locked state is communicated through disabled controls,
+   not by switching the entire panel to an unrelated dark surface. */
+.react-create-workflow-section .starter-ships-panel,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .starter-ships-panel,
+.react-create-card .starter-ships-panel,
+:is(.react-production-shell, .react-app-shell) .react-create-card .starter-ships-panel {
+  background: var(--admin-card-soft-bg, #f8fbff) !important;
+  border: 1px solid var(--admin-card-border, #c7dced) !important;
+  border-radius: 1rem !important;
+  box-shadow: none !important;
+  color: var(--admin-text, #071827) !important;
+}
+
+.react-create-workflow-section .starter-ships-panel :is(legend, h3, h4, h5, p, label, label > span, strong),
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .starter-ships-panel :is(legend, h3, h4, h5, p, label, label > span, strong),
+.react-create-card .starter-ships-panel :is(legend, h3, h4, h5, p, label, label > span, strong),
+:is(.react-production-shell, .react-app-shell) .react-create-card .starter-ships-panel :is(legend, h3, h4, h5, p, label, label > span, strong) {
+  color: var(--admin-text, #071827) !important;
+  -webkit-text-fill-color: var(--admin-text, #071827) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
 .react-create-workflow-section .starter-ships-locked,
 :is(.react-production-shell, .react-app-shell) .react-create-workflow-section .starter-ships-locked,
 .react-create-card .starter-ships-locked,
 :is(.react-production-shell, .react-app-shell) .react-create-card .starter-ships-locked {
-  border-style: dashed !important;
-  border-color: rgba(148, 195, 214, 0.48) !important;
-  background: linear-gradient(145deg, rgba(5, 32, 46, 0.78), rgba(7, 64, 65, 0.66)) !important;
+  border-style: solid !important;
+  border-color: var(--admin-card-border, #c7dced) !important;
+  background: var(--admin-card-soft-bg, #f8fbff) !important;
 }
 
 .react-create-workflow-section .starter-ships-locked p,
 :is(.react-production-shell, .react-app-shell) .react-create-workflow-section .starter-ships-locked p,
 .react-create-card .starter-ships-locked p,
 :is(.react-production-shell, .react-app-shell) .react-create-card .starter-ships-locked p {
-  color: #bfeaf4 !important;
-  font-weight: 800 !important;
+  color: var(--admin-text-muted, #334155) !important;
+  -webkit-text-fill-color: var(--admin-text-muted, #334155) !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
 }
 
 .react-create-workflow-section .starter-ships-locked input:disabled,
