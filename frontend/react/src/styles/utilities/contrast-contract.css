@@ -936,3 +936,96 @@
   margin-top: 0.45rem !important;
   text-transform: uppercase !important;
 }
+
+/* Operations summary and directory light surfaces must remain readable inside dark command panels. */
+:is(.react-production-shell, .react-app-shell) :is(
+  .operations-timeline-summary > .ce-surface-light,
+  .operations-workspace-active-summary.ce-surface-light,
+  .operations-directory-metrics > .ce-surface-light,
+  .operations-directory-contact.ce-surface-light
+) {
+  background: #f8fbff !important;
+  border-color: #b8cde0 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:is(.react-production-shell, .react-app-shell) :is(
+  .operations-timeline-summary > .ce-surface-light,
+  .operations-workspace-active-summary.ce-surface-light,
+  .operations-directory-metrics > .ce-surface-light,
+  .operations-directory-contact.ce-surface-light
+) :is(dt, dd, strong, span, p, small) {
+  background: transparent !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:is(.react-production-shell, .react-app-shell) .operations-timeline-summary > .ce-surface-light dt,
+:is(.react-production-shell, .react-app-shell) .operations-directory-metrics > .ce-surface-light dt,
+:is(.react-production-shell, .react-app-shell) .operations-directory-contact.ce-surface-light > strong {
+  color: #315a78 !important;
+  -webkit-text-fill-color: #315a78 !important;
+}
+
+/* Timeline summary cards are light score surfaces even when nested inside the
+   dark role-dashboard operations workspace. Keep this final, high-specificity
+   contract after generic command-card selectors. */
+.react-role-dashboard .operations-timeline-summary > .ce-surface-light {
+  background: #f8fbff !important;
+  border: 1px solid #b8cde0 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  min-inline-size: 5.5rem !important;
+  padding: 0.75rem 0.85rem !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operations-timeline-summary > .ce-surface-light :is(dt, dd, span, strong, small, p) {
+  background: transparent !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operations-timeline-summary > .ce-surface-light dt {
+  color: #315a78 !important;
+  -webkit-text-fill-color: #315a78 !important;
+}
+
+
+/* Timeline score cards explicitly outrank the broad operations [class*="summary"]
+   command-surface selector. Semantic light ownership must win for both the
+   card background and every label/value inside it. */
+body .react-role-dashboard .operations-timeline .operations-timeline-summary > .operations-timeline-score-card.ce-surface-light {
+  background: #f8fbff !important;
+  background-image: none !important;
+  border: 1px solid #b8cde0 !important;
+  box-shadow: none !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  min-inline-size: 5.75rem !important;
+  padding: 0.75rem 0.85rem !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+body .react-role-dashboard .operations-timeline .operations-timeline-summary > .operations-timeline-score-card.ce-surface-light :is(dt, dd, span, strong, small, p) {
+  background: transparent !important;
+  background-image: none !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+body .react-role-dashboard .operations-timeline .operations-timeline-summary > .operations-timeline-score-card.ce-surface-light dt {
+  color: #315a78 !important;
+  -webkit-text-fill-color: #315a78 !important;
+}

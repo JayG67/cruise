@@ -10,7 +10,7 @@
   color: #ffffff;
   display: grid;
   gap: 1rem;
-  grid-template-columns: minmax(13rem, 0.55fr) minmax(34rem, 1.2fr) minmax(17rem, 0.7fr);
+  grid-template-columns: minmax(12rem, 0.55fr) minmax(0, 1.35fr) minmax(18rem, 0.85fr);
   margin: 0.25rem 0 0.75rem;
   min-width: 0;
   overflow: visible;
@@ -37,7 +37,7 @@
   align-items: stretch;
   display: grid;
   gap: 0.5rem;
-  grid-template-columns: repeat(3, minmax(10.75rem, 1fr));
+  grid-template-columns: repeat(3, minmax(8.5rem, 1fr));
   min-width: 0;
 }
 
@@ -74,20 +74,27 @@
 }
 
 .operations-workspace-active-summary {
-  background: rgba(6, 30, 45, 0.88);
-  border: 1px solid rgba(125, 211, 252, 0.35);
+  background: #f8fbff;
+  border: 1px solid #b8cde0;
   border-radius: 1rem;
-  color: #ffffff;
+  color: #0f172a;
   display: grid;
   gap: 0.35rem;
   min-width: 0;
-  overflow: visible;
-  padding: 0.9rem;
+  overflow: hidden;
+  padding: 0.95rem 1rem;
+}
+
+.operations-workspace-active-summary span {
+  color: #315a78;
+  -webkit-text-fill-color: #315a78;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .operations-workspace-active-summary strong {
-  color: #ffffff;
-  -webkit-text-fill-color: #ffffff;
+  color: #0f172a;
+  -webkit-text-fill-color: #0f172a;
   font-size: 1rem;
 }
 

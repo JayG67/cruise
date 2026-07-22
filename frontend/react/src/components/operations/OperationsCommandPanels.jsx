@@ -41,7 +41,7 @@ export function OperationsWorkspaceCommandPanels({
             </button>
           ))}
         </nav>
-        <div className="operations-workspace-active-summary ce-command-card" data-testid="react-operations-workspace-active-summary">
+        <div className="operations-workspace-active-summary ce-surface-light" data-testid="react-operations-workspace-active-summary">
           <strong>{activeOperationsWorkspaceDetails.label}</strong>
           <span>{activeOperationsWorkspaceDetails.summary}</span>
         </div>
@@ -124,33 +124,33 @@ export function OperationsWorkspaceCommandPanels({
                 <span className={`operations-directory-health ${selectedDirectoryHealth.tone}`}>{selectedDirectoryHealth.label}</span>
               </div>
               <dl className="operations-directory-metrics">
-                <div>
+                <div className="ce-surface-light">
                   <dt>Staffed</dt>
                   <dd>{selectedDirectoryEntry.staffingPercent}%</dd>
                 </div>
-                <div>
+                <div className="ce-surface-light">
                   <dt>Tasks</dt>
                   <dd>{selectedDirectoryEntry.taskCount}</dd>
                 </div>
-                <div>
+                <div className="ce-surface-light">
                   <dt>Blocked</dt>
                   <dd>{selectedDirectoryEntry.blockedTasks + selectedDirectoryEntry.blockedHandoffs}</dd>
                 </div>
-                <div>
+                <div className="ce-surface-light">
                   <dt>Handoffs</dt>
                   <dd>{selectedDirectoryEntry.handoffCount}</dd>
                 </div>
-                <div>
+                <div className="ce-surface-light">
                   <dt>Escalations</dt>
                   <dd>{selectedDirectoryEntry.activeEscalations}</dd>
                 </div>
               </dl>
               <div className="operations-directory-detail-grid">
-                <div className="operations-directory-contact">
+                <div className="operations-directory-contact ce-surface-light">
                   <strong>Contacts</strong>
                   <p>{selectedDirectoryEntry.leadNames.length ? selectedDirectoryEntry.leadNames.join(', ') : 'Lead assignment pending'}</p>
                 </div>
-                <div className="operations-directory-contact">
+                <div className="operations-directory-contact ce-surface-light">
                   <strong>Muster / coordination</strong>
                   <p>{selectedDirectoryEntry.musterLocations.length ? selectedDirectoryEntry.musterLocations.join(', ') : 'Location pending'}</p>
                 </div>

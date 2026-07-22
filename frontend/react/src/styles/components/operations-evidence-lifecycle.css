@@ -170,3 +170,25 @@
 
 
 /* CSS Foundation Refactor Slice 31: operations shift briefing, go-live, team readiness, and conflict CSS moved to layered component CSS. */
+
+/* Lifecycle phase cards always begin at the top of their grid cell.
+   Buttons can inherit centering behavior from shared action primitives, so the
+   phase card owns an explicit top-aligned vertical layout. */
+.react-role-dashboard .operations-lifecycle-phase-grid {
+  align-items: stretch;
+}
+
+.react-role-dashboard .operations-lifecycle-phase {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  align-self: stretch;
+  min-height: 100%;
+  text-align: left !important;
+}
+
+.react-role-dashboard .operations-lifecycle-phase > * {
+  flex: 0 0 auto;
+  width: 100%;
+}

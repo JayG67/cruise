@@ -265,7 +265,7 @@ describe('React component accessibility and presentation contracts', () => {
     const styles = readCssBundle('frontend/react/src/styles/components/operations-workspaces.css')
 
     expect(dashboard).toContain("{ id: 'dependencies', label: 'Dependencies'")
-    expect(styles).toContain('grid-template-columns: repeat(3, minmax(10.75rem, 1fr));')
+    expect(styles).toContain('grid-template-columns: repeat(3, minmax(10rem, 1fr)) !important;')
     expect(styles).toContain('.operations-workspace-nav-button')
     expect(styles).toContain('min-width: 0;')
     expect(styles).toContain('box-sizing: border-box;')
@@ -2316,7 +2316,7 @@ describe('Operations summary score-card consistency contract', () => {
 
     expect(launchPanels).toContain('operations-executive-brief-score ce-surface-light')
     expect(launchPanels).toContain('operations-after-action-score ce-surface-light')
-    expect((timelinePanels.match(/className="ce-surface-light"/g) || []).length).toBeGreaterThanOrEqual(3)
+    expect((timelinePanels.match(/operations-timeline-score-card ce-surface-light/g) || []).length).toBeGreaterThanOrEqual(3)
     expect(contrastCss).toContain('.operations-executive-brief-score.ce-surface-light')
     expect(contrastCss).toContain('.operations-after-action-score.ce-surface-light')
     expect(contrastCss).toContain('.operations-timeline-summary > .ce-surface-light')
@@ -2386,5 +2386,64 @@ describe('After-action department lessons layout contract', () => {
     expect(afterActionCss).toContain('Keep after-action department lessons usable beside the follow-up action list.')
     expect(afterActionCss).toContain('grid-template-columns: minmax(18rem, 0.85fr) minmax(0, 2.15fr);')
     expect(afterActionCss).toContain('@media (max-width: 980px)')
+  })
+})
+
+
+describe('Operations lifecycle phase alignment contract', () => {
+  it('keeps every lifecycle phase card top-aligned instead of vertically centered', () => {
+    const lifecycleCss = readProjectFile('frontend/react/src/styles/components/operations-evidence-lifecycle.css')
+
+    expect(lifecycleCss).toContain('Lifecycle phase cards always begin at the top of their grid cell.')
+    expect(lifecycleCss).toContain('flex-direction: column !important;')
+    expect(lifecycleCss).toContain('align-items: flex-start !important;')
+    expect(lifecycleCss).toContain('justify-content: flex-start !important;')
+    expect(lifecycleCss).toContain('align-self: stretch;')
+  })
+})
+
+
+describe('Operations summary surface and overflow contract', () => {
+  it('keeps timeline, workspace, and directory light surfaces readable and fully visible', () => {
+    const commandPanels = readProjectFile('frontend/react/src/components/operations/OperationsCommandPanels.jsx')
+    const timelinePanels = readProjectFile('frontend/react/src/components/operations/OperationsTimelineAuditPanels.jsx')
+    const workspaceCss = readProjectFile('frontend/react/src/styles/components/operations-workspace-shell.css')
+    const contrastCss = readProjectFile('frontend/react/src/styles/utilities/contrast-contract.css')
+
+    expect((timelinePanels.match(/operations-timeline-score-card ce-surface-light/g) || []).length).toBeGreaterThanOrEqual(3)
+    expect(commandPanels).toContain('operations-workspace-active-summary ce-surface-light')
+    expect((commandPanels.match(/className="ce-surface-light"/g) || []).length).toBeGreaterThanOrEqual(5)
+    expect((commandPanels.match(/operations-directory-contact ce-surface-light/g) || []).length).toBe(2)
+    expect(workspaceCss).toContain('grid-template-columns: minmax(12rem, 0.55fr) minmax(0, 1.35fr) minmax(18rem, 0.85fr);')
+    expect(workspaceCss).toContain('overflow-wrap: anywhere;')
+    expect(contrastCss).toContain('Operations summary and directory light surfaces must remain readable inside dark command panels.')
+    expect(contrastCss).toContain('.operations-directory-metrics > .ce-surface-light')
+  })
+})
+
+describe('Operations timeline light summary surface contract', () => {
+  it('keeps timeline totals dark-on-light inside the role dashboard', () => {
+    const timeline = readProjectFile('frontend/react/src/components/operations/OperationsTimelineAuditPanels.jsx')
+    const contrastCss = readProjectFile('frontend/react/src/styles/utilities/contrast-contract.css')
+
+    expect((timeline.match(/operations-timeline-score-card ce-surface-light/g) || []).length).toBeGreaterThanOrEqual(3)
+    expect(contrastCss).toContain('.react-role-dashboard .operations-timeline-summary > .ce-surface-light')
+    expect(contrastCss).toContain('background: #f8fbff !important;')
+    expect(contrastCss).toContain('color: #0f172a !important;')
+    expect(contrastCss).toContain('min-inline-size: 5.5rem !important;')
+  })
+})
+
+
+describe('Operations timeline semantic score-card contrast contract', () => {
+  it('keeps all timeline summary cards light despite broad command summary selectors', () => {
+    const timelinePanels = readProjectFile('frontend/react/src/components/operations/OperationsTimelineAuditPanels.jsx')
+    const contrastCss = readProjectFile('frontend/react/src/styles/utilities/contrast-contract.css')
+
+    expect((timelinePanels.match(/operations-timeline-score-card ce-surface-light/g) || []).length).toBe(3)
+    expect(contrastCss).toContain('body .react-role-dashboard .operations-timeline .operations-timeline-summary > .operations-timeline-score-card.ce-surface-light')
+    expect(contrastCss).toContain('background: #f8fbff !important;')
+    expect(contrastCss).toContain('background-image: none !important;')
+    expect(contrastCss).toContain('color: #0f172a !important;')
   })
 })

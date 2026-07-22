@@ -18,15 +18,15 @@ export function OperationsTimelineAuditPanels({ selectedOperation }) {
               <p>One operational feed combines tasks, notes, staffing, signoffs, dependencies, handoffs, escalations, release readiness, and audit events.</p>
             </div>
             <dl className="operations-timeline-summary" aria-label="Turnaround timeline summary">
-              <div className="ce-surface-light">
+              <div className="operations-timeline-score-card ce-surface-light">
                 <dt>Total</dt>
                 <dd>{selectedOperation.operationalTimeline.summary?.totalEvents || selectedOperation.operationalTimeline.items.length}</dd>
               </div>
-              <div className="ce-surface-light">
+              <div className="operations-timeline-score-card ce-surface-light">
                 <dt>Critical</dt>
                 <dd>{selectedOperation.operationalTimeline.summary?.criticalCount || 0}</dd>
               </div>
-              <div className="ce-surface-light">
+              <div className="operations-timeline-score-card ce-surface-light">
                 <dt>Action</dt>
                 <dd>{selectedOperation.operationalTimeline.summary?.actionCount || 0}</dd>
               </div>
