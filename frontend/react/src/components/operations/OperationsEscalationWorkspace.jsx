@@ -92,7 +92,7 @@ export function OperationsEscalationWorkspace(props) {
   </div>
 
   {onCreateEscalation && (
-    <form className="operations-escalation-quick-add operational-escalation-create-form" onSubmit={event => { event.preventDefault(); saveEscalationCreate(selectedOperation) }} data-testid="react-operational-escalation-create-form">
+    <form className="operations-escalation-quick-add operational-escalation-create-form ce-editor-card ce-surface-light operational-light-editor" onSubmit={event => { event.preventDefault(); saveEscalationCreate(selectedOperation) }} data-testid="react-operational-escalation-create-form">
       <h5>Add escalation</h5>
       <label>
         <span>Department</span>
@@ -201,7 +201,7 @@ export function OperationsEscalationWorkspace(props) {
           )}
 
           {onUpdateEscalation && (
-            <form className="operations-escalation-detail-form operational-escalation-update-form" onSubmit={event => { event.preventDefault(); saveEscalationUpdate(selectedEscalation) }} data-testid="react-operational-escalation-update-form">
+            <form className="operations-escalation-detail-form operational-escalation-update-form ce-editor-card ce-surface-light operational-light-editor" onSubmit={event => { event.preventDefault(); saveEscalationUpdate(selectedEscalation) }} data-testid="react-operational-escalation-update-form">
               <label>
                 <span>Status</span>
                 <select value={getEscalationUpdateDraft(selectedEscalation).status} onChange={event => updateEscalationDraft(selectedEscalation, 'status', event.target.value)} aria-label={`${selectedEscalation.title} escalation status`}>

@@ -210,24 +210,45 @@
 
 .operations-directory-metrics {
   display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.65rem;
+  grid-template-columns: minmax(0, 1fr);
   margin: 0;
 }
 
-.operations-directory-metrics div {
-  background: rgba(6, 30, 45, 0.88);
-  border: 1px solid rgba(125, 211, 252, 0.35);
+.operations-directory-metric {
+  align-items: center;
+  background: #f8fbff;
+  border: 1px solid #b8cde0;
   border-radius: 0.9rem;
-  padding: 0.75rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  min-width: 0;
+  width: 100%;
+  padding: 0.8rem 1rem;
 }
 
-.operations-directory-metrics dd {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
+.operations-directory-metric dt {
+  color: #315a78 !important;
+  -webkit-text-fill-color: #315a78 !important;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  margin: 0;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.operations-directory-metric dd {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  flex: 0 0 auto;
   font-size: 1.35rem;
   font-weight: 950;
-  margin: 0.12rem 0 0;
+  line-height: 1;
+  margin: 0;
+  white-space: nowrap;
 }
 
 .operations-directory-detail-grid {
@@ -263,7 +284,7 @@
   }
 
   .operations-directory-metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

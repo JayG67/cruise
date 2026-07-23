@@ -101,18 +101,18 @@ export function OperationsWorkspaceRouter(props) {
 
   return (
     <>
-            {mutationStatus && <p className="status-card compact ce-command-card" data-testid="react-operational-mutation-status">{mutationStatus}</p>}
+            {mutationStatus && <p className="status-card compact operational-data-state ce-command-card ce-surface-dark" data-testid="react-operational-mutation-status">{mutationStatus}</p>}
             {mutationError && <p className="status-card compact error ce-feedback-message ce-editor-card" data-testid="react-operational-mutation-error">{mutationError}</p>}
       
             {isLoading ? (
-              <p className="status-card compact ce-command-card" data-testid="react-operational-loading-state">Loading turnaround operations from the database...</p>
+              <p className="status-card compact operational-data-state ce-command-card ce-surface-dark" data-testid="react-operational-loading-state">Loading turnaround operations from the database...</p>
             ) : error ? (
-              <div className="status-card compact ce-command-card" data-testid="react-operational-error-state">
+              <div className="status-card compact operational-data-state operational-data-error ce-command-card ce-surface-dark" data-testid="react-operational-error-state">
                 <p>{error}</p>
                 <button type="button" className="secondary-action-button ce-button-secondary" onClick={onRetry}>Retry turnaround data</button>
               </div>
             ) : readinessOperations.length === 0 ? (
-              <p className="status-card compact ce-command-card" data-testid="react-operational-empty-state">No turnaround operation records are available yet.</p>
+              <p className="status-card compact operational-data-state ce-command-card ce-surface-dark" data-testid="react-operational-empty-state">No turnaround operation records are available yet.</p>
             ) : activeOperationsWorkspace === 'readiness' && selectedOperation ? (
               <OperationsReadinessWorkspace
                 selectedOperation={selectedOperation}

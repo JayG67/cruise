@@ -45,7 +45,7 @@ export function OperationsCommandSummarySection({
       </dl>
 
       {onUpdateOperationCommand && roleView === 'turnaround-manager' && (
-        <form className="operational-command-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveOperationCommand(item) }} data-testid="react-operational-command-form">
+        <form className="operational-command-form ce-editor-card ce-surface-light operational-light-editor" onSubmit={event => { event.preventDefault(); saveOperationCommand(item) }} data-testid="react-operational-command-form">
           <label>
             <span>Command status</span>
             <select value={getOperationCommandDraft(item).status} onChange={event => updateOperationCommandDraft(item, 'status', event.target.value)} aria-label={`${item.title} command status`}>

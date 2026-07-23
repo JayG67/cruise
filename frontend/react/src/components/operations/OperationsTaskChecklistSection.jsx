@@ -27,7 +27,7 @@ export function OperationsTaskChecklistSection({
   return (
     <>
       {onCreateTask && (
-        <form className="operational-task-create-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveTaskCreate(item) }} data-testid="react-operational-task-create-form">
+        <form className="operational-task-create-form ce-editor-card ce-surface-light operational-light-editor" onSubmit={event => { event.preventDefault(); saveTaskCreate(item) }} data-testid="react-operational-task-create-form">
           <label>
             <span>New task department</span>
             <select value={getTaskCreateDraft(item).departmentRole} onChange={event => updateTaskCreateDraft(item, 'departmentRole', event.target.value)} aria-label={`${item.title} new task department`}>
@@ -104,7 +104,7 @@ export function OperationsTaskChecklistSection({
                   </div>
                 )}
                 {onCreateTaskUpdate && task.id && (
-                  <form className="operational-task-update-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveTaskUpdate(task) }} data-testid="react-operational-task-update-form">
+                  <form className="operational-task-update-form ce-editor-card ce-surface-light operational-light-editor" onSubmit={event => { event.preventDefault(); saveTaskUpdate(task) }} data-testid="react-operational-task-update-form">
                     <label className="full-width-field">
                       <span>Shift update</span>
                       <input value={getTaskUpdateDraft(task)} onChange={event => updateTaskUpdateDraft(task, event.target.value)} aria-label={`${task.taskName} shift update`} />
@@ -113,7 +113,7 @@ export function OperationsTaskChecklistSection({
                   </form>
                 )}
                 {onUpdateTaskDetails && task.id && (
-                  <form className="operational-task-detail-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveTaskDetails(task) }} data-testid="react-operational-task-detail-form">
+                  <form className="operational-task-detail-form ce-editor-card ce-surface-light operational-light-editor" onSubmit={event => { event.preventDefault(); saveTaskDetails(task) }} data-testid="react-operational-task-detail-form">
                     <label>
                       <span>Owner</span>
                       <input value={getTaskDetailDraft(task).ownerName} onChange={event => updateTaskDetailDraft(task, 'ownerName', event.target.value)} aria-label={`${task.taskName} owner`} />
@@ -141,7 +141,7 @@ export function OperationsTaskChecklistSection({
                   </div>
                 )}
                 {onDeleteTask && task.id && (
-                  <button type="button" className="danger-outline-button compact-button ce-button-danger" disabled={deletingTaskId === task.id} onClick={() => removeTask(task)} data-testid="react-operational-task-remove-button">
+                  <button type="button" className="operational-task-remove-action" disabled={deletingTaskId === task.id} onClick={() => removeTask(task)} data-testid="react-operational-task-remove-button">
                     {deletingTaskId === task.id ? 'Removing task...' : 'Remove task'}
                   </button>
                 )}

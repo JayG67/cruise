@@ -42,7 +42,7 @@ export function OperationsStaffingSignoffSection({
       )}
 
       {onUpdateStaffing && (
-        <form className="operational-staffing-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveStaffing(item) }} data-testid="react-operational-staffing-form">
+        <form className="operational-staffing-form ce-editor-card ce-surface-light operational-light-editor" onSubmit={event => { event.preventDefault(); saveStaffing(item) }} data-testid="react-operational-staffing-form">
           <label>
             <span>Planned staff</span>
             <input type="number" min="0" value={getStaffingDraft(item).plannedCount} onChange={event => updateStaffingDraft(item, 'plannedCount', event.target.value)} aria-label={`${item.title} planned staff`} />
@@ -83,7 +83,7 @@ export function OperationsStaffingSignoffSection({
       )}
 
       {onUpdateSignoff && (
-        <form className="operational-signoff-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveSignoff(item) }} data-testid="react-operational-signoff-form">
+        <form className="operational-signoff-form ce-editor-card ce-surface-light operational-light-editor" onSubmit={event => { event.preventDefault(); saveSignoff(item) }} data-testid="react-operational-signoff-form">
           <label>
             <span>Readiness status</span>
             <select value={getSignoffDraft(item).status} onChange={event => updateSignoffDraft(item, 'status', event.target.value)} aria-label={`${item.title} readiness signoff status`}>

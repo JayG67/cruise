@@ -52,7 +52,7 @@ export function OperationsDependencyHandoffSection({
                 <p>{handoff.fromDepartmentRole} → {handoff.toDepartmentRole} · {getOperationalOwnerDisplay(handoff)} · {handoff.dueTime || 'Due pending'}</p>
                 {handoff.notes && <p>{handoff.notes}</p>}
                 {onUpdateHandoff && (
-                  <form className="operational-handoff-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveHandoffUpdate(handoff) }} data-testid="react-operational-handoff-form">
+                  <form className="operational-handoff-form ce-editor-card ce-surface-light operational-light-editor" onSubmit={event => { event.preventDefault(); saveHandoffUpdate(handoff) }} data-testid="react-operational-handoff-form">
                     <label>
                       <span>Status</span>
                       <select value={getHandoffDraft(handoff).status} onChange={event => updateHandoffDraft(handoff, 'status', event.target.value)} aria-label={`${handoff.title} handoff status`}>

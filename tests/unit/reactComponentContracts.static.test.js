@@ -249,7 +249,7 @@ describe('React component accessibility and presentation contracts', () => {
     expect(styles).toContain('linear-gradient(135deg, #082334 0%, #0f5360 52%, #15713f 100%)')
     expect(styles).toContain('.operations-directory-card {')
     expect(styles).toContain('.operations-directory-detail {')
-    expect(styles).toContain('.operations-directory-metrics div {')
+    expect(styles).toContain('.operations-directory-metric {')
     expect(styles).toContain('.operations-directory-contact {')
     expect(styles).toContain('background: rgba(6, 30, 45, 0.88);')
     expect(styles).toContain('.operations-directory-panel *')
@@ -260,17 +260,32 @@ describe('React component accessibility and presentation contracts', () => {
     expect(styles).not.toContain('linear-gradient(135deg, #ffffff, #f7fbff)')
   })
 
+  it('stacks operations directory metrics vertically with single-line labels and values', () => {
+    const dashboard = readRoleDashboardSurface()
+    const styles = readCssBundle('frontend/react/src/styles/components/operations-workspaces.css')
+
+    expect((dashboard.match(/operations-directory-metric ce-surface-light/g) || []).length).toBe(5)
+    expect(styles).toContain('.operations-directory-metrics {')
+    expect(styles).toContain('grid-template-columns: minmax(0, 1fr);')
+    expect(styles).toContain('.operations-directory-metric {')
+    expect(styles).toContain('justify-content: space-between;')
+    expect(styles).toContain('.operations-directory-metric dt {')
+    expect(styles).toContain('.operations-directory-metric dd {')
+    expect(styles).toContain('white-space: nowrap;')
+  })
+
   it('keeps operations workspace navigation labels on a single line with command-center styling', () => {
     const dashboard = readRoleDashboardSurface()
     const styles = readCssBundle('frontend/react/src/styles/components/operations-workspaces.css')
 
     expect(dashboard).toContain("{ id: 'dependencies', label: 'Dependencies'")
-    expect(styles).toContain('grid-template-columns: repeat(3, minmax(10rem, 1fr)) !important;')
+    expect(styles).toContain('grid-template-columns: repeat(3, minmax(0, 1fr)) !important;')
     expect(styles).toContain('.operations-workspace-nav-button')
     expect(styles).toContain('min-width: 0;')
     expect(styles).toContain('box-sizing: border-box;')
-    expect(styles).toContain('@media (max-width: 1180px)')
-    expect(styles).toContain('grid-column: 1 / -1;')
+    expect(styles).toContain('grid-template-areas:')
+    expect(styles).toContain('\"summary summary\";')
+    expect(styles).toContain('grid-area: summary;')
     expect(styles).toContain('white-space: nowrap;')
     expect(styles).toContain('overflow-wrap: normal;')
     expect(styles).toContain('background: rgba(6, 30, 45, 0.88);')
@@ -713,7 +728,7 @@ describe('React component accessibility and presentation contracts', () => {
     expect(dashboard).toContain('operational-command-form ce-editor-card')
     expect(dashboard).toContain('operational-task-detail-form ce-editor-card')
     expect(dashboard).toContain('secondary-action-button compact-button ce-button-secondary')
-    expect(dashboard).toContain('danger-outline-button compact-button ce-button-danger')
+    expect(dashboard).toContain('operational-task-remove-action')
     expect(dashboard).toContain('operational-signoff-form ce-editor-card')
     expect(dashboard).toContain('status-card compact ce-command-card')
 
@@ -2412,9 +2427,11 @@ describe('Operations summary surface and overflow contract', () => {
 
     expect((timelinePanels.match(/operations-timeline-score-card ce-surface-light/g) || []).length).toBeGreaterThanOrEqual(3)
     expect(commandPanels).toContain('operations-workspace-active-summary ce-surface-light')
-    expect((commandPanels.match(/className="ce-surface-light"/g) || []).length).toBeGreaterThanOrEqual(5)
+    expect((commandPanels.match(/operations-directory-metric ce-surface-light/g) || []).length).toBe(5)
     expect((commandPanels.match(/operations-directory-contact ce-surface-light/g) || []).length).toBe(2)
-    expect(workspaceCss).toContain('grid-template-columns: minmax(12rem, 0.55fr) minmax(0, 1.35fr) minmax(18rem, 0.85fr);')
+    expect(workspaceCss).toContain('grid-template-columns: minmax(12rem, 0.55fr) minmax(0, 1.65fr);')
+    expect(workspaceCss).toContain('\"summary summary\";')
+    expect(workspaceCss).toContain('grid-area: summary;')
     expect(workspaceCss).toContain('overflow-wrap: anywhere;')
     expect(contrastCss).toContain('Operations summary and directory light surfaces must remain readable inside dark command panels.')
     expect(contrastCss).toContain('.operations-directory-metrics > .ce-surface-light')
@@ -2445,5 +2462,127 @@ describe('Operations timeline semantic score-card contrast contract', () => {
     expect(contrastCss).toContain('background: #f8fbff !important;')
     expect(contrastCss).toContain('background-image: none !important;')
     expect(contrastCss).toContain('color: #0f172a !important;')
+  })
+})
+
+describe('Operational light editor contrast contract', () => {
+  it('keeps operational forms, controls, labels, and action buttons readable on light surfaces', () => {
+    const contrastCss = readProjectFile('frontend/react/src/styles/utilities/contrast-contract.css')
+    const commandSummary = readProjectFile('frontend/react/src/components/operations/OperationsCommandSummarySection.jsx')
+    const taskSection = readProjectFile('frontend/react/src/components/operations/OperationsTaskChecklistSection.jsx')
+    const handoffSection = readProjectFile('frontend/react/src/components/operations/OperationsDependencyHandoffSection.jsx')
+    const escalationSection = readProjectFile('frontend/react/src/components/operations/OperationsEscalationSection.jsx')
+    const staffingSection = readProjectFile('frontend/react/src/components/operations/OperationsStaffingSignoffSection.jsx')
+
+    expect(commandSummary).toContain('operational-command-form ce-editor-card ce-surface-light')
+    expect(commandSummary).toContain('operational-light-editor')
+    expect(taskSection).toContain('operational-task-create-form ce-editor-card ce-surface-light')
+    expect(taskSection).toContain('operational-task-detail-form ce-editor-card ce-surface-light')
+    expect(handoffSection).toContain('operational-handoff-form ce-editor-card ce-surface-light')
+    expect(escalationSection).toContain('operational-escalation-update-form ce-editor-card ce-surface-light')
+    expect(staffingSection).toContain('operational-signoff-form ce-editor-card ce-surface-light')
+    expect(contrastCss).toContain('#react-role-dashboard.react-role-dashboard form.ce-editor-card.ce-surface-light')
+    expect(contrastCss).toContain('html body #react-role-dashboard.react-role-dashboard form.operational-light-editor.ce-editor-card.ce-surface-light')
+    expect(contrastCss).toContain('body #react-role-dashboard.react-role-dashboard :is(')
+    expect(contrastCss).toContain('.operational-command-form,')
+    expect(contrastCss).toContain('.operational-handoff-form,')
+    expect(contrastCss).toContain('.operational-escalation-update-form')
+    expect(contrastCss).toContain('background: #f8fbff !important;')
+    expect(contrastCss).toContain('color: #315a78 !important;')
+    expect(contrastCss).toContain("input:not([type='checkbox']):not([type='radio'])")
+    expect(contrastCss).toContain('background: #e6f6ff !important;')
+    expect(contrastCss).toContain('color: #0f172a !important;')
+    expect(contrastCss).toContain('color: #475569 !important;')
+  })
+})
+
+describe('Operational compatibility editor contrast contract', () => {
+  test('keeps all operational editor text dark on light surfaces', () => {
+    const contrastCss = readProjectFile('frontend/react/src/styles/utilities/contrast-contract.css')
+
+    expect(contrastCss).toContain('.operational-command-compatibility-panel form.operational-light-editor.ce-editor-card.ce-surface-light *')
+    expect(contrastCss).toContain('color: #315a78 !important;')
+    expect(contrastCss).toContain('background: #ffffff !important;')
+    expect(contrastCss).toContain('background: #e6f6ff !important;')
+    expect(contrastCss).toContain('color: #334155 !important;')
+  })
+})
+
+describe('Operational command detail surface ownership contract', () => {
+  test('does not apply dark command-card typography to semantic light editor forms', () => {
+    const commandDetailCss = readProjectFile('frontend/react/src/styles/components/operations-command-detail.css')
+
+    expect(commandDetailCss).toContain('.operational-command-form:not(.ce-surface-light)')
+    expect(commandDetailCss).toContain('.operational-task-create-form:not(.ce-surface-light)')
+    expect(commandDetailCss).toContain('form:not(.ce-surface-light)')
+    expect(commandDetailCss).toContain('[class*="form"]:not(.ce-surface-light)')
+    expect(commandDetailCss).toContain('[class*="editor"]:not(.ce-surface-light)')
+    expect(commandDetailCss).not.toContain('.operational-command-form *,\n.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form *')
+  })
+})
+
+test('operational light editors use the rendered class-based dashboard selector', () => {
+  const contrastCss = readProjectFile('frontend/react/src/styles/utilities/contrast-contract.css')
+
+  expect(contrastCss).toContain('html body .react-role-dashboard .operational-command-compatibility-panel form.operational-light-editor.ce-editor-card.ce-surface-light')
+  expect(contrastCss).toContain('color: #315a78 !important;')
+  expect(contrastCss).toContain('background: #e6f6ff !important;')
+  expect(contrastCss).toContain('color: #334155 !important;')
+})
+
+test('operational light editor labels outrank legacy dark command selectors', () => {
+  const contrastCss = readProjectFile('frontend/react/src/styles/utilities/contrast-contract.css')
+
+  expect(contrastCss).toContain('#react-role-dashboard#react-role-dashboard.react-role-dashboard')
+  expect(contrastCss).toContain('form.operational-light-editor.operational-light-editor.ce-editor-card.ce-surface-light')
+  expect(contrastCss).toContain('> label > span')
+  expect(contrastCss).toContain('color: #315a78 !important;')
+  expect(contrastCss).toContain('-webkit-text-fill-color: #315a78 !important;')
+})
+
+describe('Turnaround operations light editor ownership contract', () => {
+  test('every operational workspace editor declares a semantic light surface', () => {
+    const files = [
+      'frontend/react/src/components/operations/OperationsHandoffWorkspace.jsx',
+      'frontend/react/src/components/operations/OperationsStaffingReadinessWorkspaces.jsx',
+      'frontend/react/src/components/operations/OperationsEscalationWorkspace.jsx',
+      'frontend/react/src/components/operations/OperationsTaskWorkspace.jsx'
+    ]
+
+    for (const file of files) {
+      const source = readProjectFile(file)
+      const operationalForms = source.match(/<form className="[^"]*operational-[^"]*"/g) || []
+      expect(operationalForms.length).toBeGreaterThan(0)
+      for (const form of operationalForms) {
+        expect(form).toContain('ce-editor-card')
+        expect(form).toContain('ce-surface-light')
+        expect(form).toContain('operational-light-editor')
+      }
+    }
+  })
+
+  test('final contrast rules keep operational light editors readable', () => {
+    const contrastCss = readProjectFile('frontend/react/src/styles/utilities/contrast-contract.css')
+    expect(contrastCss).toContain('form.operational-light-editor.operational-light-editor.ce-editor-card.ce-surface-light')
+    expect(contrastCss).toContain('color: #315a78 !important;')
+    expect(contrastCss).toContain('background: #ffffff !important;')
+    expect(contrastCss).toContain('color: #0f172a !important;')
+    expect(contrastCss).toContain('color: #475569 !important;')
+  })
+})
+
+describe('Turnaround task destructive-action contrast contract', () => {
+  test('keeps remove-task buttons dark-on-light in every operations task rendering path', () => {
+    const contrastCss = readProjectFile('frontend/react/src/styles/utilities/contrast-contract.css')
+    const checklist = readProjectFile('frontend/react/src/components/operations/OperationsTaskChecklistSection.jsx')
+    const workspace = readProjectFile('frontend/react/src/components/operations/OperationsTaskWorkspace.jsx')
+
+    expect(checklist).toContain('operational-task-remove-action')
+    expect(workspace).toContain('operational-task-remove-action')
+    expect(contrastCss).toContain('button.operational-task-remove-action')
+    expect(contrastCss).toContain('background: #fff1f2 !important;')
+    expect(contrastCss).toContain('color: #7f1d1d !important;')
+    expect(contrastCss).toContain('background: #ffe4e6 !important;')
+    expect(contrastCss).toContain('color: #881337 !important;')
   })
 })

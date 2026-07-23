@@ -69,8 +69,8 @@
 }
 
 /* Build 488 - command detail editor forms use dark operational cards while controls stay editable. */
-.react-role-dashboard .operational-command-compatibility-panel .operational-command-form,
-.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form {
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form:not(.ce-surface-light),
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form:not(.ce-surface-light) {
   background: rgba(6, 30, 45, 0.88) !important;
   border: 1px solid rgba(125, 211, 252, 0.35) !important;
   border-radius: 1rem !important;
@@ -79,16 +79,16 @@
   -webkit-text-fill-color: #ffffff !important;
 }
 
-.react-role-dashboard .operational-command-compatibility-panel .operational-command-form *,
-.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form * {
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form:not(.ce-surface-light) *,
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form:not(.ce-surface-light) * {
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
 }
 
-.react-role-dashboard .operational-command-compatibility-panel .operational-command-form label,
-.react-role-dashboard .operational-command-compatibility-panel .operational-command-form label > span,
-.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form label,
-.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form label > span {
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form:not(.ce-surface-light) label,
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form:not(.ce-surface-light) label > span,
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form:not(.ce-surface-light) label,
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form:not(.ce-surface-light) label > span {
   color: #9ee7ff !important;
   -webkit-text-fill-color: #9ee7ff !important;
 }
@@ -113,8 +113,8 @@
   -webkit-text-fill-color: #475569 !important;
 }
 
-.react-role-dashboard .operational-command-compatibility-panel .operational-command-form .secondary-action-button,
-.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form .secondary-action-button {
+.react-role-dashboard .operational-command-compatibility-panel .operational-command-form:not(.ce-surface-light) .secondary-action-button,
+.react-role-dashboard .operational-command-compatibility-panel .operational-task-create-form:not(.ce-surface-light) .secondary-action-button {
   background: rgba(14, 116, 144, 0.18) !important;
   border: 1px solid rgba(125, 211, 252, 0.58) !important;
   color: #ffffff !important;
@@ -226,9 +226,9 @@
   .operations-readiness-workspace,
   .operational-command-compatibility-panel
 ) :is(
-  form,
-  [class*="form"],
-  [class*="editor"]
+  form:not(.ce-surface-light),
+  [class*="form"]:not(.ce-surface-light),
+  [class*="editor"]:not(.ce-surface-light)
 ) {
   background: rgba(6, 30, 45, 0.88) !important;
   border: 1px solid rgba(125, 211, 252, 0.35) !important;
@@ -245,7 +245,7 @@
   .operations-escalation-workspace,
   .operations-readiness-workspace,
   .operational-command-compatibility-panel
-) :is(form, [class*="form"], [class*="editor"]) :is(label, span, p, strong) {
+) :is(form:not(.ce-surface-light), [class*="form"]:not(.ce-surface-light), [class*="editor"]:not(.ce-surface-light)) :is(label, span, p, strong) {
   color: #9ee7ff !important;
   -webkit-text-fill-color: #9ee7ff !important;
 }

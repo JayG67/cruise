@@ -230,11 +230,11 @@
 
 /* Operations workspace navigation label fit: prevent long workstream names from wrapping. */
 .react-role-dashboard .operations-workspace-shell .operations-workspace-nav {
-  grid-template-columns: repeat(3, minmax(10rem, 1fr)) !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
 }
 
 .react-role-dashboard .operations-workspace-shell .operations-workspace-nav-button {
-  min-width: 10rem !important;
+  min-width: 0 !important;
   white-space: nowrap !important;
   word-break: normal !important;
   overflow-wrap: normal !important;

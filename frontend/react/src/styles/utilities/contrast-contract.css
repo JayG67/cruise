@@ -1029,3 +1029,544 @@ body .react-role-dashboard .operations-timeline .operations-timeline-summary > .
   color: #315a78 !important;
   -webkit-text-fill-color: #315a78 !important;
 }
+
+/* Operational editor surfaces are light data-entry panels, even when nested in
+   dark command workspaces. This final contract intentionally outranks broad
+   role-dashboard descendant rules that otherwise force white text everywhere. */
+body #react-role-dashboard.react-role-dashboard :is(
+  .operational-command-form,
+  .operational-signoff-form,
+  .operational-staffing-form,
+  .operational-task-create-form,
+  .operational-task-detail-form,
+  .operational-task-update-form,
+  .operational-handoff-form,
+  .operational-escalation-create-form,
+  .operational-escalation-update-form
+) {
+  background: #f8fbff !important;
+  background-image: none !important;
+  border: 1px solid #b8cde0 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+body #react-role-dashboard.react-role-dashboard :is(
+  .operational-command-form,
+  .operational-signoff-form,
+  .operational-staffing-form,
+  .operational-task-create-form,
+  .operational-task-detail-form,
+  .operational-task-update-form,
+  .operational-handoff-form,
+  .operational-escalation-create-form,
+  .operational-escalation-update-form
+) :is(label, label > span) {
+  background: transparent !important;
+  color: #315a78 !important;
+  -webkit-text-fill-color: #315a78 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+body #react-role-dashboard.react-role-dashboard :is(
+  .operational-command-form,
+  .operational-signoff-form,
+  .operational-staffing-form,
+  .operational-task-create-form,
+  .operational-task-detail-form,
+  .operational-task-update-form,
+  .operational-handoff-form,
+  .operational-escalation-create-form,
+  .operational-escalation-update-form
+) :is(input:not([type='checkbox']):not([type='radio']), select, textarea, option) {
+  background: #ffffff !important;
+  background-image: none;
+  border-color: #b8cde0 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  caret-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+body #react-role-dashboard.react-role-dashboard :is(
+  .operational-command-form,
+  .operational-signoff-form,
+  .operational-staffing-form,
+  .operational-task-create-form,
+  .operational-task-detail-form,
+  .operational-task-update-form,
+  .operational-handoff-form,
+  .operational-escalation-create-form,
+  .operational-escalation-update-form
+) :is(input, textarea)::placeholder {
+  color: #64748b !important;
+  -webkit-text-fill-color: #64748b !important;
+  opacity: 1 !important;
+}
+
+body #react-role-dashboard.react-role-dashboard :is(
+  .operational-command-form,
+  .operational-signoff-form,
+  .operational-staffing-form,
+  .operational-task-create-form,
+  .operational-task-detail-form,
+  .operational-task-update-form,
+  .operational-handoff-form,
+  .operational-escalation-create-form,
+  .operational-escalation-update-form
+) :is(button, .secondary-action-button, .compact-button) {
+  background: #e6f6ff !important;
+  background-image: none !important;
+  border: 1px solid #38bdf8 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+body #react-role-dashboard.react-role-dashboard :is(
+  .operational-command-form,
+  .operational-signoff-form,
+  .operational-staffing-form,
+  .operational-task-create-form,
+  .operational-task-detail-form,
+  .operational-task-update-form,
+  .operational-handoff-form,
+  .operational-escalation-create-form,
+  .operational-escalation-update-form
+) :is(button, .secondary-action-button, .compact-button) * {
+  color: inherit !important;
+  -webkit-text-fill-color: inherit !important;
+}
+
+body #react-role-dashboard.react-role-dashboard :is(
+  .operational-command-form,
+  .operational-signoff-form,
+  .operational-staffing-form,
+  .operational-task-create-form,
+  .operational-task-detail-form,
+  .operational-task-update-form,
+  .operational-handoff-form,
+  .operational-escalation-create-form,
+  .operational-escalation-update-form
+) :is(button, .secondary-action-button, .compact-button):disabled {
+  background: #eef6fb !important;
+  border-color: #b8cde0 !important;
+  color: #475569 !important;
+  -webkit-text-fill-color: #475569 !important;
+  cursor: not-allowed !important;
+  opacity: 0.72 !important;
+}
+
+/* Operational form surface ownership.
+   Every operational editor explicitly declares a light surface. These rules
+   intentionally target the semantic class combination so broad dark workspace
+   descendant selectors cannot force white labels or button text back onto the
+   pale editor cards. */
+#react-role-dashboard.react-role-dashboard form.ce-editor-card.ce-surface-light {
+  background: #f8fbff !important;
+  background-image: none !important;
+  border-color: #b8cde0 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+#react-role-dashboard.react-role-dashboard form.ce-editor-card.ce-surface-light :is(label, label > span) {
+  background: transparent !important;
+  color: #315a78 !important;
+  -webkit-text-fill-color: #315a78 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+#react-role-dashboard.react-role-dashboard form.ce-editor-card.ce-surface-light :is(input:not([type='checkbox']):not([type='radio']), select, textarea, option) {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  caret-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+#react-role-dashboard.react-role-dashboard form.ce-editor-card.ce-surface-light :is(button, .secondary-action-button, .compact-button, .ce-button-secondary) {
+  background: #e6f6ff !important;
+  background-image: none !important;
+  border-color: #38bdf8 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+#react-role-dashboard.react-role-dashboard form.ce-editor-card.ce-surface-light :is(button, .secondary-action-button, .compact-button, .ce-button-secondary):disabled {
+  background: #eef6fb !important;
+  border-color: #94a3b8 !important;
+  color: #334155 !important;
+  -webkit-text-fill-color: #334155 !important;
+  opacity: 1 !important;
+}
+
+/* Final operational light-editor contract.
+   This dedicated class is intentionally stronger than every broad operations
+   command-surface descendant selector. Operational forms are pale editing
+   surfaces and must always render dark labels, controls, and action text. */
+html body #react-role-dashboard.react-role-dashboard form.operational-light-editor.ce-editor-card.ce-surface-light {
+  background: #f8fbff !important;
+  background-color: #f8fbff !important;
+  background-image: none !important;
+  border: 1px solid #b8cde0 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  color-scheme: light !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+html body #react-role-dashboard.react-role-dashboard form.operational-light-editor.ce-editor-card.ce-surface-light > label,
+html body #react-role-dashboard.react-role-dashboard form.operational-light-editor.ce-editor-card.ce-surface-light > label > span {
+  background: transparent !important;
+  color: #315a78 !important;
+  -webkit-text-fill-color: #315a78 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+html body #react-role-dashboard.react-role-dashboard form.operational-light-editor.ce-editor-card.ce-surface-light :is(input:not([type='checkbox']):not([type='radio']), select, textarea, option) {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  caret-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+html body #react-role-dashboard.react-role-dashboard form.operational-light-editor.ce-editor-card.ce-surface-light :is(button, .secondary-action-button, .compact-button, .ce-button-secondary) {
+  background: #e6f6ff !important;
+  background-color: #e6f6ff !important;
+  background-image: none !important;
+  border-color: #38bdf8 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+html body #react-role-dashboard.react-role-dashboard form.operational-light-editor.ce-editor-card.ce-surface-light :is(button, .secondary-action-button, .compact-button, .ce-button-secondary):disabled {
+  background: #eef6fb !important;
+  background-color: #eef6fb !important;
+  border-color: #94a3b8 !important;
+  color: #334155 !important;
+  -webkit-text-fill-color: #334155 !important;
+  opacity: 1 !important;
+}
+
+/* Final rendered operations editor override.
+   Operational editors live inside the compatibility command panel, whose
+   broad dark-surface rules intentionally style every descendant. This selector
+   includes that parent context so the light editor owns its complete text
+   cascade instead of inheriting white text from the command surface. */
+html body #react-role-dashboard.react-role-dashboard .operational-command-compatibility-panel form.operational-light-editor.ce-editor-card.ce-surface-light,
+html body #react-role-dashboard.react-role-dashboard .operational-command-compatibility-panel form.operational-light-editor.ce-editor-card.ce-surface-light * {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+html body #react-role-dashboard.react-role-dashboard .operational-command-compatibility-panel form.operational-light-editor.ce-editor-card.ce-surface-light {
+  background: #f8fbff !important;
+  background-color: #f8fbff !important;
+  background-image: none !important;
+  border-color: #b8cde0 !important;
+  color-scheme: light !important;
+}
+
+html body #react-role-dashboard.react-role-dashboard .operational-command-compatibility-panel form.operational-light-editor.ce-editor-card.ce-surface-light label,
+html body #react-role-dashboard.react-role-dashboard .operational-command-compatibility-panel form.operational-light-editor.ce-editor-card.ce-surface-light label > span {
+  background: transparent !important;
+  color: #315a78 !important;
+  -webkit-text-fill-color: #315a78 !important;
+}
+
+html body #react-role-dashboard.react-role-dashboard .operational-command-compatibility-panel form.operational-light-editor.ce-editor-card.ce-surface-light :is(input:not([type='checkbox']):not([type='radio']), select, textarea, option) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  border-color: #b8cde0 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  caret-color: #0f172a !important;
+}
+
+html body #react-role-dashboard.react-role-dashboard .operational-command-compatibility-panel form.operational-light-editor.ce-editor-card.ce-surface-light :is(button, .secondary-action-button, .compact-button, .ce-button-secondary) {
+  background: #e6f6ff !important;
+  background-color: #e6f6ff !important;
+  background-image: none !important;
+  border-color: #38bdf8 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+html body #react-role-dashboard.react-role-dashboard .operational-command-compatibility-panel form.operational-light-editor.ce-editor-card.ce-surface-light :is(button, .secondary-action-button, .compact-button, .ce-button-secondary):disabled {
+  background: #eef6fb !important;
+  background-color: #eef6fb !important;
+  border-color: #94a3b8 !important;
+  color: #334155 !important;
+  -webkit-text-fill-color: #334155 !important;
+  opacity: 1 !important;
+}
+
+/* Rendered operations light-editor ownership.
+   The role dashboard is class-based in the rendered DOM; do not depend on an
+   element id that is not present. These final selectors intentionally follow
+   every operations component stylesheet so light editor labels and buttons
+   cannot inherit white command-surface text. */
+html body .react-role-dashboard .operational-command-compatibility-panel form.operational-light-editor.ce-editor-card.ce-surface-light {
+  background: #f8fbff !important;
+  background-color: #f8fbff !important;
+  background-image: none !important;
+  border-color: #b8cde0 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  color-scheme: light !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+html body .react-role-dashboard .operational-command-compatibility-panel form.operational-light-editor.ce-editor-card.ce-surface-light :is(label, label > span) {
+  background: transparent !important;
+  color: #315a78 !important;
+  -webkit-text-fill-color: #315a78 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+html body .react-role-dashboard .operational-command-compatibility-panel form.operational-light-editor.ce-editor-card.ce-surface-light :is(input:not([type='checkbox']):not([type='radio']), select, textarea, option) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  border-color: #b8cde0 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  caret-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+html body .react-role-dashboard .operational-command-compatibility-panel form.operational-light-editor.ce-editor-card.ce-surface-light :is(button, .secondary-action-button, .compact-button, .ce-button-secondary) {
+  background: #e6f6ff !important;
+  background-color: #e6f6ff !important;
+  background-image: none !important;
+  border-color: #38bdf8 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+html body .react-role-dashboard .operational-command-compatibility-panel form.operational-light-editor.ce-editor-card.ce-surface-light :is(button, .secondary-action-button, .compact-button, .ce-button-secondary):disabled {
+  background: #eef6fb !important;
+  background-color: #eef6fb !important;
+  border-color: #94a3b8 !important;
+  color: #334155 !important;
+  -webkit-text-fill-color: #334155 !important;
+  opacity: 1 !important;
+}
+
+/* Absolute operational editor label ownership.
+   The command workspace contains legacy high-specificity, important dark-surface
+   selectors. Duplicate the rendered dashboard id intentionally so this final
+   semantic light-editor contract always wins without changing control markup. */
+html body #react-role-dashboard#react-role-dashboard.react-role-dashboard
+  form.operational-light-editor.operational-light-editor.ce-editor-card.ce-surface-light
+  > label > span {
+  background: transparent !important;
+  color: #315a78 !important;
+  -webkit-text-fill-color: #315a78 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+html body #react-role-dashboard#react-role-dashboard.react-role-dashboard
+  form.operational-light-editor.operational-light-editor.ce-editor-card.ce-surface-light
+  > label {
+  color: #315a78 !important;
+  -webkit-text-fill-color: #315a78 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+html body #react-role-dashboard#react-role-dashboard.react-role-dashboard
+  form.operational-light-editor.operational-light-editor.ce-editor-card.ce-surface-light
+  :is(button, .secondary-action-button, .compact-button, .ce-button-secondary) {
+  background: #e6f6ff !important;
+  background-color: #e6f6ff !important;
+  background-image: none !important;
+  border-color: #38bdf8 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+/* Turnaround operations light-editor ownership.
+   Every operational form that presents a pale editing surface owns dark,
+   readable typography regardless of the surrounding command-center theme. */
+html body .react-role-dashboard form.operational-light-editor.operational-light-editor.ce-editor-card.ce-surface-light {
+  background: #f8fbff !important;
+  background-image: none !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+}
+
+html body .react-role-dashboard form.operational-light-editor.operational-light-editor.ce-editor-card.ce-surface-light :is(label, label > span) {
+  color: #315a78 !important;
+  -webkit-text-fill-color: #315a78 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+html body .react-role-dashboard form.operational-light-editor.operational-light-editor.ce-editor-card.ce-surface-light :is(input:not([type='checkbox']):not([type='radio']), select, textarea, option) {
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+html body .react-role-dashboard form.operational-light-editor.operational-light-editor.ce-editor-card.ce-surface-light :is(button, .secondary-action-button, .compact-button, .ce-button-secondary) {
+  background: #e6f6ff !important;
+  background-image: none !important;
+  border-color: #55bdf1 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+html body .react-role-dashboard form.operational-light-editor.operational-light-editor.ce-editor-card.ce-surface-light :is(button, .secondary-action-button, .compact-button, .ce-button-secondary):disabled {
+  background: #edf4f8 !important;
+  color: #475569 !important;
+  -webkit-text-fill-color: #475569 !important;
+  opacity: 1 !important;
+}
+
+/* Turnaround task destructive actions use a pale danger surface, so they must
+   own dark danger text instead of inheriting the global white-on-dark button
+   treatment. This applies to every task list/detail rendering path. */
+html body .react-role-dashboard :is(
+  .operational-command-compatibility-panel,
+  .operations-task-workspace,
+  .operational-readiness-list,
+  .operations-task-list,
+  .operations-task-detail-panel
+) button.danger-outline-button.compact-button.ce-button-danger {
+  background: #fff1f2 !important;
+  background-color: #fff1f2 !important;
+  background-image: none !important;
+  border-color: #fda4af !important;
+  color: #7f1d1d !important;
+  -webkit-text-fill-color: #7f1d1d !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+html body .react-role-dashboard :is(
+  .operational-command-compatibility-panel,
+  .operations-task-workspace,
+  .operational-readiness-list,
+  .operations-task-list,
+  .operations-task-detail-panel
+) button.danger-outline-button.compact-button.ce-button-danger * {
+  color: #7f1d1d !important;
+  -webkit-text-fill-color: #7f1d1d !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+html body .react-role-dashboard :is(
+  .operational-command-compatibility-panel,
+  .operations-task-workspace,
+  .operational-readiness-list,
+  .operations-task-list,
+  .operations-task-detail-panel
+) button.danger-outline-button.compact-button.ce-button-danger:disabled {
+  background: #ffe4e6 !important;
+  background-color: #ffe4e6 !important;
+  border-color: #fda4af !important;
+  color: #881337 !important;
+  -webkit-text-fill-color: #881337 !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+/* Operations task removal is a dedicated light danger action. It intentionally
+   does not opt into the global ce-button-danger contract because the operations
+   command surface applies white text to that shared variant. */
+html body button.operational-task-remove-action {
+  align-items: center !important;
+  background: #fff1f2 !important;
+  background-color: #fff1f2 !important;
+  background-image: none !important;
+  border: 1px solid #fda4af !important;
+  border-radius: 999px !important;
+  color: #7f1d1d !important;
+  -webkit-text-fill-color: #7f1d1d !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  font-weight: 900 !important;
+  justify-content: center !important;
+  line-height: 1.15 !important;
+  min-height: 2.5rem !important;
+  opacity: 1 !important;
+  padding: 0.55rem 0.85rem !important;
+  text-shadow: none !important;
+  white-space: nowrap !important;
+}
+
+html body button.operational-task-remove-action:disabled {
+  background: #ffe4e6 !important;
+  border-color: #fda4af !important;
+  color: #881337 !important;
+  -webkit-text-fill-color: #881337 !important;
+  cursor: not-allowed !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+
+
+/* Turnaround data states are dark command surfaces. Status-card is otherwise
+   used by light notifications, so these states explicitly restore light text. */
+html body .react-role-dashboard .operational-data-state.ce-command-card.ce-surface-dark {
+  background: rgba(6, 30, 45, 0.92) !important;
+  background-color: rgba(6, 30, 45, 0.92) !important;
+  background-image: none !important;
+  border-color: rgba(125, 211, 252, 0.35) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+html body .react-role-dashboard .operational-data-state.ce-command-card.ce-surface-dark :is(p, span, strong, small) {
+  background: transparent !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+html body .react-role-dashboard .operational-data-state.ce-command-card.ce-surface-dark .secondary-action-button {
+  background: #e6f6ff !important;
+  background-color: #e6f6ff !important;
+  background-image: none !important;
+  border-color: #7dd3fc !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}

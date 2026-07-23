@@ -116,7 +116,7 @@ export function OperationsReadinessWorkspace({
                   )}
 
                   {onUpdateSignoff && (
-                    <form className="operations-readiness-detail-form operational-signoff-form" onSubmit={event => { event.preventDefault(); saveSignoff(selectedOperation, selectedReadinessSignoff.departmentRole) }} data-testid="react-operational-signoff-form">
+                    <form className="operations-readiness-detail-form operational-signoff-form ce-editor-card ce-surface-light operational-light-editor" onSubmit={event => { event.preventDefault(); saveSignoff(selectedOperation, selectedReadinessSignoff.departmentRole) }} data-testid="react-operational-signoff-form">
                       <label>
                         <span>Readiness status</span>
                         <select value={getSignoffDraft(selectedOperation, selectedReadinessSignoff.departmentRole).status} onChange={event => updateSignoffDraft(selectedOperation, 'status', event.target.value, selectedReadinessSignoff.departmentRole)} aria-label={`${selectedOperation.title} ${selectedReadinessSignoff.departmentRole} readiness status`}>
@@ -260,7 +260,7 @@ export function OperationsStaffingWorkspace({
                   )}
 
                   {onUpdateStaffing && (
-                    <form className="operations-staffing-detail-form operational-staffing-form" onSubmit={event => { event.preventDefault(); saveStaffing(selectedOperation, selectedStaffing.departmentRole) }} data-testid="react-operational-staffing-form">
+                    <form className="operations-staffing-detail-form operational-staffing-form ce-editor-card ce-surface-light operational-light-editor" onSubmit={event => { event.preventDefault(); saveStaffing(selectedOperation, selectedStaffing.departmentRole) }} data-testid="react-operational-staffing-form">
                       <label>
                         <span>Planned staff</span>
                         <input type="number" min="0" value={getStaffingDraft(selectedOperation, selectedStaffing.departmentRole).plannedCount} onChange={event => updateStaffingDraft(selectedOperation, 'plannedCount', event.target.value, selectedStaffing.departmentRole)} aria-label={`${selectedOperation.title} planned staff`} />

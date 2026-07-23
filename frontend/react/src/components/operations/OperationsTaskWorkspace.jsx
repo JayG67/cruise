@@ -92,7 +92,7 @@ export function OperationsTaskWorkspace(props) {
   </div>
 
   {onCreateTask && (
-    <form className="operations-task-quick-add operational-task-create-form" onSubmit={event => { event.preventDefault(); saveTaskCreate(selectedOperation) }} data-testid="react-operational-task-create-form">
+    <form className="operations-task-quick-add operational-task-create-form ce-editor-card ce-surface-light operational-light-editor" onSubmit={event => { event.preventDefault(); saveTaskCreate(selectedOperation) }} data-testid="react-operational-task-create-form">
       <div>
         <p className="eyebrow ce-kicker">Add task</p>
         <h5>New turnaround task</h5>
@@ -177,13 +177,13 @@ export function OperationsTaskWorkspace(props) {
                       </div>
                     )}
                     {onCreateTaskUpdate && task.id && (
-                      <form className="operational-task-update-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveTaskUpdate(task) }} data-testid="react-operational-task-update-form">
+                      <form className="operational-task-update-form ce-editor-card ce-surface-light operational-light-editor" onSubmit={event => { event.preventDefault(); saveTaskUpdate(task) }} data-testid="react-operational-task-update-form">
                         <label className="full-width-field"><span>Shift update</span><input value={getTaskUpdateDraft(task)} onChange={event => updateTaskUpdateDraft(task, event.target.value)} aria-label={`${task.taskName} shift update`} /></label>
                         <button type="submit" className="secondary-action-button compact-button ce-button-secondary" disabled={creatingTaskUpdateId === task.id || !getTaskUpdateDraft(task).trim()}>Add shift update</button>
                       </form>
                     )}
                     {onUpdateTaskDetails && task.id && (
-                      <form className="operational-task-detail-form operations-task-detail-edit-form" onSubmit={event => { event.preventDefault(); saveTaskDetails(task) }} data-testid="react-operational-task-detail-form">
+                      <form className="operational-task-detail-form operations-task-detail-edit-form ce-editor-card ce-surface-light operational-light-editor" onSubmit={event => { event.preventDefault(); saveTaskDetails(task) }} data-testid="react-operational-task-detail-form">
                         <label><span>Owner</span><input value={getTaskDetailDraft(task).ownerName} onChange={event => updateTaskDetailDraft(task, 'ownerName', event.target.value)} aria-label={`${task.taskName} owner`} /></label>
                         <label><span>Due time</span><input value={getTaskDetailDraft(task).dueTime} onChange={event => updateTaskDetailDraft(task, 'dueTime', event.target.value)} aria-label={`${task.taskName} due time`} /></label>
                         <label><span>Location</span><input value={getTaskDetailDraft(task).location} onChange={event => updateTaskDetailDraft(task, 'location', event.target.value)} aria-label={`${task.taskName} location`} /></label>
@@ -192,7 +192,7 @@ export function OperationsTaskWorkspace(props) {
                       </form>
                     )}
                     {onUpdateTaskStatus && task.id && <div className="operational-task-actions" aria-label={`Update ${task.taskName} status`}><button type="button" className="secondary-action-button compact-button ce-button-secondary" disabled={updatingTaskId === task.id || task.status === 'IN_PROGRESS'} onClick={() => updateStatus(task, 'IN_PROGRESS')}>Start</button><button type="button" className="secondary-action-button compact-button ce-button-secondary" disabled={updatingTaskId === task.id || task.status === 'BLOCKED'} onClick={() => updateStatus(task, 'BLOCKED')}>Block</button><button type="button" className="secondary-action-button compact-button ce-button-secondary" disabled={updatingTaskId === task.id || task.status === 'COMPLETE'} onClick={() => updateStatus(task, 'COMPLETE')}>Complete</button></div>}
-                    {onDeleteTask && task.id && <button type="button" className="danger-outline-button compact-button ce-button-danger" disabled={deletingTaskId === task.id} onClick={() => removeTask(task)} data-testid="react-operational-task-remove-button">{deletingTaskId === task.id ? 'Removing task...' : 'Remove task'}</button>}
+                    {onDeleteTask && task.id && <button type="button" className="operational-task-remove-action" disabled={deletingTaskId === task.id} onClick={() => removeTask(task)} data-testid="react-operational-task-remove-button">{deletingTaskId === task.id ? 'Removing task...' : 'Remove task'}</button>}
                   </article>
                 )}
               </li>

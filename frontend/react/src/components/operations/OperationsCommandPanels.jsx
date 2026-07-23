@@ -124,23 +124,23 @@ export function OperationsWorkspaceCommandPanels({
                 <span className={`operations-directory-health ${selectedDirectoryHealth.tone}`}>{selectedDirectoryHealth.label}</span>
               </div>
               <dl className="operations-directory-metrics">
-                <div className="ce-surface-light">
+                <div className="operations-directory-metric ce-surface-light">
                   <dt>Staffed</dt>
                   <dd>{selectedDirectoryEntry.staffingPercent}%</dd>
                 </div>
-                <div className="ce-surface-light">
+                <div className="operations-directory-metric ce-surface-light">
                   <dt>Tasks</dt>
                   <dd>{selectedDirectoryEntry.taskCount}</dd>
                 </div>
-                <div className="ce-surface-light">
+                <div className="operations-directory-metric ce-surface-light">
                   <dt>Blocked</dt>
                   <dd>{selectedDirectoryEntry.blockedTasks + selectedDirectoryEntry.blockedHandoffs}</dd>
                 </div>
-                <div className="ce-surface-light">
+                <div className="operations-directory-metric ce-surface-light">
                   <dt>Handoffs</dt>
                   <dd>{selectedDirectoryEntry.handoffCount}</dd>
                 </div>
-                <div className="ce-surface-light">
+                <div className="operations-directory-metric ce-surface-light">
                   <dt>Escalations</dt>
                   <dd>{selectedDirectoryEntry.activeEscalations}</dd>
                 </div>

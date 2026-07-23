@@ -161,7 +161,7 @@ export function OperationsHandoffWorkspace(props) {
           )}
 
           {onUpdateHandoff && (
-            <form className="operations-handoff-detail-form operational-handoff-form" onSubmit={event => { event.preventDefault(); saveHandoffUpdate(selectedHandoff) }} data-testid="react-operational-handoff-form">
+            <form className="operations-handoff-detail-form operational-handoff-form ce-editor-card ce-surface-light operational-light-editor" onSubmit={event => { event.preventDefault(); saveHandoffUpdate(selectedHandoff) }} data-testid="react-operational-handoff-form">
               <label>
                 <span>Status</span>
                 <select value={getHandoffDraft(selectedHandoff).status} onChange={event => updateHandoffDraft(selectedHandoff, 'status', event.target.value)} aria-label={`${selectedHandoff.title} handoff status`}>

@@ -16,7 +16,7 @@ export function OperationsEscalationSection({
   return (
     <>
       {onCreateEscalation && (
-        <form className="operational-escalation-create-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveEscalationCreate(item) }} data-testid="react-operational-escalation-create-form">
+        <form className="operational-escalation-create-form ce-editor-card ce-surface-light operational-light-editor" onSubmit={event => { event.preventDefault(); saveEscalationCreate(item) }} data-testid="react-operational-escalation-create-form">
           <label>
             <span>Escalation department</span>
             <select value={getEscalationCreateDraft(item).departmentRole} onChange={event => updateEscalationCreateDraft(item, 'departmentRole', event.target.value)} aria-label={`${item.title} escalation department`}>
@@ -63,7 +63,7 @@ export function OperationsEscalationSection({
                 <p>{escalation.departmentRole} · {getOperationalOwnerDisplay(escalation)} · {escalation.status}</p>
                 {escalation.resolutionNotes && <p>{escalation.resolutionNotes}</p>}
                 {onUpdateEscalation && (
-                  <form className="operational-escalation-update-form ce-editor-card" onSubmit={event => { event.preventDefault(); saveEscalationUpdate(escalation) }} data-testid="react-operational-escalation-update-form">
+                  <form className="operational-escalation-update-form ce-editor-card ce-surface-light operational-light-editor" onSubmit={event => { event.preventDefault(); saveEscalationUpdate(escalation) }} data-testid="react-operational-escalation-update-form">
                     <label>
                       <span>Status</span>
                       <select value={getEscalationUpdateDraft(escalation).status} onChange={event => updateEscalationDraft(escalation, 'status', event.target.value)} aria-label={`${escalation.title} escalation status`}>
