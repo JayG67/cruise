@@ -1,0 +1,82 @@
+/* UX readability hardening: form controls must remain readable in narrow grids. */
+.react-app-shell :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+.react-production-shell :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+.ce-control {
+  background: var(--ce-editor-surface-strong) !important;
+  border: 1px solid var(--ce-editor-border-strong) !important;
+  border-radius: var(--ce-control-radius) !important;
+  box-sizing: border-box !important;
+  color: var(--ce-editor-text) !important;
+  -webkit-text-fill-color: var(--ce-editor-text) !important;
+  font: inherit;
+  line-height: 1.35 !important;
+  min-block-size: var(--ce-control-height) !important;
+  min-inline-size: 0 !important;
+  max-inline-size: 100% !important;
+  padding: var(--ce-control-padding-y) var(--ce-control-padding-x) !important;
+  width: 100% !important;
+}
+
+.react-app-shell :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea)::placeholder,
+.react-production-shell :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea)::placeholder,
+.ce-control::placeholder {
+  color: var(--placeholder-editor) !important;
+  -webkit-text-fill-color: var(--placeholder-editor) !important;
+  opacity: 1 !important;
+}
+
+.react-app-shell :where(select, option),
+.react-production-shell :where(select, option) {
+  background-color: var(--ce-editor-surface-strong) !important;
+  color: var(--ce-editor-text) !important;
+}
+
+.react-app-shell :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus,
+.react-production-shell :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus,
+.ce-control:focus {
+  border-color: var(--ce-editor-border) !important;
+  box-shadow: 0 0 0 3px var(--ce-editor-focus) !important;
+  outline: none !important;
+}
+
+.react-app-shell :where(label, .ce-field-label, .presentation-line-picker span),
+.react-production-shell :where(label, .ce-field-label, .presentation-line-picker span) {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+}
+
+.react-app-shell :where(.ce-form, .ce-field-grid, .presentation-scope-controls, .react-create-form-grid),
+.react-production-shell :where(.ce-form, .ce-field-grid, .presentation-scope-controls, .react-create-form-grid) {
+  align-items: start !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--ce-control-readable-wide)), 1fr)) !important;
+  min-inline-size: 0 !important;
+}
+
+.react-app-shell :where(.ce-field, .presentation-line-picker, .presentation-scope-control),
+.react-production-shell :where(.ce-field, .presentation-line-picker, .presentation-scope-control) {
+  min-inline-size: min(100%, var(--ce-control-readable-min)) !important;
+  max-inline-size: 100% !important;
+}
+
+.react-app-shell :where(textarea, textarea.ce-input),
+.react-production-shell :where(textarea, textarea.ce-input) {
+  min-block-size: 6rem !important;
+  overflow-wrap: anywhere !important;
+  white-space: pre-wrap !important;
+}
+
+.react-app-shell :where(input:disabled, select:disabled, textarea:disabled),
+.react-production-shell :where(input:disabled, select:disabled, textarea:disabled) {
+  background: var(--ce-disabled-bg) !important;
+  border-color: var(--ce-disabled-border) !important;
+  color: var(--ce-disabled-text) !important;
+  -webkit-text-fill-color: var(--ce-disabled-text) !important;
+  opacity: 1 !important;
+}
+
+.react-app-shell :where(input::selection, textarea::selection),
+.react-production-shell :where(input::selection, textarea::selection) {
+  background: var(--selection-editor-bg);
+  color: var(--selection-editor-text);
+}

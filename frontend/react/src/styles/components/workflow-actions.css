@@ -1,0 +1,37 @@
+/* Contextual admin row actions. */
+.react-row-action-cluster,
+.react-booking-action-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.react-booking-action-row {
+  margin-top: 0.65rem;
+}
+
+/* React-native confirmation panels. */
+.react-confirm-action-panel {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 1rem;
+  box-shadow: 0 12px 28px rgba(124, 45, 18, 0.12);
+  display: grid;
+  gap: 1rem;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+.react-confirm-action-panel h4,
+.react-confirm-action-panel p {
+  margin: 0;
+}
+
+.react-confirm-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+

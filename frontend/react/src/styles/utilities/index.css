@@ -1,0 +1,129 @@
+/* Small utility layer for composition-only CSS. */
+
+.ce-muted {
+  color: var(--text-secondary);
+}
+
+.ce-editor-muted {
+  color: var(--text-editor-secondary);
+}
+
+.ce-full-width {
+  width: 100%;
+}
+
+.ce-centered {
+  margin-inline: auto;
+}
+
+.ce-visually-hidden {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+/* Shared text and accessibility utilities migrated out of the legacy design-system layer. */
+
+
+.react-production-shell .ce-kicker {
+  color: var(--ce-command-text-muted) !important;
+  -webkit-text-fill-color: var(--ce-command-text-muted) !important;
+  font-size: var(--ce-type-kicker);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.react-production-shell .ce-muted {
+  color: var(--ce-light-surface-muted-text, #1f3a56) !important;
+  -webkit-text-fill-color: var(--ce-light-surface-muted-text, #1f3a56) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-production-shell .ce-visually-hidden,
+.react-production-shell .visually-hidden {
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  white-space: nowrap !important;
+  width: 1px !important;
+}
+
+.react-production-shell,
+.react-production-shell * {
+  box-sizing: border-box;
+}
+
+.react-production-shell {
+  min-height: 100vh;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.react-production-shell :is(button, input, select, textarea) {
+  font: inherit;
+}
+
+.react-production-shell :is(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid var(--ce-focus-ring) !important;
+  outline-offset: 3px !important;
+}
+
+.react-production-shell :is(button, a, input, select, textarea) {
+  transition:
+    background-color var(--ce-transition-fast),
+    border-color var(--ce-transition-fast),
+    box-shadow var(--ce-transition-fast),
+    color var(--ce-transition-fast),
+    transform var(--ce-transition-fast);
+}
+
+.react-production-shell :is(button, a):not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.react-production-shell :is(button, input, select, textarea):disabled,
+.react-production-shell [aria-disabled="true"] {
+  background: var(--ce-disabled-bg) !important;
+  border-color: var(--ce-disabled-border) !important;
+  color: var(--ce-disabled-text) !important;
+  -webkit-text-fill-color: var(--ce-disabled-text) !important;
+  cursor: not-allowed !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .react-production-shell,
+  .react-production-shell * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .react-production-shell :is(button, a):not(:disabled):hover {
+    transform: none !important;
+  }
+}
+
+/*
+  Semantic muted text reads from the nearest surface context.
+
+  Dark and light components define --ce-surface-muted-text themselves in the
+  final contrast-hardening layer. This avoids brittle descendant-selector
+  competition when a light card is nested inside a dark dashboard.
+*/
+:is(.react-production-shell, .react-app-shell) :is(.muted, .ce-muted) {
+  color: var(--ce-surface-muted-text, var(--ce-light-surface-muted-text, #1f3a56)) !important;
+  -webkit-text-fill-color: var(--ce-surface-muted-text, var(--ce-light-surface-muted-text, #1f3a56)) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}

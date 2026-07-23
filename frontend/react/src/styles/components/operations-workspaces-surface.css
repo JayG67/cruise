@@ -1,0 +1,248 @@
+/* Operations workspace shared dark surfaces, nested cards, forms, and layout cleanup. */
+
+/* Operations workspace component architecture.
+   Workspace shell, directory, command detail, dependency, handoff, staffing, escalation, and readiness rules.
+   Timeline-specific rules live in operations-timeline.css. */
+
+/* Build 486 - role workspace/detail panels match the approved dark motif */
+.react-role-dashboard .operations-workspace-shell,
+.react-role-dashboard .operations-workspace,
+.react-role-dashboard .operations-role-brief-panel,
+.react-role-dashboard .operations-directory,
+.react-role-dashboard .operations-directory-panel,
+.react-role-dashboard .operations-handoff-workspace,
+.react-role-dashboard .operations-handoff-detail-panel,
+.react-role-dashboard [data-testid="react-operations-workspace"],
+.react-role-dashboard [data-testid="react-operations-role-brief"],
+.react-role-dashboard [data-testid="react-operations-directory"],
+.react-role-dashboard [data-testid="react-operations-directory-panel"],
+.react-role-dashboard [data-testid="react-operations-handoff-workspace"],
+.react-role-dashboard [data-testid="react-operations-handoff-detail"] {
+  background: linear-gradient(135deg, #082334 0%, #0f5360 52%, #15713f 100%) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 0 24px 60px rgba(7, 24, 39, 0.22) !important;
+  color: #ffffff !important;
+  overflow: hidden !important;
+  padding: clamp(1rem, 2.4vw, 1.5rem) !important;
+}
+
+.react-role-dashboard .operations-workspace-shell .operations-workspace-heading,
+.react-role-dashboard .operations-workspace > header,
+.react-role-dashboard .operations-role-brief-heading,
+.react-role-dashboard .operations-directory > header,
+.react-role-dashboard .operations-directory-panel .operations-directory-heading,
+.react-role-dashboard .operations-handoff-workspace-header,
+.react-role-dashboard .operations-handoff-detail-header {
+  background: transparent !important;
+  border: 0 !important;
+  color: #ffffff !important;
+  margin: 0 0 1rem !important;
+  padding: 0 !important;
+}
+
+.react-role-dashboard .operations-workspace-shell .operations-workspace-heading *,
+.react-role-dashboard .operations-workspace > header *,
+.react-role-dashboard .operations-role-brief-heading *,
+.react-role-dashboard .operations-directory > header *,
+.react-role-dashboard .operations-directory-panel .operations-directory-heading *,
+.react-role-dashboard .operations-handoff-workspace-header *,
+.react-role-dashboard .operations-handoff-detail-header * {
+  background: transparent !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operations-workspace-shell .eyebrow,
+.react-role-dashboard .operations-workspace .eyebrow,
+.react-role-dashboard .operations-role-brief-panel .eyebrow,
+.react-role-dashboard .operations-directory .eyebrow,
+.react-role-dashboard .operations-directory-panel .eyebrow,
+.react-role-dashboard .operations-handoff-workspace .eyebrow,
+.react-role-dashboard .operations-handoff-detail-panel .eyebrow {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+}
+
+/* Dark nested operational cards */
+.react-role-dashboard .operations-workspace-shell .operations-workspace-nav-button,
+.react-role-dashboard .operations-workspace-shell .operations-workspace-active-summary,
+.react-role-dashboard .operations-workspace [class*="card"],
+.react-role-dashboard .operations-workspace [class*="tab"],
+.react-role-dashboard .operations-workspace [class*="summary"],
+.react-role-dashboard .operations-role-brief-grid > *,
+.react-role-dashboard .operations-role-brief-panel [class*="card"],
+.react-role-dashboard .operations-directory [class*="role"],
+.react-role-dashboard .operations-directory [class*="list"] > *,
+.react-role-dashboard .operations-directory [class*="card"],
+.react-role-dashboard .operations-handoff-list-panel,
+.react-role-dashboard .operations-handoff-list-panel [class*="item"],
+.react-role-dashboard .operations-handoff-workspace-metrics > *,
+.react-role-dashboard .operations-handoff-note,
+.react-role-dashboard .operations-handoff-detail-list > *,
+.react-role-dashboard .operations-handoff-detail-panel [class*="summary"],
+.react-role-dashboard .operations-handoff-detail-panel [class*="watch"],
+.react-role-dashboard .operations-handoff-detail-panel [class*="gate"],
+.react-role-dashboard .operations-handoff-detail-panel [class*="dependencies"],
+.react-role-dashboard .operations-handoff-detail-panel [class*="tasks"],
+.react-role-dashboard .operations-handoff-detail-panel [class*="signoff"],
+.react-role-dashboard .operations-handoff-detail-panel [class*="escalation"] {
+  background: rgba(6, 30, 45, 0.88) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 0.95rem !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+  padding: 1rem !important;
+}
+
+.react-role-dashboard .operations-workspace-shell .operations-workspace-nav-button,
+.react-role-dashboard .operations-workspace-shell .operations-workspace-active-summary *,
+.react-role-dashboard .operations-workspace [class*="card"] *,
+.react-role-dashboard .operations-workspace [class*="tab"] *,
+.react-role-dashboard .operations-workspace [class*="summary"] *,
+.react-role-dashboard .operations-role-brief-grid > * *,
+.react-role-dashboard .operations-role-brief-panel [class*="card"] *,
+.react-role-dashboard .operations-directory [class*="role"] *,
+.react-role-dashboard .operations-directory [class*="list"] > * *,
+.react-role-dashboard .operations-directory [class*="card"] *,
+.react-role-dashboard .operations-handoff-list-panel *,
+.react-role-dashboard .operations-handoff-workspace-metrics > * *,
+.react-role-dashboard .operations-handoff-note *,
+.react-role-dashboard .operations-handoff-detail-list > * *,
+.react-role-dashboard .operations-handoff-detail-panel [class*="summary"] *,
+.react-role-dashboard .operations-handoff-detail-panel [class*="watch"] *,
+.react-role-dashboard .operations-handoff-detail-panel [class*="gate"] *,
+.react-role-dashboard .operations-handoff-detail-panel [class*="dependencies"] *,
+.react-role-dashboard .operations-handoff-detail-panel [class*="tasks"] *,
+.react-role-dashboard .operations-handoff-detail-panel [class*="signoff"] *,
+.react-role-dashboard .operations-handoff-detail-panel [class*="escalation"] * {
+  background: transparent !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  writing-mode: horizontal-tb !important;
+}
+
+.react-role-dashboard .operations-workspace-shell .operations-workspace-active-summary span,
+.react-role-dashboard .operations-workspace [class*="card"] span,
+.react-role-dashboard .operations-role-brief-grid > * span,
+.react-role-dashboard .operations-directory [class*="role"] span,
+.react-role-dashboard .operations-handoff-detail-panel span,
+.react-role-dashboard .operations-handoff-workspace span {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+}
+
+
+.react-role-dashboard .operations-workspace-shell .operations-workspace-nav {
+  background: transparent !important;
+  border: 0 !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+  padding: 0 !important;
+}
+
+.react-role-dashboard .operations-workspace-shell .operations-workspace-nav-button:hover,
+.react-role-dashboard .operations-workspace-shell .operations-workspace-nav-button:focus-visible,
+.react-role-dashboard .operations-workspace-shell .operations-workspace-nav-button.active {
+  background: linear-gradient(135deg, #0f5e9c, #15713f) !important;
+  border-color: rgba(158, 231, 255, 0.75) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Forms stay light and readable */
+.react-role-dashboard .operations-handoff-detail-form,
+.react-role-dashboard .operations-handoff-form,
+.react-role-dashboard .operations-handoff-detail-panel form,
+.react-role-dashboard .operations-handoff-detail-panel [class*="form"],
+.react-role-dashboard .operations-handoff-detail-panel [class*="editor"] {
+  background: #f8fbff !important;
+  border: 1px solid #b8cde0 !important;
+  border-radius: 0.95rem !important;
+  color: #0f172a !important;
+  padding: 1rem !important;
+}
+
+.react-role-dashboard .operations-handoff-detail-form *,
+.react-role-dashboard .operations-handoff-form *,
+.react-role-dashboard .operations-handoff-detail-panel form *,
+.react-role-dashboard .operations-handoff-detail-panel [class*="form"] *,
+.react-role-dashboard .operations-handoff-detail-panel [class*="editor"] * {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+}
+
+.react-role-dashboard .operations-handoff-detail-panel input,
+.react-role-dashboard .operations-handoff-detail-panel select,
+.react-role-dashboard .operations-handoff-detail-panel textarea,
+.react-role-dashboard .operations-handoff-form input,
+.react-role-dashboard .operations-handoff-form select,
+.react-role-dashboard .operations-handoff-form textarea {
+  background: #ffffff !important;
+  border: 1px solid #7dd3fc !important;
+  border-radius: 0.7rem !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+/* Layout cleanup */
+.react-role-dashboard .operations-role-brief-grid,
+.react-role-dashboard .operations-handoff-workspace-metrics {
+  background: transparent !important;
+  border: 0 !important;
+  display: grid !important;
+  gap: 0.85rem !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  padding: 0 !important;
+}
+
+.react-role-dashboard .operations-handoff-layout,
+.react-role-dashboard .operations-directory [class*="layout"],
+.react-role-dashboard .operations-directory [class*="grid"] {
+  background: transparent !important;
+  border: 0 !important;
+  display: grid !important;
+  gap: 1rem !important;
+  grid-template-columns: minmax(16rem, 0.9fr) minmax(0, 1.6fr) !important;
+  padding: 0 !important;
+}
+
+@media (max-width: 1000px) {
+  .react-role-dashboard .operations-role-brief-grid,
+  .react-role-dashboard .operations-handoff-workspace-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .react-role-dashboard .operations-handoff-layout,
+  .react-role-dashboard .operations-directory [class*="layout"],
+  .react-role-dashboard .operations-directory [class*="grid"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Operations workspace navigation label fit: prevent long workstream names from wrapping. */
+.react-role-dashboard .operations-workspace-shell .operations-workspace-nav {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.react-role-dashboard .operations-workspace-shell .operations-workspace-nav-button {
+  min-width: 0 !important;
+  white-space: nowrap !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
+
+@media (max-width: 640px) {
+  .react-role-dashboard .operations-workspace-shell .operations-workspace-nav {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+

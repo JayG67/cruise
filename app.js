@@ -116,6 +116,12 @@ function securityHeaders(req, res, next) {
 app.use(securityHeaders)
 app.use(compression())
 
+// Register the platform health endpoint before static hosting and SPA fallbacks.
+// This guarantees that generated frontend artifacts can never shadow /health.
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' })
+})
+
 app.use('/images', express.static(publicImagesDir, { redirect: false, setHeaders: setLongTermAssetCache }))
 app.use('/data', express.static(seedDataDir, { redirect: false, setHeaders: setReactBuildCache }))
 app.use(express.static(reactBuildDir, { redirect: false, setHeaders: setReactBuildCache }))
@@ -125,10 +131,6 @@ app.get('/', sendReactApp)
 app.use(express.json())
 app.use(serverLogger)
 app.use(attachRequestIdentity)
-
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' })
-})
 
 app.use('/cruise', cruiseRouter)
 app.use('/admin', adminRouter)

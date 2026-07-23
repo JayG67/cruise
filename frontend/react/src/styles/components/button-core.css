@@ -1,0 +1,56 @@
+/* Shared action primitives: base button contract and variant tokens. */
+
+.ce-button,
+.ce-button-primary,
+.ce-button-secondary,
+.ce-button-danger,
+.react-production-shell :where(.primary-action-button, .secondary-action-button, .danger-action-button, .fleet-danger-action, .link-button) {
+  align-items: center;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 800;
+  justify-content: center;
+  line-height: 1.15;
+  min-height: 2.5rem;
+  min-width: 0;
+  padding: 0.65rem 1rem;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+  white-space: nowrap;
+}
+
+.ce-button:hover,
+.ce-button-primary:hover,
+.ce-button-secondary:hover,
+.ce-button-danger:hover,
+.react-production-shell :where(.primary-action-button, .secondary-action-button, .danger-action-button, .fleet-danger-action, .link-button):hover {
+  transform: translateY(-1px);
+}
+
+.ce-button-primary,
+.react-production-shell .primary-action-button {
+  background: var(--ce-action-primary-bg);
+  border: 1px solid transparent;
+  color: var(--ce-action-primary-text);
+}
+
+.ce-button-secondary,
+.react-production-shell :where(.secondary-action-button, .link-button) {
+  background: var(--ce-action-secondary-bg);
+  border: 1px solid var(--ce-action-secondary-border);
+  color: var(--ce-action-secondary-text);
+}
+
+.ce-button-danger,
+.react-production-shell :where(.danger-action-button, .fleet-danger-action) {
+  background: var(--ce-action-danger-bg);
+  border: 1px solid var(--ce-action-danger-border);
+  color: var(--ce-action-danger-text);
+}
+
+.react-production-shell table :is(.ce-button-primary, .ce-button-secondary, .ce-button-danger) {
+  min-height: 2.25rem;
+  padding: 0.45rem 0.75rem;
+}

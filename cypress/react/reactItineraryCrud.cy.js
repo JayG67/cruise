@@ -82,15 +82,22 @@ describe('React itinerary admin CRUD coverage expansion', () => {
     cy.intercept('GET', `/cruise/sailings/${reactSailings[0].id}/itinerary`, reactItinerary).as('reloadAfterItineraryDelete')
 
     cy.getByTestId(rs.itineraryDayCard).eq(1).within(() => {
-      cy.getByTestId(rs.deleteItineraryDayButton).click()
+      cy.getByTestId(rs.deleteItineraryDayButton).scrollIntoView().click()
     })
-    cy.getByTestId(rs.fleetDeleteConfirmationConfirm).click()
+    cy.getByTestId(rs.fleetDeleteConfirmation)
+      .should('be.visible')
+      .and('contain.text', 'Delete itinerary day 2?')
+    cy.getByTestId(rs.fleetDeleteConfirmationConfirm).scrollIntoView().click()
     cy.wait('@deleteItineraryDay')
+    cy.getByTestId(rs.fleetDeleteConfirmation).should('not.exist')
 
     cy.getByTestId(rs.itineraryActivity).first().within(() => {
-      cy.getByTestId(rs.deleteItineraryActivityButton).click()
+      cy.getByTestId(rs.deleteItineraryActivityButton).scrollIntoView().click()
     })
-    cy.getByTestId(rs.fleetDeleteConfirmationConfirm).click()
+    cy.getByTestId(rs.fleetDeleteConfirmation)
+      .should('be.visible')
+      .and('contain.text', 'Delete activity Terminal arrival?')
+    cy.getByTestId(rs.fleetDeleteConfirmationConfirm).scrollIntoView().click()
     cy.wait('@deleteItineraryActivity')
   })
 })

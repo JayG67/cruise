@@ -1,0 +1,6 @@
+/* operations-queues.css aggregate.
+   This file intentionally contains only imports so the component layer is split by responsibility while legacy static contracts can still reference this layer. */
+
+@import './operations-queues-tasks.css';
+@import './operations-queues-dependencies.css';
+@import './operations-queues-handoffs.css';

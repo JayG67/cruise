@@ -1,0 +1,16 @@
+/*
+  Shared workflow aggregate.
+  This file intentionally contains imports only so workflow styles stay split by responsibility
+  while static contracts can continue to reference the workflow layer.
+*/
+
+@import './workflow-touch-targets.css';
+@import './workflow-fleet-selection.css';
+@import './workflow-fleet-crud.css';
+@import './workflow-itinerary.css';
+@import './workflow-inline-edit.css';
+@import './workflow-actions.css';
+@import './workflow-mobile-hardening.css';
+@import './workflow-release-readiness.css';
+@import './workflow-route-evidence.css';
+@import './workflow-role-booking-details.css';

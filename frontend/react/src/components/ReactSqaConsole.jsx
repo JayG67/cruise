@@ -313,10 +313,10 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
   }
 
   return (
-    <section className="react-sqa-console" id="react-sqa-console" aria-labelledby="react-sqa-heading" data-testid="react-sqa-console">
+    <section className="react-sqa-console ce-command-panel ce-surface-light" id="react-sqa-console" aria-labelledby="react-sqa-heading" data-testid="react-sqa-console">
       <div className="react-sqa-header">
         <div>
-          <p className="eyebrow">Quality Validation Console</p>
+          <p className="eyebrow ce-kicker">Quality Validation Console</p>
           <h2 id="react-sqa-heading">Quality Console for API-driven UI behavior</h2>
           <p>
             A quality operations console for exercising API health, data contracts,
@@ -324,7 +324,7 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
             diagnostics, and baseline data reset behavior.
           </p>
         </div>
-        <div className="react-sqa-status-pill" data-testid="react-sqa-status">
+        <div className="react-sqa-status-pill ce-command-card ce-surface-light" data-testid="react-sqa-status">
           <span aria-hidden="true" className={status === 'Ready for validation' ? 'ready-dot' : 'attention-dot'}></span>
           <div>
             <strong>Console Status</strong>
@@ -334,9 +334,9 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
       </div>
 
 
-      <div className="go-live-readiness-panel" data-testid="react-go-live-readiness-panel">
+      <div className="go-live-readiness-panel ce-surface-light" data-testid="react-go-live-readiness-panel">
         <div>
-          <p className="eyebrow">Go-Live Readiness</p>
+          <p className="eyebrow ce-kicker">Go-Live Readiness</p>
           <h3>Manual approval checklist</h3>
           <p>
             Use this checklist as the final human review path before presenting or publishing the application.
@@ -358,7 +358,7 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
 
       <div className="react-sqa-action-grid" aria-label="Quality validation actions">
         {validationActions.map(action => (
-          <article className="react-sqa-action-card" key={action.key}>
+          <article className="react-sqa-action-card ce-command-card ce-surface-light" key={action.key}>
             <h3>{action.title}</h3>
             <p>{action.description}</p>
             <button type="button" onClick={() => runValidation(action)} disabled={isRunning} data-testid={action.testId}>
@@ -366,10 +366,10 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
             </button>
           </article>
         ))}
-        <article className="react-sqa-action-card danger-card">
+        <article className="react-sqa-action-card danger-card ce-surface-light">
           <h3>Baseline Data Recovery</h3>
           <p>Reset baseline data after administrative workflow review.</p>
-          <button type="button" className="danger-action-button" onClick={requestResetDemoData} disabled={isRunning} data-testid="react-sqa-reset-demo-data-button">
+          <button type="button" className="danger-action-button ce-button-danger" onClick={requestResetDemoData} disabled={isRunning} data-testid="react-sqa-reset-demo-data-button">
             Reset Baseline Data
           </button>
           {resetConfirmationVisible && (
@@ -389,13 +389,13 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
 
       <div className="react-sqa-output-header">
         <div>
-          <p className="eyebrow">Validation Output</p>
+          <p className="eyebrow ce-kicker">Validation Output</p>
           <h3>Latest manual validation result</h3>
           <p>This environment allows controlled CRUD changes. Use Reset Baseline Data to restore the original baseline dataset.</p>
         </div>
-        <div className="react-sqa-output-actions">
+        <div className="react-sqa-output-actions ce-action-row">
           <span>{lastRun}</span>
-          <button type="button" className="secondary-button" onClick={() => setOutput('Test output will appear here...')}>
+          <button type="button" className="secondary-button ce-button-secondary" onClick={() => setOutput('Test output will appear here...')}>
             Clear Output
           </button>
         </div>

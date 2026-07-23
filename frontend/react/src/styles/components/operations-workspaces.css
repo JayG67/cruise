@@ -1,0 +1,7 @@
+/* Aggregate compatibility layer for the refactored component styles. */
+
+@import './operations-workspaces-surface.css';
+@import './operations-command-detail.css';
+@import './operations-directory.css';
+@import './operations-workspace-shell.css';
+@import './operations-role-brief.css';

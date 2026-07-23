@@ -60,22 +60,22 @@ export default function ReactPortfolioPolishCenter({ selectedDemoUser }) {
   }, [selectedDemoUser?.id])
 
   return (
-    <section className="react-app-section portfolio-polish-center" id="react-portfolio-polish" aria-labelledby="react-portfolio-polish-heading" data-testid="react-portfolio-polish-center">
-      <div className="section-heading-row portfolio-polish-heading">
+    <section className="react-app-section portfolio-polish-center ce-command-panel" id="react-portfolio-polish" aria-labelledby="react-portfolio-polish-heading" data-testid="react-portfolio-polish-center">
+      <div className="section-heading-row ce-section-heading portfolio-polish-heading">
         <div>
-          <p className="eyebrow">Portfolio packaging</p>
+          <p className="eyebrow ce-kicker">Portfolio packaging</p>
           <h2 id="react-portfolio-polish-heading">Portfolio Polish Center</h2>
           <p>
             Package Cruise Explorer for recruiters by turning the operational platform into a concise
             story with screenshots, architecture talking points, resume bullets, and launch-ready evidence.
           </p>
         </div>
-        <button type="button" className="secondary-action-button" onClick={loadShowcase} disabled={isLoading} data-testid="react-portfolio-polish-refresh-button">
+        <button type="button" className="secondary-action-button ce-button-secondary" onClick={loadShowcase} disabled={isLoading} data-testid="react-portfolio-polish-refresh-button">
           {isLoading ? 'Refreshing...' : 'Refresh portfolio score'}
         </button>
       </div>
 
-      {error ? <p className="draft-message error" role="alert" data-testid="react-portfolio-polish-error">{error}</p> : null}
+      {error ? <p className="draft-message error ce-feedback-message ce-editor-card" role="alert" data-testid="react-portfolio-polish-error">{error}</p> : null}
 
       <div className="portfolio-polish-scoreboard" data-testid="react-portfolio-polish-scoreboard">
         <article className={`portfolio-polish-score-card ${showcase?.status || 'loading'}`}>
@@ -84,7 +84,7 @@ export default function ReactPortfolioPolishCenter({ selectedDemoUser }) {
           <p>{showcase?.summary || 'Checking the portfolio launch story and recruiter package.'}</p>
         </article>
         {evidenceSummary.map(item => (
-          <article key={item.label} className="portfolio-polish-score-card">
+          <article key={item.label} className="portfolio-polish-score-card ce-command-card">
             <span>{item.label}</span>
             <strong>{item.value}</strong>
             <p>{item.value ? 'Represented in the current package.' : 'No matching items detected yet.'}</p>
@@ -114,9 +114,9 @@ export default function ReactPortfolioPolishCenter({ selectedDemoUser }) {
         ))}
       </div>
 
-      <div className="portfolio-polish-priority-panel" data-testid="react-portfolio-polish-priorities">
+      <div className="portfolio-polish-priority-panel ce-command-card" data-testid="react-portfolio-polish-priorities">
         <div>
-          <p className="eyebrow">Next actions</p>
+          <p className="eyebrow ce-kicker">Next actions</p>
           <h3>Highest-impact polish priorities</h3>
         </div>
         {priorities.length ? (
@@ -132,13 +132,13 @@ export default function ReactPortfolioPolishCenter({ selectedDemoUser }) {
             ))}
           </ol>
         ) : (
-          <p className="empty-state compact">Portfolio priorities will appear after the first polish check completes.</p>
+          <p className="empty-state compact ce-empty-state ce-editor-card">Portfolio priorities will appear after the first polish check completes.</p>
         )}
       </div>
 
       <div className="portfolio-polish-showcase-grid">
-        <section className="portfolio-polish-list-panel" aria-labelledby="portfolio-screenshot-plan-heading" data-testid="react-portfolio-screenshot-plan">
-          <p className="eyebrow">Screenshot plan</p>
+        <section className="portfolio-polish-list-panel ce-command-card" aria-labelledby="portfolio-screenshot-plan-heading" data-testid="react-portfolio-screenshot-plan">
+          <p className="eyebrow ce-kicker">Screenshot plan</p>
           <h3 id="portfolio-screenshot-plan-heading">Recruiter screenshot sequence</h3>
           <ol>
             {(showcase?.screenshotPlan || []).map(item => (
@@ -151,8 +151,8 @@ export default function ReactPortfolioPolishCenter({ selectedDemoUser }) {
           </ol>
         </section>
 
-        <section className="portfolio-polish-list-panel" aria-labelledby="portfolio-resume-bullets-heading" data-testid="react-portfolio-resume-bullets">
-          <p className="eyebrow">Resume bullets</p>
+        <section className="portfolio-polish-list-panel ce-command-card" aria-labelledby="portfolio-resume-bullets-heading" data-testid="react-portfolio-resume-bullets">
+          <p className="eyebrow ce-kicker">Resume bullets</p>
           <h3 id="portfolio-resume-bullets-heading">Draft resume-ready impact statements</h3>
           <ul>
             {(showcase?.resumeBullets || []).map(item => (
@@ -166,8 +166,8 @@ export default function ReactPortfolioPolishCenter({ selectedDemoUser }) {
       </div>
 
       <div className="portfolio-polish-showcase-grid">
-        <section className="portfolio-polish-list-panel" aria-labelledby="portfolio-interview-points-heading" data-testid="react-portfolio-interview-talking-points">
-          <p className="eyebrow">Interview prep</p>
+        <section className="portfolio-polish-list-panel ce-command-card" aria-labelledby="portfolio-interview-points-heading" data-testid="react-portfolio-interview-talking-points">
+          <p className="eyebrow ce-kicker">Interview prep</p>
           <h3 id="portfolio-interview-points-heading">Talking points</h3>
           <ul>
             {(showcase?.interviewTalkingPoints || []).map(item => (
@@ -179,8 +179,8 @@ export default function ReactPortfolioPolishCenter({ selectedDemoUser }) {
           </ul>
         </section>
 
-        <section className="portfolio-polish-list-panel" aria-labelledby="portfolio-launch-checklist-heading" data-testid="react-portfolio-launch-checklist">
-          <p className="eyebrow">Launch checklist</p>
+        <section className="portfolio-polish-list-panel ce-command-card" aria-labelledby="portfolio-launch-checklist-heading" data-testid="react-portfolio-launch-checklist">
+          <p className="eyebrow ce-kicker">Launch checklist</p>
           <h3 id="portfolio-launch-checklist-heading">Portfolio launch sequence</h3>
           <ol>
             {(showcase?.launchChecklist || []).map(item => (

@@ -1,0 +1,137 @@
+/*
+  CSS Foundation Refactor - Phase 2.
+
+  This slice moves the live React product surface toward shared primitives.
+  The goal is a consistent command-center application shell, reusable dark
+  operational panels, reusable dark cards, and isolated light editor/data
+  surfaces. Existing legacy selectors are intentionally mapped into these
+  primitives while JSX migrations happen in later slices.
+*/
+
+body {
+  background: var(--ce-page-bg);
+}
+
+.react-production-shell {
+  background: var(--ce-page-bg);
+  color: var(--ce-command-text);
+}
+
+.react-production-shell :is(h1, h2, h3, h4, h5, h6) {
+  color: inherit;
+}
+
+/* Shared command shell surfaces. */
+.react-production-shell :is(
+  .production-hero,
+  .react-workspace-panel,
+  .react-app-section,
+  .route-panel,
+  .react-quality-section,
+  .employer-demo-command-center,
+  .self-guided-overview,
+  .role-selector-section,
+  .react-role-dashboard,
+  .react-admin-workspace,
+  .react-create-workflow-section,
+  .react-sqa-console,
+  .fleet-directory-section,
+  .react-release-readiness-section,
+  .production-hardening-center,
+  .data-architecture-readiness-center,
+  .deployment-readiness-center,
+  .public-launch-control-center,
+  .portfolio-polish-center,
+  .cruise-line-presentation-suite,
+  .presentation-control-panel,
+  .cruise-line-operations-control-panel,
+  .passenger-voyage-planner,
+  .passenger-self-service,
+  .turnaround-admin-setup-panel,
+  .turnaround-team-workspace
+) {
+  background: var(--ce-command-bg-soft) !important;
+  border: 1px solid var(--ce-command-border) !important;
+  border-radius: var(--ce-radius-panel) !important;
+  box-shadow: var(--ce-shadow-panel) !important;
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+}
+
+.react-production-shell :is(
+  .react-workspace-panel,
+  .react-app-section,
+  .route-panel,
+  .react-quality-section,
+  .employer-demo-command-center,
+  .self-guided-overview,
+  .role-selector-section,
+  .react-role-dashboard,
+  .react-admin-workspace,
+  .react-create-workflow-section,
+  .react-sqa-console,
+  .fleet-directory-section,
+  .production-hardening-center,
+  .data-architecture-readiness-center,
+  .deployment-readiness-center,
+  .public-launch-control-center,
+  .portfolio-polish-center,
+  .cruise-line-presentation-suite,
+  .presentation-control-panel,
+  .cruise-line-operations-control-panel,
+  .passenger-voyage-planner,
+  .passenger-self-service,
+  .turnaround-admin-setup-panel,
+  .turnaround-team-workspace
+) {
+  padding: clamp(1rem, 3vw, 1.5rem) !important;
+}
+
+.react-production-shell :is(
+  .production-hero,
+  .react-workspace-panel,
+  .react-app-section,
+  .route-panel,
+  .react-quality-section,
+  .employer-demo-command-center,
+  .self-guided-overview,
+  .role-selector-section,
+  .react-role-dashboard,
+  .react-admin-workspace,
+  .react-create-workflow-section,
+  .react-sqa-console,
+  .fleet-directory-section,
+  .production-hardening-center,
+  .data-architecture-readiness-center,
+  .deployment-readiness-center,
+  .public-launch-control-center,
+  .portfolio-polish-center,
+  .cruise-line-presentation-suite,
+  .presentation-control-panel,
+  .cruise-line-operations-control-panel,
+  .passenger-voyage-planner,
+  .passenger-self-service,
+  .turnaround-admin-setup-panel,
+  .turnaround-team-workspace
+) :is(h1, h2, h3, h4, h5, h6, p, li, strong, span, dt, dd, caption) {
+  color: inherit;
+  -webkit-text-fill-color: inherit;
+}
+
+.react-production-shell :is(
+  .eyebrow,
+  .section-summary,
+  .muted,
+  .muted-status,
+  .muted-copy,
+  .result-summary,
+  .hero-copy,
+  .react-admin-heading p:not(.eyebrow),
+  .react-create-workflow-section > p:not(.eyebrow),
+  .react-role-dashboard > p:not(.eyebrow),
+  .react-sqa-header p:not(.eyebrow),
+  .react-sqa-output-header p:not(.eyebrow)
+) {
+  color: var(--ce-command-text-muted) !important;
+  -webkit-text-fill-color: var(--ce-command-text-muted) !important;
+}

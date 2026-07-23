@@ -9,7 +9,7 @@ export default function DraftFeedback({ feedback, testId }) {
   const role = tone === 'error' ? 'alert' : 'status'
 
   return (
-    <p className={`draft-message ${tone}`} role={role} data-testid={testId}>
+    <p className={`draft-message ce-feedback-message ce-editor-card ${tone}`} role={role} data-testid={testId}>
       {text}
     </p>
   )

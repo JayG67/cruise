@@ -1,0 +1,155 @@
+/*
+  Cruise Explorer enterprise design tokens.
+
+  New CSS should reference semantic tokens from this file. The existing --ce-*
+  command-center tokens are mapped here so older compatibility selectors and new
+  primitives use the same visual language during the refactor.
+*/
+
+:root {
+  --page-background: #061e2d;
+  --line-body: 1.5;
+  --surface: rgba(6, 30, 45, 0.88);
+  --surface-raised: rgba(8, 38, 57, 0.92);
+  --surface-overlay: rgba(5, 23, 36, 0.96);
+  --surface-editor: #f8fbff;
+  --surface-editor-raised: #ffffff;
+
+  --text-primary: #ffffff;
+  --text-secondary: #9ee7ff;
+  --text-editor: #0f172a;
+  --text-editor-secondary: #334155;
+
+  --border: rgba(125, 211, 252, 0.35);
+  --border-strong: rgba(125, 211, 252, 0.58);
+  --border-editor: #dbe9f5;
+  --border-editor-strong: #b6d2e4;
+  --placeholder-editor: #475569;
+  --selection-editor-bg: #e0f2fe;
+  --selection-editor-text: #082334;
+
+  --accent: #7dd3fc;
+  --accent-strong: #0ea5e9;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #38bdf8;
+
+  --space-xs: 0.35rem;
+  --space-sm: 0.65rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+
+  --font-xs: 0.75rem;
+  --font-sm: 0.875rem;
+  --font-md: 1rem;
+  --font-lg: 1.125rem;
+  --font-xl: 1.35rem;
+  --font-2xl: clamp(1.75rem, 4vw, 2.75rem);
+
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.35rem;
+  --radius-pill: 999px;
+
+  --shadow-panel: 0 24px 60px rgba(2, 18, 34, 0.28);
+  --shadow-card: 0 18px 44px rgba(7, 24, 39, 0.16);
+  --focus-ring: 0 0 0 3px rgba(125, 211, 252, 0.36);
+
+  --shadow-card-strong: 0 24px 54px rgba(2, 18, 34, 0.3);
+
+  --focus-color: #facc15;
+  --control-height: 2.75rem;
+  --control-height-compact: 2.45rem;
+  --control-readable-min: 12rem;
+  --control-readable-wide: 16rem;
+  --control-padding-x: 0.85rem;
+  --control-padding-y: 0.7rem;
+  --control-radius: var(--radius-sm);
+  --transition-fast: 160ms ease;
+  --transition-medium: 220ms ease;
+  --disabled-bg: rgba(226, 232, 240, 0.78);
+  --disabled-border: rgba(148, 163, 184, 0.7);
+  --disabled-text: #475569;
+
+  --ce-page-bg: var(--page-background);
+  --ce-command-bg: linear-gradient(135deg, #082334 0%, #0f5360 52%, #15713f 100%);
+  --ce-command-bg-soft: linear-gradient(135deg, rgba(8, 35, 52, 0.98) 0%, rgba(15, 83, 96, 0.96) 52%, rgba(21, 113, 63, 0.94) 100%);
+  --ce-command-surface: var(--surface);
+  --ce-command-surface-strong: var(--surface-raised);
+  --ce-command-card-bg: rgba(6, 30, 45, 0.9);
+  --ce-command-card-bg-raised: rgba(9, 43, 61, 0.92);
+  --ce-command-divider: rgba(158, 231, 255, 0.2);
+  --ce-command-border: var(--border);
+  --ce-command-border-strong: var(--border-strong);
+  --ce-command-text: var(--text-primary);
+  --ce-command-text-muted: var(--text-secondary);
+  --ce-command-shadow: var(--shadow-panel);
+  --ce-shadow-card: var(--shadow-card);
+  --ce-shadow-card-strong: var(--shadow-card-strong);
+  --ce-shadow-panel: var(--shadow-panel);
+
+  --ce-action-primary-bg: linear-gradient(135deg, #0e7490, #14b8a6);
+  --ce-action-primary-text: #ffffff;
+  --ce-action-secondary-bg: #e0f2fe;
+  --ce-action-secondary-border: #7dd3fc;
+  --ce-action-secondary-text: #082334;
+  --ce-action-danger-bg: #fff1f2;
+  --ce-action-danger-border: #fda4af;
+  --ce-action-danger-text: #7f1d1d;
+
+  --ce-data-surface: var(--surface-editor);
+  --ce-data-surface-strong: var(--surface-editor-raised);
+  --ce-data-border: var(--border-editor);
+  --ce-data-text: var(--text-editor);
+  --ce-data-text-muted: var(--text-editor-secondary);
+
+  --ce-table-row-bg: #ffffff;
+  --ce-table-row-alt-bg: #f8fbff;
+  --ce-table-border: #dbe9f5;
+  --ce-table-text: #0f172a;
+  --ce-table-text-muted: #334155;
+
+  --ce-editor-surface: var(--surface-editor);
+  --ce-editor-surface-strong: var(--surface-editor-raised);
+  --ce-editor-border: var(--accent);
+  --ce-editor-border-muted: var(--border-editor);
+  --ce-editor-border-strong: var(--border-editor-strong);
+  --ce-editor-text: var(--text-editor);
+  --ce-editor-text-muted: var(--text-editor-secondary);
+
+  --ce-radius-panel: var(--radius-lg);
+  --ce-radius-card: var(--radius-md);
+  --ce-radius-card-sm: var(--radius-sm);
+  --ce-radius-pill: var(--radius-pill);
+  --ce-space-1: var(--space-xs);
+  --ce-space-2: var(--space-sm);
+  --ce-space-3: 0.85rem;
+  --ce-space-4: var(--space-md);
+  --ce-space-5: 1.25rem;
+  --ce-space-6: var(--space-lg);
+  --ce-focus-ring: var(--focus-color);
+  --ce-control-height: var(--control-height);
+  --ce-control-height-compact: var(--control-height-compact);
+  --ce-control-readable-min: var(--control-readable-min);
+  --ce-control-readable-wide: var(--control-readable-wide);
+  --ce-control-padding-x: var(--control-padding-x);
+  --ce-control-padding-y: var(--control-padding-y);
+  --ce-control-radius: var(--control-radius);
+  --ce-transition-fast: var(--transition-fast);
+  --ce-transition-medium: var(--transition-medium);
+  --ce-disabled-bg: var(--disabled-bg);
+  --ce-disabled-border: var(--disabled-border);
+  --ce-disabled-text: var(--disabled-text);
+
+  --ce-nav-link-bg: rgba(158, 231, 255, 0.1);
+  --ce-nav-link-bg-hover: rgba(158, 231, 255, 0.18);
+  --ce-feedback-error-bg: #fff1f2;
+  --ce-feedback-error-border: #fda4af;
+  --ce-feedback-error-text: #7f1d1d;
+  --ce-feedback-status-bg: #f8fbff;
+  --ce-feedback-status-border: #bae6fd;
+  --ce-feedback-status-text: #0f172a;
+}

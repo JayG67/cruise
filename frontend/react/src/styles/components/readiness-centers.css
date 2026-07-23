@@ -1,0 +1,13 @@
+/*
+  Readiness centers aggregate.
+  Diagnostic and readiness surfaces are split by domain so the application can
+  keep a stable import contract without growing another monolithic stylesheet.
+*/
+
+@import './readiness-data-architecture.css';
+@import './readiness-production-hardening.css';
+@import './readiness-deployment.css';
+@import './readiness-portfolio-polish.css';
+@import './readiness-operations-control-board.css';
+@import './readiness-data-migration.css';
+@import './readiness-public-launch.css';

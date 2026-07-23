@@ -1,0 +1,62 @@
+/* Shared status indicators and semantic status variants. */
+
+.ce-status-pill,
+.react-production-shell :where(.status-pill) {
+  align-items: center;
+  background: rgba(158, 231, 255, 0.14);
+  border: 1px solid var(--ce-command-border);
+  border-radius: var(--radius-pill);
+  color: var(--ce-command-text);
+  display: inline-flex;
+  font-size: var(--font-xs);
+  font-weight: 900;
+  gap: var(--space-xs);
+  justify-content: center;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  min-height: 2.25rem;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  padding: 0.45rem 0.75rem;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.ce-status-pill--success,
+.ce-badge--success {
+  background: rgba(34, 197, 94, 0.16);
+  border-color: rgba(34, 197, 94, 0.55);
+  color: #bbf7d0;
+}
+
+.ce-status-pill--warning,
+.ce-badge--warning {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.62);
+  color: #fde68a;
+}
+
+.ce-status-pill--danger,
+.ce-badge--danger {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.62);
+  color: #fecaca;
+}
+
+.ce-status-pill--info,
+.ce-badge--info {
+  background: rgba(56, 189, 248, 0.16);
+  border-color: rgba(56, 189, 248, 0.62);
+  color: var(--text-secondary);
+}
+
+.react-production-shell .ce-status-pill {
+  background: rgba(158, 231, 255, 0.14) !important;
+  border: 1px solid var(--ce-command-border) !important;
+  border-radius: var(--ce-radius-pill) !important;
+  color: var(--ce-command-text) !important;
+  min-height: 2.5rem;
+  padding: 0.55rem 0.85rem;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+  white-space: nowrap;
+}

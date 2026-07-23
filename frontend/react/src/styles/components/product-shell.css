@@ -1,0 +1,13 @@
+/*
+  Product shell aggregate.
+
+  This file intentionally contains only imports so the production route CSS is
+  split by responsibility while legacy static contracts can still reference the
+  product-shell layer.
+*/
+
+@import './product-surface.css';
+@import './product-layout.css';
+@import './product-workflow.css';
+@import './product-overview.css';
+@import './product-personnel.css';

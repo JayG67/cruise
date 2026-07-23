@@ -1,0 +1,194 @@
+/* Lifecycle action controls and phase details. */
+
+.operations-lifecycle {
+  border: 1px solid rgba(79, 70, 229, 0.22);
+  border-radius: 24px;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(14, 165, 233, 0.08));
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+}
+
+.operations-lifecycle-header,
+.operations-lifecycle-details {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+}
+
+.operations-lifecycle-score {
+  min-width: 8rem;
+  border-radius: 20px;
+  padding: 1rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(79, 70, 229, 0.18);
+}
+
+.operations-lifecycle-score span {
+  display: block;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #312e81;
+}
+
+.operations-lifecycle-score small,
+.operations-lifecycle-phase span,
+.operations-lifecycle-details span {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #475569;
+}
+
+.operations-lifecycle-story,
+.operations-lifecycle-phase-grid {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.operations-lifecycle-story {
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+}
+
+.operations-lifecycle-story span,
+.operations-lifecycle-phase,
+.operations-lifecycle-details > div,
+.operations-lifecycle-next-action {
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(255, 255, 255, 0.82);
+  padding: 0.85rem;
+}
+
+.operations-lifecycle-phase-grid {
+  grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr));
+}
+
+.operations-lifecycle-phase strong {
+  display: block;
+  margin: 0.35rem 0;
+  font-size: 1.35rem;
+  color: #1e293b;
+}
+
+.operations-lifecycle-phase p,
+.operations-lifecycle-next-action p {
+  margin: 0;
+}
+
+.operations-lifecycle-phase em {
+  display: block;
+  margin-top: 0.5rem;
+  color: #b45309;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.operations-lifecycle-phase.complete {
+  border-color: rgba(22, 163, 74, 0.32);
+}
+
+.operations-lifecycle-phase.in_progress,
+.operations-lifecycle-phase.at_risk {
+  border-color: rgba(245, 158, 11, 0.34);
+}
+
+.operations-lifecycle-details {
+  margin-top: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.operations-lifecycle-details ul {
+  margin: 0.65rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.operations-lifecycle-details li + li {
+  margin-top: 0.4rem;
+}
+
+.operations-lifecycle-next-action {
+  margin-top: 1rem;
+}
+
+@media (max-width: 760px) {
+  .operations-lifecycle-header {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-lifecycle-score {
+    min-width: 0;
+  }
+}
+
+/* CSS Foundation Refactor Slice 30: lifecycle action controls retired from app.css. */
+.operations-lifecycle-phase {
+  appearance: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  width: 100%;
+}
+
+.operations-lifecycle-phase:hover,
+.operations-lifecycle-phase:focus-visible,
+.operations-lifecycle-detail-action:hover,
+.operations-lifecycle-detail-action:focus-visible,
+.operations-lifecycle-next-action-button:hover,
+.operations-lifecycle-next-action-button:focus-visible {
+  border-color: rgba(14, 165, 233, 0.7);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18);
+  outline: none;
+}
+
+.operations-lifecycle-detail-action,
+.operations-lifecycle-next-action-button {
+  appearance: none;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  border-radius: 14px;
+  color: inherit;
+  cursor: pointer;
+  display: block;
+  font: inherit;
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+  width: 100%;
+}
+
+.operations-lifecycle-detail-action span {
+  margin-right: 0.25rem;
+}
+
+.operations-lifecycle-next-action-button {
+  margin-top: 0.55rem;
+}
+
+
+/* CSS Foundation Refactor Slice 31: operations shift briefing, go-live, team readiness, and conflict CSS moved to layered component CSS. */
+
+/* Lifecycle phase cards always begin at the top of their grid cell.
+   Buttons can inherit centering behavior from shared action primitives, so the
+   phase card owns an explicit top-aligned vertical layout. */
+.react-role-dashboard .operations-lifecycle-phase-grid {
+  align-items: stretch;
+}
+
+.react-role-dashboard .operations-lifecycle-phase {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  align-self: stretch;
+  min-height: 100%;
+  text-align: left !important;
+}
+
+.react-role-dashboard .operations-lifecycle-phase > * {
+  flex: 0 0 auto;
+  width: 100%;
+}

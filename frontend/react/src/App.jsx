@@ -46,8 +46,8 @@ function useDeferredApplicationData() {
 
 function LazySectionFallback({ label }) {
   return (
-    <section className="react-app-section lazy-section-fallback" aria-label={label}>
-      <p className="eyebrow">Loading</p>
+    <section className="react-app-section lazy-section-fallback ce-command-panel" aria-label={label}>
+      <p className="eyebrow ce-kicker">Loading</p>
       <p>{label} is loading.</p>
     </section>
   )
@@ -184,8 +184,8 @@ export default function App() {
 
   return (
     <main className="app-shell production-shell react-production-shell" data-testid="react-production-shell">
-      <section className="production-hero" id="react-dashboard" aria-labelledby="react-app-title" data-testid="react-production-hero">
-        <nav className="react-top-nav" aria-label="Cruise application primary navigation" data-testid="react-top-navigation">
+      <section className="production-hero ce-command-panel" id="react-dashboard" aria-labelledby="react-app-title" data-testid="react-production-hero">
+        <nav className="react-top-nav ce-command-card" aria-label="Cruise application primary navigation" data-testid="react-top-navigation">
           <a className="react-brand" href="/" aria-label="Cruise Fleet Operations Platform home">
             Cruise Fleet Operations Platform
           </a>
@@ -202,21 +202,21 @@ export default function App() {
 
         <div className="production-hero-content">
           <div className="hero-copy-stack">
-            <p className="eyebrow">Cruise Operations Dashboard</p>
+            <p className="eyebrow ce-kicker">Cruise Operations Dashboard</p>
             <h1 id="react-app-title">Manage cruise line and fleet operations</h1>
             <p className="hero-copy">
               A working cruise operations platform for fleet administration, sailing inventory, guest bookings,
               passenger self-service, and turnaround execution from the same live application dataset.
             </p>
 
-            <div className="hero-cta-row" aria-label="Cruise application shortcuts">
-              <button type="button" className="button-link primary" onClick={() => openWorkspace('react-employer-demo', 'Employer Demo Command Center')} data-testid="react-hero-demo-button">Explore Overview</button>
-              <button type="button" className="button-link secondary" onClick={() => openWorkspace('react-cruise-line-presentation', 'Cruise Line Operations', 'admin')} data-testid="react-hero-presentation-button">Open Line Operations</button>
-              <button type="button" className="button-link secondary" onClick={() => openWorkspace('react-hierarchy', 'Admin Operations', 'admin')} data-testid="react-hero-operations-button">Review Operations</button>
-              <button type="button" className="button-link secondary" onClick={() => openWorkspace('react-quality', 'Quality Console', 'admin')} data-testid="react-hero-quality-button">Open Quality Console</button>
+            <div className="hero-cta-row ce-action-row" aria-label="Cruise application shortcuts">
+              <button type="button" className="button-link primary ce-button-primary" onClick={() => openWorkspace('react-employer-demo', 'Employer Demo Command Center')} data-testid="react-hero-demo-button">Explore Overview</button>
+              <button type="button" className="button-link secondary ce-button-secondary" onClick={() => openWorkspace('react-cruise-line-presentation', 'Cruise Line Operations', 'admin')} data-testid="react-hero-presentation-button">Open Line Operations</button>
+              <button type="button" className="button-link secondary ce-button-secondary" onClick={() => openWorkspace('react-hierarchy', 'Admin Operations', 'admin')} data-testid="react-hero-operations-button">Review Operations</button>
+              <button type="button" className="button-link secondary ce-button-secondary" onClick={() => openWorkspace('react-quality', 'Quality Console', 'admin')} data-testid="react-hero-quality-button">Open Quality Console</button>
             </div>
 
-            <div className="hero-status-pills" aria-label="Cruise application capabilities">
+            <div className="hero-status-pills ce-status-row" aria-label="Cruise application capabilities">
               <span>Express Hosted</span>
               <span>API Connected</span>
               <span>Cruise Line Operations</span>
@@ -284,7 +284,7 @@ export default function App() {
         {selectedRoleView === 'admin' ? (
           <>
             <section
-            className="route-panel"
+            className="route-panel ce-command-panel"
             id="react-hierarchy"
             aria-label="Customer-centered operations"
             data-testid="react-active-route-operations"
@@ -322,7 +322,7 @@ export default function App() {
 
             <ReactTurnaroundAdminSetup selectedDemoUser={selectedDemoUser} onSetupChanged={() => Promise.all([reloadDemoUsers(), reloadTurnaroundOperations?.()])} />
 
-            <section id="react-quality" className="react-quality-section" aria-label="Quality validation console">
+            <section id="react-quality" className="react-quality-section ce-command-panel" aria-label="Quality validation console">
               <ReactSqaConsole selectedDemoUser={selectedDemoUser} onRefreshData={() => Promise.all([reload(), reloadFleet()])} />
             </section>
           </>

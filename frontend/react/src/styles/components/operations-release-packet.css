@@ -1,0 +1,121 @@
+/* Operations release packet and blockers. */
+
+.operations-release-packet {
+  background: #fffdf7;
+  border: 1px solid #f0dfb9;
+  border-radius: 1.2rem;
+  box-shadow: 0 14px 30px rgba(92, 62, 14, 0.08);
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+.operations-release-packet.ready {
+  background: #f7fff9;
+  border-color: #bee6cb;
+}
+
+.operations-release-packet-header {
+  align-items: start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.operations-release-packet-header h4,
+.operations-release-packet-header p {
+  margin: 0.15rem 0;
+}
+
+.operations-release-packet-score {
+  background: #ffffff;
+  border: 1px solid #ead6a8;
+  border-radius: 1rem;
+  min-width: 8rem;
+  padding: 0.8rem;
+  text-align: center;
+}
+
+.operations-release-packet-score span {
+  color: #7b4d00;
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.operations-release-packet-score small {
+  color: #6b5a40;
+  display: block;
+  font-weight: 900;
+  margin-top: 0.35rem;
+}
+
+.operations-release-packet-grid {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  margin-top: 1rem;
+}
+
+.operations-release-packet-item {
+  background: #ffffff;
+  border: 1px solid #eadfc6;
+  border-left: 0.35rem solid #c28b1b;
+  border-radius: 0.9rem;
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.8rem;
+}
+
+.operations-release-packet-item.pass {
+  border-left-color: #237a45;
+}
+
+.operations-release-packet-item.watch {
+  border-left-color: #7c6a1d;
+}
+
+.operations-release-packet-item strong {
+  color: #21384d;
+}
+
+.operations-release-packet-item span {
+  color: #647184;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.operations-release-blockers {
+  background: #ffffff;
+  border: 1px solid #f0dfb9;
+  border-radius: 1rem;
+  margin-top: 1rem;
+  padding: 0.9rem;
+}
+
+.operations-release-blockers ul {
+  display: grid;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0.7rem 0 0;
+  padding: 0;
+}
+
+.operations-release-blockers li {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.operations-release-blockers li span {
+  color: #915f00;
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.operations-release-blockers li em,
+.operations-release-blockers li small {
+  color: #4e5c6a;
+  font-style: normal;
+}

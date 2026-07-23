@@ -3,8 +3,8 @@ import { bookingDraftFields } from '../domain/bookingDraftFormFields.js'
 
 export default function BookingDraftForm({ draft, message, onUpdate, onValidate, onSave, isSaving, onCancel }) {
   return (
-    <form className="draft-editor booking-draft-editor" aria-label={`Edit booking draft for ${draft.id}`} data-testid="react-booking-draft-form" onSubmit={event => event.preventDefault()}>
-      <div className="draft-grid">
+    <form className="draft-editor booking-draft-editor ce-editor-card" aria-label={`Edit booking draft for ${draft.id}`} data-testid="react-booking-draft-form" onSubmit={event => event.preventDefault()}>
+      <div className="draft-grid ce-field-grid">
         {bookingDraftFields.map(field => (
           <label key={field.name}>
             <span>{field.label}</span>
@@ -20,14 +20,14 @@ export default function BookingDraftForm({ draft, message, onUpdate, onValidate,
           </label>
         ))}
       </div>
-      <div className="button-row">
-        <button type="button" className="secondary-button" onClick={onValidate} data-testid="react-validate-booking-draft">
+      <div className="button-row ce-action-row">
+        <button type="button" className="secondary-button ce-button-secondary" onClick={onValidate} data-testid="react-validate-booking-draft">
           Validate booking draft
         </button>
-        <button type="button" className="primary-button" onClick={onSave} disabled={isSaving} data-testid="react-save-booking-draft">
+        <button type="button" className="primary-button ce-button-primary" onClick={onSave} disabled={isSaving} data-testid="react-save-booking-draft">
           {isSaving ? 'Saving booking draft…' : 'Save booking draft'}
         </button>
-        <button type="button" className="secondary-button" onClick={onCancel} data-testid="react-cancel-booking-draft">
+        <button type="button" className="secondary-button ce-button-secondary" onClick={onCancel} data-testid="react-cancel-booking-draft">
           Cancel
         </button>
       </div>

@@ -1,0 +1,12 @@
+/*
+  Admin presentation aggregate.
+  Cruise-line presentation suite repairs are split by responsibility/build motif
+  while preserving the stable admin-presentation import contract.
+*/
+
+@import './admin-presentation-layout.css';
+@import './admin-presentation-header.css';
+@import './admin-presentation-panels.css';
+@import './admin-presentation-controls.css';
+@import './admin-presentation-control-polish.css';
+@import './admin-presentation-hero-controls.css';

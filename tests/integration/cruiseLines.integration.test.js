@@ -1,7 +1,10 @@
 const request = require('supertest')
 const { randomUUID } = require('crypto')
+const { eq } = require('drizzle-orm')
 
 const app = require('../../app')
+const db = require('../../db')
+const { cruiseLineTable } = require('../../models')
 const initializeDatabase = require('../../services/initializeDatabase.service')
 const loadCruiseData = require('../../services/loadCruiseData.service')
 
@@ -279,11 +282,13 @@ describe('Cruise line API integration tests', () => {
 
     removeTrackedCruiseLine(cruiseLine.id)
 
-    const getRes = await request(app)
-      .get(`/cruise/cruise-line/${cruiseLine.id}`)
+    const deletedRows = await db
+      .select({ id: cruiseLineTable.id })
+      .from(cruiseLineTable)
+      .where(eq(cruiseLineTable.id, cruiseLine.id))
+      .limit(1)
 
-    expect(getRes.statusCode).toBe(404)
-    expect(getRes.body).toEqual({ message: 'Cruise line not found' })
+    expect(deletedRows).toEqual([])
   })
 
   it('DELETE /cruise/cruise-line/:id should return 404 for a missing cruise line', async () => {

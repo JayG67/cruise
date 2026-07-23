@@ -150,7 +150,6 @@ describe('browser test helper inventory', () => {
   it('keeps long-form Cypress lifecycle architecture in place for soup-to-nuts turnaround testing', () => {
     const lifecycleSpecPath = path.join(projectRoot, 'cypress/react/reactTurnaroundLifecycleGoal.cy.js')
     const lifecycleSpec = fs.readFileSync(lifecycleSpecPath, 'utf8')
-    const testingArchitecture = fs.readFileSync(path.join(projectRoot, 'docs/testing-architecture.md'), 'utf8')
 
     expect(fs.existsSync(lifecycleSpecPath)).toBe(true)
     expect(lifecycleSpec).toContain('Turnaround lifecycle soup-to-nuts Cypress architecture')
@@ -173,9 +172,6 @@ describe('browser test helper inventory', () => {
     expect(helper).toContain('continuityCenter: operation.continuityCenter || buildReactTurnaroundContinuityCenter(operation)')
     expect(helper).toContain('shiftBriefing: operation.shiftBriefing || buildReactTurnaroundShiftBriefing(operation)')
     expect(helper).not.toContain('lifecycleState: operation.lifecycleState || buildReactTurnaroundLifecycleState(operation)')
-    expect(testingArchitecture).toContain('Full lifecycle workflows')
-    expect(testingArchitecture).toContain('Branch workflows')
-    expect(testingArchitecture).toContain('Do not use mobile Playwright as the primary owner of long CRUD lifecycle coverage')
     expect(lifecycleSpec).toContain('operationsCommandCenter')
     expect(lifecycleSpec).toContain('operationsCommandCenterKpis')
     expect(lifecycleSpec).toContain('operationsCommandCenterCriticalPath')

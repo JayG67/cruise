@@ -1,0 +1,7 @@
+/* Aggregate compatibility layer for the refactored component styles. */
+
+@import './role-dashboard-foundation.css';
+@import './role-dashboard-operations-bridge.css';
+@import './role-dashboard-turnaround.css';
+@import './role-dashboard-workflow-forms.css';
+@import './role-dashboard-layout-polish.css';

@@ -8,13 +8,40 @@ const {
   selectDemoUserByRole
 } = require('../support/reactProductionHelpers')
 
+async function fillCreateField(page, testId, value) {
+  const field = page.getByTestId(testId)
+  await field.scrollIntoViewIfNeeded()
+  await expect(field).toBeVisible({ timeout: 15000 })
+  await expect(field).toBeEditable({ timeout: 15000 })
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await field.fill(value)
+    const currentValue = await field.inputValue().catch(() => '')
+    if (currentValue === value) {
+      break
+    }
+    await field.click()
+    await page.keyboard.press(process.platform === 'darwin' ? 'Meta+A' : 'Control+A')
+    await page.keyboard.type(value)
+    if ((await field.inputValue().catch(() => '')) === value) {
+      break
+    }
+  }
+
+  await expect(field).toHaveValue(value, { timeout: 15000 })
+}
+
 async function completeCreateCruiseLineDetails(page, suffix = 'Responsive') {
-  await page.getByTestId('react-create-cruise-line-name').fill(`${suffix} Cruise`)
-  await page.getByTestId('react-create-cruise-line-country').fill('United States')
-  await page.getByTestId('react-create-cruise-line-website').fill(`https://www.${suffix.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.example`)
-  await page.getByTestId('react-create-cruise-line-brand-family').fill(`${suffix} Brand Group`)
-  await page.getByTestId('react-create-cruise-line-brand-theme').fill('Responsive workflow')
-  await page.getByTestId('react-create-cruise-line-market-positioning').fill('Responsive cruise operations test line')
+  const safeSlug = suffix.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+
+  await fillCreateField(page, 'react-create-cruise-line-name', `${suffix} Cruise`)
+  await fillCreateField(page, 'react-create-cruise-line-country', 'United States')
+  await fillCreateField(page, 'react-create-cruise-line-website', `https://www.${safeSlug}.example`)
+  await fillCreateField(page, 'react-create-cruise-line-brand-family', `${suffix} Brand Group`)
+  await fillCreateField(page, 'react-create-cruise-line-brand-theme', 'Responsive workflow')
+  await fillCreateField(page, 'react-create-cruise-line-market-positioning', 'Responsive cruise operations test line')
+
+  await expect(page.getByTestId('react-add-ship-row')).toBeEnabled({ timeout: 15000 })
 }
 
 test.describe('React default desktop and tablet replacement checks', () => {

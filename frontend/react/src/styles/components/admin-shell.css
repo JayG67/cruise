@@ -1,0 +1,15 @@
+/*
+  Admin shell aggregate.
+  This file intentionally contains imports only so admin shell compatibility,
+  rails, panels, readability, controls, and responsive rules remain separated
+  while the admin workspace import contract stays stable.
+*/
+
+@import './admin-shell-legacy-compatibility.css';
+@import './admin-shell-tokens.css';
+@import './admin-shell-rail.css';
+@import './admin-shell-panels.css';
+@import './admin-shell-readability.css';
+@import './admin-shell-controls.css';
+@import './admin-shell-presentation-suite.css';
+@import './admin-shell-responsive.css';

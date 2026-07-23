@@ -48,26 +48,44 @@ function uniqueBookingId() {
 }
 
 async function createCustomer(overrides = {}) {
-  const id = overrides.id || uniqueCustomerId()
-  const payload = {
-    id,
-    firstName: 'Integration',
-    lastName: 'Customer',
-    email: `${id.toLowerCase()}@example.com`,
-    phone: '555-0199',
-    loyaltyNumber: `LOYALTY-${id}`,
-    ...overrides
+  const hasFixedId = Boolean(overrides.id)
+  const maxAttempts = hasFixedId ? 1 : 5
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const id = hasFixedId ? overrides.id : uniqueCustomerId()
+    const payload = {
+      id,
+      firstName: 'Integration',
+      lastName: 'Customer',
+      email: `${id.toLowerCase()}@example.com`,
+      phone: '555-0199',
+      loyaltyNumber: `LOYALTY-${id}`,
+      ...overrides,
+      id
+    }
+
+    const res = await request(app)
+      .post('/cruise/customers')
+      .send(payload)
+
+    if (res.statusCode === 201) {
+      createdCustomerIds.push(id)
+
+      return payload
+    }
+
+    const isGeneratedCollision =
+      !hasFixedId &&
+      res.statusCode === 400 &&
+      typeof res.body?.message === 'string' &&
+      (res.body.message.includes('same ID') || res.body.message.includes('same email'))
+
+    if (!isGeneratedCollision || attempt === maxAttempts) {
+      expect(res.statusCode).toBe(201)
+    }
   }
 
-  const res = await request(app)
-    .post('/cruise/customers')
-    .send(payload)
-
-  expect(res.statusCode).toBe(201)
-
-  createdCustomerIds.push(id)
-
-  return payload
+  throw new Error('Unable to create a unique integration customer')
 }
 
 function trackBooking(bookingId) {

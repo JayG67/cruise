@@ -1,0 +1,353 @@
+/*
+  Operational contrast component architecture.
+
+  Retires the Phase 18 Build 490-495 operational contrast patch stack from
+  design-system.css into the reusable component layer. These rules protect the
+  command-center dark surfaces while preserving readable light editor controls.
+*/
+
+/*
+  CSS Foundation Refactor - Phase 18.
+
+  The final broad operational contrast kill-switch rules now live in the
+  design-system layer instead of the legacy Build 490-495 app.css patch stack.
+  Dark command/readiness surfaces keep white command text; nested editor forms,
+  fields, and form action buttons keep dark data text on light controls.
+*/
+#react-role-dashboard.react-role-dashboard :is(
+  .operational-command-compatibility-panel,
+  .operational-readiness-list,
+  .operations-dependency-workspace,
+  .operations-handoff-workspace,
+  .operations-staffing-workspace,
+  .operations-escalation-workspace,
+  .operations-readiness-workspace
+) {
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+}
+
+#react-role-dashboard.react-role-dashboard :is(
+  .operational-command-compatibility-panel,
+  .operational-readiness-list,
+  .operations-dependency-workspace,
+  .operations-handoff-workspace,
+  .operations-staffing-workspace,
+  .operations-escalation-workspace,
+  .operations-readiness-workspace
+) :is(
+  h1, h2, h3, h4, h5, h6,
+  p, span, strong, em, small,
+  dl, dt, dd, ul, ol, li,
+  table, thead, tbody, tr, th, td,
+  article, section, div
+):not(input):not(select):not(textarea):not(option):not(form):not([class*="form"]) {
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+#react-role-dashboard.react-role-dashboard :is(
+  .operational-command-compatibility-panel,
+  .operational-readiness-list,
+  .operations-dependency-workspace,
+  .operations-handoff-workspace,
+  .operations-staffing-workspace,
+  .operations-escalation-workspace,
+  .operations-readiness-workspace
+) :is(
+  .eyebrow,
+  dt,
+  label > span,
+  [class*="heading"],
+  [class*="heading"] *,
+  [class*="label"],
+  [class*="status-pill"],
+  [class*="severity-pill"],
+  [class*="metric"] dt
+):not(input):not(select):not(textarea):not(option) {
+  color: var(--ce-command-text-muted) !important;
+  -webkit-text-fill-color: var(--ce-command-text-muted) !important;
+}
+
+#react-role-dashboard.react-role-dashboard :is(
+  .operational-command-compatibility-panel,
+  .operational-readiness-list
+) :is(
+  .operational-readiness-card,
+  .role-booking-fields,
+  .role-booking-fields > div,
+  .operational-progress-summary,
+  .operational-escalation-summary,
+  .operational-dependency-summary,
+  .operational-handoff-summary,
+  .operational-staffing-summary,
+  .operational-signoff-summary,
+  .operational-dependency-list,
+  .operational-dependency-list li,
+  .operational-handoff-list,
+  .operational-handoff-list li,
+  .operational-staffing-list,
+  .operational-staffing-list li,
+  .operational-escalation-list,
+  .operational-escalation-list li,
+  .operational-checklist,
+  .operational-checklist li,
+  .operational-task-updates,
+  .operational-task-updates li,
+  .operational-task-detail-list,
+  .operational-task-detail-list > div
+):not(form):not([class*="form"]):not(input):not(select):not(textarea):not(option) {
+  background: var(--ce-command-card-bg) !important;
+  border: 1px solid var(--ce-command-border) !important;
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+}
+
+#react-role-dashboard.react-role-dashboard :is(
+  .operational-command-compatibility-panel,
+  .operational-readiness-list
+) :is(
+  .operational-readiness-card,
+  .role-booking-fields,
+  .role-booking-fields > div,
+  .operational-progress-summary,
+  .operational-escalation-summary,
+  .operational-dependency-summary,
+  .operational-handoff-summary,
+  .operational-staffing-summary,
+  .operational-signoff-summary,
+  .operational-dependency-list,
+  .operational-dependency-list li,
+  .operational-handoff-list,
+  .operational-handoff-list li,
+  .operational-staffing-list,
+  .operational-staffing-list li,
+  .operational-escalation-list,
+  .operational-escalation-list li,
+  .operational-checklist,
+  .operational-checklist li,
+  .operational-task-updates,
+  .operational-task-updates li,
+  .operational-task-detail-list,
+  .operational-task-detail-list > div
+):not(form):not([class*="form"]):not(input):not(select):not(textarea):not(option) *:not(input):not(select):not(textarea):not(option):not(form):not([class*="form"]) {
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+#react-role-dashboard.react-role-dashboard :is(
+  .operational-command-compatibility-panel,
+  .operational-readiness-list
+) :is(
+  .operational-command-form,
+  .operational-task-create-form,
+  .operational-task-update-form,
+  .operational-task-detail-form,
+  .operational-handoff-form,
+  .operational-staffing-form,
+  .operational-escalation-create-form,
+  .operational-escalation-update-form,
+  .operational-signoff-form,
+  form,
+  [class*="form"],
+  [class*="editor"]
+),
+#react-role-dashboard.react-role-dashboard :is(
+  .operational-dependency-list,
+  .operational-handoff-list,
+  .operational-staffing-list,
+  .operational-escalation-list,
+  .operational-signoff-summary,
+  .operational-checklist,
+  .operational-task-updates,
+  .operational-task-detail-list
+) li :is(form, [class*="form"], [class*="editor"]) {
+  background: var(--ce-data-surface) !important;
+  border: 1px solid var(--ce-data-border) !important;
+  border-radius: var(--ce-radius-card) !important;
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+  text-shadow: none !important;
+}
+
+#react-role-dashboard.react-role-dashboard :is(
+  .operational-command-compatibility-panel,
+  .operational-readiness-list
+) :is(
+  .operational-command-form,
+  .operational-task-create-form,
+  .operational-task-update-form,
+  .operational-task-detail-form,
+  .operational-handoff-form,
+  .operational-staffing-form,
+  .operational-escalation-create-form,
+  .operational-escalation-update-form,
+  .operational-signoff-form,
+  form,
+  [class*="form"],
+  [class*="editor"]
+) *,
+#react-role-dashboard.react-role-dashboard :is(
+  .operational-dependency-list,
+  .operational-handoff-list,
+  .operational-staffing-list,
+  .operational-escalation-list,
+  .operational-signoff-summary,
+  .operational-checklist,
+  .operational-task-updates,
+  .operational-task-detail-list
+) li :is(form, [class*="form"], [class*="editor"]) * {
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+#react-role-dashboard.react-role-dashboard :is(
+  .operational-command-compatibility-panel,
+  .operational-readiness-list,
+  .operations-dependency-workspace,
+  .operations-handoff-workspace,
+  .operations-staffing-workspace,
+  .operations-escalation-workspace,
+  .operations-readiness-workspace
+) :is(input, select, textarea, option) {
+  background: #ffffff !important;
+  border: 1px solid var(--ce-data-border-strong) !important;
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+  box-shadow: none !important;
+}
+
+#react-role-dashboard.react-role-dashboard :is(
+  .operational-command-compatibility-panel,
+  .operational-readiness-list
+) :is(form, [class*="form"], [class*="editor"]) :is(button, .secondary-action-button, .compact-button) {
+  background: var(--ce-action-soft-bg) !important;
+  border: 1px solid rgba(125, 211, 252, 0.7) !important;
+  border-radius: var(--ce-radius-pill) !important;
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+}
+
+/* Slice 36: application-wide contrast safety for light editable surfaces and pill controls. */
+.react-production-shell :where(input:not([type='checkbox']):not([type='radio']), select, textarea, option),
+.react-app-shell :where(input:not([type='checkbox']):not([type='radio']), select, textarea, option) {
+  background-color: #ffffff !important;
+  color: #071827 !important;
+  -webkit-text-fill-color: #071827 !important;
+  caret-color: #071827 !important;
+}
+
+.react-production-shell :where(input:not([type='checkbox']):not([type='radio']), select, textarea)::placeholder,
+.react-app-shell :where(input:not([type='checkbox']):not([type='radio']), select, textarea)::placeholder {
+  color: #64748b !important;
+  -webkit-text-fill-color: #64748b !important;
+  opacity: 1;
+}
+
+.react-production-shell :where(
+  .secondary-button,
+  .secondary-action-button,
+  .fleet-secondary-action,
+  .compact-action,
+  .compact-button,
+  .button-link.secondary
+),
+.react-app-shell :where(
+  .secondary-button,
+  .secondary-action-button,
+  .fleet-secondary-action,
+  .compact-action,
+  .compact-button,
+  .button-link.secondary
+) {
+  color: #071827 !important;
+  -webkit-text-fill-color: #071827 !important;
+}
+
+.react-production-shell :where(
+  .secondary-button,
+  .secondary-action-button,
+  .fleet-secondary-action,
+  .compact-action,
+  .compact-button,
+  .button-link.secondary
+) *,
+.react-app-shell :where(
+  .secondary-button,
+  .secondary-action-button,
+  .fleet-secondary-action,
+  .compact-action,
+  .compact-button,
+  .button-link.secondary
+) * {
+  color: inherit !important;
+  -webkit-text-fill-color: inherit !important;
+}
+
+/* Slice 37: global light-chip contrast safety.
+   Any pill/badge/status chip rendered on a white or near-white control surface
+   must keep dark readable text even when nested inside dark admin panels that
+   force descendant text to white. */
+.react-production-shell :where(
+  .react-admin-stat-pills span,
+  .create-workflow-pill,
+  .linked-booking-pill,
+  .status-pill,
+  .quality-status-pill,
+  .console-status,
+  .finder-limit-note,
+  [class*='pill'],
+  [class*='badge']
+),
+.react-app-shell :where(
+  .react-admin-stat-pills span,
+  .create-workflow-pill,
+  .linked-booking-pill,
+  .status-pill,
+  .quality-status-pill,
+  .console-status,
+  .finder-limit-note,
+  [class*='pill'],
+  [class*='badge']
+) {
+  color: #071827 !important;
+  -webkit-text-fill-color: #071827 !important;
+}
+
+.react-production-shell :where(
+  .react-admin-stat-pills span,
+  .create-workflow-pill,
+  .linked-booking-pill,
+  .status-pill,
+  .quality-status-pill,
+  .console-status,
+  .finder-limit-note,
+  [class*='pill'],
+  [class*='badge']
+) *,
+.react-app-shell :where(
+  .react-admin-stat-pills span,
+  .create-workflow-pill,
+  .linked-booking-pill,
+  .status-pill,
+  .quality-status-pill,
+  .console-status,
+  .finder-limit-note,
+  [class*='pill'],
+  [class*='badge']
+) * {
+  color: inherit !important;
+  -webkit-text-fill-color: inherit !important;
+}
+
+.react-production-shell :where(.react-admin-stat-pills span, .create-workflow-pill, .linked-booking-pill, .finder-limit-note),
+.react-app-shell :where(.react-admin-stat-pills span, .create-workflow-pill, .linked-booking-pill, .finder-limit-note) {
+  background: #e0f2fe !important;
+  border: 1px solid rgba(125, 211, 252, 0.7) !important;
+}

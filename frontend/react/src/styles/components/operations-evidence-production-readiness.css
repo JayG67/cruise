@@ -1,0 +1,115 @@
+/* Production readiness evidence panels. */
+
+.operations-production-readiness {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border: 1px solid #c7d2fe;
+  border-radius: 1rem;
+  background: #eef2ff;
+}
+
+.operations-production-readiness-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+}
+
+.operations-production-readiness-score {
+  min-width: 8.5rem;
+  padding: 0.85rem;
+  border: 1px solid #c7d2fe;
+  border-radius: 0.9rem;
+  text-align: center;
+  background: #fff;
+}
+
+.operations-production-readiness-score span {
+  display: block;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #312e81;
+}
+
+.operations-production-readiness-score small {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #4338ca;
+}
+
+.operations-production-readiness-summary,
+.operations-production-readiness-runbook,
+.operations-production-readiness-details > div,
+.operations-production-readiness-card {
+  margin-top: 0.85rem;
+  padding: 0.85rem;
+  border: 1px solid #dbeafe;
+  border-radius: 0.85rem;
+  background: #fff;
+}
+
+.operations-production-readiness-grid,
+.operations-production-readiness-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.85rem;
+}
+
+.operations-production-readiness-card span,
+.operations-production-readiness-details li span,
+.operations-production-readiness-runbook li span {
+  font-weight: 800;
+  color: #3730a3;
+}
+
+.operations-production-readiness-card.ready,
+.operations-production-readiness-score.production_demo_ready {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.operations-production-readiness-card.watch,
+.operations-production-readiness-score.ready_with_watch_items {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.operations-production-readiness-card.blocked,
+.operations-production-readiness-score.needs_hardening {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.operations-production-readiness-card strong,
+.operations-production-readiness-summary strong,
+.operations-production-readiness-details strong,
+.operations-production-readiness-runbook strong {
+  display: block;
+  color: #0f172a;
+}
+
+.operations-production-readiness-details ul,
+.operations-production-readiness-runbook ol {
+  margin: 0.75rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.operations-production-readiness-details li,
+.operations-production-readiness-runbook li {
+  margin: 0.45rem 0;
+}
+
+@media (max-width: 760px) {
+  .operations-production-readiness-header,
+  .operations-production-readiness-details {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-production-readiness-score {
+    width: 100%;
+  }
+}
+

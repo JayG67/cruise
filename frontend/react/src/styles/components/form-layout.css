@@ -1,0 +1,36 @@
+/* Shared form primitives. Forms remain light for usability. */
+
+.ce-form,
+.ce-field-grid {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.ce-input,
+.ce-select,
+.ce-textarea,
+.react-production-shell :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+.ce-editor-card :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  background: var(--surface-editor-raised);
+  border: 1px solid var(--border-editor);
+  border-radius: var(--radius-sm);
+  color: var(--text-editor);
+  font: inherit;
+  min-height: var(--control-height);
+  padding: 0.65rem 0.75rem;
+  width: 100%;
+}
+
+.ce-input:focus,
+.ce-select:focus,
+.ce-textarea:focus,
+.ce-editor-card :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.ce-textarea,
+.ce-editor-card textarea {
+  resize: vertical;
+}

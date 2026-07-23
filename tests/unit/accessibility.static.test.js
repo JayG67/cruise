@@ -5,9 +5,46 @@ describe('static ADA and WCAG-oriented React accessibility safeguards', () => {
   const projectRoot = path.resolve(__dirname, '../..')
   const indexHtml = fs.readFileSync(path.join(projectRoot, 'frontend/react/index.html'), 'utf8')
   const app = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/App.jsx'), 'utf8')
-  const styles = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/styles/app.css'), 'utf8')
+  const readCssBundle = (entrypoint, seen = new Set()) => {
+    const absolutePath = path.resolve(entrypoint)
+
+    if (seen.has(absolutePath)) {
+      return ''
+    }
+
+    seen.add(absolutePath)
+
+    const source = fs.readFileSync(absolutePath, 'utf8')
+    const directory = path.dirname(absolutePath)
+    const imports = [...source.matchAll(/@import\s+['"]([^'"]+)['"];?/g)]
+
+    return [
+      source,
+      ...imports.map(([, importPath]) => readCssBundle(path.join(directory, importPath), seen))
+    ].join('\n')
+  }
+
+  const styles = readCssBundle(path.join(projectRoot, 'frontend/react/src/styles/index.css'))
   const roleSelector = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactRoleSelector.jsx'), 'utf8')
-  const fleetDirectory = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactFleetDirectory.jsx'), 'utf8')
+  const fleetDirectory = [
+    fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactFleetDirectory.jsx'), 'utf8'),
+    fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/fleet/ReactFleetCruiseLineGrid.jsx'), 'utf8'),
+    fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/fleet/ReactFleetShipPanel.jsx'), 'utf8'),
+    fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/fleet/ReactFleetSailingPanel.jsx'), 'utf8'),
+    fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/fleet/ReactFleetItineraryPanel.jsx'), 'utf8'),
+    fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/fleet/fleetDirectoryUtils.js'), 'utf8'),
+    fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/fleet/useFleetDirectoryState.js'), 'utf8'),
+    fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/fleet/useFleetCruiseLineActions.js'), 'utf8'),
+    fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/fleet/useFleetShipActions.js'), 'utf8'),
+    fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/fleet/useFleetSailingActions.js'), 'utf8'),
+    fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/fleet/useFleetItineraryActions.js'), 'utf8')
+  ].join('\n')
+  const adminHierarchy = [
+    fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx'), 'utf8'),
+    fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/admin/useCustomerBookingHierarchyState.js'), 'utf8'),
+    fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerHierarchyRow.jsx'), 'utf8'),
+    fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/BookingCard.jsx'), 'utf8')
+  ].join('\n')
   const confirmActionPanel = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ConfirmActionPanel.jsx'), 'utf8')
 
   it('declares the page language, title, and mobile viewport', () => {
@@ -47,10 +84,12 @@ describe('static ADA and WCAG-oriented React accessibility safeguards', () => {
 
   it('keeps passenger self-service fields and feedback accessible', () => {
     const roleDashboard = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactRoleDashboard.jsx'), 'utf8')
+    const passengerSurface = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/passenger/RolePassengerSurface.jsx'), 'utf8')
 
-    expect(roleDashboard).toContain('My travel profile')
-    expect(roleDashboard).toContain('Save profile')
-    expect(roleDashboard).toContain('aria-live="polite"')
+    expect(roleDashboard).toContain("from './passenger/RolePassengerSurface.jsx'")
+    expect(passengerSurface).toContain('My travel profile')
+    expect(passengerSurface).toContain('Save profile')
+    expect(passengerSurface).toContain('aria-live="polite"')
     expect(styles).toContain('.passenger-profile-form')
     expect(styles).toContain('.role-profile-grid')
   })
@@ -65,8 +104,8 @@ describe('static ADA and WCAG-oriented React accessibility safeguards', () => {
 
   it('keeps native React confirmation panels using alertdialog semantics', () => {
     const componentText = [
-      fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/CustomerBookingHierarchy.jsx'), 'utf8'),
-      fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactFleetDirectory.jsx'), 'utf8'),
+      adminHierarchy,
+      fleetDirectory,
       fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactSqaConsole.jsx'), 'utf8'),
       confirmActionPanel
     ].join('\n')

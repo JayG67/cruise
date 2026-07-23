@@ -38,7 +38,7 @@ export default function CustomerHierarchyRow({
       <tr data-testid="react-customer-row">
         <td>
           <button
-            className="link-button customer-disclosure-button"
+            className="link-button customer-disclosure-button ce-button-secondary"
             type="button"
             aria-expanded={isExpanded}
             aria-controls={bookingsRowId}
@@ -52,15 +52,15 @@ export default function CustomerHierarchyRow({
         <td>{customer.phone || 'Not provided'}</td>
         <td>{customer.loyaltyNumber || customer.loyaltyId || '—'}</td>
         <td>
-          <span className="linked-booking-pill">{linkedBookings.length} bookings</span>
+          <span className="linked-booking-pill ce-status-pill">{linkedBookings.length} bookings</span>
         </td>
         <td>
-          <div className="react-row-action-cluster">
-            <button className="primary-action-button compact-action-button" type="button" onClick={onEditCustomer} data-testid="react-edit-customer-button">
+          <div className="react-row-action-cluster ce-action-row">
+            <button className="primary-action-button compact-action-button ce-button-primary" type="button" onClick={onEditCustomer} data-testid="react-edit-customer-button">
               Edit
             </button>
             <button
-              className="fleet-danger-action compact-action-button"
+              className="fleet-danger-action compact-action-button ce-button-danger"
               type="button"
               onClick={onDeleteCustomer}
               disabled={isDeletingCustomer}
@@ -72,7 +72,7 @@ export default function CustomerHierarchyRow({
         </td>
       </tr>
       {customerDraft && (
-        <tr className="editor-row" data-testid="react-customer-draft-row">
+        <tr className="editor-row ce-editor-row" data-testid="react-customer-draft-row">
           <td colSpan="6">
             <CustomerDraftForm
               draft={customerDraft}
@@ -87,11 +87,11 @@ export default function CustomerHierarchyRow({
         </tr>
       )}
       {isExpanded && (
-        <tr className="child-row" data-testid="react-customer-bookings-row" id={bookingsRowId}>
+        <tr className="child-row ce-editor-row" data-testid="react-customer-bookings-row" id={bookingsRowId}>
           <td colSpan="6">
-            <div className="child-panel" aria-label={`Bookings for ${customerName}`}>
+            <div className="child-panel ce-editor-card" aria-label={`Bookings for ${customerName}`}>
               {linkedBookings.length === 0 ? (
-                <p className="muted">No linked bookings for this customer.</p>
+                <p className="muted ce-muted">No linked bookings for this customer.</p>
               ) : linkedBookings.map(booking => {
                 const bookingRowKey = createBookingExpansionKey(customer.id, booking.id)
 

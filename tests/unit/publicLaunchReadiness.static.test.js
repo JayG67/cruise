@@ -7,6 +7,22 @@ function read(relativePath) {
   return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
 }
 
+function readCssBundle(relativePath, seen = new Set()) {
+  const fullPath = path.join(projectRoot, relativePath)
+  if (seen.has(fullPath)) {
+    return ''
+  }
+  seen.add(fullPath)
+
+  const content = fs.readFileSync(fullPath, 'utf8')
+  const directory = path.dirname(relativePath)
+
+  return content.replace(/@import\s+['"](.+?)['"];?/g, (_match, importPath) => {
+    const nestedPath = path.normalize(path.join(directory, importPath)).replace(/\\/g, '/')
+    return readCssBundle(nestedPath, seen)
+  })
+}
+
 describe('public launch readiness static contracts', () => {
   it('exposes an admin API and React client for the public launch control board', () => {
     const routes = read('routes/cruise.routes.js')
@@ -23,7 +39,7 @@ describe('public launch readiness static contracts', () => {
   it('keeps public launch diagnostics available as code without mounting a recruiter-facing workspace', () => {
     const app = read('frontend/react/src/App.jsx')
     const component = read('frontend/react/src/components/ReactPublicLaunchControlCenter.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
+    const styles = readCssBundle('frontend/react/src/styles/components/readiness-centers.css')
 
     expect(app).not.toContain('ReactPublicLaunchControlCenter')
     expect(app).not.toContain('react-workspace-public-launch-button')

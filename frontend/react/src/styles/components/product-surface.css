@@ -1,0 +1,15 @@
+/*
+  Product surface aggregate.
+  Keeps the live React product surface contract stable while shared command
+  shell, card, editor, action, metric, grid, and compatibility styles are split
+  by responsibility.
+*/
+
+@import './product-surface-shell.css';
+@import './product-surface-command-cards.css';
+@import './product-surface-editor-surfaces.css';
+@import './product-surface-actions.css';
+@import './product-surface-pills-metrics.css';
+@import './product-surface-grids-tables.css';
+@import './product-surface-phase-five.css';
+@import './product-surface-test-stability.css';

@@ -1,0 +1,107 @@
+/* Shared feedback message primitives. */
+
+.react-production-shell .ce-feedback-message.ce-editor-card {
+  margin: var(--ce-space-3) 0;
+  min-height: auto;
+  padding: var(--ce-space-3) var(--ce-space-4) !important;
+}
+
+.react-production-shell .ce-feedback-message.error {
+  background: var(--ce-feedback-error-bg) !important;
+  border-color: var(--ce-feedback-error-border) !important;
+  color: var(--ce-feedback-error-text) !important;
+  -webkit-text-fill-color: var(--ce-feedback-error-text) !important;
+}
+
+.react-production-shell .ce-feedback-message:not(.error) {
+  background: var(--ce-feedback-status-bg) !important;
+  border-color: var(--ce-feedback-status-border) !important;
+  color: var(--ce-feedback-status-text) !important;
+  -webkit-text-fill-color: var(--ce-feedback-status-text) !important;
+}
+
+.react-production-shell .ce-feedback-message :is(span, strong, em) {
+  color: inherit !important;
+  -webkit-text-fill-color: inherit !important;
+}
+
+
+/* CSS Foundation Refactor - Slice 21: confirmation modal polish retired from legacy app.css. */
+/* Role-switch confirmations should feel like an intentional product dialog,
+   not a full-width inline warning strip. */
+.react-confirm-action-overlay {
+  align-items: center;
+  background: rgba(2, 18, 34, 0.36);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: clamp(1rem, 4vw, 2rem);
+  position: fixed;
+  z-index: 60;
+}
+
+.react-confirm-action-panel--modal {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+  border: 1px solid rgba(14, 116, 144, 0.28);
+  box-shadow: 0 28px 80px rgba(2, 18, 34, 0.28);
+  max-width: 34rem;
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  width: min(100%, 34rem);
+}
+
+.react-confirm-action-panel--modal .eyebrow {
+  color: #0e7490;
+  letter-spacing: 0.16em;
+}
+
+.react-confirm-action-panel--modal h4 {
+  color: #071827;
+  font-size: clamp(1.4rem, 3vw, 1.85rem);
+  line-height: 1.05;
+  margin-top: 0.2rem;
+}
+
+.react-confirm-action-panel--modal p:not(.eyebrow) {
+  color: #27445e;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-top: 0.55rem;
+}
+
+.react-confirm-action-panel--modal .react-confirm-action-row {
+  justify-content: flex-end;
+  margin-top: 0.35rem;
+}
+
+.react-confirm-action-panel--modal .fleet-danger-action {
+  background: linear-gradient(135deg, #0f8caf, #0ea5b7);
+  border-color: transparent;
+  color: #ffffff;
+}
+
+.react-confirm-action-panel--modal .fleet-danger-action:hover,
+.react-confirm-action-panel--modal .fleet-danger-action:focus-visible {
+  background: linear-gradient(135deg, #0b7899, #0d8fa2);
+}
+
+
+.react-confirm-action-overlay,
+.react-confirm-action-panel,
+.react-confirm-action-panel--modal,
+.react-confirm-action-panel .fleet-danger-action,
+.react-confirm-action-panel .fleet-secondary-action {
+  animation: none !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+@media (max-width: 560px) {
+  .react-confirm-action-overlay {
+    align-items: flex-end;
+  }
+
+  .react-confirm-action-panel--modal {
+    border-radius: 1.25rem 1.25rem 0.75rem 0.75rem;
+  }
+}
+

@@ -5,6 +5,8 @@ const { execFileSync } = require('child_process')
 const projectRoot = path.resolve(__dirname, '..')
 
 const generatedArtifactPatterns = [
+  /^dist\//,
+  /^build\//,
   /^coverage\//,
   /^lhci-report\//,
   /^\.lighthouseci\//,
@@ -12,6 +14,7 @@ const generatedArtifactPatterns = [
   /^playwright-report\//,
   /^test-results\//,
   /^logs\//,
+  /^cypress\/(screenshots|videos)\//,
   /^lighthouse-report\.report\.(html|json)$/,
   /(^|\/)\.DS_Store$/
 ]
@@ -45,12 +48,16 @@ function main() {
   }
 
   const ignoredExamples = [
+    'dist/',
+    'build/',
     'coverage/',
     'lhci-report/',
     '.lighthouseci/',
     'playwright-report/',
     'test-results/',
     'logs/',
+    'cypress/screenshots/',
+    'cypress/videos/',
     '.DS_Store'
   ]
 

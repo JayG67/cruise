@@ -6,6 +6,25 @@ function countPlaywrightTests(filePath) {
   return (source.match(/\btest\(/g) || []).length
 }
 
+function readCssBundle(entrypoint, seen = new Set()) {
+  const absolutePath = path.resolve(entrypoint)
+
+  if (seen.has(absolutePath)) {
+    return ''
+  }
+
+  seen.add(absolutePath)
+
+  const source = fs.readFileSync(absolutePath, 'utf8')
+  const directory = path.dirname(absolutePath)
+  const imports = [...source.matchAll(/@import\s+['"]([^'"]+)['"];?/g)]
+
+  return [
+    source,
+    ...imports.map(([, importPath]) => readCssBundle(path.join(directory, importPath), seen))
+  ].join('\n')
+}
+
 describe('Playwright React coverage inventory', () => {
   const projectRoot = path.resolve(__dirname, '../..')
   const mobileReactSpecPath = path.join(projectRoot, 'playwright/mobile/react-production-mobile.spec.js')
@@ -84,7 +103,7 @@ describe('Playwright React coverage inventory', () => {
 
   it('protects React workspace mobile touch-target coverage', () => {
     const mobileReactSpec = fs.readFileSync(mobileReactSpecPath, 'utf8')
-    const styles = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/styles/app.css'), 'utf8')
+    const styles = readCssBundle(path.join(projectRoot, 'frontend/react/src/styles/components/index.css'))
 
     expect(mobileReactSpec).toContain('react-workspace-card-grid')
     expect(mobileReactSpec).toContain('react-workspace-quality-button')

@@ -63,6 +63,9 @@ assert(retiredPlaywrightSpecs.length === 0, `Retired Playwright specs should be 
 
 assertScriptIncludes(packageJson, 'test:all', 'npm run test:inventory:audit')
 assertScriptIncludes(packageJson, 'test:all', 'npm run react:production:complete')
+assertScriptIncludes(packageJson, 'test:all', 'npm run release:source:audit')
+assertScriptIncludes(packageJson, 'test:all', 'npm run production:deployment:audit')
+assertScriptIncludes(packageJson, 'test:all', 'npm run production:dependencies:audit')
 assertScriptIncludes(packageJson, 'test:all', 'npm run jest:coverage:all')
 assertScriptIncludes(packageJson, 'test:all', 'npm run browserTests:react')
 assertScriptIncludes(packageJson, 'test:all', 'npm run perf:smoke:local')

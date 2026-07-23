@@ -1,0 +1,21 @@
+/* Shared badge aggregate. */
+
+@import './chip.css';
+@import './status.css';
+
+.ce-badge {
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  font-size: var(--font-xs);
+  font-weight: 800;
+  gap: var(--space-xs);
+  justify-content: center;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  padding: 0.3rem 0.7rem;
+  text-transform: uppercase;
+}

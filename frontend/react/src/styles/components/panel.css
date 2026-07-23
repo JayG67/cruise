@@ -1,0 +1,44 @@
+/* Shared command-center panel primitives. */
+
+.ce-panel,
+.ce-command-panel,
+.react-production-shell :where(.react-role-dashboard, .react-sqa-console, .employer-demo-command-center) {
+  background: var(--ce-command-bg-soft, var(--ce-command-bg));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+  color: var(--text-primary);
+  display: grid;
+  gap: var(--space-md);
+  padding: clamp(var(--space-lg), 3vw, var(--space-2xl));
+}
+
+.ce-panel :where(h1, h2, h3, h4, h5, h6),
+.ce-command-panel :where(h1, h2, h3, h4, h5, h6) {
+  color: inherit;
+  letter-spacing: -0.02em;
+}
+
+.ce-panel :where(p, li, span, strong, dt, dd, small),
+.ce-command-panel :where(p, li, span, strong, dt, dd, small) {
+  color: inherit;
+  line-height: var(--line-body);
+}
+
+.ce-panel :where(.eyebrow, dt, label > span),
+.ce-command-panel :where(.eyebrow, dt, label > span),
+.ce-kicker {
+  color: var(--text-secondary);
+  font-size: var(--font-xs);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ce-panel--compact {
+  padding: var(--space-lg);
+}
+
+.ce-panel--scrollable {
+  overflow: auto;
+}

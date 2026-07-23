@@ -1,0 +1,11 @@
+/*
+  Operations continuity aggregate.
+  Keeps the operations-continuity layer stable while detailed reviewer,
+  outreach, scenario, visibility, and lower-panel CSS lives in focused files.
+*/
+
+@import './operations-continuity-reviewer.css';
+@import './operations-continuity-outreach.css';
+@import './operations-continuity-hidden-panels.css';
+@import './operations-continuity-scenario-plan.css';
+@import './operations-continuity-shared-lower-panels.css';

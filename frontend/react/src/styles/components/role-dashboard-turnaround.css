@@ -1,0 +1,583 @@
+/* Role dashboard turnaround overview and command form styles. */
+
+/* Phase 2 shared product shell styles moved to components/product-shell.css. */
+
+/* Phase 4 role dashboard and turnaround operations CSS moved to components/role-dashboard.css. */
+
+/* Phase 5 product experience CSS moved to components/product-shell.css. */
+
+
+/* Role selector, finder, and operational action component styles moved to components/role-selector.css. */
+
+/* Phase 18 operational contrast rules moved to components/operations-contrast.css. */
+
+
+/* CSS Foundation Refactor - Slice 21: turnaround overview and command forms retired from legacy app.css. */
+.operational-turnaround-panel {
+  background: linear-gradient(135deg, rgba(239, 248, 253, 0.95), rgba(255, 255, 255, 0.98));
+  border: 1px solid #cfe3f2;
+  border-radius: 1.25rem;
+  box-shadow: 0 16px 40px rgba(17, 45, 78, 0.08);
+  display: grid;
+  gap: 1.25rem;
+  margin: 1.25rem 0;
+  padding: 1.25rem;
+}
+
+.operational-turnaround-hero {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.75fr);
+}
+
+.operational-turnaround-hero h3,
+.operational-turnaround-hero p {
+  margin: 0.25rem 0 0;
+}
+
+.operational-metric-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+}
+
+.operational-metric-grid div {
+  background: #ffffff;
+  border: 1px solid #d4e5f5;
+  border-radius: 1rem;
+  padding: 0.9rem;
+}
+
+.operational-metric-grid dt {
+  color: #39516b;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.operational-metric-grid dd {
+  color: #12324f;
+  font-size: 1.7rem;
+  font-weight: 900;
+  margin: 0.25rem 0 0;
+}
+
+.operational-dashboard-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.operational-checklist {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0.75rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.operational-checklist li {
+  padding-left: 0.15rem;
+}
+
+
+.turnaround-selector-panel {
+  align-items: stretch;
+  background: linear-gradient(135deg, #ffffff 0%, #f4fbff 100%);
+  border: 1px solid #cfe3f2;
+  border-radius: 1rem;
+  box-shadow: 0 16px 36px rgba(18, 50, 79, 0.08);
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.4fr) minmax(17rem, 0.8fr) minmax(18rem, 1fr);
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+.turnaround-selector-panel h4,
+.turnaround-selector-panel p,
+.turnaround-selector-summary {
+  margin: 0;
+}
+
+.turnaround-selector-panel p {
+  color: #39516b;
+}
+
+.turnaround-selector-control {
+  display: grid;
+  gap: 0.45rem;
+  font-weight: 800;
+}
+
+.turnaround-selector-control span {
+  color: #17456f;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.turnaround-selector-control select {
+  appearance: none;
+  background: #ffffff;
+  border: 1px solid #b9d4eb;
+  border-radius: 0.85rem;
+  color: #12324f;
+  font: inherit;
+  min-height: 3rem;
+  overflow: hidden;
+  padding: 0.75rem 2.5rem 0.75rem 0.9rem;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.turnaround-selector-summary {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.turnaround-selector-summary div {
+  background: #ffffff;
+  border: 1px solid #d7e8f5;
+  border-radius: 0.85rem;
+  padding: 0.7rem;
+}
+
+.turnaround-selector-summary dt {
+  color: #5c7288;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.turnaround-selector-summary dd {
+  color: #12324f;
+  font-size: 1rem;
+  font-weight: 900;
+  margin: 0.2rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 980px) {
+  .turnaround-selector-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+.operational-readiness-list {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+}
+
+.operational-readiness-card {
+  background: #ffffff;
+  border: 1px solid #d4e5f5;
+  border-radius: 1rem;
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.operational-readiness-card h4,
+.operational-readiness-card p {
+  margin: 0;
+}
+
+.operational-readiness-card p {
+  color: #39516b;
+}
+
+@media (max-width: 820px) {
+  .operational-turnaround-hero,
+  .operational-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .operational-metric-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.operational-progress-summary {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.operational-progress-summary span {
+  background: #f5fbff;
+  border: 1px solid #cfe3f2;
+  border-radius: 999px;
+  color: #12324f;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 0.35rem 0.65rem;
+}
+
+.operational-checklist li {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.operational-task-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.compact-button {
+  min-height: auto;
+  padding: 0.45rem 0.65rem;
+}
+
+.operational-task-detail-list {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  margin: 0;
+}
+
+.operational-task-detail-list div {
+  background: #f8fbff;
+  border: 1px solid #dbe9f5;
+  border-radius: 0.75rem;
+  padding: 0.55rem;
+}
+
+.operational-task-detail-list dt {
+  color: #5c7288;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.operational-task-detail-list dd {
+  color: #12324f;
+  font-weight: 800;
+  margin: 0.15rem 0 0;
+}
+
+.operational-blocker-note {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 0.75rem;
+  color: #7c2d12;
+  font-weight: 800;
+  margin: 0;
+  padding: 0.65rem;
+}
+
+.operational-task-detail-form {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+}
+
+.operational-task-detail-form label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.operational-task-detail-form span {
+  color: #45627e;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.operational-task-detail-form input {
+  border: 1px solid #c7d8e7;
+  border-radius: 0.65rem;
+  color: #12324f;
+  font: inherit;
+  padding: 0.55rem;
+}
+
+.full-width-field {
+  grid-column: 1 / -1;
+}
+
+.operational-task-updates {
+  background: #f8fbff;
+  border: 1px solid #dbe9f5;
+  border-radius: 0.75rem;
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.65rem;
+}
+
+.operational-task-updates strong {
+  color: #12324f;
+}
+
+.operational-task-updates ul {
+  display: grid;
+  gap: 0.35rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.operational-task-updates li {
+  border-block-start: 1px solid #dbe9f5;
+  display: grid;
+  gap: 0.2rem;
+  padding-block-start: 0.35rem;
+}
+
+.operational-task-updates span:first-child,
+.operational-task-updates span:nth-child(2) {
+  color: #45627e;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.operational-task-update-form {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.operational-task-update-form label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.operational-task-update-form span {
+  color: #45627e;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.operational-task-update-form input {
+  border: 1px solid #c7d8e7;
+  border-radius: 0.65rem;
+  color: #12324f;
+  font: inherit;
+  padding: 0.55rem;
+}
+
+.operational-signoff-summary {
+  background: #f8fbff;
+  border: 1px solid #dbe9f5;
+  border-radius: 0.75rem;
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+}
+
+.operational-signoff-summary strong {
+  color: #12324f;
+}
+
+.operational-signoff-summary ul {
+  display: grid;
+  gap: 0.35rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.operational-signoff-summary li {
+  align-items: center;
+  border-block-start: 1px solid #dbe9f5;
+  display: grid;
+  gap: 0.35rem;
+  grid-template-columns: minmax(0, 1.1fr) auto minmax(0, 1fr);
+  padding-block-start: 0.35rem;
+}
+
+.operational-signoff-summary span {
+  color: #39516b;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.operational-signoff-form {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+.operational-signoff-form label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.operational-signoff-form span {
+  color: #45627e;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.operational-signoff-form input,
+.operational-signoff-form select {
+  border: 1px solid #c7d8e7;
+  border-radius: 0.65rem;
+  color: #12324f;
+  font: inherit;
+  padding: 0.55rem;
+}
+
+.operational-command-form {
+  background: #f8fbff;
+  border: 1px solid #dbe9f5;
+  border-radius: 0.85rem;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  padding: 0.75rem;
+}
+
+.operational-command-form label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.operational-command-form span {
+  color: #45627e;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.operational-command-form input,
+.operational-command-form select {
+  border: 1px solid #c7d8e7;
+  border-radius: 0.65rem;
+  color: #12324f;
+  font: inherit;
+  padding: 0.55rem;
+}
+
+
+.operational-escalation-summary {
+  align-items: center;
+  background: #fffaf0;
+  border: 1px solid #f6d7a8;
+  border-radius: 0.85rem;
+  color: #12324f;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.operational-escalation-summary strong {
+  color: #12324f;
+  font-weight: 900;
+}
+
+.operational-escalation-summary span {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 999px;
+  color: #7c2d12;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 0.32rem 0.6rem;
+}
+
+.operational-escalation-create-form,
+.operational-escalation-update-form {
+  background: #f8fbff;
+  border: 1px solid #dbe9f5;
+  border-radius: 0.85rem;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  padding: 0.75rem;
+}
+
+.operational-escalation-create-form label,
+.operational-escalation-update-form label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.operational-escalation-create-form span,
+.operational-escalation-update-form span {
+  color: #45627e;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.operational-escalation-create-form input,
+.operational-escalation-create-form select,
+.operational-escalation-update-form input,
+.operational-escalation-update-form select {
+  appearance: none;
+  background: #fff;
+  border: 1px solid #c7d8e7;
+  border-radius: 0.65rem;
+  box-shadow: 0 1px 0 rgba(18, 50, 79, 0.03);
+  color: #12324f;
+  font: inherit;
+  min-height: 2.45rem;
+  padding: 0.55rem 0.7rem;
+  width: 100%;
+}
+
+.operational-escalation-create-form select,
+.operational-escalation-update-form select {
+  background-image: linear-gradient(45deg, transparent 50%, #45627e 50%), linear-gradient(135deg, #45627e 50%, transparent 50%);
+  background-position: calc(100% - 1rem) 50%, calc(100% - 0.7rem) 50%;
+  background-repeat: no-repeat;
+  background-size: 0.35rem 0.35rem, 0.35rem 0.35rem;
+  padding-inline-end: 2rem;
+}
+
+.operational-escalation-create-form input:focus,
+.operational-escalation-create-form select:focus,
+.operational-escalation-update-form input:focus,
+.operational-escalation-update-form select:focus {
+  border-color: #0e7490;
+  box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.15);
+  outline: none;
+}
+
+.operational-escalation-list {
+  background: #f8fbff;
+  border: 1px solid #dbe9f5;
+  border-radius: 0.85rem;
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.75rem;
+}
+
+.operational-escalation-list > strong {
+  color: #12324f;
+  font-weight: 900;
+}
+
+.operational-escalation-list ul {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.operational-escalation-list li {
+  background: #fff;
+  border: 1px solid #dbe9f5;
+  border-radius: 0.85rem;
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.75rem;
+}
+
+.operational-escalation-list li > div {
+  color: #12324f;
+  font-weight: 800;
+}
+
+.operational-escalation-list p {
+  color: #39516b;
+  margin: 0;
+}
+

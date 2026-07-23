@@ -113,10 +113,6 @@ function buildProjectFilePresenceMap() {
     'Dockerfile',
     'drizzle.config.js',
     'docker-compose.yml',
-    'docs/deployment.md',
-    'docs/environment.md',
-    'docs/portfolio.md',
-    'docs/screenshots',
     'dist',
     'fly.toml',
     'logs',
@@ -2262,7 +2258,7 @@ exports.getPublicLaunchReadiness = async (req, res, next) => {
 
     const files = buildProjectFilePresenceMap()
     const packageJson = safeReadJsonProjectFile('package.json')
-    const readme = safeReadProjectFile('README.md')
+    const readme = safeReadProjectFile('Readme.md')
     const appSource = safeReadProjectFile('app.js')
     const controllerSource = safeReadProjectFile('controllers/cruise.controller.js')
     const componentIndex = [
@@ -2376,7 +2372,7 @@ exports.getPortfolioShowcase = async (req, res, next) => {
     return res.status(200).json(buildPortfolioShowcase({
       packageJson: safeReadJsonProjectFile('package.json'),
       files: buildProjectFilePresenceMap(),
-      readme: safeReadProjectFile('README.md'),
+      readme: safeReadProjectFile('Readme.md'),
       componentIndex: [
         safeReadProjectFile('frontend/react/src/App.jsx'),
         safeReadProjectFile('frontend/react/src/components/EmployerDemoCommandCenter.jsx'),
@@ -2386,7 +2382,7 @@ exports.getPortfolioShowcase = async (req, res, next) => {
         safeReadProjectFile('frontend/react/src/components/ReactProductionHardeningCenter.jsx'),
         safeReadProjectFile('frontend/react/src/components/ReactDeploymentReadinessCenter.jsx')
       ].join('\n'),
-      testSummary: safeReadProjectFile('README.md')
+      testSummary: safeReadProjectFile('Readme.md')
     }))
   } catch (err) {
     next(err)
@@ -2403,7 +2399,7 @@ exports.getDeploymentReadiness = async (req, res, next) => {
       files: buildProjectFilePresenceMap(),
       renderConfig: safeReadProjectFile('render.yaml'),
       dockerCompose: safeReadProjectFile('docker-compose.yml'),
-      readme: safeReadProjectFile('README.md'),
+      readme: safeReadProjectFile('Readme.md'),
       appSource: safeReadProjectFile('app.js')
     }))
   } catch (err) {
@@ -4426,7 +4422,10 @@ exports.deleteBookingPassenger = async (req, res, next) => {
     const passengerRows = await db
       .select()
       .from(bookingPassengerTable)
-      .where(eq(bookingPassengerTable.id, `${bookingId}-${customerId}`))
+      .where(and(
+        eq(bookingPassengerTable.bookingId, bookingId),
+        eq(bookingPassengerTable.customerId, customerId)
+      ))
       .limit(1)
 
     if (!passengerRows[0]) {
@@ -4441,7 +4440,10 @@ exports.deleteBookingPassenger = async (req, res, next) => {
 
     await db
       .delete(bookingPassengerTable)
-      .where(eq(bookingPassengerTable.id, `${bookingId}-${customerId}`))
+      .where(and(
+        eq(bookingPassengerTable.bookingId, bookingId),
+        eq(bookingPassengerTable.customerId, customerId)
+      ))
 
     const bookingScope = await getBookingAuditScope(bookingRows[0])
     await recordCruiseManagementAuditEvent(req, {

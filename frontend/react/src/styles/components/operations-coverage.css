@@ -1,0 +1,6 @@
+/* operations-coverage.css aggregate.
+   This file intentionally contains only imports so the component layer is split by responsibility while legacy static contracts can still reference this layer. */
+
+@import './operations-coverage-staffing.css';
+@import './operations-coverage-escalation.css';
+@import './operations-coverage-readiness.css';

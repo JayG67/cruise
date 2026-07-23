@@ -1,0 +1,223 @@
+/*
+  CSS Foundation Refactor - Phase 2.
+
+  This slice moves the live React product surface toward shared primitives.
+  The goal is a consistent command-center application shell, reusable dark
+  operational panels, reusable dark cards, and isolated light editor/data
+  surfaces. Existing legacy selectors are intentionally mapped into these
+  primitives while JSX migrations happen in later slices.
+*/
+
+/*
+  CSS Foundation Refactor - Phase 5.
+
+  This slice finishes the broad JSX migration for the remaining React product
+  surfaces. Portfolio/readiness centers, presentation flows, booking widgets,
+  draft editors, confirmation panels, and self-guided workspace cards now opt
+  into the shared command-card and editor-card primitives instead of carrying
+  separate visual systems.
+*/
+
+.react-production-shell :is(
+  .employer-demo-command-center.ce-command-panel,
+  .production-hardening-center.ce-command-panel,
+  .data-architecture-readiness-center.ce-command-panel,
+  .deployment-readiness-center.ce-command-panel,
+  .public-launch-control-center.ce-command-panel,
+  .portfolio-polish-center.ce-command-panel,
+  .cruise-line-presentation-suite.ce-command-panel
+) {
+  display: grid;
+  gap: var(--ce-space-5);
+  padding: clamp(var(--ce-space-4), 3vw, var(--ce-space-6)) !important;
+}
+
+.react-production-shell :is(
+  .employer-demo-proof-card.ce-command-card,
+  .self-guided-tour-card.ce-command-card,
+  .production-hardening-score-card.ce-command-card,
+  .production-hardening-gate-card.ce-command-card,
+  .production-hardening-priority-plan.ce-command-card,
+  .production-hardening-launch-sequence.ce-command-card,
+  .data-architecture-score-card.ce-command-card,
+  .data-architecture-gate-card.ce-command-card,
+  .data-architecture-priority-plan.ce-command-card,
+  .data-architecture-migration-board.ce-command-card,
+  .data-architecture-timeline.ce-command-card,
+  .data-architecture-risk-register.ce-command-card,
+  .data-architecture-roadmap.ce-command-card,
+  .deployment-readiness-score-card.ce-command-card,
+  .deployment-readiness-gate-card.ce-command-card,
+  .deployment-readiness-action-plan.ce-command-card,
+  .deployment-readiness-platform-board.ce-command-card,
+  .deployment-readiness-runbook.ce-command-card,
+  .public-launch-score-card.ce-command-card,
+  .public-launch-gate-card.ce-command-card,
+  .public-launch-panel.ce-command-card,
+  .portfolio-polish-score-card.ce-command-card,
+  .portfolio-polish-priority-panel.ce-command-card,
+  .portfolio-polish-list-panel.ce-command-card,
+  .presentation-control-panel.ce-command-card,
+  .presentation-hero-card.ce-command-card,
+  .presentation-flow-card.ce-command-card,
+  .passenger-booking-workflow.ce-command-card
+) {
+  display: grid;
+  gap: var(--ce-space-3);
+  padding: var(--ce-space-4) !important;
+}
+
+.react-production-shell :is(
+  .production-hardening-scoreboard,
+  .production-hardening-gate-grid,
+  .data-architecture-scoreboard,
+  .data-architecture-gate-grid,
+  .data-architecture-migration-grid,
+  .data-architecture-timeline-risk,
+  .deployment-readiness-scoreboard,
+  .deployment-readiness-gate-grid,
+  .deployment-readiness-platform-grid,
+  .public-launch-scoreboard,
+  .public-launch-gate-grid,
+  .public-launch-layout,
+  .portfolio-polish-scoreboard,
+  .portfolio-polish-list-grid,
+  .presentation-flow-grid,
+  .employer-demo-proof-grid,
+  .self-guided-tour-list
+) {
+  display: grid;
+  gap: var(--ce-space-4) !important;
+}
+
+.react-production-shell :is(
+  .production-hardening-scoreboard,
+  .data-architecture-scoreboard,
+  .deployment-readiness-scoreboard,
+  .public-launch-scoreboard,
+  .portfolio-polish-scoreboard,
+  .employer-demo-proof-grid,
+  .presentation-flow-grid
+) {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)) !important;
+}
+
+.react-production-shell :is(
+  .production-hardening-gate-grid,
+  .data-architecture-gate-grid,
+  .deployment-readiness-gate-grid,
+  .public-launch-gate-grid,
+  .portfolio-polish-list-grid
+) {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)) !important;
+}
+
+.react-production-shell :is(
+  .production-hardening-gate-header,
+  .data-architecture-gate-header,
+  .deployment-readiness-gate-header,
+  .public-launch-gate-header,
+  .presentation-suite-heading,
+  .cruise-line-operations-heading,
+  .employer-demo-heading,
+  .self-guided-overview-heading
+) {
+  align-items: start;
+  display: flex;
+  gap: var(--ce-space-4);
+  justify-content: space-between;
+}
+
+.react-production-shell :is(
+  .production-hardening-recommendation.ce-editor-card,
+  .data-architecture-recommendation.ce-editor-card,
+  .deployment-readiness-recommendation.ce-editor-card,
+  .public-launch-recommendation.ce-editor-card,
+  .passenger-booking-form.ce-editor-card,
+  .passenger-booking-guests.ce-editor-card,
+  .passenger-booking-guest-card.ce-editor-card,
+  .booking-selected-guest-card.ce-editor-card,
+  .booking-card.ce-editor-card,
+  .draft-editor.ce-editor-card,
+  .react-confirm-action-panel.ce-editor-card
+) {
+  padding: var(--ce-space-4) !important;
+}
+
+.react-production-shell :is(
+  .passenger-booking-form.ce-editor-card,
+  .passenger-booking-guests.ce-editor-card,
+  .passenger-booking-guest-card.ce-editor-card,
+  .booking-card.ce-editor-card,
+  .draft-editor.ce-editor-card
+) {
+  display: grid;
+  gap: var(--ce-space-4);
+}
+
+.react-production-shell :is(
+  .booking-search-grid,
+  .booking-selection-grid,
+  .draft-grid,
+  .details-grid
+) {
+  gap: var(--ce-space-3) !important;
+}
+
+.react-production-shell :is(
+  .ce-command-card .ce-editor-card,
+  .ce-command-panel .ce-editor-card
+) :is(.eyebrow, label > span, dt, small) {
+  color: var(--ce-data-text-muted) !important;
+  -webkit-text-fill-color: var(--ce-data-text-muted) !important;
+}
+
+.react-production-shell :is(
+  .ce-command-card .ce-editor-card,
+  .ce-command-panel .ce-editor-card
+) :is(button[type="submit"], .primary-button, .primary-action-button, .fleet-primary-action) {
+  background: var(--ce-action-primary-bg) !important;
+  border-color: transparent !important;
+  color: var(--ce-action-primary-text) !important;
+  -webkit-text-fill-color: var(--ce-action-primary-text) !important;
+}
+
+.react-production-shell :is(
+  .ce-command-card .ce-editor-card,
+  .ce-command-panel .ce-editor-card
+) :is(.secondary-button, .secondary-action-button, .fleet-secondary-action, .compact-button) {
+  background: var(--ce-action-secondary-bg) !important;
+  border: 1px solid var(--ce-action-secondary-border) !important;
+  color: var(--ce-action-secondary-text) !important;
+  -webkit-text-fill-color: var(--ce-action-secondary-text) !important;
+}
+
+.react-production-shell :is(
+  .ce-command-card .ce-editor-card,
+  .ce-command-panel .ce-editor-card
+) :is(.danger-outline-button, .fleet-danger-action) {
+  background: var(--ce-action-danger-bg) !important;
+  border: 1px solid var(--ce-action-danger-border) !important;
+  color: var(--ce-action-danger-text) !important;
+  -webkit-text-fill-color: var(--ce-action-danger-text) !important;
+}
+
+.react-production-shell .react-confirm-action-panel.ce-editor-card {
+  max-width: min(100%, 34rem);
+}
+
+@media (max-width: 760px) {
+  .react-production-shell :is(
+    .production-hardening-gate-header,
+    .data-architecture-gate-header,
+    .deployment-readiness-gate-header,
+    .public-launch-gate-header,
+    .presentation-suite-heading,
+    .cruise-line-operations-heading,
+    .employer-demo-heading,
+    .self-guided-overview-heading
+  ) {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

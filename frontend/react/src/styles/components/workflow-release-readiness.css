@@ -1,0 +1,44 @@
+/* Product status section styles retained for application cards. */
+.react-release-readiness-section {
+  display: grid;
+  gap: 1rem;
+  margin: 1rem auto 0;
+  width: min(1120px, calc(100% - 2rem));
+}
+
+.release-readiness-heading {
+  background: #ffffff;
+  border: 1px solid #d7e1ef;
+  border-radius: 1.25rem;
+  box-shadow: 0 1rem 2rem rgba(15, 23, 42, 0.08);
+  padding: clamp(1rem, 3vw, 1.4rem);
+}
+
+.release-readiness-heading h2 {
+  color: #17324d;
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
+  line-height: 1.1;
+  margin: 0.2rem 0 0.65rem;
+}
+
+.release-readiness-heading p:last-child {
+  color: #52667a;
+  margin-bottom: 0;
+  max-width: 76ch;
+}
+
+.react-release-readiness-section .roadmap-card,
+.react-release-readiness-section .readiness-card,
+.react-release-readiness-section .launch-card,
+.react-release-readiness-section .coverage-card,
+.react-release-readiness-section .handoff-card {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 720px) {
+  .react-release-readiness-section {
+    width: min(100%, calc(100% - 1rem));
+  }
+}
+

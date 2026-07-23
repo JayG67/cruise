@@ -1,0 +1,77 @@
+/* Active workspace status badge. */
+.active-route-summary {
+  align-items: center;
+  background: #eef7ff;
+  border: 1px solid #c8dff5;
+  border-radius: 999px;
+  color: #0f5e9c;
+  display: inline-flex;
+  gap: 0.5rem;
+  max-width: 100%;
+  padding: 0.45rem 0.75rem;
+  width: fit-content;
+}
+
+.active-route-summary span {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.active-route-summary strong {
+  overflow-wrap: break-word;
+}
+
+.active-route-evidence-card {
+  background: #ffffff;
+  border: 1px solid #d7e1ef;
+  border-radius: 1.25rem;
+  box-shadow: 0 1rem 2rem rgba(15, 23, 42, 0.08);
+  display: grid;
+  gap: 1rem;
+  max-width: 100%;
+  min-width: 0;
+  padding: 1.25rem;
+}
+
+.active-route-evidence-card h3 {
+  color: #071827;
+  font-size: clamp(1.25rem, 3vw, 1.7rem);
+  margin: 0 0 0.5rem;
+}
+
+.active-route-evidence-card p {
+  margin: 0;
+}
+
+.active-route-evidence-list {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  max-width: 100%;
+  min-width: 0;
+  padding: 0;
+}
+
+.active-route-evidence-list li {
+  background: #f8fbff;
+  border: 1px solid #dfe9f5;
+  border-radius: 1rem;
+  color: #173047;
+  font-weight: 700;
+  min-width: 0;
+  overflow-wrap: break-word;
+  padding: 0.85rem;
+}
+
+.active-route-next-step {
+  background: #fff8e8;
+  border: 1px solid #f5d28c;
+  border-radius: 1rem;
+  color: #5c4100;
+  font-weight: 800;
+  padding: 0.85rem;
+}
+

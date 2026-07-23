@@ -1,0 +1,22 @@
+/*
+  CSS Foundation Refactor - Phase 2.
+
+  This slice moves the live React product surface toward shared primitives.
+  The goal is a consistent command-center application shell, reusable dark
+  operational panels, reusable dark cards, and isolated light editor/data
+  surfaces. Existing legacy selectors are intentionally mapped into these
+  primitives while JSX migrations happen in later slices.
+*/
+
+/* CSS Foundation Refactor - test stability patch.
+   Keep command note textareas large enough after the shared editor control
+   normalization so the operational command form remains readable and satisfies
+   the Cypress uniform-control contract. */
+.react-production-shell .operational-command-form.ce-editor-card textarea,
+.react-production-shell .operational-task-detail-form.ce-editor-card textarea,
+.react-production-shell .operational-task-update-form.ce-editor-card textarea,
+.react-production-shell .operational-escalation-update-form.ce-editor-card textarea {
+  min-height: 5.8rem !important;
+  overflow-wrap: anywhere !important;
+  white-space: pre-wrap !important;
+}

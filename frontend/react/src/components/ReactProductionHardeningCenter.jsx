@@ -59,35 +59,35 @@ export default function ReactProductionHardeningCenter({ selectedDemoUser }) {
   }, [selectedDemoUser?.id])
 
   return (
-    <section className="react-app-section production-hardening-center" id="react-production-hardening" aria-labelledby="react-production-hardening-heading" data-testid="react-production-hardening-center">
-      <div className="section-heading-row production-hardening-heading">
+    <section className="react-app-section production-hardening-center ce-command-panel" id="react-production-hardening" aria-labelledby="react-production-hardening-heading" data-testid="react-production-hardening-center">
+      <div className="section-heading-row ce-section-heading production-hardening-heading">
         <div>
-          <p className="eyebrow">Production readiness</p>
+          <p className="eyebrow ce-kicker">Production readiness</p>
           <h2 id="react-production-hardening-heading">Production Hardening Center</h2>
           <p>
             Convert the portfolio application into a deployable operations product by tracking environment,
             error handling, logging, observability, deployment, and security readiness gates.
           </p>
         </div>
-        <button type="button" className="secondary-action-button" onClick={loadReadiness} disabled={isLoading} data-testid="react-production-hardening-refresh-button">
+        <button type="button" className="secondary-action-button ce-button-secondary" onClick={loadReadiness} disabled={isLoading} data-testid="react-production-hardening-refresh-button">
           {isLoading ? 'Refreshing...' : 'Refresh hardening score'}
         </button>
       </div>
 
-      {error ? <p className="draft-message error" role="alert" data-testid="react-production-hardening-error">{error}</p> : null}
+      {error ? <p className="draft-message error ce-feedback-message ce-editor-card" role="alert" data-testid="react-production-hardening-error">{error}</p> : null}
 
       <div className="production-hardening-scoreboard" data-testid="react-production-hardening-scoreboard">
-        <article className={`production-hardening-score-card ${readiness?.status || 'loading'}`}>
+        <article className={`production-hardening-score-card ce-command-card ${readiness?.status || 'loading'}`}>
           <span>Overall hardening</span>
           <strong>{isLoading && !readiness ? 'Loading' : `${readiness?.overallScore ?? 0}%`}</strong>
           <p>{readiness?.summary || 'Checking production hardening gates against the current project baseline.'}</p>
         </article>
-        <article className="production-hardening-score-card">
+        <article className="production-hardening-score-card ce-command-card">
           <span>Launch blockers</span>
           <strong>{blockers.length}</strong>
           <p>{blockers.length ? 'Resolve these before deployment.' : 'No production blockers detected.'}</p>
         </article>
-        <article className="production-hardening-score-card">
+        <article className="production-hardening-score-card ce-command-card">
           <span>Watchlist</span>
           <strong>{watchlist.length}</strong>
           <p>{watchlist.length ? 'Track during platform selection.' : 'No hardening watch items detected.'}</p>
@@ -96,7 +96,7 @@ export default function ReactProductionHardeningCenter({ selectedDemoUser }) {
 
       <div className="production-hardening-gate-grid" data-testid="react-production-hardening-gates">
         {(readiness?.gates || []).map(gate => (
-          <article key={gate.id} className={`production-hardening-gate-card ${gate.status}`} data-testid="react-production-hardening-gate-card">
+          <article key={gate.id} className={`production-hardening-gate-card ce-command-card ${gate.status}`} data-testid="react-production-hardening-gate-card">
             <div className="production-hardening-gate-header">
               <div>
                 <span>{getProductionHardeningStatusLabel(gate.status)}</span>
@@ -108,7 +108,7 @@ export default function ReactProductionHardeningCenter({ selectedDemoUser }) {
             <ul aria-label={`${gate.label} evidence`}>
               {(gate.evidence || []).slice(0, 5).map(item => <li key={item}>{item}</li>)}
             </ul>
-            <div className="production-hardening-recommendation">
+            <div className="production-hardening-recommendation ce-editor-card">
               <span>Recommended hardening move</span>
               <p>{gate.recommendations?.[0] || 'Review this gate before deployment.'}</p>
             </div>
@@ -116,9 +116,9 @@ export default function ReactProductionHardeningCenter({ selectedDemoUser }) {
         ))}
       </div>
 
-      <div className="production-hardening-priority-plan" data-testid="react-production-hardening-priority-plan">
+      <div className="production-hardening-priority-plan ce-command-card" data-testid="react-production-hardening-priority-plan">
         <div>
-          <p className="eyebrow">Launch sequence</p>
+          <p className="eyebrow ce-kicker">Launch sequence</p>
           <h3>Next hardening moves</h3>
         </div>
         {priorityPlan.length ? (
@@ -134,11 +134,11 @@ export default function ReactProductionHardeningCenter({ selectedDemoUser }) {
             ))}
           </ol>
         ) : (
-          <p className="empty-state compact">Production hardening readiness will appear after the first live check completes.</p>
+          <p className="empty-state compact ce-empty-state ce-editor-card">Production hardening readiness will appear after the first live check completes.</p>
         )}
       </div>
 
-      <details className="production-hardening-launch-sequence" data-testid="react-production-hardening-launch-sequence">
+      <details className="production-hardening-launch-sequence ce-command-card" data-testid="react-production-hardening-launch-sequence">
         <summary>Show launch hardening sequence</summary>
         <ul>
           {(readiness?.launchSequence || []).map(item => <li key={item}>{item}</li>)}

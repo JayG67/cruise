@@ -1,0 +1,378 @@
+/* Passenger-facing voyage planner and booking summary components. */
+
+/*
+  CSS Foundation Refactor - Phase 21.
+  Passenger voyage planner retirement slice. Passenger-facing checklist and
+  booking summary cards now use the shared design-system layer instead of
+  legacy app.css. This keeps the traveler workflow consistent with the
+  command-center panel system while preserving light editable controls only
+  where passengers enter profile or checklist data.
+*/
+.passenger-voyage-planner {
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 1.5rem !important;
+  background: rgba(6, 30, 45, 0.88) !important;
+  box-shadow: 0 1.5rem 3.75rem rgba(2, 18, 34, 0.24) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  margin: 1.5rem 0 !important;
+  padding: clamp(1rem, 3vw, 1.5rem) !important;
+}
+
+.passenger-voyage-heading,
+.voyage-planner-grid,
+.voyage-booking-strip {
+  display: grid !important;
+  gap: 1rem !important;
+}
+
+.passenger-voyage-heading {
+  align-items: start !important;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 240px) !important;
+}
+
+.passenger-voyage-heading h3,
+.passenger-voyage-heading p,
+.voyage-planner-card h4,
+.voyage-booking-card h4,
+.voyage-booking-card p {
+  margin: 0 !important;
+}
+
+.passenger-voyage-planner :is(h3, h4, p, span, strong, li, label) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.passenger-voyage-planner :is(.eyebrow, .ce-kicker, small, dt) {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+}
+
+.voyage-score-card,
+.voyage-planner-card,
+.voyage-booking-card {
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 1.125rem !important;
+  background: rgba(8, 43, 62, 0.82) !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  padding: 1rem !important;
+}
+
+.voyage-score-card strong {
+  color: #ffffff !important;
+  display: block !important;
+  font-size: 2rem !important;
+  line-height: 1 !important;
+}
+
+.voyage-planner-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  margin-top: 1rem !important;
+}
+
+.voyage-checklist {
+  display: grid !important;
+  gap: 0.65rem !important;
+}
+
+.voyage-booking-strip {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+  margin-top: 1rem !important;
+}
+
+.voyage-booking-card ul {
+  margin: 0.75rem 0 0 !important;
+  padding-left: 1.2rem !important;
+}
+
+.passenger-voyage-planner :is(input, select, textarea) {
+  background: #ffffff !important;
+  border: 1px solid #7dd3fc !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+@media (max-width: 760px) {
+  .passenger-voyage-heading,
+  .voyage-planner-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/*
+  CSS Foundation Refactor - Phase 22.
+  Selector and voyage-planner compatibility retirement marker retained for the
+  foundation audit after the Phase 22 app.css reduction slice.
+*/
+
+
+/* CSS Foundation Refactor - Slice 21: passenger booking workflow retired from legacy app.css. */
+.passenger-booking-workflow {
+  border-inline-start: 0.35rem solid #0f91b2;
+}
+
+.passenger-booking-form {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.booking-search-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+
+.booking-search-grid label,
+.passenger-cabin-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.booking-search-grid span,
+.passenger-cabin-field span {
+  color: #39516b;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.booking-search-grid input,
+.booking-search-grid select,
+.passenger-cabin-field input {
+  border: 1px solid #bcd0e4;
+  border-radius: 0.8rem;
+  font: inherit;
+  padding: 0.75rem 0.85rem;
+  width: 100%;
+}
+
+.passenger-booking-guests {
+  border: 1px solid #d4e5f5;
+  border-radius: 1rem;
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.section-heading-row {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.section-heading-row h4,
+.section-heading-row p {
+  margin: 0;
+}
+
+.passenger-booking-guest-card {
+  border: 1px solid #d4e5f5;
+  border-radius: 1rem;
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 1rem;
+}
+
+.passenger-booking-guest-card legend {
+  font-weight: 800;
+  padding-inline: 0.35rem;
+}
+
+.secondary-action-button,
+.danger-outline-button {
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 0.65rem 1rem;
+}
+
+.secondary-action-button {
+  background: #eef8fd;
+  border: 1px solid #b6dbef;
+  color: #075f8f;
+}
+
+.danger-outline-button {
+  background: #fff7f7;
+  border: 1px solid #ffb7b7;
+  color: #c62424;
+  justify-self: start;
+}
+
+@media (max-width: 720px) {
+  .section-heading-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+
+/* Passenger booking guest experience: one coherent, calm editor surface. */
+.react-production-shell .passenger-booking-guests.ce-editor-card {
+  background: #f3f8fb !important;
+  border: 1px solid #b9d3df !important;
+  border-radius: 1.15rem !important;
+  box-shadow: 0 14px 34px rgba(15, 39, 52, 0.09) !important;
+  gap: 1.25rem !important;
+  padding: clamp(1rem, 2vw, 1.4rem) !important;
+}
+
+.react-production-shell .passenger-booking-guests .section-heading-row {
+  align-items: flex-start;
+  border-bottom: 1px solid #d4e4eb;
+  padding-bottom: 1rem;
+}
+
+.react-production-shell .passenger-booking-guests .section-heading-row h4 {
+  color: #102a3a !important;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.2rem;
+  -webkit-text-fill-color: #102a3a !important;
+}
+
+.react-production-shell .passenger-booking-guests .section-heading-row p {
+  color: #536b79 !important;
+  line-height: 1.5;
+  max-width: 48rem;
+  -webkit-text-fill-color: #536b79 !important;
+}
+
+.react-production-shell .passenger-booking-guests .secondary-action-button {
+  align-self: center;
+  min-height: 2.65rem;
+  padding-inline: 1.05rem !important;
+  white-space: nowrap;
+}
+
+.react-production-shell .passenger-booking-guest-card.ce-editor-card {
+  background: #ffffff !important;
+  border: 1px solid #c9dce5 !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 8px 22px rgba(15, 39, 52, 0.07) !important;
+  gap: 1rem !important;
+  min-width: 0;
+  padding: 1.15rem !important;
+}
+
+.react-production-shell .passenger-booking-guest-card.ce-editor-card legend {
+  background: #ffffff;
+  border: 1px solid #c9dce5;
+  border-radius: 999px;
+  color: #123247 !important;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  margin-left: 0.25rem;
+  padding: 0.34rem 0.75rem;
+  -webkit-text-fill-color: #123247 !important;
+}
+
+.react-production-shell .booking-guest-card-intro {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.react-production-shell .booking-guest-card-intro strong {
+  color: #102a3a !important;
+  font-size: 1rem;
+  -webkit-text-fill-color: #102a3a !important;
+}
+
+.react-production-shell .booking-guest-card-intro span {
+  color: #607583 !important;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  -webkit-text-fill-color: #607583 !important;
+}
+
+.react-production-shell .booking-guest-fields.booking-search-grid {
+  align-items: end;
+  background: transparent !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.react-production-shell .booking-guest-source-field {
+  grid-column: 1 / -1;
+  max-width: 22rem;
+}
+
+.react-production-shell .booking-guest-source-field select:disabled {
+  background: #eef4f7 !important;
+  color: #435b69 !important;
+  cursor: default;
+  opacity: 1;
+  -webkit-text-fill-color: #435b69 !important;
+}
+
+.react-production-shell .booking-guest-finder {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.react-production-shell .booking-selected-guest-card.ce-editor-card {
+  background: linear-gradient(135deg, #eaf6fb 0%, #f6fbfd 100%) !important;
+  border: 1px solid #acd6e7 !important;
+  border-left: 0.3rem solid #1685a6 !important;
+  border-radius: 0.9rem !important;
+  box-shadow: none !important;
+  display: grid;
+  gap: 0.25rem;
+  min-height: 0;
+  padding: 1rem 1.1rem !important;
+}
+
+.react-production-shell .booking-selected-guest-card .booking-selected-guest-label {
+  color: #28718d !important;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  -webkit-text-fill-color: #28718d !important;
+}
+
+.react-production-shell .booking-selected-guest-card strong {
+  color: #102a3a !important;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+  -webkit-text-fill-color: #102a3a !important;
+}
+
+.react-production-shell .booking-selected-guest-card > span:last-child {
+  color: #516b79 !important;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+  text-transform: none;
+  -webkit-text-fill-color: #516b79 !important;
+}
+
+.react-production-shell .passenger-booking-guest-card :is(input, select) {
+  min-height: 2.85rem;
+}
+
+.react-production-shell .passenger-booking-guest-card label > span {
+  color: #425d6c !important;
+  font-size: 0.74rem;
+  letter-spacing: 0.055em;
+  -webkit-text-fill-color: #425d6c !important;
+}
+
+.react-production-shell .passenger-booking-guest-card .danger-outline-button {
+  margin-top: 0.15rem;
+}
+
+@media (max-width: 760px) {
+  .react-production-shell .booking-guest-fields.booking-search-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .react-production-shell .booking-guest-source-field {
+    max-width: none;
+  }
+}

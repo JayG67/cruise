@@ -67,7 +67,36 @@ Before a public presentation or production-style deployment, use the in-app Qual
 - User-facing language presents a real cruise operations product, not the internal development process.
 - Automated and manual checks both support approval.
 
-Current engineering phase: Data Architecture Hardening with normalized users/roles, operational ownership attribution, and shared audit-history payload contracts underway. Completed hardening now includes production query indexes, shared reference-data contracts, database `CHECK` constraints, typed date/time migration bridge columns, normalized user/role bridge tables, core entity UUID/timestamp bridges, passenger self-service persistence, and passenger before/after audit-history payload consistency. The next data-hardening passes should continue turning display-name and edge workflow relationships into durable IDs, deepen turnaround before/after audit consistency, introduce multi-cruise-line tenancy, and eventually move application writes fully onto typed temporal columns. See [docs/data-architecture-hardening.md](docs/data-architecture-hardening.md).
+Current engineering status: The React architecture refactor, CSS architecture refactor, production deployment hardening, repository hygiene, release-source auditing, and production dependency auditing are complete. The active engineering phase is now Data Architecture Hardening with normalized users/roles, operational ownership attribution, and shared audit-history payload contracts underway. Completed hardening now includes production query indexes, shared reference-data contracts, database `CHECK` constraints, typed date/time migration bridge columns, normalized user/role bridge tables, core entity UUID/timestamp bridges, passenger self-service persistence, and passenger before/after audit-history payload consistency. The next data-hardening passes should continue turning display-name and edge workflow relationships into durable IDs, deepen turnaround before/after audit consistency, introduce multi-cruise-line tenancy, and eventually move application writes fully onto typed temporal columns. See [docs/data-architecture-hardening.md](docs/data-architecture-hardening.md).
+
+
+
+## 🎨 CSS Architecture
+
+The CSS architecture refactor is complete. The application now uses a layered design system built around shared tokens, themes, layout primitives, utilities, and reusable component styling. The remaining work is limited to incremental cleanup during feature development rather than additional architectural restructuring.
+
+Completed foundation work includes:
+
+- Shared command-center color tokens, spacing tokens, radius tokens, shadows, focus rings, and transition timing
+- Reusable command panels, command cards, editor cards, action rows, primary/secondary/danger buttons, status pills, field grids, field labels, and empty states
+- Broad React surface mapping for the production shell, workspaces, admin areas, fleet panels, role dashboards, passenger workflows, quality console, and turnaround operations panels
+- Operational form and textarea contracts that preserve readable controls across desktop, tablet, and mobile Cypress/Playwright coverage
+- Automated CSS foundation auditing through `npm run css:foundation:audit`
+- Legacy retirement inventory auditing through `npm run css:legacy:audit`
+- Selector actionability hardening so passenger, group leader, and turnaround person cards use visible clickable elements instead of hidden overlay anchors
+- Shared `ce-selector-card` contracts for all role/person selection cards, reducing another legacy selector group from `app.css`
+
+### Legacy CSS Status
+
+`app.css` remains as a compatibility layer for a small number of legacy selectors. New development should not add styles to this file. It is now a legacy compatibility layer, but the project still has static tests and historical route selectors that reference it directly. The safe removal path is:
+
+1. Keep `app.css` imported before `design-system.css` while compatibility selectors remain.
+2. Move remaining app-specific contracts and tests from `app.css` expectations to `design-system.css` or component-level `ce-*` class expectations.
+3. Reduce `app.css` to only selectors that are proven to still affect runtime UI.
+4. Delete verified-dead legacy selector groups in small tested batches.
+5. Remove the `app.css` import only after `npm run css:legacy:audit`, `npm run react:production:complete`, and `npm run test:all` no longer report direct dependencies on the legacy file.
+
+For now, `design-system.css` is the source of truth for new styling, and `app.css` should be treated as read-only compatibility code.
 
 ## ✨ Current Application Features
 
@@ -353,6 +382,10 @@ Playwright validates:
 ### Performance and Quality Gates
 
 The project includes:
+- Production deployment audit
+- Production dependency audit
+- Release source audit
+- Repository hygiene audit
 
 - Lighthouse CI
 - k6 performance smoke checks
@@ -540,10 +573,32 @@ It highlights:
 - Responsive UI validation
 - API and database validation
 - Negative-path testing
-- Production deployment awareness
+- Production deployment readiness
+- Enterprise architecture
+- Release governance
 - Recruiter-friendly documentation
 
 ---
+
+
+---
+
+## 🏗️ Current Architecture Status
+
+Major architectural initiatives completed:
+
+- ✅ React domain decomposition
+- ✅ Fleet domain decomposition
+- ✅ Operations domain decomposition
+- ✅ Passenger domain decomposition
+- ✅ Customer & Booking administration decomposition
+- ✅ CSS architecture refactor
+- ✅ Production deployment hardening
+- ✅ Production dependency auditing
+- ✅ Release source auditing
+- ✅ Repository hygiene enforcement
+
+The next major engineering initiative is focused on data architecture hardening, durable identifiers, multi-tenant preparation, and continued audit-history expansion rather than UI restructuring.
 
 ## 🧭 Future Roadmap
 

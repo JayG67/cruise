@@ -1,6 +1,8 @@
 const request = require('supertest')
 
 const app = require('../../app')
+const db = require('../../db')
+const { sailingTable } = require('../../models')
 const initializeDatabase = require('../../services/initializeDatabase.service')
 const loadCruiseData = require('../../services/loadCruiseData.service')
 
@@ -69,25 +71,10 @@ function sailingsDoNotOverlap(firstSailing, secondSailing) {
 }
 
 async function getNonOverlappingSeededSailing(referenceSailing) {
-  const cruiseRes = await request(app).get('/cruise')
-  expect(cruiseRes.statusCode).toBe(200)
-
-  const candidates = []
-
-  for (const cruiseLine of cruiseRes.body) {
-    const shipsRes = await request(app).get(`/cruise/ships/${cruiseLine.id}`)
-
-    if (shipsRes.statusCode !== 200) continue
-
-    for (const ship of shipsRes.body) {
-      const sailingsRes = await request(app).get(`/cruise/ship/${ship.id}/sailings`)
-
-      if (sailingsRes.statusCode !== 200) continue
-
-      candidates.push(...sailingsRes.body)
-    }
-  }
-
+  // This helper prepares test data; it does not exercise the sailings API.
+  // Read the seeded candidates in one database query so the overlap PATCH
+  // contract remains deterministic even when the full integration suite is busy.
+  const candidates = await db.select().from(sailingTable)
   const candidate = candidates.find(sailing =>
     sailing.id !== referenceSailing.id && sailingsDoNotOverlap(referenceSailing, sailing)
   )

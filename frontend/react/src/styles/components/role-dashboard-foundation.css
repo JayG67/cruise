@@ -1,0 +1,130 @@
+/* Role dashboard foundation and reusable command/editor primitive alignment. */
+
+/*
+  CSS Foundation Refactor - Phase 4.
+
+  This slice migrates the role dashboard and turnaround operations workspace onto
+  the reusable foundation primitives. Passenger, group leader, and operational
+  role surfaces now share the same command panel, command card, and editor card
+  contracts instead of relying on one-off role/workstream selectors.
+*/
+
+.react-production-shell .react-role-dashboard.ce-command-panel {
+  padding: clamp(var(--ce-space-4), 3vw, var(--ce-space-6));
+}
+
+.react-production-shell .react-role-dashboard.ce-command-panel > p:not(.eyebrow) {
+  color: var(--ce-command-text-muted) !important;
+  -webkit-text-fill-color: var(--ce-command-text-muted) !important;
+  max-width: 82ch;
+}
+
+.react-production-shell :is(
+  .role-booking-card.ce-command-card,
+  .role-profile-card.ce-command-card,
+  .role-booking-detail-panel.ce-command-card,
+  .role-itinerary-panel.ce-command-card,
+  .operations-portfolio-board.ce-command-panel,
+  .operations-release-board.ce-command-panel,
+  .operations-role-brief-panel.ce-command-panel,
+  .operations-directory-panel.ce-command-panel,
+  .operations-workspace-shell.ce-command-panel,
+  .operational-turnaround-panel.ce-command-panel
+) {
+  padding: clamp(var(--ce-space-4), 2vw, var(--ce-space-5));
+}
+
+.react-production-shell :is(
+  .role-detail-card.ce-editor-card,
+  .role-itinerary-day.ce-editor-card,
+  .passenger-profile-form.ce-editor-card,
+  .operational-command-form.ce-editor-card,
+  .operational-signoff-form.ce-editor-card,
+  .operational-staffing-form.ce-editor-card,
+  .operational-task-create-form.ce-editor-card,
+  .operational-task-detail-form.ce-editor-card,
+  .operational-task-update-form.ce-editor-card,
+  .operational-escalation-create-form.ce-editor-card,
+  .operational-escalation-update-form.ce-editor-card,
+  .operational-handoff-form.ce-editor-card
+) {
+  padding: var(--ce-space-4);
+}
+
+.react-production-shell :is(
+  .operations-directory-card.ce-command-card,
+  .operations-role-brief-card.ce-command-card,
+  .operations-lifecycle-phase.ce-command-card
+) {
+  appearance: none;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  width: 100%;
+}
+
+.react-production-shell :is(
+  .operations-directory-card.ce-command-card,
+  .operations-role-brief-card.ce-command-card,
+  .operations-lifecycle-phase.ce-command-card
+):hover {
+  border-color: var(--ce-command-border-strong) !important;
+  box-shadow: var(--ce-shadow-card-strong) !important;
+}
+
+.react-production-shell :is(
+  .operations-directory-card.ce-command-card,
+  .operations-role-brief-card.ce-command-card,
+  .operations-lifecycle-phase.ce-command-card
+):focus-visible {
+  outline: 3px solid var(--ce-command-focus) !important;
+  outline-offset: 3px !important;
+}
+
+.react-production-shell .role-booking-fields div,
+.react-production-shell .operations-directory-metrics div,
+.react-production-shell .operational-task-detail-list div,
+.react-production-shell .operational-metric-grid div {
+  background: rgba(158, 231, 255, 0.1) !important;
+  border: 1px solid var(--ce-command-border) !important;
+  border-radius: var(--ce-radius-card-sm) !important;
+}
+
+.react-production-shell .ce-editor-card .role-booking-fields div,
+.react-production-shell .ce-editor-card .operational-task-detail-list div {
+  background: var(--ce-data-surface-strong) !important;
+  border: 1px solid var(--ce-data-border) !important;
+}
+
+.react-production-shell :is(
+  .role-booking-list,
+  .role-booking-detail-grid,
+  .role-itinerary-list,
+  .operations-portfolio-list,
+  .operations-directory-layout,
+  .operations-readiness-list,
+  .operational-readiness-list
+) {
+  gap: var(--ce-space-4) !important;
+}
+
+/* Cypress stability fix: editor textareas must remain comfortably readable after
+   the reusable editor-card controls layer applies the shared input min-height. */
+.react-production-shell .ce-editor-card textarea,
+.react-production-shell :is(
+  .operational-command-form.ce-editor-card,
+  .operational-signoff-form.ce-editor-card,
+  .operational-task-create-form.ce-editor-card,
+  .operational-task-detail-form.ce-editor-card,
+  .operational-task-update-form.ce-editor-card,
+  .operational-staffing-form.ce-editor-card,
+  .operational-escalation-create-form.ce-editor-card,
+  .operational-escalation-update-form.ce-editor-card,
+  .operational-handoff-form.ce-editor-card
+) textarea {
+  line-height: 1.35 !important;
+  min-height: 5.8rem !important;
+  overflow-wrap: break-word !important;
+  white-space: pre-wrap !important;
+}
+

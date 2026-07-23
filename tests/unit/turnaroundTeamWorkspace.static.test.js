@@ -7,10 +7,29 @@ function read(relativePath) {
   return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
 }
 
+function readCssBundle(relativePath, seen = new Set()) {
+  const absolutePath = path.join(projectRoot, relativePath)
+
+  if (seen.has(absolutePath)) {
+    return ''
+  }
+
+  seen.add(absolutePath)
+
+  const source = fs.readFileSync(absolutePath, 'utf8')
+  const directory = path.dirname(absolutePath)
+  const imports = [...source.matchAll(/@import\s+['"]([^'"]+)['"];?/g)]
+
+  return [
+    source,
+    ...imports.map(([, importPath]) => readCssBundle(path.relative(projectRoot, path.join(directory, importPath)), seen))
+  ].join('\n')
+}
+
 describe('turnaround team workspace static contracts', () => {
   it('promotes the cruise-line to ship to sailing to team workflow as the primary staffing workspace', () => {
     const component = read('frontend/react/src/components/ReactTurnaroundAdminSetup.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
+    const styles = readCssBundle('frontend/react/src/styles/index.css')
 
     expect(component).toContain('buildTurnaroundTeamWorkspace')
     expect(component).toContain('data-testid="react-turnaround-team-workspace"')
@@ -26,7 +45,7 @@ describe('turnaround team workspace static contracts', () => {
 
   it('adds role-by-role coverage controls for filling and clearing the selected turnaround team', () => {
     const component = read('frontend/react/src/components/ReactTurnaroundAdminSetup.jsx')
-    const styles = read('frontend/react/src/styles/app.css')
+    const styles = readCssBundle('frontend/react/src/styles/index.css')
 
     expect(component).toContain('data-testid="react-turnaround-admin-role-coverage"')
     expect(component).toContain('data-testid="react-turnaround-admin-role-card"')

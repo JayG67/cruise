@@ -1,0 +1,67 @@
+/* Application workflow controls and summaries. */
+
+/* Operations workflow controls. */
+.workflow-step-list li {
+  padding: 0;
+}
+
+.workflow-step-button {
+  appearance: none;
+  background: #ffffff;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: grid;
+  gap: 0.65rem;
+  height: 100%;
+  min-height: 132px;
+  padding: 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.workflow-step-button:hover {
+  box-shadow: inset 0 0 0 2px #8ec9df;
+}
+
+.workflow-step-button:focus-visible {
+  outline: 4px solid #ffbf47;
+  outline-offset: 4px;
+}
+
+.admin-workflow-summary-card {
+  align-items: center;
+  background: linear-gradient(135deg, #ffffff, #eef8fb);
+  border: 1px solid #d8e2ef;
+  border-radius: 1rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
+.primary-action-button {
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0b6fa4, #12a4b6);
+  box-shadow: 0 12px 24px rgba(7, 24, 39, 0.16);
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 900;
+  min-height: 42px;
+  padding: 0.65rem 1rem;
+}
+
+.primary-action-button:focus-visible {
+  outline: 4px solid #ffbf47;
+  outline-offset: 4px;
+}
+
+@media (max-width: 720px) {
+  .admin-workflow-summary-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+

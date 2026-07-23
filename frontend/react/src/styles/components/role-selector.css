@@ -1,0 +1,7 @@
+/* role-selector.css aggregate.
+   This file intentionally contains only imports so the component layer is split by responsibility while legacy static contracts can still reference this layer. */
+
+@import './role-selector-person-finder.css';
+@import './role-selector-passenger-finder.css';
+@import './role-selector-operational-actions.css';
+@import './role-selector-layouts.css';

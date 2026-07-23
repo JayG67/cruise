@@ -1,0 +1,12 @@
+/*
+  Admin workspace aggregate.
+
+  Admin CSS is split by product responsibility while preserving the existing
+  admin-workspaces import contract used by the application and CSS audits.
+*/
+
+@import './admin-shell.css';
+@import './admin-fleet.css';
+@import './admin-turnaround.css';
+@import './admin-create.css';
+@import './admin-quality.css';

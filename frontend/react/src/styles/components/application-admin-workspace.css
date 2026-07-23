@@ -1,0 +1,189 @@
+/* React admin workspace layout, search, and tables. */
+
+/* Admin workspace layout. */
+.react-admin-workspace {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 1.5rem auto;
+}
+
+.react-admin-heading {
+  margin: 0 0 1rem;
+}
+
+.react-admin-heading h2 {
+  font-size: clamp(1.9rem, 4vw, 2.7rem);
+}
+
+.react-admin-heading p:not(.eyebrow) {
+  color: #38556e;
+  margin: 0;
+}
+
+.react-admin-management-card {
+  border: 1px solid #cfe3ee;
+  border-radius: 1.35rem;
+  background: linear-gradient(145deg, #ffffff, #f2fbff);
+  box-shadow: 0 18px 44px rgba(7, 24, 39, 0.08);
+  padding: clamp(1rem, 3vw, 1.35rem);
+}
+
+.react-admin-card-heading {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.react-admin-card-heading h3 {
+  font-size: clamp(1.25rem, 3vw, 1.7rem);
+  margin: 0 0 0.35rem;
+}
+
+.react-admin-card-heading p:not(.eyebrow) {
+  color: #38556e;
+  margin: 0;
+}
+
+.react-admin-stat-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}
+
+.react-admin-stat-pills span,
+.linked-booking-pill {
+  background: #dff7ff;
+  border-radius: 999px;
+  color: #0b5f94;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 0.35rem 0.65rem;
+}
+
+.react-admin-search {
+  margin-top: 1rem;
+}
+
+.react-admin-search input {
+  background: #ffffff;
+  border-color: #dbe8f1;
+}
+
+.react-admin-workflow-bar {
+  align-items: center;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin-top: 1rem;
+}
+
+.primary-action-button {
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0b6fa4, #12a4b6);
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 900;
+  padding: 0.7rem 1rem;
+}
+
+.primary-action-button:focus-visible {
+  outline: 4px solid #ffbf47;
+  outline-offset: 4px;
+}
+
+.react-admin-table-wrap {
+  border: 1px solid #d7e6f0;
+  border-radius: 1rem;
+  background: #ffffff;
+  margin-top: 1rem;
+  overflow: hidden;
+}
+
+.react-admin-table-heading {
+  align-items: center;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 420px);
+  padding: 0.85rem 1rem;
+}
+
+.react-admin-table-heading span {
+  color: #52677c;
+  font-weight: 800;
+}
+
+.react-admin-table-scroll {
+  margin-top: 0;
+  max-height: 480px;
+  overflow: auto;
+}
+
+.react-admin-table {
+  min-width: 980px;
+}
+
+.react-admin-table caption {
+  background: #f7fbff;
+  color: #40576f;
+  font-weight: 800;
+  padding: 0.85rem 1rem;
+}
+
+.react-admin-table th {
+  background: #dff3fb;
+  color: #0b5f94;
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.react-admin-table td {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.customer-disclosure-button {
+  color: #071827;
+  white-space: nowrap;
+}
+
+.compact-action-button {
+  padding: 0.5rem 0.8rem;
+}
+
+@media (max-width: 760px) {
+  .react-admin-card-heading,
+  .react-admin-workflow-bar,
+  .react-admin-table-heading {
+    grid-template-columns: 1fr;
+  }
+
+  .react-admin-stat-pills {
+    justify-content: flex-start;
+  }
+}
+
+
+/* Shared admin workflow summary/action bar. */
+.react-admin-workflow-bar {
+  background: linear-gradient(135deg, #0a2f4d 0%, #123f62 58%, #0b3353 100%);
+  border: 1px solid rgba(125, 211, 252, 0.38);
+  border-radius: 1rem;
+  box-shadow: 0 12px 28px rgba(7, 24, 39, 0.16);
+  padding: 0.8rem 0.9rem;
+  overflow: hidden;
+}
+
+.react-admin-workflow-bar .result-summary {
+  color: #d8f3ff !important;
+  -webkit-text-fill-color: #d8f3ff !important;
+  line-height: 1.45;
+}
+
+.react-admin-workflow-bar .primary-action-button {
+  border: 1px solid rgba(191, 230, 255, 0.5);
+  box-shadow: 0 8px 20px rgba(3, 105, 161, 0.24);
+  white-space: nowrap;
+}

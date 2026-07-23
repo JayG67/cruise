@@ -1,0 +1,37 @@
+/*
+  Operations continuity and reviewer-detail panels.
+
+  CSS Foundation Refactor Slice 37.
+
+  Owns the lower operational role dashboard detail stack split from
+  operations-dashboard.css: reviewer packet layouts, outreach/detail boards,
+  scenario plan panels, and the shared dark lower-panel treatment. Keeping
+  these selectors isolated makes the core dashboard motif easier to review.
+*/
+
+/* Build 479 - remove reviewer/system-readiness packet from employer-facing UI.
+   This panel described application/reviewer/system readiness and is intentionally
+   not part of the live product UI. */
+.react-role-dashboard .operations-reviewer-packet,
+.react-role-dashboard [data-testid="react-operations-reviewer-packet"],
+.react-role-dashboard [data-testid^="react-operations-reviewer-packet"] {
+  display: none !important;
+}
+
+
+/* Build 480 - remove development/management-status panel from employer-facing UI.
+   The turnaround management status section describes production-demo/application
+   readiness and must not appear in the live portfolio product surface. */
+.react-role-dashboard .operations-management-status,
+.react-role-dashboard [data-testid="react-operations-management-status"],
+.react-role-dashboard [data-testid^="react-operations-management"] {
+  display: none !important;
+}
+
+
+/* Build 481 - launch plan panel removed from employer-facing UI */
+.react-role-dashboard .operations-launch-plan,
+.react-role-dashboard [data-testid="react-operations-launch-plan"],
+.react-role-dashboard [data-testid^="react-operations-launch"] {
+  display: none !important;
+}

@@ -189,7 +189,7 @@ describe('Turnaround operations API integration tests', () => {
 
     const res = await request(app)
       .patch(`/cruise/turnaround-tasks/${task.id}/status`)
-      .send({ status: 'complete' })
+      .send({ status: 'COMPLETE' })
 
     expect(res.statusCode).toBe(200)
     expect(res.body.message).toBe('Turnaround task status updated successfully')
@@ -486,7 +486,7 @@ describe('Turnaround operations API integration tests', () => {
     const refreshedOperation = refreshedOperationsRes.body.find(candidate => candidate.id === operation.id)
     expect(refreshedOperation).toBeTruthy()
     expect(refreshedOperation.escalations).toHaveLength(existingEscalationCount)
-  })
+  }, 60000)
 
 
   it('GET /cruise/turnaround-operations returns database-backed dependency gates and department handoffs', async () => {

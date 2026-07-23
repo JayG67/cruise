@@ -1,0 +1,695 @@
+/*
+  Application-wide contrast hardening.
+
+  This layer intentionally loads last. Earlier feature files can set layout,
+  surface, and component motifs, but this file owns the safety rule that light
+  surfaces must render dark text and dark command surfaces must keep light text.
+  It also resets -webkit-text-fill-color because that property is inherited and
+  was the root cause of white text remaining invisible on white pills/cards.
+*/
+
+:root {
+  --ce-light-surface-text: #071827;
+  --ce-light-surface-muted-text: #1f3a56;
+  --ce-light-surface-kicker-text: #075985;
+  --ce-light-surface-bg: #ffffff;
+  --ce-light-surface-soft-bg: #f8fbfe;
+  --ce-light-surface-border: #b8d5e7;
+  --ce-dark-surface-text: #ffffff;
+  --ce-dark-surface-muted-text: #b7ecff;
+}
+
+/* Light data/editing surfaces: always dark readable text. */
+:where(.react-production-shell, .react-app-shell) :where(
+  .ce-editor-card,
+  .ce-data-card,
+  .react-admin-management-card,
+  .react-admin-mutation-panel,
+  .react-admin-record-selector,
+  .admin-delete-selector-card,
+  .react-admin-table-wrap,
+  .react-admin-stat-pills span,
+  .linked-booking-pill,
+  .create-workflow-pill,
+  .console-status,
+  .status-pill,
+  .quality-status-pill,
+  .presentation-metric-grid article,
+  .presentation-suite-metric,
+  .presentation-line-picker,
+  .presentation-flow-card,
+  .presentation-detail-card,
+  .presentation-commercial-card,
+  .presentation-calendar-card,
+  .presentation-operator-card,
+  .presentation-sailing-row,
+  .presentation-port-plan,
+  .presentation-close-plan,
+  .presentation-activity-list,
+  .presentation-manifest-row,
+  .presentation-guest-card,
+  .query-status-card,
+  .status-card,
+  .quality-gate-card,
+  .launch-card,
+  .coverage-card,
+  .handoff-item,
+  .fleet-card,
+  .ship-card,
+  .sailing-card,
+  .itinerary-card,
+  .role-booking-card,
+  .role-profile-card,
+  .role-booking-detail-panel,
+  .role-itinerary-panel
+) {
+  color: var(--ce-light-surface-text) !important;
+  -webkit-text-fill-color: var(--ce-light-surface-text) !important;
+  text-shadow: none !important;
+}
+
+:where(.react-production-shell, .react-app-shell) :where(
+  .ce-editor-card,
+  .ce-data-card,
+  .react-admin-management-card,
+  .react-admin-mutation-panel,
+  .react-admin-record-selector,
+  .admin-delete-selector-card,
+  .react-admin-table-wrap,
+  .presentation-line-picker,
+  .presentation-flow-card,
+  .presentation-detail-card,
+  .presentation-commercial-card,
+  .presentation-calendar-card,
+  .presentation-operator-card,
+  .presentation-sailing-row,
+  .presentation-port-plan,
+  .presentation-close-plan,
+  .presentation-activity-list,
+  .presentation-manifest-row,
+  .presentation-guest-card,
+  .query-status-card,
+  .status-card,
+  .quality-gate-card,
+  .launch-card,
+  .coverage-card,
+  .handoff-item,
+  .fleet-card,
+  .ship-card,
+  .sailing-card,
+  .itinerary-card,
+  .role-booking-card,
+  .role-profile-card,
+  .role-booking-detail-panel,
+  .role-itinerary-panel
+) :where(h1, h2, h3, h4, h5, h6, p, li, span, strong, em, small, label, legend, dt, dd, th, td, caption, output) {
+  color: var(--ce-light-surface-text) !important;
+  -webkit-text-fill-color: var(--ce-light-surface-text) !important;
+  text-shadow: none !important;
+}
+
+:where(.react-production-shell, .react-app-shell) :where(
+  .ce-editor-card,
+  .ce-data-card,
+  .react-admin-management-card,
+  .react-admin-mutation-panel,
+  .react-admin-record-selector,
+  .admin-delete-selector-card,
+  .react-admin-table-wrap,
+  .presentation-line-picker,
+  .presentation-flow-card,
+  .presentation-detail-card,
+  .presentation-commercial-card,
+  .presentation-calendar-card,
+  .presentation-operator-card,
+  .presentation-sailing-row,
+  .presentation-port-plan,
+  .presentation-close-plan,
+  .presentation-activity-list,
+  .presentation-manifest-row,
+  .presentation-guest-card,
+  .query-status-card,
+  .status-card,
+  .quality-gate-card,
+  .launch-card,
+  .coverage-card,
+  .handoff-item,
+  .fleet-card,
+  .ship-card,
+  .sailing-card,
+  .itinerary-card,
+  .role-booking-card,
+  .role-profile-card,
+  .role-booking-detail-panel,
+  .role-itinerary-panel
+) :where(.muted, .ce-muted, .section-summary, small, p:not(.eyebrow)) {
+  color: var(--ce-light-surface-muted-text) !important;
+  -webkit-text-fill-color: var(--ce-light-surface-muted-text) !important;
+}
+
+:where(.react-production-shell, .react-app-shell) :where(
+  .ce-editor-card,
+  .ce-data-card,
+  .react-admin-management-card,
+  .react-admin-mutation-panel,
+  .react-admin-record-selector,
+  .admin-delete-selector-card,
+  .react-admin-table-wrap,
+  .presentation-line-picker,
+  .presentation-flow-card,
+  .presentation-detail-card,
+  .presentation-commercial-card,
+  .presentation-calendar-card,
+  .presentation-operator-card,
+  .presentation-sailing-row,
+  .presentation-port-plan,
+  .presentation-close-plan,
+  .presentation-activity-list,
+  .presentation-manifest-row,
+  .presentation-guest-card,
+  .query-status-card,
+  .status-card,
+  .quality-gate-card,
+  .launch-card,
+  .coverage-card,
+  .handoff-item,
+  .fleet-card,
+  .ship-card,
+  .sailing-card,
+  .itinerary-card,
+  .role-booking-card,
+  .role-profile-card,
+  .role-booking-detail-panel,
+  .role-itinerary-panel
+) :where(.eyebrow, .ce-kicker, dt, label > span) {
+  color: var(--ce-light-surface-kicker-text) !important;
+  -webkit-text-fill-color: var(--ce-light-surface-kicker-text) !important;
+}
+
+/* Light pills and metric tiles: the exact failure shown in the admin screenshots. */
+:where(.react-production-shell, .react-app-shell) :where(
+  .react-admin-stat-pills span,
+  .linked-booking-pill,
+  .create-workflow-pill,
+  .status-pill,
+  .quality-status-pill,
+  .console-status,
+  .presentation-metric-grid article,
+  .presentation-suite-metric
+),
+:where(.react-production-shell, .react-app-shell) :where(
+  .react-admin-stat-pills span,
+  .linked-booking-pill,
+  .create-workflow-pill,
+  .status-pill,
+  .quality-status-pill,
+  .console-status,
+  .presentation-metric-grid article,
+  .presentation-suite-metric
+) :where(*) {
+  background-color: var(--ce-light-surface-bg) !important;
+  color: var(--ce-light-surface-text) !important;
+  -webkit-text-fill-color: var(--ce-light-surface-text) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:where(.react-production-shell, .react-app-shell) :where(.presentation-metric-grid article) {
+  align-items: start !important;
+  display: grid !important;
+  gap: 0.25rem !important;
+  min-inline-size: 0 !important;
+  overflow: visible !important;
+}
+
+:where(.react-production-shell, .react-app-shell) :where(.presentation-metric-grid article span, .presentation-metric-grid article strong) {
+  display: block !important;
+  line-height: 1.2 !important;
+  overflow-wrap: anywhere !important;
+  white-space: normal !important;
+}
+
+/* Form controls on light surfaces must never inherit command-surface white text. */
+:where(.react-production-shell, .react-app-shell) :where(input, select, textarea) {
+  color: var(--ce-light-surface-text) !important;
+  -webkit-text-fill-color: var(--ce-light-surface-text) !important;
+  text-shadow: none !important;
+}
+
+:where(.react-production-shell, .react-app-shell) :where(input::placeholder, textarea::placeholder) {
+  color: #64748b !important;
+  -webkit-text-fill-color: #64748b !important;
+  opacity: 1 !important;
+}
+
+/* Keep intentional dark action buttons readable after the light-surface reset. */
+:where(.react-production-shell, .react-app-shell) :where(
+  .primary-action-button,
+  .fleet-primary-action,
+  .sqa-action-button,
+  .react-sqa-action-card button,
+  button.ce-button-primary,
+  button:not(.secondary-action-button):not(.fleet-danger-action):not([aria-label])
+) {
+  color: var(--ce-dark-surface-text) !important;
+  -webkit-text-fill-color: var(--ce-dark-surface-text) !important;
+}
+
+:where(.react-production-shell, .react-app-shell) :where(
+  .secondary-action-button,
+  .secondary-button,
+  .ce-button-secondary,
+  button[type='reset'],
+  .fleet-danger-action
+) {
+  color: #075985 !important;
+  -webkit-text-fill-color: #075985 !important;
+}
+
+/* Dark command panels: preserve high contrast for dark backgrounds. */
+:where(.react-production-shell, .react-app-shell) :where(
+  .ce-command-panel,
+  .ce-command-card:not(.ce-editor-card):not(.presentation-hero-card):not(.presentation-flow-card):not(.presentation-detail-card):not(.presentation-commercial-card):not(.presentation-calendar-card):not(.presentation-operator-card):not(.role-booking-card):not(.role-profile-card):not(.role-booking-detail-panel):not(.role-itinerary-panel),
+  .react-role-dashboard,
+  .operational-turnaround-panel,
+  .operations-dashboard-shell
+) {
+  color: var(--ce-dark-surface-text);
+}
+
+:where(.react-production-shell, .react-app-shell) :where(
+  .ce-command-panel,
+  .ce-command-card:not(.ce-editor-card):not(.presentation-hero-card):not(.presentation-flow-card):not(.presentation-detail-card):not(.presentation-commercial-card):not(.presentation-calendar-card):not(.presentation-operator-card):not(.role-booking-card):not(.role-profile-card):not(.role-booking-detail-panel):not(.role-itinerary-panel),
+  .react-role-dashboard,
+  .operational-turnaround-panel,
+  .operations-dashboard-shell
+) > :where(h1, h2, h3, h4, h5, h6, p, li, span, strong, small, label, legend, dt, dd) {
+  color: inherit;
+  -webkit-text-fill-color: currentColor;
+}
+
+
+/*
+  Build 282 contrast safety net.
+
+  The production application root is .react-production-shell. Earlier hardening
+  targeted the legacy .react-app-shell alias, which left the live UI unprotected.
+  These final rules deliberately bind to the live root and the legacy alias so
+  light pills, metric cards, count rows, and white editing surfaces cannot inherit
+  command-surface white text or text-fill again.
+*/
+:where(.react-production-shell, .react-app-shell) :where(
+  .react-admin-stat-pills span,
+  .linked-booking-pill,
+  .create-workflow-pill,
+  .console-status,
+  .status-pill,
+  .quality-status-pill,
+  .presentation-metric-grid article,
+  .presentation-suite-metric,
+  .presentation-metric-grid article span,
+  .presentation-metric-grid article strong,
+  .presentation-suite-metric span,
+  .presentation-suite-metric strong
+) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  border-color: #bfd7e8 !important;
+  color: #071827 !important;
+  -webkit-text-fill-color: #071827 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:where(.react-production-shell, .react-app-shell) :where(
+  .react-admin-stat-pills,
+  .presentation-metric-grid,
+  .presentation-suite-metric
+) :where(span, strong, em, small, b) {
+  color: #071827 !important;
+  -webkit-text-fill-color: #071827 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+:where(.react-production-shell, .react-app-shell) :where(.react-admin-stat-pills span) {
+  align-items: center !important;
+  display: inline-flex !important;
+  min-height: 2rem !important;
+  padding: 0.35rem 0.75rem !important;
+  white-space: normal !important;
+}
+
+:where(.react-production-shell, .react-app-shell) :where(.presentation-metric-grid article) {
+  align-items: start !important;
+  display: grid !important;
+  gap: 0.15rem !important;
+  justify-items: start !important;
+  min-inline-size: 0 !important;
+  overflow: visible !important;
+  padding: 0.65rem 0.8rem !important;
+  white-space: normal !important;
+}
+
+:where(.react-production-shell, .react-app-shell) :where(.presentation-metric-grid article span, .presentation-metric-grid article strong) {
+  display: inline !important;
+  line-height: 1.25 !important;
+  max-inline-size: 100% !important;
+  overflow: visible !important;
+  overflow-wrap: anywhere !important;
+  white-space: normal !important;
+}
+
+/* Pale/white descendants anywhere in the production shell must carry dark text. */
+:where(.react-production-shell, .react-app-shell) :where(
+  [class*="pill"],
+  [class*="metric"],
+  [class*="badge"],
+  [class*="status"],
+  [class*="card"],
+  [class*="tile"],
+  [class*="row"]
+) :where(span, strong, small, em, b) {
+  opacity: 1 !important;
+}
+
+/*
+  Build 283 audited contrast enforcement.
+
+  The earlier safety net used :where() to keep specificity low. That was not
+  strong enough because many legacy compatibility rules also use !important and
+  higher specificity. These rules intentionally use concrete production-root
+  selectors and explicit foreground/background pairs for every reusable light
+  surface pattern that can appear inside dark command panels.
+*/
+.react-production-shell .react-admin-management-card .react-admin-stat-pills span,
+.react-app-shell .react-admin-management-card .react-admin-stat-pills span,
+.react-production-shell .react-admin-stat-pills span,
+.react-app-shell .react-admin-stat-pills span,
+.react-production-shell .linked-booking-pill,
+.react-app-shell .linked-booking-pill,
+.react-production-shell .create-workflow-pill,
+.react-app-shell .create-workflow-pill,
+.react-production-shell .console-status,
+.react-app-shell .console-status,
+.react-production-shell .status-pill,
+.react-app-shell .status-pill,
+.react-production-shell .quality-status-pill,
+.react-app-shell .quality-status-pill,
+.react-production-shell .finder-limit-note,
+.react-app-shell .finder-limit-note {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  border-color: #bfd7e8 !important;
+  color: #071827 !important;
+  -webkit-text-fill-color: #071827 !important;
+  caret-color: #071827 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-production-shell .react-admin-management-card .react-admin-stat-pills span *,
+.react-app-shell .react-admin-management-card .react-admin-stat-pills span *,
+.react-production-shell .react-admin-stat-pills span *,
+.react-app-shell .react-admin-stat-pills span *,
+.react-production-shell .linked-booking-pill *,
+.react-app-shell .linked-booking-pill *,
+.react-production-shell .create-workflow-pill *,
+.react-app-shell .create-workflow-pill *,
+.react-production-shell .console-status *,
+.react-app-shell .console-status *,
+.react-production-shell .status-pill *,
+.react-app-shell .status-pill *,
+.react-production-shell .quality-status-pill *,
+.react-app-shell .quality-status-pill *,
+.react-production-shell .finder-limit-note *,
+.react-app-shell .finder-limit-note * {
+  color: #071827 !important;
+  -webkit-text-fill-color: #071827 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-production-shell .cruise-line-presentation-suite .presentation-hero-card .presentation-metric-grid article,
+.react-app-shell .cruise-line-presentation-suite .presentation-hero-card .presentation-metric-grid article,
+.react-production-shell .cruise-line-presentation-suite .presentation-metric-grid article,
+.react-app-shell .cruise-line-presentation-suite .presentation-metric-grid article,
+.react-production-shell .presentation-metric-grid article,
+.react-app-shell .presentation-metric-grid article,
+.react-production-shell .presentation-suite-metric,
+.react-app-shell .presentation-suite-metric {
+  align-items: start !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  border: 1px solid #bfd7e8 !important;
+  box-shadow: none !important;
+  color: #071827 !important;
+  -webkit-text-fill-color: #071827 !important;
+  display: grid !important;
+  gap: 0.12rem !important;
+  justify-items: start !important;
+  min-block-size: 2.5rem !important;
+  min-inline-size: 0 !important;
+  opacity: 1 !important;
+  overflow: visible !important;
+  padding: 0.55rem 0.7rem !important;
+  text-shadow: none !important;
+  white-space: normal !important;
+}
+
+.react-production-shell .cruise-line-presentation-suite .presentation-hero-card .presentation-metric-grid article span,
+.react-app-shell .cruise-line-presentation-suite .presentation-hero-card .presentation-metric-grid article span,
+.react-production-shell .cruise-line-presentation-suite .presentation-hero-card .presentation-metric-grid article strong,
+.react-app-shell .cruise-line-presentation-suite .presentation-hero-card .presentation-metric-grid article strong,
+.react-production-shell .cruise-line-presentation-suite .presentation-metric-grid article span,
+.react-app-shell .cruise-line-presentation-suite .presentation-metric-grid article span,
+.react-production-shell .cruise-line-presentation-suite .presentation-metric-grid article strong,
+.react-app-shell .cruise-line-presentation-suite .presentation-metric-grid article strong,
+.react-production-shell .presentation-metric-grid article span,
+.react-app-shell .presentation-metric-grid article span,
+.react-production-shell .presentation-metric-grid article strong,
+.react-app-shell .presentation-metric-grid article strong,
+.react-production-shell .presentation-suite-metric span,
+.react-app-shell .presentation-suite-metric span,
+.react-production-shell .presentation-suite-metric strong,
+.react-app-shell .presentation-suite-metric strong {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #071827 !important;
+  -webkit-text-fill-color: #071827 !important;
+  display: inline !important;
+  line-height: 1.2 !important;
+  max-inline-size: 100% !important;
+  opacity: 1 !important;
+  overflow: visible !important;
+  overflow-wrap: anywhere !important;
+  text-shadow: none !important;
+  white-space: normal !important;
+}
+
+.react-production-shell .cruise-line-presentation-suite .presentation-metric-grid article span,
+.react-app-shell .cruise-line-presentation-suite .presentation-metric-grid article span,
+.react-production-shell .presentation-metric-grid article span,
+.react-app-shell .presentation-metric-grid article span,
+.react-production-shell .presentation-suite-metric span,
+.react-app-shell .presentation-suite-metric span {
+  color: #334155 !important;
+  -webkit-text-fill-color: #334155 !important;
+  font-weight: 800 !important;
+}
+
+.react-production-shell .cruise-line-presentation-suite .presentation-metric-grid article strong,
+.react-app-shell .cruise-line-presentation-suite .presentation-metric-grid article strong,
+.react-production-shell .presentation-metric-grid article strong,
+.react-app-shell .presentation-metric-grid article strong,
+.react-production-shell .presentation-suite-metric strong,
+.react-app-shell .presentation-suite-metric strong {
+  color: #071827 !important;
+  -webkit-text-fill-color: #071827 !important;
+  font-weight: 950 !important;
+}
+
+.react-production-shell :is(input:not([type='checkbox']):not([type='radio']), select, textarea, option),
+.react-app-shell :is(input:not([type='checkbox']):not([type='radio']), select, textarea, option),
+.react-production-shell :is(.ce-editor-card, .ce-data-card, .react-admin-table-wrap, .react-admin-mutation-panel) :is(input, select, textarea, option),
+.react-app-shell :is(.ce-editor-card, .ce-data-card, .react-admin-table-wrap, .react-admin-mutation-panel) :is(input, select, textarea, option) {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  border-color: #b8d5e7 !important;
+  color: #071827 !important;
+  -webkit-text-fill-color: #071827 !important;
+  caret-color: #071827 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-production-shell :is(input:not([type='checkbox']):not([type='radio']), textarea)::placeholder,
+.react-app-shell :is(input:not([type='checkbox']):not([type='radio']), textarea)::placeholder {
+  color: #64748b !important;
+  -webkit-text-fill-color: #64748b !important;
+  opacity: 1 !important;
+}
+
+.react-production-shell :is(.ce-editor-card, .ce-data-card, .react-admin-management-card, .react-admin-mutation-panel, .react-admin-table-wrap, .fleet-card, .ship-card, .sailing-card, .itinerary-card, .presentation-flow-card, .presentation-detail-card, .presentation-commercial-card, .presentation-calendar-card, .presentation-operator-card),
+.react-app-shell :is(.ce-editor-card, .ce-data-card, .react-admin-management-card, .react-admin-mutation-panel, .react-admin-table-wrap, .fleet-card, .ship-card, .sailing-card, .itinerary-card, .presentation-flow-card, .presentation-detail-card, .presentation-commercial-card, .presentation-calendar-card, .presentation-operator-card) {
+  color: #071827 !important;
+  -webkit-text-fill-color: #071827 !important;
+  text-shadow: none !important;
+}
+
+.react-production-shell :is(.ce-editor-card, .ce-data-card, .react-admin-management-card, .react-admin-mutation-panel, .react-admin-table-wrap, .fleet-card, .ship-card, .sailing-card, .itinerary-card, .presentation-flow-card, .presentation-detail-card, .presentation-commercial-card, .presentation-calendar-card, .presentation-operator-card) :is(h1, h2, h3, h4, h5, h6, p, li, span, strong, em, small, label, legend, dt, dd, th, td, caption, output),
+.react-app-shell :is(.ce-editor-card, .ce-data-card, .react-admin-management-card, .react-admin-mutation-panel, .react-admin-table-wrap, .fleet-card, .ship-card, .sailing-card, .itinerary-card, .presentation-flow-card, .presentation-detail-card, .presentation-commercial-card, .presentation-calendar-card, .presentation-operator-card) :is(h1, h2, h3, h4, h5, h6, p, li, span, strong, em, small, label, legend, dt, dd, th, td, caption, output) {
+  color: #071827 !important;
+  -webkit-text-fill-color: #071827 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+/*
+  Build 284 production-surface visibility regression fix.
+
+  The contrast audit corrected unreadable text, but the older admin panel layer
+  still put the SQA console inside overflow-hidden command cards. Cypress caught
+  the real UX risk: the report links and lower quality-console actions could be
+  clipped even though they were present in the DOM. Quality-console content must
+  expand naturally and keep all validation controls/reports visible.
+*/
+.react-production-shell .react-quality-section,
+.react-app-shell .react-quality-section,
+.react-production-shell .react-quality-section > section,
+.react-app-shell .react-quality-section > section,
+.react-production-shell .react-sqa-console,
+.react-app-shell .react-sqa-console,
+.react-production-shell [data-testid="react-sqa-console"],
+.react-app-shell [data-testid="react-sqa-console"] {
+  overflow: visible !important;
+  max-height: none !important;
+  min-height: auto !important;
+}
+
+.react-production-shell .react-sqa-action-grid,
+.react-app-shell .react-sqa-action-grid,
+.react-production-shell .react-sqa-action-card,
+.react-app-shell .react-sqa-action-card,
+.react-production-shell .react-sqa-report-links,
+.react-app-shell .react-sqa-report-links,
+.react-production-shell .react-sqa-output-header,
+.react-app-shell .react-sqa-output-header,
+.react-production-shell .react-sqa-output-actions,
+.react-app-shell .react-sqa-output-actions {
+  overflow: visible !important;
+  max-height: none !important;
+}
+
+.react-production-shell .react-sqa-action-card,
+.react-app-shell .react-sqa-action-card {
+  align-content: start !important;
+  grid-template-rows: auto minmax(0, 1fr) auto !important;
+  min-height: 0 !important;
+}
+
+.react-production-shell .react-sqa-action-card button,
+.react-app-shell .react-sqa-action-card button,
+.react-production-shell .react-sqa-report-links a,
+.react-app-shell .react-sqa-report-links a,
+.react-production-shell .react-sqa-output-actions button,
+.react-app-shell .react-sqa-output-actions button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 2.75rem !important;
+  overflow: visible !important;
+  white-space: normal !important;
+}
+
+.react-production-shell .react-sqa-report-links,
+.react-app-shell .react-sqa-report-links {
+  align-items: stretch !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.75rem !important;
+}
+
+
+/*
+  Surface-owned contrast context.
+
+  Text color follows the nearest rendered surface, not a distant dashboard
+  ancestor. Dark components provide light readable helper text. Light cards,
+  editors, selectors, tables, pills, and workflow surfaces reset that context
+  to dark readable text, including when nested inside dark command containers.
+*/
+:is(.react-production-shell, .react-app-shell) {
+  --ce-surface-text: var(--ce-light-surface-text);
+  --ce-surface-muted-text: var(--ce-light-surface-muted-text);
+  --ce-surface-kicker-text: var(--ce-light-surface-kicker-text);
+}
+
+:is(.react-production-shell, .react-app-shell) :is(
+  .ce-command-panel,
+  .ce-command-card,
+  .react-role-dashboard,
+  .operational-turnaround-panel,
+  .operations-dashboard-shell
+) {
+  --ce-surface-text: var(--ce-dark-surface-text);
+  --ce-surface-muted-text: var(--ce-dark-surface-muted-text);
+  --ce-surface-kicker-text: var(--ce-dark-surface-muted-text);
+}
+
+:is(.react-production-shell, .react-app-shell) :is(
+  .ce-card,
+  .ce-editor-card,
+  .ce-data-card,
+  .react-admin-management-card,
+  .react-admin-mutation-panel,
+  .react-admin-record-selector,
+  .react-admin-table-wrap,
+  .admin-delete-selector-card,
+  .draft-editor,
+  .react-admin-stat-pills span,
+  .linked-booking-pill,
+  .create-workflow-pill,
+  .presentation-metric-grid article,
+  .presentation-suite-metric,
+  .presentation-line-picker,
+  .presentation-flow-card,
+  .presentation-detail-card,
+  .presentation-commercial-card,
+  .presentation-calendar-card,
+  .presentation-operator-card,
+  .presentation-sailing-row,
+  .presentation-port-plan,
+  .presentation-close-plan,
+  .presentation-activity-list,
+  .presentation-manifest-row,
+  .presentation-guest-card,
+  .query-status-card,
+  .status-card,
+  .quality-gate-card,
+  .launch-card,
+  .coverage-card,
+  .handoff-item,
+  .fleet-card,
+  .ship-card,
+  .sailing-card,
+  .itinerary-card,
+  .role-booking-card,
+  .role-profile-card,
+  .role-booking-detail-panel,
+  .role-itinerary-panel
+) {
+  --ce-surface-text: var(--ce-light-surface-text);
+  --ce-surface-muted-text: var(--ce-light-surface-muted-text);
+  --ce-surface-kicker-text: var(--ce-light-surface-kicker-text);
+}
+
+:is(.react-production-shell, .react-app-shell) :is(.muted, .ce-muted) {
+  color: var(--ce-surface-muted-text, #1f3a56) !important;
+  -webkit-text-fill-color: var(--ce-surface-muted-text, #1f3a56) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}

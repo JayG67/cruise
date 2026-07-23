@@ -1,0 +1,12 @@
+/*
+  Operational role surface aggregate.
+  This file intentionally contains only imports so the role dashboard surface
+  is split by responsibility while legacy static contracts can still reference
+  the operations-role-surface layer.
+*/
+
+@import './operations-role-surface-base.css';
+@import './operations-role-surface-contrast.css';
+@import './operations-role-surface-admin-motif.css';
+@import './operations-role-surface-dark-cards.css';
+@import './operations-role-surface-workspaces.css';

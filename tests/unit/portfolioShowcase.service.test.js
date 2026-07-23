@@ -22,9 +22,7 @@ describe('portfolio showcase service', () => {
 
   const files = {
     'render.yaml': true,
-    'docs/deployment.md': true,
-    'docs/portfolio.md': true,
-    'docs/screenshots': true,
+    'public/screenshots': true,
     'lhci-report': true,
     'services/dataArchitectureReadiness.service.js': true,
     'services/productionHardeningReadiness.service.js': true,

@@ -1,0 +1,327 @@
+/* Build 446: hard-scoped Turnaround Admin Setup dark command-panel repair.
+   The setup workspace sits between the Create Cruise Line workflow and the
+   Quality Console. It should use the same teal/green admin surface treatment
+   instead of rendering as plain text plus flat gray cards. These selectors do
+   not depend on :is(.react-production-shell, .react-app-shell) so they apply in the live route and in test
+   mounts. */
+.turnaround-admin-setup-panel[data-testid='react-turnaround-admin-setup'],
+section.turnaround-admin-setup-panel#react-turnaround-admin-setup {
+  background:
+    radial-gradient(circle at 92% 12%, rgba(96, 165, 250, 0.14), transparent 18rem),
+    radial-gradient(circle at 88% 100%, rgba(34, 197, 94, 0.2), transparent 20rem),
+    linear-gradient(135deg, #061827 0%, #07324a 50%, #0c674e 100%) !important;
+  border: 1px solid rgba(174, 233, 255, 0.22) !important;
+  border-radius: clamp(1.25rem, 2.2vw, 1.75rem) !important;
+  box-shadow: 0 24px 58px rgba(7, 24, 39, 0.22) !important;
+  box-sizing: border-box !important;
+  color: #ffffff !important;
+  display: grid !important;
+  gap: clamp(1rem, 2vw, 1.35rem) !important;
+  margin: clamp(1.75rem, 3vw, 2.75rem) auto !important;
+  max-width: 1180px !important;
+  overflow: hidden !important;
+  padding: clamp(1.5rem, 3.4vw, 2.65rem) !important;
+  position: relative !important;
+  width: min(100% - 2rem, 1180px) !important;
+}
+
+.turnaround-admin-setup-panel[data-testid='react-turnaround-admin-setup']::after,
+section.turnaround-admin-setup-panel#react-turnaround-admin-setup::after {
+  color: rgba(255, 255, 255, 0.06) !important;
+  content: '⚓' !important;
+  font-size: clamp(5rem, 12vw, 9rem) !important;
+  line-height: 1 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  right: clamp(1rem, 4vw, 3.5rem) !important;
+  top: clamp(1rem, 3vw, 2.25rem) !important;
+}
+
+.turnaround-admin-setup-panel .compact-turnaround-admin-heading,
+.turnaround-admin-setup-panel .section-heading-row.compact-turnaround-admin-heading {
+  align-items: start !important;
+  color: #ffffff !important;
+  display: flex !important;
+  gap: 1rem !important;
+  justify-content: space-between !important;
+  margin: 0 0 0.15rem !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.turnaround-admin-setup-panel .compact-turnaround-admin-heading > div {
+  max-width: 800px !important;
+}
+
+.turnaround-admin-setup-panel .compact-turnaround-admin-heading .eyebrow,
+.turnaround-admin-setup-panel > .eyebrow {
+  color: #60a5fa !important;
+  font-size: 0.78rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.18em !important;
+  line-height: 1.2 !important;
+  margin: 0 0 0.45rem !important;
+  text-transform: uppercase !important;
+}
+
+.turnaround-admin-setup-panel h2#react-turnaround-admin-setup-heading,
+.turnaround-admin-setup-panel .compact-turnaround-admin-heading h2 {
+  color: #ffffff !important;
+  font-size: clamp(2.25rem, 5vw, 4rem) !important;
+  font-weight: 950 !important;
+  letter-spacing: -0.055em !important;
+  line-height: 0.98 !important;
+  margin: 0 0 0.65rem !important;
+  max-width: 820px !important;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.22) !important;
+}
+
+.turnaround-admin-setup-panel .compact-turnaround-admin-heading p,
+.turnaround-admin-setup-panel > p,
+.turnaround-admin-setup-panel .muted-copy {
+  color: rgba(255, 255, 255, 0.82) !important;
+  font-weight: 550 !important;
+  line-height: 1.5 !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-admin-model-card {
+  background: rgba(7, 24, 39, 0.38) !important;
+  border: 1px solid rgba(174, 233, 255, 0.18) !important;
+  border-radius: 1rem !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+  margin: 0 !important;
+  padding: clamp(1rem, 2vw, 1.35rem) !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-admin-model-card strong,
+.turnaround-admin-setup-panel .turnaround-admin-model-card p {
+  color: #ffffff !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-admin-conflict-summary {
+  color: #5eead4 !important;
+  font-weight: 900 !important;
+  margin-top: 0.55rem !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-team-workspace,
+.turnaround-admin-setup-panel .improved-turnaround-admin-grid,
+.turnaround-admin-setup-panel .turnaround-admin-grid {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-team-workspace {
+  display: grid !important;
+  gap: 1rem !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  margin: 0 !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-workspace-card,
+.turnaround-admin-setup-panel .turnaround-workspace-card.active,
+.turnaround-admin-setup-panel .turnaround-workspace-card.ready {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1px solid rgba(191, 230, 255, 0.78) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 12px 28px rgba(7, 24, 39, 0.16) !important;
+  color: #071827 !important;
+  padding: 0.95rem 1rem !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-workspace-card span {
+  color: #516880 !important;
+  font-size: 0.74rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+}
+
+/* Keep each workspace summary field readable as label, value, then supporting detail. */
+.turnaround-admin-setup-panel .turnaround-workspace-step-label,
+.turnaround-admin-setup-panel .turnaround-workspace-step-value,
+.turnaround-admin-setup-panel .turnaround-workspace-step-detail {
+  display: block !important;
+  width: 100% !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-workspace-step-label {
+  margin: 0 0 0.45rem !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-workspace-step-value {
+  line-height: 1.35 !important;
+  margin: 0 !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-workspace-step-detail {
+  line-height: 1.45 !important;
+  margin: 0.8rem 0 0 !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-workspace-card strong,
+.turnaround-admin-setup-panel .turnaround-workspace-card p {
+  color: #071827 !important;
+}
+
+.turnaround-admin-setup-panel .compact-turnaround-admin-form,
+.turnaround-admin-setup-panel .compact-turnaround-admin-roster,
+.turnaround-admin-setup-panel .turnaround-admin-form,
+.turnaround-admin-setup-panel .turnaround-admin-roster {
+  background: rgba(7, 24, 39, 0.42) !important;
+  border: 1px solid rgba(174, 233, 255, 0.18) !important;
+  border-radius: 1rem !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  color: #ffffff !important;
+  min-width: 0 !important;
+  padding: clamp(1.1rem, 2.4vw, 1.5rem) !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-admin-form h3,
+.turnaround-admin-setup-panel .turnaround-admin-roster h3,
+.turnaround-admin-setup-panel .turnaround-admin-form label,
+.turnaround-admin-setup-panel .turnaround-admin-form label span,
+.turnaround-admin-setup-panel .turnaround-admin-roster strong,
+.turnaround-admin-setup-panel .turnaround-selected-team strong {
+  color: #ffffff !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-admin-form input,
+.turnaround-admin-setup-panel .turnaround-admin-form select,
+.turnaround-admin-setup-panel input,
+.turnaround-admin-setup-panel select,
+.turnaround-admin-setup-panel textarea {
+  background: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.32) !important;
+  border-radius: 0.72rem !important;
+  box-shadow: 0 8px 22px rgba(7, 24, 39, 0.14) !important;
+  color: #071827 !important;
+  min-height: 3rem !important;
+  padding: 0.82rem 1rem !important;
+}
+
+.turnaround-admin-setup-panel input::placeholder,
+.turnaround-admin-setup-panel textarea::placeholder {
+  color: #667085 !important;
+}
+
+/* Dark turnaround summary surfaces need comfortable internal spacing so labels,
+   selected values, and supporting detail never touch the component edges. */
+.turnaround-admin-setup-panel .turnaround-admin-draft-summary {
+  display: grid !important;
+  gap: 0.55rem !important;
+  padding: 1rem 1.1rem !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-admin-draft-summary > :is(span, strong, p) {
+  margin: 0 !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-admin-draft-summary,
+.turnaround-admin-setup-panel .turnaround-team-readiness-card,
+.turnaround-admin-setup-panel .turnaround-same-day-conflict-card,
+.turnaround-admin-setup-panel .turnaround-role-coverage-card,
+.turnaround-admin-setup-panel .turnaround-team-member-card,
+.turnaround-admin-setup-panel .turnaround-roster-card,
+.turnaround-admin-setup-panel .turnaround-selected-team {
+  background: rgba(6, 28, 43, 0.56) !important;
+  border: 1px solid rgba(174, 233, 255, 0.18) !important;
+  border-radius: 1rem !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  color: #ffffff !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-role-coverage-card.staffed {
+  border-color: rgba(134, 239, 172, 0.45) !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-role-coverage-card.missing {
+  border-color: rgba(251, 191, 36, 0.5) !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-admin-draft-summary span,
+.turnaround-admin-setup-panel .turnaround-team-readiness-card span,
+.turnaround-admin-setup-panel .turnaround-role-coverage-card span {
+  color: #9fe8ff !important;
+  font-size: 0.75rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-admin-draft-summary strong,
+.turnaround-admin-setup-panel .turnaround-admin-draft-summary p,
+.turnaround-admin-setup-panel .turnaround-team-readiness-card strong,
+.turnaround-admin-setup-panel .turnaround-team-readiness-card p,
+.turnaround-admin-setup-panel .turnaround-same-day-conflict-card strong,
+.turnaround-admin-setup-panel .turnaround-same-day-conflict-card p,
+.turnaround-admin-setup-panel .turnaround-role-coverage-card strong,
+.turnaround-admin-setup-panel .turnaround-role-coverage-card p,
+.turnaround-admin-setup-panel .turnaround-team-member-card strong,
+.turnaround-admin-setup-panel .turnaround-team-member-card p,
+.turnaround-admin-setup-panel .turnaround-roster-card strong,
+.turnaround-admin-setup-panel .turnaround-roster-card p,
+.turnaround-admin-setup-panel .turnaround-selected-team p {
+  color: #ffffff !important;
+}
+
+.turnaround-admin-setup-panel .draft-message {
+  background: rgba(235, 248, 255, 0.96) !important;
+  border: 1px solid rgba(174, 233, 255, 0.48) !important;
+  border-radius: 0.85rem !important;
+  color: #075985 !important;
+  font-weight: 800 !important;
+  padding: 0.95rem 1rem !important;
+}
+
+.turnaround-admin-setup-panel .primary-action-button {
+  background: linear-gradient(135deg, #0878a8, #12a4b6) !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  box-shadow: 0 10px 22px rgba(7, 24, 39, 0.2) !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+}
+
+.turnaround-admin-setup-panel .secondary-action-button,
+.turnaround-admin-setup-panel .compact-action {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1px solid rgba(255, 255, 255, 0.78) !important;
+  border-radius: 999px !important;
+  color: #075985 !important;
+  font-weight: 900 !important;
+}
+
+.turnaround-admin-setup-panel a,
+.turnaround-admin-setup-panel summary {
+  color: #9fe8ff !important;
+  font-weight: 800 !important;
+}
+
+@media (max-width: 980px) {
+  .turnaround-admin-setup-panel .turnaround-team-workspace {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .turnaround-admin-setup-panel .compact-turnaround-admin-heading,
+  .turnaround-admin-setup-panel .section-heading-row.compact-turnaround-admin-heading {
+    display: grid !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .turnaround-admin-setup-panel[data-testid='react-turnaround-admin-setup'],
+  section.turnaround-admin-setup-panel#react-turnaround-admin-setup {
+    padding: 1.15rem !important;
+    width: min(100% - 1rem, 1180px) !important;
+  }
+
+  .turnaround-admin-setup-panel .turnaround-team-workspace {
+    grid-template-columns: 1fr !important;
+  }
+}

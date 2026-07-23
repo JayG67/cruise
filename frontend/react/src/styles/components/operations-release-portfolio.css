@@ -1,0 +1,185 @@
+/* Fleet operations portfolio board. */
+
+/* Fleet operations portfolio: portfolio-level view before single-sailing drilldown. */
+.operations-portfolio-board {
+  background:
+    radial-gradient(circle at top right, rgba(23, 97, 160, 0.12), transparent 24rem),
+    linear-gradient(135deg, #ffffff, #f6fbff);
+  border: 1px solid #cfe0ef;
+  border-radius: 1.35rem;
+  box-shadow: 0 1rem 2.4rem rgba(16, 32, 51, 0.075);
+  margin: 1rem 0 1.25rem;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+.operations-portfolio-heading {
+  align-items: flex-start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(22rem, 0.55fr);
+  margin-bottom: 1rem;
+}
+
+.operations-portfolio-heading h4 {
+  margin: 0 0 0.35rem;
+}
+
+.operations-portfolio-heading p {
+  margin: 0;
+  max-width: 58rem;
+}
+
+.operations-portfolio-summary {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.operations-portfolio-summary div {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid #d8e5f1;
+  border-radius: 0.95rem;
+  padding: 0.8rem;
+}
+
+.operations-portfolio-summary dt {
+  color: #5f7185;
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.2rem;
+  text-transform: uppercase;
+}
+
+.operations-portfolio-summary dd {
+  color: #102033;
+  font-size: 1.45rem;
+  font-weight: 950;
+  margin: 0;
+}
+
+.operations-portfolio-list {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+}
+
+.operations-portfolio-card {
+  background: #ffffff;
+  border: 1px solid #d8e2ef;
+  border-left: 0.45rem solid #1761a0;
+  border-radius: 1rem;
+  box-shadow: 0 0.45rem 1.15rem rgba(16, 32, 51, 0.045);
+  color: #102033;
+  cursor: pointer;
+  display: grid;
+  gap: 0.45rem;
+  padding: 1rem;
+  text-align: left;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.operations-portfolio-card:hover,
+.operations-portfolio-card:focus-visible,
+.operations-portfolio-card.active {
+  border-color: #1761a0;
+  box-shadow: 0 0.85rem 1.65rem rgba(23, 97, 160, 0.14);
+  transform: translateY(-1px);
+}
+
+.operations-portfolio-card.clear {
+  border-left-color: #20895a;
+}
+
+.operations-portfolio-card.watch {
+  border-left-color: #c77a00;
+}
+
+.operations-portfolio-card.attention {
+  border-left-color: #c45a20;
+}
+
+.operations-portfolio-card strong {
+  font-size: 1rem;
+}
+
+.operations-portfolio-card > span:not(.operations-portfolio-status) {
+  color: #40556b;
+}
+
+.operations-portfolio-card dl {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0.35rem 0 0;
+}
+
+.operations-portfolio-card dl div {
+  background: #f7fbff;
+  border: 1px solid #e0ebf5;
+  border-radius: 0.8rem;
+  padding: 0.6rem;
+}
+
+.operations-portfolio-card dt {
+  color: #5f7185;
+  font-size: 0.68rem;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.operations-portfolio-card dd {
+  font-size: 1.15rem;
+  font-weight: 950;
+  margin: 0;
+}
+
+.operations-portfolio-status {
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  padding: 0.35rem 0.6rem;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+.operations-portfolio-status.clear {
+  background: #eaf8f0;
+  color: #17633c;
+}
+
+.operations-portfolio-status.watch {
+  background: #fff5d9;
+  color: #805400;
+}
+
+.operations-portfolio-status.attention {
+  background: #fff0e6;
+  color: #97420e;
+}
+
+@media (max-width: 980px) {
+  .operations-portfolio-heading,
+  .operations-portfolio-summary,
+  .operations-portfolio-card dl {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+@media (min-width: 761px) {
+  .production-hero {
+    min-height: 70vh;
+    background:
+      linear-gradient(90deg, rgba(7, 24, 39, 0.95) 0%, rgba(7, 24, 39, 0.84) 42%, rgba(7, 24, 39, 0.36) 100%),
+      image-set(
+        url('/images/cruise-background-960.webp') type('image/webp') 1x,
+        url('/images/cruise-background-1280.webp') type('image/webp') 2x
+      ) center / cover no-repeat,
+      linear-gradient(135deg, #071827 0%, #0b6fa4 100%);
+  }
+}
+

@@ -1,0 +1,266 @@
+/* Escalation management workspace: risk queue and single editable escalation panel. */
+.operations-escalation-workspace {
+  background: linear-gradient(135deg, #ffffff, #fffaf6);
+  border: 1px solid #f0d7bd;
+  border-radius: 1.15rem;
+  box-shadow: 0 16px 38px rgba(79, 45, 18, 0.08);
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.operations-escalation-workspace-header {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.55fr);
+}
+
+.operations-escalation-workspace-header h4,
+.operations-escalation-workspace-header p,
+.operations-escalation-quick-add h5,
+.operations-escalation-list-heading h5,
+.operations-escalation-detail-header h5 {
+  margin: 0.25rem 0 0;
+}
+
+.operations-escalation-workspace-header p {
+  color: #5a4635;
+  line-height: 1.5;
+}
+
+.operations-escalation-workspace-metrics {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+}
+
+.operations-escalation-workspace-metrics div {
+  background: #fff5eb;
+  border: 1px solid #f0d7bd;
+  border-radius: 0.9rem;
+  padding: 0.75rem;
+}
+
+.operations-escalation-workspace-metrics dt {
+  color: #795f48;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.operations-escalation-workspace-metrics dd {
+  color: #2d1f13;
+  font-size: 1.25rem;
+  font-weight: 900;
+  margin: 0.15rem 0 0;
+}
+
+.operations-escalation-quick-add {
+  align-items: end;
+  background: #fffdfb;
+  border: 1px solid #eadccc;
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(10rem, 0.65fr) minmax(8rem, 0.45fr) minmax(14rem, 1fr) minmax(10rem, 0.55fr) auto;
+  padding: 0.85rem;
+}
+
+.operations-escalation-quick-add label,
+.operations-escalation-detail-form label {
+  min-width: 0;
+}
+
+.operations-escalation-quick-add input,
+.operations-escalation-quick-add select,
+.operations-escalation-quick-add textarea,
+.operations-escalation-detail-form input,
+.operations-escalation-detail-form select,
+.operations-escalation-detail-form textarea {
+  min-height: 2.85rem;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
+  width: 100%;
+}
+
+.operations-escalation-layout {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(18rem, 0.8fr) minmax(0, 1.2fr);
+}
+
+.operations-escalation-list-panel,
+.operations-escalation-detail-panel {
+  background: #ffffff;
+  border: 1px solid #eadccc;
+  border-radius: 1rem;
+  box-shadow: 0 10px 24px rgba(79, 45, 18, 0.06);
+  padding: 1rem;
+}
+
+.operations-escalation-list-heading,
+.operations-escalation-detail-header {
+  align-items: start;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.operations-escalation-list-heading span {
+  background: #fff5eb;
+  border-radius: 999px;
+  color: #7b3f09;
+  font-weight: 900;
+  padding: 0.35rem 0.7rem;
+  white-space: nowrap;
+}
+
+.operations-escalation-list-focused {
+  display: grid;
+  gap: 0.65rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.operations-escalation-list-item {
+  appearance: none;
+  background: #fffdfb;
+  border: 1px solid #eadccc;
+  border-radius: 0.95rem;
+  color: #2d1f13;
+  cursor: pointer;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem;
+  text-align: left;
+  width: 100%;
+}
+
+.operations-escalation-list-item strong,
+.operations-escalation-list-item span,
+.operations-escalation-list-item small {
+  overflow-wrap: anywhere;
+}
+
+.operations-escalation-list-item.active,
+.operations-escalation-list-item:hover,
+.operations-escalation-list-item:focus-visible {
+  border-color: #b45f06;
+  box-shadow: 0 0 0 3px rgba(180, 95, 6, 0.14);
+  outline: none;
+}
+
+.operations-escalation-list-item.critical {
+  background: #fff5f3;
+  border-color: #eea29a;
+}
+
+.operations-escalation-severity-pill {
+  align-self: start;
+  background: #fff0db;
+  border-radius: 999px;
+  color: #8a4b0d;
+  display: inline-flex;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.55rem;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+.operations-escalation-severity-pill.critical {
+  background: #ffe5e2;
+  color: #9f1f15;
+}
+
+.operations-escalation-severity-pill.high {
+  background: #fff0db;
+  color: #8a4b0d;
+}
+
+.operations-escalation-severity-pill.watch {
+  background: #eef7ff;
+  color: #17456f;
+}
+
+.operations-escalation-detail-list {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0 0 0.85rem;
+}
+
+.operations-escalation-detail-list div {
+  background: #fffaf6;
+  border: 1px solid #eadccc;
+  border-radius: 0.85rem;
+  padding: 0.7rem;
+}
+
+.operations-escalation-detail-list dt {
+  color: #795f48;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.operations-escalation-detail-list dd {
+  color: #2d1f13;
+  font-weight: 800;
+  margin: 0.15rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.operations-escalation-note {
+  background: #fff8ef;
+  border: 1px solid #f0d7bd;
+  border-radius: 0.95rem;
+  margin: 0 0 0.85rem;
+  padding: 0.85rem;
+}
+
+.operations-escalation-note p {
+  margin: 0.25rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.operations-escalation-detail-form {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.operations-escalation-detail-form .full-width-field,
+.operations-escalation-quick-add .full-width-field {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 980px) {
+  .operations-escalation-workspace-header,
+  .operations-escalation-layout,
+  .operations-escalation-quick-add,
+  .operations-escalation-detail-form {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-escalation-workspace-metrics,
+  .operations-escalation-detail-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .operations-escalation-workspace-metrics,
+  .operations-escalation-detail-list {
+    grid-template-columns: 1fr;
+  }
+}

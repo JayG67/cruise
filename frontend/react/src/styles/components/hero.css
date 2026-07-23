@@ -1,0 +1,275 @@
+/*
+  CSS Foundation Refactor - Phase 23.
+  First-impression landing and cruise-line presentation hero polish now live in
+  components/hero.css. This retires the Build 358 production hero/card treatment
+  from legacy app.css while preserving the route's command-center visual
+  narrative and keeping the app.css import as compatibility only.
+*/
+/* Build 358: first-impression landing page polish for cruise-line presentation. */
+.production-hero {
+  isolation: isolate;
+  min-height: clamp(640px, 88vh, 820px);
+  overflow: hidden;
+  padding: clamp(1rem, 2vw, 1.4rem);
+  position: relative;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(18, 164, 182, 0.28), transparent 34%),
+    linear-gradient(90deg, rgba(3, 16, 29, 0.94) 0%, rgba(5, 24, 39, 0.78) 43%, rgba(7, 24, 39, 0.48) 100%),
+    url('/images/cruise-background-1280.webp') center / cover no-repeat,
+    linear-gradient(135deg, #071827 0%, #0b6fa4 100%);
+}
+
+.production-hero::before {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 28%),
+    radial-gradient(circle at 76% 62%, rgba(255, 255, 255, 0.14), transparent 24%);
+  content: '';
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+
+.production-hero::after {
+  background: linear-gradient(180deg, transparent, rgba(4, 18, 31, 0.9));
+  bottom: 0;
+  content: '';
+  height: 30%;
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  z-index: -1;
+}
+
+.react-top-nav {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 1.55rem;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+  padding: 1rem 1.2rem;
+}
+
+.react-brand {
+  max-width: 260px;
+  line-height: 1.08;
+}
+
+.react-nav-links {
+  align-items: center;
+  gap: 0.2rem 0.45rem;
+}
+
+.react-nav-links a,
+.react-nav-links button {
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 0.72rem 0.9rem;
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.react-nav-links a:hover,
+.react-nav-links a:focus-visible,
+.react-nav-links button:hover,
+.react-nav-links button:focus-visible {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.production-hero-content {
+  align-items: center;
+  display: grid;
+  gap: clamp(2rem, 5vw, 5rem);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+  padding: clamp(4rem, 8vw, 7rem) 0 clamp(3rem, 6vw, 5rem);
+}
+
+.hero-copy-stack {
+  max-width: 780px;
+}
+
+.production-hero .eyebrow {
+  color: #6ff0ff;
+  letter-spacing: 0.18em;
+  text-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+.production-hero h1 {
+  font-size: clamp(3.6rem, 7.4vw, 6.6rem);
+  letter-spacing: -0.07em;
+  line-height: 0.93;
+  max-width: 900px;
+  text-shadow: 0 18px 54px rgba(0, 0, 0, 0.55);
+}
+
+.production-hero .hero-copy {
+  color: rgba(255, 255, 255, 0.94);
+  font-size: clamp(1.12rem, 1.65vw, 1.38rem);
+  font-weight: 700;
+  line-height: 1.55;
+  margin-top: 1.4rem;
+  max-width: 760px;
+  text-shadow: 0 12px 28px rgba(0, 0, 0, 0.52);
+}
+
+.hero-cta-row {
+  gap: 0.8rem;
+  margin-top: 2rem;
+}
+
+.button-link {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  cursor: pointer;
+  min-height: 3.05rem;
+  padding: 0.82rem 1.15rem;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.button-link:hover,
+.button-link:focus-visible {
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.24);
+  transform: translateY(-2px);
+}
+
+.button-link.primary {
+  background: linear-gradient(135deg, #11a5c8, #047ba6);
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.button-link.secondary {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.hero-status-pills {
+  gap: 0.7rem;
+  margin-top: 1.45rem;
+}
+
+.hero-status-pills span {
+  background: rgba(255, 255, 255, 0.13);
+  border-color: rgba(255, 255, 255, 0.32);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.hero-product-card {
+  background: linear-gradient(180deg, rgba(15, 54, 80, 0.78), rgba(7, 24, 39, 0.66));
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 2rem;
+  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.36);
+  color: #ffffff;
+  padding: clamp(1.35rem, 3vw, 2rem);
+}
+
+.hero-product-card h2 {
+  color: #ffffff;
+  font-size: clamp(1.55rem, 3vw, 2.2rem);
+  letter-spacing: -0.04em;
+  margin-bottom: 1rem;
+}
+
+.hero-product-card p:not(.eyebrow) {
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 700;
+  line-height: 1.5;
+  margin-bottom: 0;
+}
+
+.hero-product-flow {
+  display: grid;
+  gap: 0.7rem;
+  margin: 1.2rem 0;
+}
+
+.hero-product-flow span {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 1rem;
+  display: flex;
+  font-weight: 900;
+  justify-content: space-between;
+  min-height: 3.1rem;
+  padding: 0.85rem 1rem;
+}
+
+.hero-product-flow span::after {
+  color: #6ff0ff;
+  content: '→';
+  font-size: 1.15rem;
+}
+
+.hero-product-flow span:last-child::after {
+  content: '✓';
+}
+
+@media (max-width: 980px) {
+  .production-hero {
+    min-height: auto;
+  }
+
+  .production-hero-content {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-product-card {
+    max-width: 640px;
+  }
+}
+
+@media (max-width: 760px) {
+  .production-hero {
+    padding: 0.7rem;
+  }
+
+  .react-top-nav {
+    border-radius: 1.25rem;
+  }
+
+  .react-nav-links {
+    width: 100%;
+  }
+
+  .react-nav-links a,
+  .react-nav-links button {
+    background: rgba(255, 255, 255, 0.08);
+    flex: 1 1 auto;
+    padding: 0.7rem 0.82rem;
+    text-align: center;
+  }
+
+  .production-hero h1 {
+    font-size: clamp(2.8rem, 15vw, 4.2rem);
+    letter-spacing: -0.06em;
+  }
+
+  .hero-cta-row .button-link {
+    width: 100%;
+  }
+}
+
+/* Slice 35: preserve the cruise-ship hero image after shell-level CSS cleanup. */
+.production-hero {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(18, 164, 182, 0.28), transparent 34%),
+    linear-gradient(90deg, rgba(3, 16, 29, 0.94) 0%, rgba(5, 24, 39, 0.78) 43%, rgba(7, 24, 39, 0.48) 100%),
+    url('/images/cruise-background-1280.webp') center / cover no-repeat,
+    linear-gradient(135deg, #071827 0%, #0b6fa4 100%);
+}
+
+/* Slice 36: force the hero photograph above shared command-panel background overrides. */
+.react-production-shell .production-hero.ce-command-panel,
+.react-production-shell .production-hero {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(18, 164, 182, 0.18), transparent 34%),
+    linear-gradient(90deg, rgba(3, 16, 29, 0.92) 0%, rgba(5, 24, 39, 0.70) 38%, rgba(7, 24, 39, 0.20) 100%),
+    url('/images/cruise-background-1280.webp') 82% center / cover no-repeat,
+    url('/images/cruise-background.png') 82% center / cover no-repeat,
+    linear-gradient(135deg, #071827 0%, #0b6fa4 100%) !important;
+  min-height: clamp(700px, 88vh, 880px) !important;
+}
+
+.react-production-shell .production-hero::before {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 28%),
+    radial-gradient(circle at 78% 52%, rgba(255, 255, 255, 0.12), transparent 22%) !important;
+}

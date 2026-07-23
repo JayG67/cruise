@@ -1,0 +1,15 @@
+/* Aggregate operations evidence stylesheet. Keep imported by the app entrypoint. */
+
+@import './operations-evidence-after-action.css';
+@import './operations-evidence-executive-brief.css';
+@import './operations-evidence-reviewer-packet.css';
+@import './operations-evidence-outreach.css';
+@import './operations-evidence-management-status.css';
+@import './operations-evidence-launch-plan.css';
+@import './operations-evidence-scenario-plan.css';
+@import './operations-evidence-production-readiness.css';
+@import './operations-evidence-application-dossier.css';
+@import './operations-evidence-lifecycle.css';
+@import './operations-evidence-shift-briefing.css';
+@import './operations-evidence-go-live.css';
+@import './operations-evidence-team-readiness.css';

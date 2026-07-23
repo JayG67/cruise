@@ -1,0 +1,15 @@
+/*
+  Operations release aggregate.
+  Release, portfolio, audit, timeline, metric, playbook, variance, and incident
+  command surfaces are split by responsibility while preserving the public CSS layer.
+*/
+
+@import './operations-release-board.css';
+@import './operations-release-portfolio.css';
+@import './operations-release-audit.css';
+@import './operations-release-packet.css';
+@import './operations-release-timeline.css';
+@import './operations-release-metrics.css';
+@import './operations-release-playbook.css';
+@import './operations-release-variance.css';
+@import './operations-release-incident-command.css';

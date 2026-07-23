@@ -1,0 +1,75 @@
+/*
+  CSS Foundation Refactor - Phase 2.
+
+  This slice moves the live React product surface toward shared primitives.
+  The goal is a consistent command-center application shell, reusable dark
+  operational panels, reusable dark cards, and isolated light editor/data
+  surfaces. Existing legacy selectors are intentionally mapped into these
+  primitives while JSX migrations happen in later slices.
+*/
+
+/* Shared action system. */
+.react-production-shell :is(
+  .primary-button,
+  .primary-action-button,
+  .fleet-primary-action,
+  .button-link.primary,
+  .react-sqa-action-card button:not(.danger-action-button),
+  .operations-lifecycle-detail-action,
+  .operations-lifecycle-next-action-button,
+  .public-launch-track-action,
+  button[type="submit"]
+) {
+  background: var(--ce-action-primary-bg) !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--ce-radius-pill) !important;
+  color: var(--ce-action-primary-text) !important;
+  -webkit-text-fill-color: var(--ce-action-primary-text) !important;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.react-production-shell :is(
+  .secondary-button,
+  .secondary-action-button,
+  .fleet-secondary-action,
+  .compact-button,
+  .compact-action-button,
+  .button-link.secondary,
+  .light-action,
+  .link-button,
+  .customer-disclosure-button,
+  .role-favorites-filter,
+  .role-favorite-activity-toggle,
+  .employer-demo-step-button,
+  .turnaround-roster-toggle
+) {
+  background: var(--ce-action-secondary-bg) !important;
+  border: 1px solid var(--ce-action-secondary-border) !important;
+  border-radius: var(--ce-radius-pill) !important;
+  color: var(--ce-action-secondary-text) !important;
+  -webkit-text-fill-color: var(--ce-action-secondary-text) !important;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.react-production-shell :is(
+  .danger-outline-button,
+  .fleet-danger-action,
+  .danger-action-button,
+  .danger-card .danger-action-button
+) {
+  background: var(--ce-action-danger-bg) !important;
+  border: 1px solid var(--ce-action-danger-border) !important;
+  border-radius: var(--ce-radius-pill) !important;
+  color: var(--ce-action-danger-text) !important;
+  -webkit-text-fill-color: var(--ce-action-danger-text) !important;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.react-production-shell button:focus-visible,
+.react-production-shell a:focus-visible {
+  outline: 3px solid var(--ce-command-focus) !important;
+  outline-offset: 3px !important;
+}

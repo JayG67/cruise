@@ -30,7 +30,6 @@ describe('deployment readiness service', () => {
     'render.yaml': true,
     'docker-compose.yml': true,
     'drizzle.config.js': true,
-    'docs/deployment.md': true,
     'lhci-report': true
   }
 

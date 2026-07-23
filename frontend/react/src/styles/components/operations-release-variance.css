@@ -1,0 +1,127 @@
+/* Operations playbook variance surface. */
+
+.operations-playbook-variance {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 24px;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, rgba(255, 251, 235, 0.94), rgba(248, 250, 252, 0.96));
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+}
+
+.operations-playbook-variance-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.operations-playbook-variance-header h4,
+.operations-playbook-variance-header p {
+  margin: 0.15rem 0;
+}
+
+.operations-playbook-variance-score {
+  min-width: 7.5rem;
+  border-radius: 20px;
+  padding: 0.85rem 1rem;
+  text-align: center;
+  background: #334155;
+  color: #f8fafc;
+}
+
+.operations-playbook-variance-score.green {
+  background: #166534;
+}
+
+.operations-playbook-variance-score.amber {
+  background: #92400e;
+}
+
+.operations-playbook-variance-score.red {
+  background: #991b1b;
+}
+
+.operations-playbook-variance-score span {
+  display: block;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.operations-playbook-variance-score small {
+  display: block;
+  margin-top: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.operations-playbook-variance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.75rem;
+}
+
+.operations-playbook-variance-card {
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 18px;
+  padding: 0.9rem;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.operations-playbook-variance-card span,
+.operations-playbook-variance-card em {
+  display: block;
+  color: #475569;
+}
+
+.operations-playbook-variance-card strong {
+  display: block;
+  margin: 0.25rem 0;
+  font-size: 1.05rem;
+}
+
+.operations-playbook-variance-card.action {
+  border-color: rgba(220, 38, 38, 0.3);
+  background: rgba(254, 242, 242, 0.9);
+}
+
+.operations-playbook-variance-card.watch {
+  border-color: rgba(217, 119, 6, 0.3);
+  background: rgba(255, 251, 235, 0.9);
+}
+
+.operations-playbook-variance-card.on_track {
+  border-color: rgba(22, 163, 74, 0.25);
+  background: rgba(240, 253, 244, 0.9);
+}
+
+.operations-playbook-variance-actions {
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 18px;
+  padding: 1rem;
+  margin-top: 1rem;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.operations-playbook-variance-actions ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.operations-playbook-variance-actions li {
+  color: #334155;
+}
+
+@media (max-width: 720px) {
+  .operations-playbook-variance-header {
+    flex-direction: column;
+  }
+
+  .operations-playbook-variance-score {
+    width: 100%;
+  }
+}

@@ -7,6 +7,25 @@ function read(relativePath) {
   return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
 }
 
+function readCssBundle(relativePath, seen = new Set()) {
+  const absolutePath = path.join(projectRoot, relativePath)
+
+  if (seen.has(absolutePath)) {
+    return ''
+  }
+
+  seen.add(absolutePath)
+
+  const source = fs.readFileSync(absolutePath, 'utf8')
+  const directory = path.dirname(absolutePath)
+  const imports = [...source.matchAll(/@import\s+['"]([^'"]+)['"];?/g)]
+
+  return [
+    source,
+    ...imports.map(([, importPath]) => readCssBundle(path.relative(projectRoot, path.join(directory, importPath)), seen))
+  ].join('\n')
+}
+
 describe('Cruise operations product presentation guardrails', () => {
   it('serves the React operations application as the default product experience', () => {
     const app = read('app.js')
@@ -92,7 +111,8 @@ describe('Cruise operations product presentation guardrails', () => {
     const app = read('app.js')
     const viteConfig = read('frontend/react/vite.config.js')
     const indexHtml = read('frontend/react/index.html')
-    const css = read('frontend/react/src/styles/app.css')
+    const styles = readCssBundle('frontend/react/src/styles/index.css')
+    const productShellCss = readCssBundle('frontend/react/src/styles/components/product-shell.css')
 
     expect(app).toContain("const seedDataDir = path.join(__dirname, 'data')")
     expect(app).toContain("app.use('/data', express.static(seedDataDir")
@@ -103,10 +123,11 @@ describe('Cruise operations product presentation guardrails', () => {
     expect(indexHtml).toContain('Preparing operations workspaces')
     expect(app).toContain('Cruise Fleet Operations Platform mobile quality audit')
     expect(app).toContain('Audited production capabilities')
-    expect(css).toContain('content-visibility: auto')
-    expect(css).toContain('background: linear-gradient(135deg, #071827 0%, #0b6fa4 100%)')
-    expect(css).toContain('@media (min-width: 761px)')
-    expect(css).not.toContain('backdrop-filter: blur')
+    expect(styles).toContain('content-visibility: auto')
+    expect(productShellCss).toContain('background: linear-gradient(135deg, #071827 0%, #0b6fa4 100%)')
+    expect(productShellCss).toContain('.production-hero')
+    expect(styles).toContain('@media (min-width: 761px)')
+    expect(styles).not.toContain('backdrop-filter: blur')
     expect(fs.existsSync(path.join(projectRoot, 'public/images/cruise-background-960.webp'))).toBe(true)
     expect(fs.existsSync(path.join(projectRoot, 'frontend/react/public/images/cruise-background-960.webp'))).toBe(false)
   })

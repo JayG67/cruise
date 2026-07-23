@@ -1,0 +1,192 @@
+/* Build 447: repair Create Workflow secondary button contrast.
+   These controls use the legacy `.secondary-button` class, not
+   `.secondary-action-button`, so previous admin button overrides missed them.
+   Keep the buttons white but force readable dark teal text and visible borders. */
+.react-create-workflow-section .secondary-button,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .secondary-button,
+.react-create-card .secondary-button,
+:is(.react-production-shell, .react-app-shell) .react-create-card .secondary-button {
+  appearance: none !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(182, 210, 228, 0.96) !important;
+  border-radius: 999px !important;
+  box-shadow: 0 10px 24px rgba(7, 24, 39, 0.12) !important;
+  color: #075985 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: 900 !important;
+  line-height: 1.1 !important;
+  min-height: 2.55rem !important;
+  padding: 0.7rem 1.05rem !important;
+  text-decoration: none !important;
+  text-shadow: none !important;
+  white-space: nowrap !important;
+}
+
+.react-create-workflow-section .secondary-button *,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .secondary-button *,
+.react-create-card .secondary-button *,
+:is(.react-production-shell, .react-app-shell) .react-create-card .secondary-button * {
+  color: #075985 !important;
+}
+
+.react-create-workflow-section .secondary-button:hover,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .secondary-button:hover,
+.react-create-card .secondary-button:hover,
+:is(.react-production-shell, .react-app-shell) .react-create-card .secondary-button:hover,
+.react-create-workflow-section .secondary-button:focus-visible,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .secondary-button:focus-visible,
+.react-create-card .secondary-button:focus-visible,
+:is(.react-production-shell, .react-app-shell) .react-create-card .secondary-button:focus-visible {
+  background: #e7f6fb !important;
+  border-color: #75c7dc !important;
+  color: #064e6f !important;
+  outline: 2px solid rgba(18, 164, 182, 0.42) !important;
+  outline-offset: 2px !important;
+}
+
+.react-create-workflow-section .secondary-button:hover *,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .secondary-button:hover *,
+.react-create-card .secondary-button:hover *,
+:is(.react-production-shell, .react-app-shell) .react-create-card .secondary-button:hover *,
+.react-create-workflow-section .secondary-button:focus-visible *,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .secondary-button:focus-visible *,
+.react-create-card .secondary-button:focus-visible *,
+:is(.react-production-shell, .react-app-shell) .react-create-card .secondary-button:focus-visible * {
+  color: #064e6f !important;
+}
+
+.react-create-workflow-section .add-ship-button,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .add-ship-button,
+.react-create-card .add-ship-button,
+:is(.react-production-shell, .react-app-shell) .react-create-card .add-ship-button {
+  margin-top: 0.25rem !important;
+}
+
+/* Build 448: lock starter ship controls until cruise line details are complete.
+   Starter Ships is the second step of the same light editing workflow.
+   Keep it visually consistent with Cruise Line Details in both enabled and
+   locked states; the locked state is communicated through disabled controls,
+   not by switching the entire panel to an unrelated dark surface. */
+.react-create-workflow-section .starter-ships-panel,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .starter-ships-panel,
+.react-create-card .starter-ships-panel,
+:is(.react-production-shell, .react-app-shell) .react-create-card .starter-ships-panel {
+  background: var(--admin-card-soft-bg, #f8fbff) !important;
+  border: 1px solid var(--admin-card-border, #c7dced) !important;
+  border-radius: 1rem !important;
+  box-shadow: none !important;
+  color: var(--admin-text, #071827) !important;
+}
+
+.react-create-workflow-section .starter-ships-panel :is(legend, h3, h4, h5, p, label, label > span, strong),
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .starter-ships-panel :is(legend, h3, h4, h5, p, label, label > span, strong),
+.react-create-card .starter-ships-panel :is(legend, h3, h4, h5, p, label, label > span, strong),
+:is(.react-production-shell, .react-app-shell) .react-create-card .starter-ships-panel :is(legend, h3, h4, h5, p, label, label > span, strong) {
+  color: var(--admin-text, #071827) !important;
+  -webkit-text-fill-color: var(--admin-text, #071827) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-create-workflow-section .starter-ships-locked,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .starter-ships-locked,
+.react-create-card .starter-ships-locked,
+:is(.react-production-shell, .react-app-shell) .react-create-card .starter-ships-locked {
+  border-style: solid !important;
+  border-color: var(--admin-card-border, #c7dced) !important;
+  background: var(--admin-card-soft-bg, #f8fbff) !important;
+}
+
+.react-create-workflow-section .starter-ships-locked p,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .starter-ships-locked p,
+.react-create-card .starter-ships-locked p,
+:is(.react-production-shell, .react-app-shell) .react-create-card .starter-ships-locked p {
+  color: var(--admin-text-muted, #334155) !important;
+  -webkit-text-fill-color: var(--admin-text-muted, #334155) !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+}
+
+.react-create-workflow-section .starter-ships-locked input:disabled,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .starter-ships-locked input:disabled,
+.react-create-card .starter-ships-locked input:disabled,
+:is(.react-production-shell, .react-app-shell) .react-create-card .starter-ships-locked input:disabled {
+  background: rgba(227, 239, 245, 0.82) !important;
+  border-color: rgba(170, 199, 214, 0.72) !important;
+  color: #637083 !important;
+  cursor: not-allowed !important;
+  opacity: 0.78 !important;
+}
+
+.react-create-workflow-section .starter-ships-locked .secondary-button:disabled,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .starter-ships-locked .secondary-button:disabled,
+.react-create-card .starter-ships-locked .secondary-button:disabled,
+:is(.react-production-shell, .react-app-shell) .react-create-card .starter-ships-locked .secondary-button:disabled {
+  background: rgba(229, 241, 247, 0.82) !important;
+  border-color: rgba(177, 207, 222, 0.7) !important;
+  box-shadow: none !important;
+  color: #64748b !important;
+  cursor: not-allowed !important;
+  opacity: 0.78 !important;
+}
+
+.react-create-workflow-section .starter-ships-locked .secondary-button:disabled *,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .starter-ships-locked .secondary-button:disabled *,
+.react-create-card .starter-ships-locked .secondary-button:disabled *,
+:is(.react-production-shell, .react-app-shell) .react-create-card .starter-ships-locked .secondary-button:disabled * {
+  color: #64748b !important;
+}
+
+/* Build 455: improve readability for selected turnaround team cards.
+   The unified admin color overrides made secondary team-member metadata too dark
+   on the dark teal cards. Keep the existing panel styling, but force high-
+   contrast readable text for the assigned-person rows shown in the current team. */
+.turnaround-admin-setup-panel .turnaround-selected-team .turnaround-team-member-card,
+:is(.react-production-shell, .react-app-shell) .turnaround-admin-setup-panel .turnaround-selected-team .turnaround-team-member-card {
+  color: #ffffff !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-selected-team .turnaround-team-member-card strong,
+:is(.react-production-shell, .react-app-shell) .turnaround-admin-setup-panel .turnaround-selected-team .turnaround-team-member-card strong {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-selected-team .turnaround-team-member-card span,
+:is(.react-production-shell, .react-app-shell) .turnaround-admin-setup-panel .turnaround-selected-team .turnaround-team-member-card span {
+  color: #cfe6f3 !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-selected-team .turnaround-team-member-card p,
+:is(.react-production-shell, .react-app-shell) .turnaround-admin-setup-panel .turnaround-selected-team .turnaround-team-member-card p,
+.turnaround-admin-setup-panel .turnaround-selected-team .empty-state,
+:is(.react-production-shell, .react-app-shell) .turnaround-admin-setup-panel .turnaround-selected-team .empty-state {
+  color: #d7edf7 !important;
+  opacity: 1 !important;
+}
+
+
+/* Build 456 - Quality Console readability improvements */
+.go-live-readiness-panel {
+  background: linear-gradient(135deg, #f8fbff, #eef6ff);
+  border: 1px solid #b8cde0;
+}
+
+.go-live-readiness-panel h3 {
+  color: #0f172a;
+}
+
+.go-live-readiness-panel p {
+  color: #334155;
+}
+
+.readiness-item {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+}

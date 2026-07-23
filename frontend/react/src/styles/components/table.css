@@ -1,0 +1,42 @@
+/* Shared table primitives. */
+
+.ce-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.ce-table :where(th, td) {
+  border-bottom: 1px solid rgba(125, 211, 252, 0.2);
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.ce-table :where(th) {
+  color: var(--text-secondary);
+  font-size: var(--font-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+
+.react-production-shell :is(.ce-editor-row td, .child-panel.ce-editor-card) {
+  background: var(--ce-table-row-alt-bg) !important;
+  border-color: var(--ce-table-border) !important;
+  color: var(--ce-table-text) !important;
+  -webkit-text-fill-color: var(--ce-table-text) !important;
+}
+
+.react-production-shell .child-panel.ce-editor-card {
+  box-shadow: none !important;
+  gap: var(--ce-space-3);
+}
+
+.react-production-shell .child-panel.ce-editor-card :is(h1, h2, h3, h4, h5, h6, p, li, strong, span, dt, dd, small) {
+  color: var(--ce-table-text) !important;
+  -webkit-text-fill-color: var(--ce-table-text) !important;
+}
+
+.react-production-shell .ce-muted {
+  color: var(--ce-table-text-muted) !important;
+  -webkit-text-fill-color: var(--ce-table-text-muted) !important;
+}

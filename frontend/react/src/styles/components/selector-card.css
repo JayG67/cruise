@@ -1,0 +1,135 @@
+/* Shared visible selector-card primitive for passenger, person, and booking lookup cards. */
+
+.react-production-shell :is(.passenger-finder-card, .person-finder-card, .booking-guest-result-card) {
+  position: relative;
+}
+
+.react-production-shell :is(.passenger-finder-card, .person-finder-card, .booking-guest-result-card) :is(
+  .passenger-finder-card-main,
+  .person-finder-card-main,
+  .booking-guest-result-card-main,
+  strong,
+  span,
+  small
+) {
+  pointer-events: auto;
+}
+
+.react-production-shell .ce-selector-card {
+  align-items: stretch;
+  appearance: none;
+  cursor: pointer;
+  display: grid;
+  gap: var(--ce-space-2);
+  justify-items: stretch;
+  line-height: 1.35;
+  min-height: 4.8rem;
+  padding: var(--ce-space-4) !important;
+  text-align: left;
+  width: 100%;
+}
+
+.react-production-shell .ce-selector-card:is(:hover, :focus-visible) {
+  border-color: var(--ce-command-border-strong) !important;
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.14), var(--ce-shadow-card) !important;
+  transform: translateY(-1px);
+}
+
+.react-production-shell .ce-selector-card.selected,
+.react-production-shell .ce-selector-card[aria-pressed="true"] {
+  border-color: var(--ce-command-border-strong) !important;
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.2), var(--ce-shadow-card) !important;
+}
+
+.react-production-shell .ce-selector-card-main {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--ce-space-2);
+  justify-content: space-between;
+  pointer-events: auto;
+  width: 100%;
+}
+
+.react-production-shell .ce-selector-card-main :is(strong, span),
+.react-production-shell .ce-selector-card-detail {
+  pointer-events: auto;
+}
+
+.react-production-shell .ce-selector-card-main strong {
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+}
+
+.react-production-shell .ce-selector-card-main span,
+.react-production-shell .ce-selector-card-detail {
+  color: var(--ce-command-text-muted) !important;
+  -webkit-text-fill-color: var(--ce-command-text-muted) !important;
+  overflow-wrap: anywhere;
+}
+
+.react-production-shell .role-selector-section :is(.passenger-finder-card, .person-finder-card).ce-selector-card {
+  align-content: start;
+  gap: var(--ce-space-3, 0.75rem);
+  grid-auto-rows: max-content;
+  height: auto;
+  min-height: 10.5rem;
+  overflow: hidden;
+  padding: 1.15rem 1.2rem 1.35rem !important;
+}
+
+.react-production-shell .role-selector-section :is(.passenger-finder-card, .person-finder-card).ce-selector-card .ce-selector-card-main {
+  gap: var(--ce-space-3, 0.75rem);
+}
+
+.react-production-shell .role-selector-section :is(.passenger-finder-card, .person-finder-card).ce-selector-card .ce-selector-card-detail {
+  display: -webkit-box;
+  line-height: 1.45;
+  max-width: 100%;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.react-production-shell .role-selector-section :is(.passenger-finder-results, .person-finder-results) {
+  align-items: stretch;
+  grid-auto-rows: minmax(10.5rem, auto);
+  padding-bottom: var(--ce-space-4, 1rem);
+  scroll-padding-bottom: var(--ce-space-4, 1rem);
+}
+
+.react-production-shell .booking-guest-result-card.ce-selector-card {
+  min-height: 5.25rem;
+}
+
+.react-production-shell .booking-guest-result-main.ce-selector-card-main {
+  align-items: flex-start;
+}
+
+.react-production-shell .booking-guest-result-context.ce-selector-card-detail {
+  display: block;
+}
+
+.react-production-shell .booking-guest-result-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ce-space-2);
+  pointer-events: auto;
+}
+
+.react-production-shell .booking-guest-result-chips span {
+  background: rgba(125, 211, 252, 0.14) !important;
+  border: 1px solid rgba(125, 211, 252, 0.28) !important;
+  border-radius: var(--ce-radius-pill);
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 0.28rem 0.55rem;
+  pointer-events: auto;
+}
+
+@media (max-width: 860px) {
+  .react-production-shell .ce-selector-card-main {
+    flex-direction: column;
+  }
+}

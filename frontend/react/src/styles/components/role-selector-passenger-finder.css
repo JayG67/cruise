@@ -1,0 +1,155 @@
+/*
+  Passenger and operational finder component architecture.
+
+  Passenger and operational finder panels now share the same design-system
+  surface contract as the generic person finder. This retires the legacy
+  passenger-finder layout and contrast patches from app.css while keeping form
+  controls light, card surfaces dark, and Cypress click targets directly
+  actionable.
+*/
+.react-production-shell .role-selector-section :is(.passenger-finder-panel, .person-finder-panel, .role-summary-card) {
+  background: var(--ce-command-card-bg) !important;
+  border: 1px solid var(--ce-command-border) !important;
+  border-radius: var(--ce-radius-card) !important;
+  box-shadow: var(--ce-shadow-card) !important;
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+  display: grid;
+  gap: var(--ce-space-4);
+  min-width: 0;
+  padding: var(--ce-space-5) !important;
+}
+
+.react-production-shell .role-selector-section :is(.passenger-finder-heading, .person-finder-heading) {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--ce-space-4);
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.react-production-shell .role-selector-section :is(.passenger-finder-heading, .person-finder-heading) h3 {
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+  font-size: 1.05rem;
+  margin: 0.15rem 0 0;
+}
+
+.react-production-shell .role-selector-section :is(.passenger-finder-heading, .person-finder-heading) p {
+  color: var(--ce-command-text-muted) !important;
+  -webkit-text-fill-color: var(--ce-command-text-muted) !important;
+}
+
+.react-production-shell .role-selector-section :is(.passenger-finder-heading, .person-finder-heading) > span,
+.react-production-shell .role-selector-section .finder-limit-note {
+  background: rgba(125, 211, 252, 0.14) !important;
+  border: 1px solid rgba(125, 211, 252, 0.32) !important;
+  border-radius: var(--ce-radius-pill);
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  padding: 0.35rem 0.65rem;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+.react-production-shell .role-selector-section :is(.passenger-finder-grid, .operational-person-filter-grid) {
+  display: grid;
+  gap: var(--ce-space-3);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.react-production-shell .role-selector-section .passenger-search-field,
+.react-production-shell .role-selector-section .booking-guest-search-field {
+  grid-column: 1 / -1;
+}
+
+.react-production-shell .role-selector-section :is(.passenger-finder-results, .booking-guest-results, .person-finder-results) {
+  display: grid;
+  gap: var(--ce-space-3);
+  max-height: 28rem;
+  overflow: auto;
+  padding: 0.15rem 0.2rem 0.25rem;
+}
+
+.react-production-shell .role-selector-section .passenger-finder-results,
+.react-production-shell .role-selector-section .person-finder-results {
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+
+.react-production-shell .role-selector-section .booking-guest-finder {
+  display: grid;
+  gap: var(--ce-space-3);
+  grid-column: 1 / -1;
+}
+
+.react-production-shell .role-selector-section .booking-guest-finder-controls {
+  background: rgba(12, 66, 82, 0.52) !important;
+  border: 1px solid var(--ce-command-border) !important;
+  border-radius: var(--ce-radius-card) !important;
+  display: grid;
+  gap: var(--ce-space-3);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: var(--ce-space-4) !important;
+}
+
+.react-production-shell .role-selector-section .booking-selected-guest-card {
+  background: rgba(12, 66, 82, 0.52) !important;
+  border: 1px solid var(--ce-command-border) !important;
+  border-radius: var(--ce-radius-card) !important;
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+  display: grid;
+  gap: var(--ce-space-1);
+  padding: var(--ce-space-4) !important;
+}
+
+.react-production-shell .role-selector-section .booking-selected-guest-card strong {
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+}
+
+.react-production-shell .role-selector-section .booking-selected-guest-card span:last-child {
+  color: var(--ce-command-text-muted) !important;
+  -webkit-text-fill-color: var(--ce-command-text-muted) !important;
+}
+
+.react-production-shell .role-selector-section :is(.passenger-finder-panel, .person-finder-panel) .role-selector-field,
+.react-production-shell .role-selector-section .operational-person-filter-grid .role-selector-field,
+.react-production-shell .role-selector-section .operational-person-filter-grid .operational-person-search-field {
+  background: var(--ce-data-surface) !important;
+  border: 1px solid var(--ce-data-border) !important;
+  border-radius: var(--ce-radius-control) !important;
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+  display: grid;
+  gap: var(--ce-space-2);
+  min-width: 0;
+  padding: var(--ce-space-4) !important;
+}
+
+.react-production-shell .role-selector-section :is(.passenger-finder-panel, .person-finder-panel) .role-selector-field .ce-field-label,
+.react-production-shell .role-selector-section .operational-person-filter-grid .role-selector-field .ce-field-label,
+.react-production-shell .role-selector-section .operational-person-filter-grid .operational-person-search-field .ce-field-label {
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+}
+
+@media (max-width: 900px) {
+  .react-production-shell .role-selector-section :is(.passenger-finder-heading, .person-finder-heading),
+  .react-production-shell .role-selector-section :is(.passenger-finder-grid, .operational-person-filter-grid),
+  .react-production-shell .role-selector-section .booking-guest-finder-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .react-production-shell .role-selector-section :is(.passenger-finder-heading, .person-finder-heading) {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .react-production-shell .role-selector-section :is(.passenger-finder-results, .person-finder-results) {
+    grid-template-columns: 1fr;
+  }
+}

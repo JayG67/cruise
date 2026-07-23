@@ -1,0 +1,186 @@
+/* Application dossier evidence panels. */
+
+.operations-application-dossier {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border: 1px solid #bae6fd;
+  border-radius: 1rem;
+  background: #f0f9ff;
+}
+
+.operations-application-dossier-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+}
+
+.operations-application-dossier-score {
+  min-width: 8.5rem;
+  padding: 0.85rem;
+  border: 1px solid #bae6fd;
+  border-radius: 0.9rem;
+  text-align: center;
+  background: #fff;
+}
+
+.operations-application-dossier-score span {
+  display: block;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #075985;
+}
+
+.operations-application-dossier-score small {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #0369a1;
+}
+
+.operations-application-dossier-summary,
+.operations-application-dossier-steps,
+.operations-application-dossier-details > div,
+.operations-application-dossier-card {
+  margin-top: 0.85rem;
+  padding: 0.85rem;
+  border: 1px solid #e0f2fe;
+  border-radius: 0.85rem;
+  background: #fff;
+}
+
+.operations-application-dossier-grid,
+.operations-application-dossier-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.85rem;
+}
+
+.operations-application-dossier-card span,
+.operations-application-dossier-details li span,
+.operations-application-dossier-steps li span {
+  font-weight: 800;
+  color: #0369a1;
+}
+
+.operations-application-dossier-card.ready,
+.operations-application-dossier-score.application_ready {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.operations-application-dossier-card.watch,
+.operations-application-dossier-score.ready_with_watch_items {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.operations-application-dossier-card.harden,
+.operations-application-dossier-score.needs_proof_hardening {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.operations-application-dossier-card strong,
+.operations-application-dossier-summary strong,
+.operations-application-dossier-details strong,
+.operations-application-dossier-steps strong {
+  display: block;
+  color: #0f172a;
+}
+
+.operations-application-dossier-card small {
+  display: block;
+  margin-top: 0.4rem;
+  color: #475569;
+}
+
+.operations-application-dossier-details ul,
+.operations-application-dossier-steps ol {
+  margin: 0.75rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.operations-application-dossier-details li,
+.operations-application-dossier-steps li {
+  margin: 0.45rem 0;
+}
+
+@media (max-width: 760px) {
+  .operations-application-dossier-header,
+  .operations-application-dossier-details {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-application-dossier-score {
+    width: 100%;
+  }
+}
+
+.turnaround-admin-setup-panel {
+  scroll-margin-top: 1.5rem;
+}
+
+.turnaround-admin-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(18rem, 0.9fr) minmax(18rem, 1.1fr);
+}
+
+.turnaround-admin-form,
+.turnaround-admin-roster {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 1rem;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+  padding: 1rem;
+}
+
+.turnaround-admin-form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.turnaround-admin-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 700;
+}
+
+.turnaround-admin-form input,
+.turnaround-admin-form select {
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  border-radius: 0.75rem;
+  font: inherit;
+  padding: 0.7rem 0.85rem;
+}
+
+.turnaround-roster-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.turnaround-roster-card {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 0.85rem;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem;
+}
+
+.turnaround-roster-card span {
+  color: #475569;
+}
+
+.muted-copy {
+  color: #64748b;
+}
+
+@media (max-width: 860px) {
+  .turnaround-admin-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

@@ -54,35 +54,35 @@ export default function ReactDataArchitectureReadinessCenter({ selectedDemoUser 
   }, [selectedDemoUser?.id])
 
   return (
-    <section className="react-app-section data-architecture-readiness-center" id="react-data-architecture" aria-labelledby="react-data-architecture-heading" data-testid="react-data-architecture-readiness-center">
-      <div className="section-heading-row data-architecture-heading">
+    <section className="react-app-section data-architecture-readiness-center ce-command-panel" id="react-data-architecture" aria-labelledby="react-data-architecture-heading" data-testid="react-data-architecture-readiness-center">
+      <div className="section-heading-row ce-section-heading data-architecture-heading">
         <div>
-          <p className="eyebrow">Production architecture</p>
+          <p className="eyebrow ce-kicker">Production architecture</p>
           <h2 id="react-data-architecture-heading">Data Architecture Hardening Center</h2>
           <p>
             Track the migration path from portfolio data structures to production-safe identity,
             timestamp, role, status, audit, and tenant-boundary patterns.
           </p>
         </div>
-        <button type="button" className="secondary-action-button" onClick={loadReadiness} disabled={isLoading} data-testid="react-data-architecture-refresh-button">
+        <button type="button" className="secondary-action-button ce-button-secondary" onClick={loadReadiness} disabled={isLoading} data-testid="react-data-architecture-refresh-button">
           {isLoading ? 'Refreshing...' : 'Refresh architecture score'}
         </button>
       </div>
 
-      {error ? <p className="draft-message error" role="alert" data-testid="react-data-architecture-error">{error}</p> : null}
+      {error ? <p className="draft-message error ce-feedback-message ce-editor-card" role="alert" data-testid="react-data-architecture-error">{error}</p> : null}
 
       <div className="data-architecture-scoreboard" data-testid="react-data-architecture-scoreboard">
-        <article className={`data-architecture-score-card ${readiness?.status || 'loading'}`}>
+        <article className={`data-architecture-score-card ce-command-card ${readiness?.status || 'loading'}`}>
           <span>Overall readiness</span>
           <strong>{isLoading && !readiness ? 'Loading' : `${readiness?.overallScore ?? 0}%`}</strong>
           <p>{readiness?.summary || 'Checking production architecture gates against the current live dataset.'}</p>
         </article>
-        <article className="data-architecture-score-card">
+        <article className="data-architecture-score-card ce-command-card">
           <span>Hardening blockers</span>
           <strong>{blockers.length}</strong>
           <p>{blockers.length ? 'Resolve before production deployment.' : 'No hard blockers currently detected.'}</p>
         </article>
-        <article className="data-architecture-score-card">
+        <article className="data-architecture-score-card ce-command-card">
           <span>Watch items</span>
           <strong>{watchItems.length}</strong>
           <p>{watchItems.length ? 'Plan these during the hardening phase.' : 'No watch items currently detected.'}</p>
@@ -91,7 +91,7 @@ export default function ReactDataArchitectureReadinessCenter({ selectedDemoUser 
 
       <div className="data-architecture-gate-grid" data-testid="react-data-architecture-gates">
         {(readiness?.gates || []).map(gate => (
-          <article key={gate.id} className={`data-architecture-gate-card ${gate.status}`} data-testid="react-data-architecture-gate-card">
+          <article key={gate.id} className={`data-architecture-gate-card ce-command-card ${gate.status}`} data-testid="react-data-architecture-gate-card">
             <div className="data-architecture-gate-header">
               <div>
                 <span>{getStatusLabel(gate.status)}</span>
@@ -103,7 +103,7 @@ export default function ReactDataArchitectureReadinessCenter({ selectedDemoUser 
             <ul aria-label={`${gate.label} evidence`}>
               {(gate.evidence || []).slice(0, 4).map(item => <li key={item}>{item}</li>)}
             </ul>
-            <div className="data-architecture-recommendation">
+            <div className="data-architecture-recommendation ce-editor-card">
               <span>Recommended next move</span>
               <p>{gate.recommendations?.[0] || 'Review this gate during production hardening.'}</p>
             </div>
@@ -111,9 +111,9 @@ export default function ReactDataArchitectureReadinessCenter({ selectedDemoUser 
         ))}
       </div>
 
-      <div className="data-architecture-priority-plan" data-testid="react-data-architecture-priority-plan">
+      <div className="data-architecture-priority-plan ce-command-card" data-testid="react-data-architecture-priority-plan">
         <div>
-          <p className="eyebrow">Hardening sequence</p>
+          <p className="eyebrow ce-kicker">Hardening sequence</p>
           <h3>Next three architecture moves</h3>
         </div>
         {priorityPlan.length ? (
@@ -129,14 +129,14 @@ export default function ReactDataArchitectureReadinessCenter({ selectedDemoUser 
             ))}
           </ol>
         ) : (
-          <p className="empty-state compact">Architecture readiness will appear after the first live check completes.</p>
+          <p className="empty-state compact ce-empty-state ce-editor-card">Architecture readiness will appear after the first live check completes.</p>
         )}
       </div>
 
-      <div className="data-architecture-migration-board" data-testid="react-data-architecture-migration-board">
+      <div className="data-architecture-migration-board ce-command-card" data-testid="react-data-architecture-migration-board">
         <div className="data-architecture-migration-header">
           <div>
-            <p className="eyebrow">Migration control</p>
+            <p className="eyebrow ce-kicker">Migration control</p>
             <h3>Actual data hardening backlog</h3>
             <p>Translate readiness findings into implementation-ready schema, API, validation, and audit workstreams.</p>
           </div>
@@ -162,8 +162,8 @@ export default function ReactDataArchitectureReadinessCenter({ selectedDemoUser 
       </div>
 
       <div className="data-architecture-timeline-risk">
-        <section className="data-architecture-timeline" aria-labelledby="react-data-architecture-timeline-heading" data-testid="react-data-architecture-timeline">
-          <p className="eyebrow">Migration phases</p>
+        <section className="data-architecture-timeline ce-command-card" aria-labelledby="react-data-architecture-timeline-heading" data-testid="react-data-architecture-timeline">
+          <p className="eyebrow ce-kicker">Migration phases</p>
           <h3 id="react-data-architecture-timeline-heading">Hardening timeline</h3>
           <ol>
             {migrationTimeline.map(phase => (
@@ -178,8 +178,8 @@ export default function ReactDataArchitectureReadinessCenter({ selectedDemoUser 
           </ol>
         </section>
 
-        <section className="data-architecture-risk-register" aria-labelledby="react-data-architecture-risk-heading" data-testid="react-data-architecture-risk-register">
-          <p className="eyebrow">Risk register</p>
+        <section className="data-architecture-risk-register ce-command-card" aria-labelledby="react-data-architecture-risk-heading" data-testid="react-data-architecture-risk-register">
+          <p className="eyebrow ce-kicker">Risk register</p>
           <h3 id="react-data-architecture-risk-heading">Migration risks to control</h3>
           {riskRegister.length ? (
             <ul>
@@ -192,12 +192,12 @@ export default function ReactDataArchitectureReadinessCenter({ selectedDemoUser 
               ))}
             </ul>
           ) : (
-            <p className="empty-state compact">No high-risk migration issues are currently detected.</p>
+            <p className="empty-state compact ce-empty-state ce-editor-card">No high-risk migration issues are currently detected.</p>
           )}
         </section>
       </div>
 
-      <details className="data-architecture-roadmap" data-testid="react-data-architecture-roadmap">
+      <details className="data-architecture-roadmap ce-command-card" data-testid="react-data-architecture-roadmap">
         <summary>Show production data hardening roadmap</summary>
         <ul>
           {(readiness?.roadmap || []).map(item => <li key={item}>{item}</li>)}

@@ -1,0 +1,68 @@
+/* Fleet selected ships panel. */
+.react-selected-ships-panel {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid #cfe3ee;
+  border-left: 6px solid #0b8eb4;
+  border-radius: 1.2rem;
+  background: #f8fcff;
+  box-shadow: 0 18px 42px rgba(7, 24, 39, 0.08);
+  margin-top: 1.25rem;
+  padding: clamp(1rem, 3vw, 1.25rem);
+}
+
+.selected-ships-heading-row {
+  align-items: start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.selected-ships-heading-row h3,
+.react-ship-card h4 {
+  margin: 0;
+}
+
+.selected-ships-count {
+  border-radius: 999px;
+  background: #e9f7fb;
+  color: #0b5f94;
+  font-weight: 900;
+  padding: 0.4rem 0.75rem;
+  white-space: nowrap;
+}
+
+.react-ship-card-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.react-ship-card {
+  border: 1px solid #d8e2ef;
+  border-radius: 1rem;
+  background: #ffffff;
+  padding: 1rem;
+}
+
+.react-ship-card p {
+  margin-bottom: 0;
+}
+
+@media (max-width: 820px) {
+  .react-ship-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .selected-ships-heading-row {
+    display: grid;
+  }
+
+  .react-ship-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+

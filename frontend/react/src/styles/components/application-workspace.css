@@ -1,0 +1,54 @@
+/* Application workspace cards and navigation controls. */
+
+/*
+  Application workspace component layer.
+
+  Owns React application workspace, admin workspace, fleet, quality console,
+  and role-dashboard bridge selectors that were previously parked in
+  design-system.css as Phase 25 compatibility CSS.
+*/
+
+/* CSS Foundation Refactor - Phase 25: retired React workspace/admin/fleet/quality/role-dashboard compatibility selectors from legacy app.css. */
+/* Application workspace controls. */
+.react-workspace-card {
+  appearance: none;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.react-workspace-card:hover {
+  border-color: #8ec9df;
+  box-shadow: 0 22px 44px rgba(7, 24, 39, 0.14);
+  transform: translateY(-1px);
+}
+
+.react-workspace-card:focus-visible {
+  outline: 4px solid #ffbf47;
+  outline-offset: 4px;
+}
+
+.workspace-card-title {
+  color: #071827;
+  display: block;
+  font-size: 1rem;
+  font-weight: 900;
+  margin: 0.65rem 0 0.4rem;
+}
+
+.operations-console-panel .react-route-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  max-width: 100%;
+}
+
+.operations-console-panel .route-tab {
+  min-width: 0;
+  overflow-wrap: break-word;
+  width: 100%;
+}
+

@@ -80,7 +80,7 @@ describe('local test database script guardrails', () => {
     expect(packageJson.scripts['start:prod']).toContain('node index.js')
     expect(packageJson.dependencies.vite).toBeDefined()
     expect(packageJson.dependencies['@vitejs/plugin-react']).toBeDefined()
-    expect(renderYaml).toContain('buildCommand: npm install --include=dev && npm run react:build')
+    expect(renderYaml).toContain('buildCommand: npm ci --include=dev && npm run react:build')
     expect(renderYaml).toContain('startCommand: npm run start:prod')
   })
 

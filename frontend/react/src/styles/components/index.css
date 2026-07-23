@@ -1,0 +1,32 @@
+/* Reusable design-system component primitives. */
+
+@import './panel.css';
+@import './card.css';
+@import './button.css';
+@import './badge.css';
+@import './form.css';
+@import './table.css';
+@import './navigation.css';
+@import './feedback.css';
+@import './selector-card.css';
+@import './role-selector.css';
+@import './workflow.css';
+@import './passenger.css';
+@import './application.css';
+@import './product-shell.css';
+@import './product-polish.css';
+@import './hero.css';
+@import './role-dashboard.css';
+@import './admin-workspaces.css';
+@import './admin-presentation.css';
+@import './operations-timeline.css';
+@import './operations-workspaces.css';
+@import './operations-queues.css';
+@import './operations-coverage.css';
+@import './readiness-centers.css';
+@import './operations-role-surface.css';
+@import './operations-continuity.css';
+@import './operations-release.css';
+@import './operations-evidence.css';
+@import './operations-contrast.css';
+@import './contrast-hardening.css';

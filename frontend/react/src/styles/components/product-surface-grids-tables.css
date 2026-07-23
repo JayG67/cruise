@@ -1,0 +1,54 @@
+/*
+  CSS Foundation Refactor - Phase 2.
+
+  This slice moves the live React product surface toward shared primitives.
+  The goal is a consistent command-center application shell, reusable dark
+  operational panels, reusable dark cards, and isolated light editor/data
+  surfaces. Existing legacy selectors are intentionally mapped into these
+  primitives while JSX migrations happen in later slices.
+*/
+
+/* Shared grids retain layout, but use one spacing scale. */
+.react-production-shell :is(
+  .react-workspace-card-grid,
+  .employer-demo-proof-grid,
+  .self-guided-proof-grid,
+  .self-guided-tour-list,
+  .fleet-card-grid,
+  .react-admin-mutation-grid,
+  .react-create-form-grid,
+  .react-sqa-action-grid,
+  .role-profile-grid,
+  .role-booking-fields,
+  .role-booking-detail-grid,
+  .react-ship-card-grid,
+  .react-sailing-card-grid,
+  .react-itinerary-day-grid,
+  .operations-release-board-grid,
+  .operations-lifecycle-phase-grid,
+  .operational-dashboard-grid,
+  .operational-readiness-list,
+  .portfolio-polish-showcase-grid,
+  .presentation-action-grid,
+  .turnaround-admin-grid,
+  .turnaround-role-coverage-grid
+) {
+  gap: var(--ce-space-4) !important;
+}
+
+/* Tables stay light for scanning while living inside the command surface. */
+.react-production-shell table,
+.react-production-shell th,
+.react-production-shell td,
+.react-production-shell caption {
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+}
+
+.react-production-shell th {
+  background: #e0f2fe !important;
+}
+
+.react-production-shell td {
+  background: var(--ce-data-surface-strong) !important;
+}

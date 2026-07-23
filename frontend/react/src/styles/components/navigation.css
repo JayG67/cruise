@@ -1,0 +1,69 @@
+/* React shell navigation and hero action primitives. */
+
+.react-production-shell .production-hero.ce-command-panel {
+  overflow: hidden;
+  padding: clamp(var(--ce-space-5), 4vw, 2rem) !important;
+}
+
+.react-production-shell .react-top-nav.ce-command-card {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ce-space-3);
+  justify-content: space-between;
+}
+
+.react-production-shell .react-brand {
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+  font-weight: 950;
+  text-decoration: none;
+}
+
+.react-production-shell .react-nav-links {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ce-space-2);
+}
+
+.react-production-shell .react-nav-links :is(a, button) {
+  background: var(--ce-nav-link-bg) !important;
+  border: 1px solid var(--ce-command-border) !important;
+  border-radius: var(--ce-radius-pill) !important;
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  min-height: 2.5rem;
+  padding: 0.55rem 0.85rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.react-production-shell .react-nav-links :is(a, button):hover {
+  background: var(--ce-nav-link-bg-hover) !important;
+  border-color: var(--ce-command-border-strong) !important;
+}
+
+.react-production-shell .hero-cta-row.ce-action-row,
+.react-production-shell .hero-status-pills.ce-status-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ce-space-2);
+}
+
+.react-production-shell .hero-status-pills.ce-status-row span {
+  align-items: center;
+  background: rgba(158, 231, 255, 0.14) !important;
+  border: 1px solid var(--ce-command-border) !important;
+  border-radius: var(--ce-radius-pill) !important;
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+  display: inline-flex;
+  font-weight: 900;
+  min-height: 2.35rem;
+  padding: 0.45rem 0.8rem;
+}

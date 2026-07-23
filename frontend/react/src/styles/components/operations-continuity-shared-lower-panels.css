@@ -1,0 +1,483 @@
+/*
+  Operations continuity and reviewer-detail panels.
+
+  CSS Foundation Refactor Slice 37.
+
+  Owns the lower operational role dashboard detail stack split from
+  operations-dashboard.css: reviewer packet layouts, outreach/detail boards,
+  scenario plan panels, and the shared dark lower-panel treatment. Keeping
+  these selectors isolated makes the core dashboard motif easier to review.
+*/
+
+/* Build 484 - unify remaining role-operations panels to the dark outreach-board motif.
+   Applies the screen-shot-1 standard to command center, continuity, shift briefing,
+   closeout packet, executive brief, and all remaining lower role-operation panels:
+   dark gradient section, dark nested cards, white text, and light KPI badges only
+   for small score counters. */
+
+/* Remaining lower operations sections use the same dark section surface. */
+.react-role-dashboard .operations-command-center,
+.react-role-dashboard .operations-continuity-center,
+.react-role-dashboard .operations-shift-briefing,
+.react-role-dashboard .operations-closeout-packet,
+.react-role-dashboard .operations-executive-brief,
+.react-role-dashboard .operations-after-action,
+.react-role-dashboard .operations-control-board,
+.react-role-dashboard .operations-go-live-center,
+.react-role-dashboard .operations-application-dossier,
+.react-role-dashboard .operations-production-readiness {
+  background: linear-gradient(135deg, #082334 0%, #0f5360 52%, #15713f 100%) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 0 24px 60px rgba(7, 24, 39, 0.22) !important;
+  color: #ffffff !important;
+  overflow: hidden !important;
+  padding: clamp(1rem, 2.4vw, 1.5rem) !important;
+}
+
+/* Headers are transparent on the dark surface. */
+.react-role-dashboard .operations-command-center-header,
+.react-role-dashboard .operations-continuity-center-header,
+.react-role-dashboard .operations-shift-briefing-header,
+.react-role-dashboard .operations-closeout-packet-header,
+.react-role-dashboard .operations-executive-brief-header,
+.react-role-dashboard .operations-after-action-header,
+.react-role-dashboard .operations-control-board-header,
+.react-role-dashboard .operations-go-live-center-header,
+.react-role-dashboard .operations-application-dossier-header,
+.react-role-dashboard .operations-production-readiness-header {
+  align-items: start !important;
+  background: transparent !important;
+  border: 0 !important;
+  color: #ffffff !important;
+  display: grid !important;
+  gap: 1rem !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  margin: 0 0 1rem !important;
+  padding: 0 !important;
+}
+
+.react-role-dashboard .operations-command-center-header *,
+.react-role-dashboard .operations-continuity-center-header *,
+.react-role-dashboard .operations-shift-briefing-header *,
+.react-role-dashboard .operations-closeout-packet-header *,
+.react-role-dashboard .operations-executive-brief-header *,
+.react-role-dashboard .operations-after-action-header *,
+.react-role-dashboard .operations-control-board-header *,
+.react-role-dashboard .operations-go-live-center-header *,
+.react-role-dashboard .operations-application-dossier-header *,
+.react-role-dashboard .operations-production-readiness-header * {
+  background: transparent !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operations-command-center-header .eyebrow,
+.react-role-dashboard .operations-continuity-center-header .eyebrow,
+.react-role-dashboard .operations-shift-briefing-header .eyebrow,
+.react-role-dashboard .operations-closeout-packet-header .eyebrow,
+.react-role-dashboard .operations-executive-brief-header .eyebrow,
+.react-role-dashboard .operations-after-action-header .eyebrow,
+.react-role-dashboard .operations-control-board-header .eyebrow,
+.react-role-dashboard .operations-go-live-center-header .eyebrow,
+.react-role-dashboard .operations-application-dossier-header .eyebrow,
+.react-role-dashboard .operations-production-readiness-header .eyebrow {
+  color: #9ee7ff !important;
+}
+
+/* Score badges stay light KPI counters with dark text. */
+.react-role-dashboard .operations-command-center-score,
+.react-role-dashboard .operations-continuity-center-score,
+.react-role-dashboard .operations-shift-briefing-score,
+.react-role-dashboard .operations-closeout-packet-score,
+.react-role-dashboard .operations-executive-brief-score,
+.react-role-dashboard .operations-after-action-score,
+.react-role-dashboard .operations-control-board-score,
+.react-role-dashboard .operations-go-live-center-score,
+.react-role-dashboard .operations-application-dossier-score,
+.react-role-dashboard .operations-production-readiness-score {
+  background: #f8fbff !important;
+  border: 1px solid #b8cde0 !important;
+  border-radius: 0.9rem !important;
+  color: #0f172a !important;
+  min-width: 9rem !important;
+  padding: 0.8rem 1rem !important;
+  text-align: center !important;
+}
+
+.react-role-dashboard .operations-command-center-score *,
+.react-role-dashboard .operations-continuity-center-score *,
+.react-role-dashboard .operations-shift-briefing-score *,
+.react-role-dashboard .operations-closeout-packet-score *,
+.react-role-dashboard .operations-executive-brief-score *,
+.react-role-dashboard .operations-after-action-score *,
+.react-role-dashboard .operations-control-board-score *,
+.react-role-dashboard .operations-go-live-center-score *,
+.react-role-dashboard .operations-application-dossier-score *,
+.react-role-dashboard .operations-production-readiness-score * {
+  background: transparent !important;
+  color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+/* Every content card/list/grid item inside these lower panels is dark, not pale gray. */
+.react-role-dashboard .operations-command-center-brief,
+.react-role-dashboard .operations-command-center-kpis > div,
+.react-role-dashboard .operations-command-center-grid > div,
+.react-role-dashboard .operations-command-center-departments,
+.react-role-dashboard .operations-command-center-department-grid > *,
+.react-role-dashboard .operations-command-center-handoffs,
+.react-role-dashboard .operations-continuity-impact,
+.react-role-dashboard .operations-continuity-grid > div,
+.react-role-dashboard .operations-continuity-watchlist,
+.react-role-dashboard .operations-continuity-departments,
+.react-role-dashboard .operations-continuity-department-grid > *,
+.react-role-dashboard .operations-continuity-checklist,
+.react-role-dashboard .operations-shift-briefing-kpis > div,
+.react-role-dashboard .operations-shift-briefing-grid > div,
+.react-role-dashboard .operations-shift-briefing-departments,
+.react-role-dashboard .operations-shift-briefing-department-grid > *,
+.react-role-dashboard .operations-closeout-packet-summary,
+.react-role-dashboard .operations-closeout-packet-grid > *,
+.react-role-dashboard .operations-closeout-packet-details > div,
+.react-role-dashboard .operations-closeout-packet-archive,
+.react-role-dashboard .operations-closeout-packet-archive-grid > *,
+.react-role-dashboard .operations-executive-brief-kpis > div,
+.react-role-dashboard .operations-executive-brief-grid > *,
+.react-role-dashboard .operations-executive-brief-details > div,
+.react-role-dashboard .operations-after-action [class*="grid"] > *,
+.react-role-dashboard .operations-after-action [class*="details"],
+.react-role-dashboard .operations-control-board [class*="grid"] > *,
+.react-role-dashboard .operations-control-board [class*="details"],
+.react-role-dashboard .operations-go-live-center [class*="grid"] > *,
+.react-role-dashboard .operations-go-live-center [class*="scope"],
+.react-role-dashboard .operations-application-dossier [class*="grid"] > *,
+.react-role-dashboard .operations-application-dossier [class*="summary"],
+.react-role-dashboard .operations-application-dossier [class*="steps"],
+.react-role-dashboard .operations-production-readiness [class*="grid"] > *,
+.react-role-dashboard .operations-production-readiness [class*="summary"],
+.react-role-dashboard .operations-production-readiness [class*="runbook"] {
+  background: rgba(6, 30, 45, 0.88) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 0.95rem !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+  padding: 1rem !important;
+}
+
+/* Force readable text inside those dark cards, overriding earlier light-card rules. */
+.react-role-dashboard .operations-command-center-brief *,
+.react-role-dashboard .operations-command-center-kpis > div *,
+.react-role-dashboard .operations-command-center-grid > div *,
+.react-role-dashboard .operations-command-center-departments *,
+.react-role-dashboard .operations-command-center-department-grid > * *,
+.react-role-dashboard .operations-command-center-handoffs *,
+.react-role-dashboard .operations-continuity-impact *,
+.react-role-dashboard .operations-continuity-grid > div *,
+.react-role-dashboard .operations-continuity-watchlist *,
+.react-role-dashboard .operations-continuity-departments *,
+.react-role-dashboard .operations-continuity-department-grid > * *,
+.react-role-dashboard .operations-continuity-checklist *,
+.react-role-dashboard .operations-shift-briefing-kpis > div *,
+.react-role-dashboard .operations-shift-briefing-grid > div *,
+.react-role-dashboard .operations-shift-briefing-departments *,
+.react-role-dashboard .operations-shift-briefing-department-grid > * *,
+.react-role-dashboard .operations-closeout-packet-summary *,
+.react-role-dashboard .operations-closeout-packet-grid > * *,
+.react-role-dashboard .operations-closeout-packet-details > div *,
+.react-role-dashboard .operations-closeout-packet-archive *,
+.react-role-dashboard .operations-closeout-packet-archive-grid > * *,
+.react-role-dashboard .operations-executive-brief-kpis > div *,
+.react-role-dashboard .operations-executive-brief-grid > * *,
+.react-role-dashboard .operations-executive-brief-details > div *,
+.react-role-dashboard .operations-after-action [class*="grid"] > * *,
+.react-role-dashboard .operations-after-action [class*="details"] *,
+.react-role-dashboard .operations-control-board [class*="grid"] > * *,
+.react-role-dashboard .operations-control-board [class*="details"] *,
+.react-role-dashboard .operations-go-live-center [class*="grid"] > * *,
+.react-role-dashboard .operations-go-live-center [class*="scope"] *,
+.react-role-dashboard .operations-application-dossier [class*="grid"] > * *,
+.react-role-dashboard .operations-application-dossier [class*="summary"] *,
+.react-role-dashboard .operations-application-dossier [class*="steps"] *,
+.react-role-dashboard .operations-production-readiness [class*="grid"] > * *,
+.react-role-dashboard .operations-production-readiness [class*="summary"] *,
+.react-role-dashboard .operations-production-readiness [class*="runbook"] * {
+  background: transparent !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  writing-mode: horizontal-tb !important;
+}
+
+/* Status/kicker text inside dark cards uses cyan accent. */
+.react-role-dashboard .operations-command-center span,
+.react-role-dashboard .operations-continuity-center span,
+.react-role-dashboard .operations-shift-briefing span,
+.react-role-dashboard .operations-closeout-packet span,
+.react-role-dashboard .operations-executive-brief span,
+.react-role-dashboard .operations-after-action span,
+.react-role-dashboard .operations-control-board span,
+.react-role-dashboard .operations-go-live-center span,
+.react-role-dashboard .operations-application-dossier span,
+.react-role-dashboard .operations-production-readiness span {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+}
+
+/* Lists should wrap normally and stop creating skinny/vertical columns. */
+.react-role-dashboard .operations-command-center ul,
+.react-role-dashboard .operations-command-center ol,
+.react-role-dashboard .operations-continuity-center ul,
+.react-role-dashboard .operations-continuity-center ol,
+.react-role-dashboard .operations-shift-briefing ul,
+.react-role-dashboard .operations-shift-briefing ol,
+.react-role-dashboard .operations-closeout-packet ul,
+.react-role-dashboard .operations-closeout-packet ol,
+.react-role-dashboard .operations-executive-brief ul,
+.react-role-dashboard .operations-executive-brief ol {
+  display: grid !important;
+  gap: 0.45rem !important;
+  list-style-position: outside !important;
+  margin: 0.75rem 0 0 !important;
+  padding-left: 1.15rem !important;
+}
+
+.react-role-dashboard .operations-command-center li,
+.react-role-dashboard .operations-continuity-center li,
+.react-role-dashboard .operations-shift-briefing li,
+.react-role-dashboard .operations-closeout-packet li,
+.react-role-dashboard .operations-executive-brief li {
+  display: list-item !important;
+  line-height: 1.35 !important;
+  max-width: none !important;
+  overflow-wrap: anywhere !important;
+  white-space: normal !important;
+  width: auto !important;
+  writing-mode: horizontal-tb !important;
+}
+
+/* Grid structure for lower panels. */
+.react-role-dashboard .operations-command-center-kpis,
+.react-role-dashboard .operations-shift-briefing-kpis,
+.react-role-dashboard .operations-executive-brief-kpis {
+  background: transparent !important;
+  border: 0 !important;
+  display: grid !important;
+  gap: 0.85rem !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  margin: 1rem 0 !important;
+  padding: 0 !important;
+}
+
+.react-role-dashboard .operations-command-center-grid,
+.react-role-dashboard .operations-continuity-grid,
+.react-role-dashboard .operations-shift-briefing-grid,
+.react-role-dashboard .operations-closeout-packet-details,
+.react-role-dashboard .operations-executive-brief-details {
+  background: transparent !important;
+  border: 0 !important;
+  display: grid !important;
+  gap: 1rem !important;
+  grid-template-columns: minmax(18rem, 0.9fr) minmax(0, 1.6fr) !important;
+  margin-top: 1rem !important;
+  padding: 0 !important;
+}
+
+.react-role-dashboard .operations-command-center-department-grid,
+.react-role-dashboard .operations-continuity-department-grid,
+.react-role-dashboard .operations-shift-briefing-department-grid,
+.react-role-dashboard .operations-closeout-packet-grid,
+.react-role-dashboard .operations-executive-brief-grid {
+  background: transparent !important;
+  border: 0 !important;
+  display: grid !important;
+  gap: 0.85rem !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  margin: 1rem 0 !important;
+  padding: 0 !important;
+}
+
+@media (max-width: 1000px) {
+  .react-role-dashboard .operations-command-center-kpis,
+  .react-role-dashboard .operations-shift-briefing-kpis,
+  .react-role-dashboard .operations-executive-brief-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .react-role-dashboard .operations-command-center-grid,
+  .react-role-dashboard .operations-continuity-grid,
+  .react-role-dashboard .operations-shift-briefing-grid,
+  .react-role-dashboard .operations-closeout-packet-details,
+  .react-role-dashboard .operations-executive-brief-details,
+  .react-role-dashboard .operations-command-center-header,
+  .react-role-dashboard .operations-continuity-center-header,
+  .react-role-dashboard .operations-shift-briefing-header,
+  .react-role-dashboard .operations-closeout-packet-header,
+  .react-role-dashboard .operations-executive-brief-header {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .react-role-dashboard .operations-command-center-kpis,
+  .react-role-dashboard .operations-shift-briefing-kpis,
+  .react-role-dashboard .operations-executive-brief-kpis,
+  .react-role-dashboard .operations-command-center-department-grid,
+  .react-role-dashboard .operations-continuity-department-grid,
+  .react-role-dashboard .operations-shift-briefing-department-grid,
+  .react-role-dashboard .operations-closeout-packet-grid,
+  .react-role-dashboard .operations-executive-brief-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Department continuity cards present score, status, and role as separate human-readable lines. */
+.react-role-dashboard .operations-continuity-department-card {
+  display: grid !important;
+  gap: 0.9rem !important;
+  min-width: 0 !important;
+  padding: 1rem !important;
+}
+
+.react-role-dashboard .operations-continuity-department-heading {
+  align-items: start !important;
+  display: grid !important;
+  gap: 0.3rem !important;
+}
+
+.react-role-dashboard .operations-continuity-department-score,
+.react-role-dashboard .operations-continuity-department-status,
+.react-role-dashboard .operations-continuity-department-role {
+  display: block !important;
+  margin: 0 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.react-role-dashboard .operations-continuity-department-score {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-size: 1.35rem !important;
+  font-weight: 900 !important;
+  line-height: 1.1 !important;
+}
+
+.react-role-dashboard .operations-continuity-department-status {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+  font-size: 0.76rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1.25 !important;
+  text-transform: uppercase !important;
+}
+
+.react-role-dashboard .operations-continuity-department-role {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-size: 1rem !important;
+  line-height: 1.3 !important;
+}
+
+/* Department command cards use the same business-readable hierarchy as continuity cards. */
+.react-role-dashboard .operations-command-center-department-card {
+  display: grid !important;
+  gap: 0.9rem !important;
+  min-width: 0 !important;
+  padding: 1rem !important;
+}
+
+.react-role-dashboard .operations-command-center-department-heading {
+  align-items: start !important;
+  display: grid !important;
+  gap: 0.3rem !important;
+}
+
+.react-role-dashboard .operations-command-center-department-score,
+.react-role-dashboard .operations-command-center-department-status,
+.react-role-dashboard .operations-command-center-department-role {
+  display: block !important;
+  margin: 0 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.react-role-dashboard .operations-command-center-department-score {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-size: 1.35rem !important;
+  font-weight: 900 !important;
+  line-height: 1.1 !important;
+}
+
+.react-role-dashboard .operations-command-center-department-status {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+  font-size: 0.76rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1.25 !important;
+  text-transform: uppercase !important;
+}
+
+.react-role-dashboard .operations-command-center-department-role {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-size: 1rem !important;
+  line-height: 1.3 !important;
+}
+
+/* Shared readable hierarchy for lower operations status/evidence cards. */
+.react-role-dashboard .operations-structured-status-card {
+  align-content: start;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.react-role-dashboard .operations-structured-status-card .operations-status-score,
+.react-role-dashboard .operations-structured-status-card .operations-status-label,
+.react-role-dashboard .operations-structured-status-card .operations-status-title {
+  display: block;
+  margin: 0;
+  white-space: normal !important;
+}
+
+.react-role-dashboard .operations-structured-status-card .operations-status-score {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-size: 1.15rem;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.react-role-dashboard .operations-structured-status-card .operations-status-label {
+  color: #bae6fd !important;
+  -webkit-text-fill-color: #bae6fd !important;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.react-role-dashboard .operations-structured-status-card .operations-status-title {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.react-role-dashboard .operations-structured-status-card p {
+  margin: 0.55rem 0 0;
+}
+
+.react-role-dashboard .operations-structured-status-card small {
+  display: block;
+  margin-top: 0.45rem;
+}

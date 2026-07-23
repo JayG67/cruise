@@ -1,0 +1,202 @@
+/*
+  Operational role surface aggregate slice: base dark dashboard motif and editable-control safeguards.
+*/
+
+/*
+  Operational dashboard component architecture.
+
+  Retires the remaining Phase 19 Build 464-484 operational role dashboard,
+  release board, lifecycle, reviewer packet, outreach, scenario, and lower-board
+  compatibility CSS from design-system.css into a focused component layer.
+*/
+
+/*
+  CSS Foundation Refactor - Phase 19.
+
+  Physical legacy-retirement slice: the historical Build 464-489 operational
+  role-dashboard styling stack now lives in the component layer. This keeps
+  dark command-center panels, light metric/editor controls, release-board cards,
+  lifecycle/detail panels, and command workspaces on one shared post-app.css
+  source of truth while shrinking both legacy compatibility stylesheets.
+*/
+/* Build 464 - dark operational role dashboard motif.
+   Convert role-aware turnaround operational panels from light cards to the same
+   dark teal/navy motif used by the operational selector, while preserving
+   readable form controls and status accent cards. */
+.role-dashboard-section,
+.react-role-dashboard,
+.turnaround-role-dashboard,
+.operational-role-dashboard {
+  color: #ffffff !important;
+}
+
+.role-dashboard-section .turnaround-readiness-panel,
+.role-dashboard-section .turnaround-operations-panel,
+.role-dashboard-section .turnaround-lifecycle-panel,
+.role-dashboard-section .turnaround-release-packet,
+.role-dashboard-section .turnaround-analytics-panel,
+.role-dashboard-section .turnaround-playbook-panel,
+.role-dashboard-section .turnaround-variance-panel,
+.role-dashboard-section .turnaround-incident-panel,
+.role-dashboard-section .turnaround-reviewer-packet,
+.role-dashboard-section .turnaround-outreach-board,
+.role-dashboard-section [class*="turnaround"][class*="panel"],
+.role-dashboard-section [class*="release"][class*="packet"],
+.role-dashboard-section [class*="analytics"],
+.role-dashboard-section [class*="playbook"],
+.role-dashboard-section [class*="incident"],
+.role-dashboard-section [class*="reviewer"],
+.role-dashboard-section [class*="outreach"],
+.react-role-dashboard [class*="turnaround"][class*="panel"],
+.react-role-dashboard [class*="release"][class*="packet"],
+.react-role-dashboard [class*="analytics"],
+.react-role-dashboard [class*="playbook"],
+.react-role-dashboard [class*="incident"],
+.react-role-dashboard [class*="reviewer"],
+.react-role-dashboard [class*="outreach"] {
+  background: linear-gradient(135deg, #082334 0%, #0f5360 52%, #15713f 100%) !important;
+  border: 1px solid rgba(125, 211, 252, 0.28) !important;
+  box-shadow: 0 24px 60px rgba(7, 24, 39, 0.22) !important;
+  color: #ffffff !important;
+}
+
+.role-dashboard-section [class*="turnaround"] *,
+.role-dashboard-section [class*="release"] *,
+.role-dashboard-section [class*="analytics"] *,
+.role-dashboard-section [class*="playbook"] *,
+.role-dashboard-section [class*="incident"] *,
+.role-dashboard-section [class*="reviewer"] *,
+.role-dashboard-section [class*="outreach"] *,
+.react-role-dashboard [class*="turnaround"] *,
+.react-role-dashboard [class*="release"] *,
+.react-role-dashboard [class*="analytics"] *,
+.react-role-dashboard [class*="playbook"] *,
+.react-role-dashboard [class*="incident"] *,
+.react-role-dashboard [class*="reviewer"] *,
+.react-role-dashboard [class*="outreach"] * {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.role-dashboard-section [class*="turnaround"] .eyebrow,
+.role-dashboard-section [class*="release"] .eyebrow,
+.role-dashboard-section [class*="analytics"] .eyebrow,
+.role-dashboard-section [class*="playbook"] .eyebrow,
+.role-dashboard-section [class*="incident"] .eyebrow,
+.role-dashboard-section [class*="reviewer"] .eyebrow,
+.role-dashboard-section [class*="outreach"] .eyebrow,
+.react-role-dashboard [class*="turnaround"] .eyebrow,
+.react-role-dashboard [class*="release"] .eyebrow,
+.react-role-dashboard [class*="analytics"] .eyebrow,
+.react-role-dashboard [class*="playbook"] .eyebrow,
+.react-role-dashboard [class*="incident"] .eyebrow,
+.react-role-dashboard [class*="reviewer"] .eyebrow,
+.react-role-dashboard [class*="outreach"] .eyebrow {
+  color: #9ee7ff !important;
+}
+
+/* Inner information cards stay dark, not white. */
+.role-dashboard-section [class*="turnaround"] [class*="card"],
+.role-dashboard-section [class*="turnaround"] [class*="item"],
+.role-dashboard-section [class*="turnaround"] [class*="metric"],
+.role-dashboard-section [class*="turnaround"] [class*="summary"],
+.role-dashboard-section [class*="turnaround"] [class*="blocker"],
+.role-dashboard-section [class*="turnaround"] [class*="department"],
+.role-dashboard-section [class*="turnaround"] [class*="action"],
+.role-dashboard-section [class*="release"] [class*="card"],
+.role-dashboard-section [class*="release"] [class*="item"],
+.role-dashboard-section [class*="release"] [class*="blocker"],
+.role-dashboard-section [class*="analytics"] [class*="card"],
+.role-dashboard-section [class*="analytics"] [class*="item"],
+.role-dashboard-section [class*="playbook"] [class*="card"],
+.role-dashboard-section [class*="playbook"] [class*="item"],
+.role-dashboard-section [class*="incident"] [class*="card"],
+.role-dashboard-section [class*="incident"] [class*="item"],
+.role-dashboard-section [class*="reviewer"] [class*="card"],
+.role-dashboard-section [class*="reviewer"] [class*="item"],
+.role-dashboard-section [class*="outreach"] [class*="card"],
+.role-dashboard-section [class*="outreach"] [class*="item"],
+.react-role-dashboard [class*="turnaround"] [class*="card"],
+.react-role-dashboard [class*="turnaround"] [class*="item"],
+.react-role-dashboard [class*="turnaround"] [class*="metric"],
+.react-role-dashboard [class*="turnaround"] [class*="summary"],
+.react-role-dashboard [class*="release"] [class*="card"],
+.react-role-dashboard [class*="analytics"] [class*="card"],
+.react-role-dashboard [class*="playbook"] [class*="card"],
+.react-role-dashboard [class*="incident"] [class*="card"],
+.react-role-dashboard [class*="reviewer"] [class*="card"],
+.react-role-dashboard [class*="outreach"] [class*="card"] {
+  background: rgba(6, 30, 45, 0.84) !important;
+  border: 1px solid rgba(125, 211, 252, 0.32) !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+}
+
+/* Status/accent cards use darker tinted variants instead of pale pastel fills. */
+.role-dashboard-section [class*="warning"],
+.role-dashboard-section [class*="attention"],
+.role-dashboard-section [class*="blocked"],
+.role-dashboard-section [class*="risk"],
+.role-dashboard-section [class*="hold"],
+.react-role-dashboard [class*="warning"],
+.react-role-dashboard [class*="attention"],
+.react-role-dashboard [class*="blocked"],
+.react-role-dashboard [class*="risk"],
+.react-role-dashboard [class*="hold"] {
+  background: rgba(120, 53, 15, 0.42) !important;
+  border-color: rgba(251, 191, 36, 0.48) !important;
+  color: #fff7ed !important;
+}
+
+.role-dashboard-section [class*="ready"],
+.role-dashboard-section [class*="pass"],
+.react-role-dashboard [class*="ready"],
+.react-role-dashboard [class*="pass"] {
+  background: rgba(20, 83, 45, 0.46) !important;
+  border-color: rgba(134, 239, 172, 0.45) !important;
+  color: #ecfdf5 !important;
+}
+
+/* Keep form fields/selectors usable on the dark motif. */
+.role-dashboard-section input,
+.role-dashboard-section select,
+.role-dashboard-section textarea,
+.react-role-dashboard input,
+.react-role-dashboard select,
+.react-role-dashboard textarea {
+  background: #ffffff !important;
+  border-color: #7dd3fc !important;
+  color: #0f172a !important;
+}
+
+.role-dashboard-section input::placeholder,
+.role-dashboard-section textarea::placeholder,
+.react-role-dashboard input::placeholder,
+.react-role-dashboard textarea::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+}
+
+/* Percent/stat badges should remain high-contrast on dark surfaces. */
+.role-dashboard-section [class*="badge"],
+.role-dashboard-section [class*="pill"],
+.role-dashboard-section [class*="score"],
+.react-role-dashboard [class*="badge"],
+.react-role-dashboard [class*="pill"],
+.react-role-dashboard [class*="score"] {
+  color: #ffffff !important;
+}
+
+/* Explicitly fix the broken outreach side rail text wrapping visible in the current screenshot. */
+.role-dashboard-section .turnaround-outreach-board,
+.react-role-dashboard .turnaround-outreach-board {
+  overflow: hidden !important;
+}
+
+.role-dashboard-section .turnaround-outreach-board * ,
+.react-role-dashboard .turnaround-outreach-board * {
+  overflow-wrap: anywhere;
+}
+
+

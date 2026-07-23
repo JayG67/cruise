@@ -1,0 +1,11 @@
+/* Aggregate application component stylesheet. Keep imported by the app entrypoint. */
+
+@import './application-workspace.css';
+@import './application-workflow-controls.css';
+@import './application-admin-workspace.css';
+@import './application-section-layout.css';
+@import './application-fleet-actions.css';
+@import './application-quality-console.css';
+@import './application-role-switching.css';
+@import './application-fleet-directory.css';
+@import './application-compatibility-polish.css';

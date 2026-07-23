@@ -1,0 +1,92 @@
+/* Team readiness and conflict cards. */
+
+
+.turnaround-team-readiness-card {
+  align-items: start;
+  background: linear-gradient(135deg, rgba(236, 253, 245, 0.9), rgba(240, 249, 255, 0.95));
+  border: 1px solid rgba(14, 165, 233, 0.28);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: minmax(0, 1fr) minmax(12rem, auto);
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
+.turnaround-team-readiness-card span {
+  color: #0f5e9c;
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.turnaround-team-readiness-card strong {
+  color: var(--heading-text);
+  display: block;
+  font-size: 1.35rem;
+  margin-top: 0.2rem;
+}
+
+.turnaround-team-readiness-card p {
+  color: var(--muted-text);
+  margin: 0.25rem 0 0;
+}
+
+.turnaround-missing-role-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
+.turnaround-missing-role-list span {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 999px;
+  color: #9a3412;
+  padding: 0.35rem 0.65rem;
+}
+
+.turnaround-missing-role-list .ready {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
+}
+
+@media (max-width: 760px) {
+  .turnaround-team-readiness-card {
+    grid-template-columns: 1fr;
+  }
+
+  .turnaround-missing-role-list {
+    justify-content: flex-start;
+  }
+}
+
+.turnaround-same-day-conflict-card {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 1rem;
+  color: #9a3412;
+  margin-top: 0.85rem;
+  padding: 0.9rem 1rem;
+}
+
+.turnaround-same-day-conflict-card strong {
+  color: #7c2d12;
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.turnaround-same-day-conflict-card p {
+  margin: 0;
+}
+
+.turnaround-admin-conflict-summary {
+  color: #0f766e !important;
+  font-weight: 800;
+  margin-top: 0.6rem !important;
+}

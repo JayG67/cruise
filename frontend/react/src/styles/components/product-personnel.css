@@ -1,0 +1,387 @@
+/* Slice 315: recruiter-facing selector cleanup and readable roster labels. */
+.compact-turnaround-roster-card > div:first-child {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.45rem;
+}
+
+.compact-turnaround-roster-card > div:first-child strong,
+.compact-turnaround-roster-card > div:first-child span {
+  line-height: 1.35;
+}
+
+.person-finder-card-main span {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.passenger-finder-panel + .person-finder-panel {
+  display: none;
+}
+
+/* Slice 316: simplify operational role selection into one clear chooser. */
+.operational-person-filter-panel {
+  gap: 1rem;
+}
+
+.operational-person-filter-panel .passenger-finder-heading {
+  align-items: flex-start;
+}
+
+.role-selector-helper-text {
+  color: var(--muted-text);
+  line-height: 1.45;
+  margin: 0.35rem 0 0;
+  max-width: 54rem;
+}
+
+.operational-person-filter-grid {
+  align-items: end;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.operational-person-search-field {
+  min-width: 0;
+}
+
+.operational-selector-summary {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.operational-selector-summary > div {
+  background: linear-gradient(145deg, #f8fcff, #ffffff);
+  border: 1px solid #cfe0f1;
+  border-radius: 0.9rem;
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem;
+}
+
+.operational-selector-summary span {
+  color: #0f5e9c;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.operational-selector-summary strong {
+  color: var(--heading-text);
+  overflow-wrap: anywhere;
+}
+
+.operational-selector-summary small {
+  color: var(--muted-text);
+  line-height: 1.35;
+}
+
+.operational-person-results .person-finder-card-main {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.operational-person-results .person-finder-card-main span {
+  white-space: normal;
+}
+
+@media (max-width: 900px) {
+  .operational-person-filter-grid,
+  .operational-selector-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+.turnaround-selected-team {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.turnaround-team-member-card {
+  align-items: center;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 1rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+}
+
+.turnaround-team-member-card div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.turnaround-team-member-card strong {
+  color: #071827;
+}
+
+.turnaround-team-member-card span {
+  color: #42526b;
+}
+
+.compact-action {
+  padding: 0.45rem 0.85rem;
+  min-height: auto;
+}
+
+.turnaround-roster-browser {
+  border-top: 1px solid rgba(148, 163, 184, 0.28);
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+.turnaround-roster-browser summary {
+  cursor: pointer;
+  font-weight: 800;
+  color: #0f5f93;
+  margin-bottom: 0.85rem;
+}
+
+@media (max-width: 760px) {
+  .turnaround-team-member-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* app.css retirement: CSS Foundation Refactor Slice 31: operations shift briefing, go-live, team readiness, and conflict CSS moved to layered component CSS.  */
+/* app.css retirement: CSS Foundation Refactor Slice 31: data architecture, hardening, deployment, portfolio, control-board, migration, and public launch readiness CSS moved to layered component CSS.  */
+/* Phase 22 CSS retirement: passenger voyage planner styles now live in layered component CSS.
+   Keep app.css as a compatibility layer only; do not reintroduce voyage planner rules here. */
+
+/* Phase 21 CSS retirement: cruise-line presentation suite styles now live in layered component CSS.
+   Keep app.css as a compatibility layer only; do not reintroduce presentation-suite rules here. */
+/* Phase 23 CSS retirement: first-impression landing page and production hero styles now live in layered component CSS.
+   Keep app.css as a compatibility layer only; do not reintroduce production hero presentation rules here. */
+
+/* Build 362: Turnaround admin action button polish.
+   Keep short actions readable inside the two-column role coverage cards and
+   selected-team rows instead of allowing narrow mobile-style word wrapping. */
+.turnaround-role-coverage-card,
+.turnaround-team-member-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.turnaround-role-coverage-card > div,
+.turnaround-team-member-card > div {
+  min-width: 0;
+}
+
+.turnaround-role-coverage-card .compact-action,
+.turnaround-team-member-card .compact-action {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  min-height: 2.75rem;
+  min-width: 7.25rem;
+  padding: 0.65rem 1rem;
+  text-align: center;
+  white-space: nowrap;
+  width: auto;
+}
+
+.turnaround-role-coverage-card .compact-action {
+  min-width: 6.75rem;
+}
+
+@media (max-width: 760px) {
+  .turnaround-team-member-card .compact-action,
+  .turnaround-role-coverage-card .compact-action {
+    width: fit-content;
+  }
+}
+
+/* Build 363 UX fixes: make role selection obvious and keep action buttons readable. */
+.role-selector-section {
+  border: 2px solid #b9dff3;
+  box-shadow: 0 22px 54px rgba(11, 111, 164, 0.12);
+}
+
+.role-selector-section .role-selector-grid {
+  background: linear-gradient(135deg, #eff9ff 0%, #ffffff 58%);
+  border: 1px solid #b9dff3;
+  border-radius: 1.25rem;
+  padding: clamp(1rem, 2.5vw, 1.4rem);
+}
+
+.role-selector-section > .eyebrow::before {
+  content: 'Start here · ';
+}
+
+.role-selector-field:first-child {
+  background: #ffffff;
+  border: 2px solid #0b8eb4;
+  border-radius: 1rem;
+  box-shadow: 0 14px 32px rgba(11, 111, 164, 0.13);
+  padding: 1rem;
+}
+
+.role-selector-field:first-child .react-field-label {
+  color: #064e73;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.role-selector-field:first-child .react-select {
+  border-color: #0b8eb4;
+  border-width: 2px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  min-height: 3.25rem;
+}
+
+.turnaround-role-coverage-card,
+.turnaround-team-member-card {
+  align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.turnaround-role-coverage-card .compact-action,
+.turnaround-team-member-card .compact-action,
+.secondary-action-button.compact-action {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  line-height: 1.1;
+  min-inline-size: 6.4rem;
+  padding: 0.55rem 0.9rem;
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+.admin-booking-boundary-card {
+  border-left: 0.35rem solid #0b8eb4;
+}
+
+.admin-boundary-proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-boundary-proof span {
+  background: #eaf8fb;
+  border: 1px solid #b9e4ef;
+  border-radius: 999px;
+  color: #075f8f;
+  font-size: 0.82rem;
+  font-weight: 900;
+  padding: 0.35rem 0.65rem;
+}
+
+.admin-delete-selector-card select {
+  background: #ffffff;
+  border: 1px solid #b9c8d8;
+  border-radius: 0.75rem;
+  min-height: 46px;
+  padding: 0.75rem 0.9rem;
+  width: 100%;
+}
+
+.admin-delete-selector-card .manual-id-fallback {
+  border-top: 1px solid #e3ebf4;
+  margin-top: 0.35rem;
+  padding-top: 0.75rem;
+}
+
+/* Build 364: operational role selector layout polish. */
+.operational-person-filter-panel .passenger-finder-heading {
+  display: block;
+  max-width: 100%;
+}
+
+.operational-person-filter-panel .passenger-finder-heading > div {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.operational-person-filter-grid {
+  align-items: stretch;
+  gap: 0.85rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.operational-person-filter-grid .role-selector-field,
+.operational-person-filter-grid .role-selector-field:first-child,
+.operational-person-search-field {
+  background: #ffffff;
+  border: 1px solid #b9d4eb;
+  border-radius: 1rem;
+  box-shadow: none;
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0;
+  min-width: 0;
+  padding: 1rem;
+}
+
+.operational-person-filter-grid .react-field-label,
+.operational-person-filter-grid .role-selector-field:first-child .react-field-label {
+  color: #064e73;
+  font-size: 0.86rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.operational-person-filter-grid .react-select,
+.operational-person-filter-grid .role-selector-field:first-child .react-select,
+.operational-person-filter-grid .react-input {
+  appearance: none;
+  background-color: #ffffff;
+  border: 1px solid #b9c8d8;
+  border-radius: 0.85rem;
+  box-sizing: border-box;
+  color: #071827;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  min-height: 3rem;
+  min-width: 0;
+  padding: 0.75rem 0.9rem;
+  width: 100%;
+}
+
+.operational-person-filter-grid .react-select:focus,
+.operational-person-filter-grid .react-input:focus {
+  border-color: #0b8eb4;
+  box-shadow: 0 0 0 3px rgba(11, 142, 180, 0.18);
+  outline: none;
+}
+
+.operational-person-filter-grid .react-input::placeholder {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.operational-selector-summary {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.operational-selector-summary > div {
+  min-width: 0;
+}
+
+.operational-selector-summary strong,
+.operational-selector-summary small,
+.role-selector-helper-text {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+@media (max-width: 920px) {
+  .operational-person-filter-grid,
+  .operational-selector-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* CSS Foundation Refactor Slice 42: product polish overrides moved to product-polish.css. */

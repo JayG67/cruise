@@ -1,0 +1,50 @@
+/*
+  CSS Foundation Refactor - Phase 2.
+
+  This slice moves the live React product surface toward shared primitives.
+  The goal is a consistent command-center application shell, reusable dark
+  operational panels, reusable dark cards, and isolated light editor/data
+  surfaces. Existing legacy selectors are intentionally mapped into these
+  primitives while JSX migrations happen in later slices.
+*/
+
+/* Shared pills and metrics. */
+.react-production-shell :is(
+  .status-pill,
+  .active-route-summary,
+  .hero-status-pills span,
+  .react-admin-stat-pills span,
+  .linked-booking-pill,
+  .create-workflow-pill,
+  .selected-ships-count,
+  .operations-task-status-pill,
+  .operations-staffing-status-pill,
+  .turnaround-roster-chip-list span,
+  .operational-progress-summary span,
+  .operational-escalation-summary span,
+  .operational-dependency-summary span,
+  .operational-handoff-summary span,
+  .operational-staffing-summary span
+) {
+  background: rgba(158, 231, 255, 0.14) !important;
+  border: 1px solid var(--ce-command-border) !important;
+  border-radius: var(--ce-radius-pill) !important;
+  color: var(--ce-command-text) !important;
+  -webkit-text-fill-color: var(--ce-command-text) !important;
+  font-weight: 900;
+}
+
+.react-production-shell :is(
+  .draft-message,
+  .error,
+  .active-route-next-step,
+  .operational-blocker-note,
+  .operations-staffing-note,
+  .finder-limit-note
+) {
+  background: var(--ce-data-surface) !important;
+  border: 1px solid var(--ce-data-border) !important;
+  border-radius: var(--ce-radius-card) !important;
+  color: var(--ce-data-text) !important;
+  -webkit-text-fill-color: var(--ce-data-text) !important;
+}

@@ -1,0 +1,112 @@
+/* Operations incident command surface. */
+
+.operations-incident-command {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 1rem;
+  background: rgba(248, 250, 252, 0.92);
+}
+
+.operations-incident-command-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.operations-incident-command-header h4,
+.operations-incident-command-header p {
+  margin: 0.2rem 0 0;
+}
+
+.operations-incident-command-score {
+  display: grid;
+  justify-items: center;
+  min-width: 6rem;
+  padding: 0.75rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  text-transform: uppercase;
+}
+
+.operations-incident-command-score span {
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.operations-incident-command-score.critical,
+.operations-incident-command-score.high {
+  background: rgba(254, 226, 226, 0.86);
+}
+
+.operations-incident-command-score.watch {
+  background: rgba(254, 243, 199, 0.86);
+}
+
+.operations-incident-command-score.low {
+  background: rgba(220, 252, 231, 0.86);
+}
+
+.operations-incident-command-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.75rem;
+}
+
+.operations-incident-command-card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.85rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+}
+
+.operations-incident-command-card span,
+.operations-incident-command-card em,
+.operations-incident-command-card p {
+  margin: 0;
+  color: #475569;
+}
+
+.operations-incident-command-card strong {
+  color: #0f172a;
+}
+
+.operations-incident-command-card.critical,
+.operations-incident-command-card.high {
+  border-color: rgba(185, 28, 28, 0.34);
+  background: rgba(254, 242, 242, 0.9);
+}
+
+.operations-incident-command-card.watch {
+  border-color: rgba(180, 83, 9, 0.28);
+  background: rgba(255, 251, 235, 0.9);
+}
+
+.operations-incident-command-footer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.75rem;
+}
+
+.operations-incident-command-footer div {
+  padding: 0.85rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: #ffffff;
+}
+
+.operations-incident-command-footer ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+}
+
+@media (max-width: 720px) {
+  .operations-incident-command-header {
+    flex-direction: column;
+  }
+}

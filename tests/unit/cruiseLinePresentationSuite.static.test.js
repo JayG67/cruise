@@ -7,6 +7,27 @@ function read(relativePath) {
   return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
 }
 
+function readCssBundle(relativePath, seen = new Set()) {
+  const fullPath = path.join(projectRoot, relativePath)
+  if (seen.has(fullPath)) {
+    return ''
+  }
+  seen.add(fullPath)
+
+  const content = fs.readFileSync(fullPath, 'utf8')
+  const directory = path.dirname(relativePath)
+
+  return content.replace(/@import\s+['"](.+?)['"];?/g, (_match, importPath) => {
+    const nestedPath = path.normalize(path.join(directory, importPath)).replace(/\\/g, '/')
+    return readCssBundle(nestedPath, seen)
+  })
+}
+
+function optionalRead(relativePath) {
+  const fullPath = path.join(projectRoot, relativePath)
+  return fs.existsSync(fullPath) ? fs.readFileSync(fullPath, 'utf8') : ''
+}
+
 describe('cruise line presentation suite expansion', () => {
   it('keeps the cruise-line operations workspace product-facing and operational', () => {
     const component = read('frontend/react/src/components/ReactCruiseLinePresentationSuite.jsx')
@@ -44,12 +65,20 @@ describe('cruise line presentation suite expansion', () => {
     expect(component).not.toContain('production readiness')
   })
 
-  it('styles the presentation expansion without adding another readiness control panel', () => {
-    const css = read('frontend/react/src/styles/app.css')
+  it('styles the presentation expansion through the shared design system', () => {
+    const productShellCss = readCssBundle('frontend/react/src/styles/components/product-shell.css')
+    const componentIndexCss = read('frontend/react/src/styles/components/index.css')
+    const legacyCss = optionalRead('frontend/react/src/styles/app.css')
 
-    expect(css).toContain('.presentation-control-panel')
-    expect(css).toContain('.presentation-hero-card')
-    expect(css).toContain('.presentation-action-grid')
-    expect(css).not.toContain('.presentation-readiness-panel')
+    expect(componentIndexCss).toContain("@import './product-shell.css';")
+    expect(productShellCss).toContain('.presentation-control-panel')
+    expect(productShellCss).toContain('.presentation-hero-card')
+    expect(productShellCss).toContain('.presentation-action-grid')
+    expect(productShellCss).not.toContain('.presentation-readiness-panel')
+    expect(fs.existsSync(path.join(projectRoot, 'frontend/react/src/styles/app.css'))).toBe(false)
+    expect(legacyCss).not.toContain('.presentation-demo-flow')
+    expect(legacyCss).not.toContain('.presentation-commercial-grid')
+    expect(legacyCss).not.toContain('.presentation-operator-grid')
+    expect(legacyCss).not.toContain('.operations-presentation-guide')
   })
 })

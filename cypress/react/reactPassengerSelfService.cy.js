@@ -1,5 +1,5 @@
 const { reactSelectorKeys: rs } = require('./support/reactSelectors')
-const { reactBookings, reactCustomers, selectDemoUserByVisibleRole, visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
+const { reactBookings, reactCustomers, reactDemoUsers, selectDemoUserByVisibleRole, visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
 describe('React passenger self-service coverage expansion', () => {
   beforeEach(() => {
@@ -13,6 +13,40 @@ describe('React passenger self-service coverage expansion', () => {
     cy.getByTestId(rs.passengerProfileLastName).should('have.value', 'Gallagher')
     cy.getByTestId(rs.passengerProfileEmail).should('have.value', 'jay.react@example.com')
     cy.getByTestId(rs.passengerProfilePhone).should('have.value', '555-0101')
+  })
+
+
+  it('synchronizes the booking primary guest when a different passenger profile is selected', () => {
+    visitReactAppAsAdmin({
+      demoUsers: [
+        ...reactDemoUsers,
+        {
+          id: 'react-passenger-alisa',
+          displayName: 'Alisa Gallagher',
+          role: 'Passenger',
+          customerId: 'react-customer-2',
+          email: 'alisa.react@example.com'
+        }
+      ]
+    })
+    selectDemoUserByVisibleRole('Passenger', 'React Passenger')
+
+    cy.getByTestId(rs.bookingSelectedGuestCard)
+      .first()
+      .should('contain.text', 'Jay Gallagher')
+      .and('contain.text', 'jay.react@example.com')
+
+    cy.getByTestId(rs.passengerSearchInput).clear().type('Alisa Gallagher')
+    cy.getByTestId(rs.personFinderResultCard)
+      .contains('Alisa Gallagher')
+      .closest('button')
+      .click()
+
+    cy.getByTestId(rs.bookingSelectedGuestCard)
+      .first()
+      .should('contain.text', 'Alisa Gallagher')
+      .and('contain.text', 'alisa.react@example.com')
+      .and('not.contain.text', 'Jay Gallagher')
   })
 
   it('blocks invalid passenger profile email before API mutation', () => {
