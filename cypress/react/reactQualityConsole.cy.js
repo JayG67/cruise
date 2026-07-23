@@ -23,9 +23,9 @@ describe('React quality console coverage expansion', () => {
     ].forEach(selectorKey => cy.getByTestId(selectorKey).should('be.visible'))
     cy.getByTestId(rs.goLiveReadinessPanel).should('be.visible').and('contain.text', 'Manual approval checklist')
     cy.getByTestId(rs.sqaConsole).within(() => {
-      cy.contains('View Quality Dashboard').should('have.attr', 'href', '/quality-dashboard.html')
-      cy.contains('View Latest Lighthouse Mobile Report').should('be.visible')
-      cy.contains('View Latest Jest Coverage Report').should('be.visible')
+      cy.contains('View Quality Dashboard').should('have.attr', 'href', 'https://jayg67.github.io/cruise/').and('have.attr', 'target', '_blank')
+      cy.contains('View Latest Lighthouse Mobile Report').should('have.attr', 'href', 'https://jayg67.github.io/cruise/lighthouse/').and('have.attr', 'target', '_blank')
+      cy.contains('View Latest Jest Coverage Report').should('have.attr', 'href', 'https://jayg67.github.io/cruise/coverage/').and('have.attr', 'target', '_blank')
     })
   })
 
