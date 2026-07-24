@@ -118,6 +118,18 @@ describe('browser test helper inventory', () => {
     expect(reactSelectors.employerDemoCommandCenter).toBe('react-employer-demo-command-center')
   })
 
+  it('resolves registered React selectors and rejects unknown selector keys', () => {
+    const selectorMapPath = path.join(projectRoot, 'cypress/react/support/reactSelectors.js')
+    const { reactSelectors, reactSelectorKeys, testId, byTestId } = require(selectorMapPath)
+
+    expect(testId('employerDemoCommandCenter')).toBe(reactSelectors.employerDemoCommandCenter)
+    expect(byTestId('employerDemoCommandCenter')).toBe(`[data-testid="${reactSelectors.employerDemoCommandCenter}"]`)
+    expect(reactSelectorKeys.employerDemoCommandCenter).toBe('employerDemoCommandCenter')
+    expect(Object.isFrozen(reactSelectors)).toBe(true)
+    expect(Object.isFrozen(reactSelectorKeys)).toBe(true)
+    expect(() => testId('missingSelectorKey')).toThrow('Unknown React selector key: missingSelectorKey')
+  })
+
   it('keeps React Cypress selectors centralized behind one authoritative selector map', () => {
     const selectorMapPath = path.join(projectRoot, 'cypress/react/support/reactSelectors.js')
     const duplicateSelectorMapPath = path.join(projectRoot, 'cypress/react/reactSelectors.js')

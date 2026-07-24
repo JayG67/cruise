@@ -42,15 +42,20 @@ function getStatusForScore(score, readyThreshold = 85, watchThreshold = 60) {
 }
 
 function hasScript(packageJson = {}, scriptName) {
-  return Boolean(asObject(packageJson.scripts)[scriptName])
+  const normalizedPackageJson = asObject(packageJson)
+  return Boolean(asObject(normalizedPackageJson.scripts)[scriptName])
 }
 
 function hasDependency(packageJson = {}, dependencyName) {
-  return Boolean(asObject(packageJson.dependencies)[dependencyName] || asObject(packageJson.devDependencies)[dependencyName])
+  const normalizedPackageJson = asObject(packageJson)
+  return Boolean(
+    asObject(normalizedPackageJson.dependencies)[dependencyName] ||
+    asObject(normalizedPackageJson.devDependencies)[dependencyName]
+  )
 }
 
 function hasFile(files = {}, filePath) {
-  return Boolean(files[filePath])
+  return Boolean(asObject(files)[filePath])
 }
 
 function buildEnvironmentGate({ env = {}, requiredEnv = DEFAULT_REQUIRED_ENV, recommendedEnv = DEFAULT_RECOMMENDED_ENV, files = {} }) {
