@@ -65,6 +65,69 @@ describe('phaseOneCompletionHandoff service', () => {
     })).toThrow('100% complete')
   })
 
+  it('normalizes fallback labels, evidence, and productionization handoff fields', () => {
+    const handoff = buildPhaseOneCompletionHandoff([
+      { key: 'fallback-label', status: 'complete', evidence: 'not-an-array' },
+      { key: 'needs-work', label: '', status: 'blocked', evidence: [' proof ', null, ''] }
+    ], [
+      { key: ' migration ', label: ' Migration ', phase: ' Phase 2 ', reason: ' Later ' },
+      {}
+    ])
+
+    expect(handoff).toMatchObject({
+      status: 'needs-attention',
+      completionPercentage: 50,
+      completeAreaKeys: ['fallback-label'],
+      needsAttentionAreaKeys: ['needs-work']
+    })
+    expect(handoff.areas).toEqual([
+      { key: 'fallback-label', label: 'fallback-label', status: 'complete', evidence: [] },
+      { key: 'needs-work', label: 'needs-work', status: 'needs-attention', evidence: ['proof', 'null'] }
+    ])
+    expect(handoff.productionizationHandoff).toEqual([
+      { key: 'migration', label: 'Migration', phase: 'Phase 2', reason: 'Later' },
+      { key: '', label: '', phase: '', reason: '' }
+    ])
+    expect(buildPhaseOneCompletionHandoff([], []).completionPercentage).toBe(0)
+  })
+
+  it.each([
+    [
+      { guardrail: 'wrong', status: 'complete', completionPercentage: 100, areas: [{}], productionizationHandoff: [{}] },
+      'guardrail is required'
+    ],
+    [
+      { guardrail: PHASE_ONE_COMPLETION_GUARDRAIL, status: 'needs-attention', completionPercentage: 100, areas: [{}], productionizationHandoff: [{}] },
+      'still has areas needing attention'
+    ],
+    [
+      { guardrail: PHASE_ONE_COMPLETION_GUARDRAIL, status: 'complete', completionPercentage: 100, areas: [], productionizationHandoff: [{}] },
+      'completion areas are required'
+    ],
+    [
+      { guardrail: PHASE_ONE_COMPLETION_GUARDRAIL, status: 'complete', completionPercentage: 100, areas: [{ key: '', label: 'Missing key', status: 'complete', evidence: ['proof'] }], productionizationHandoff: [{}] },
+      'area key is required'
+    ],
+    [
+      { guardrail: PHASE_ONE_COMPLETION_GUARDRAIL, status: 'complete', completionPercentage: 100, areas: [{ key: 'area', label: '', status: 'complete', evidence: ['proof'] }], productionizationHandoff: [{}] },
+      'area label is required for area'
+    ],
+    [
+      { guardrail: PHASE_ONE_COMPLETION_GUARDRAIL, status: 'complete', completionPercentage: 100, areas: [{ key: 'area', label: 'Area', status: 'needs-attention', evidence: ['proof'] }], productionizationHandoff: [{}] },
+      'area is not complete: area'
+    ],
+    [
+      { guardrail: PHASE_ONE_COMPLETION_GUARDRAIL, status: 'complete', completionPercentage: 100, areas: [{ key: 'area', label: 'Area', status: 'complete', evidence: [] }], productionizationHandoff: [{}] },
+      'completion evidence is required for area'
+    ],
+    [
+      { guardrail: PHASE_ONE_COMPLETION_GUARDRAIL, status: 'complete', completionPercentage: 100, areas: [{ key: 'area', label: 'Area', status: 'complete', evidence: ['proof'] }], productionizationHandoff: [] },
+      'productionization handoff items are required'
+    ]
+  ])('rejects incomplete Phase 1 handoff contracts', (handoff, message) => {
+    expect(() => assertPhaseOneCompletionHandoff(handoff)).toThrow(message)
+  })
+
   it('describes the Phase 2 productionization handoff without reopening Phase 1 bridge slices', () => {
     expect(describePhaseOneCompletionHandoff()).toEqual({
       headline: 'Phase 1 Data Architecture Hardening is complete',

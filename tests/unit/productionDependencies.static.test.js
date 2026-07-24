@@ -12,14 +12,16 @@ function readJson(relativePath) {
 }
 
 describe('production dependency security contracts', () => {
-  it('pins the patched Vite release and the secure qs override', () => {
+  it('pins patched frontend build dependencies and secure production overrides', () => {
     const packageJson = readJson('package.json')
     const packageLock = readJson('package-lock.json')
 
     expect(packageJson.dependencies.vite).toBe('7.3.6')
     expect(packageJson.overrides.qs).toBe('6.15.3')
+    expect(packageJson.overrides.postcss).toBe('8.5.22')
     expect(packageLock.packages['node_modules/vite'].version).toBe('7.3.6')
     expect(packageLock.packages['node_modules/qs'].version).toBe('6.15.3')
+    expect(packageLock.packages['node_modules/postcss'].version).toBe('8.5.22')
   })
 
   it('runs the production dependency audit locally, in test:all, and in CI', () => {
