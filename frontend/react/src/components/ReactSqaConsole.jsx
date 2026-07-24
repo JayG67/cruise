@@ -402,9 +402,9 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
       </div>
 
       <div className="react-sqa-report-links" aria-label="Quality report links">
-        <a href="/quality-dashboard.html">View Quality Dashboard</a>
-        <a href="/reports/lighthouse-mobile/latest.html">View Latest Lighthouse Mobile Report</a>
-        <a href="/coverage/lcov-report/index.html">View Latest Jest Coverage Report</a>
+        <a href="https://jayg67.github.io/cruise/" target="_blank" rel="noopener noreferrer">View Quality Dashboard</a>
+        <a href="https://jayg67.github.io/cruise/lighthouse/" target="_blank" rel="noopener noreferrer">View Latest Lighthouse Mobile Report</a>
+        <a href="https://jayg67.github.io/cruise/coverage/" target="_blank" rel="noopener noreferrer">View Latest Jest Coverage Report</a>
       </div>
 
       <pre className="react-sqa-output" role="status" aria-live="polite" aria-label="Quality validation output" data-testid="react-sqa-output">

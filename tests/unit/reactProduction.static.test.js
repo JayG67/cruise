@@ -84,6 +84,11 @@ describe('Cruise operations product presentation guardrails', () => {
     expect(app).toContain('Open Quality Console')
     expect(sqaConsole).toContain('Quality Console')
     expect(sqaConsole).toContain('View Quality Dashboard')
+    expect(sqaConsole).toContain('https://jayg67.github.io/cruise/')
+    expect(sqaConsole).toContain('https://jayg67.github.io/cruise/lighthouse/')
+    expect(sqaConsole).toContain('https://jayg67.github.io/cruise/coverage/')
+    expect(sqaConsole).toContain('target="_blank"')
+    expect(sqaConsole).toContain('rel="noopener noreferrer"')
     expect(sqaConsole).toContain('Run Performance Check')
   })
 
