@@ -141,7 +141,7 @@ export default function EmployerDemoCommandCenter({
 
       <div className="employer-demo-proof-grid self-guided-proof-grid" aria-label="Application proof points" data-testid="react-employer-demo-proof-grid">
         {proofPoints.map(point => (
-          <article className="employer-demo-proof-card self-guided-proof-card ce-command-card" key={point.id} data-testid="react-employer-demo-proof-card">
+          <article className="employer-demo-proof-card self-guided-proof-card ce-command-card" key={point.id} data-testid={`react-employer-demo-proof-${point.id}`}>
             <span>{point.label}</span>
             <strong>{point.value}</strong>
             <p>{point.detail}</p>
