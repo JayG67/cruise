@@ -325,3 +325,23 @@ section.turnaround-admin-setup-panel#react-turnaround-admin-setup::after {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Build 376: keep the role and assigned person as distinct readable rows. */
+.turnaround-admin-setup-panel .turnaround-role-coverage-card .turnaround-role-assignment {
+  align-items: flex-start !important;
+  display: grid !important;
+  gap: 0.35rem !important;
+  min-width: 0 !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-role-coverage-card .turnaround-role-assignment-label,
+.turnaround-admin-setup-panel .turnaround-role-coverage-card .turnaround-role-assignment-person {
+  display: block !important;
+  margin: 0 !important;
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-role-coverage-card .turnaround-role-assignment-person {
+  line-height: 1.35 !important;
+}
