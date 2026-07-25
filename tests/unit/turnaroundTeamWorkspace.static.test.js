@@ -56,11 +56,22 @@ describe('turnaround team workspace static contracts', () => {
     expect(component).toContain('Clear role')
     expect(component).toContain('turnaround-role-assignment-label')
     expect(component).toContain('turnaround-role-assignment-person')
+    expect(component).toContain('`${assignedPerson.displayName} — ${assignedPerson.assignedShipName || selectedShip.name}`')
     expect(styles).toContain('.turnaround-role-coverage-card .turnaround-role-assignment')
     expect(styles).toContain('gap: 0.35rem !important')
     expect(styles).toContain('.turnaround-role-coverage-grid')
     expect(styles).toContain('.turnaround-role-coverage-card.staffed')
     expect(styles).toContain('.turnaround-role-coverage-card.missing')
+  })
+
+  it('keeps missing-role badges readable on their light warning surface', () => {
+    const component = read('frontend/react/src/components/ReactTurnaroundAdminSetup.jsx')
+    const styles = readCssBundle('frontend/react/src/styles/index.css')
+
+    expect(component).toContain('className="turnaround-team-missing-role-badge"')
+    expect(styles).toContain('.turnaround-team-missing-role-badge')
+    expect(styles).toContain('color: #7c2d12 !important')
+    expect(styles).toContain('-webkit-text-fill-color: #7c2d12 !important')
   })
 
   it('keeps the complete-team badge readable on its light success surface', () => {
@@ -72,6 +83,17 @@ describe('turnaround team workspace static contracts', () => {
     expect(styles).toContain('.turnaround-team-complete-badge')
     expect(styles).toContain('color: #065f46 !important')
     expect(styles).toContain('-webkit-text-fill-color: #065f46 !important')
+  })
+
+  it('stacks the readiness summary above missing-role badges so text cannot collapse into single-character columns', () => {
+    const component = read('frontend/react/src/components/ReactTurnaroundAdminSetup.jsx')
+    const styles = readCssBundle('frontend/react/src/styles/index.css')
+
+    expect(component).toContain('className="turnaround-team-readiness-summary"')
+    expect(styles).toContain('.turnaround-team-readiness-summary')
+    expect(styles).toContain('grid-template-columns: minmax(0, 1fr);')
+    expect(styles).toContain('word-break: normal;')
+    expect(styles).toContain('justify-content: flex-start;')
   })
 
 })

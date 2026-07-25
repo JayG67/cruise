@@ -1584,3 +1584,20 @@ html body .react-role-dashboard .operational-data-state.ce-command-card.ce-surfa
   opacity: 1 !important;
   text-shadow: none !important;
 }
+
+
+/* Turnaround admin missing-role badges own a light warning surface. */
+:is(.react-production-shell, .react-app-shell)
+  .turnaround-admin-setup-panel
+  .turnaround-team-readiness-card
+  .turnaround-missing-role-list
+  .turnaround-team-missing-role-badge {
+  background: #fff7ed !important;
+  background-color: #fff7ed !important;
+  background-image: none !important;
+  border: 1px solid #fdba74 !important;
+  color: #7c2d12 !important;
+  -webkit-text-fill-color: #7c2d12 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
