@@ -4,6 +4,10 @@ const app = require('../../app')
 const initializeDatabase = require('../../services/initializeDatabase.service')
 const loadCruiseData = require('../../services/loadCruiseData.service')
 
+// Database initialization and seed loading run substantially slower under
+// CI coverage instrumentation than during a normal local test run.
+jest.setTimeout(120000)
+
 beforeAll(async () => {
   await initializeDatabase()
   await loadCruiseData()
