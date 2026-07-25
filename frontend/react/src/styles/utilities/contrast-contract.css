@@ -1570,3 +1570,17 @@ html body .react-role-dashboard .operational-data-state.ce-command-card.ce-surfa
   opacity: 1 !important;
   text-shadow: none !important;
 }
+
+
+/* Turnaround admin complete-team badge owns a light success surface. */
+:is(.react-production-shell, .react-app-shell)
+  .turnaround-team-readiness-card
+  .turnaround-missing-role-list
+  .turnaround-team-complete-badge {
+  background: #ecfdf5 !important;
+  border: 1px solid #6ee7b7 !important;
+  color: #065f46 !important;
+  -webkit-text-fill-color: #065f46 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}

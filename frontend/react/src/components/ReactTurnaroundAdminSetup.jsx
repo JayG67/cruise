@@ -523,7 +523,7 @@ export default function ReactTurnaroundAdminSetup({ selectedDemoUser, onSetupCha
                 <p>{missingRoles.length ? `Missing ${missingRoles.length} required role${missingRoles.length === 1 ? '' : 's'}` : 'All required turnaround roles are assigned for this ship queue.'}</p>
               </div>
               <div className="turnaround-missing-role-list" aria-label="Missing turnaround roles">
-                {missingRoles.length === 0 ? <span className="ready">Complete team</span> : missingRoles.map(role => <span key={role}>{getRoleLabel(role)}</span>)}
+                {missingRoles.length === 0 ? <span className="turnaround-team-complete-badge">Complete team</span> : missingRoles.map(role => <span key={role}>{getRoleLabel(role)}</span>)}
               </div>
             </div>
           ) : null}
@@ -542,9 +542,9 @@ export default function ReactTurnaroundAdminSetup({ selectedDemoUser, onSetupCha
                 const replacementCandidate = teamWorkspace.replacementCandidatesByRole[role]?.[0]
                 return (
                   <article key={role} className={assignedPerson ? 'turnaround-role-coverage-card staffed' : 'turnaround-role-coverage-card missing'} data-testid="react-turnaround-admin-role-card">
-                    <div>
-                      <span>{getRoleLabel(role)}</span>
-                      <strong>{assignedPerson?.displayName || 'Unassigned'}</strong>
+                    <div className="turnaround-role-assignment">
+                      <span className="turnaround-role-assignment-label">{getRoleLabel(role)}</span>
+                      <strong className="turnaround-role-assignment-person">{assignedPerson?.displayName || 'Unassigned'}</strong>
                     </div>
                     {assignedPerson ? (
                       <button type="button" className="secondary-action-button compact-action ce-button-secondary" onClick={() => handleRemovePerson(assignedPerson)} disabled={isSaving} data-testid="react-turnaround-admin-clear-role">Clear role</button>

@@ -49,7 +49,7 @@
   padding: 0.35rem 0.65rem;
 }
 
-.turnaround-missing-role-list .ready {
+.turnaround-missing-role-list .turnaround-team-complete-badge {
   background: #ecfdf5;
   border-color: #a7f3d0;
   color: #047857;

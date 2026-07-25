@@ -5,6 +5,7 @@ const cruiseLineTable = require('../models/cruiseline.model')
 const shipTable = require('../models/ship.model')
 const sailingTable = require('../models/sailing.model')
 const demoUserTable = require('../models/demoUser.model')
+const appRoleTable = require('../models/appRole.model')
 
 const TURNAROUND_OPERATIONAL_ROLES = [
   'turnaround-manager',
@@ -25,6 +26,30 @@ function normalizeOperationalRole(role = '') {
 
 function isTurnaroundOperationalRole(role = '') {
   return TURNAROUND_OPERATIONAL_ROLES.includes(normalizeOperationalRole(role))
+}
+
+function formatOperationalRoleDisplayName(role = '') {
+  return normalizeOperationalRole(role)
+    .split('-')
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+async function ensureOperationalRoleCatalogEntry(role) {
+  const normalizedRole = normalizeOperationalRole(role)
+  const existingRoles = await selectAllRows(appRoleTable)
+  if (existingRoles.some(entry => entry.id === normalizedRole)) return
+
+  await db
+    .insert(appRoleTable)
+    .values({
+      id: normalizedRole,
+      displayName: formatOperationalRoleDisplayName(normalizedRole),
+      roleType: 'OPERATIONS',
+      description: 'Turnaround operational role used by admin team assignments'
+    })
+    .onConflictDoNothing()
 }
 
 function toDemoUserRole(role = '') {
@@ -275,6 +300,7 @@ async function createTurnaroundPerson(payload = {}) {
   const sailing = await assertSailingBelongsToShip({ sailingId: assignedSailingId, shipId: assignedShipId })
   await assertSingleCruiseLineAssignment({ displayName, cruiseLineId })
   await assertNoSameDayTurnaroundConflict({ displayName, cruiseLineId, assignedSailingId })
+  await ensureOperationalRoleCatalogEntry(role)
 
   const requestedId = String(payload.id || '').trim()
   let id = requestedId || buildDemoUserId({ displayName, role, cruiseLineId, shipId: assignedShipId })
@@ -334,6 +360,7 @@ async function updateTurnaroundPerson(id, payload = {}) {
   const sailing = await assertSailingBelongsToShip({ sailingId: assignedSailingId, shipId: assignedShipId })
   await assertSingleCruiseLineAssignment({ displayName, userIdToExclude: id, cruiseLineId })
   await assertNoSameDayTurnaroundConflict({ displayName, userIdToExclude: id, cruiseLineId, assignedSailingId })
+  await ensureOperationalRoleCatalogEntry(role)
 
   const [updated] = await db
     .update(demoUserTable)

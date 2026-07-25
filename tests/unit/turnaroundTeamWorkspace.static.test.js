@@ -54,8 +54,24 @@ describe('turnaround team workspace static contracts', () => {
     expect(component).toContain('replacementCandidatesByRole')
     expect(component).toContain('Fill from roster')
     expect(component).toContain('Clear role')
+    expect(component).toContain('turnaround-role-assignment-label')
+    expect(component).toContain('turnaround-role-assignment-person')
+    expect(styles).toContain('.turnaround-role-coverage-card .turnaround-role-assignment')
+    expect(styles).toContain('gap: 0.35rem !important')
     expect(styles).toContain('.turnaround-role-coverage-grid')
     expect(styles).toContain('.turnaround-role-coverage-card.staffed')
     expect(styles).toContain('.turnaround-role-coverage-card.missing')
   })
+
+  it('keeps the complete-team badge readable on its light success surface', () => {
+    const component = read('frontend/react/src/components/ReactTurnaroundAdminSetup.jsx')
+    const styles = readCssBundle('frontend/react/src/styles/index.css')
+
+    expect(component).toContain('className="turnaround-team-complete-badge"')
+    expect(component).not.toContain('className="ready">Complete team')
+    expect(styles).toContain('.turnaround-team-complete-badge')
+    expect(styles).toContain('color: #065f46 !important')
+    expect(styles).toContain('-webkit-text-fill-color: #065f46 !important')
+  })
+
 })

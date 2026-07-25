@@ -20,6 +20,10 @@ function loadServiceWithFakeDb(initial = {}) {
     id: { key: 'id' },
     displayName: { key: 'displayName' }
   }
+  const appRoleTable = {
+    __table: 'appRoles',
+    id: { key: 'id' }
+  }
 
   const state = {
     cruiseLines: initial.cruiseLines || [
@@ -36,6 +40,10 @@ function loadServiceWithFakeDb(initial = {}) {
       { id: 'sailing-wonder-same-day', shipId: 'ship-wonder', departureDate: '2026-08-05' },
       { id: 'sailing-wonder-next-day', shipId: 'ship-wonder', departureDate: '2026-08-06' },
       { id: 'sailing-carnival', shipId: 'ship-carnival', departureDate: '2026-08-05' }
+    ],
+    appRoles: initial.appRoles || [
+      { id: 'turnaround-manager', displayName: 'Turnaround Manager', roleType: 'OPERATIONS' },
+      { id: 'security-lead', displayName: 'Security Lead', roleType: 'OPERATIONS' }
     ],
     demoUsers: initial.demoUsers || [
       {
@@ -92,13 +100,20 @@ function loadServiceWithFakeDb(initial = {}) {
       from: jest.fn(table => makeSelectChain(table))
     })),
     insert: jest.fn(table => ({
-      values: jest.fn(record => ({
-        returning: jest.fn(() => {
+      values: jest.fn(record => {
+        const insertRecord = () => {
+          const rows = tableData(table)
+          const existing = rows.find(row => row.id === record.id)
+          if (existing) return existing
           const inserted = { ...record }
-          tableData(table).push(inserted)
-          return Promise.resolve([inserted])
-        })
-      }))
+          rows.push(inserted)
+          return inserted
+        }
+        return {
+          onConflictDoNothing: jest.fn(() => Promise.resolve(insertRecord())),
+          returning: jest.fn(() => Promise.resolve([insertRecord()]))
+        }
+      })
     })),
     update: jest.fn(table => ({
       set: jest.fn(patch => ({
@@ -125,6 +140,7 @@ function loadServiceWithFakeDb(initial = {}) {
   jest.doMock('../../models/ship.model', () => shipTable)
   jest.doMock('../../models/sailing.model', () => sailingTable)
   jest.doMock('../../models/demoUser.model', () => demoUserTable)
+  jest.doMock('../../models/appRole.model', () => appRoleTable)
 
   const service = require('../../services/turnaroundAdminSetup.service')
   return { service, state, fakeDb }
@@ -189,6 +205,34 @@ describe('turnaround admin setup service behavior', () => {
       assignedShipName: 'Freedom of the Seas'
     })
     expect(state.demoUsers).toContainEqual(created)
+  })
+
+  it('creates a missing normalized app role before inserting a turnaround person', async () => {
+    const { service, state } = loadServiceWithFakeDb({
+      appRoles: [
+        { id: 'turnaround-manager', displayName: 'Turnaround Manager', roleType: 'OPERATIONS' }
+      ]
+    })
+
+    const created = await service.createTurnaroundPerson({
+      displayName: 'Test Person',
+      role: 'port-operations-lead',
+      cruiseLineId: 'cl-royal',
+      assignedShipId: 'ship-freedom',
+      sailingId: 'sailing-freedom'
+    })
+
+    expect(state.appRoles).toContainEqual({
+      id: 'port-operations-lead',
+      displayName: 'Port Operations Lead',
+      roleType: 'OPERATIONS',
+      description: 'Turnaround operational role used by admin team assignments'
+    })
+    expect(created).toMatchObject({
+      displayName: 'Test Person',
+      role: 'PORT_OPERATIONS_LEAD',
+      normalizedRoleId: 'port-operations-lead'
+    })
   })
 
   it('creates a port-pool assignment when no ship is selected', async () => {
