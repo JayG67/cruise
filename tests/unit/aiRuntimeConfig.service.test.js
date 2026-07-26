@@ -17,6 +17,7 @@ describe('AI runtime configuration', () => {
       AI_TIMEOUT_MS: '1200',
       AI_MAX_ATTEMPTS: '3',
       AI_RETRY_DELAY_MS: '25',
+      AI_MAX_CONTEXT_CHARS: '150000',
       AI_API_KEY: 'never-return-this'
     })
 
@@ -24,7 +25,8 @@ describe('AI runtime configuration', () => {
       providerName: 'deterministic',
       timeoutMs: 1200,
       maxAttempts: 3,
-      retryDelayMs: 25
+      retryDelayMs: 25,
+      maxContextChars: 150000
     })
     expect(JSON.stringify(describeAiRuntimeConfig(config))).not.toContain('never-return-this')
   })
@@ -36,6 +38,8 @@ describe('AI runtime configuration', () => {
     ['AI_MAX_ATTEMPTS', '5'],
     ['AI_RETRY_DELAY_MS', '-1'],
     ['AI_RETRY_DELAY_MS', '5001'],
+    ['AI_MAX_CONTEXT_CHARS', '999'],
+    ['AI_MAX_CONTEXT_CHARS', '500001'],
     ['AI_TIMEOUT_MS', 'not-a-number'],
     ['AI_TIMEOUT_MS', '100.5']
   ])('rejects invalid %s values before provider execution', (name, value) => {

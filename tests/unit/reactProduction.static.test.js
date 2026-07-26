@@ -37,6 +37,7 @@ describe('Cruise operations product presentation guardrails', () => {
     expect(app).not.toContain('sendDefaultExperience')
     expect(app).not.toContain('sendRetiredApp')
     expect(packageJson.scripts['test:all']).toContain('browserTests:react')
+    expect(packageJson.scripts['browserTests:react']).toContain('start:test')
     expect(packageJson.scripts['uiTests:ci']).toBe('npm run uiTests:react:ci')
   })
 

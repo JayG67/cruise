@@ -48,17 +48,18 @@ describe('Playwright React coverage inventory', () => {
 
     expect(config).toContain('Mobile Chrome - Pixel 7')
     expect(config).toContain('Mobile Safari - iPhone 13')
-    expect(config).toContain('Tablet Safari - iPad Mini')
+    expect(config).not.toContain('Tablet Safari - iPad Mini')
+    expect(config).toContain('Tablet layout coverage already lives in playwright.responsive.config.js')
   })
 
 
-  it('keeps mobile Playwright serialized against the shared local server and database', () => {
+  it('keeps tests serial within each mobile browser while allowing browser projects to use two workers', () => {
     const config = fs.readFileSync(mobileConfigPath, 'utf8')
     const helpers = fs.readFileSync(playwrightHelperPath, 'utf8')
 
     expect(config).toContain('fullyParallel: false')
-    expect(config).toContain('workers: 1')
-    expect(config).toContain('single shared local server and test database')
+    expect(config).toContain('workers: 2')
+    expect(config).toContain('browser projects can execute concurrently')
     expect(helpers).toContain('if (expectedText || userId)')
     expect(helpers).toContain('return selectedUserMatches || summaryMatches')
   })

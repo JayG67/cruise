@@ -4,7 +4,8 @@ const DEFAULT_AI_RUNTIME_CONFIG = Object.freeze({
   providerName: AI_PROVIDER_NAMES.DISABLED,
   timeoutMs: 5000,
   maxAttempts: 2,
-  retryDelayMs: 100
+  retryDelayMs: 100,
+  maxContextChars: 120000
 })
 
 function parseBoundedInteger(value, { name, fallback, min, max }) {
@@ -42,6 +43,12 @@ function getAiRuntimeConfig(env = process.env) {
       fallback: DEFAULT_AI_RUNTIME_CONFIG.retryDelayMs,
       min: 0,
       max: 5000
+    }),
+    maxContextChars: parseBoundedInteger(env.AI_MAX_CONTEXT_CHARS, {
+      name: 'AI_MAX_CONTEXT_CHARS',
+      fallback: DEFAULT_AI_RUNTIME_CONFIG.maxContextChars,
+      min: 1000,
+      max: 500000
     })
   })
 }
@@ -51,7 +58,8 @@ function describeAiRuntimeConfig(config = getAiRuntimeConfig()) {
     providerName: config.providerName,
     timeoutMs: config.timeoutMs,
     maxAttempts: config.maxAttempts,
-    retryDelayMs: config.retryDelayMs
+    retryDelayMs: config.retryDelayMs,
+    maxContextChars: config.maxContextChars
   }
 }
 

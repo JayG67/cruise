@@ -20,6 +20,26 @@ describe('AI provider foundation', () => {
     expect(() => createAiProvider({ providerName: 'invented-provider' })).toThrow('Unsupported AI provider')
   })
 
+
+  it('creates the production OpenAI adapter without exposing its credential', () => {
+    const provider = createAiProvider({
+      providerName: 'openai',
+      env: {
+        OPENAI_API_KEY: 'private-key',
+        OPENAI_MODEL: 'gpt-test',
+        OPENAI_BASE_URL: 'https://example.test/v1'
+      },
+      fetchImpl: jest.fn()
+    })
+
+    expect(provider).toEqual(expect.objectContaining({
+      name: 'openai',
+      model: 'gpt-test',
+      credentialConfigured: true
+    }))
+    expect(JSON.stringify(provider)).not.toContain('private-key')
+  })
+
   it('classifies operational evidence deterministically', () => {
     expect(severityForEvidence({ status: 'CRITICAL' })).toBe('critical')
     expect(severityForEvidence({ status: 'BLOCKED' })).toBe('high')

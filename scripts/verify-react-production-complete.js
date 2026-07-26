@@ -53,9 +53,10 @@ assertScriptIncludes(packageJson, 'react:production:complete', 'verify-react-pro
 assertScriptIncludes(packageJson, 'test:all', 'react:production:complete')
 assertScriptIncludes(packageJson, 'uiTests', 'uiTests:react')
 assertScriptIncludes(packageJson, 'uiTests:ci', 'uiTests:react')
-assertScriptIncludes(packageJson, 'browserTests:react', 'uiTests:react')
-assertScriptIncludes(packageJson, 'browserTests:react', 'playwright:mobile:react')
-assertScriptIncludes(packageJson, 'browserTests:react', 'playwright:responsive:react')
+assertScriptIncludes(packageJson, 'browserTests:react', 'browserTests:react:run')
+assertScriptIncludes(packageJson, 'browserTests:react:run', 'cypress:run:react')
+assertScriptIncludes(packageJson, 'browserTests:react:run', 'playwright:mobile:run')
+assertScriptIncludes(packageJson, 'browserTests:react:run', 'playwright:responsive:run')
 
 for (const retired of [
   'start:retired',

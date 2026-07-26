@@ -19,7 +19,7 @@ jest.mock('../../services/aiProvider.service', () => {
 jest.mock('../../services/auditEvent.service', () => ({ recordAuditEvent: jest.fn() }))
 
 jest.mock('../../services/aiRuntimeConfig.service', () => ({
-  getAiRuntimeConfig: jest.fn(() => ({ providerName: 'deterministic', timeoutMs: 1000, maxAttempts: 2, retryDelayMs: 0 })),
+  getAiRuntimeConfig: jest.fn(() => ({ providerName: 'deterministic', timeoutMs: 1000, maxAttempts: 2, retryDelayMs: 0, maxContextChars: 120000 })),
   describeAiRuntimeConfig: jest.fn(config => ({ ...config }))
 }))
 
@@ -51,7 +51,7 @@ function responseHarness() {
 describe('AI controller authorization and failure boundaries', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    createAiProvider.mockReturnValue({ name: 'deterministic', model: 'test-model' })
+    createAiProvider.mockReturnValue({ name: 'deterministic', model: 'test-model', credentialConfigured: true })
   })
 
   it('allows only administrator and operational roles to generate briefings', () => {
@@ -73,6 +73,7 @@ describe('AI controller authorization and failure boundaries', () => {
         provider: 'deterministic',
         model: 'test-model',
         generationEnabled: true,
+        credentialConfigured: true,
         executionPolicy: expect.objectContaining({ timeoutMs: 1000, maxAttempts: 2 })
       })
     }))
@@ -124,6 +125,8 @@ describe('AI controller authorization and failure boundaries', () => {
     ['AI_PROVIDER_TIMEOUT', 504],
     ['AI_PROVIDER_RATE_LIMITED', 429],
     ['AI_PROVIDER_TEMPORARILY_UNAVAILABLE', 503],
+    ['AI_PROVIDER_CREDENTIALS_MISSING', 503],
+    ['AI_PROVIDER_CREDENTIALS_INVALID', 502],
     ['AI_PROVIDER_BAD_RESPONSE', 502]
   ])('maps %s provider failures to HTTP %i', async (code, expectedStatus) => {
     resolveRequestActor.mockResolvedValue({ actorUserId: 'admin-1', actorRole: 'ADMIN' })

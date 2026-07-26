@@ -1,6 +1,7 @@
 const AI_PROVIDER_NAMES = Object.freeze({
   DISABLED: 'disabled',
-  DETERMINISTIC: 'deterministic'
+  DETERMINISTIC: 'deterministic',
+  OPENAI: 'openai'
 })
 
 class AiProviderError extends Error {
@@ -87,9 +88,18 @@ function createDisabledAiProvider() {
   }
 }
 
-function createAiProvider({ providerName = process.env.AI_PROVIDER, now } = {}) {
+function createAiProvider({ providerName = process.env.AI_PROVIDER, now, env = process.env, fetchImpl } = {}) {
   const normalizedName = String(providerName || AI_PROVIDER_NAMES.DISABLED).trim().toLowerCase()
   if (normalizedName === AI_PROVIDER_NAMES.DETERMINISTIC) return createDeterministicAiProvider({ now })
+  if (normalizedName === AI_PROVIDER_NAMES.OPENAI) {
+    const { createOpenAiResponsesProvider } = require('./openAiResponsesProvider.service')
+    return createOpenAiResponsesProvider({
+      apiKey: env.OPENAI_API_KEY,
+      model: env.OPENAI_MODEL,
+      baseUrl: env.OPENAI_BASE_URL,
+      fetchImpl
+    })
+  }
   if (normalizedName === AI_PROVIDER_NAMES.DISABLED) return createDisabledAiProvider()
   throw new AiProviderError(`Unsupported AI provider: ${normalizedName}`, 'AI_PROVIDER_UNSUPPORTED', { providerName: normalizedName })
 }

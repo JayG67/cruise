@@ -16,9 +16,10 @@ const AI_ALLOWED_ROLES = new Set([
 
 
 function providerHttpStatus(error) {
-  if (error.code === 'AI_PROVIDER_NOT_CONFIGURED' || error.code === 'AI_PROVIDER_TEMPORARILY_UNAVAILABLE') return 503
+  if (['AI_PROVIDER_NOT_CONFIGURED', 'AI_PROVIDER_TEMPORARILY_UNAVAILABLE', 'AI_PROVIDER_CREDENTIALS_MISSING'].includes(error.code)) return 503
   if (error.code === 'AI_PROVIDER_TIMEOUT') return 504
   if (error.code === 'AI_PROVIDER_RATE_LIMITED') return 429
+  if (error.code === 'AI_PROVIDER_CREDENTIALS_INVALID') return 502
   if (error.code === 'AI_RUNTIME_CONFIG_INVALID' || error.code === 'AI_PROVIDER_UNSUPPORTED') return 500
   return 502
 }
@@ -36,6 +37,7 @@ exports.getAiProgramStatus = (req, res) => {
       provider: provider.name,
       model: provider.model,
       generationEnabled: provider.name !== 'disabled',
+      credentialConfigured: provider.credentialConfigured !== false,
       executionPolicy: describeAiRuntimeConfig(runtimeConfig)
     }
   })
@@ -68,7 +70,8 @@ exports.generateTurnaroundBriefing = async (req, res, next) => {
       })
     }
     if (error instanceof AiBriefingValidationError) {
-      return res.status(502).json({ message: error.message, code: error.code, issues: error.issues })
+      const status = error.code === 'AI_CONTEXT_LIMIT_EXCEEDED' ? 413 : 502
+      return res.status(status).json({ message: error.message, code: error.code, issues: error.issues })
     }
     return next(error)
   }

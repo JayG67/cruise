@@ -169,4 +169,26 @@ describe('AI turnaround briefing orchestration', () => {
     expect(record).not.toHaveProperty('evidence')
     expect(JSON.stringify(record)).not.toContain('Deck 9 inspection')
   })
+
+  it('rejects oversized context before calling the provider', async () => {
+    const provider = { name: 'test', model: 'test', generateStructured: jest.fn() }
+    await expect(generateTurnaroundBriefing({
+      input: {
+        operationId: 'op-context',
+        question: 'Summarize this operation.',
+        evidence: [{
+          id: 'task-large',
+          type: 'task',
+          title: 'Large note',
+          status: 'BLOCKED',
+          details: 'x'.repeat(1100)
+        }]
+      },
+      actor: { actorUserId: 'admin-1', actorRole: 'ADMIN' },
+      provider,
+      runtimeConfig: { timeoutMs: 1000, maxAttempts: 1, retryDelayMs: 0, maxContextChars: 1000 }
+    })).rejects.toEqual(expect.objectContaining({ code: 'AI_CONTEXT_LIMIT_EXCEEDED' }))
+    expect(provider.generateStructured).not.toHaveBeenCalled()
+  })
+
 })

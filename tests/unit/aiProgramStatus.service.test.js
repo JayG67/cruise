@@ -7,6 +7,7 @@ describe('AI program status', () => {
     expect(status.phases.map(phase => phase.phase)).toEqual([1, 2, 3, 4, 5, 6])
     expect(status.currentPhase).toBe(1)
     expect(status.completedPhases).toBe(0)
+    expect(status.currentPhasePercentComplete).toBe(88)
     expect(status.phases[0]).toEqual({ phase: 1, name: 'AI foundation', status: 'IN_PROGRESS' })
     expect(status.phases.slice(1).every(phase => phase.status === 'NOT_STARTED')).toBe(true)
   })
@@ -25,7 +26,11 @@ describe('AI program status', () => {
       timeoutEnforcement: true,
       transientRetryPolicy: true,
       validatedRuntimeConfiguration: true,
-      productionModelProvider: false,
+      productionModelProvider: true,
+      providerCredentialValidation: true,
+      strictStructuredOutputTranslation: true,
+      normalizedUsageTelemetry: true,
+      contextSizeLimit: true,
       userInterface: false
     }))
   })

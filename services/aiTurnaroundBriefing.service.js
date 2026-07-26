@@ -19,6 +19,18 @@ class AiBriefingValidationError extends Error {
   }
 }
 
+function assertContextWithinLimit(prompt, maxContextChars) {
+  const contextChars = JSON.stringify(prompt).length
+  if (contextChars > maxContextChars) {
+    throw new AiBriefingValidationError(
+      `AI briefing context exceeds the ${maxContextChars} character limit.`,
+      'AI_CONTEXT_LIMIT_EXCEEDED',
+      [{ contextChars, maxContextChars }]
+    )
+  }
+  return contextChars
+}
+
 function assertEvidenceGrounding(response, evidence) {
   const allowedEvidenceIds = new Set(evidence.map(record => record.id))
   const invalidEvidenceIds = response.findings
@@ -34,7 +46,7 @@ function assertEvidenceGrounding(response, evidence) {
   }
 }
 
-function buildAiAuditRecord({ actor, input, response, provider, usage, durationMs, requestId, execution }) {
+function buildAiAuditRecord({ actor, input, response, provider, usage, durationMs, requestId, execution, providerMetadata }) {
   return {
     eventType: 'AI_TURNAROUND_BRIEFING_GENERATED',
     requestId: requestId || null,
@@ -50,6 +62,7 @@ function buildAiAuditRecord({ actor, input, response, provider, usage, durationM
     durationMs,
     usage: usage || null,
     execution: execution || null,
+    providerMetadata: providerMetadata || null,
     generatedAt: response.generatedAt
   }
 }
@@ -69,6 +82,7 @@ async function generateTurnaroundBriefing({
   }
 
   const prompt = buildTurnaroundBriefingPrompt(parsedInput.data)
+  const contextChars = assertContextWithinLimit(prompt, runtimeConfig.maxContextChars)
   const startedAt = Date.now()
   const providerResult = await executeAiProviderCall({
     provider,
@@ -106,8 +120,12 @@ async function generateTurnaroundBriefing({
     input: parsedInput.data,
     response: parsedResponse.data,
     provider,
-    usage: providerResult.usage,
+    usage: {
+      ...(providerResult.usage || {}),
+      contextChars
+    },
     execution: providerResult.execution,
+    providerMetadata: providerResult.providerMetadata,
     durationMs: Math.max(0, Date.now() - startedAt),
     requestId
   })
@@ -130,6 +148,7 @@ async function generateTurnaroundBriefing({
 
 module.exports = {
   AiBriefingValidationError,
+  assertContextWithinLimit,
   assertEvidenceGrounding,
   buildAiAuditRecord,
   generateTurnaroundBriefing
