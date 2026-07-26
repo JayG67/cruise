@@ -122,14 +122,14 @@ describe('Passenger booking workflow hardening', () => {
 
     cy.getByTestId(rs.bookingCruiseLineSelect).select('Royal Caribbean International')
     cy.wait('@bookingShipsForCascade')
-    cy.getByTestId(rs.bookingShipSelect).find('option').then(options => {
+    cy.getByTestId(rs.bookingShipSelect).find('option').should(options => {
       const optionText = [...options].map(option => option.textContent.trim()).filter(Boolean)
       expect(optionText).to.deep.eq(['Select ship', 'React Icon', 'React Utopia'])
     })
 
     cy.getByTestId(rs.bookingShipSelect).select('React Icon')
     cy.wait('@bookingSailingsForCascade')
-    cy.getByTestId(rs.bookingSailingSelect).find('option').then(options => {
+    cy.getByTestId(rs.bookingSailingSelect).find('option').should(options => {
       const optionText = [...options].map(option => option.textContent.trim()).filter(Boolean)
       expect(optionText).to.deep.eq([
         'Select sailing',
