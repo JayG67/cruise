@@ -17,6 +17,11 @@ jest.mock('../../services/aiProvider.service', () => {
 })
 
 jest.mock('../../services/auditEvent.service', () => ({ recordAuditEvent: jest.fn() }))
+jest.mock('../../services/aiTelemetry.service', () => ({ recordAiTelemetry: jest.fn() }))
+jest.mock('../../services/aiCostEstimation.service', () => ({
+  getAiPricingConfig: jest.fn(() => ({ inputUsdPerMillionTokens: 0, outputUsdPerMillionTokens: 0 })),
+  describeAiPricingConfig: jest.fn(() => ({ inputUsdPerMillionTokens: 0, outputUsdPerMillionTokens: 0, estimationEnabled: false }))
+}))
 
 jest.mock('../../services/aiRuntimeConfig.service', () => ({
   getAiRuntimeConfig: jest.fn(() => ({ providerName: 'deterministic', timeoutMs: 1000, maxAttempts: 2, retryDelayMs: 0, maxContextChars: 120000 })),
@@ -74,7 +79,8 @@ describe('AI controller authorization and failure boundaries', () => {
         model: 'test-model',
         generationEnabled: true,
         credentialConfigured: true,
-        executionPolicy: expect.objectContaining({ timeoutMs: 1000, maxAttempts: 2 })
+        executionPolicy: expect.objectContaining({ timeoutMs: 1000, maxAttempts: 2 }),
+        pricing: expect.objectContaining({ estimationEnabled: false })
       })
     }))
   })

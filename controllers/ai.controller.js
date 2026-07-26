@@ -4,6 +4,8 @@ const { AiBriefingValidationError, generateTurnaroundBriefing } = require('../se
 const { normalizeActorRole, resolveRequestActor } = require('../services/requestAuthorization.service')
 const { recordAuditEvent } = require('../services/auditEvent.service')
 const { describeAiRuntimeConfig, getAiRuntimeConfig } = require('../services/aiRuntimeConfig.service')
+const { describeAiPricingConfig, getAiPricingConfig } = require('../services/aiCostEstimation.service')
+const { recordAiTelemetry } = require('../services/aiTelemetry.service')
 
 const AI_ALLOWED_ROLES = new Set([
   'ADMIN',
@@ -38,7 +40,8 @@ exports.getAiProgramStatus = (req, res) => {
       model: provider.model,
       generationEnabled: provider.name !== 'disabled',
       credentialConfigured: provider.credentialConfigured !== false,
-      executionPolicy: describeAiRuntimeConfig(runtimeConfig)
+      executionPolicy: describeAiRuntimeConfig(runtimeConfig),
+      pricing: describeAiPricingConfig(getAiPricingConfig())
     }
   })
 }
@@ -58,6 +61,7 @@ exports.generateTurnaroundBriefing = async (req, res, next) => {
       provider: createAiProvider(),
       runtimeConfig: getAiRuntimeConfig(),
       auditRecorder: recordAuditEvent,
+      telemetryRecorder: recordAiTelemetry,
       requestId: req.get('X-Request-Id') || null
     })
 

@@ -7,7 +7,7 @@ describe('AI program status', () => {
     expect(status.phases.map(phase => phase.phase)).toEqual([1, 2, 3, 4, 5, 6])
     expect(status.currentPhase).toBe(1)
     expect(status.completedPhases).toBe(0)
-    expect(status.currentPhasePercentComplete).toBe(88)
+    expect(status.currentPhasePercentComplete).toBe(96)
     expect(status.phases[0]).toEqual({ phase: 1, name: 'AI foundation', status: 'IN_PROGRESS' })
     expect(status.phases.slice(1).every(phase => phase.status === 'NOT_STARTED')).toBe(true)
   })
@@ -30,6 +30,10 @@ describe('AI program status', () => {
       providerCredentialValidation: true,
       strictStructuredOutputTranslation: true,
       normalizedUsageTelemetry: true,
+      configurableCostEstimation: true,
+      correlatedTelemetryLogging: true,
+      productionConfigurationDocumentation: true,
+      foundationArchitectureAudit: true,
       contextSizeLimit: true,
       userInterface: false
     }))

@@ -74,7 +74,8 @@ async function generateTurnaroundBriefing({
   now = () => new Date(),
   requestId,
   runtimeConfig = getAiRuntimeConfig(),
-  auditRecorder = null
+  auditRecorder = null,
+  telemetryRecorder = null
 } = {}) {
   const parsedInput = turnaroundBriefingRequestSchema.safeParse(input)
   if (!parsedInput.success) {
@@ -140,6 +141,28 @@ async function generateTurnaroundBriefing({
       operationId: parsedInput.data.operationId,
       source: 'AI',
       eventPayload: audit
+    })
+  }
+
+  if (telemetryRecorder) {
+    telemetryRecorder({
+      eventType: audit.eventType,
+      requestId: audit.requestId,
+      operationId: audit.operationId,
+      actorUserId: audit.actorUserId,
+      actorRole: audit.actorRole,
+      provider: audit.provider,
+      model: audit.model,
+      promptVersion: audit.promptVersion,
+      outcome: 'SUCCESS',
+      durationMs: audit.durationMs,
+      attemptCount: audit.execution?.attemptCount,
+      providerRequestId: audit.providerMetadata?.requestId,
+      providerResponseId: audit.providerMetadata?.responseId,
+      inputTokens: audit.usage?.inputTokens,
+      outputTokens: audit.usage?.outputTokens,
+      totalTokens: audit.usage?.totalTokens,
+      estimatedCostUsd: audit.usage?.estimatedCostUsd
     })
   }
 

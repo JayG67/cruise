@@ -807,3 +807,36 @@ This slice adds:
 - update behavior that preserves the booking-passenger UUID when the same passenger remains attached to a booking.
 
 Phase 1 remains active. The strongest remaining targets are durable-ID API contract promotion, remaining turnaround edge-mutation audit consistency, seed-JSON exit work, and shared enum/domain hardening for remaining status-like fields.
+
+## AI foundation configuration
+
+The AI integration is server-side and disabled by default. Phase 1 provides provider abstraction, strict structured output, evidence grounding, role authorization, bounded retries and timeouts, persistent audit evidence, privacy-conscious telemetry, configurable token-cost estimates, and production configuration validation. It does not include the Phase 2 user-facing briefing workspace.
+
+For a deterministic local demonstration:
+
+```bash
+AI_PROVIDER=deterministic npm start
+```
+
+For the production OpenAI provider, configure the server environment only:
+
+```text
+AI_PROVIDER=openai
+OPENAI_API_KEY=<secret>
+OPENAI_MODEL=gpt-5-mini
+AI_TIMEOUT_MS=5000
+AI_MAX_ATTEMPTS=2
+AI_RETRY_DELAY_MS=100
+AI_MAX_CONTEXT_CHARS=120000
+OPENAI_INPUT_USD_PER_MILLION_TOKENS=<current input price>
+OPENAI_OUTPUT_USD_PER_MILLION_TOKENS=<current output price>
+```
+
+Pricing is intentionally not hard-coded because provider prices change. When both pricing values are zero, usage is still recorded but cost estimation is disabled. Never expose `OPENAI_API_KEY` to Vite or any browser-prefixed environment variable.
+
+Validate the foundation independently with:
+
+```bash
+npm run ai:foundation:audit
+npm run ai:foundation:test
+```

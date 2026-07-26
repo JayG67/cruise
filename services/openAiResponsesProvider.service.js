@@ -1,5 +1,6 @@
 const { AiProviderError } = require('./aiProvider.service')
 const { turnaroundBriefingJsonSchema } = require('../ai/contracts/turnaroundBriefing.jsonSchema')
+const { estimateUsageCostUsd, getAiPricingConfig } = require('./aiCostEstimation.service')
 
 const DEFAULT_OPENAI_BASE_URL = 'https://api.openai.com/v1'
 const DEFAULT_OPENAI_MODEL = 'gpt-5-mini'
@@ -8,14 +9,14 @@ function trimTrailingSlash(value) {
   return String(value || '').replace(/\/+$/, '')
 }
 
-function normalizeOpenAiUsage(usage = {}) {
+function normalizeOpenAiUsage(usage = {}, pricing = {}) {
   const inputTokens = Number(usage.input_tokens || 0)
   const outputTokens = Number(usage.output_tokens || 0)
   return {
     inputTokens,
     outputTokens,
     totalTokens: Number(usage.total_tokens || inputTokens + outputTokens),
-    estimatedCostUsd: null
+    estimatedCostUsd: estimateUsageCostUsd({ inputTokens, outputTokens }, pricing)
   }
 }
 
@@ -81,7 +82,8 @@ function createOpenAiResponsesProvider({
   apiKey = process.env.OPENAI_API_KEY,
   model = process.env.OPENAI_MODEL || DEFAULT_OPENAI_MODEL,
   baseUrl = process.env.OPENAI_BASE_URL || DEFAULT_OPENAI_BASE_URL,
-  fetchImpl = global.fetch
+  fetchImpl = global.fetch,
+  pricing = getAiPricingConfig()
 } = {}) {
   return {
     name: 'openai',
@@ -147,7 +149,7 @@ function createOpenAiResponsesProvider({
 
       return {
         output,
-        usage: normalizeOpenAiUsage(payload.usage),
+        usage: normalizeOpenAiUsage(payload.usage, pricing),
         providerMetadata: {
           responseId: payload.id || null,
           requestId,

@@ -53,7 +53,8 @@ describe('OpenAI Responses provider adapter', () => {
       apiKey: 'secret-key',
       model: 'gpt-test',
       baseUrl: 'https://example.test/v1/',
-      fetchImpl
+      fetchImpl,
+      pricing: { inputUsdPerMillionTokens: 2, outputUsdPerMillionTokens: 8 }
     })
 
     const result = await provider.generateStructured({
@@ -76,7 +77,7 @@ describe('OpenAI Responses provider adapter', () => {
     expect(JSON.stringify(requestBody)).not.toContain('secret-key')
     expect(result).toEqual(expect.objectContaining({
       output: expect.objectContaining({ riskLevel: 'low' }),
-      usage: { inputTokens: 25, outputTokens: 15, totalTokens: 40, estimatedCostUsd: null },
+      usage: { inputTokens: 25, outputTokens: 15, totalTokens: 40, estimatedCostUsd: 0.00017 },
       providerMetadata: {
         responseId: 'resp-1',
         requestId: 'req-provider-1',
@@ -138,11 +139,11 @@ describe('OpenAI Responses provider adapter', () => {
 
   it('supports nested response output text and stable helper behavior', () => {
     expect(extractResponseText({ output: [{ content: [{ type: 'output_text', text: '{"ok":true}' }] }] })).toBe('{"ok":true}')
-    expect(normalizeOpenAiUsage({ input_tokens: 2, output_tokens: 3 })).toEqual({
+    expect(normalizeOpenAiUsage({ input_tokens: 2, output_tokens: 3 }, { inputUsdPerMillionTokens: 1, outputUsdPerMillionTokens: 2 })).toEqual({
       inputTokens: 2,
       outputTokens: 3,
       totalTokens: 5,
-      estimatedCostUsd: null
+      estimatedCostUsd: 0.000008
     })
     expect(mapOpenAiHttpError(429, {}, 'req-1')).toEqual(expect.objectContaining({ code: 'AI_PROVIDER_RATE_LIMITED' }))
     expect(buildOpenAiRequest({ model: 'gpt-test', prompt, metadata: {} }).model).toBe('gpt-test')

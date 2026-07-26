@@ -191,4 +191,31 @@ describe('AI turnaround briefing orchestration', () => {
     expect(provider.generateStructured).not.toHaveBeenCalled()
   })
 
+  it('emits correlated privacy-conscious provider telemetry after persistence succeeds', async () => {
+    const provider = {
+      name: 'openai',
+      model: 'gpt-test',
+      generateStructured: jest.fn().mockResolvedValue({
+        output: {
+          summary: 'No blockers.', riskLevel: 'low', findings: [], unknowns: [],
+          generatedAt: '2026-07-26T16:00:00.000Z'
+        },
+        usage: { inputTokens: 20, outputTokens: 10, totalTokens: 30, estimatedCostUsd: 0.001 },
+        providerMetadata: { requestId: 'provider-request-1', responseId: 'response-1' }
+      })
+    }
+    const telemetryRecorder = jest.fn()
+    await generateTurnaroundBriefing({
+      input, actor, provider, runtimeConfig, requestId: 'app-request-1', telemetryRecorder
+    })
+    expect(telemetryRecorder).toHaveBeenCalledWith(expect.objectContaining({
+      requestId: 'app-request-1',
+      providerRequestId: 'provider-request-1',
+      providerResponseId: 'response-1',
+      totalTokens: 30,
+      estimatedCostUsd: 0.001
+    }))
+    expect(JSON.stringify(telemetryRecorder.mock.calls[0][0])).not.toContain('Deck 9 inspection')
+  })
+
 })

@@ -97,7 +97,8 @@ function createAiProvider({ providerName = process.env.AI_PROVIDER, now, env = p
       apiKey: env.OPENAI_API_KEY,
       model: env.OPENAI_MODEL,
       baseUrl: env.OPENAI_BASE_URL,
-      fetchImpl
+      fetchImpl,
+      pricing: require('./aiCostEstimation.service').getAiPricingConfig(env)
     })
   }
   if (normalizedName === AI_PROVIDER_NAMES.DISABLED) return createDisabledAiProvider()
