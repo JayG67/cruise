@@ -73,7 +73,8 @@
     "production:dependencies:audit": "node scripts/verify-production-dependencies.js",
     "clean:generated": "node scripts/clean-generated-artifacts.js",
     "release:source:audit": "node scripts/verify-source-package.js",
-    "release:preflight": "npm run repo:hygiene && npm run release:source:audit && npm run production:deployment:audit && npm run production:dependencies:audit && npm run react:production:complete"
+    "release:preflight": "npm run repo:hygiene && npm run release:source:audit && npm run production:deployment:audit && npm run production:dependencies:audit && npm run react:production:complete",
+    "ai:foundation:test": "NODE_NO_WARNINGS=1 jest tests/unit/aiProvider.service.test.js tests/unit/aiTurnaroundBriefing.service.test.js tests/unit/aiProgramStatus.service.test.js tests/unit/ai.controller.test.js --runInBand"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.1.2",

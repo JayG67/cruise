@@ -7,6 +7,7 @@ const compression = require('compression')
 
 const cruiseRouter = require('./routes/cruise.routes')
 const adminRouter = require('./routes/admin.routes')
+const aiRouter = require('./routes/ai.routes')
 const { serverLogger } = require('./middleware/loggers')
 const { attachRequestIdentity } = require('./middleware/requestIdentity.middleware')
 
@@ -134,8 +135,9 @@ app.use(attachRequestIdentity)
 
 app.use('/cruise', cruiseRouter)
 app.use('/admin', adminRouter)
+app.use('/ai', aiRouter)
 
-app.get(/^\/(?!cruise|admin|health|images|data|retired|lighthouse-ci)(?:.*)?$/, sendReactApp)
+app.get(/^\/(?!cruise|admin|ai|health|images|data|retired|lighthouse-ci)(?:.*)?$/, sendReactApp)
 
 app.use((err, req, res, next) => {
   console.error(err)
