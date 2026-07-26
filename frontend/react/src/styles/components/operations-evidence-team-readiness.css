@@ -8,9 +8,20 @@
   border-radius: 1rem;
   display: grid;
   gap: 0.85rem;
-  grid-template-columns: minmax(0, 1fr) minmax(12rem, auto);
+  grid-template-columns: minmax(0, 1fr);
   margin-top: 1rem;
   padding: 1rem;
+}
+
+.turnaround-team-readiness-summary {
+  min-width: 0;
+}
+
+.turnaround-team-readiness-summary strong,
+.turnaround-team-readiness-summary p {
+  overflow-wrap: normal;
+  white-space: normal;
+  word-break: normal;
 }
 
 .turnaround-team-readiness-card span {
@@ -38,7 +49,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .turnaround-missing-role-list span {
@@ -47,6 +58,16 @@
   border-radius: 999px;
   color: #9a3412;
   padding: 0.35rem 0.65rem;
+}
+
+
+.turnaround-missing-role-list .turnaround-team-missing-role-badge {
+  background: #fff7ed;
+  border-color: #fdba74;
+  color: #7c2d12;
+  -webkit-text-fill-color: #7c2d12;
+  opacity: 1;
+  text-shadow: none;
 }
 
 .turnaround-missing-role-list .turnaround-team-complete-badge {

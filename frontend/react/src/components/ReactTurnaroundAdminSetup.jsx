@@ -517,13 +517,13 @@ export default function ReactTurnaroundAdminSetup({ selectedDemoUser, onSetupCha
 
           {selectedShip ? (
             <div className="turnaround-team-readiness-card" data-testid="react-turnaround-admin-team-readiness">
-              <div>
+              <div className="turnaround-team-readiness-summary">
                 <span>Team readiness</span>
                 <strong>{teamReadinessScore}% staffed</strong>
                 <p>{missingRoles.length ? `Missing ${missingRoles.length} required role${missingRoles.length === 1 ? '' : 's'}` : 'All required turnaround roles are assigned for this ship queue.'}</p>
               </div>
               <div className="turnaround-missing-role-list" aria-label="Missing turnaround roles">
-                {missingRoles.length === 0 ? <span className="turnaround-team-complete-badge">Complete team</span> : missingRoles.map(role => <span key={role}>{getRoleLabel(role)}</span>)}
+                {missingRoles.length === 0 ? <span className="turnaround-team-complete-badge">Complete team</span> : missingRoles.map(role => <span key={role} className="turnaround-team-missing-role-badge">{getRoleLabel(role)}</span>)}
               </div>
             </div>
           ) : null}
@@ -544,7 +544,11 @@ export default function ReactTurnaroundAdminSetup({ selectedDemoUser, onSetupCha
                   <article key={role} className={assignedPerson ? 'turnaround-role-coverage-card staffed' : 'turnaround-role-coverage-card missing'} data-testid="react-turnaround-admin-role-card">
                     <div className="turnaround-role-assignment">
                       <span className="turnaround-role-assignment-label">{getRoleLabel(role)}</span>
-                      <strong className="turnaround-role-assignment-person">{assignedPerson?.displayName || 'Unassigned'}</strong>
+                      <strong className="turnaround-role-assignment-person">
+                        {assignedPerson
+                          ? `${assignedPerson.displayName} — ${assignedPerson.assignedShipName || selectedShip.name}`
+                          : 'Unassigned'}
+                      </strong>
                     </div>
                     {assignedPerson ? (
                       <button type="button" className="secondary-action-button compact-action ce-button-secondary" onClick={() => handleRemovePerson(assignedPerson)} disabled={isSaving} data-testid="react-turnaround-admin-clear-role">Clear role</button>

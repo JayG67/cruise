@@ -263,7 +263,7 @@ describe('React role journey permissions and validation coverage', () => {
   it('asks before giving passenger users access to admin-only fleet and SQA shortcuts', () => {
     selectDemoUserByVisibleRole('Passenger')
 
-    cy.getByTestId(rs.workspaceFleetButton).scrollIntoView().click()
+    cy.getByTestId(rs.navFleetButton).scrollIntoView().click()
     cy.getByTestId(rs.roleSwitchConfirmationOverlay).should('be.visible')
     cy.getByTestId(rs.roleSwitchConfirmation)
       .should('be.visible')
@@ -274,7 +274,7 @@ describe('React role journey permissions and validation coverage', () => {
     cy.getByTestId(rs.fleetDirectory).should('not.exist')
     cy.getByTestId(rs.demoUserSummary).should('contain.text', 'Passenger')
 
-    cy.getByTestId(rs.workspaceQualityButton).scrollIntoView().click()
+    cy.getByTestId(rs.navQualityButton).scrollIntoView().click()
     cy.getByTestId(rs.roleSwitchConfirmationOverlay).should('be.visible')
     cy.getByTestId(rs.roleSwitchConfirmation)
       .should('be.visible')

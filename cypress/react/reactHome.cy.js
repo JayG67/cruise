@@ -67,7 +67,7 @@ describe('React home and workspace coverage', () => {
     selectDemoUserByVisibleRole('Passenger')
     cy.getByTestId(rs.passengerDashboard).should('be.visible')
 
-    cy.getByTestId(rs.workspaceFleetButton).click()
+    cy.getByTestId(rs.navFleetButton).click()
     cy.getByTestId(rs.roleSwitchConfirmationOverlay).should('be.visible')
     cy.getByTestId(rs.roleSwitchConfirmation)
       .should('be.visible')
@@ -83,7 +83,7 @@ describe('React home and workspace coverage', () => {
 
   it('switches to admin and opens the requested workspace when a passenger accepts', () => {
     selectDemoUserByVisibleRole('Passenger')
-    cy.getByTestId(rs.workspaceQualityButton).click()
+    cy.getByTestId(rs.navQualityButton).click()
     cy.getByTestId(rs.roleSwitchConfirmationOverlay).should('be.visible')
     cy.getByTestId(rs.roleSwitchConfirmationConfirm).click()
 

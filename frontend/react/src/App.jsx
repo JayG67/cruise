@@ -191,12 +191,12 @@ export default function App() {
           </a>
           <div className="react-nav-links">
             <a href="#react-employer-demo">Overview</a>
-            <button type="button" onClick={() => openWorkspace('react-cruise-line-presentation', 'Cruise Line Operations', 'admin')}>Line Operations</button>
-            <button type="button" onClick={() => openWorkspace('react-role-selector', 'Role-aware Views')}>Roles</button>
-            <button type="button" onClick={() => openWorkspace('react-hierarchy', 'Admin Operations', 'admin')} data-testid={selectedRoleView === 'admin' ? undefined : 'react-workspace-operations-button'}>Operations</button>
-            <button type="button" onClick={() => openWorkspace('react-fleet', 'Fleet Directory', 'admin')} data-testid={selectedRoleView === 'admin' ? undefined : 'react-workspace-fleet-button'}>Fleet</button>
-            <button type="button" onClick={() => openWorkspace('react-turnaround-admin-setup', 'Turnaround Admin Setup', 'admin')}>Turnaround Setup</button>
-            <button type="button" onClick={() => openWorkspace('react-quality', 'Quality Console', 'admin')} data-testid={selectedRoleView === 'admin' ? undefined : 'react-workspace-quality-button'}>Quality</button>
+            <button type="button" onClick={() => openWorkspace('react-cruise-line-presentation', 'Cruise Line Operations', 'admin')} data-testid="react-nav-presentation-button">Line Operations</button>
+            <button type="button" onClick={() => openWorkspace('react-role-selector', 'Role-aware Views')} data-testid="react-nav-role-button">Roles</button>
+            <button type="button" onClick={() => openWorkspace('react-hierarchy', 'Admin Operations', 'admin')} data-testid="react-nav-operations-button">Operations</button>
+            <button type="button" onClick={() => openWorkspace('react-fleet', 'Fleet Directory', 'admin')} data-testid="react-nav-fleet-button">Fleet</button>
+            <button type="button" onClick={() => openWorkspace('react-turnaround-admin-setup', 'Turnaround Admin Setup', 'admin')} data-testid="react-nav-turnaround-setup-button">Turnaround Setup</button>
+            <button type="button" onClick={() => openWorkspace('react-quality', 'Quality Console', 'admin')} data-testid="react-nav-quality-button">Quality</button>
           </div>
         </nav>
 
