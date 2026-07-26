@@ -2,6 +2,8 @@ const { getAiProgramStatus } = require('../services/aiProgramStatus.service')
 const { createAiProvider, AiProviderError } = require('../services/aiProvider.service')
 const { AiBriefingValidationError, generateTurnaroundBriefing } = require('../services/aiTurnaroundBriefing.service')
 const { normalizeActorRole, resolveRequestActor } = require('../services/requestAuthorization.service')
+const { recordAuditEvent } = require('../services/auditEvent.service')
+const { describeAiRuntimeConfig, getAiRuntimeConfig } = require('../services/aiRuntimeConfig.service')
 
 const AI_ALLOWED_ROLES = new Set([
   'ADMIN',
@@ -12,18 +14,29 @@ const AI_ALLOWED_ROLES = new Set([
   'ENGINEERING_LEAD'
 ])
 
+
+function providerHttpStatus(error) {
+  if (error.code === 'AI_PROVIDER_NOT_CONFIGURED' || error.code === 'AI_PROVIDER_TEMPORARILY_UNAVAILABLE') return 503
+  if (error.code === 'AI_PROVIDER_TIMEOUT') return 504
+  if (error.code === 'AI_PROVIDER_RATE_LIMITED') return 429
+  if (error.code === 'AI_RUNTIME_CONFIG_INVALID' || error.code === 'AI_PROVIDER_UNSUPPORTED') return 500
+  return 502
+}
+
 function canGenerateAiBriefing(actor = {}) {
   return AI_ALLOWED_ROLES.has(normalizeActorRole(actor.actorRole))
 }
 
 exports.getAiProgramStatus = (req, res) => {
-  const provider = createAiProvider()
+  const runtimeConfig = getAiRuntimeConfig()
+  const provider = createAiProvider({ providerName: runtimeConfig.providerName })
   return res.status(200).json({
     ...getAiProgramStatus(),
     runtime: {
       provider: provider.name,
       model: provider.model,
-      generationEnabled: provider.name !== 'disabled'
+      generationEnabled: provider.name !== 'disabled',
+      executionPolicy: describeAiRuntimeConfig(runtimeConfig)
     }
   })
 }
@@ -41,13 +54,15 @@ exports.generateTurnaroundBriefing = async (req, res, next) => {
       input: req.body,
       actor,
       provider: createAiProvider(),
+      runtimeConfig: getAiRuntimeConfig(),
+      auditRecorder: recordAuditEvent,
       requestId: req.get('X-Request-Id') || null
     })
 
     return res.status(200).json(result)
   } catch (error) {
     if (error instanceof AiProviderError) {
-      return res.status(error.code === 'AI_PROVIDER_NOT_CONFIGURED' ? 503 : 500).json({
+      return res.status(providerHttpStatus(error)).json({
         message: error.message,
         code: error.code
       })
@@ -60,4 +75,5 @@ exports.generateTurnaroundBriefing = async (req, res, next) => {
 }
 
 module.exports.AI_ALLOWED_ROLES = AI_ALLOWED_ROLES
+module.exports.providerHttpStatus = providerHttpStatus
 module.exports.canGenerateAiBriefing = canGenerateAiBriefing

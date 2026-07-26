@@ -16,6 +16,13 @@ jest.mock('../../services/aiProvider.service', () => {
   }
 })
 
+jest.mock('../../services/auditEvent.service', () => ({ recordAuditEvent: jest.fn() }))
+
+jest.mock('../../services/aiRuntimeConfig.service', () => ({
+  getAiRuntimeConfig: jest.fn(() => ({ providerName: 'deterministic', timeoutMs: 1000, maxAttempts: 2, retryDelayMs: 0 })),
+  describeAiRuntimeConfig: jest.fn(config => ({ ...config }))
+}))
+
 jest.mock('../../services/aiTurnaroundBriefing.service', () => {
   class AiBriefingValidationError extends Error {
     constructor(message, code, issues = []) {
@@ -62,7 +69,12 @@ describe('AI controller authorization and failure boundaries', () => {
     expect(json).toHaveBeenCalledWith(expect.objectContaining({
       currentPhase: 1,
       phases: expect.arrayContaining([expect.objectContaining({ phase: 6 })]),
-      runtime: { provider: 'deterministic', model: 'test-model', generationEnabled: true }
+      runtime: expect.objectContaining({
+        provider: 'deterministic',
+        model: 'test-model',
+        generationEnabled: true,
+        executionPolicy: expect.objectContaining({ timeoutMs: 1000, maxAttempts: 2 })
+      })
     }))
   })
 
@@ -105,6 +117,23 @@ describe('AI controller authorization and failure boundaries', () => {
 
     expect(status).toHaveBeenCalledWith(503)
     expect(json).toHaveBeenCalledWith({ message: 'Provider unavailable', code: 'AI_PROVIDER_NOT_CONFIGURED' })
+  })
+
+
+  it.each([
+    ['AI_PROVIDER_TIMEOUT', 504],
+    ['AI_PROVIDER_RATE_LIMITED', 429],
+    ['AI_PROVIDER_TEMPORARILY_UNAVAILABLE', 503],
+    ['AI_PROVIDER_BAD_RESPONSE', 502]
+  ])('maps %s provider failures to HTTP %i', async (code, expectedStatus) => {
+    resolveRequestActor.mockResolvedValue({ actorUserId: 'admin-1', actorRole: 'ADMIN' })
+    generateTurnaroundBriefing.mockRejectedValue(new AiProviderError('Provider failure', code))
+    const { res, status, json } = responseHarness()
+
+    await controller.generateTurnaroundBriefing({ body: {}, get: jest.fn() }, res, jest.fn())
+
+    expect(status).toHaveBeenCalledWith(expectedStatus)
+    expect(json).toHaveBeenCalledWith({ message: 'Provider failure', code })
   })
 
   it('passes unexpected failures to Express error handling', async () => {

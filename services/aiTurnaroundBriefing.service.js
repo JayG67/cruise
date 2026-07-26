@@ -7,6 +7,8 @@ const {
   buildTurnaroundBriefingPrompt
 } = require('../ai/prompts/turnaroundBriefing.prompt')
 const { createAiProvider } = require('./aiProvider.service')
+const { executeAiProviderCall } = require('./aiProviderExecution.service')
+const { getAiRuntimeConfig } = require('./aiRuntimeConfig.service')
 
 class AiBriefingValidationError extends Error {
   constructor(message, code, issues = []) {
@@ -32,7 +34,7 @@ function assertEvidenceGrounding(response, evidence) {
   }
 }
 
-function buildAiAuditRecord({ actor, input, response, provider, usage, durationMs, requestId }) {
+function buildAiAuditRecord({ actor, input, response, provider, usage, durationMs, requestId, execution }) {
   return {
     eventType: 'AI_TURNAROUND_BRIEFING_GENERATED',
     requestId: requestId || null,
@@ -47,11 +49,20 @@ function buildAiAuditRecord({ actor, input, response, provider, usage, durationM
     riskLevel: response.riskLevel,
     durationMs,
     usage: usage || null,
+    execution: execution || null,
     generatedAt: response.generatedAt
   }
 }
 
-async function generateTurnaroundBriefing({ input, actor, provider = createAiProvider(), now = () => new Date(), requestId } = {}) {
+async function generateTurnaroundBriefing({
+  input,
+  actor,
+  provider = createAiProvider(),
+  now = () => new Date(),
+  requestId,
+  runtimeConfig = getAiRuntimeConfig(),
+  auditRecorder = null
+} = {}) {
   const parsedInput = turnaroundBriefingRequestSchema.safeParse(input)
   if (!parsedInput.success) {
     throw new AiBriefingValidationError('AI briefing request is invalid.', 'AI_REQUEST_INVALID', parsedInput.error.issues)
@@ -59,15 +70,21 @@ async function generateTurnaroundBriefing({ input, actor, provider = createAiPro
 
   const prompt = buildTurnaroundBriefingPrompt(parsedInput.data)
   const startedAt = Date.now()
-  const providerResult = await provider.generateStructured({
-    prompt,
-    responseSchema: turnaroundBriefingResponseSchema,
-    metadata: {
-      operationId: parsedInput.data.operationId,
-      actorUserId: actor?.actorUserId || null,
-      actorRole: actor?.actorRole || null,
-      requestId: requestId || null
-    }
+  const providerResult = await executeAiProviderCall({
+    provider,
+    request: {
+      prompt,
+      responseSchema: turnaroundBriefingResponseSchema,
+      metadata: {
+        operationId: parsedInput.data.operationId,
+        actorUserId: actor?.actorUserId || null,
+        actorRole: actor?.actorRole || null,
+        requestId: requestId || null
+      }
+    },
+    timeoutMs: runtimeConfig.timeoutMs,
+    maxAttempts: runtimeConfig.maxAttempts,
+    retryDelayMs: runtimeConfig.retryDelayMs
   })
 
   const candidate = {
@@ -84,18 +101,31 @@ async function generateTurnaroundBriefing({ input, actor, provider = createAiPro
 
   assertEvidenceGrounding(parsedResponse.data, parsedInput.data.evidence)
 
-  return {
-    briefing: parsedResponse.data,
-    audit: buildAiAuditRecord({
-      actor,
-      input: parsedInput.data,
-      response: parsedResponse.data,
-      provider,
-      usage: providerResult.usage,
-      durationMs: Math.max(0, Date.now() - startedAt),
-      requestId
+  const audit = buildAiAuditRecord({
+    actor,
+    input: parsedInput.data,
+    response: parsedResponse.data,
+    provider,
+    usage: providerResult.usage,
+    execution: providerResult.execution,
+    durationMs: Math.max(0, Date.now() - startedAt),
+    requestId
+  })
+
+  if (auditRecorder) {
+    await auditRecorder({
+      eventType: audit.eventType,
+      entityType: 'TURNAROUND_OPERATION',
+      entityId: parsedInput.data.operationId,
+      actorUserId: actor?.actorUserId || null,
+      actorDisplayName: actor?.actorDisplayName || null,
+      operationId: parsedInput.data.operationId,
+      source: 'AI',
+      eventPayload: audit
     })
   }
+
+  return { briefing: parsedResponse.data, audit }
 }
 
 module.exports = {

@@ -22,11 +22,12 @@ describe('AI turnaround briefing orchestration', () => {
       }
     ]
   }
-  const actor = { actorUserId: 'manager-1', actorRole: 'TURNAROUND_MANAGER' }
+  const actor = { actorUserId: 'manager-1', actorDisplayName: 'Morgan Manager', actorRole: 'TURNAROUND_MANAGER' }
+  const runtimeConfig = { timeoutMs: 1000, maxAttempts: 2, retryDelayMs: 0 }
 
   it('validates request and response contracts, prompt version, evidence, and audit metadata', async () => {
     const provider = createDeterministicAiProvider({ now: () => new Date('2026-07-26T16:00:00.000Z') })
-    const result = await generateTurnaroundBriefing({ input, actor, provider, requestId: 'request-123' })
+    const result = await generateTurnaroundBriefing({ input, actor, provider, requestId: 'request-123', runtimeConfig })
 
     expect(result.briefing).toEqual(expect.objectContaining({
       riskLevel: 'high',
@@ -53,7 +54,8 @@ describe('AI turnaround briefing orchestration', () => {
     await expect(generateTurnaroundBriefing({
       input: { operationId: '', question: 'x', evidence: [] },
       actor,
-      provider
+      provider,
+      runtimeConfig
     })).rejects.toEqual(expect.objectContaining({ code: 'AI_REQUEST_INVALID' }))
     expect(provider.generateStructured).not.toHaveBeenCalled()
   })
@@ -67,7 +69,7 @@ describe('AI turnaround briefing orchestration', () => {
       })
     }
 
-    await expect(generateTurnaroundBriefing({ input, actor, provider })).rejects.toEqual(expect.objectContaining({
+    await expect(generateTurnaroundBriefing({ input, actor, provider, runtimeConfig })).rejects.toEqual(expect.objectContaining({
       code: 'AI_RESPONSE_INVALID'
     }))
   })
@@ -94,7 +96,7 @@ describe('AI turnaround briefing orchestration', () => {
       })
     }
 
-    await expect(generateTurnaroundBriefing({ input, actor, provider })).rejects.toEqual(expect.objectContaining({
+    await expect(generateTurnaroundBriefing({ input, actor, provider, runtimeConfig })).rejects.toEqual(expect.objectContaining({
       code: 'AI_UNGROUNDED_EVIDENCE',
       issues: ['invented-record']
     }))
@@ -104,6 +106,50 @@ describe('AI turnaround briefing orchestration', () => {
     expect(() => assertEvidenceGrounding({
       findings: [{ evidenceIds: ['known', 'unknown', 'unknown'] }]
     }, [{ id: 'known' }])).toThrow(AiBriefingValidationError)
+  })
+
+
+  it('persists privacy-conscious AI audit evidence through the injected audit recorder', async () => {
+    const provider = createDeterministicAiProvider({ now: () => new Date('2026-07-26T16:00:00.000Z') })
+    const auditRecorder = jest.fn().mockResolvedValue()
+
+    const result = await generateTurnaroundBriefing({
+      input,
+      actor,
+      provider,
+      runtimeConfig,
+      auditRecorder,
+      requestId: 'request-audit'
+    })
+
+    expect(auditRecorder).toHaveBeenCalledWith(expect.objectContaining({
+      eventType: 'AI_TURNAROUND_BRIEFING_GENERATED',
+      entityType: 'TURNAROUND_OPERATION',
+      entityId: 'operation-1',
+      actorUserId: 'manager-1',
+      actorDisplayName: 'Morgan Manager',
+      operationId: 'operation-1',
+      source: 'AI',
+      eventPayload: expect.objectContaining({
+        requestId: 'request-audit',
+        execution: expect.objectContaining({ attemptCount: 1, retried: false })
+      })
+    }))
+    expect(JSON.stringify(auditRecorder.mock.calls[0][0])).not.toContain('Deck 9 inspection')
+    expect(result.audit.execution).toEqual(expect.objectContaining({ attemptCount: 1 }))
+  })
+
+  it('fails closed when required audit persistence fails', async () => {
+    const provider = createDeterministicAiProvider()
+    const auditRecorder = jest.fn().mockRejectedValue(new Error('database unavailable'))
+
+    await expect(generateTurnaroundBriefing({
+      input,
+      actor,
+      provider,
+      runtimeConfig,
+      auditRecorder
+    })).rejects.toThrow('database unavailable')
   })
 
   it('builds privacy-conscious audit records without storing prompts or evidence content', () => {

@@ -21,6 +21,10 @@ describe('AI program status', () => {
       providerAbstraction: true,
       structuredContracts: true,
       evidenceGroundingValidation: true,
+      persistentAuditEvents: true,
+      timeoutEnforcement: true,
+      transientRetryPolicy: true,
+      validatedRuntimeConfiguration: true,
       productionModelProvider: false,
       userInterface: false
     }))

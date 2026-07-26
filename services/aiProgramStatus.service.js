@@ -21,6 +21,10 @@ function getAiProgramStatus() {
       evidenceGroundingValidation: true,
       roleAuthorizationBoundary: true,
       auditMetadata: true,
+      persistentAuditEvents: true,
+      timeoutEnforcement: true,
+      transientRetryPolicy: true,
+      validatedRuntimeConfiguration: true,
       productionModelProvider: false,
       userInterface: false
     }
