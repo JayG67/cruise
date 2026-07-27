@@ -1,5 +1,5 @@
 const AI_PROGRAM_PHASES = Object.freeze([
-  { phase: 1, name: 'AI foundation', status: 'IN_PROGRESS' },
+  { phase: 1, name: 'AI foundation', status: 'COMPLETE' },
   { phase: 2, name: 'Turnaround briefing', status: 'NOT_STARTED' },
   { phase: 3, name: 'Evaluation harness', status: 'NOT_STARTED' },
   { phase: 4, name: 'AI Quality Console', status: 'NOT_STARTED' },
@@ -11,8 +11,8 @@ function getAiProgramStatus() {
   return {
     program: 'Cruise Fleet Operations AI Quality Program',
     currentPhase: 1,
-    completedPhases: 0,
-    currentPhasePercentComplete: 96,
+    completedPhases: 1,
+    currentPhasePercentComplete: 100,
     phases: AI_PROGRAM_PHASES.map(phase => ({ ...phase })),
     phaseOneCapabilities: {
       providerAbstraction: true,
@@ -34,6 +34,9 @@ function getAiProgramStatus() {
       correlatedTelemetryLogging: true,
       productionConfigurationDocumentation: true,
       foundationArchitectureAudit: true,
+      deploymentReadinessAssessment: true,
+      completionAudit: true,
+      phaseOneComplete: true,
       contextSizeLimit: true,
       userInterface: false
     }

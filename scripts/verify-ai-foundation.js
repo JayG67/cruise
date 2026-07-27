@@ -15,6 +15,8 @@ const requiredFiles = [
   'services/aiRuntimeConfig.service.js',
   'services/aiCostEstimation.service.js',
   'services/aiTelemetry.service.js',
+  'services/aiFoundationReadiness.service.js',
+  'services/aiFoundationCompletion.service.js',
   'services/aiTurnaroundBriefing.service.js',
   'services/aiProgramStatus.service.js',
   'controllers/ai.controller.js',
@@ -42,10 +44,15 @@ const envExample = read('.env.example')
 const packageJson = JSON.parse(read('package.json'))
 assert(packageJson.scripts['ai:foundation:test'], 'Missing ai:foundation:test script.')
 assert(packageJson.scripts['ai:foundation:audit'], 'Missing ai:foundation:audit script.')
+assert(packageJson.scripts['ai:foundation:readiness'], 'Missing ai:foundation:readiness script.')
+assert(packageJson.scripts['ai:foundation:complete'], 'Missing ai:foundation:complete script.')
 assert(packageJson.scripts['test:all'].includes('ai:foundation:audit'), 'test:all must run ai:foundation:audit.')
+assert(packageJson.scripts['release:preflight'].includes('ai:foundation:audit'), 'release:preflight must run ai:foundation:audit.')
 
 const statusSource = read('services/aiProgramStatus.service.js')
-assert(statusSource.includes("currentPhase: 1"), 'Phase 1 must remain the current phase.')
+assert(statusSource.includes("currentPhase: 1"), 'Phase 1 must remain the reported phase until Phase 2 is explicitly started.')
+assert(statusSource.includes("status: 'COMPLETE'"), 'Phase 1 must be marked complete.')
+assert(statusSource.includes('currentPhasePercentComplete: 100'), 'Phase 1 must report exactly 100% completion.')
 assert(statusSource.includes("status: 'NOT_STARTED'"), 'Later AI phases must remain not started.')
 assert(!statusSource.includes("currentPhase: 2"), 'Phase 2 must not start during the Phase 1 foundation pass.')
 

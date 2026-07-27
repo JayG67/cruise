@@ -840,3 +840,26 @@ Validate the foundation independently with:
 npm run ai:foundation:audit
 npm run ai:foundation:test
 ```
+
+### Phase 1 deployment readiness check
+
+Before deploying or enabling an AI provider, run:
+
+```bash
+npm run ai:foundation:audit
+npm run ai:foundation:readiness
+npm run ai:foundation:test
+```
+
+The readiness command distinguishes **deployment safety** from **generation readiness**. The application is safe to deploy with `AI_PROVIDER=disabled`; AI generation remains unavailable until a supported provider is selected and its required server-side credentials are configured. The `/ai/program-status` response exposes the same sanitized readiness result without exposing credentials, prompts, evidence, or operational notes.
+
+### AI Quality Program status
+
+- Phase 1 — AI Foundation: **COMPLETE (100%)**
+- Phase 2 — Turnaround Briefing: **NOT_STARTED**
+- Phase 3 — Evaluation Harness: **NOT_STARTED**
+- Phase 4 — AI Quality Console: **NOT_STARTED**
+- Phase 5 — Adversarial and Resilience Testing: **NOT_STARTED**
+- Phase 6 — CI Integration: **NOT_STARTED**
+
+Phase 1 completion is enforced by `npm run ai:foundation:complete`. The gate verifies deployment-safe runtime configuration, the completed foundation contract, an exact 100% program status, and that Phase 2 has not been started.

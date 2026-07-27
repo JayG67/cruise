@@ -6,6 +6,7 @@ const { recordAuditEvent } = require('../services/auditEvent.service')
 const { describeAiRuntimeConfig, getAiRuntimeConfig } = require('../services/aiRuntimeConfig.service')
 const { describeAiPricingConfig, getAiPricingConfig } = require('../services/aiCostEstimation.service')
 const { recordAiTelemetry } = require('../services/aiTelemetry.service')
+const { assessAiFoundationReadiness } = require('../services/aiFoundationReadiness.service')
 
 const AI_ALLOWED_ROLES = new Set([
   'ADMIN',
@@ -41,7 +42,8 @@ exports.getAiProgramStatus = (req, res) => {
       generationEnabled: provider.name !== 'disabled',
       credentialConfigured: provider.credentialConfigured !== false,
       executionPolicy: describeAiRuntimeConfig(runtimeConfig),
-      pricing: describeAiPricingConfig(getAiPricingConfig())
+      pricing: describeAiPricingConfig(getAiPricingConfig()),
+      foundationReadiness: assessAiFoundationReadiness()
     }
   })
 }

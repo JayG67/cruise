@@ -6,9 +6,9 @@ describe('AI program status', () => {
     expect(status.phases).toHaveLength(6)
     expect(status.phases.map(phase => phase.phase)).toEqual([1, 2, 3, 4, 5, 6])
     expect(status.currentPhase).toBe(1)
-    expect(status.completedPhases).toBe(0)
-    expect(status.currentPhasePercentComplete).toBe(96)
-    expect(status.phases[0]).toEqual({ phase: 1, name: 'AI foundation', status: 'IN_PROGRESS' })
+    expect(status.completedPhases).toBe(1)
+    expect(status.currentPhasePercentComplete).toBe(100)
+    expect(status.phases[0]).toEqual({ phase: 1, name: 'AI foundation', status: 'COMPLETE' })
     expect(status.phases.slice(1).every(phase => phase.status === 'NOT_STARTED')).toBe(true)
   })
 
@@ -34,6 +34,9 @@ describe('AI program status', () => {
       correlatedTelemetryLogging: true,
       productionConfigurationDocumentation: true,
       foundationArchitectureAudit: true,
+      deploymentReadinessAssessment: true,
+      completionAudit: true,
+      phaseOneComplete: true,
       contextSizeLimit: true,
       userInterface: false
     }))
