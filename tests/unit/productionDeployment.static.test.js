@@ -22,6 +22,14 @@ describe('production deployment static contracts', () => {
     expect(workflow).toContain('node-version: 22')
   })
 
+  it('uses the ECR Public mirror for every PostgreSQL CI service container', () => {
+    const workflow = read('.github/workflows/ci.yml')
+    const resilientPostgresImage = 'image: public.ecr.aws/docker/library/postgres:17.4'
+
+    expect(workflow.match(new RegExp(resilientPostgresImage.replaceAll('.', '\\.'), 'g'))).toHaveLength(6)
+    expect(workflow).not.toContain('image: postgres:17.4')
+  })
+
   it('uses deterministic Render builds and the production-only start path', () => {
     const packageJson = readJson('package.json')
     const renderConfig = read('render.yaml')

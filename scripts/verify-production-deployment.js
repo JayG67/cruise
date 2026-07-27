@@ -50,6 +50,11 @@ function main() {
 
   assertIncludes(workflow, 'node-version: 22', '.github/workflows/ci.yml')
   assertIncludes(workflow, 'run: npm run production:deployment:audit', '.github/workflows/ci.yml')
+
+  const resilientPostgresImage = 'image: public.ecr.aws/docker/library/postgres:17.4'
+  const postgresServiceCount = workflow.split(resilientPostgresImage).length - 1
+  assert(postgresServiceCount === 6, '.github/workflows/ci.yml must use the ECR Public PostgreSQL image for all six database-backed jobs.')
+  assert(!workflow.includes('image: postgres:17.4'), '.github/workflows/ci.yml must not depend directly on Docker Hub for PostgreSQL service containers.')
   assertIncludes(app, "app.get('/health'", 'app.js')
   assertIncludes(app, "res.status(200).json({ status: 'ok' })", 'app.js')
 
