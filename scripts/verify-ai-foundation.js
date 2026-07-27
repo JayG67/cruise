@@ -49,12 +49,16 @@ assert(packageJson.scripts['ai:foundation:complete'], 'Missing ai:foundation:com
 assert(packageJson.scripts['test:all'].includes('ai:foundation:audit'), 'test:all must run ai:foundation:audit.')
 assert(packageJson.scripts['release:preflight'].includes('ai:foundation:audit'), 'release:preflight must run ai:foundation:audit.')
 
-const statusSource = read('services/aiProgramStatus.service.js')
-assert(statusSource.includes("{ phase: 1, name: 'AI foundation', status: 'COMPLETE' }"), 'Phase 1 must remain complete after later phases start.')
-assert(statusSource.includes("status: 'COMPLETE'"), 'Phase 1 must be marked complete.')
-assert(statusSource.includes('phaseOneComplete: true'), 'Phase 1 capability status must remain complete.')
-assert(statusSource.includes("{ phase: 3, name: 'Evaluation harness', status: 'COMPLETE' }"), 'Phase 3 must remain complete while Phase 1 remains complete.')
-assert(statusSource.includes("currentPhase: 4"), 'Phase 4 must be the current phase.')
+const { getAiProgramStatus } = require(path.join(root, 'services/aiProgramStatus.service.js'))
+const programStatus = getAiProgramStatus()
+const phaseOneStatus = programStatus.phases.find(phase => phase.phase === 1)
+const phaseThreeStatus = programStatus.phases.find(phase => phase.phase === 3)
+
+assert(phaseOneStatus?.status === 'COMPLETE', 'Phase 1 must remain complete after later phases start.')
+assert(programStatus.phaseOneCapabilities?.phaseOneComplete === true, 'Phase 1 capability status must remain complete.')
+assert(phaseThreeStatus?.status === 'COMPLETE', 'Phase 3 must remain complete while Phase 1 remains complete.')
+assert(programStatus.currentPhase >= 4, 'Phase 4 or a later phase must be current.')
+assert(programStatus.completedPhases >= 3, 'At least the first three AI phases must remain complete.')
 
 console.log('AI foundation architecture audit passed.')
 console.log(`Required foundation files: ${requiredFiles.length}`)

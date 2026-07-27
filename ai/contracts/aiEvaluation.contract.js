@@ -34,6 +34,17 @@ const runEvaluationMatrixRequestSchema = z.object({
   variants: z.array(evaluationMatrixVariantSchema).min(2).max(12)
 }).strict()
 
+
+const qualityConsoleReleasePolicyRequestSchema = z.object({
+  suiteId: z.string().trim().min(1).max(160).default('turnaround-briefing-phase3'),
+  currentRunId: z.string().trim().min(1).max(160),
+  baselineRunId: z.string().trim().min(1).max(160),
+  policy: regressionPolicySchema.unwrap()
+}).strict().refine(value => value.currentRunId !== value.baselineRunId, {
+  message: 'Current and baseline evaluation runs must be different.',
+  path: ['baselineRunId']
+})
+
 const evaluationRunsQuerySchema = z.object({
   suiteId: z.string().trim().min(1).max(160).default('turnaround-briefing-phase3'),
   limit: z.coerce.number().int().min(1).max(100).default(20)
@@ -47,6 +58,7 @@ const evaluationComparisonQuerySchema = z.object({
 module.exports = {
   evaluationComparisonQuerySchema,
   evaluationRunsQuerySchema,
+  qualityConsoleReleasePolicyRequestSchema,
   regressionPolicySchema,
   runEvaluationMatrixRequestSchema,
   runEvaluationRequestSchema

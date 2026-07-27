@@ -4,6 +4,7 @@ const validate = require('../middleware/validate.middleware')
 const {
   evaluationComparisonQuerySchema,
   evaluationRunsQuerySchema,
+  qualityConsoleReleasePolicyRequestSchema,
   runEvaluationMatrixRequestSchema,
   runEvaluationRequestSchema,
   operationalTurnaroundBriefingRequestSchema,
@@ -16,6 +17,7 @@ const router = express.Router()
 
 router.get('/program-status', aiController.getAiProgramStatus)
 router.get('/evaluations/turnaround-briefing/quality-summary', validate(evaluationRunsQuerySchema, 'query'), aiController.getTurnaroundBriefingEvaluationQualitySummary)
+router.post('/evaluations/turnaround-briefing/release-policy/preview', validate(qualityConsoleReleasePolicyRequestSchema), aiController.previewTurnaroundBriefingReleasePolicy)
 router.get('/evaluations/turnaround-briefing/runs', validate(evaluationRunsQuerySchema, 'query'), aiController.listTurnaroundBriefingEvaluationRuns)
 router.get('/evaluations/turnaround-briefing/runs/:runId/compare', validate(evaluationComparisonQuerySchema, 'query'), aiController.compareTurnaroundBriefingEvaluationRun)
 router.post('/evaluations/turnaround-briefing/matrix', validate(runEvaluationMatrixRequestSchema), aiController.runTurnaroundBriefingEvaluationMatrix)
