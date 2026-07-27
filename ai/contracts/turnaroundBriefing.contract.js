@@ -21,6 +21,11 @@ const aiEvidenceRecordSchema = z.object({
   departmentRole: z.string().trim().max(100).nullable().optional()
 }).strict()
 
+const operationalTurnaroundBriefingRequestSchema = z.object({
+  question: z.string().trim().min(3).max(1000).default('Summarize current turnaround readiness and the most important next actions.'),
+  requestedAt: z.string().datetime().optional()
+}).strict()
+
 const turnaroundBriefingRequestSchema = z.object({
   operationId: z.string().trim().min(1).max(160),
   question: z.string().trim().min(3).max(1000).default('Summarize current turnaround readiness and the most important next actions.'),
@@ -35,6 +40,16 @@ const aiFindingSchema = z.object({
   explanation: z.string().trim().min(1).max(1200),
   evidenceIds: z.array(z.string().trim().min(1).max(160)).min(1).max(20),
   recommendedAction: z.string().trim().min(1).max(600)
+}).strict()
+
+
+const turnaroundBriefingHistoryQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(50).default(20)
+}).strict()
+
+const turnaroundBriefingReviewRequestSchema = z.object({
+  disposition: z.enum(['ACCEPTED', 'NEEDS_REVISION', 'REJECTED']),
+  notes: z.string().trim().max(2000).optional()
 }).strict()
 
 const turnaroundBriefingResponseSchema = z.object({
@@ -52,6 +67,9 @@ module.exports = {
   aiFindingSchema,
   findingCategorySchema,
   riskLevelSchema,
+  operationalTurnaroundBriefingRequestSchema,
+  turnaroundBriefingHistoryQuerySchema,
+  turnaroundBriefingReviewRequestSchema,
   turnaroundBriefingRequestSchema,
   turnaroundBriefingResponseSchema
 }

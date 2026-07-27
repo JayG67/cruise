@@ -9,6 +9,7 @@ const {
 describe('audit event query contract bridge', () => {
   it('keeps the production audit filter allowlist centralized and stable', () => {
     expect(AUDIT_EVENT_FILTER_FIELDS).toEqual([
+      'eventType',
       'entityType',
       'entityId',
       'actorUserId',

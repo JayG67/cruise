@@ -810,7 +810,7 @@ Phase 1 remains active. The strongest remaining targets are durable-ID API contr
 
 ## AI foundation configuration
 
-The AI integration is server-side and disabled by default. Phase 1 provides provider abstraction, strict structured output, evidence grounding, role authorization, bounded retries and timeouts, persistent audit evidence, privacy-conscious telemetry, configurable token-cost estimates, and production configuration validation. It does not include the Phase 2 user-facing briefing workspace.
+The AI integration is server-side and disabled by default. Phase 1 provides provider abstraction, strict structured output, evidence grounding, role authorization, bounded retries and timeouts, persistent audit evidence, privacy-conscious telemetry, configurable token-cost estimates, and production configuration validation. Phase 2 now includes the first operation-scoped briefing API slice; the user-facing briefing workspace is not yet implemented.
 
 For a deterministic local demonstration:
 
@@ -853,13 +853,50 @@ npm run ai:foundation:test
 
 The readiness command distinguishes **deployment safety** from **generation readiness**. The application is safe to deploy with `AI_PROVIDER=disabled`; AI generation remains unavailable until a supported provider is selected and its required server-side credentials are configured. The `/ai/program-status` response exposes the same sanitized readiness result without exposing credentials, prompts, evidence, or operational notes.
 
+### Phase 2 operation-scoped briefing workflow
+
+Phase 2 generates briefings directly from trusted turnaround records instead of accepting browser-supplied evidence:
+
+```http
+POST /ai/turnaround-operations/:operationId/briefing
+Content-Type: application/json
+X-Demo-User-Id: <assigned operational user>
+
+{
+  "question": "What could delay departure?"
+}
+```
+
+The server loads and normalizes operation, task, dependency, handoff, staffing, signoff, and escalation evidence; prioritizes active risks within the context limit; enforces the existing turnaround tenant boundary; and returns the briefing with an evidence summary and sanitized operation metadata. Raw operational evidence remains server-side.
+
+The second Phase 2 slice adds persistent briefing history and human review through the existing audit-event store:
+
+```http
+GET /ai/turnaround-operations/:operationId/briefings?limit=20
+POST /ai/turnaround-operations/:operationId/briefings/:briefingId/review
+Content-Type: application/json
+
+{
+  "disposition": "NEEDS_REVISION",
+  "notes": "Clarify the staffing risk and owner."
+}
+```
+
+Generated briefings now receive a stable `briefingId`, retain their grounded response snapshot and question in the server-side audit trail, and return the latest reviewer disposition in history results. Supported dispositions are `ACCEPTED`, `NEEDS_REVISION`, and `REJECTED`. Tenant and operational-role authorization are enforced before history or review access.
+
+Run the focused Phase 2 tests with:
+
+```bash
+npm run ai:phase2:test
+```
+
 ### AI Quality Program status
 
 - Phase 1 — AI Foundation: **COMPLETE (100%)**
-- Phase 2 — Turnaround Briefing: **NOT_STARTED**
+- Phase 2 — Turnaround Briefing: **IN_PROGRESS (60%)**
 - Phase 3 — Evaluation Harness: **NOT_STARTED**
 - Phase 4 — AI Quality Console: **NOT_STARTED**
 - Phase 5 — Adversarial and Resilience Testing: **NOT_STARTED**
 - Phase 6 — CI Integration: **NOT_STARTED**
 
-Phase 1 completion is enforced by `npm run ai:foundation:complete`. The gate verifies deployment-safe runtime configuration, the completed foundation contract, an exact 100% program status, and that Phase 2 has not been started.
+Phase 1 completion remains enforced by `npm run ai:foundation:complete`. The gate verifies deployment-safe runtime configuration and the completed foundation contract while allowing Phase 2 development to proceed independently.

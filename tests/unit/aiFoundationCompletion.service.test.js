@@ -5,7 +5,7 @@ const {
 } = require('../../services/aiFoundationCompletion.service')
 
 describe('AI Phase 1 foundation completion', () => {
-  it('closes Phase 1 at exactly 100% while Phase 2 remains unstarted', () => {
+  it('closes Phase 1 at exactly 100% while Phase 2 proceeds independently', () => {
     const completion = buildAiFoundationCompletion({ env: {} })
 
     expect(completion).toEqual(expect.objectContaining({
@@ -14,13 +14,13 @@ describe('AI Phase 1 foundation completion', () => {
       status: 'COMPLETE',
       percentComplete: 100,
       completed: true,
-      phaseTwoStarted: false
+      phaseTwoStarted: true
     }))
     expect(completion.completionCriteria).toEqual(PHASE_ONE_COMPLETION_CRITERIA)
     expect(completion.nextPhase).toEqual({
       phase: 2,
       name: 'Turnaround briefing',
-      status: 'NOT_STARTED'
+      status: 'IN_PROGRESS'
     })
   })
 

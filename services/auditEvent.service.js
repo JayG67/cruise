@@ -96,6 +96,7 @@ async function listAuditEvents(filters = {}, { limit = 25 } = {}) {
   const conditions = []
 
   for (const [field, column] of Object.entries({
+    eventType: auditEventTable.eventType,
     entityType: auditEventTable.entityType,
     entityId: auditEventTable.entityId,
     actorUserId: auditEventTable.actorUserId,

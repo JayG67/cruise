@@ -1,4 +1,4 @@
-function toValidationErrors(error) {
+function toValidationErrors(error, source = 'body') {
   const issues = Array.isArray(error?.issues)
     ? error.issues
     : Array.isArray(error?.errors)
@@ -6,25 +6,18 @@ function toValidationErrors(error) {
       : []
 
   if (issues.length === 0) {
-    return [
-      {
-        field: 'body',
-        message: 'Request body did not match the expected schema'
-      }
-    ]
+    return [{ field: source, message: `Request ${source} did not match the expected schema` }]
   }
 
   return issues.map((issue) => ({
-    field: Array.isArray(issue.path) && issue.path.length > 0
-      ? issue.path.join('.')
-      : 'body',
+    field: Array.isArray(issue.path) && issue.path.length > 0 ? issue.path.join('.') : source,
     message: issue.message || 'Invalid value'
   }))
 }
 
-module.exports = (schema) => {
+module.exports = (schema, source = 'body') => {
   return (req, res, next) => {
-    const result = schema.safeParse(req.body)
+    const result = schema.safeParse(req[source])
 
     if (!result.success) {
       return res
@@ -32,12 +25,11 @@ module.exports = (schema) => {
         .type('application/json')
         .json({
           message: 'Validation failed',
-          errors: toValidationErrors(result.error)
+          errors: toValidationErrors(result.error, source)
         })
     }
 
-    req.body = result.data
-
+    req[source] = result.data
     next()
   }
 }
