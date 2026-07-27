@@ -53,11 +53,12 @@ describe('production deployment static contracts', () => {
 
     const healthRouteIndex = app.indexOf("app.get('/health'")
     const reactStaticIndex = app.indexOf('app.use(express.static(reactBuildDir')
-    const reactFallbackIndex = app.indexOf('app.get(/^\\/(?!cruise|admin|health')
+    const reactFallbackIndex = app.indexOf('app.get(/^\\/(?!')
 
     expect(healthRouteIndex).toBeGreaterThan(-1)
     expect(reactStaticIndex).toBeGreaterThan(-1)
     expect(reactFallbackIndex).toBeGreaterThan(-1)
+    expect(app.slice(reactFallbackIndex, reactFallbackIndex + 250)).toContain('sendReactApp')
     expect(healthRouteIndex).toBeLessThan(reactStaticIndex)
     expect(healthRouteIndex).toBeLessThan(reactFallbackIndex)
 

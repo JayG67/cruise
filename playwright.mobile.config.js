@@ -1,27 +1,9 @@
 const { defineConfig, devices } = require('@playwright/test')
 
-const localMobileProjects = [
-  {
-    name: 'Mobile Chrome - Pixel 7',
-    use: {
-      ...devices['Pixel 7']
-    }
-  },
-  {
-    name: 'Mobile Safari - iPhone 13',
-    use: {
-      ...devices['iPhone 13']
-    }
-  },
-  {
-    name: 'Tablet Safari - iPad Mini',
-    use: {
-      ...devices['iPad Mini']
-    }
-  }
-]
-
-const ciMobileProjects = [
+// Mobile coverage intentionally uses one Chromium phone and one WebKit phone.
+// Tablet layout coverage already lives in playwright.responsive.config.js, so
+// repeating the full mobile suite on iPad added runtime without unique coverage.
+const mobileProjects = [
   {
     name: 'Mobile Chrome - Pixel 7',
     use: {
@@ -42,14 +24,11 @@ module.exports = defineConfig({
   expect: {
     timeout: 5_000
   },
-  // The mobile suite drives a single shared local server and test database.
-  // Running responsive browser projects in parallel caused cross-device state
-  // races: one device could be changing role/fleet/confirmation state while
-  // another was asserting the same product surface. Keep this suite serialized;
-  // Cypress and Jest still cover broad parallel-safe behavior, while these
-  // checks verify viewport reachability without test-run contention.
+  // Tests remain serial inside each browser project, while the two independent
+  // browser projects can execute concurrently. Test data created by the suite
+  // is project-suffixed to prevent cross-project record collisions.
   fullyParallel: false,
-  workers: 1,
+  workers: 2,
   retries: process.env.CI ? 1 : 0,
   reporter: [
     ['list'],
@@ -62,5 +41,5 @@ module.exports = defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure'
   },
-  projects: process.env.CI ? ciMobileProjects : localMobileProjects
+  projects: mobileProjects
 })
