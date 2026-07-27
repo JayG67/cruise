@@ -1002,3 +1002,10 @@ export async function reviewOperationalAiBriefing(operationId, briefingId, paylo
     body: JSON.stringify(payload)
   })
 }
+
+
+export async function getAiEvaluationQualitySummary(options = {}) {
+  const limit = Number(options.limit || 20)
+  const suiteId = options.suiteId || 'turnaround-briefing-phase3'
+  return requestJson(`/ai/evaluations/turnaround-briefing/quality-summary?suiteId=${encodeURIComponent(suiteId)}&limit=${encodeURIComponent(limit)}`, getScopedRequestOptions(options))
+}

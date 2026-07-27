@@ -18,13 +18,13 @@ const PHASE_TWO_COMPLETION_CRITERIA = Object.freeze([
 function buildAiPhaseTwoCompletion() {
   const status = getAiProgramStatus()
   const phase = status.phases.find(item => item.phase === 2)
-  const complete = phase?.status === 'COMPLETE' && status.currentPhasePercentComplete === 100
+  const complete = phase?.status === 'COMPLETE'
 
   return {
     phase: 2,
     name: 'Turnaround briefing',
     status: complete ? 'COMPLETE' : 'BLOCKED',
-    percentComplete: complete ? 100 : status.currentPhasePercentComplete,
+    percentComplete: complete ? 100 : 0,
     completed: complete,
     completionCriteria: [...PHASE_TWO_COMPLETION_CRITERIA],
     phaseThreeStarted: status.phases.find(item => item.phase === 3)?.status !== 'NOT_STARTED',

@@ -1,8 +1,8 @@
 const AI_PROGRAM_PHASES = Object.freeze([
   { phase: 1, name: 'AI foundation', status: 'COMPLETE' },
   { phase: 2, name: 'Turnaround briefing', status: 'COMPLETE' },
-  { phase: 3, name: 'Evaluation harness', status: 'NOT_STARTED' },
-  { phase: 4, name: 'AI Quality Console', status: 'NOT_STARTED' },
+  { phase: 3, name: 'Evaluation harness', status: 'COMPLETE' },
+  { phase: 4, name: 'AI Quality Console', status: 'IN_PROGRESS' },
   { phase: 5, name: 'Adversarial and resilience testing', status: 'NOT_STARTED' },
   { phase: 6, name: 'CI integration', status: 'NOT_STARTED' }
 ])
@@ -10,9 +10,9 @@ const AI_PROGRAM_PHASES = Object.freeze([
 function getAiProgramStatus() {
   return {
     program: 'Cruise Fleet Operations AI Quality Program',
-    currentPhase: 2,
-    completedPhases: 2,
-    currentPhasePercentComplete: 100,
+    currentPhase: 4,
+    completedPhases: 3,
+    currentPhasePercentComplete: 15,
     phases: AI_PROGRAM_PHASES.map(phase => ({ ...phase })),
     phaseOneCapabilities: {
       providerAbstraction: true,
@@ -62,6 +62,24 @@ function getAiProgramStatus() {
       providerDisabledUx: true,
       phaseTwoCompletionAudit: true,
       phaseTwoComplete: true
+    },
+    phaseThreeCapabilities: {
+      reusableEvaluationCases: true,
+      weightedScoringContract: true,
+      deterministicBriefingEvaluator: true,
+      evaluationSuiteRunner: true,
+      diagnosticResults: true,
+      architectureAudit: true,
+      persistentRunStorage: true,
+      baselineComparison: true,
+      evaluationApi: true,
+      expandedGoldenDataset: true,
+      providerPromptMatrix: true,
+      configurableReleasePolicy: true,
+      releaseGateDecision: true,
+      qualityConsoleIntegration: true,
+      completionAudit: true,
+      phaseThreeComplete: true
     }
   }
 }

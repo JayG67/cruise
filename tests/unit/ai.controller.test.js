@@ -100,8 +100,29 @@ describe('AI controller authorization and failure boundaries', () => {
     controller.getAiProgramStatus({}, res)
     expect(status).toHaveBeenCalledWith(200)
     expect(json).toHaveBeenCalledWith(expect.objectContaining({
-      currentPhase: 2,
-      phases: expect.arrayContaining([expect.objectContaining({ phase: 6 })]),
+      currentPhase: 4,
+      currentPhasePercentComplete: 15,
+      completedPhases: 3,
+      phases: expect.arrayContaining([
+        expect.objectContaining({ phase: 3, status: 'COMPLETE' }),
+        expect.objectContaining({ phase: 4, status: 'IN_PROGRESS' }),
+        expect.objectContaining({ phase: 6 })
+      ]),
+      phaseThreeCapabilities: expect.objectContaining({
+        reusableEvaluationCases: true,
+        deterministicBriefingEvaluator: true,
+        evaluationSuiteRunner: true,
+        persistentRunStorage: true,
+        baselineComparison: true,
+        evaluationApi: true,
+        expandedGoldenDataset: true,
+        providerPromptMatrix: true,
+        configurableReleasePolicy: true,
+        architectureAudit: true,
+        qualityConsoleIntegration: true,
+        completionAudit: true,
+        phaseThreeComplete: true
+      }),
       runtime: expect.objectContaining({
         provider: 'deterministic',
         model: 'test-model',
