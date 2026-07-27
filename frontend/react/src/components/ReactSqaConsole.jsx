@@ -100,6 +100,10 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
   const [aiReleasePolicyPreview, setAiReleasePolicyPreview] = useState(null)
   const [aiReleasePolicyStatus, setAiReleasePolicyStatus] = useState('Adjust thresholds and preview the release decision.')
   const [isPreviewingAiReleasePolicy, setIsPreviewingAiReleasePolicy] = useState(false)
+  const [aiHistoryDecisionFilter, setAiHistoryDecisionFilter] = useState('ALL')
+  const [aiHistoryProviderFilter, setAiHistoryProviderFilter] = useState('ALL')
+  const [aiHistorySearch, setAiHistorySearch] = useState('')
+  const [aiHistorySort, setAiHistorySort] = useState('completed-desc')
 
   useEffect(() => {
     let active = true
@@ -119,6 +123,30 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
       })
     return () => { active = false }
   }, [selectedDemoUser])
+
+  const aiHistoryProviders = useMemo(() => Array.from(new Set((aiQualitySummary?.runs || []).map(run => run.provider).filter(Boolean))).sort(), [aiQualitySummary])
+
+  const filteredAiRuns = useMemo(() => {
+    const normalizedSearch = aiHistorySearch.trim().toLowerCase()
+    const runs = (aiQualitySummary?.runs || []).filter(run => {
+      if (aiHistoryDecisionFilter === 'READY' && !run.passed) return false
+      if (aiHistoryDecisionFilter === 'BLOCKED' && run.passed) return false
+      if (aiHistoryProviderFilter !== 'ALL' && run.provider !== aiHistoryProviderFilter) return false
+      if (!normalizedSearch) return true
+      return [run.runId, run.variantId, run.provider, run.model, run.promptVersion]
+        .filter(Boolean)
+        .some(value => String(value).toLowerCase().includes(normalizedSearch))
+    })
+
+    return [...runs].sort((left, right) => {
+      if (aiHistorySort === 'completed-asc') return new Date(left.completedAt || 0) - new Date(right.completedAt || 0)
+      if (aiHistorySort === 'pass-rate-desc') return Number(right.passRate || 0) - Number(left.passRate || 0)
+      if (aiHistorySort === 'pass-rate-asc') return Number(left.passRate || 0) - Number(right.passRate || 0)
+      if (aiHistorySort === 'score-desc') return Number(right.averageScore || 0) - Number(left.averageScore || 0)
+      if (aiHistorySort === 'score-asc') return Number(left.averageScore || 0) - Number(right.averageScore || 0)
+      return new Date(right.completedAt || 0) - new Date(left.completedAt || 0)
+    })
+  }, [aiHistoryDecisionFilter, aiHistoryProviderFilter, aiHistorySearch, aiHistorySort, aiQualitySummary])
 
   const selectedAiRun = aiQualitySummary?.runs?.find(run => run.runId === selectedAiRunId) || null
 
@@ -513,12 +541,27 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
           )}
         </section>
 
-        <div className="ai-quality-history-wrap">
+        <section className="ai-quality-history-section" aria-labelledby="ai-quality-history-heading">
+          <div className="ai-quality-history-heading">
+            <div>
+              <p className="eyebrow ce-kicker">Evaluation history</p>
+              <h4 id="ai-quality-history-heading">Filter and sort persisted runs</h4>
+            </div>
+            <span data-testid="react-ai-history-result-count">{filteredAiRuns.length} of {aiQualitySummary?.runs?.length || 0} runs shown</span>
+          </div>
+          <div className="ai-quality-history-controls" data-testid="react-ai-quality-history-controls">
+            <label><span>Search runs</span><input data-testid="react-ai-history-search" type="search" value={aiHistorySearch} onChange={event => setAiHistorySearch(event.target.value)} placeholder="Run, variant, provider, model, or prompt" /></label>
+            <label><span>Decision</span><select data-testid="react-ai-history-decision-filter" value={aiHistoryDecisionFilter} onChange={event => setAiHistoryDecisionFilter(event.target.value)}><option value="ALL">All decisions</option><option value="READY">Ready</option><option value="BLOCKED">Blocked</option></select></label>
+            <label><span>Provider</span><select data-testid="react-ai-history-provider-filter" value={aiHistoryProviderFilter} onChange={event => setAiHistoryProviderFilter(event.target.value)}><option value="ALL">All providers</option>{aiHistoryProviders.map(provider => <option key={provider} value={provider}>{provider}</option>)}</select></label>
+            <label><span>Sort by</span><select data-testid="react-ai-history-sort" value={aiHistorySort} onChange={event => setAiHistorySort(event.target.value)}><option value="completed-desc">Newest first</option><option value="completed-asc">Oldest first</option><option value="pass-rate-desc">Pass rate: high to low</option><option value="pass-rate-asc">Pass rate: low to high</option><option value="score-desc">Score: high to low</option><option value="score-asc">Score: low to high</option></select></label>
+            <button type="button" className="secondary-button ce-button-secondary" data-testid="react-ai-history-reset" onClick={() => { setAiHistorySearch(''); setAiHistoryDecisionFilter('ALL'); setAiHistoryProviderFilter('ALL'); setAiHistorySort('completed-desc') }}>Reset history view</button>
+          </div>
+          <div className="ai-quality-history-wrap">
           <table className="ai-quality-history" data-testid="react-ai-quality-history-table">
-            <caption>Recent AI evaluation runs</caption>
+            <caption className="sr-only">Recent AI evaluation runs</caption>
             <thead><tr><th>Completed</th><th>Variant</th><th>Provider / model</th><th>Prompt</th><th>Pass rate</th><th>Score</th><th>Decision</th><th>Diagnostics</th></tr></thead>
             <tbody>
-              {(aiQualitySummary?.runs || []).map(run => (
+              {filteredAiRuns.map(run => (
                 <tr key={run.runId} className={selectedAiRunId === run.runId ? 'selected' : undefined}>
                   <td>{run.completedAt ? new Date(run.completedAt).toLocaleString() : 'Unknown'}</td>
                   <td>{run.variantId || 'default'}</td>
@@ -542,10 +585,11 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
                   </td>
                 </tr>
               ))}
-              {!aiQualitySummary?.runs?.length && <tr><td colSpan="8">No persisted AI evaluation runs are available.</td></tr>}
+              {!filteredAiRuns.length && <tr><td colSpan="8">{aiQualitySummary?.runs?.length ? 'No evaluation runs match the selected history filters.' : 'No persisted AI evaluation runs are available.'}</td></tr>}
             </tbody>
           </table>
-        </div>
+          </div>
+        </section>
 
         {selectedAiRun && (
           <section className="ai-failure-drilldown" data-testid="react-ai-failure-drilldown" aria-live="polite">

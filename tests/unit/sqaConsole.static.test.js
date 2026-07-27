@@ -5,6 +5,20 @@ const projectRoot = path.join(__dirname, '../..')
 
 describe('quality console static safeguards', () => {
 
+  it('keeps evaluation-history filtering and sorting controls in the AI quality console', () => {
+    const sqaConsole = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactSqaConsole.jsx'), 'utf8')
+    const styles = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/styles/components/admin-quality.css'), 'utf8')
+
+    expect(sqaConsole).toContain('react-ai-quality-history-controls')
+    expect(sqaConsole).toContain('react-ai-history-search')
+    expect(sqaConsole).toContain('react-ai-history-decision-filter')
+    expect(sqaConsole).toContain('react-ai-history-provider-filter')
+    expect(sqaConsole).toContain('react-ai-history-sort')
+    expect(sqaConsole).toContain('filteredAiRuns.map')
+    expect(styles).toContain('.ai-quality-history-controls')
+  })
+
+
   it('keeps interactive release-policy controls in the AI quality console', () => {
     const sqaConsole = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactSqaConsole.jsx'), 'utf8')
     const apiClient = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/api/client.js'), 'utf8')
