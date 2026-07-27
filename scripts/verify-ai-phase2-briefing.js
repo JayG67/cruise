@@ -42,7 +42,7 @@ assert(generation.includes('briefingId'), 'Generated briefings must receive a st
 assert(generation.includes('briefing: response'), 'Generated briefing snapshots must be persisted in the audit event payload.')
 assert(review.includes('AI_TURNAROUND_BRIEFING_REVIEWED'), 'Reviewer feedback must be persisted as an AI audit event.')
 assert(status.includes("{ phase: 2, name: 'Turnaround briefing', status: 'COMPLETE' }"), 'Phase 2 must be marked complete.')
-assert(status.includes('currentPhasePercentComplete: 100'), 'Phase 2 status must report 100% completion.')
+assert(status.includes('phaseTwoComplete: true'), 'Phase 2 status must remain complete after later phases start.')
 assert(status.includes('briefingHistory: true'), 'Program status must expose briefing history.')
 assert(status.includes('reviewerFeedback: true'), 'Program status must expose reviewer feedback.')
 assert(status.includes('briefingWorkspace: true'), 'Program status must expose the completed briefing workspace.')

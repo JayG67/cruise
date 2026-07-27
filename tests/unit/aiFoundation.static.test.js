@@ -5,11 +5,11 @@ const root = path.join(__dirname, '..', '..')
 const read = relativePath => fs.readFileSync(path.join(root, relativePath), 'utf8')
 
 describe('AI Phase 1 foundation static contracts', () => {
-  it('keeps Phase 1 complete while Phase 2 is in progress', () => {
+  it('keeps completed AI phases stable while later phases progress', () => {
     const status = read('services/aiProgramStatus.service.js')
     expect(status).toContain("{ phase: 1, name: 'AI foundation', status: 'COMPLETE' }")
     expect(status).toContain("{ phase: 2, name: 'Turnaround briefing', status: 'COMPLETE' }")
-    expect(status).toContain('currentPhasePercentComplete: 100')
+    expect(status).toContain("{ phase: 3, name: 'Evaluation harness', status: 'IN_PROGRESS' }")
   })
 
   it('keeps credentials server-only and pricing explicitly configurable', () => {

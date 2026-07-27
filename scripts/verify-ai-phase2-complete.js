@@ -14,9 +14,8 @@ requiredFiles.forEach(relativePath => {
 })
 
 const completion = assertAiPhaseTwoComplete()
-if (completion.phaseThreeStarted) throw new Error('Phase 3 must remain NOT_STARTED during Phase 2 completion.')
 
 console.log('AI Phase 2 turnaround briefing completion audit passed.')
 console.log(`Completion criteria: ${completion.completionCriteria.length}`)
 console.log('Phase 2: 100% COMPLETE')
-console.log('Phase 3: NOT_STARTED')
+console.log(`Phase 3: ${completion.nextPhase.status}`)

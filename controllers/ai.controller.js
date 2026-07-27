@@ -15,6 +15,10 @@ const { describeAiRuntimeConfig, getAiRuntimeConfig } = require('../services/aiR
 const { describeAiPricingConfig, getAiPricingConfig } = require('../services/aiCostEstimation.service')
 const { recordAiTelemetry } = require('../services/aiTelemetry.service')
 const { assessAiFoundationReadiness } = require('../services/aiFoundationReadiness.service')
+const { TURNAROUND_BRIEFING_EVALUATION_CASES } = require('../ai/evaluations/cases/turnaroundBriefing.cases')
+const { runEvaluationSuite } = require('../services/aiEvaluationHarness.service')
+const { compareEvaluationRuns } = require('../services/aiEvaluationBaseline.service')
+const { getEvaluationRun, listEvaluationRuns, recordEvaluationRun } = require('../services/aiEvaluationRun.service')
 
 const AI_ALLOWED_ROLES = new Set([
   'ADMIN',
@@ -200,6 +204,59 @@ exports.reviewOperationalTurnaroundBriefing = async (req, res, next) => {
   }
 }
 
+
+function canManageAiEvaluations(actor = {}) {
+  return normalizeActorRole(actor.actorRole) === 'ADMIN'
+}
+
+exports.runTurnaroundBriefingEvaluation = async (req, res, next) => {
+  try {
+    const actor = await resolveRequestActor(req)
+    if (!canManageAiEvaluations(actor)) return res.status(403).json({ message: 'AI evaluation runs require an administrator.' })
+
+    const candidates = new Map(req.body.candidates.map(item => [item.caseId, item.briefing]))
+    const selectedCases = TURNAROUND_BRIEFING_EVALUATION_CASES.filter(item => candidates.has(item.id))
+    if (selectedCases.length !== candidates.size) {
+      return res.status(400).json({ message: 'One or more evaluation case identifiers are unknown.' })
+    }
+
+    const run = runEvaluationSuite({
+      suiteId: req.body.suiteId,
+      cases: selectedCases,
+      generateCandidate: (_input, evaluationCase) => candidates.get(evaluationCase.id)
+    })
+    await recordEvaluationRun({ run, actor })
+    return res.status(201).json(run)
+  } catch (error) {
+    return next(error)
+  }
+}
+
+exports.listTurnaroundBriefingEvaluationRuns = async (req, res, next) => {
+  try {
+    const actor = await resolveRequestActor(req)
+    if (!canManageAiEvaluations(actor)) return res.status(403).json({ message: 'AI evaluation history requires an administrator.' })
+    return res.status(200).json(await listEvaluationRuns({ suiteId: req.query.suiteId, limit: req.query.limit }))
+  } catch (error) {
+    return next(error)
+  }
+}
+
+exports.compareTurnaroundBriefingEvaluationRun = async (req, res, next) => {
+  try {
+    const actor = await resolveRequestActor(req)
+    if (!canManageAiEvaluations(actor)) return res.status(403).json({ message: 'AI evaluation comparison requires an administrator.' })
+    const currentRun = await getEvaluationRun(req.params.runId, { suiteId: req.query.suiteId })
+    const baselineRun = await getEvaluationRun(req.query.baselineRunId, { suiteId: req.query.suiteId })
+    if (!currentRun || !baselineRun) return res.status(404).json({ message: 'The requested evaluation run was not found.' })
+    return res.status(200).json(compareEvaluationRuns({ currentRun, baselineRun }))
+  } catch (error) {
+    return next(error)
+  }
+}
+
 module.exports.AI_ALLOWED_ROLES = AI_ALLOWED_ROLES
 module.exports.providerHttpStatus = providerHttpStatus
 module.exports.canGenerateAiBriefing = canGenerateAiBriefing
+
+module.exports.canManageAiEvaluations = canManageAiEvaluations
