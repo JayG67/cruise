@@ -21,6 +21,7 @@ const { compareEvaluationRuns } = require('../services/aiEvaluationBaseline.serv
 const { runEvaluationMatrix } = require('../services/aiEvaluationMatrix.service')
 const { getEvaluationRun, listEvaluationRuns, recordEvaluationRun } = require('../services/aiEvaluationRun.service')
 const { buildAiEvaluationQualitySummary } = require('../services/aiEvaluationQualitySummary.service')
+const { assessQualityConsoleReleasePolicy } = require('../services/aiQualityConsoleReleasePolicy.service')
 
 const AI_ALLOWED_ROLES = new Set([
   'ADMIN',
@@ -294,6 +295,23 @@ exports.getTurnaroundBriefingEvaluationQualitySummary = async (req, res, next) =
     const actor = await resolveRequestActor(req)
     if (!canManageAiEvaluations(actor)) return res.status(403).json({ message: 'AI evaluation quality summaries require an administrator.' })
     return res.status(200).json(await buildAiEvaluationQualitySummary({ suiteId: req.query.suiteId, limit: req.query.limit }))
+  } catch (error) {
+    return next(error)
+  }
+}
+
+exports.previewTurnaroundBriefingReleasePolicy = async (req, res, next) => {
+  try {
+    const actor = await resolveRequestActor(req)
+    if (!canManageAiEvaluations(actor)) return res.status(403).json({ message: 'AI release-policy previews require an administrator.' })
+    const currentRun = await getEvaluationRun(req.body.currentRunId, { suiteId: req.body.suiteId })
+    const baselineRun = await getEvaluationRun(req.body.baselineRunId, { suiteId: req.body.suiteId })
+    if (!currentRun || !baselineRun) return res.status(404).json({ message: 'The requested evaluation run was not found.' })
+    return res.status(200).json(assessQualityConsoleReleasePolicy({
+      currentRun,
+      baselineRun,
+      policy: req.body.policy
+    }))
   } catch (error) {
     return next(error)
   }

@@ -12,7 +12,7 @@ function getAiProgramStatus() {
     program: 'Cruise Fleet Operations AI Quality Program',
     currentPhase: 4,
     completedPhases: 3,
-    currentPhasePercentComplete: 15,
+    currentPhasePercentComplete: 90,
     phases: AI_PROGRAM_PHASES.map(phase => ({ ...phase })),
     phaseOneCapabilities: {
       providerAbstraction: true,
@@ -80,6 +80,18 @@ function getAiProgramStatus() {
       qualityConsoleIntegration: true,
       completionAudit: true,
       phaseThreeComplete: true
+    },
+    phaseFourCapabilities: {
+      releaseReadinessSummary: true,
+      evaluationHistoryTable: true,
+      trendAnalysis: true,
+      providerModelPromptMetadata: true,
+      failedCaseDrilldown: true,
+      recurringFailureSummary: true,
+      baselineSelection: true,
+      runComparison: true,
+      releasePolicyControls: true,
+      phaseFourComplete: false
     }
   }
 }

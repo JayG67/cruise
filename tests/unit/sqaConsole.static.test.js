@@ -5,6 +5,43 @@ const projectRoot = path.join(__dirname, '../..')
 
 describe('quality console static safeguards', () => {
 
+  it('keeps interactive release-policy controls in the AI quality console', () => {
+    const sqaConsole = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactSqaConsole.jsx'), 'utf8')
+    const apiClient = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/api/client.js'), 'utf8')
+    const styles = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/styles/components/admin-quality.css'), 'utf8')
+
+    expect(sqaConsole).toContain('react-ai-release-policy-controls')
+    expect(sqaConsole).toContain('react-ai-preview-release-policy-button')
+    expect(sqaConsole).toContain('react-ai-release-policy-result')
+    expect(apiClient).toContain('previewAiEvaluationReleasePolicy')
+    expect(styles).toContain('.ai-release-policy-grid')
+  })
+
+
+  it('keeps interactive baseline selection and run comparison in the AI quality console', () => {
+    const sqaConsole = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactSqaConsole.jsx'), 'utf8')
+    const apiClient = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/api/client.js'), 'utf8')
+    const styles = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/styles/components/admin-quality.css'), 'utf8')
+
+    expect(sqaConsole).toContain('react-ai-baseline-comparison')
+    expect(sqaConsole).toContain('react-ai-current-run-select')
+    expect(sqaConsole).toContain('react-ai-baseline-run-select')
+    expect(sqaConsole).toContain('react-ai-comparison-result')
+    expect(apiClient).toContain('compareAiEvaluationRuns')
+    expect(apiClient).toContain('baselineRunId')
+    expect(styles).toContain('.ai-baseline-controls')
+  })
+
+  it('keeps AI failed-case diagnostics available from evaluation history', () => {
+    const sqaConsole = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactSqaConsole.jsx'), 'utf8')
+    const styles = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/styles/components/admin-quality.css'), 'utf8')
+
+    expect(sqaConsole).toContain('react-ai-failure-drilldown')
+    expect(sqaConsole).toContain('Review ${run.failedCases.length} failure')
+    expect(sqaConsole).toContain('Recurring failed cases')
+    expect(styles).toContain('.ai-failure-card-grid')
+  })
+
 
   it('keeps go-live readiness review visible as a production approval aid', () => {
     const sqaConsole = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactSqaConsole.jsx'), 'utf8')

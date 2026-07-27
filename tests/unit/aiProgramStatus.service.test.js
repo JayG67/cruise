@@ -7,7 +7,7 @@ describe('AI program status', () => {
     expect(status.phases.map(phase => phase.phase)).toEqual([1, 2, 3, 4, 5, 6])
     expect(status.currentPhase).toBe(4)
     expect(status.completedPhases).toBe(3)
-    expect(status.currentPhasePercentComplete).toBe(15)
+    expect(status.currentPhasePercentComplete).toBe(90)
     expect(status.phases[0]).toEqual({ phase: 1, name: 'AI foundation', status: 'COMPLETE' })
     expect(status.phases[1]).toEqual({ phase: 2, name: 'Turnaround briefing', status: 'COMPLETE' })
     expect(status.phases[2]).toEqual({ phase: 3, name: 'Evaluation harness', status: 'COMPLETE' })
@@ -62,6 +62,17 @@ describe('AI program status', () => {
       qualityConsoleIntegration: true,
       completionAudit: true,
       phaseThreeComplete: true
+    }))
+    expect(second.phaseFourCapabilities).toEqual(expect.objectContaining({
+      releaseReadinessSummary: true,
+      evaluationHistoryTable: true,
+      trendAnalysis: true,
+      providerModelPromptMetadata: true,
+      failedCaseDrilldown: true,
+      recurringFailureSummary: true,
+      baselineSelection: true,
+      runComparison: true,
+      phaseFourComplete: false
     }))
   })
 })

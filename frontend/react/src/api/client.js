@@ -1009,3 +1009,25 @@ export async function getAiEvaluationQualitySummary(options = {}) {
   const suiteId = options.suiteId || 'turnaround-briefing-phase3'
   return requestJson(`/ai/evaluations/turnaround-briefing/quality-summary?suiteId=${encodeURIComponent(suiteId)}&limit=${encodeURIComponent(limit)}`, getScopedRequestOptions(options))
 }
+
+
+export async function previewAiEvaluationReleasePolicy(payload, options = {}) {
+  return requestJson('/ai/evaluations/turnaround-briefing/release-policy/preview', {
+    ...getScopedRequestOptions(options),
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(getScopedRequestOptions(options).headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function compareAiEvaluationRuns(currentRunId, baselineRunId, options = {}) {
+  if (!currentRunId) throw new Error('Current evaluation run id is required.')
+  if (!baselineRunId) throw new Error('Baseline evaluation run id is required.')
+  if (currentRunId === baselineRunId) throw new Error('Current and baseline evaluation runs must be different.')
+  const suiteId = options.suiteId || 'turnaround-briefing-phase3'
+  const query = new URLSearchParams({ suiteId, baselineRunId })
+  return requestJson(`/ai/evaluations/turnaround-briefing/runs/${encodeURIComponent(currentRunId)}/compare?${query.toString()}`, getScopedRequestOptions(options))
+}
