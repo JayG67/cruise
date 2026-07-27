@@ -5,13 +5,13 @@ describe('AI program status', () => {
     const status = getAiProgramStatus()
     expect(status.phases).toHaveLength(6)
     expect(status.phases.map(phase => phase.phase)).toEqual([1, 2, 3, 4, 5, 6])
-    expect(status.currentPhase).toBe(4)
-    expect(status.completedPhases).toBe(3)
-    expect(status.currentPhasePercentComplete).toBe(95)
+    expect(status.currentPhase).toBe(5)
+    expect(status.completedPhases).toBe(4)
+    expect(status.currentPhasePercentComplete).toBe(0)
     expect(status.phases[0]).toEqual({ phase: 1, name: 'AI foundation', status: 'COMPLETE' })
     expect(status.phases[1]).toEqual({ phase: 2, name: 'Turnaround briefing', status: 'COMPLETE' })
     expect(status.phases[2]).toEqual({ phase: 3, name: 'Evaluation harness', status: 'COMPLETE' })
-    expect(status.phases[3]).toEqual({ phase: 4, name: 'AI Quality Console', status: 'IN_PROGRESS' })
+    expect(status.phases[3]).toEqual({ phase: 4, name: 'AI Quality Console', status: 'COMPLETE' })
     expect(status.phases.slice(4).every(phase => phase.status === 'NOT_STARTED')).toBe(true)
   })
 
@@ -75,7 +75,7 @@ describe('AI program status', () => {
       releasePolicyControls: true,
       historyFiltering: true,
       historySorting: true,
-      phaseFourComplete: false
+      phaseFourComplete: true
     }))
   })
 })

@@ -10,7 +10,7 @@ describe('AI Phase 1 foundation static contracts', () => {
     expect(status).toContain("{ phase: 1, name: 'AI foundation', status: 'COMPLETE' }")
     expect(status).toContain("{ phase: 2, name: 'Turnaround briefing', status: 'COMPLETE' }")
     expect(status).toContain("{ phase: 3, name: 'Evaluation harness', status: 'COMPLETE' }")
-    expect(status).toContain("{ phase: 4, name: 'AI Quality Console', status: 'IN_PROGRESS' }")
+    expect(status).toContain("{ phase: 4, name: 'AI Quality Console', status: 'COMPLETE' }")
   })
 
   it('keeps credentials server-only and pricing explicitly configurable', () => {
