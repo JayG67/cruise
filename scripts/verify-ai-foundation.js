@@ -50,11 +50,11 @@ assert(packageJson.scripts['test:all'].includes('ai:foundation:audit'), 'test:al
 assert(packageJson.scripts['release:preflight'].includes('ai:foundation:audit'), 'release:preflight must run ai:foundation:audit.')
 
 const statusSource = read('services/aiProgramStatus.service.js')
-assert(statusSource.includes("currentPhase: 1"), 'Phase 1 must remain the reported phase until Phase 2 is explicitly started.')
+assert(statusSource.includes("{ phase: 1, name: 'AI foundation', status: 'COMPLETE' }"), 'Phase 1 must remain complete after later phases start.')
 assert(statusSource.includes("status: 'COMPLETE'"), 'Phase 1 must be marked complete.')
-assert(statusSource.includes('currentPhasePercentComplete: 100'), 'Phase 1 must report exactly 100% completion.')
-assert(statusSource.includes("status: 'NOT_STARTED'"), 'Later AI phases must remain not started.')
-assert(!statusSource.includes("currentPhase: 2"), 'Phase 2 must not start during the Phase 1 foundation pass.')
+assert(statusSource.includes('phaseOneComplete: true'), 'Phase 1 capability status must remain complete.')
+assert(statusSource.includes("{ phase: 3, name: 'Evaluation harness', status: 'NOT_STARTED' }"), 'Phase 3 must remain not started.')
+assert(statusSource.includes("currentPhase: 2"), 'Phase 2 must be the current phase after Phase 1 completion.')
 
 console.log('AI foundation architecture audit passed.')
 console.log(`Required foundation files: ${requiredFiles.length}`)

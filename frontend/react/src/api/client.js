@@ -363,7 +363,8 @@ export async function parseJsonResponse(response) {
   }
 
   if (!response.ok) {
-    throw new Error(payload?.message || `The server could not complete this request. Please review the request data and try again. HTTP ${response.status}.`)
+    const serverMessage = payload?.message || payload?.error || payload?.detail
+    throw new Error(serverMessage || `The server could not complete this request. Please review the request data and try again. HTTP ${response.status}.`)
   }
 
   return payload
@@ -966,4 +967,38 @@ export async function getPortfolioShowcase(options = {}) {
 
 export async function getPublicLaunchReadiness(options = {}) {
   return requestJson('/cruise/public-launch/readiness', getScopedRequestOptions(options))
+}
+
+export async function generateOperationalAiBriefing(operationId, payload, options = {}) {
+  if (!operationId) throw new Error('Turnaround operation id is required.')
+  return requestJson(`/ai/turnaround-operations/${encodeURIComponent(operationId)}/briefing`, {
+    ...getScopedRequestOptions(options),
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(getScopedRequestOptions(options).headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
+}
+
+export async function getOperationalAiBriefingHistory(operationId, options = {}) {
+  if (!operationId) throw new Error('Turnaround operation id is required.')
+  const limit = Number(options.limit || 20)
+  const response = await requestJson(`/ai/turnaround-operations/${encodeURIComponent(operationId)}/briefings?limit=${encodeURIComponent(limit)}`, getScopedRequestOptions(options))
+  return response
+}
+
+export async function reviewOperationalAiBriefing(operationId, briefingId, payload, options = {}) {
+  if (!operationId) throw new Error('Turnaround operation id is required.')
+  if (!briefingId) throw new Error('Turnaround briefing id is required.')
+  return requestJson(`/ai/turnaround-operations/${encodeURIComponent(operationId)}/briefings/${encodeURIComponent(briefingId)}/review`, {
+    ...getScopedRequestOptions(options),
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(getScopedRequestOptions(options).headers || {})
+    },
+    body: JSON.stringify(payload)
+  })
 }

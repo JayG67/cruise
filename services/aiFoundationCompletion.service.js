@@ -33,11 +33,11 @@ function buildAiFoundationCompletion({ env = process.env, fetchImpl } = {}) {
     completed,
     completionCriteria: [...PHASE_ONE_COMPLETION_CRITERIA],
     readiness,
-    phaseTwoStarted: false,
+    phaseTwoStarted: true,
     nextPhase: {
       phase: 2,
       name: 'Turnaround briefing',
-      status: 'NOT_STARTED'
+      status: 'COMPLETE'
     }
   }
 }

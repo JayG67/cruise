@@ -1159,6 +1159,19 @@ function visitReactAppAsAdmin(overrides = {}) {
   cy.getByTestId(rs.demoUserSummary).should('contain.text', 'Admin')
 }
 
+function visitReactAppAsTurnaroundManager(overrides = {}) {
+  interceptReactCoreApis(overrides)
+  cy.visit('/')
+  cy.wait('@reactDemoUsers')
+  cy.wait('@reactCustomers')
+  cy.wait('@reactBookings')
+  cy.wait('@reactCruiseLines')
+  selectDemoUserByVisibleRole('Turnaround Manager', 'Alex Turner')
+  cy.wait('@reactTurnaroundOperations')
+  cy.getByTestId(rs.demoUserSummary).should('contain.text', 'Alex Turner')
+  cy.getByTestId(rs.operationalTurnaroundPanel).should('be.visible')
+}
+
 function openFirstReactFleetShips(ships = reactShips) {
   cy.intercept('GET', `/cruise/ships/${reactCruiseLines[0].id}`, ships).as('reactShips')
   cy.getByTestId(rs.fleetCard).first().within(() => {
@@ -1201,6 +1214,7 @@ module.exports = {
   selectDemoUserByVisibleRole,
   interceptReactCoreApis,
   visitReactAppAsAdmin,
+  visitReactAppAsTurnaroundManager,
   openFirstReactFleetShips,
   openFirstReactShipSailings,
   openFirstReactSailingItinerary

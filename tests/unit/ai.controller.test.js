@@ -38,6 +38,22 @@ jest.mock('../../services/aiRuntimeConfig.service', () => ({
   describeAiRuntimeConfig: jest.fn(config => ({ ...config }))
 }))
 
+jest.mock('../../services/turnaroundScope.service', () => ({
+  canAccessTurnaroundOperationForRequest: jest.fn().mockResolvedValue(true),
+  sendTurnaroundOperationForbidden: jest.fn(res => res.status(403).json({ message: 'forbidden' }))
+}))
+
+jest.mock('../../services/aiTurnaroundEvidence.service', () => {
+  class AiTurnaroundEvidenceError extends Error {
+    constructor(message, code) { super(message); this.code = code }
+  }
+  return { AiTurnaroundEvidenceError, loadTurnaroundEvidence: jest.fn() }
+})
+
+jest.mock('../../services/aiOperationalTurnaroundBriefing.service', () => ({
+  generateOperationalTurnaroundBriefing: jest.fn()
+}))
+
 jest.mock('../../services/aiTurnaroundBriefing.service', () => {
   class AiBriefingValidationError extends Error {
     constructor(message, code, issues = []) {
@@ -55,6 +71,8 @@ jest.mock('../../services/aiTurnaroundBriefing.service', () => {
 const { resolveRequestActor } = require('../../services/requestAuthorization.service')
 const { AiProviderError, createAiProvider } = require('../../services/aiProvider.service')
 const { generateTurnaroundBriefing } = require('../../services/aiTurnaroundBriefing.service')
+const { loadTurnaroundEvidence } = require('../../services/aiTurnaroundEvidence.service')
+const { generateOperationalTurnaroundBriefing } = require('../../services/aiOperationalTurnaroundBriefing.service')
 const controller = require('../../controllers/ai.controller')
 
 function responseHarness() {
@@ -82,7 +100,7 @@ describe('AI controller authorization and failure boundaries', () => {
     controller.getAiProgramStatus({}, res)
     expect(status).toHaveBeenCalledWith(200)
     expect(json).toHaveBeenCalledWith(expect.objectContaining({
-      currentPhase: 1,
+      currentPhase: 2,
       phases: expect.arrayContaining([expect.objectContaining({ phase: 6 })]),
       runtime: expect.objectContaining({
         provider: 'deterministic',
@@ -121,6 +139,27 @@ describe('AI controller authorization and failure boundaries', () => {
       input: req.body,
       actor,
       requestId: 'request-1'
+    }))
+    expect(status).toHaveBeenCalledWith(200)
+    expect(json).toHaveBeenCalledWith(result)
+  })
+
+
+  it('generates a Phase 2 briefing from server-loaded operation evidence', async () => {
+    const actor = { actorUserId: 'manager-1', actorRole: 'TURNAROUND_MANAGER' }
+    const evidenceBundle = { operation: { id: 'op-1', sailingId: 'sailing-1' }, evidence: [], evidenceSummary: {} }
+    const result = { briefing: { riskLevel: 'high' }, evidenceSummary: { included: 4 } }
+    resolveRequestActor.mockResolvedValue(actor)
+    loadTurnaroundEvidence.mockResolvedValue(evidenceBundle)
+    generateOperationalTurnaroundBriefing.mockResolvedValue(result)
+    const { res, status, json } = responseHarness()
+    const req = { params: { operationId: 'op-1' }, body: { question: 'What is at risk?' }, get: jest.fn().mockReturnValue('request-2') }
+
+    await controller.generateOperationalTurnaroundBriefing(req, res, jest.fn())
+
+    expect(loadTurnaroundEvidence).toHaveBeenCalledWith('op-1')
+    expect(generateOperationalTurnaroundBriefing).toHaveBeenCalledWith(expect.objectContaining({
+      operationId: 'op-1', question: 'What is at risk?', actor, requestId: 'request-2'
     }))
     expect(status).toHaveBeenCalledWith(200)
     expect(json).toHaveBeenCalledWith(result)

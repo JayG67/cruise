@@ -1,3 +1,13 @@
-const { turnaroundBriefingRequestSchema } = require('../ai/contracts/turnaroundBriefing.contract')
+const {
+  operationalTurnaroundBriefingRequestSchema,
+  turnaroundBriefingHistoryQuerySchema,
+  turnaroundBriefingRequestSchema,
+  turnaroundBriefingReviewRequestSchema
+} = require('../ai/contracts/turnaroundBriefing.contract')
 
-module.exports = { turnaroundBriefingRequestSchema }
+module.exports = {
+  operationalTurnaroundBriefingRequestSchema,
+  turnaroundBriefingHistoryQuerySchema,
+  turnaroundBriefingRequestSchema,
+  turnaroundBriefingReviewRequestSchema
+}

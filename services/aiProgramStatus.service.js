@@ -1,6 +1,6 @@
 const AI_PROGRAM_PHASES = Object.freeze([
   { phase: 1, name: 'AI foundation', status: 'COMPLETE' },
-  { phase: 2, name: 'Turnaround briefing', status: 'NOT_STARTED' },
+  { phase: 2, name: 'Turnaround briefing', status: 'COMPLETE' },
   { phase: 3, name: 'Evaluation harness', status: 'NOT_STARTED' },
   { phase: 4, name: 'AI Quality Console', status: 'NOT_STARTED' },
   { phase: 5, name: 'Adversarial and resilience testing', status: 'NOT_STARTED' },
@@ -10,8 +10,8 @@ const AI_PROGRAM_PHASES = Object.freeze([
 function getAiProgramStatus() {
   return {
     program: 'Cruise Fleet Operations AI Quality Program',
-    currentPhase: 1,
-    completedPhases: 1,
+    currentPhase: 2,
+    completedPhases: 2,
     currentPhasePercentComplete: 100,
     phases: AI_PROGRAM_PHASES.map(phase => ({ ...phase })),
     phaseOneCapabilities: {
@@ -39,6 +39,29 @@ function getAiProgramStatus() {
       phaseOneComplete: true,
       contextSizeLimit: true,
       userInterface: false
+    },
+    phaseTwoCapabilities: {
+      operationScopedEvidenceLoading: true,
+      taskEvidenceMapping: true,
+      dependencyEvidenceMapping: true,
+      handoffEvidenceMapping: true,
+      staffingEvidenceMapping: true,
+      signoffEvidenceMapping: true,
+      escalationEvidenceMapping: true,
+      riskPrioritizedEvidenceSelection: true,
+      tenantScopedAuthorization: true,
+      operationBriefingApi: true,
+      briefingWorkspace: true,
+      briefingHistory: true,
+      reviewerFeedback: true,
+      generationRegenerationUx: true,
+      evidenceSummaryDisplay: true,
+      historyReviewDisplay: true,
+      responsiveBriefingWorkspace: true,
+      browserWorkflowCoverage: true,
+      providerDisabledUx: true,
+      phaseTwoCompletionAudit: true,
+      phaseTwoComplete: true
     }
   }
 }

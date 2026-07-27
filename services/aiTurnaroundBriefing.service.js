@@ -1,3 +1,4 @@
+const { randomUUID } = require('crypto')
 const {
   turnaroundBriefingRequestSchema,
   turnaroundBriefingResponseSchema
@@ -47,9 +48,11 @@ function assertEvidenceGrounding(response, evidence) {
 }
 
 function buildAiAuditRecord({ actor, input, response, provider, usage, durationMs, requestId, execution, providerMetadata }) {
+  const briefingId = requestId || randomUUID()
   return {
+    briefingId,
     eventType: 'AI_TURNAROUND_BRIEFING_GENERATED',
-    requestId: requestId || null,
+    requestId: requestId || briefingId,
     operationId: input.operationId,
     actorUserId: actor?.actorUserId || null,
     actorRole: actor?.actorRole || null,
@@ -63,7 +66,9 @@ function buildAiAuditRecord({ actor, input, response, provider, usage, durationM
     usage: usage || null,
     execution: execution || null,
     providerMetadata: providerMetadata || null,
-    generatedAt: response.generatedAt
+    generatedAt: response.generatedAt,
+    question: input.question,
+    briefing: response
   }
 }
 

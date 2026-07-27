@@ -109,7 +109,7 @@ describe('AI turnaround briefing orchestration', () => {
   })
 
 
-  it('persists privacy-conscious AI audit evidence through the injected audit recorder', async () => {
+  it('persists reviewable AI briefing history without storing raw prompt or evidence arrays', async () => {
     const provider = createDeterministicAiProvider({ now: () => new Date('2026-07-26T16:00:00.000Z') })
     const auditRecorder = jest.fn().mockResolvedValue()
 
@@ -135,7 +135,13 @@ describe('AI turnaround briefing orchestration', () => {
         execution: expect.objectContaining({ attemptCount: 1, retried: false })
       })
     }))
-    expect(JSON.stringify(auditRecorder.mock.calls[0][0])).not.toContain('Deck 9 inspection')
+    const persistedEvent = auditRecorder.mock.calls[0][0]
+    expect(persistedEvent.eventPayload).not.toHaveProperty('evidence')
+    expect(persistedEvent.eventPayload).not.toHaveProperty('prompt')
+    expect(persistedEvent.eventPayload).toEqual(expect.objectContaining({
+      question: 'What could delay departure?',
+      briefing: expect.objectContaining({ riskLevel: 'high' })
+    }))
     expect(result.audit.execution).toEqual(expect.objectContaining({ attemptCount: 1 }))
   })
 
@@ -152,7 +158,7 @@ describe('AI turnaround briefing orchestration', () => {
     })).rejects.toThrow('database unavailable')
   })
 
-  it('builds privacy-conscious audit records without storing prompts or evidence content', () => {
+  it('builds reviewable audit records without storing raw prompts or evidence arrays', () => {
     const record = buildAiAuditRecord({
       actor,
       input,
@@ -165,9 +171,12 @@ describe('AI turnaround briefing orchestration', () => {
       requestId: 'request-1'
     })
 
-    expect(record).not.toHaveProperty('question')
+    expect(record).toEqual(expect.objectContaining({
+      question: 'What could delay departure?',
+      briefing: expect.objectContaining({ riskLevel: 'low' })
+    }))
     expect(record).not.toHaveProperty('evidence')
-    expect(JSON.stringify(record)).not.toContain('Deck 9 inspection')
+    expect(record).not.toHaveProperty('prompt')
   })
 
   it('rejects oversized context before calling the provider', async () => {

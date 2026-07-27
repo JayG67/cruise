@@ -1,4 +1,5 @@
 const AUDIT_EVENT_FILTER_FIELDS = Object.freeze([
+  'eventType',
   'entityType',
   'entityId',
   'actorUserId',

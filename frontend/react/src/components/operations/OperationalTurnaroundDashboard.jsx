@@ -12,6 +12,7 @@ import { OperationsWorkspaceCommandPanels } from './OperationsCommandPanels.jsx'
 import { OperationsEvidencePanels } from './OperationsEvidencePanels.jsx'
 import { OperationsLifecyclePanel } from './OperationsLifecyclePanel.jsx'
 import { OperationsWorkspaceRouter } from './OperationsWorkspaceRouter.jsx'
+import AiTurnaroundBriefingWorkspace from './AiTurnaroundBriefingWorkspace.jsx'
 
 import {
   buildTurnaroundOperationCards,
@@ -57,7 +58,8 @@ export default function OperationalTurnaroundDashboard({ roleView, selectedDemoU
     { id: 'handoffs', label: 'Handoffs', summary: 'Department-to-department release workflow, owners, due times, and notes.' },
     { id: 'escalations', label: 'Escalations', summary: 'Open operational risks, owners, severity, monitoring, and resolution state.' },
     { id: 'staffing', label: 'Staffing', summary: 'Crew check-in, department leads, muster locations, and coverage gaps.' },
-    { id: 'readiness', label: 'Readiness', summary: 'Department signoffs and final readiness approval workflow.' }
+    { id: 'readiness', label: 'Readiness', summary: 'Department signoffs and final readiness approval workflow.' },
+    { id: 'ai-briefing', label: 'AI Briefing', summary: 'Generate, review, and retrieve evidence-grounded turnaround briefings.' }
   ]
   const activeOperationsWorkspaceDetails = operationsWorkspaceTabs.find(tab => tab.id === activeOperationsWorkspace) || operationsWorkspaceTabs[0]
   const [selectedTaskId, setSelectedTaskId] = useState('')
@@ -519,6 +521,13 @@ export default function OperationalTurnaroundDashboard({ roleView, selectedDemoU
             </article>
           ))}
         </section>
+      )}
+
+      {activeOperationsWorkspace === 'ai-briefing' && (
+        <AiTurnaroundBriefingWorkspace
+          selectedOperation={selectedOperation}
+          selectedDemoUser={selectedDemoUser}
+        />
       )}
 
       <OperationsWorkspaceRouter
