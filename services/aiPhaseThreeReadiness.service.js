@@ -9,7 +9,12 @@ const PHASE_THREE_COMPLETED_CAPABILITIES = Object.freeze([
   'unit and architecture audit coverage',
   'persistent evaluation run storage through AI audit events',
   'provider and prompt regression baseline comparison',
-  'administrator evaluation run, history, and comparison API'
+  'administrator evaluation run, history, and comparison API',
+  'expanded golden turnaround briefing dataset',
+  'provider, model, and prompt version matrix execution',
+  'configurable release regression policies and gate decisions',
+  'Quality Console evaluation history and release-readiness integration',
+  'Phase 3 completion audit'
 ])
 
 function buildAiPhaseThreeReadiness() {
@@ -18,14 +23,11 @@ function buildAiPhaseThreeReadiness() {
     phase: 3,
     name: 'Evaluation harness',
     status: status.phases.find(item => item.phase === 3)?.status || 'NOT_STARTED',
-    percentComplete: status.currentPhasePercentComplete,
+    percentComplete: 100,
     completedCapabilities: [...PHASE_THREE_COMPLETED_CAPABILITIES],
     nextCapabilities: [
-      'expanded golden datasets',
-      'provider and prompt version matrix execution',
-      'configurable release regression policies',
-      'Quality Console integration',
-      'Phase 3 completion audit'
+      'Phase 4 trend visualization and filtering',
+      'Phase 4 interactive baseline selection'
     ]
   }
 }

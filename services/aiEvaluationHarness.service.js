@@ -2,7 +2,7 @@ const crypto = require('crypto')
 const { assertEvaluationCase } = require('../ai/evaluations/turnaroundBriefingEvaluation.contract')
 const { evaluateTurnaroundBriefing } = require('./aiTurnaroundBriefingEvaluator.service')
 
-function runEvaluationSuite({ suiteId = 'turnaround-briefing-phase3', cases, generateCandidate, options = {} }) {
+function runEvaluationSuite({ suiteId = 'turnaround-briefing-phase3', cases, generateCandidate, options = {}, metadata = {} }) {
   if (!Array.isArray(cases) || cases.length === 0) throw new TypeError('Evaluation suite requires at least one case.')
   if (typeof generateCandidate !== 'function') throw new TypeError('Evaluation suite requires generateCandidate.')
 
@@ -16,7 +16,7 @@ function runEvaluationSuite({ suiteId = 'turnaround-briefing-phase3', cases, gen
   const averageScore = Math.round((results.reduce((sum, result) => sum + result.score, 0) / results.length) * 100) / 100
 
   return {
-    runId: crypto.createHash('sha256').update(`${suiteId}:${startedAt}:${cases.map(item => item.id).join(',')}`).digest('hex').slice(0, 16),
+    runId: crypto.createHash('sha256').update(`${suiteId}:${startedAt}:${cases.map(item => item.id).join(',')}:${JSON.stringify(metadata)}`).digest('hex').slice(0, 16),
     suiteId,
     startedAt,
     completedAt: new Date().toISOString(),
@@ -26,6 +26,7 @@ function runEvaluationSuite({ suiteId = 'turnaround-briefing-phase3', cases, gen
     passRate: Math.round((passedCases / results.length) * 10000) / 100,
     averageScore,
     passed: passedCases === results.length,
+    metadata: { ...metadata },
     results
   }
 }

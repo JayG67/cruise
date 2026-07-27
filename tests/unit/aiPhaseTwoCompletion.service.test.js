@@ -5,7 +5,7 @@ const {
 } = require('../../services/aiPhaseTwoCompletion.service')
 
 describe('AI Phase 2 completion', () => {
-  it('keeps Phase 2 complete after Phase 3 starts', () => {
+  it('keeps Phase 2 complete after Phase 3 completes', () => {
     const completion = buildAiPhaseTwoCompletion()
     expect(completion).toEqual(expect.objectContaining({
       phase: 2,
@@ -14,7 +14,7 @@ describe('AI Phase 2 completion', () => {
       completed: true,
       phaseThreeStarted: true
     }))
-    expect(completion.nextPhase).toEqual({ phase: 3, name: 'Evaluation harness', status: 'IN_PROGRESS' })
+    expect(completion.nextPhase).toEqual({ phase: 3, name: 'Evaluation harness', status: 'COMPLETE' })
   })
 
   it('publishes defensive completion criteria and passes the completion assertion', () => {

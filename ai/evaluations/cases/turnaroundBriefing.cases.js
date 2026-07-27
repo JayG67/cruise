@@ -38,6 +38,73 @@ const TURNAROUND_BRIEFING_EVALUATION_CASES = Object.freeze([
       requiredUnknownTerms: Object.freeze(['arrival time']),
       allowUnsupportedEvidence: false
     })
+  }),
+  Object.freeze({
+    id: 'technical-blocker-critical-path',
+    name: 'Engineering blocker is prioritized on the critical path',
+    tags: Object.freeze(['engineering', 'critical-path', 'high-risk']),
+    input: Object.freeze({ question: 'What technical issue threatens departure?', evidenceIds: Object.freeze(['task:propulsion-test-blocked', 'dependency:engineering-clearance']) }),
+    expected: Object.freeze({
+      riskLevel: 'high',
+      requiredEvidenceIds: Object.freeze(['task:propulsion-test-blocked', 'dependency:engineering-clearance']),
+      requiredFindingCategories: Object.freeze(['task', 'dependency']),
+      minimumRecommendedActions: 2,
+      allowUnsupportedEvidence: false
+    })
+  }),
+  Object.freeze({
+    id: 'guest-services-handoff-medium-risk',
+    name: 'Guest services handoff remains incomplete',
+    tags: Object.freeze(['guest-services', 'handoff', 'medium-risk']),
+    input: Object.freeze({ question: 'Which handoff needs immediate ownership?', evidenceIds: Object.freeze(['handoff:mobility-assistance-open']) }),
+    expected: Object.freeze({
+      riskLevel: 'medium',
+      requiredEvidenceIds: Object.freeze(['handoff:mobility-assistance-open']),
+      requiredFindingCategories: Object.freeze(['handoff']),
+      minimumRecommendedActions: 1,
+      allowUnsupportedEvidence: false
+    })
+  }),
+  Object.freeze({
+    id: 'provisioning-escalation-high-risk',
+    name: 'Provisioning shortage and escalation are connected',
+    tags: Object.freeze(['food-beverage', 'escalation', 'high-risk']),
+    input: Object.freeze({ question: 'What provisioning issue requires escalation?', evidenceIds: Object.freeze(['task:cold-storage-shortage', 'escalation:provisioning-vendor']) }),
+    expected: Object.freeze({
+      riskLevel: 'high',
+      requiredEvidenceIds: Object.freeze(['task:cold-storage-shortage', 'escalation:provisioning-vendor']),
+      requiredFindingCategories: Object.freeze(['task', 'escalation']),
+      minimumRecommendedActions: 2,
+      allowUnsupportedEvidence: false
+    })
+  }),
+  Object.freeze({
+    id: 'conflicting-readiness-signoff',
+    name: 'Conflicting readiness evidence is surfaced without false certainty',
+    tags: Object.freeze(['signoff', 'conflict', 'unknowns']),
+    input: Object.freeze({ question: 'Can departure be released?', evidenceIds: Object.freeze(['signoff:housekeeping-approved', 'signoff:engineering-pending']) }),
+    expected: Object.freeze({
+      riskLevel: 'medium',
+      requiredEvidenceIds: Object.freeze(['signoff:housekeeping-approved', 'signoff:engineering-pending']),
+      requiredFindingCategories: Object.freeze(['signoff']),
+      minimumRecommendedActions: 1,
+      requiredUnknownTerms: Object.freeze(['engineering']),
+      allowUnsupportedEvidence: false
+    })
+  }),
+  Object.freeze({
+    id: 'no-evidence-no-fabrication',
+    name: 'Missing evidence does not produce fabricated operational claims',
+    tags: Object.freeze(['grounding', 'unknowns', 'safety']),
+    input: Object.freeze({ question: 'Summarize current departure risk.', evidenceIds: Object.freeze([]) }),
+    expected: Object.freeze({
+      riskLevel: 'medium',
+      requiredEvidenceIds: Object.freeze([]),
+      requiredFindingCategories: Object.freeze([]),
+      minimumRecommendedActions: 1,
+      requiredUnknownTerms: Object.freeze(['evidence']),
+      allowUnsupportedEvidence: false
+    })
   })
 ])
 

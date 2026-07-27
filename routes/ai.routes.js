@@ -4,6 +4,7 @@ const validate = require('../middleware/validate.middleware')
 const {
   evaluationComparisonQuerySchema,
   evaluationRunsQuerySchema,
+  runEvaluationMatrixRequestSchema,
   runEvaluationRequestSchema,
   operationalTurnaroundBriefingRequestSchema,
   turnaroundBriefingHistoryQuerySchema,
@@ -14,8 +15,10 @@ const {
 const router = express.Router()
 
 router.get('/program-status', aiController.getAiProgramStatus)
+router.get('/evaluations/turnaround-briefing/quality-summary', validate(evaluationRunsQuerySchema, 'query'), aiController.getTurnaroundBriefingEvaluationQualitySummary)
 router.get('/evaluations/turnaround-briefing/runs', validate(evaluationRunsQuerySchema, 'query'), aiController.listTurnaroundBriefingEvaluationRuns)
 router.get('/evaluations/turnaround-briefing/runs/:runId/compare', validate(evaluationComparisonQuerySchema, 'query'), aiController.compareTurnaroundBriefingEvaluationRun)
+router.post('/evaluations/turnaround-briefing/matrix', validate(runEvaluationMatrixRequestSchema), aiController.runTurnaroundBriefingEvaluationMatrix)
 router.post('/evaluations/turnaround-briefing/runs', validate(runEvaluationRequestSchema), aiController.runTurnaroundBriefingEvaluation)
 router.get('/turnaround-operations/:operationId/briefings', validate(turnaroundBriefingHistoryQuerySchema, 'query'), aiController.listOperationalTurnaroundBriefingHistory)
 router.post('/turnaround-operations/:operationId/briefings/:briefingId/review', validate(turnaroundBriefingReviewRequestSchema), aiController.reviewOperationalTurnaroundBriefing)

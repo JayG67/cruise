@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import ConfirmActionPanel from './ConfirmActionPanel.jsx'
-import { getBookings, getCruiseLines, getCustomers, getHealthStatus, getPlatformAuditEvents, getTurnaroundOperations, resetDemoData } from '../api/client.js'
+import { getAiEvaluationQualitySummary, getBookings, getCruiseLines, getCustomers, getHealthStatus, getPlatformAuditEvents, getTurnaroundOperations, resetDemoData } from '../api/client.js'
 
 function formatResult(title, payload) {
   return `${title}\n\n${JSON.stringify(payload, null, 2)}`
@@ -88,6 +88,23 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
   const [status, setStatus] = useState('Ready for validation')
   const [resetConfirmationVisible, setResetConfirmationVisible] = useState(false)
   const [readinessChecklist, setReadinessChecklist] = useState(buildPendingReadinessChecklist())
+  const [aiQualitySummary, setAiQualitySummary] = useState(null)
+  const [aiQualityStatus, setAiQualityStatus] = useState('Loading AI evaluation quality...')
+
+  useEffect(() => {
+    let active = true
+    getAiEvaluationQualitySummary({ selectedDemoUser, limit: 10 })
+      .then(summary => {
+        if (!active) return
+        setAiQualitySummary(summary)
+        setAiQualityStatus(summary.releaseReadiness === 'READY' ? 'AI release gate ready' : summary.releaseReadiness === 'BLOCKED' ? 'AI release gate blocked' : 'No AI evaluation runs yet')
+      })
+      .catch(error => {
+        if (!active) return
+        setAiQualityStatus(error.message || 'AI evaluation quality unavailable')
+      })
+    return () => { active = false }
+  }, [selectedDemoUser])
 
   const validationActions = useMemo(() => ([
     {
@@ -333,6 +350,28 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
         </div>
       </div>
 
+
+      <div className="go-live-readiness-panel ce-surface-light" data-testid="react-ai-quality-summary-panel">
+        <div>
+          <p className="eyebrow ce-kicker">AI Evaluation Quality</p>
+          <h3>Turnaround briefing release gate</h3>
+          <p>{aiQualityStatus}</p>
+        </div>
+        <ul className="go-live-readiness-list" aria-label="AI evaluation quality summary">
+          <li className={`readiness-item ${aiQualitySummary?.releaseReadiness === 'READY' ? 'ready' : 'attention'}`}>
+            <span aria-hidden="true">{aiQualitySummary?.releaseReadiness === 'READY' ? '✓' : '!'}</span>
+            <div><strong>Release readiness</strong><p>{aiQualitySummary?.releaseReadiness || 'NO_DATA'}</p></div>
+          </li>
+          <li className="readiness-item ready">
+            <span aria-hidden="true">•</span>
+            <div><strong>Evaluation history</strong><p>{aiQualitySummary?.runCount || 0} runs; {aiQualitySummary?.passingRuns || 0} passing.</p></div>
+          </li>
+          <li className={`readiness-item ${aiQualitySummary?.latestRun?.passed ? 'ready' : 'attention'}`}>
+            <span aria-hidden="true">{aiQualitySummary?.latestRun?.passed ? '✓' : '!'}</span>
+            <div><strong>Latest evaluation</strong><p>{aiQualitySummary?.latestRun ? `${aiQualitySummary.latestRun.passRate}% pass rate and ${aiQualitySummary.latestRun.averageScore} average score.` : 'No persisted evaluation run is available.'}</p></div>
+          </li>
+        </ul>
+      </div>
 
       <div className="go-live-readiness-panel ce-surface-light" data-testid="react-go-live-readiness-panel">
         <div>
