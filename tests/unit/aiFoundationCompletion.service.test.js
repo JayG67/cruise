@@ -20,7 +20,7 @@ describe('AI Phase 1 foundation completion', () => {
     expect(completion.nextPhase).toEqual({
       phase: 2,
       name: 'Turnaround briefing',
-      status: 'IN_PROGRESS'
+      status: 'COMPLETE'
     })
   })
 

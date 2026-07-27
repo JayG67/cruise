@@ -13,7 +13,7 @@
     "unitTests": "NODE_NO_WARNINGS=1 jest tests/unit",
     "integrationTests": "npm run db:test:ready && NODE_NO_WARNINGS=1 jest --config jest.integration.config.js --runInBand --detectOpenHandles",
     "test": "npm run jest:coverage:all && npm run uiTests:react",
-    "test:all": "npm run test:inventory:audit && npm run release:source:audit && npm run production:deployment:audit && npm run production:dependencies:audit && npm run react:production:complete && npm run ai:foundation:audit && npm run ai:foundation:readiness && npm run ai:foundation:complete && npm run ai:phase2:audit && npm run jest:coverage:all && npm run browserTests:react && npm run perf:smoke:local && npm run lighthouse:ci:local",
+    "test:all": "npm run test:inventory:audit && npm run release:source:audit && npm run production:deployment:audit && npm run production:dependencies:audit && npm run react:production:complete && npm run ai:foundation:audit && npm run ai:foundation:readiness && npm run ai:foundation:complete && npm run ai:phase2:audit && npm run ai:phase2:complete && npm run jest:coverage:all && npm run browserTests:react && npm run perf:smoke:local && npm run lighthouse:ci:local",
     "coverage": "npm run jest:coverage:all",
     "unitTestsWatch": "jest tests/unit --watchAll",
     "uiTests:open": "start-server-and-test start http://localhost:8000 \"npm run cypress:open\"",
@@ -73,7 +73,7 @@
     "production:dependencies:audit": "node scripts/verify-production-dependencies.js",
     "clean:generated": "node scripts/clean-generated-artifacts.js",
     "release:source:audit": "node scripts/verify-source-package.js",
-    "release:preflight": "npm run repo:hygiene && npm run release:source:audit && npm run production:deployment:audit && npm run production:dependencies:audit && npm run react:production:complete && npm run ai:foundation:audit && npm run ai:foundation:readiness && npm run ai:foundation:complete && npm run ai:phase2:audit",
+    "release:preflight": "npm run repo:hygiene && npm run release:source:audit && npm run production:deployment:audit && npm run production:dependencies:audit && npm run react:production:complete && npm run ai:foundation:audit && npm run ai:foundation:readiness && npm run ai:foundation:complete && npm run ai:phase2:audit && npm run ai:phase2:complete",
     "ai:foundation:test": "NODE_NO_WARNINGS=1 jest tests/unit/aiProvider.service.test.js tests/unit/openAiResponsesProvider.service.test.js tests/unit/aiRuntimeConfig.service.test.js tests/unit/aiProviderExecution.service.test.js tests/unit/aiCostEstimation.service.test.js tests/unit/aiTelemetry.service.test.js tests/unit/aiFoundationReadiness.service.test.js tests/unit/aiFoundationCompletion.service.test.js tests/unit/aiTurnaroundBriefing.service.test.js tests/unit/aiTurnaroundEvidence.service.test.js tests/unit/aiOperationalTurnaroundBriefing.service.test.js tests/unit/aiProgramStatus.service.test.js tests/unit/ai.controller.test.js tests/unit/aiFoundation.static.test.js --runInBand",
     "start:test": "docker compose up -d && SUPPRESS_DB_LOGS=true DATABASE_URL=postgres://postgres:password@127.0.0.1:5433/cruise node index.js",
     "playwright:mobile:run": "playwright test --config=playwright.mobile.config.js playwright/mobile/react-production-mobile.spec.js",
@@ -84,8 +84,9 @@
     "ai:foundation:audit": "node scripts/verify-ai-foundation.js",
     "ai:foundation:readiness": "node scripts/check-ai-foundation-readiness.js",
     "ai:foundation:complete": "node scripts/verify-ai-foundation-complete.js",
-    "ai:phase2:test": "NODE_NO_WARNINGS=1 jest tests/unit/aiTurnaroundEvidence.service.test.js tests/unit/aiOperationalTurnaroundBriefing.service.test.js tests/unit/aiTurnaroundBriefingReview.service.test.js tests/unit/ai.controller.test.js tests/unit/aiProgramStatus.service.test.js --runInBand",
-    "ai:phase2:audit": "node scripts/verify-ai-phase2-briefing.js"
+    "ai:phase2:test": "NODE_NO_WARNINGS=1 jest tests/unit/aiTurnaroundEvidence.service.test.js tests/unit/aiOperationalTurnaroundBriefing.service.test.js tests/unit/aiTurnaroundBriefingReview.service.test.js tests/unit/ai.controller.test.js tests/unit/aiProgramStatus.service.test.js tests/unit/aiTurnaroundBriefingWorkspace.static.test.js tests/unit/aiPhaseTwoCompletion.service.test.js --runInBand",
+    "ai:phase2:audit": "node scripts/verify-ai-phase2-briefing.js",
+    "ai:phase2:complete": "node scripts/verify-ai-phase2-complete.js"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.1.2",

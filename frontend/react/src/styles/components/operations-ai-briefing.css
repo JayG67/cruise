@@ -1,0 +1,25 @@
+.ai-briefing-workspace { display: grid; gap: 1rem; margin-top: 1rem; }
+.ai-briefing-header, .ai-briefing-section-heading, .ai-finding-title-row, .ai-briefing-actions { align-items: flex-start; display: flex; gap: 1rem; justify-content: space-between; }
+.ai-briefing-operation-summary { display: grid; gap: .25rem; min-width: 14rem; }
+.ai-briefing-generator { display: grid; gap: .75rem; }
+.ai-briefing-generator label, .ai-review-form label { display: grid; gap: .35rem; }
+.ai-briefing-layout { display: grid; gap: 1rem; grid-template-columns: minmax(14rem, .36fr) minmax(0, 1fr); }
+.ai-briefing-history, .ai-briefing-result { min-width: 0; }
+.ai-briefing-history { align-content: start; display: grid; gap: .65rem; }
+.ai-history-item { background: var(--ce-surface, #fff); border: 1px solid var(--ce-border, #cbd5e1); border-radius: .75rem; color: var(--ce-text, #172033); cursor: pointer; display: grid; gap: .2rem; padding: .75rem; text-align: left; width: 100%; }
+.ai-history-item.is-selected { border-width: 2px; outline: 2px solid transparent; }
+.ai-briefing-result { display: grid; gap: 1rem; }
+.ai-risk-badge { border: 1px solid currentColor; border-radius: 999px; font-weight: 700; padding: .35rem .75rem; text-transform: uppercase; }
+.ai-risk-high, .ai-risk-critical { background: #fee2e2; color: #7f1d1d; }
+.ai-risk-medium { background: #fef3c7; color: #713f12; }
+.ai-risk-low { background: #dcfce7; color: #14532d; }
+.ai-briefing-summary { font-size: 1.05rem; font-weight: 600; }
+.ai-finding-list { display: grid; gap: .75rem; }
+.ai-finding-card { border: 1px solid var(--ce-border, #cbd5e1); border-radius: .75rem; padding: .9rem; }
+.ai-evidence-ids { overflow-wrap: anywhere; }
+.ai-evidence-summary { display: grid; gap: .75rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ai-evidence-summary div { background: var(--ce-surface-muted, #f8fafc); border: 1px solid var(--ce-border, #cbd5e1); border-radius: .65rem; padding: .75rem; }
+.ai-evidence-summary dt { font-size: .8rem; font-weight: 700; text-transform: uppercase; }
+.ai-evidence-summary dd { font-size: 1.25rem; font-weight: 700; margin: .25rem 0 0; }
+.ai-review-form { display: grid; gap: .75rem; }
+@media (max-width: 800px) { .ai-briefing-header, .ai-briefing-section-heading { align-items: stretch; flex-direction: column; } .ai-briefing-operation-summary { min-width: 0; width: 100%; } .ai-briefing-layout { grid-template-columns: 1fr; } .ai-evidence-summary { grid-template-columns: 1fr; } }

@@ -6,10 +6,10 @@ describe('AI program status', () => {
     expect(status.phases).toHaveLength(6)
     expect(status.phases.map(phase => phase.phase)).toEqual([1, 2, 3, 4, 5, 6])
     expect(status.currentPhase).toBe(2)
-    expect(status.completedPhases).toBe(1)
-    expect(status.currentPhasePercentComplete).toBe(60)
+    expect(status.completedPhases).toBe(2)
+    expect(status.currentPhasePercentComplete).toBe(100)
     expect(status.phases[0]).toEqual({ phase: 1, name: 'AI foundation', status: 'COMPLETE' })
-    expect(status.phases[1]).toEqual({ phase: 2, name: 'Turnaround briefing', status: 'IN_PROGRESS' })
+    expect(status.phases[1]).toEqual({ phase: 2, name: 'Turnaround briefing', status: 'COMPLETE' })
     expect(status.phases.slice(2).every(phase => phase.status === 'NOT_STARTED')).toBe(true)
   })
 
@@ -48,7 +48,7 @@ describe('AI program status', () => {
       operationBriefingApi: true,
       briefingHistory: true,
       reviewerFeedback: true,
-      briefingWorkspace: false
+      briefingWorkspace: true
     }))
   })
 })

@@ -37,7 +37,7 @@ function buildAiFoundationCompletion({ env = process.env, fetchImpl } = {}) {
     nextPhase: {
       phase: 2,
       name: 'Turnaround briefing',
-      status: 'IN_PROGRESS'
+      status: 'COMPLETE'
     }
   }
 }
