@@ -22,6 +22,7 @@ const { runEvaluationMatrix } = require('../services/aiEvaluationMatrix.service'
 const { getEvaluationRun, listEvaluationRuns, recordEvaluationRun } = require('../services/aiEvaluationRun.service')
 const { buildAiEvaluationQualitySummary } = require('../services/aiEvaluationQualitySummary.service')
 const { assessQualityConsoleReleasePolicy } = require('../services/aiQualityConsoleReleasePolicy.service')
+const { buildAiAdversarialQualitySummary } = require('../services/aiAdversarialQualitySummary.service')
 
 const AI_ALLOWED_ROLES = new Set([
   'ADMIN',
@@ -289,6 +290,17 @@ exports.runTurnaroundBriefingEvaluationMatrix = async (req, res, next) => {
   }
 }
 
+
+
+exports.getAdversarialQualitySummary = async (req, res, next) => {
+  try {
+    const actor = await resolveRequestActor(req)
+    if (!canManageAiEvaluations(actor)) return res.status(403).json({ message: 'AI adversarial quality summaries require an administrator.' })
+    return res.status(200).json(buildAiAdversarialQualitySummary())
+  } catch (error) {
+    return next(error)
+  }
+}
 
 exports.getTurnaroundBriefingEvaluationQualitySummary = async (req, res, next) => {
   try {

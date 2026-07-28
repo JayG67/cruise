@@ -376,6 +376,8 @@ const reactSelectors = Object.freeze({
   shipCardGrid: 'react-ship-card-grid',
   shipEditForm: 'react-ship-edit-form',
   sqaConsole: 'react-sqa-console',
+  aiAdversarialSummaryPanel: 'react-ai-adversarial-summary-panel',
+  aiAdversarialSuiteList: 'react-ai-adversarial-suite-list',
   sqaContractButton: 'react-sqa-contract-button',
   sqaCrudButton: 'react-sqa-crud-button',
   sqaDataButton: 'react-sqa-data-button',
