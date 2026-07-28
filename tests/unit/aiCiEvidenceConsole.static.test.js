@@ -1,0 +1,11 @@
+const fs = require('fs')
+const path = require('path')
+test('keeps Phase 6 CI evidence visible in the Quality Console', () => {
+  const component = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/components/ReactSqaConsole.jsx'), 'utf8')
+  const client = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/api/client.js'), 'utf8')
+  expect(component).toContain('react-ai-ci-evidence-panel')
+  expect(component).toContain('Phase 6 automated release gate')
+  expect(component).toContain('New failures:')
+  expect(component).toContain('Resolved failures:')
+  expect(client).toContain("'/ai/ci-evidence/summary'")
+})

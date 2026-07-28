@@ -7,20 +7,19 @@ const PHASE_SIX_CAPABILITIES = Object.freeze([
   'CI job summary reporting',
   'strict CI evidence schema validation',
   'release-blocking evidence policy',
-  'historical CI evidence retention and comparison'
-])
-
-const PHASE_SIX_NEXT_CAPABILITIES = Object.freeze([
-  'quality console CI evidence ingestion',
+  'historical CI evidence retention and comparison',
+  'Quality Console CI evidence ingestion',
   'formal Phase 6 completion audit'
 ])
+
+const PHASE_SIX_NEXT_CAPABILITIES = Object.freeze([])
 
 function buildAiPhaseSixReadiness() {
   return {
     phase: 6,
     name: 'CI integration',
-    status: 'IN_PROGRESS',
-    percentComplete: 75,
+    status: 'COMPLETE',
+    percentComplete: 100,
     completedCapabilities: [...PHASE_SIX_CAPABILITIES],
     nextCapabilities: [...PHASE_SIX_NEXT_CAPABILITIES],
     evidenceArtifact: 'ai-quality-evidence/phase6-ci-evidence.json',

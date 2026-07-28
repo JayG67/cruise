@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import ConfirmActionPanel from './ConfirmActionPanel.jsx'
-import { compareAiEvaluationRuns, getAiAdversarialQualitySummary, getAiEvaluationQualitySummary, previewAiEvaluationReleasePolicy, getBookings, getCruiseLines, getCustomers, getHealthStatus, getPlatformAuditEvents, getTurnaroundOperations, resetDemoData } from '../api/client.js'
+import { compareAiEvaluationRuns, getAiCiEvidenceSummary, getAiAdversarialQualitySummary, getAiEvaluationQualitySummary, previewAiEvaluationReleasePolicy, getBookings, getCruiseLines, getCustomers, getHealthStatus, getPlatformAuditEvents, getTurnaroundOperations, resetDemoData } from '../api/client.js'
 
 function formatResult(title, payload) {
   return `${title}\n\n${JSON.stringify(payload, null, 2)}`
@@ -89,6 +89,8 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
   const [resetConfirmationVisible, setResetConfirmationVisible] = useState(false)
   const [readinessChecklist, setReadinessChecklist] = useState(buildPendingReadinessChecklist())
   const [aiQualitySummary, setAiQualitySummary] = useState(null)
+  const [aiCiEvidence, setAiCiEvidence] = useState(null)
+  const [aiCiEvidenceStatus, setAiCiEvidenceStatus] = useState('Loading Phase 6 CI evidence...')
   const [aiAdversarialSummary, setAiAdversarialSummary] = useState(null)
   const [aiAdversarialStatus, setAiAdversarialStatus] = useState('Loading Phase 5 resilience evidence...')
   const [aiQualityStatus, setAiQualityStatus] = useState('Loading AI evaluation quality...')
@@ -106,6 +108,21 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
   const [aiHistoryProviderFilter, setAiHistoryProviderFilter] = useState('ALL')
   const [aiHistorySearch, setAiHistorySearch] = useState('')
   const [aiHistorySort, setAiHistorySort] = useState('completed-desc')
+
+  useEffect(() => {
+    let active = true
+    getAiCiEvidenceSummary({ selectedDemoUser })
+      .then(summary => {
+        if (!active) return
+        setAiCiEvidence(summary)
+        setAiCiEvidenceStatus(summary.state === 'AVAILABLE' ? 'Phase 6 CI evidence loaded' : summary.message)
+      })
+      .catch(error => {
+        if (!active) return
+        setAiCiEvidenceStatus(error.message || 'Phase 6 CI evidence unavailable')
+      })
+    return () => { active = false }
+  }, [selectedDemoUser])
 
   useEffect(() => {
     let active = true
@@ -465,6 +482,35 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
       </div>
 
 
+
+
+      <div className="go-live-readiness-panel ce-surface-light" data-testid="react-ai-ci-evidence-panel">
+        <div>
+          <p className="eyebrow ce-kicker">AI CI Release Evidence</p>
+          <h3>Phase 6 automated release gate</h3>
+          <p>{aiCiEvidenceStatus}</p>
+        </div>
+        <ul className="go-live-readiness-list" aria-label="Phase 6 CI evidence summary">
+          <li className={`readiness-item ${aiCiEvidence?.releaseDecision === 'APPROVED' ? 'ready' : 'attention'}`}>
+            <span aria-hidden="true">{aiCiEvidence?.releaseDecision === 'APPROVED' ? '✓' : '!'}</span>
+            <div><strong>CI release decision</strong><p>{aiCiEvidence?.releaseDecision || 'NO_DATA'}</p></div>
+          </li>
+          <li className={`readiness-item ${aiCiEvidence?.comparison?.outcome === 'REGRESSION' ? 'attention' : 'ready'}`}>
+            <span aria-hidden="true">{aiCiEvidence?.comparison?.outcome === 'REGRESSION' ? '!' : '✓'}</span>
+            <div><strong>Historical comparison</strong><p>{aiCiEvidence?.comparison?.outcome || 'NO_BASELINE'}</p></div>
+          </li>
+          <li className="readiness-item ready">
+            <span aria-hidden="true">•</span>
+            <div><strong>Check results</strong><p>{aiCiEvidence ? `${aiCiEvidence.totals.passed} passed; ${aiCiEvidence.totals.failed} failed.` : 'No CI checks loaded.'}</p></div>
+          </li>
+        </ul>
+        {(aiCiEvidence?.comparison?.newFailures?.length > 0 || aiCiEvidence?.comparison?.resolvedFailures?.length > 0) && (
+          <div className="ai-ci-evidence-changes" data-testid="react-ai-ci-evidence-changes">
+            <p><strong>New failures:</strong> {aiCiEvidence.comparison.newFailures.join(', ') || 'None'}</p>
+            <p><strong>Resolved failures:</strong> {aiCiEvidence.comparison.resolvedFailures.join(', ') || 'None'}</p>
+          </div>
+        )}
+      </div>
 
       <div className="go-live-readiness-panel ce-surface-light" data-testid="react-ai-adversarial-summary-panel">
         <div>
