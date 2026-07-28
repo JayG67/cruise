@@ -96,8 +96,10 @@
     "ai:phase5:audit": "node scripts/verify-ai-phase5-adversarial.js",
     "ai:phase5:complete": "node scripts/verify-ai-phase5-complete.js",
     "ai:ci:gate": "node scripts/run-ai-ci-quality-gate.js",
-    "ai:phase6:test": "NODE_NO_WARNINGS=1 jest tests/unit/aiPhaseSixReadiness.service.test.js tests/unit/aiPhaseSixCi.static.test.js tests/unit/aiProgramStatus.service.test.js --runInBand",
-    "ai:phase6:audit": "node scripts/verify-ai-phase6-ci.js"
+    "ai:phase6:test": "NODE_NO_WARNINGS=1 jest tests/unit/aiPhaseSixReadiness.service.test.js tests/unit/aiPhaseSixCi.static.test.js tests/unit/aiCiEvidencePolicy.service.test.js tests/unit/aiCiEvidenceComparison.service.test.js tests/unit/aiProgramStatus.service.test.js --runInBand",
+    "ai:phase6:audit": "node scripts/verify-ai-phase6-ci.js",
+    "ai:ci:evidence:verify": "node scripts/verify-ai-ci-evidence.js",
+    "ai:ci:evidence:compare": "node scripts/compare-ai-ci-evidence.js"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.1.2",

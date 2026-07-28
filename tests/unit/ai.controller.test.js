@@ -101,7 +101,7 @@ describe('AI controller authorization and failure boundaries', () => {
     expect(status).toHaveBeenCalledWith(200)
     expect(json).toHaveBeenCalledWith(expect.objectContaining({
       currentPhase: 6,
-      currentPhasePercentComplete: 25,
+      currentPhasePercentComplete: 75,
       completedPhases: 5,
       phases: expect.arrayContaining([
         expect.objectContaining({ phase: 3, status: 'COMPLETE' }),

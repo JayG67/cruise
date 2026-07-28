@@ -12,7 +12,7 @@ function getAiProgramStatus() {
     program: 'Cruise Fleet Operations AI Quality Program',
     currentPhase: 6,
     completedPhases: 5,
-    currentPhasePercentComplete: 25,
+    currentPhasePercentComplete: 75,
     phases: AI_PROGRAM_PHASES.map(phase => ({ ...phase })),
     phaseOneCapabilities: {
       providerAbstraction: true,
@@ -124,8 +124,9 @@ function getAiProgramStatus() {
       machineReadableEvidence: true,
       alwaysPublishEvidence: true,
       jobSummaryReporting: true,
-      releaseBlockingPolicy: false,
-      historicalEvidenceComparison: false,
+      releaseBlockingPolicy: true,
+      evidenceSchemaValidation: true,
+      historicalEvidenceComparison: true,
       qualityConsoleEvidenceIngestion: false,
       completionAudit: false,
       phaseSixComplete: false
