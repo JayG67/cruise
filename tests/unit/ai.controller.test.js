@@ -101,7 +101,7 @@ describe('AI controller authorization and failure boundaries', () => {
     expect(status).toHaveBeenCalledWith(200)
     expect(json).toHaveBeenCalledWith(expect.objectContaining({
       currentPhase: 5,
-      currentPhasePercentComplete: 0,
+      currentPhasePercentComplete: 60,
       completedPhases: 4,
       phases: expect.arrayContaining([
         expect.objectContaining({ phase: 3, status: 'COMPLETE' }),
@@ -136,6 +136,16 @@ describe('AI controller authorization and failure boundaries', () => {
         historyFiltering: true,
         historySorting: true,
         phaseFourComplete: true
+      }),
+      phaseFiveCapabilities: expect.objectContaining({
+        adversarialScenarioContract: true,
+        reusableScenarioCatalog: true,
+        deterministicScenarioExecution: true,
+        resilienceScoring: true,
+        diagnosticFindings: true,
+        adversarialSuiteRunner: true,
+        architectureAudit: true,
+        phaseFiveComplete: false
       }),
       runtime: expect.objectContaining({
         provider: 'deterministic',
