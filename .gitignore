@@ -32,3 +32,6 @@ lighthouse-report.report.json
 playwright-report/
 test-results/
 **/.DS_Store
+
+# Generated AI CI evidence
+ai-quality-evidence/

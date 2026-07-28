@@ -7,13 +7,13 @@ describe('AI program status', () => {
     expect(status.phases.map(phase => phase.phase)).toEqual([1, 2, 3, 4, 5, 6])
     expect(status.currentPhase).toBe(6)
     expect(status.completedPhases).toBe(5)
-    expect(status.currentPhasePercentComplete).toBe(0)
+    expect(status.currentPhasePercentComplete).toBe(25)
     expect(status.phases[0]).toEqual({ phase: 1, name: 'AI foundation', status: 'COMPLETE' })
     expect(status.phases[1]).toEqual({ phase: 2, name: 'Turnaround briefing', status: 'COMPLETE' })
     expect(status.phases[2]).toEqual({ phase: 3, name: 'Evaluation harness', status: 'COMPLETE' })
     expect(status.phases[3]).toEqual({ phase: 4, name: 'AI Quality Console', status: 'COMPLETE' })
     expect(status.phases[4]).toEqual({ phase: 5, name: 'Adversarial and resilience testing', status: 'COMPLETE' })
-    expect(status.phases[5]).toEqual({ phase: 6, name: 'CI integration', status: 'NOT_STARTED' })
+    expect(status.phases[5]).toEqual({ phase: 6, name: 'CI integration', status: 'IN_PROGRESS' })
   })
 
   it('returns defensive phase copies and explicit Phase 1 and Phase 2 capability status', () => {
@@ -92,6 +92,15 @@ describe('AI program status', () => {
       browserWorkflowCoverage: true,
       completionAudit: true,
       phaseFiveComplete: true
+    }))
+    expect(second.phaseSixCapabilities).toEqual(expect.objectContaining({
+      ciQualityGate: true,
+      phaseAuditExecution: true,
+      targetedAiRegressionExecution: true,
+      machineReadableEvidence: true,
+      alwaysPublishEvidence: true,
+      jobSummaryReporting: true,
+      phaseSixComplete: false
     }))
   })
 })

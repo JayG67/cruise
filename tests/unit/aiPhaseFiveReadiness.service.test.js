@@ -19,6 +19,7 @@ describe('AI Phase 5 readiness service', () => {
       completionAudit: true,
       phaseFiveComplete: true
     })
-    expect(program.phases.find(item => item.phase === 6).status).toBe('NOT_STARTED')
+    expect(program.phases.find(item => item.phase === 6).status).toBe('IN_PROGRESS')
+    expect(program.currentPhasePercentComplete).toBe(25)
   })
 })
