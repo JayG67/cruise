@@ -107,4 +107,14 @@ describe('integration seed-data lookup resilience', () => {
     expect(sailingsSpec).toContain('Expected seeded cruise data to include at least one ship with a sailing')
     expect(factory).toContain('getSeededBookingWithPassengers,')
   })
+
+
+  it('keeps the Phase 5 adversarial resilience summary visible in the Quality Console', () => {
+    const sqaConsole = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactSqaConsole.jsx'), 'utf8')
+
+    expect(sqaConsole).toContain('react-ai-adversarial-summary-panel')
+    expect(sqaConsole).toContain('Phase 5 safety and resilience gate')
+    expect(sqaConsole).toContain('react-ai-adversarial-suite-list')
+    expect(sqaConsole).toContain('getAiAdversarialQualitySummary')
+  })
 })

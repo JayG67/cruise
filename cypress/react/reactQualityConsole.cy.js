@@ -6,6 +6,37 @@ describe('React quality console coverage expansion', () => {
     visitReactAppAsAdmin()
   })
 
+
+  it('shows the Phase 5 adversarial resilience release gate', () => {
+    cy.intercept('GET', '/ai/adversarial/quality-summary', {
+      phase: 5,
+      status: 'READY',
+      totalSuites: 3,
+      totalScenarios: 31,
+      passedScenarios: 31,
+      failedScenarios: 0,
+      resilienceScore: 100,
+      releaseDecision: 'APPROVED',
+      suites: [
+        { id: 'operational-evidence', name: 'Operational evidence attacks', resilienceScore: 100, releaseDecision: 'APPROVED' },
+        { id: 'prompt-instruction', name: 'Prompt and instruction attacks', resilienceScore: 100, releaseDecision: 'APPROVED' },
+        { id: 'provider-runtime', name: 'Provider and runtime resilience', resilienceScore: 100, releaseDecision: 'APPROVED' }
+      ]
+    }).as('adversarialQualitySummary')
+    cy.reload()
+    cy.wait('@adversarialQualitySummary')
+    cy.getByTestId(rs.aiAdversarialSummaryPanel)
+      .should('be.visible')
+      .and('contain.text', 'Phase 5 safety and resilience gate')
+      .and('contain.text', 'APPROVED')
+      .and('contain.text', '31 of 31 scenarios passed')
+      .and('contain.text', '100% across 3 suites')
+    cy.getByTestId(rs.aiAdversarialSuiteList)
+      .should('contain.text', 'Operational evidence attacks')
+      .and('contain.text', 'Prompt and instruction attacks')
+      .and('contain.text', 'Provider and runtime resilience')
+  })
+
   it('renders every React SQA validation action and report link', () => {
     cy.getByTestId(rs.sqaConsole).should('be.visible').and('contain.text', 'Quality Validation Console')
     ;[

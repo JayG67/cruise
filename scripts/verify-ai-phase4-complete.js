@@ -28,8 +28,8 @@ if (!completion.complete || completion.percentComplete !== 100 || completion.nex
 }
 
 if (
-  programStatus.currentPhase !== 5 ||
-  programStatus.completedPhases !== 4 ||
+  programStatus.currentPhase < 5 ||
+  programStatus.completedPhases < 4 ||
   programStatus.phaseFourCapabilities.phaseFourComplete !== true ||
   programStatus.phases[3].status !== 'COMPLETE'
 ) {
@@ -39,4 +39,4 @@ if (
 console.log('AI Phase 4 Quality Console completion audit passed.')
 console.log(`Completion criteria: ${completion.completionCriteria.length}`)
 console.log('Phase 4: 100% COMPLETE')
-console.log('Phase 5: IN_PROGRESS (40%)')
+console.log(`Phase 5: ${programStatus.phases[4].status}${programStatus.phaseFiveCapabilities.phaseFiveComplete ? ' (100%)' : ''}`)

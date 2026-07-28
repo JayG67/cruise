@@ -2,19 +2,22 @@ const { buildAiPhaseFiveReadiness } = require('../../services/aiPhaseFiveReadine
 const { getAiProgramStatus } = require('../../services/aiProgramStatus.service')
 
 describe('AI Phase 5 readiness service', () => {
-  test('reports the adversarial foundation in progress without completing Phase 5', () => {
+  test('reports Phase 5 complete after console and browser integration', () => {
     const readiness = buildAiPhaseFiveReadiness()
     const program = getAiProgramStatus()
-    expect(readiness).toMatchObject({ phase: 5, status: 'IN_PROGRESS', percentComplete: 60 })
+    expect(readiness).toMatchObject({ phase: 5, status: 'COMPLETE', percentComplete: 100 })
     expect(readiness.completedCapabilities).toContain('severity-weighted resilience scoring')
-    expect(program.completedPhases).toBe(4)
+    expect(program.completedPhases).toBe(5)
     expect(program.phaseFiveCapabilities).toMatchObject({
       adversarialScenarioContract: true,
       adversarialSuiteRunner: true,
       architectureAudit: true,
       operationalEvidenceAttacks: true,
       tenantIsolationAttackCoverage: true,
-      phaseFiveComplete: false
+      qualityConsoleIntegration: true,
+      browserWorkflowCoverage: true,
+      completionAudit: true,
+      phaseFiveComplete: true
     })
     expect(program.phases.find(item => item.phase === 6).status).toBe('NOT_STARTED')
   })

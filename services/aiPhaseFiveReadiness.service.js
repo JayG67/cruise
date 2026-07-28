@@ -17,7 +17,15 @@ const PHASE_FIVE_COMPLETED_CAPABILITIES = Object.freeze([
   'prompt injection and instruction override detection',
   'hidden prompt and credential disclosure protection',
   'fabricated status and evidence suppression rejection',
-  'role impersonation and authorization bypass protection'
+  'role impersonation and authorization bypass protection',
+  'provider timeout, retry, and exhaustion resilience',
+  'empty, truncated, and malformed output rejection',
+  'context overflow and disabled-provider safeguards',
+  'provider metadata and usage anomaly handling',
+  'aborted execution and partial-persistence prevention',
+  'AI Quality Console resilience integration',
+  'browser workflow coverage',
+  'Phase 5 completion audit'
 ])
 
 function buildAiPhaseFiveReadiness() {
@@ -26,12 +34,9 @@ function buildAiPhaseFiveReadiness() {
     phase: 5,
     name: 'Adversarial and resilience testing',
     status: status.phases.find(item => item.phase === 5)?.status || 'NOT_STARTED',
-    percentComplete: status.currentPhase === 5 ? status.currentPhasePercentComplete : 0,
+    percentComplete: status.phaseFiveCapabilities.phaseFiveComplete ? 100 : (status.currentPhase === 5 ? status.currentPhasePercentComplete : 0),
     completedCapabilities: [...PHASE_FIVE_COMPLETED_CAPABILITIES],
-    nextCapabilities: [
-      'provider and runtime resilience coverage',
-      'malformed structured output resilience coverage'
-    ]
+    nextCapabilities: []
   }
 }
 

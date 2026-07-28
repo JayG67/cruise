@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import ConfirmActionPanel from './ConfirmActionPanel.jsx'
-import { compareAiEvaluationRuns, getAiEvaluationQualitySummary, previewAiEvaluationReleasePolicy, getBookings, getCruiseLines, getCustomers, getHealthStatus, getPlatformAuditEvents, getTurnaroundOperations, resetDemoData } from '../api/client.js'
+import { compareAiEvaluationRuns, getAiAdversarialQualitySummary, getAiEvaluationQualitySummary, previewAiEvaluationReleasePolicy, getBookings, getCruiseLines, getCustomers, getHealthStatus, getPlatformAuditEvents, getTurnaroundOperations, resetDemoData } from '../api/client.js'
 
 function formatResult(title, payload) {
   return `${title}\n\n${JSON.stringify(payload, null, 2)}`
@@ -89,6 +89,8 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
   const [resetConfirmationVisible, setResetConfirmationVisible] = useState(false)
   const [readinessChecklist, setReadinessChecklist] = useState(buildPendingReadinessChecklist())
   const [aiQualitySummary, setAiQualitySummary] = useState(null)
+  const [aiAdversarialSummary, setAiAdversarialSummary] = useState(null)
+  const [aiAdversarialStatus, setAiAdversarialStatus] = useState('Loading Phase 5 resilience evidence...')
   const [aiQualityStatus, setAiQualityStatus] = useState('Loading AI evaluation quality...')
   const [selectedAiRunId, setSelectedAiRunId] = useState(null)
   const [currentAiRunId, setCurrentAiRunId] = useState('')
@@ -104,6 +106,21 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
   const [aiHistoryProviderFilter, setAiHistoryProviderFilter] = useState('ALL')
   const [aiHistorySearch, setAiHistorySearch] = useState('')
   const [aiHistorySort, setAiHistorySort] = useState('completed-desc')
+
+  useEffect(() => {
+    let active = true
+    getAiAdversarialQualitySummary({ selectedDemoUser })
+      .then(summary => {
+        if (!active) return
+        setAiAdversarialSummary(summary)
+        setAiAdversarialStatus(summary.releaseDecision === 'APPROVED' ? 'Phase 5 resilience gate approved' : 'Phase 5 resilience gate blocked')
+      })
+      .catch(error => {
+        if (!active) return
+        setAiAdversarialStatus(error.message || 'Phase 5 resilience evidence unavailable')
+      })
+    return () => { active = false }
+  }, [selectedDemoUser])
 
   useEffect(() => {
     let active = true
@@ -447,6 +464,37 @@ export default function ReactSqaConsole({ selectedDemoUser, onRefreshData }) {
         </div>
       </div>
 
+
+
+      <div className="go-live-readiness-panel ce-surface-light" data-testid="react-ai-adversarial-summary-panel">
+        <div>
+          <p className="eyebrow ce-kicker">AI Adversarial Resilience</p>
+          <h3>Phase 5 safety and resilience gate</h3>
+          <p>{aiAdversarialStatus}</p>
+        </div>
+        <ul className="go-live-readiness-list" aria-label="Phase 5 adversarial resilience summary">
+          <li className={`readiness-item ${aiAdversarialSummary?.releaseDecision === 'APPROVED' ? 'ready' : 'attention'}`}>
+            <span aria-hidden="true">{aiAdversarialSummary?.releaseDecision === 'APPROVED' ? '✓' : '!'}</span>
+            <div><strong>Release decision</strong><p>{aiAdversarialSummary?.releaseDecision || 'NO_DATA'}</p></div>
+          </li>
+          <li className={`readiness-item ${aiAdversarialSummary?.failedScenarios === 0 ? 'ready' : 'attention'}`}>
+            <span aria-hidden="true">{aiAdversarialSummary?.failedScenarios === 0 ? '✓' : '!'}</span>
+            <div><strong>Scenario coverage</strong><p>{aiAdversarialSummary ? `${aiAdversarialSummary.passedScenarios} of ${aiAdversarialSummary.totalScenarios} scenarios passed` : 'No adversarial results available.'}</p></div>
+          </li>
+          <li className={`readiness-item ${aiAdversarialSummary?.resilienceScore === 100 ? 'ready' : 'attention'}`}>
+            <span aria-hidden="true">{aiAdversarialSummary?.resilienceScore === 100 ? '✓' : '!'}</span>
+            <div><strong>Resilience score</strong><p>{aiAdversarialSummary ? `${aiAdversarialSummary.resilienceScore}% across ${aiAdversarialSummary.totalSuites} suites` : 'No resilience score available.'}</p></div>
+          </li>
+        </ul>
+        <ul className="go-live-readiness-list" data-testid="react-ai-adversarial-suite-list" aria-label="Phase 5 adversarial suite results">
+          {(aiAdversarialSummary?.suites || []).map(suite => (
+            <li className={`readiness-item ${suite.releaseDecision === 'APPROVED' ? 'ready' : 'attention'}`} key={suite.id}>
+              <span aria-hidden="true">{suite.releaseDecision === 'APPROVED' ? '✓' : '!'}</span>
+              <div><strong>{suite.name}</strong><p>{suite.resilienceScore}% resilience · {suite.releaseDecision}</p></div>
+            </li>
+          ))}
+        </ul>
+      </div>
 
       <div className="go-live-readiness-panel ce-surface-light" data-testid="react-ai-quality-summary-panel">
         <div>

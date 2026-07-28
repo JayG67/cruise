@@ -1004,6 +1004,11 @@ export async function reviewOperationalAiBriefing(operationId, briefingId, paylo
 }
 
 
+export async function getAiAdversarialQualitySummary(options = {}) {
+  return requestJson('/ai/adversarial/quality-summary', getScopedRequestOptions(options))
+}
+
+
 export async function getAiEvaluationQualitySummary(options = {}) {
   const limit = Number(options.limit || 20)
   const suiteId = options.suiteId || 'turnaround-briefing-phase3'
