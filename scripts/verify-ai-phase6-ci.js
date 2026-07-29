@@ -25,6 +25,9 @@ const requiredWorkflowTokens = [
   'GITHUB_STEP_SUMMARY',
   'name: Find previous AI quality evidence run',
   'actions/download-artifact@v4',
+  'listWorkflowRunArtifacts',
+  "artifact.name === 'ai-quality-evidence' && !artifact.expired",
+  'comparison will use FIRST_RUN',
   'npm run ai:ci:evidence:compare',
   'phase6-ci-comparison.json',
   'retention-days: 30'

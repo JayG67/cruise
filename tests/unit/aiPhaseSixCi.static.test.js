@@ -35,6 +35,9 @@ describe('AI Phase 6 CI integration', () => {
   it('retains and compares evidence from the prior workflow run', () => {
     expect(workflow).toContain('name: Find previous AI quality evidence run')
     expect(workflow).toContain('actions/download-artifact@v4')
+    expect(workflow).toContain('listWorkflowRunArtifacts')
+    expect(workflow).toContain("artifact.name === 'ai-quality-evidence' && !artifact.expired")
+    expect(workflow).toContain('comparison will use FIRST_RUN')
     expect(workflow).toContain('npm run ai:ci:evidence:compare')
     expect(workflow).toContain('phase6-ci-comparison.json')
     expect(workflow).toContain('retention-days: 30')
