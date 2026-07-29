@@ -7,7 +7,7 @@ describe('AI Phase 5 readiness service', () => {
     const program = getAiProgramStatus()
     expect(readiness).toMatchObject({ phase: 5, status: 'COMPLETE', percentComplete: 100 })
     expect(readiness.completedCapabilities).toContain('severity-weighted resilience scoring')
-    expect(program.completedPhases).toBe(5)
+    expect(program.completedPhases).toBe(6)
     expect(program.phaseFiveCapabilities).toMatchObject({
       adversarialScenarioContract: true,
       adversarialSuiteRunner: true,
@@ -19,6 +19,7 @@ describe('AI Phase 5 readiness service', () => {
       completionAudit: true,
       phaseFiveComplete: true
     })
-    expect(program.phases.find(item => item.phase === 6).status).toBe('NOT_STARTED')
+    expect(program.phases.find(item => item.phase === 6).status).toBe('COMPLETE')
+    expect(program.currentPhasePercentComplete).toBe(100)
   })
 })

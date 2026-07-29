@@ -4,15 +4,15 @@ const AI_PROGRAM_PHASES = Object.freeze([
   { phase: 3, name: 'Evaluation harness', status: 'COMPLETE' },
   { phase: 4, name: 'AI Quality Console', status: 'COMPLETE' },
   { phase: 5, name: 'Adversarial and resilience testing', status: 'COMPLETE' },
-  { phase: 6, name: 'CI integration', status: 'NOT_STARTED' }
+  { phase: 6, name: 'CI integration', status: 'COMPLETE' }
 ])
 
 function getAiProgramStatus() {
   return {
     program: 'Cruise Fleet Operations AI Quality Program',
     currentPhase: 6,
-    completedPhases: 5,
-    currentPhasePercentComplete: 0,
+    completedPhases: 6,
+    currentPhasePercentComplete: 100,
     phases: AI_PROGRAM_PHASES.map(phase => ({ ...phase })),
     phaseOneCapabilities: {
       providerAbstraction: true,
@@ -116,6 +116,20 @@ function getAiProgramStatus() {
       browserWorkflowCoverage: true,
       completionAudit: true,
       phaseFiveComplete: true
+    },
+    phaseSixCapabilities: {
+      ciQualityGate: true,
+      phaseAuditExecution: true,
+      targetedAiRegressionExecution: true,
+      machineReadableEvidence: true,
+      alwaysPublishEvidence: true,
+      jobSummaryReporting: true,
+      releaseBlockingPolicy: true,
+      evidenceSchemaValidation: true,
+      historicalEvidenceComparison: true,
+      qualityConsoleEvidenceIngestion: true,
+      completionAudit: true,
+      phaseSixComplete: true
     }
   }
 }

@@ -23,6 +23,7 @@ const { getEvaluationRun, listEvaluationRuns, recordEvaluationRun } = require('.
 const { buildAiEvaluationQualitySummary } = require('../services/aiEvaluationQualitySummary.service')
 const { assessQualityConsoleReleasePolicy } = require('../services/aiQualityConsoleReleasePolicy.service')
 const { buildAiAdversarialQualitySummary } = require('../services/aiAdversarialQualitySummary.service')
+const { buildAiCiEvidenceConsoleSummary } = require('../services/aiCiEvidenceConsole.service')
 
 const AI_ALLOWED_ROLES = new Set([
   'ADMIN',
@@ -45,6 +46,17 @@ function providerHttpStatus(error) {
 
 function canGenerateAiBriefing(actor = {}) {
   return AI_ALLOWED_ROLES.has(normalizeActorRole(actor.actorRole))
+}
+
+
+exports.getAiCiEvidenceSummary = async (req, res, next) => {
+  try {
+    const actor = await resolveRequestActor(req)
+    if (!canManageAiEvaluations(actor)) return res.status(403).json({ message: 'AI CI evidence requires an administrator.' })
+    return res.status(200).json(buildAiCiEvidenceConsoleSummary())
+  } catch (error) {
+    return next(error)
+  }
 }
 
 exports.getAiProgramStatus = (req, res) => {

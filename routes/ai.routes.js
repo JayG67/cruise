@@ -16,6 +16,7 @@ const {
 const router = express.Router()
 
 router.get('/program-status', aiController.getAiProgramStatus)
+router.get('/ci-evidence/summary', aiController.getAiCiEvidenceSummary)
 router.get('/adversarial/quality-summary', aiController.getAdversarialQualitySummary)
 router.get('/evaluations/turnaround-briefing/quality-summary', validate(evaluationRunsQuerySchema, 'query'), aiController.getTurnaroundBriefingEvaluationQualitySummary)
 router.post('/evaluations/turnaround-briefing/release-policy/preview', validate(qualityConsoleReleasePolicyRequestSchema), aiController.previewTurnaroundBriefingReleasePolicy)

@@ -1004,6 +1004,11 @@ export async function reviewOperationalAiBriefing(operationId, briefingId, paylo
 }
 
 
+export async function getAiCiEvidenceSummary(options = {}) {
+  return requestJson('/ai/ci-evidence/summary', getScopedRequestOptions(options))
+}
+
+
 export async function getAiAdversarialQualitySummary(options = {}) {
   return requestJson('/ai/adversarial/quality-summary', getScopedRequestOptions(options))
 }

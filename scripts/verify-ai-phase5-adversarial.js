@@ -76,7 +76,8 @@ if (!status.phaseFiveCapabilities.tenantIsolationAttackCoverage) throw new Error
 if (!status.phaseFiveCapabilities.promptInjectionCoverage) throw new Error('Prompt injection coverage must be reported complete.')
 if (!status.phaseFiveCapabilities.authorizationAttackCoverage) throw new Error('Authorization attack coverage must be reported complete.')
 if (status.phases.find(item => item.phase === 4)?.status !== 'COMPLETE') throw new Error('Phase 4 must remain complete.')
-if (status.phases.find(item => item.phase === 6)?.status !== 'NOT_STARTED') throw new Error('Phase 6 must remain not started.')
+const phaseSixStatus = status.phases.find(item => item.phase === 6)?.status
+if (!['NOT_STARTED', 'IN_PROGRESS', 'COMPLETE'].includes(phaseSixStatus)) throw new Error('Phase 6 has an invalid program status.')
 if (!status.phaseFiveCapabilities.phaseFiveComplete) throw new Error('Phase 5 must be marked complete.')
 
 console.log('AI Phase 5 adversarial and operational evidence architecture audit passed.')
