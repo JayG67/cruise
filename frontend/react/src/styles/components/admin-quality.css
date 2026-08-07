@@ -638,3 +638,490 @@
   margin: 0;
   padding-left: 1.25rem;
 }
+
+/* Build 461 - executive Phase 5 adversarial resilience dashboard */
+.react-sqa-console .ai-adversarial-dashboard {
+  margin-top: 1.5rem;
+  padding: clamp(1.25rem, 2.5vw, 2rem);
+  border: 1px solid #b8c8d8;
+  border-radius: 1.25rem;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fbff 100%);
+  color: #0f172a;
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.1);
+}
+
+.react-sqa-console .ai-adversarial-dashboard * {
+  box-sizing: border-box;
+}
+
+.react-sqa-console .ai-adversarial-dashboard__header {
+  display: grid;
+  grid-template-columns: minmax(16rem, 0.9fr) minmax(0, 1.6fr);
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+  align-items: stretch;
+}
+
+.react-sqa-console .ai-adversarial-dashboard__intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.react-sqa-console .ai-adversarial-dashboard .eyebrow {
+  margin: 0 0 0.65rem;
+  color: #075985 !important;
+  letter-spacing: 0.12em;
+}
+
+.react-sqa-console .ai-adversarial-dashboard h3 {
+  margin: 0;
+  max-width: 26rem;
+  color: #0f172a !important;
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
+  line-height: 1.15;
+}
+
+.react-sqa-console .ai-adversarial-dashboard__description {
+  max-width: 31rem;
+  margin: 1.1rem 0 0;
+  color: #334155 !important;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.react-sqa-console .ai-adversarial-dashboard__gate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: auto;
+  padding: 0.7rem 0.95rem;
+  border-radius: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.react-sqa-console .ai-adversarial-dashboard__gate span {
+  display: inline-grid;
+  width: 1.45rem;
+  height: 1.45rem;
+  place-items: center;
+  border-radius: 50%;
+  color: #ffffff !important;
+  font-weight: 800;
+}
+
+.react-sqa-console .ai-adversarial-dashboard__gate.is-approved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.react-sqa-console .ai-adversarial-dashboard__gate.is-approved span {
+  background: #16a34a;
+}
+
+.react-sqa-console .ai-adversarial-dashboard__gate.is-blocked {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.react-sqa-console .ai-adversarial-dashboard__gate.is-blocked span {
+  background: #ea580c;
+}
+
+.react-sqa-console .ai-adversarial-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.react-sqa-console .ai-adversarial-metrics li {
+  display: flex;
+  min-width: 0;
+  min-height: 13rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem 1rem;
+  border: 1px solid #bbf7d0;
+  border-radius: 1rem;
+  background: linear-gradient(180deg, #f7fff9 0%, #f0fdf4 100%);
+  text-align: center;
+}
+
+.react-sqa-console .ai-adversarial-metrics li.is-blocked {
+  border-color: #fed7aa;
+  background: linear-gradient(180deg, #fffaf5 0%, #fff7ed 100%);
+}
+
+.react-sqa-console .ai-adversarial-metrics__icon {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  margin-bottom: 1rem;
+  border-radius: 50%;
+  background: #bbf7d0;
+  color: #166534 !important;
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.react-sqa-console .ai-adversarial-metrics__label {
+  color: #334155 !important;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.react-sqa-console .ai-adversarial-metrics strong {
+  margin-top: 0.65rem;
+  color: #15803d !important;
+  font-size: clamp(1.35rem, 2vw, 1.8rem);
+  line-height: 1.1;
+}
+
+.react-sqa-console .ai-adversarial-metrics small {
+  width: 100%;
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid #bbf7d0;
+  color: #475569 !important;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.react-sqa-console .ai-adversarial-suite-table {
+  display: grid;
+  gap: 0.8rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.react-sqa-console .ai-adversarial-suite-table li {
+  display: grid;
+  grid-template-columns: auto minmax(15rem, 1.6fr) minmax(7rem, 0.7fr) minmax(7rem, 0.7fr) minmax(7rem, 0.65fr);
+  gap: 1rem;
+  align-items: center;
+  min-width: 0;
+  padding: 1.1rem 1.25rem;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  border-left: 4px solid #22c55e;
+  border-radius: 0.9rem;
+  background: #ffffff;
+}
+
+.react-sqa-console .ai-adversarial-suite-table li.is-blocked {
+  border-left-color: #f97316;
+}
+
+.react-sqa-console .ai-adversarial-suite-table__icon {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #166534 !important;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.react-sqa-console .ai-adversarial-suite-table__identity {
+  min-width: 0;
+}
+
+.react-sqa-console .ai-adversarial-suite-table__identity strong {
+  display: block;
+  color: #0f172a !important;
+  font-size: 1rem;
+}
+
+.react-sqa-console .ai-adversarial-suite-table__identity p {
+  margin: 0.35rem 0 0;
+  color: #475569 !important;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.react-sqa-console .ai-adversarial-suite-table__metric,
+.react-sqa-console .ai-adversarial-suite-table__status {
+  min-width: 0;
+  padding-left: 1rem;
+  border-left: 1px solid #e2e8f0;
+}
+
+.react-sqa-console .ai-adversarial-suite-table__metric span,
+.react-sqa-console .ai-adversarial-suite-table__status span {
+  display: block;
+  color: #64748b !important;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.react-sqa-console .ai-adversarial-suite-table__metric strong {
+  display: block;
+  margin-top: 0.35rem;
+  color: #15803d !important;
+  font-size: 1.05rem;
+}
+
+.react-sqa-console .ai-adversarial-suite-table__status strong {
+  display: inline-block;
+  margin-top: 0.35rem;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534 !important;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+
+.react-sqa-console .ai-adversarial-dashboard__footer {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 1.25rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid #bfdbfe;
+  border-radius: 0.75rem;
+  background: #eff6ff;
+}
+
+.react-sqa-console .ai-adversarial-dashboard__footer > span {
+  display: grid;
+  width: 1.45rem;
+  height: 1.45rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #ffffff !important;
+  font-family: Georgia, serif;
+  font-weight: 700;
+}
+
+.react-sqa-console .ai-adversarial-dashboard__footer p {
+  margin: 0;
+  color: #1e3a8a !important;
+  font-size: 0.88rem;
+}
+
+@media (max-width: 980px) {
+  .react-sqa-console .ai-adversarial-dashboard__header {
+    grid-template-columns: 1fr;
+  }
+
+  .react-sqa-console .ai-adversarial-dashboard__gate {
+    margin-top: 1.25rem;
+  }
+
+  .react-sqa-console .ai-adversarial-suite-table li {
+    grid-template-columns: auto minmax(0, 1fr) repeat(3, minmax(6.5rem, 0.5fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .react-sqa-console .ai-adversarial-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .react-sqa-console .ai-adversarial-metrics li {
+    min-height: auto;
+  }
+
+  .react-sqa-console .ai-adversarial-suite-table li {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .react-sqa-console .ai-adversarial-suite-table__metric,
+  .react-sqa-console .ai-adversarial-suite-table__status {
+    grid-column: 2;
+    padding: 0;
+    border-left: 0;
+  }
+}
+
+/* Build 462 - completed AI integration console and responsive quality workspaces */
+.react-sqa-console .ai-integration-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+  padding: 1.25rem 1.4rem;
+  border: 1px solid #86efac;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfeff 100%);
+  color: #0f172a;
+}
+
+.react-sqa-console .ai-integration-status h3,
+.react-sqa-console .ai-integration-status p {
+  margin: 0;
+}
+
+.react-sqa-console .ai-integration-status h3 {
+  color: #0f172a !important;
+  font-size: clamp(1.15rem, 2vw, 1.45rem);
+}
+
+.react-sqa-console .ai-integration-status p:last-child {
+  max-width: 68rem;
+  margin-top: 0.45rem;
+  color: #334155 !important;
+  line-height: 1.55;
+}
+
+.react-sqa-console .ai-integration-status__badge {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 0.95rem;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534 !important;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.react-sqa-console .ai-integration-status__badge > span {
+  display: grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #16a34a;
+  color: #fff !important;
+}
+
+.react-sqa-console .ai-release-evidence-panel,
+.react-sqa-console .ai-evaluation-quality-panel {
+  grid-template-columns: minmax(16rem, 0.85fr) minmax(0, 1.35fr) !important;
+  align-items: start;
+  gap: clamp(1.25rem, 3vw, 2rem) !important;
+  overflow: hidden;
+}
+
+.react-sqa-console .ai-evaluation-quality-panel > .ai-quality-trend,
+.react-sqa-console .ai-evaluation-quality-panel > .ai-baseline-comparison,
+.react-sqa-console .ai-evaluation-quality-panel > .ai-release-policy-controls,
+.react-sqa-console .ai-evaluation-quality-panel > .ai-quality-history-section,
+.react-sqa-console .ai-evaluation-quality-panel > .ai-failure-drilldown,
+.react-sqa-console .ai-evaluation-quality-panel > .ai-recurring-failures {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.react-sqa-console .ai-quality-trend {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.react-sqa-console .ai-quality-trend > * {
+  min-width: 0;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.65rem;
+  background: #fff;
+  overflow-wrap: anywhere;
+}
+
+.react-sqa-console .ai-baseline-controls {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.react-sqa-console .ai-baseline-controls button {
+  grid-column: 1 / -1;
+  justify-self: start;
+  min-width: 10rem;
+}
+
+.react-sqa-console .ai-release-policy-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.react-sqa-console .ai-release-policy-grid .ai-release-policy-checkbox {
+  grid-column: 1 / -1;
+}
+
+.react-sqa-console .ai-quality-history-controls {
+  grid-template-columns: minmax(14rem, 1.5fr) repeat(3, minmax(10rem, 1fr));
+}
+
+.react-sqa-console .ai-quality-history-controls button {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.react-sqa-console .ai-quality-history-controls label,
+.react-sqa-console .ai-baseline-controls label,
+.react-sqa-console .ai-release-policy-grid label {
+  min-width: 0;
+}
+
+.react-sqa-console .ai-quality-history-controls input,
+.react-sqa-console .ai-quality-history-controls select,
+.react-sqa-console .ai-baseline-controls select,
+.react-sqa-console .ai-release-policy-grid input {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.react-sqa-console .ai-quality-history-wrap {
+  max-width: 100%;
+  border: 1px solid #d7e0ea;
+  border-radius: 0.75rem;
+  background: #fff;
+}
+
+.react-sqa-console .ai-quality-history-wrap:focus-visible {
+  outline: 3px solid var(--ce-focus-ring, #0ea5e9);
+  outline-offset: 3px;
+}
+
+.react-sqa-console .ai-quality-history {
+  min-width: 860px;
+}
+
+@media (max-width: 960px) {
+  .react-sqa-console .ai-release-evidence-panel,
+  .react-sqa-console .ai-evaluation-quality-panel {
+    grid-template-columns: 1fr !important;
+  }
+
+  .react-sqa-console .ai-quality-trend,
+  .react-sqa-console .ai-release-policy-grid,
+  .react-sqa-console .ai-quality-history-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .react-sqa-console .ai-integration-status {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .react-sqa-console .ai-quality-trend,
+  .react-sqa-console .ai-baseline-controls,
+  .react-sqa-console .ai-release-policy-grid,
+  .react-sqa-console .ai-quality-history-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .react-sqa-console .ai-baseline-controls button,
+  .react-sqa-console .ai-quality-history-controls button {
+    width: 100%;
+  }
+}

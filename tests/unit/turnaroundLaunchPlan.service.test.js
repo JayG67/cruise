@@ -14,7 +14,7 @@ describe('turnaroundLaunchPlan service', () => {
     turnaroundDate: '2026-06-18'
   }
 
-  it('builds reviewer launch gates, runbook steps, risks, and quality gates from turnaround evidence', () => {
+  it('builds operational release gates, runbook steps, risks, and quality gates from turnaround evidence', () => {
     const plan = buildTurnaroundLaunchPlan({
       operation,
       releasePacket: { releaseScore: 91 },
@@ -28,7 +28,7 @@ describe('turnaroundLaunchPlan service', () => {
         maturityScore: 90,
         continuationSummary: { headline: 'Turnaround management is 90% complete.' },
         remainingWork: [],
-        nextSlices: ['Add a final reviewer demo script.']
+        nextSlices: ['Add final release-governance evidence.']
       }
     })
 
@@ -38,26 +38,38 @@ describe('turnaroundLaunchPlan service', () => {
       'operational-release-confidence',
       'incident-risk-contained',
       'after-action-loop-ready',
-      'reviewer-evidence-ready',
-      'outreach-package-ready',
+      'governance-evidence-ready',
+      'stakeholder-coordination-ready',
       'management-continuation-ready'
     ]))
     expect(plan.demoRunbook.map(step => step.role)).toEqual(expect.arrayContaining([
-      'Admin',
+      'Administrator',
       'Passenger',
       'Group Leader',
       'Turnaround Manager',
       'Department Lead',
-      'Reviewer'
+      'Operational Governance'
     ]))
     expect(plan.qualityGates).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'automated-suite' }),
       expect.objectContaining({ id: 'mobile-scope' })
     ]))
     expect(plan.nextAction).toContain('runbook')
+
+    const userVisibleText = [
+      plan.headline,
+      plan.summary,
+      plan.nextAction,
+      ...plan.certificationGates.flatMap(gate => [gate.label, gate.detail, ...gate.evidence]),
+      ...plan.demoRunbook.flatMap(step => [step.label, step.role, step.detail]),
+      ...plan.launchRisks.flatMap(risk => [risk.label, risk.mitigation]),
+      ...plan.qualityGates.flatMap(gate => [gate.label, gate.detail])
+    ].join(' ').toLowerCase()
+
+    expect(userVisibleText).not.toMatch(/demo|reviewer|flagship|outreach|static mock|hardening/)
   })
 
-  it('surfaces red and high-risk launch items when reviewer evidence is weak', () => {
+  it('surfaces red and high-risk release items when governance evidence is weak', () => {
     const gates = buildCertificationGates({
       operation,
       releasePacket: { releaseScore: 55 },
@@ -81,21 +93,21 @@ describe('turnaroundLaunchPlan service', () => {
       expect.objectContaining({ id: 'risk-data-quality-watch-items', severity: 'HIGH' })
     ]))
     expect(qualityGates).toEqual(expect.arrayContaining([
-      expect.objectContaining({ id: 'launch-gates', status: 'BLOCKED' }),
-      expect.objectContaining({ id: 'data-hardening', status: 'WATCH' })
+      expect.objectContaining({ id: 'release-gates', status: 'BLOCKED' }),
+      expect.objectContaining({ id: 'data-assurance', status: 'WATCH' })
     ]))
   })
 
-  it('adds watch-item and continuation steps to the demo runbook when needed', () => {
+  it('adds watch-item and continuation steps to the release runbook when needed', () => {
     const runbook = buildDemoRunbook({
       operation,
-      gates: [{ id: 'reviewer-evidence-ready', label: 'Reviewer evidence ready', score: 60 }],
-      managementStatus: { nextSlices: ['Add portfolio-level turnaround comparison.'] }
+      gates: [{ id: 'governance-evidence-ready', label: 'Governance evidence ready', score: 60 }],
+      managementStatus: { nextSlices: ['Add cross-operation turnaround comparison.'] }
     })
 
     expect(runbook.map(step => step.id)).toEqual(expect.arrayContaining([
-      'watch-item-proof',
-      'continuation-proof'
+      'watch-item-response',
+      'continuation-planning'
     ]))
   })
 })

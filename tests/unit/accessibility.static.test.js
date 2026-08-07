@@ -25,7 +25,12 @@ describe('static ADA and WCAG-oriented React accessibility safeguards', () => {
   }
 
   const styles = readCssBundle(path.join(projectRoot, 'frontend/react/src/styles/index.css'))
-  const roleSelector = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactRoleSelector.jsx'), 'utf8')
+  const roleSelectorDomain = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/roleSelectorOptions.js'), 'utf8')
+  const roleSelector = [
+    fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactRoleSelector.jsx'), 'utf8'),
+    fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/OperationalRoleSelectorWorkspace.jsx'), 'utf8'),
+    fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/PassengerRoleSelectorWorkspace.jsx'), 'utf8')
+  ].join('\n')
   const fleetDirectory = [
     fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactFleetDirectory.jsx'), 'utf8'),
     fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/fleet/ReactFleetCruiseLineGrid.jsx'), 'utf8'),
@@ -46,6 +51,7 @@ describe('static ADA and WCAG-oriented React accessibility safeguards', () => {
     fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/BookingCard.jsx'), 'utf8')
   ].join('\n')
   const confirmActionPanel = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ConfirmActionPanel.jsx'), 'utf8')
+  const operationsIntelligence = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/OperationsIntelligenceCenter.jsx'), 'utf8')
 
   it('declares the page language, title, and mobile viewport', () => {
     expect(indexHtml).toContain('<html lang="en">')
@@ -57,29 +63,43 @@ describe('static ADA and WCAG-oriented React accessibility safeguards', () => {
     expect(indexHtml).not.toContain(['Mig', 'ration'].join(''))
   })
 
+  it('keeps role-selector labels concise and free of presentation-only fallback language', () => {
+    expect((roleSelector.match(/>\s*Ship queue\s*</g) || [])).toHaveLength(1)
+    expect(roleSelector).toContain("formatDemoUserRole(option.user.role || option.user.userType || 'Assigned person')")
+    expect(roleSelector).not.toContain("option.user.userType || 'Demo User'")
+    expect(roleSelectorDomain).toContain("formatDemoUserRole(role = 'Assigned person')")
+    expect(roleSelectorDomain).not.toContain("'Demo User'")
+  })
+
   it('labels primary navigation and workspace controls for assistive technology', () => {
     expect(app).toContain('aria-label="Cruise application primary navigation"')
     expect(app).toContain('aria-label="React application workspaces"')
     expect(app).toContain('data-testid="react-workspace-role-button"')
     expect(app).toContain('data-testid="react-workspace-operations-button"')
     expect(app).toContain('data-testid="react-workspace-fleet-button"')
-    expect(app).toContain('data-testid="react-workspace-quality-button"')
+    expect(app).toContain('data-testid="react-workspace-intelligence-button"')
   })
 
   it('keeps workspace navigation accessible and connected to major application regions', () => {
     expect(roleSelector).toContain('id="react-role-selector"')
     expect(app).toContain('id="react-hierarchy"')
     expect(fleetDirectory).toContain('id="react-fleet"')
-    expect(app).toContain('id="react-quality"')
+    expect(operationsIntelligence).toContain('id="react-operations-intelligence"')
     expect(styles).toContain('.react-workspace-card-grid')
     expect(styles).toContain('.recommended-workflow-panel')
   })
 
   it('keeps customer and booking workflow controls exposed with testable landmarks', () => {
     expect(app).toContain('CustomerBookingHierarchy')
+    const adminWorkflowTable = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/admin/AdminCustomerWorkflowTable.jsx'), 'utf8')
+    const adminWorkspaceCss = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/styles/components/application-admin-workspace.css'), 'utf8')
+
     expect(styles).toContain('.react-admin-table')
     expect(styles).toContain('.react-admin-mutation-panel')
     expect(styles).toContain('.react-row-action-cluster')
+    expect(adminWorkflowTable).toContain('id="react-customer-workflow-heading"')
+    expect(adminWorkflowTable).toContain('role="region" aria-labelledby="react-customer-workflow-heading" tabIndex="0"')
+    expect(adminWorkspaceCss).toContain('.react-admin-table-scroll:focus-visible')
   })
 
   it('keeps passenger self-service fields and feedback accessible', () => {
@@ -95,7 +115,10 @@ describe('static ADA and WCAG-oriented React accessibility safeguards', () => {
   })
 
   it('keeps quality output announced as a live region', () => {
-    const sqaConsole = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactSqaConsole.jsx'), 'utf8')
+    const sqaConsole = [
+      fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactSqaConsole.jsx'), 'utf8'),
+      fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/QualityValidationWorkspace.jsx'), 'utf8')
+    ].join('\n')
 
     expect(sqaConsole).toContain('aria-live="polite"')
     expect(sqaConsole).toContain('data-testid="react-sqa-output"')
@@ -107,6 +130,7 @@ describe('static ADA and WCAG-oriented React accessibility safeguards', () => {
       adminHierarchy,
       fleetDirectory,
       fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/ReactSqaConsole.jsx'), 'utf8'),
+      fs.readFileSync(path.join(projectRoot, 'frontend/react/src/components/QualityValidationWorkspace.jsx'), 'utf8'),
       confirmActionPanel
     ].join('\n')
 

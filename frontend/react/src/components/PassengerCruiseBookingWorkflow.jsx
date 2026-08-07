@@ -1,238 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
-import { createBooking, createCustomer, getSailingsForShip, getShipsForCruiseLine } from '../api/client.js'
-
-
-const DEFAULT_BOOKING_FARE_OPTIONS = [
-  { value: 'STANDARD', label: 'Standard' },
-  { value: 'BALCONY', label: 'Balcony' },
-  { value: 'SUITE', label: 'Suite' },
-  { value: 'FAMILY', label: 'Family' }
-]
-
-const FARE_CODE_LABELS = {
-  STANDARD: 'Standard',
-  BALCONY: 'Balcony',
-  BAL: 'Balcony',
-  OCE: 'Ocean view',
-  OCEAN: 'Ocean view',
-  INT: 'Interior',
-  INTERIOR: 'Interior',
-  SUITE: 'Suite',
-  FAM: 'Family',
-  FAMILY: 'Family',
-  SOLO: 'Solo traveler',
-  GRP: 'Group fare',
-  AFT: 'Aft cabin',
-  FWD: 'Forward cabin',
-  SPA: 'Spa cabin',
-  AQ: 'Aqua class',
-  HAVEN: 'Haven',
-  CONC: 'Concierge'
-}
-
-function sortByLabel(a, b) {
-  return String(a?.name || a?.label || a || '').localeCompare(String(b?.name || b?.label || b || ''))
-}
-
-function sortByDepartureDate(a, b) {
-  return String(a?.departureDate || '').localeCompare(String(b?.departureDate || ''))
-}
-
-function getFareCodeLabel(code = '') {
-  const normalizedCode = String(code || '').trim().toUpperCase()
-  if (!normalizedCode) return 'Fare option'
-  return FARE_CODE_LABELS[normalizedCode] || normalizedCode.replace(/[-_]+/g, ' ').toLowerCase().replace(/\b\w/g, letter => letter.toUpperCase())
-}
-
-function buildFareOptionsForShip(bookings = [], shipName = '') {
-  const normalizedShipName = normalizeText(shipName)
-  if (!normalizedShipName) return DEFAULT_BOOKING_FARE_OPTIONS
-
-  const shipFareCodes = new Set(
-    bookings
-      .filter(booking => normalizeText(getBookingShipName(booking)) === normalizedShipName)
-      .map(booking => String(booking.fareCode || '').trim().toUpperCase())
-      .filter(Boolean)
-  )
-
-  if (shipFareCodes.size === 0) return DEFAULT_BOOKING_FARE_OPTIONS
-
-  return [...shipFareCodes]
-    .map(code => ({ value: code, label: getFareCodeLabel(code) }))
-    .sort((a, b) => a.label.localeCompare(b.label) || a.value.localeCompare(b.value))
-}
-
-const DINING_OPTIONS = [
-  'Anytime dining',
-  'Early seating',
-  'Late seating',
-  'My Time dining',
-  'Freestyle dining',
-  'Rotational dining',
-  'Flexible dining',
-  'Special dietary request'
-]
-
-function normalizeText(value = '') {
-  return String(value).trim().toLowerCase()
-}
-
-function createReadableId(prefix) {
-  const randomPart = Math.random().toString(36).slice(2, 11).toUpperCase().replace(/[^A-Z0-9]/g, '0')
-  return `${prefix}${randomPart.padEnd(9, '0').slice(0, 9)}`
-}
-
-function getCustomerDisplayName(customer = {}) {
-  return [customer.firstName, customer.lastName].filter(Boolean).join(' ') || customer.email || customer.id
-}
-
-function getSelectedCustomerDefaults(selectedCustomer, selectedDemoUser) {
-  return {
-    id: selectedCustomer?.id || selectedDemoUser?.customerId || '',
-    firstName: selectedCustomer?.firstName || selectedDemoUser?.displayName?.split(' ')[0] || '',
-    lastName: selectedCustomer?.lastName || selectedDemoUser?.displayName?.split(' ').slice(1).join(' ') || '',
-    email: selectedCustomer?.email || selectedDemoUser?.email || '',
-    phone: selectedCustomer?.phone || '',
-    loyaltyNumber: selectedCustomer?.loyaltyNumber || ''
-  }
-}
-
-function buildPrimaryGuestDraft(selectedCustomer, selectedDemoUser) {
-  const defaults = getSelectedCustomerDefaults(selectedCustomer, selectedDemoUser)
-
-  return {
-    customerMode: 'existing',
-    customerId: defaults.id,
-    firstName: defaults.firstName,
-    lastName: defaults.lastName,
-    email: defaults.email,
-    phone: defaults.phone,
-    loyaltyNumber: defaults.loyaltyNumber,
-    passengerRole: 'Primary',
-    diningPreference: 'Anytime dining',
-    accessibilityNotes: '',
-    boardingGroup: 'Group A'
-  }
-}
-
-function buildGuestDraft() {
-  return {
-    customerMode: 'existing',
-    customerId: '',
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    loyaltyNumber: '',
-    passengerRole: 'Guest',
-    diningPreference: 'Anytime dining',
-    accessibilityNotes: '',
-    boardingGroup: 'Group B'
-  }
-}
-
-function getActionErrorMessage(action, error, fallback) {
-  const detail = error?.message ? ` ${error.message}` : ''
-  return `${action}${detail || ` ${fallback}`}`.trim()
-}
-
-function getGuestLabel(guest) {
-  return [guest.firstName, guest.lastName].filter(Boolean).join(' ') || guest.email || 'this guest'
-}
-
-function normalizeGuestPayload(guest) {
-  return {
-    id: createReadableId('C'),
-    firstName: guest.firstName.trim(),
-    lastName: guest.lastName.trim(),
-    email: guest.email.trim(),
-    phone: guest.phone.trim(),
-    loyaltyNumber: guest.loyaltyNumber.trim()
-  }
-}
-
-function getSailingLabel(sailing) {
-  if (!sailing) return 'Select a sailing'
-  return `${sailing.departureDate} — ${sailing.departurePort} to ${sailing.arrivalPort} (${sailing.days} nights)`
-}
-
-function getBookingPassengerIds(booking = {}) {
-  return new Set((booking.passengers || []).map(passenger => passenger.customerId || passenger.customer?.id).filter(Boolean))
-}
-
-function getBookingCruiseLineName(booking = {}) {
-  return booking.cruiseLine?.name || booking.cruiseLineName || 'Cruise line unavailable'
-}
-
-function getBookingShipName(booking = {}) {
-  return booking.ship?.name || booking.shipName || 'Ship unavailable'
-}
-
-function getBookingSailingDate(booking = {}) {
-  return booking.sailing?.departureDate || booking.departureDate || 'Date unavailable'
-}
-
-function getBookingRoute(booking = {}) {
-  const departure = booking.sailing?.departurePort || booking.departurePort || booking.embarkationPort
-  const arrival = booking.sailing?.arrivalPort || booking.arrivalPort || booking.debarkationPort
-
-  if (departure && arrival) return `${departure} to ${arrival}`
-  return departure || arrival || ''
-}
-
-function getCustomerBookingContexts(customer = {}, bookings = []) {
-  if (!customer.id) return []
-
-  return bookings.filter(booking => getBookingPassengerIds(booking).has(customer.id) || booking.createdByCustomerId === customer.id)
-    .map(booking => ({
-      bookingId: booking.id,
-      cruiseLine: getBookingCruiseLineName(booking),
-      ship: getBookingShipName(booking),
-      sailingDate: getBookingSailingDate(booking),
-      route: getBookingRoute(booking),
-      cabinNumber: booking.cabinNumber || 'Cabin pending'
-    }))
-}
-
-function buildCustomerFinderOption(customer = {}, bookings = []) {
-  const name = getCustomerDisplayName(customer)
-  const contexts = getCustomerBookingContexts(customer, bookings)
-  const primaryContext = contexts[0]
-
-  return {
-    customer,
-    name,
-    contexts,
-    detail: primaryContext
-      ? `${primaryContext.cruiseLine} · ${primaryContext.ship} · ${primaryContext.sailingDate}`
-      : 'No active booking context yet',
-    searchText: [
-      name,
-      customer.email,
-      customer.id,
-      customer.phone,
-      customer.loyaltyNumber,
-      ...contexts.flatMap(context => [context.bookingId, context.cruiseLine, context.ship, context.sailingDate, context.route, context.cabinNumber])
-    ].filter(Boolean).join(' ').toLowerCase()
-  }
-}
-
-function getFinderFilterOptions(options = [], key) {
-  const values = new Set()
-
-  options.forEach(option => {
-    option.contexts.forEach(context => {
-      if (context[key]) values.add(context[key])
-    })
-  })
-
-  return [...values].sort((a, b) => String(a).localeCompare(String(b)))
-}
-
-function finderOptionMatchesFilter(option, filterKey, value) {
-  if (!value) return true
-  return option.contexts.some(context => context[filterKey] === value)
-}
+import PassengerBookingGuestWorkspace from './PassengerBookingGuestWorkspace.jsx'
+import usePassengerBookingWorkflowState from './usePassengerBookingWorkflowState.js'
+import { getSailingLabel } from '../domain/passengerBookingWorkflow.js'
 
 export default function PassengerCruiseBookingWorkflow({
   cruiseLines = [],
@@ -242,290 +10,14 @@ export default function PassengerCruiseBookingWorkflow({
   selectedDemoUser,
   onBookingCreated
 }) {
-  const [selectedCruiseLineId, setSelectedCruiseLineId] = useState('')
-  const [selectedShipId, setSelectedShipId] = useState('')
-  const [selectedSailingId, setSelectedSailingId] = useState('')
-  const [shipOptions, setShipOptions] = useState([])
-  const [sailingOptions, setSailingOptions] = useState([])
-  const [isLoadingShips, setIsLoadingShips] = useState(false)
-  const [isLoadingSailings, setIsLoadingSailings] = useState(false)
-  const [searchFilters, setSearchFilters] = useState({ destination: '', departurePort: '', duration: '', cruiseLine: '' })
-  const [guestDrafts, setGuestDrafts] = useState(() => [buildPrimaryGuestDraft(selectedCustomer, selectedDemoUser)])
-  const [guestSearches, setGuestSearches] = useState({})
-  const [guestFinderFilters, setGuestFinderFilters] = useState({ cruiseLine: '', ship: '', sailingDate: '' })
-  const [cabinNumber, setCabinNumber] = useState('To be assigned')
-  const [fareCode, setFareCode] = useState('STANDARD')
-  const [statusMessage, setStatusMessage] = useState('Select a cruise line, ship, and sailing to start a new booking.')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const selectedPrimaryGuestId = selectedCustomer?.id || selectedDemoUser?.customerId || ''
-
-  useEffect(() => {
-    const nextPrimaryGuest = buildPrimaryGuestDraft(selectedCustomer, selectedDemoUser)
-
-    setGuestDrafts(currentGuests => {
-      if (currentGuests.length === 0) return [nextPrimaryGuest]
-
-      const currentPrimaryGuest = currentGuests[0]
-      const synchronizedPrimaryGuest = {
-        ...currentPrimaryGuest,
-        ...nextPrimaryGuest,
-        diningPreference: currentPrimaryGuest.diningPreference || nextPrimaryGuest.diningPreference,
-        accessibilityNotes: currentPrimaryGuest.accessibilityNotes || '',
-        boardingGroup: currentPrimaryGuest.boardingGroup || nextPrimaryGuest.boardingGroup
-      }
-
-      return [synchronizedPrimaryGuest, ...currentGuests.slice(1)]
-    })
-  }, [
-    selectedPrimaryGuestId,
-    selectedCustomer?.firstName,
-    selectedCustomer?.lastName,
-    selectedCustomer?.email,
-    selectedCustomer?.phone,
-    selectedCustomer?.loyaltyNumber,
-    selectedDemoUser?.displayName,
-    selectedDemoUser?.email
-  ])
-
-  const selectedCruiseLine = cruiseLines.find(line => line.id === selectedCruiseLineId)
-  const selectedShip = shipOptions.find(ship => ship.id === selectedShipId)
-  const selectedSailing = sailingOptions.find(sailing => sailing.id === selectedSailingId)
-
-  const filteredCruiseLines = useMemo(() => {
-    const cruiseLineFilter = normalizeText(searchFilters.cruiseLine)
-    return cruiseLines.filter(line => {
-      if (!cruiseLineFilter) return true
-      return normalizeText(line.name).includes(cruiseLineFilter) || normalizeText(line.country).includes(cruiseLineFilter)
-    }).slice().sort(sortByLabel)
-  }, [cruiseLines, searchFilters.cruiseLine])
-
-  const filteredShipOptions = useMemo(() => {
-    return shipOptions.slice().sort(sortByLabel)
-  }, [shipOptions])
-
-  const filteredSailings = useMemo(() => {
-    const destination = normalizeText(searchFilters.destination)
-    const departurePort = normalizeText(searchFilters.departurePort)
-    const duration = searchFilters.duration
-
-    return sailingOptions.filter(sailing => {
-      const destinationMatches = !destination || normalizeText(`${sailing.arrivalPort} ${sailing.port}`).includes(destination)
-      const departureMatches = !departurePort || normalizeText(sailing.departurePort).includes(departurePort)
-      const durationMatches = !duration || String(sailing.days) === duration
-      return destinationMatches && departureMatches && durationMatches
-    }).slice().sort(sortByDepartureDate)
-  }, [sailingOptions, searchFilters.destination, searchFilters.departurePort, searchFilters.duration])
-
-  const availableFareOptions = useMemo(() => buildFareOptionsForShip(bookings, selectedShip?.name), [bookings, selectedShip?.name])
-  const selectedFareCode = availableFareOptions.some(option => option.value === fareCode) ? fareCode : availableFareOptions[0]?.value || 'STANDARD'
-
-
-  const customerFinderOptions = useMemo(() => customers
-    .map(customer => buildCustomerFinderOption(customer, bookings))
-    .sort((a, b) => a.name.localeCompare(b.name)), [customers, bookings])
-
-  const guestCruiseLineOptions = useMemo(() => getFinderFilterOptions(customerFinderOptions, 'cruiseLine'), [customerFinderOptions])
-  const guestShipOptions = useMemo(() => getFinderFilterOptions(customerFinderOptions, 'ship'), [customerFinderOptions])
-  const guestSailingDateOptions = useMemo(() => getFinderFilterOptions(customerFinderOptions, 'sailingDate'), [customerFinderOptions])
-
-  async function handleCruiseLineChange(value) {
-    setSelectedCruiseLineId(value)
-    setSelectedShipId('')
-    setSelectedSailingId('')
-    setShipOptions([])
-    setSailingOptions([])
-
-    if (!value) {
-      setStatusMessage('Select a cruise line to load available ships.')
-      return
-    }
-
-    setIsLoadingShips(true)
-    setStatusMessage('Loading ships for this cruise line...')
-
-    try {
-      const ships = await getShipsForCruiseLine(value)
-      setShipOptions(Array.isArray(ships) ? ships.slice().sort(sortByLabel) : [])
-      setStatusMessage(ships.length ? 'Choose a ship to load available sailings.' : 'No ships are available for this cruise line yet.')
-    } catch (error) {
-      setStatusMessage(getActionErrorMessage('Could not load ships for the selected cruise line.', error, 'Try again or choose a different cruise line.'))
-    } finally {
-      setIsLoadingShips(false)
-    }
-  }
-
-  async function handleShipChange(value) {
-    setSelectedShipId(value)
-    setSelectedSailingId('')
-    setSailingOptions([])
-
-    if (!value) {
-      setStatusMessage('Select a ship to load sailing dates.')
-      return
-    }
-
-    setIsLoadingSailings(true)
-    setStatusMessage('Loading sailing dates for this ship...')
-
-    try {
-      const sailings = await getSailingsForShip(value)
-      setSailingOptions(Array.isArray(sailings) ? sailings.slice().sort(sortByDepartureDate) : [])
-      setStatusMessage(sailings.length ? 'Choose a sailing date and add guests before booking.' : 'No sailings are available for this ship yet.')
-    } catch (error) {
-      setStatusMessage(getActionErrorMessage('Could not load sailing dates for the selected ship.', error, 'Try again or choose a different ship.'))
-    } finally {
-      setIsLoadingSailings(false)
-    }
-  }
-
-  function updateGuest(index, fieldName, value) {
-    setGuestDrafts(current => current.map((guest, guestIndex) => (
-      guestIndex === index ? { ...guest, [fieldName]: value } : guest
-    )))
-  }
-
-  function addGuest() {
-    setGuestDrafts(current => [...current, buildGuestDraft()])
-  }
-
-  function removeGuest(index) {
-    setGuestDrafts(current => current.filter((_, guestIndex) => guestIndex !== index))
-    setGuestSearches(current => {
-      const next = { ...current }
-      delete next[index]
-      return next
-    })
-  }
-
-  function updateGuestSearch(index, value) {
-    setGuestSearches(current => ({ ...current, [index]: value }))
-  }
-
-  function updateGuestFinderFilter(fieldName, value) {
-    setGuestFinderFilters(current => ({ ...current, [fieldName]: value }))
-  }
-
-  function getVisibleCustomerFinderOptions(index) {
-    const search = normalizeText(guestSearches[index] || '')
-
-    return customerFinderOptions.filter(option => {
-      if (option.customer.id === selectedCustomer?.id || option.customer.id === selectedDemoUser?.customerId) return false
-
-      const matchesSearch = !search || option.searchText.includes(search)
-      const matchesCruiseLine = finderOptionMatchesFilter(option, 'cruiseLine', guestFinderFilters.cruiseLine)
-      const matchesShip = finderOptionMatchesFilter(option, 'ship', guestFinderFilters.ship)
-      const matchesSailingDate = finderOptionMatchesFilter(option, 'sailingDate', guestFinderFilters.sailingDate)
-
-      return matchesSearch && matchesCruiseLine && matchesShip && matchesSailingDate
-    }).slice(0, 8)
-  }
-
-  function selectExistingGuest(index, customerId) {
-    updateGuest(index, 'customerId', customerId)
-    const selectedOption = customerFinderOptions.find(option => option.customer.id === customerId)
-    if (selectedOption) updateGuestSearch(index, selectedOption.name)
-  }
-
-  function validateBookingDraft() {
-    if (guestDrafts.length === 0) {
-      return 'At least one passenger is required before booking.'
-    }
-
-    for (const guest of guestDrafts) {
-      if (guest.customerMode === 'existing' && !guest.customerId) {
-        return 'Each existing guest must select a customer record.'
-      }
-
-      if (guest.customerMode === 'new' && (!guest.firstName.trim() || !guest.lastName.trim() || !guest.email.trim())) {
-        return 'New guests require first name, last name, and email before booking.'
-      }
-
-      if (guest.customerMode === 'new' && !guest.email.includes('@')) {
-        return 'New guest email must be a valid email address before booking.'
-      }
-    }
-
-    if (!selectedCruiseLineId || !selectedShipId || !selectedSailingId || !selectedSailing) {
-      return 'Cruise line, ship, and sailing date are required before booking.'
-    }
-
-    return ''
-  }
-
-  async function resolveGuestCustomer(guest) {
-    if (guest.customerMode === 'existing') {
-      return guest.customerId
-    }
-
-    const newCustomer = normalizeGuestPayload(guest)
-
-    try {
-      await createCustomer(newCustomer)
-      return newCustomer.id
-    } catch (error) {
-      throw new Error(getActionErrorMessage(`Could not create guest profile for ${getGuestLabel(guest)}.`, error, 'Please review the guest details and try again.'))
-    }
-  }
-
-  async function handleSubmit(event) {
-    event.preventDefault()
-    const validationMessage = validateBookingDraft()
-
-    if (validationMessage) {
-      setStatusMessage(validationMessage)
-      return
-    }
-
-    setIsSubmitting(true)
-    setStatusMessage('Creating passenger booking...')
-
-    try {
-      const resolvedPassengerIds = []
-
-      for (const guest of guestDrafts) {
-        resolvedPassengerIds.push(await resolveGuestCustomer(guest))
-      }
-
-      const bookingId = createReadableId('B')
-
-      try {
-        await createBooking({
-          id: bookingId,
-          sailingId: selectedSailingId,
-          bookingStatus: 'REQUESTED',
-          cabinNumber: cabinNumber.trim() || 'To be assigned',
-          fareCode: selectedFareCode,
-          embarkationPort: selectedSailing.departurePort,
-          debarkationPort: selectedSailing.arrivalPort,
-          createdByCustomerId: selectedCustomer?.id || selectedDemoUser?.customerId || resolvedPassengerIds[0],
-          passengers: resolvedPassengerIds.map((customerId, index) => ({
-            customerId,
-            passengerRole: index === 0 ? 'Primary' : (guestDrafts[index].passengerRole || 'Guest'),
-            isPrimaryGuest: index === 0,
-            diningPreference: guestDrafts[index].diningPreference || 'Anytime dining',
-            accessibilityNotes: guestDrafts[index].accessibilityNotes || '',
-            boardingGroup: guestDrafts[index].boardingGroup || (index === 0 ? 'Group A' : 'Group B')
-          }))
-        })
-      } catch (error) {
-        throw new Error(getActionErrorMessage('Booking request was not created.', error, 'Please review the selected sailing and guest details before trying again.'))
-      }
-
-      try {
-        await onBookingCreated?.()
-      } catch (error) {
-        setStatusMessage(getActionErrorMessage(`Booking request ${bookingId} was created, but the booking list could not refresh.`, error, 'Refresh the page to confirm the booking appears.'))
-        return
-      }
-
-      setStatusMessage(`Booking request ${bookingId} created for ${selectedCruiseLine?.name || 'selected cruise line'} on ${selectedShip?.name || 'selected ship'}.`)
-    } catch (error) {
-      setStatusMessage(error.message || 'Passenger booking failed before the booking could be confirmed in the application.')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+  const workflow = usePassengerBookingWorkflowState({
+    cruiseLines,
+    customers,
+    bookings,
+    selectedCustomer,
+    selectedDemoUser,
+    onBookingCreated
+  })
 
   return (
     <section className="role-profile-card passenger-booking-workflow ce-command-card ce-surface-dark" aria-labelledby="react-passenger-booking-heading" data-testid="react-passenger-booking-workflow">
@@ -533,23 +25,23 @@ export default function PassengerCruiseBookingWorkflow({
       <h3 id="react-passenger-booking-heading">Find and book a cruise</h3>
       <p>Search by cruise line, ship, destination, departure port, or sailing length, then add guests and request a booking.</p>
 
-      <form className="passenger-booking-form ce-editor-card ce-surface-light" noValidate onSubmit={handleSubmit} data-testid="react-passenger-booking-form">
+      <form className="passenger-booking-form ce-editor-card ce-surface-light" noValidate onSubmit={workflow.handleSubmit} data-testid="react-passenger-booking-form">
         <div className="booking-search-grid ce-field-grid">
           <label>
             <span>Cruise line search</span>
-            <input value={searchFilters.cruiseLine} onChange={event => setSearchFilters(current => ({ ...current, cruiseLine: event.target.value }))} placeholder="Royal Caribbean, Celebrity, MSC..." data-testid="react-booking-cruise-line-search" />
+            <input value={workflow.searchFilters.cruiseLine} onChange={event => workflow.updateSearchFilter('cruiseLine', event.target.value)} placeholder="Royal Caribbean, Celebrity, MSC..." data-testid="react-booking-cruise-line-search" />
           </label>
           <label>
             <span>Destination</span>
-            <input value={searchFilters.destination} onChange={event => setSearchFilters(current => ({ ...current, destination: event.target.value }))} placeholder="Nassau, Cozumel, Alaska..." data-testid="react-booking-destination-search" />
+            <input value={workflow.searchFilters.destination} onChange={event => workflow.updateSearchFilter('destination', event.target.value)} placeholder="Nassau, Cozumel, Alaska..." data-testid="react-booking-destination-search" />
           </label>
           <label>
             <span>Departure port</span>
-            <input value={searchFilters.departurePort} onChange={event => setSearchFilters(current => ({ ...current, departurePort: event.target.value }))} placeholder="Miami, Port Canaveral..." data-testid="react-booking-departure-port-search" />
+            <input value={workflow.searchFilters.departurePort} onChange={event => workflow.updateSearchFilter('departurePort', event.target.value)} placeholder="Miami, Port Canaveral..." data-testid="react-booking-departure-port-search" />
           </label>
           <label>
             <span>Length</span>
-            <select value={searchFilters.duration} onChange={event => setSearchFilters(current => ({ ...current, duration: event.target.value }))} data-testid="react-booking-duration-filter">
+            <select value={workflow.searchFilters.duration} onChange={event => workflow.updateSearchFilter('duration', event.target.value)} data-testid="react-booking-duration-filter">
               <option value="">Any length</option>
               <option value="3">3 nights</option>
               <option value="4">4 nights</option>
@@ -563,172 +55,60 @@ export default function PassengerCruiseBookingWorkflow({
         <div className="booking-search-grid booking-selection-grid">
           <label>
             <span>Cruise line</span>
-            <select value={selectedCruiseLineId} onChange={event => handleCruiseLineChange(event.target.value)} data-testid="react-booking-cruise-line-select">
+            <select value={workflow.selectedCruiseLineId} onChange={event => workflow.handleCruiseLineChange(event.target.value)} data-testid="react-booking-cruise-line-select">
               <option value="">Select cruise line</option>
-              {filteredCruiseLines.map(line => <option key={line.id} value={line.id}>{line.name}</option>)}
+              {workflow.filteredCruiseLines.map(line => <option key={line.id} value={line.id}>{line.name}</option>)}
             </select>
           </label>
           <label>
             <span>Ship</span>
-            <select value={selectedShipId} disabled={!selectedCruiseLineId || isLoadingShips} onChange={event => handleShipChange(event.target.value)} data-testid="react-booking-ship-select">
-              <option value="">{isLoadingShips ? 'Loading ships...' : 'Select ship'}</option>
-              {filteredShipOptions.map(ship => <option key={ship.id} value={ship.id}>{ship.name}</option>)}
+            <select value={workflow.selectedShipId} disabled={!workflow.selectedCruiseLineId || workflow.isLoadingShips} onChange={event => workflow.handleShipChange(event.target.value)} data-testid="react-booking-ship-select">
+              <option value="">{workflow.isLoadingShips ? 'Loading ships...' : 'Select ship'}</option>
+              {workflow.filteredShipOptions.map(ship => <option key={ship.id} value={ship.id}>{ship.name}</option>)}
             </select>
           </label>
           <label>
             <span>Sailing date</span>
-            <select value={selectedSailingId} disabled={!selectedShipId || isLoadingSailings} onChange={event => setSelectedSailingId(event.target.value)} data-testid="react-booking-sailing-select">
-              <option value="">{isLoadingSailings ? 'Loading sailings...' : 'Select sailing'}</option>
-              {filteredSailings.map(sailing => <option key={sailing.id} value={sailing.id}>{getSailingLabel(sailing)}</option>)}
+            <select value={workflow.selectedSailingId} disabled={!workflow.selectedShipId || workflow.isLoadingSailings} onChange={event => workflow.setSelectedSailingId(event.target.value)} data-testid="react-booking-sailing-select">
+              <option value="">{workflow.isLoadingSailings ? 'Loading sailings...' : 'Select sailing'}</option>
+              {workflow.filteredSailings.map(sailing => <option key={sailing.id} value={sailing.id}>{getSailingLabel(sailing)}</option>)}
             </select>
           </label>
           <label>
             <span>Fare preference</span>
-            <select value={selectedFareCode} onChange={event => setFareCode(event.target.value)} data-testid="react-booking-fare-code-select">
-              {availableFareOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+            <select value={workflow.selectedFareCode} onChange={event => workflow.setFareCode(event.target.value)} data-testid="react-booking-fare-code-select">
+              {workflow.availableFareOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
           </label>
         </div>
 
         <label className="passenger-cabin-field">
           <span>Cabin request</span>
-          <input value={cabinNumber} onChange={event => setCabinNumber(event.target.value)} data-testid="react-booking-cabin-input" />
+          <input value={workflow.cabinNumber} onChange={event => workflow.setCabinNumber(event.target.value)} data-testid="react-booking-cabin-input" />
         </label>
 
-        <div className="passenger-booking-guests ce-editor-card ce-surface-light" data-testid="react-booking-guest-list">
-          <div className="section-heading-row ce-section-heading">
-            <div>
-              <h4>Guests</h4>
-              <p>Use your profile as the primary guest, select existing guests, or add a new guest profile during booking.</p>
-            </div>
-            <button type="button" className="secondary-action-button ce-button-secondary" onClick={addGuest} data-testid="react-booking-add-guest-button">+ Add Guest</button>
-          </div>
+        <PassengerBookingGuestWorkspace
+          addGuest={workflow.addGuest}
+          customers={customers}
+          getVisibleCustomerFinderOptions={workflow.getVisibleCustomerFinderOptions}
+          guestCruiseLineOptions={workflow.guestCruiseLineOptions}
+          guestDrafts={workflow.guestDrafts}
+          guestFinderFilters={workflow.guestFinderFilters}
+          guestSailingDateOptions={workflow.guestSailingDateOptions}
+          guestSearches={workflow.guestSearches}
+          guestShipOptions={workflow.guestShipOptions}
+          removeGuest={workflow.removeGuest}
+          selectExistingGuest={workflow.selectExistingGuest}
+          updateGuest={workflow.updateGuest}
+          updateGuestFinderFilter={workflow.updateGuestFinderFilter}
+          updateGuestSearch={workflow.updateGuestSearch}
+        />
 
-          {guestDrafts.map((guest, index) => (
-            <fieldset className={`passenger-booking-guest-card ce-editor-card ce-surface-light${index === 0 ? ' is-primary-guest' : ' is-additional-guest'}`} key={`guest-${index}`} data-testid="react-booking-guest-card">
-              <legend>{index === 0 ? 'Primary guest' : `Guest ${index + 1}`}</legend>
-              <div className="booking-guest-card-intro">
-                <strong>{index === 0 ? 'Your passenger profile' : 'Choose who is joining this booking'}</strong>
-                <span>{index === 0 ? 'This profile will be the booking owner and primary point of contact.' : 'Select an existing customer or create a new guest profile.'}</span>
-              </div>
-              <div className="booking-search-grid ce-field-grid booking-guest-fields">
-                <label className="booking-guest-source-field">
-                  <span>{index === 0 ? 'Profile source' : 'Guest source'}</span>
-                  <select value={guest.customerMode} disabled={index === 0} onChange={event => updateGuest(index, 'customerMode', event.target.value)} data-testid="react-booking-guest-mode-select">
-                    <option value="existing">{index === 0 ? 'Your passenger profile' : 'Existing customer'}</option>
-                    <option value="new">New guest</option>
-                  </select>
-                </label>
-
-                {guest.customerMode === 'existing' ? (
-                  <div className="booking-guest-finder" data-testid="react-booking-guest-finder">
-                    {index === 0 ? (
-                      <div className="booking-selected-guest-card ce-editor-card ce-surface-light" data-testid="react-booking-selected-guest-card">
-                        <span className="booking-selected-guest-label">Selected profile</span>
-                        <strong>{getGuestLabel(guest)}</strong>
-                        <span>{guest.email || 'Primary passenger profile'}</span>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="booking-guest-finder-controls">
-                          <label className="booking-guest-search-field">
-                            <span>Find existing guest</span>
-                            <input
-                              type="search"
-                              value={guestSearches[index] || ''}
-                              onChange={event => updateGuestSearch(index, event.target.value)}
-                              placeholder="Search by name, email, cruise line, ship, sailing date, or cabin"
-                              data-testid="react-booking-guest-search-input"
-                            />
-                          </label>
-                          <label>
-                            <span>Cruise line</span>
-                            <select value={guestFinderFilters.cruiseLine} onChange={event => updateGuestFinderFilter('cruiseLine', event.target.value)} data-testid="react-booking-guest-cruise-line-filter">
-                              <option value="">All cruise lines</option>
-                              {guestCruiseLineOptions.map(cruiseLine => <option key={cruiseLine} value={cruiseLine}>{cruiseLine}</option>)}
-                            </select>
-                          </label>
-                          <label>
-                            <span>Ship</span>
-                            <select value={guestFinderFilters.ship} onChange={event => updateGuestFinderFilter('ship', event.target.value)} data-testid="react-booking-guest-ship-filter">
-                              <option value="">All ships</option>
-                              {guestShipOptions.map(ship => <option key={ship} value={ship}>{ship}</option>)}
-                            </select>
-                          </label>
-                          <label>
-                            <span>Sailing date</span>
-                            <select value={guestFinderFilters.sailingDate} onChange={event => updateGuestFinderFilter('sailingDate', event.target.value)} data-testid="react-booking-guest-sailing-date-filter">
-                              <option value="">All sailing dates</option>
-                              {guestSailingDateOptions.map(sailingDate => <option key={sailingDate} value={sailingDate}>{sailingDate}</option>)}
-                            </select>
-                          </label>
-                        </div>
-
-                        {guest.customerId && (
-                          <div className="booking-selected-guest-card ce-editor-card ce-surface-light" data-testid="react-booking-selected-guest-card">
-                            <span className="booking-selected-guest-label">Selected guest</span>
-                            <strong>{getCustomerDisplayName(customers.find(customer => customer.id === guest.customerId) || {})}</strong>
-                            <span>{customers.find(customer => customer.id === guest.customerId)?.email || 'Existing customer profile'}</span>
-                          </div>
-                        )}
-
-                        <div className="booking-guest-results" data-testid="react-booking-guest-results">
-                          {getVisibleCustomerFinderOptions(index).length === 0 ? (
-                            <p className="empty-state compact ce-empty-state ce-editor-card ce-surface-light" data-testid="react-booking-guest-finder-empty">No existing guests match the current search.</p>
-                          ) : getVisibleCustomerFinderOptions(index).map(option => (
-                            <button
-                              key={option.customer.id}
-                              type="button"
-                              className={`booking-guest-result-card ce-selector-card ce-command-card${guest.customerId === option.customer.id ? ' selected' : ''}`}
-                              onClick={() => selectExistingGuest(index, option.customer.id)}
-                              data-testid="react-booking-guest-result-card"
-                            >
-                              <span className="booking-guest-result-main ce-selector-card-main">
-                                <strong>{option.name}</strong>
-                                <span>{option.customer.email || 'No email on file'}</span>
-                              </span>
-                              <span className="booking-guest-result-context ce-selector-card-detail">{option.detail}</span>
-                              {option.contexts.length > 0 && (
-                                <span className="booking-guest-result-chips">
-                                  {option.contexts.slice(0, 2).map(context => (
-                                    <span key={`${option.customer.id}-${context.bookingId}`}>{context.ship} · {context.sailingDate}</span>
-                                  ))}
-                                </span>
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  <>
-                    <label><span>First name</span><input value={guest.firstName} onChange={event => updateGuest(index, 'firstName', event.target.value)} data-testid="react-booking-new-guest-first-name" /></label>
-                    <label><span>Last name</span><input value={guest.lastName} onChange={event => updateGuest(index, 'lastName', event.target.value)} data-testid="react-booking-new-guest-last-name" /></label>
-                    <label><span>Email</span><input type="email" value={guest.email} onChange={event => updateGuest(index, 'email', event.target.value)} data-testid="react-booking-new-guest-email" /></label>
-                    <label><span>Phone</span><input value={guest.phone} onChange={event => updateGuest(index, 'phone', event.target.value)} data-testid="react-booking-new-guest-phone" /></label>
-                  </>
-                )}
-
-                <label>
-                  <span>Dining</span>
-                  <select value={guest.diningPreference} onChange={event => updateGuest(index, 'diningPreference', event.target.value)} data-testid="react-booking-guest-dining-select">
-                    {DINING_OPTIONS.map(option => <option key={option} value={option}>{option}</option>)}
-                  </select>
-                </label>
-                <label><span>Accessibility notes</span><input value={guest.accessibilityNotes} onChange={event => updateGuest(index, 'accessibilityNotes', event.target.value)} data-testid="react-booking-guest-accessibility-input" /></label>
-              </div>
-              {index > 0 && <button type="button" className="danger-outline-button ce-button-danger" onClick={() => removeGuest(index)} data-testid="react-booking-remove-guest-button">Remove Guest</button>}
-            </fieldset>
-          ))}
-        </div>
-
-        <button type="submit" className="primary-action-button ce-button-primary" disabled={isSubmitting} data-testid="react-booking-submit-button">
-          {isSubmitting ? 'Creating booking...' : 'Request Booking'}
+        <button type="submit" className="primary-action-button ce-button-primary" disabled={workflow.isSubmitting} data-testid="react-booking-submit-button">
+          {workflow.isSubmitting ? 'Creating booking...' : 'Request Booking'}
         </button>
-        <p className="draft-message ce-feedback-message ce-editor-card ce-surface-light" role="status" aria-live="polite" data-testid="react-booking-status-message">{statusMessage}</p>
+        <p className="draft-message ce-feedback-message ce-editor-card ce-surface-light" role="status" aria-live="polite" data-testid="react-booking-status-message">{workflow.statusMessage}</p>
       </form>
     </section>
   )
 }
-

@@ -1,6 +1,6 @@
 import {
-  getOperationPortfolioStatus,
-  getOperationPortfolioTone
+  getTurnaroundReadinessStatus,
+  getTurnaroundReadinessTone
 } from './operationalDashboardUtils.js'
 
 export function OperationalTurnaroundHero({ focusLine, selectedDemoUser, readinessCount, passengerTotal, highCoordinationCount }) {
@@ -31,57 +31,57 @@ export function OperationalTurnaroundHero({ focusLine, selectedDemoUser, readine
   )
 }
 
-export function OperationsPortfolioBoard({
-  portfolioOperationItems,
+export function TurnaroundFleetBoard({
+  fleetOperationItems,
   selectedOperation,
-  portfolioAverageReadiness,
-  portfolioNeedsAttention,
-  portfolioWatchCount,
-  portfolioOpenEscalations,
+  fleetAverageReadiness,
+  fleetNeedsAttention,
+  fleetWatchCount,
+  fleetOpenEscalations,
   onSelectTurnaround
 }) {
-  if (portfolioOperationItems.length === 0) return null
+  if (fleetOperationItems.length === 0) return null
 
   return (
-    <section className="operations-portfolio-board ce-command-panel" aria-labelledby="operations-portfolio-board-heading" data-testid="react-operations-portfolio-board">
-      <div className="operations-portfolio-heading">
+    <section className="turnaround-fleet-board ce-command-panel" aria-labelledby="turnaround-fleet-board-heading" data-testid="react-turnaround-fleet-board">
+      <div className="turnaround-fleet-heading">
         <div>
-          <p className="eyebrow ce-kicker">Fleet operations portfolio</p>
-          <h4 id="operations-portfolio-board-heading">Turnaround command across active sailings</h4>
+          <p className="eyebrow ce-kicker">Turnaround fleet control</p>
+          <h4 id="turnaround-fleet-board-heading">Turnaround command across active sailings</h4>
           <p>Review every visible turnaround by release readiness, open escalations, blockers, and passenger load before drilling into a single sailing.</p>
         </div>
-        <dl className="operations-portfolio-summary" aria-label="Fleet turnaround summary" data-testid="react-operations-portfolio-summary">
+        <dl className="turnaround-fleet-summary" aria-label="Fleet turnaround summary" data-testid="react-turnaround-fleet-summary">
           <div className="ce-surface-light">
             <dt>Average readiness</dt>
-            <dd>{portfolioAverageReadiness}%</dd>
+            <dd>{fleetAverageReadiness}%</dd>
           </div>
           <div className="ce-surface-light">
             <dt>Needs attention</dt>
-            <dd>{portfolioNeedsAttention}</dd>
+            <dd>{fleetNeedsAttention}</dd>
           </div>
           <div className="ce-surface-light">
             <dt>Watch</dt>
-            <dd>{portfolioWatchCount}</dd>
+            <dd>{fleetWatchCount}</dd>
           </div>
           <div className="ce-surface-light">
             <dt>Open escalations</dt>
-            <dd>{portfolioOpenEscalations}</dd>
+            <dd>{fleetOpenEscalations}</dd>
           </div>
         </dl>
       </div>
-      <div className="operations-portfolio-list" data-testid="react-operations-portfolio-list">
-        {portfolioOperationItems.map(({ operation, metrics }) => {
-          const tone = getOperationPortfolioTone(metrics)
+      <div className="turnaround-fleet-list" data-testid="react-turnaround-fleet-list">
+        {fleetOperationItems.map(({ operation, metrics }) => {
+          const tone = getTurnaroundReadinessTone(metrics)
           return (
             <button
               type="button"
               key={operation.id}
-              className={`operations-portfolio-card ${tone}${operation.id === selectedOperation?.id ? ' active' : ''}`}
+              className={`turnaround-fleet-card ${tone}${operation.id === selectedOperation?.id ? ' active' : ''}`}
               aria-pressed={operation.id === selectedOperation?.id}
               onClick={() => onSelectTurnaround(operation.id)}
-              data-testid="react-operations-portfolio-card"
+              data-testid="react-turnaround-fleet-card"
             >
-              <span className={`operations-portfolio-status ${tone}`}>{getOperationPortfolioStatus(metrics)}</span>
+              <span className={`turnaround-fleet-status ${tone}`}>{getTurnaroundReadinessStatus(metrics)}</span>
               <strong>{operation.title}</strong>
               <span>{operation.shipName} · {operation.port || operation.arrivalPort}</span>
               <dl>

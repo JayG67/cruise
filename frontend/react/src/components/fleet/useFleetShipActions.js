@@ -45,7 +45,9 @@ export default function useFleetShipActions({
     setShipsLoading(true)
 
     try {
-      setSelectedShips(await getShipsForCruiseLine(cruiseLine.id))
+      const ships = await getShipsForCruiseLine(cruiseLine.id)
+      setSelectedShips(ships)
+      return ships
     } catch (loadError) {
       setShipsError(loadError.message || 'Unable to load ships for this cruise line.')
     } finally {

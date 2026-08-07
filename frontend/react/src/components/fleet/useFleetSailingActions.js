@@ -49,7 +49,9 @@ export default function useFleetSailingActions({
     setSailingsLoading(true)
 
     try {
-      setSailings(await getSailingsForShip(ship.id))
+      const nextSailings = await getSailingsForShip(ship.id)
+      setSailings(nextSailings)
+      return nextSailings
     } catch (loadError) {
       setSailingsError(loadError.message || 'No sailings found for this ship yet.')
     } finally {

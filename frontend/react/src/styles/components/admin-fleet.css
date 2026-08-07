@@ -67,7 +67,7 @@ section.fleet-directory-section#react-fleet::after {
   color: #ffffff !important;
   font-size: clamp(2.25rem, 5vw, 4rem) !important;
   font-weight: 950 !important;
-  letter-spacing: -0.055em !important;
+  letter-spacing: 0 !important;
   line-height: 0.98 !important;
   margin: 0 0 0.65rem !important;
   max-width: 780px !important;
@@ -82,6 +82,40 @@ section.fleet-directory-section#react-fleet::after {
   line-height: 1.5 !important;
   position: relative !important;
   z-index: 1 !important;
+}
+
+
+.fleet-directory-section .fleet-refresh-control {
+  align-items: center !important;
+  background: rgba(7, 24, 39, 0.34) !important;
+  border: 1px solid rgba(174, 233, 255, 0.18) !important;
+  border-radius: 1rem !important;
+  display: flex !important;
+  gap: 1rem !important;
+  justify-content: space-between !important;
+  margin: 0 0 0.55rem !important;
+  padding: 0.9rem 1rem !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.fleet-directory-section .fleet-refresh-control > div {
+  display: grid !important;
+  gap: 0.2rem !important;
+}
+
+.fleet-directory-section .fleet-refresh-control strong {
+  color: #ffffff !important;
+  font-weight: 900 !important;
+}
+
+.fleet-directory-section .fleet-refresh-control span {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+.fleet-directory-section .fleet-refresh-status {
+  min-height: 1.5rem !important;
+  margin: 0 0 0.75rem !important;
 }
 
 .fleet-directory-section .fleet-search-control {
@@ -221,5 +255,14 @@ section.fleet-directory-section#react-fleet::after {
   .fleet-directory-section .fleet-heading-row,
   .fleet-directory-section .section-heading-row.fleet-heading-row {
     display: grid !important;
+  }
+
+  .fleet-directory-section .fleet-refresh-control {
+    align-items: stretch !important;
+    display: grid !important;
+  }
+
+  .fleet-directory-section .fleet-refresh-control button {
+    width: 100% !important;
   }
 }

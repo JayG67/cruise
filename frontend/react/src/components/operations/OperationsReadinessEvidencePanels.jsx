@@ -1,4 +1,4 @@
-import { OperationsIncidentOutreachScenarioPanels } from './OperationsIncidentOutreachScenarioPanels.jsx'
+import { OperationsIncidentBriefingScenarioPanels } from './OperationsIncidentBriefingScenarioPanels.jsx'
 import { OperationsMetricsPanel } from './OperationsMetricsPanel.jsx'
 import { OperationsPlaybookPanels } from './OperationsPlaybookPanels.jsx'
 import { OperationsReleasePacketPanel } from './OperationsReleasePacketPanel.jsx'
@@ -12,9 +12,9 @@ export function OperationsReadinessEvidencePanels({ selectedOperation }) {
         playbookTemplate={selectedOperation?.playbookTemplate}
         playbookVariance={selectedOperation?.playbookVariance}
       />
-      <OperationsIncidentOutreachScenarioPanels
+      <OperationsIncidentBriefingScenarioPanels
         incidentCommand={selectedOperation?.incidentCommand}
-        outreachBoard={selectedOperation?.outreachBoard}
+        operationalBriefingBoard={selectedOperation?.outreachBoard}
         scenarioPlan={selectedOperation?.scenarioPlan}
       />
     </>

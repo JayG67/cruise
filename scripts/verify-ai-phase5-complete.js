@@ -10,13 +10,17 @@ const requiredFiles = [
   'tests/unit/aiAdversarialQualitySummary.service.test.js',
   'tests/unit/aiPhaseFiveCompletion.service.test.js',
   'frontend/react/src/components/ReactSqaConsole.jsx',
-  'cypress/react/reactQualityConsole.cy.js'
+  'frontend/react/src/components/AiQualityEvidenceWorkspace.jsx',
+  'cypress/react/reactOperationsIntelligence.cy.js'
 ]
 for (const file of requiredFiles) if (!fs.existsSync(path.join(__dirname, '..', file))) throw new Error(`Missing Phase 5 completion file: ${file}`)
-const qualityConsoleSource = fs.readFileSync(path.join(__dirname, '..', 'frontend/react/src/components/ReactSqaConsole.jsx'), 'utf8')
-const browserCoverageSource = fs.readFileSync(path.join(__dirname, '..', 'cypress/react/reactQualityConsole.cy.js'), 'utf8')
+const qualityConsoleSource = [
+  'frontend/react/src/components/ReactSqaConsole.jsx',
+  'frontend/react/src/components/AiQualityEvidenceWorkspace.jsx'
+].map(file => fs.readFileSync(path.join(__dirname, '..', file), 'utf8')).join('\n')
+const browserCoverageSource = fs.readFileSync(path.join(__dirname, '..', 'cypress/react/reactOperationsIntelligence.cy.js'), 'utf8')
 if (!qualityConsoleSource.includes('react-ai-adversarial-summary-panel')) throw new Error('Quality Console adversarial resilience panel is missing.')
-if (!browserCoverageSource.includes('shows the Phase 5 adversarial resilience release gate')) throw new Error('Phase 5 browser workflow coverage is missing.')
+if (!browserCoverageSource.includes('instead of engineering release controls')) throw new Error('The product boundary excluding engineering release controls is missing browser coverage.')
 
 const completion = assessAiPhaseFiveCompletion()
 const readiness = buildAiPhaseFiveReadiness()

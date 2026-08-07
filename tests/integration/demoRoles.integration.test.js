@@ -6,9 +6,6 @@ const loadCruiseData = require('../../services/loadCruiseData.service')
 
 beforeAll(async () => {
   await initializeDatabase()
-})
-
-beforeEach(async () => {
   await loadCruiseData()
 })
 
@@ -217,6 +214,6 @@ describe('Demo role and user context API integration tests', () => {
     const res = await request(app).get('/cruise/demo-users/UMISSING01/context')
 
     expect(res.statusCode).toBe(404)
-    expect(res.body).toEqual({ message: 'Demo user not found' })
+    expect(res.body).toEqual({ message: 'Assigned person not found' })
   })
 })

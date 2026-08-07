@@ -23,13 +23,18 @@ const requiredFiles = [
 requiredFiles.forEach(relativePath => assert(fs.existsSync(path.join(root, relativePath)), `Missing Phase 2 file: ${relativePath}`))
 
 const routes = read('routes/ai.routes.js')
-const controller = read('controllers/ai.controller.js')
+const controller = [
+  read('controllers/ai.controller.js'),
+  read('controllers/aiBriefing.controller.js'),
+  read('controllers/aiControllerSupport.js')
+].join('\n')
 const status = read('services/aiProgramStatus.service.js')
 const generation = read('services/aiTurnaroundBriefing.service.js')
 const review = read('services/aiTurnaroundBriefingReview.service.js')
 const workspace = read('frontend/react/src/components/operations/AiTurnaroundBriefingWorkspace.jsx')
 const briefingHook = read('frontend/react/src/hooks/useAiTurnaroundBriefing.js')
 const dashboard = read('frontend/react/src/components/operations/OperationalTurnaroundDashboard.jsx')
+const dashboardNavigation = read('frontend/react/src/components/operations/operationalDashboardNavigation.js')
 const packageJson = JSON.parse(read('package.json'))
 
 assert(routes.includes('/turnaround-operations/:operationId/briefing'), 'Missing operation-scoped briefing route.')
@@ -53,7 +58,8 @@ assert(workspace.includes('Briefing history'), 'Briefing workspace must display 
 assert(workspace.includes('Human review'), 'Briefing workspace must provide human review controls.')
 assert(briefingHook.includes('generateOperationalAiBriefing'), 'Briefing hook must orchestrate generation.')
 assert(briefingHook.includes('reviewOperationalAiBriefing'), 'Briefing hook must orchestrate review.')
-assert(dashboard.includes("id: 'ai-briefing'"), 'Operational workspace navigation must include AI Briefing.')
+assert(dashboard.includes("from './operationalDashboardNavigation.js'"), 'Operational dashboard must use the shared workspace navigation model.')
+assert(dashboardNavigation.includes("id: 'ai-briefing'"), 'Operational workspace navigation must include AI Briefing.')
 assert(packageJson.scripts['ai:phase2:test'].includes('aiTurnaroundBriefingReview.service.test.js'), 'Phase 2 test command must include review coverage.')
 assert(packageJson.scripts['ai:phase2:test'].includes('aiTurnaroundBriefingWorkspace.static.test.js'), 'Phase 2 test command must include workspace coverage.')
 

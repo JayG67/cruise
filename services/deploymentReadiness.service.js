@@ -70,7 +70,7 @@ function buildPlatformTargetGate({ files = {}, renderConfig = '', packageJson = 
       checks[4] ? 'Container or compose configuration exists for local infrastructure parity.' : 'Container or compose configuration was not detected.'
     ],
     recommendations: score >= 80
-      ? ['Keep the deployment platform config synchronized with the final public portfolio host.']
+      ? ['Keep the deployment platform configuration synchronized with the selected production host.']
       : ['Choose one public hosting target and commit explicit build, start, and health-check configuration.']
   })
 }
@@ -141,7 +141,7 @@ function buildQualityReleaseGate({ packageJson = {}, files = {} }) {
     hasScript(packageJson, 'browserTests:react'),
     hasScript(packageJson, 'perf:smoke:local') || hasScript(packageJson, 'perf:smoke:ci'),
     hasScript(packageJson, 'lighthouse:ci:local') || hasScript(packageJson, 'lighthouse:ci:ci'),
-    hasScript(packageJson, 'portfolio:audit') || hasFile(files, '.github/workflows')
+    hasScript(packageJson, 'release:source:audit') || hasScript(packageJson, 'production:deployment:audit') || hasFile(files, '.github/workflows')
   ]
   const score = asPercent(checks.filter(Boolean).length, checks.length)
 
@@ -156,40 +156,40 @@ function buildQualityReleaseGate({ packageJson = {}, files = {} }) {
       checks[1] ? 'React browser test gate exists.' : 'React browser test gate is missing.',
       checks[2] ? 'Performance smoke test gate exists.' : 'Performance smoke test gate is missing.',
       checks[3] ? 'Lighthouse CI gate exists.' : 'Lighthouse CI gate is missing.',
-      checks[4] ? 'Portfolio audit or CI workflow exists.' : 'Portfolio audit or CI workflow is missing.'
+      checks[4] ? 'Release source, deployment audit, or CI workflow exists.' : 'Release source, deployment audit, or CI workflow is missing.'
     ],
     recommendations: score >= 90
-      ? ['Capture the final passing release evidence before publishing the portfolio link.']
+      ? ['Capture and retain the final passing release evidence before production deployment.']
       : ['Wire the complete release gate into one repeatable command before public deployment.']
   })
 }
 
-function buildPortfolioLaunchGate({ files = {}, readme = '' }) {
+function buildOperationalReleaseDocumentationGate({ files = {}, readme = '' }) {
   const checks = [
-    containsAny(readme, ['Cruise', 'portfolio']),
+    containsAny(readme, ['Cruise Fleet Operations Platform', 'cruise operations']),
     containsAny(readme, ['turnaround', 'operations']),
     hasFile(files, 'render.yaml') || hasFile(files, 'railway.json') || hasFile(files, 'fly.toml') || containsAny(readme, ['deployment', 'deploy']),
     hasFile(files, 'lhci-report') || hasFile(files, 'lighthouse-report') || containsAny(readme, ['lighthouse']),
-    containsAny(readme, ['screenshot', 'walkthrough', 'architecture', 'recruiter'])
+    containsAny(readme, ['runbook', 'architecture', 'operations', 'verification'])
   ]
   const score = asPercent(checks.filter(Boolean).length, checks.length)
 
   return buildGate({
-    id: 'portfolio-launch',
-    label: 'Portfolio launch packaging',
+    id: 'operational-release-documentation',
+    label: 'Operational release documentation',
     score,
     status: getStatusForScore(score, 80, 55),
-    summary: `${checks.filter(Boolean).length} of ${checks.length} portfolio launch packaging signals are present.`,
+    summary: `${checks.filter(Boolean).length} of ${checks.length} operational release documentation signals are present.`,
     evidence: [
-      checks[0] ? 'README includes project/portfolio positioning.' : 'README needs stronger portfolio positioning.',
+      checks[0] ? 'README identifies the cruise operations platform and its production purpose.' : 'README needs a clear cruise operations platform description.',
       checks[1] ? 'Turnaround operations are represented in project documentation.' : 'Turnaround operations should be highlighted in documentation.',
       checks[2] ? 'Deployment guidance is present.' : 'Deployment guidance is missing.',
       checks[3] ? 'Quality or Lighthouse evidence is represented.' : 'Quality evidence should be captured for launch.',
-      checks[4] ? 'Walkthrough, architecture, or recruiter-facing notes are represented.' : 'Recruiter-facing walkthrough assets still need to be added.'
+      checks[4] ? 'Architecture, operations, verification, or runbook guidance is represented.' : 'Operational runbook and verification guidance still need to be documented.'
     ],
     recommendations: score >= 80
-      ? ['Finalize screenshots, architecture diagrams, and resume bullets after deployment URL is live.']
-      : ['Create a recruiter-facing launch packet with screenshots, architecture diagram, and deployment notes.']
+      ? ['Finalize the production runbook, architecture references, and post-deployment verification record.']
+      : ['Create an operational release packet with architecture context, deployment steps, rollback guidance, and verification evidence.']
   })
 }
 
@@ -206,7 +206,7 @@ function buildDeploymentReadiness(input = {}) {
     buildEnvironmentGate({ files, env, renderConfig, readme }),
     buildDatabaseGate({ files, packageJson, renderConfig, dockerCompose }),
     buildQualityReleaseGate({ packageJson, files }),
-    buildPortfolioLaunchGate({ files, readme })
+    buildOperationalReleaseDocumentationGate({ files, readme })
   ]
 
   const overallScore = asPercent(gates.reduce((sum, gate) => sum + gate.score, 0), gates.length * 100)
@@ -218,10 +218,10 @@ function buildDeploymentReadiness(input = {}) {
     overallScore,
     status: blockers.length ? 'needs-work' : watchItems.length ? 'watch' : 'ready',
     summary: blockers.length
-      ? `${blockers.length} deployment launch blocker${blockers.length === 1 ? '' : 's'} should be resolved before publishing the portfolio URL.`
+      ? `${blockers.length} production release blocker${blockers.length === 1 ? '' : 's'} should be resolved before production deployment.`
       : watchItems.length
-        ? `${watchItems.length} deployment readiness item${watchItems.length === 1 ? '' : 's'} should remain on the launch watchlist.`
-        : 'Deployment readiness is in strong shape for a portfolio launch.',
+        ? `${watchItems.length} production readiness item${watchItems.length === 1 ? '' : 's'} should remain on the release watchlist.`
+        : 'Deployment readiness is in strong shape for production release.',
     gates,
     launchPlan: buildLaunchPlan(gates),
     deploymentTargets: buildDeploymentTargets({ files, renderConfig }),
@@ -238,7 +238,7 @@ function buildLaunchPlan(gates = []) {
       gateId: gate.id,
       title: gate.label,
       status: gate.status,
-      action: gate.recommendations?.[0] || 'Review this deployment gate before launch.'
+      action: gate.recommendations?.[0] || 'Review this deployment gate before production release.'
     }))
 }
 
@@ -249,7 +249,7 @@ function buildDeploymentTargets({ files = {}, renderConfig = '' }) {
       label: 'Render',
       status: hasFile(files, 'render.yaml') ? 'configured' : 'candidate',
       evidence: hasFile(files, 'render.yaml') ? 'render.yaml is present.' : 'Add render.yaml if Render remains the selected host.',
-      nextStep: containsAny(renderConfig, ['healthCheckPath']) ? 'Validate health checks after first deploy.' : 'Add an explicit health check path before launch.'
+      nextStep: containsAny(renderConfig, ['healthCheckPath']) ? 'Validate health checks after the next production release.' : 'Add an explicit health check path before production release.'
     },
     {
       id: 'railway',

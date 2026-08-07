@@ -32,9 +32,8 @@
 .react-role-dashboard .operations-playbook,
 .react-role-dashboard .operations-playbook-variance,
 .react-role-dashboard .operations-incident-command,
-.react-role-dashboard .operations-reviewer-packet,
-.react-role-dashboard .operations-outreach-board,
-.react-role-dashboard .operations-portfolio-board,
+.react-role-dashboard .operations-operational-briefing-board,
+.react-role-dashboard .turnaround-fleet-board,
 .react-role-dashboard .operations-release-board {
   background: linear-gradient(135deg, #082334 0%, #0f5360 52%, #15713f 100%) !important;
   border: 1px solid rgba(125, 211, 252, 0.32) !important;
@@ -51,9 +50,8 @@
 .react-role-dashboard .operations-playbook > *,
 .react-role-dashboard .operations-playbook-variance > *,
 .react-role-dashboard .operations-incident-command > *,
-.react-role-dashboard .operations-reviewer-packet > *,
-.react-role-dashboard .operations-outreach-board > *,
-.react-role-dashboard .operations-portfolio-board > *,
+.react-role-dashboard .operations-operational-briefing-board > *,
+.react-role-dashboard .turnaround-fleet-board > *,
 .react-role-dashboard .operations-release-board > * {
   color: #ffffff !important;
   opacity: 1 !important;
@@ -67,16 +65,15 @@
 .react-role-dashboard .operations-playbook .eyebrow,
 .react-role-dashboard .operations-playbook-variance .eyebrow,
 .react-role-dashboard .operations-incident-command .eyebrow,
-.react-role-dashboard .operations-reviewer-packet .eyebrow,
-.react-role-dashboard .operations-outreach-board .eyebrow,
-.react-role-dashboard .operations-portfolio-board .eyebrow,
+.react-role-dashboard .operations-operational-briefing-board .eyebrow,
+.react-role-dashboard .turnaround-fleet-board .eyebrow,
 .react-role-dashboard .operations-release-board .eyebrow {
   color: #9ee7ff !important;
 }
 
 /* Light tiles/cards: dark readable text */
 .react-role-dashboard .operational-metric-grid > div,
-.react-role-dashboard .operations-portfolio-summary > div,
+.react-role-dashboard .turnaround-fleet-summary > div,
 .react-role-dashboard .operations-release-board-grid > div,
 .react-role-dashboard .operations-lifecycle-details > div,
 .react-role-dashboard .operations-lifecycle-summary > div,
@@ -87,18 +84,16 @@
 .react-role-dashboard .operations-playbook-grid > div,
 .react-role-dashboard .operations-playbook-variance-grid > div,
 .react-role-dashboard .operations-incident-command-grid > div,
-.react-role-dashboard .operations-reviewer-packet-grid > div,
-.react-role-dashboard .operations-outreach-board-grid > div,
-.react-role-dashboard .operations-outreach-board-actions,
-.react-role-dashboard .operations-outreach-board-details,
+.react-role-dashboard .operations-operational-briefing-board-grid > div,
+.react-role-dashboard .operations-operational-briefing-board-actions,
+.react-role-dashboard .operations-operational-briefing-board-details,
 .react-role-dashboard .operations-release-blockers,
 .react-role-dashboard .operations-lifecycle-next-action,
 .react-role-dashboard .operations-lifecycle-story,
 .react-role-dashboard .operations-playbook-details,
 .react-role-dashboard .operations-playbook-variance-actions,
 .react-role-dashboard .operations-incident-command-footer,
-.react-role-dashboard .operations-reviewer-packet-details,
-.react-role-dashboard .operations-outreach-board-narrative {
+.react-role-dashboard .operations-operational-briefing-board-narrative {
   background: #f8fbff !important;
   border: 1px solid #b8cde0 !important;
   color: #0f172a !important;
@@ -107,7 +102,7 @@
 }
 
 .react-role-dashboard .operational-metric-grid > div *,
-.react-role-dashboard .operations-portfolio-summary > div *,
+.react-role-dashboard .turnaround-fleet-summary > div *,
 .react-role-dashboard .operations-release-board-grid > div *,
 .react-role-dashboard .operations-lifecycle-details > div *,
 .react-role-dashboard .operations-lifecycle-summary > div *,
@@ -118,51 +113,47 @@
 .react-role-dashboard .operations-playbook-grid > div *,
 .react-role-dashboard .operations-playbook-variance-grid > div *,
 .react-role-dashboard .operations-incident-command-grid > div *,
-.react-role-dashboard .operations-reviewer-packet-grid > div *,
-.react-role-dashboard .operations-outreach-board-grid > div *,
-.react-role-dashboard .operations-outreach-board-actions *,
-.react-role-dashboard .operations-outreach-board-details *,
+.react-role-dashboard .operations-operational-briefing-board-grid > div *,
+.react-role-dashboard .operations-operational-briefing-board-actions *,
+.react-role-dashboard .operations-operational-briefing-board-details *,
 .react-role-dashboard .operations-release-blockers *,
 .react-role-dashboard .operations-lifecycle-next-action *,
 .react-role-dashboard .operations-lifecycle-story *,
 .react-role-dashboard .operations-playbook-details *,
 .react-role-dashboard .operations-playbook-variance-actions *,
 .react-role-dashboard .operations-incident-command-footer *,
-.react-role-dashboard .operations-reviewer-packet-details *,
-.react-role-dashboard .operations-outreach-board-narrative * {
+.react-role-dashboard .operations-operational-briefing-board-narrative * {
   color: #0f172a !important;
   opacity: 1 !important;
   text-shadow: none !important;
 }
 
 .react-role-dashboard .operational-metric-grid dt,
-.react-role-dashboard .operations-portfolio-summary span,
+.react-role-dashboard .turnaround-fleet-summary span,
 .react-role-dashboard .operations-release-board-grid span,
 .react-role-dashboard .operations-lifecycle-summary span,
 .react-role-dashboard .operations-release-packet-grid span,
 .react-role-dashboard .operations-metrics-signal-grid span,
 .react-role-dashboard .operations-playbook-grid span,
 .react-role-dashboard .operations-incident-command-grid span,
-.react-role-dashboard .operations-reviewer-packet-grid span,
-.react-role-dashboard .operations-outreach-board-grid span {
+.react-role-dashboard .operations-operational-briefing-board-grid span {
   color: #334155 !important;
 }
 
 .react-role-dashboard .operational-metric-grid dd,
-.react-role-dashboard .operations-portfolio-summary strong,
+.react-role-dashboard .turnaround-fleet-summary strong,
 .react-role-dashboard .operations-release-board-grid strong,
 .react-role-dashboard .operations-lifecycle-summary strong,
 .react-role-dashboard .operations-release-packet-grid strong,
 .react-role-dashboard .operations-metrics-signal-grid strong,
 .react-role-dashboard .operations-playbook-grid strong,
 .react-role-dashboard .operations-incident-command-grid strong,
-.react-role-dashboard .operations-reviewer-packet-grid strong,
-.react-role-dashboard .operations-outreach-board-grid strong {
+.react-role-dashboard .operations-operational-briefing-board-grid strong {
   color: #0f172a !important;
 }
 
 /* Dark cards inside dark panels */
-.react-role-dashboard .operations-portfolio-list > *,
+.react-role-dashboard .turnaround-fleet-list > *,
 .react-role-dashboard .operations-release-card,
 .react-role-dashboard .operations-lifecycle-phase:not(.setup):not(.complete):not(.completed),
 .react-role-dashboard .operations-readiness-card {
@@ -171,7 +162,7 @@
   color: #ffffff !important;
 }
 
-.react-role-dashboard .operations-portfolio-list > * *,
+.react-role-dashboard .turnaround-fleet-list > * *,
 .react-role-dashboard .operations-release-card *,
 .react-role-dashboard .operations-lifecycle-phase:not(.setup):not(.complete):not(.completed) *,
 .react-role-dashboard .operations-readiness-card * {
@@ -208,10 +199,11 @@
 
 /* Build 468 - operational role panels use the same dark motif as the role selector.
    This removes the broken white header strips and restores dark card surfaces with
-   readable white text, while preserving white input/metric tiles where appropriate. */
+   readable white text,
+while preserving white input/metric tiles where appropriate. */
 
 /* Primary operational boards: dark admin/selector motif */
-.react-role-dashboard .operations-portfolio-board,
+.react-role-dashboard .turnaround-fleet-board,
 .react-role-dashboard .operations-release-board,
 .react-role-dashboard .operations-lifecycle,
 .react-role-dashboard .operations-release-packet,
@@ -219,8 +211,7 @@
 .react-role-dashboard .operations-playbook,
 .react-role-dashboard .operations-playbook-variance,
 .react-role-dashboard .operations-incident-command,
-.react-role-dashboard .operations-reviewer-packet,
-.react-role-dashboard .operations-outreach-board {
+.react-role-dashboard .operations-operational-briefing-board {
   background: linear-gradient(135deg, #082334 0%, #0f5360 52%, #15713f 100%) !important;
   border: 1px solid rgba(125, 211, 252, 0.35) !important;
   border-radius: 1.25rem !important;
@@ -229,8 +220,9 @@
   overflow: hidden !important;
 }
 
-/* Board headers/copy should sit directly on dark surface, not white strips */
-.react-role-dashboard .operations-portfolio-heading,
+/* Board headers/copy should sit directly on dark surface,
+not white strips */
+.react-role-dashboard .turnaround-fleet-heading,
 .react-role-dashboard .operations-release-board-header,
 .react-role-dashboard .operations-lifecycle-header,
 .react-role-dashboard .operations-release-packet-header,
@@ -238,15 +230,14 @@
 .react-role-dashboard .operations-playbook-header,
 .react-role-dashboard .operations-playbook-variance-header,
 .react-role-dashboard .operations-incident-command-header,
-.react-role-dashboard .operations-reviewer-packet-header,
-.react-role-dashboard .operations-outreach-board-header {
+.react-role-dashboard .operations-operational-briefing-board-header {
   background: transparent !important;
   border: 0 !important;
   color: #ffffff !important;
   box-shadow: none !important;
 }
 
-.react-role-dashboard .operations-portfolio-heading *,
+.react-role-dashboard .turnaround-fleet-heading *,
 .react-role-dashboard .operations-release-board-header *,
 .react-role-dashboard .operations-lifecycle-header *,
 .react-role-dashboard .operations-release-packet-header *,
@@ -254,15 +245,14 @@
 .react-role-dashboard .operations-playbook-header *,
 .react-role-dashboard .operations-playbook-variance-header *,
 .react-role-dashboard .operations-incident-command-header *,
-.react-role-dashboard .operations-reviewer-packet-header *,
-.react-role-dashboard .operations-outreach-board-header * {
+.react-role-dashboard .operations-operational-briefing-board-header * {
   background: transparent !important;
   color: #ffffff !important;
   opacity: 1 !important;
   text-shadow: none !important;
 }
 
-.react-role-dashboard .operations-portfolio-heading .eyebrow,
+.react-role-dashboard .turnaround-fleet-heading .eyebrow,
 .react-role-dashboard .operations-release-board-header .eyebrow,
 .react-role-dashboard .operations-lifecycle-header .eyebrow,
 .react-role-dashboard .operations-release-packet-header .eyebrow,
@@ -270,14 +260,13 @@
 .react-role-dashboard .operations-playbook-header .eyebrow,
 .react-role-dashboard .operations-playbook-variance-header .eyebrow,
 .react-role-dashboard .operations-incident-command-header .eyebrow,
-.react-role-dashboard .operations-reviewer-packet-header .eyebrow,
-.react-role-dashboard .operations-outreach-board-header .eyebrow {
+.react-role-dashboard .operations-operational-briefing-board-header .eyebrow {
   color: #9ee7ff !important;
 }
 
 /* Summary KPI tiles are intentionally light with dark text */
 .react-role-dashboard .operational-metric-grid > div,
-.react-role-dashboard .operations-portfolio-summary > div,
+.react-role-dashboard .turnaround-fleet-summary > div,
 .react-role-dashboard .operations-lifecycle-summary > div,
 .react-role-dashboard .operations-lifecycle-score,
 .react-role-dashboard .operations-release-score {
@@ -288,7 +277,7 @@
 }
 
 .react-role-dashboard .operational-metric-grid > div *,
-.react-role-dashboard .operations-portfolio-summary > div *,
+.react-role-dashboard .turnaround-fleet-summary > div *,
 .react-role-dashboard .operations-lifecycle-summary > div *,
 .react-role-dashboard .operations-lifecycle-score *,
 .react-role-dashboard .operations-release-score * {
@@ -298,7 +287,7 @@
 }
 
 /* Dark nested operational cards match the selected-person/card motif */
-.react-role-dashboard .operations-portfolio-list > *,
+.react-role-dashboard .turnaround-fleet-list > *,
 .react-role-dashboard .operations-release-card,
 .react-role-dashboard .operations-readiness-card,
 .react-role-dashboard .operations-lifecycle-phase:not(.setup):not(.complete):not(.completed),
@@ -307,10 +296,9 @@
 .react-role-dashboard .operations-playbook-details,
 .react-role-dashboard .operations-playbook-variance-actions,
 .react-role-dashboard .operations-incident-command-footer,
-.react-role-dashboard .operations-reviewer-packet-details,
-.react-role-dashboard .operations-outreach-board-actions,
-.react-role-dashboard .operations-outreach-board-details,
-.react-role-dashboard .operations-outreach-board-narrative {
+.react-role-dashboard .operations-operational-briefing-board-actions,
+.react-role-dashboard .operations-operational-briefing-board-details,
+.react-role-dashboard .operations-operational-briefing-board-narrative {
   background: rgba(6, 30, 45, 0.86) !important;
   border: 1px solid rgba(125, 211, 252, 0.35) !important;
   border-radius: 0.95rem !important;
@@ -318,7 +306,7 @@
   box-shadow: none !important;
 }
 
-.react-role-dashboard .operations-portfolio-list > * *,
+.react-role-dashboard .turnaround-fleet-list > * *,
 .react-role-dashboard .operations-release-card *,
 .react-role-dashboard .operations-readiness-card *,
 .react-role-dashboard .operations-lifecycle-phase:not(.setup):not(.complete):not(.completed) *,
@@ -327,10 +315,9 @@
 .react-role-dashboard .operations-playbook-details *,
 .react-role-dashboard .operations-playbook-variance-actions *,
 .react-role-dashboard .operations-incident-command-footer *,
-.react-role-dashboard .operations-reviewer-packet-details *,
-.react-role-dashboard .operations-outreach-board-actions *,
-.react-role-dashboard .operations-outreach-board-details *,
-.react-role-dashboard .operations-outreach-board-narrative * {
+.react-role-dashboard .operations-operational-briefing-board-actions *,
+.react-role-dashboard .operations-operational-briefing-board-details *,
+.react-role-dashboard .operations-operational-briefing-board-narrative * {
   background: transparent !important;
   color: #ffffff !important;
   opacity: 1 !important;
@@ -338,8 +325,8 @@
 }
 
 /* Metric strips inside dark cards remain light and readable */
-.react-role-dashboard .operations-portfolio-list > * dl,
-.react-role-dashboard .operations-portfolio-list > * dl *,
+.react-role-dashboard .turnaround-fleet-list > * dl,
+.react-role-dashboard .turnaround-fleet-list > * dl *,
 .react-role-dashboard .operations-readiness-card dl,
 .react-role-dashboard .operations-readiness-card dl *,
 .react-role-dashboard .operations-release-card [class*="pill"],
@@ -358,8 +345,7 @@
 .react-role-dashboard .operations-playbook-grid > div,
 .react-role-dashboard .operations-playbook-variance-grid > div,
 .react-role-dashboard .operations-incident-command-grid > div,
-.react-role-dashboard .operations-reviewer-packet-grid > div,
-.react-role-dashboard .operations-outreach-board-grid > div {
+.react-role-dashboard .operations-operational-briefing-board-grid > div {
   background: #f8fbff !important;
   border: 1px solid #b8cde0 !important;
   color: #0f172a !important;
@@ -373,8 +359,7 @@
 .react-role-dashboard .operations-playbook-grid > div *,
 .react-role-dashboard .operations-playbook-variance-grid > div *,
 .react-role-dashboard .operations-incident-command-grid > div *,
-.react-role-dashboard .operations-reviewer-packet-grid > div *,
-.react-role-dashboard .operations-outreach-board-grid > div * {
+.react-role-dashboard .operations-operational-briefing-board-grid > div * {
   color: #0f172a !important;
   opacity: 1 !important;
   text-shadow: none !important;

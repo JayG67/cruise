@@ -18,7 +18,7 @@
 @import './hero.css';
 @import './role-dashboard.css';
 @import './admin-workspaces.css';
-@import './admin-presentation.css';
+@import './cruise-line-operations.css';
 @import './operations-timeline.css';
 @import './operations-workspaces.css';
 @import './operations-queues.css';
@@ -32,3 +32,9 @@
 @import './contrast-hardening.css';
 
 @import './operations-ai-briefing.css';
+
+@import './operations-intelligence.css';
+
+@import './display-heading-typography.css';
+
+@import './admin-home-layout-consistency.css';

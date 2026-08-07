@@ -127,6 +127,15 @@
   grid-column: 1 / -1;
 }
 
+.admin-progressive-selector-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.admin-progressive-selector-grid select {
+  min-width: 0;
+  width: 100%;
+}
+
 .react-admin-management-card .fleet-danger-action {
   background: rgba(255, 255, 255, 0.94);
   border-color: rgba(255, 255, 255, 0.8);
@@ -146,26 +155,26 @@
   grid-template-columns: minmax(0, 1fr) !important;
 }
 
-.employer-demo-command-center.self-guided-overview {
+.platform-workspace-navigator.self-guided-overview {
   background: linear-gradient(135deg, #123a52 0%, #155a63 58%, #1b6f43 100%) !important;
   color: #ffffff !important;
 }
 
-.employer-demo-command-center.self-guided-overview .self-guided-tour-card,
-.employer-demo-command-center.self-guided-overview .self-guided-proof-card {
+.platform-workspace-navigator.self-guided-overview .self-guided-tour-card,
+.platform-workspace-navigator.self-guided-overview .self-guided-proof-card {
   background: rgba(6, 28, 43, 0.72) !important;
   border-color: rgba(191, 230, 255, 0.28) !important;
   color: #ffffff !important;
 }
 
-.employer-demo-command-center.self-guided-overview p,
-.employer-demo-command-center.self-guided-overview strong,
-.employer-demo-command-center.self-guided-overview span,
-.employer-demo-command-center.self-guided-overview h2 {
+.platform-workspace-navigator.self-guided-overview p,
+.platform-workspace-navigator.self-guided-overview strong,
+.platform-workspace-navigator.self-guided-overview span,
+.platform-workspace-navigator.self-guided-overview h2 {
   color: #ffffff !important;
 }
 
-.employer-demo-step-button {
+.platform-workspace-step-button {
   white-space: nowrap;
 }
 
@@ -387,26 +396,26 @@
 /* CSS Foundation Refactor Phase 20: Build 437-448 admin workspace width, panel, form-control, and quality-console compatibility rules moved to layered component CSS. */
 
 /* Slice 35: make overview cards readable instead of forcing copy into narrow columns. */
-.employer-demo-command-center .self-guided-tour-list {
+.platform-workspace-navigator .self-guided-tour-list {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
 }
 
-.employer-demo-command-center .self-guided-tour-card {
+.platform-workspace-navigator .self-guided-tour-card {
   align-items: start;
   grid-template-columns: 1fr;
   min-width: 0;
 }
 
-.employer-demo-command-center .self-guided-tour-card > div,
-.employer-demo-command-center .self-guided-tour-card strong,
-.employer-demo-command-center .self-guided-tour-card p {
+.platform-workspace-navigator .self-guided-tour-card > div,
+.platform-workspace-navigator .self-guided-tour-card strong,
+.platform-workspace-navigator .self-guided-tour-card p {
   min-width: 0;
   overflow-wrap: normal;
   word-break: normal;
 }
 
-.employer-demo-command-center .self-guided-tour-card .button-link,
-.employer-demo-command-center .self-guided-tour-card button {
+.platform-workspace-navigator .self-guided-tour-card .button-link,
+.platform-workspace-navigator .self-guided-tour-card button {
   justify-self: start;
   white-space: nowrap;
   width: fit-content;

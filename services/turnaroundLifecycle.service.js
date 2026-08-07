@@ -58,8 +58,8 @@ const TURNAROUND_LIFECYCLE_PHASES = [
     id: 'completed',
     label: 'Completed',
     weight: 10,
-    description: 'All critical workstreams are complete and the operation is ready for executive/reviewer demonstration.',
-    guidance: 'Package the completed lifecycle as the flagship five-minute demo path.'
+    description: 'All critical workstreams are complete and the operation is ready for executive operational review.',
+    guidance: 'Publish the completed lifecycle record for executive operational review and repeatable closeout.'
   }
 ]
 
@@ -335,7 +335,7 @@ function buildTurnaroundLifecycleState({ operation = {}, tasks = [], staffing = 
   ].slice(0, 8)
 
   const storyBeats = [
-    completed ? 'Turnaround is complete and ready to show as the flagship reviewer scenario.' : `Current phase: ${currentPhase.label}.`,
+    completed ? 'Turnaround is complete and ready for executive operational review.' : `Current phase: ${currentPhase.label}.`,
     `${completedTasks}/${totalTasks} tasks complete with ${blockedTasks} blocked.`,
     `${approvedSignoffs}/${totalSignoffs} department signoffs approved.`,
     `${openDependencies} dependencies, ${openHandoffs} handoffs, and ${openEscalations} escalations remain open.`
@@ -368,7 +368,7 @@ function buildTurnaroundLifecycleState({ operation = {}, tasks = [], staffing = 
     departmentReadiness: departmentReadiness.slice(0, 8),
     storyBeats,
     nextBestAction: completed
-      ? 'Use this completed turnaround as the flagship demo path for executive/reviewer presentation.'
+      ? 'Use this completed turnaround as the verified reference for executive operational review and future closeout planning.'
       : finalBlockers[0]?.detail || currentPhase.guidance,
     completionLanguage: completed
       ? 'All lifecycle gates are complete.'

@@ -183,7 +183,7 @@
 
 /* CSS Foundation Refactor Slice 28: staffing, escalation, and readiness workspace CSS moved to components/operations-workspaces.css. */
 /* CSS Foundation Refactor Slice 29: operations release board, portfolio, audit trail, release packet, playbook variance, and incident command CSS moved to layered component CSS. */
-/* CSS Foundation Refactor Slice 30: operations evidence, lifecycle, production-readiness, and application dossier CSS moved to components/operations-dashboard.css. */
+/* CSS Foundation Refactor Slice 30: operations evidence, lifecycle, production-readiness, and operational release dossier CSS moved to components/operations-dashboard.css. */
 /* Phase 21 CSS retirement: retired operations-presentation guide selectors removed from legacy app.css. */
 /* Slice 314: remove presentation overlap and make the overview self-guided instead of recruiter-hostile. */
 .production-hero {

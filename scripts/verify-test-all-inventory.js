@@ -23,6 +23,16 @@ function walkFiles(directory, predicate, results = []) {
   return results.sort()
 }
 
+
+function getWorkflowNpmScripts(workflowDirectory) {
+  return walkFiles(workflowDirectory, file => /\.ya?ml$/.test(file))
+    .flatMap(relativePath => {
+      const content = fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
+      return [...content.matchAll(/npm\s+run\s+([A-Za-z0-9:_-]+)/g)]
+        .map(match => ({ relativePath, scriptName: match[1] }))
+    })
+}
+
 function assert(condition, message) {
   if (!condition) {
     throw new Error(message)
@@ -53,6 +63,7 @@ const retiredPlaywrightSpecs = [
 ]
 const reactMobileSpec = path.join(projectRoot, 'playwright/mobile/react-production-mobile.spec.js')
 const reactResponsiveSpec = path.join(projectRoot, 'playwright/responsive/react-production-responsive.spec.js')
+const workflowNpmScripts = getWorkflowNpmScripts(path.join(projectRoot, '.github/workflows'))
 
 assert(jestTests.length > 0, 'No Jest tests were found under tests/**/*.test.js.')
 assert(reactCypressSpecs.length >= 20, `React Cypress application coverage requires at least 20 specs under cypress/react/**/*.cy.js; found ${reactCypressSpecs.length}.`)
@@ -61,6 +72,18 @@ assert(fs.existsSync(reactResponsiveSpec), 'React responsive Playwright spec was
 assert(retiredCypressSpecs.length === 0, `Retired Cypress specs should be removed from cypress/e2e; found ${retiredCypressSpecs.length}.`)
 assert(retiredPlaywrightSpecs.length === 0, `Retired Playwright specs should be removed; found ${retiredPlaywrightSpecs.join(', ')}.`)
 
+for (const { relativePath, scriptName } of workflowNpmScripts) {
+  assert(
+    typeof packageJson.scripts?.[scriptName] === 'string',
+    `${relativePath} references undefined package script: ${scriptName}`
+  )
+}
+
+assertScriptIncludes(packageJson, 'test:all', 'npm run repo:repair')
+assert(
+  packageJson.scripts['test:all'].startsWith('npm run repo:repair && npm run test:inventory:audit'),
+  'test:all must repair known obsolete files before auditing the repository and test inventory.'
+)
 assertScriptIncludes(packageJson, 'test:all', 'npm run test:inventory:audit')
 assertScriptIncludes(packageJson, 'test:all', 'npm run react:production:complete')
 assertScriptIncludes(packageJson, 'test:all', 'npm run release:source:audit')
@@ -73,9 +96,9 @@ assertScriptIncludes(packageJson, 'test:all', 'npm run lighthouse:ci:local')
 assertScriptExcludes(packageJson, 'test:all', 'retired')
 assertScriptExcludes(packageJson, 'test:all', 'production release')
 
-assertScriptIncludes(packageJson, 'uiTests', 'uiTests:react')
-assertScriptIncludes(packageJson, 'uiTests:ci', 'uiTests:react')
-assertScriptIncludes(packageJson, 'cypress:run', 'cypress/react/**/*.cy.js')
+assert(!packageJson.scripts?.uiTests, 'Redundant uiTests alias should not be defined.')
+assert(!packageJson.scripts?.['uiTests:ci'], 'Redundant uiTests:ci alias should not be defined.')
+assert(!packageJson.scripts?.['cypress:run'], 'Redundant cypress:run alias should not be defined.')
 assertScriptIncludes(packageJson, 'cypress:run:react', 'cypress/react/**/*.cy.js')
 assertScriptIncludes(packageJson, 'playwright:mobile:react', 'playwright/mobile/react-production-mobile.spec.js')
 assertScriptIncludes(packageJson, 'playwright:mobile:ci', 'playwright/mobile/react-production-mobile.spec.js')
@@ -90,6 +113,9 @@ assertScriptIncludes(packageJson, 'browserTests:react:run', 'playwright:mobile:r
 assertScriptIncludes(packageJson, 'browserTests:react:run', 'playwright:responsive:run')
 assertScriptIncludes(packageJson, 'react:production:complete', 'verify-react-production-complete.js')
 assertScriptIncludes(packageJson, 'react:production:audit', 'react:production:complete')
+assertScriptIncludes(packageJson, 'coverage:ci', 'jest --coverage --runInBand')
+assertScriptExcludes(packageJson, 'coverage:ci', 'tests/unit')
+assertScriptExcludes(packageJson, 'coverage:ci', 'tests/integration')
 
 for (const forbidden of [
   'retired:quarantine:audit',

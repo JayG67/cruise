@@ -53,13 +53,13 @@ describe('Playwright React coverage inventory', () => {
   })
 
 
-  it('keeps tests serial within each mobile browser while allowing browser projects to use two workers', () => {
+  it('keeps mobile CI serialized across browser projects while retaining two local workers', () => {
     const config = fs.readFileSync(mobileConfigPath, 'utf8')
     const helpers = fs.readFileSync(playwrightHelperPath, 'utf8')
 
     expect(config).toContain('fullyParallel: false')
-    expect(config).toContain('workers: 2')
-    expect(config).toContain('browser projects can execute concurrently')
+    expect(config).toContain('workers: process.env.CI ? 1 : 2')
+    expect(config).toContain('CI also serializes the')
     expect(helpers).toContain('if (expectedText || userId)')
     expect(helpers).toContain('return selectedUserMatches || summaryMatches')
   })
@@ -107,7 +107,7 @@ describe('Playwright React coverage inventory', () => {
     const styles = readCssBundle(path.join(projectRoot, 'frontend/react/src/styles/components/index.css'))
 
     expect(mobileReactSpec).toContain('react-workspace-card-grid')
-    expect(mobileReactSpec).toContain('react-workspace-quality-button')
+    expect(mobileReactSpec).toContain('react-workspace-intelligence-button')
     expect(styles).toContain('min-height')
     expect(styles).toContain('.workflow-step-button')
   })

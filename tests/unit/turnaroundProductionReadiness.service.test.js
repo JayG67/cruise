@@ -41,7 +41,7 @@ describe('turnaroundProductionReadiness service', () => {
     })
 
     expect(cockpit.productionScore).toBeGreaterThanOrEqual(80)
-    expect(cockpit.productionStatus).toMatch(/PRODUCTION_DEMO_READY|READY_WITH_WATCH_ITEMS/)
+    expect(cockpit.productionStatus).toMatch(/OPERATIONALLY_READY|READY_WITH_WATCH_ITEMS/)
     expect(cockpit.gates.map(gate => gate.id)).toEqual(expect.arrayContaining([
       'release-certification',
       'workflow-completion',
@@ -50,7 +50,7 @@ describe('turnaroundProductionReadiness service', () => {
       'launch-plan',
       'scenario-resilience',
       'management-maturity',
-      'reviewer-package'
+      'governance-evidence'
     ]))
     expect(cockpit.runbook.map(step => step.id)).toEqual(expect.arrayContaining([
       'reset-baseline',
@@ -58,12 +58,12 @@ describe('turnaroundProductionReadiness service', () => {
       'prove-passenger-path',
       'prove-command-path',
       'prove-lead-paths',
-      'prove-reviewer-path'
+      'confirm-governance-path'
     ]))
     expect(cockpit.testingContract.map(item => item.layer)).toEqual(expect.arrayContaining(['Cypress', 'Playwright', 'Jest integration']))
   })
 
-  it('surfaces blockers instead of hiding weak production-demo evidence', () => {
+  it('surfaces blockers instead of hiding weak operational-release evidence', () => {
     const inputs = buildReadinessInputs({
       operation,
       tasks: [{ id: 'task-1', status: 'BLOCKED' }],

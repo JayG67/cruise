@@ -38,22 +38,45 @@ describe('Cruise operations product presentation guardrails', () => {
     expect(app).not.toContain('sendRetiredApp')
     expect(packageJson.scripts['test:all']).toContain('browserTests:react')
     expect(packageJson.scripts['browserTests:react']).toContain('start:test')
-    expect(packageJson.scripts['uiTests:ci']).toBe('npm run uiTests:react:ci')
+    expect(packageJson.scripts['uiTests:ci']).toBeUndefined()
+    expect(packageJson.scripts['uiTests:react:ci']).toContain('cypress:run:react')
   })
 
   it('removes user-facing retired implementation-history calls to action from the production React shell', () => {
     const app = read('frontend/react/src/App.jsx')
 
-    expect(app).toContain('Explore Overview')
-    expect(app).toContain('Open Quality Console')
+    expect(app).toContain('Explore Platform')
+    expect(app).toContain('Review Operations Intelligence')
     expect(app).toContain('data-testid="react-hero-demo-button"')
-    expect(app).toContain('data-testid="react-hero-quality-button"')
-    expect(app).toContain("openWorkspace('react-employer-demo', 'Employer Demo Command Center')")
-    expect(app).toContain("openWorkspace('react-quality', 'Quality Console', 'admin')")
+    expect(app).toContain('data-testid="react-hero-intelligence-button"')
+    expect(app).toContain("openWorkspace('react-platform-overview', 'Platform Overview')")
+    expect(app).toContain("openWorkspace('react-operations-intelligence', 'Operations Intelligence', 'admin')")
     expect(app).not.toContain('Open Retired Pre-React App')
     expect(app).not.toContain('href="/retired"')
     expect(app).not.toMatch(new RegExp(['migr', 'at'].join(''), 'i'))
     expect(app).not.toContain(['React', 'RouteNav'].join(''))
+  })
+
+  it('keeps active operational outputs free of portfolio and reviewer presentation language', () => {
+    const activeSources = [
+      read('services/turnaroundLifecycle.service.js'),
+      read('services/turnaroundOperationalAssurance.service.js'),
+      read('services/turnaroundProductionReadiness.service.js')
+    ].join('\n').toLowerCase()
+
+    for (const forbiddenPhrase of [
+      'production demo',
+      'production-demo',
+      'reviewer demo',
+      'reviewer scenario',
+      'demo path',
+      'demonstration path',
+      'demonstration scenario',
+      'cruise-line outreach',
+      'reviewer-safe'
+    ]) {
+      expect(activeSources).not.toContain(forbiddenPhrase)
+    }
   })
 
   it('removes retired implementation-history panel source files from the React bundle source tree', () => {
@@ -77,41 +100,63 @@ describe('Cruise operations product presentation guardrails', () => {
     }
   })
 
-  it('keeps the quality console visible as a first-class product feature', () => {
+  it('keeps engineering quality evidence out of the product while preserving repository verification assets', () => {
     const app = read('frontend/react/src/App.jsx')
-    const sqaConsole = read('frontend/react/src/components/ReactSqaConsole.jsx')
+    const intelligence = read('frontend/react/src/components/OperationsIntelligenceCenter.jsx')
+    const validationWorkspace = read('frontend/react/src/components/QualityValidationWorkspace.jsx')
 
-    expect(app).toContain('<ReactSqaConsole')
-    expect(app).toContain('Open Quality Console')
-    expect(sqaConsole).toContain('Quality Console')
-    expect(sqaConsole).toContain('View Quality Dashboard')
-    expect(sqaConsole).toContain('https://jayg67.github.io/cruise/')
-    expect(sqaConsole).toContain('https://jayg67.github.io/cruise/lighthouse/')
-    expect(sqaConsole).toContain('https://jayg67.github.io/cruise/coverage/')
-    expect(sqaConsole).toContain('target="_blank"')
-    expect(sqaConsole).toContain('rel="noopener noreferrer"')
-    expect(sqaConsole).toContain('Run Performance Check')
+    expect(app).toContain('<OperationsIntelligenceCenter')
+    expect(app).not.toContain('<ReactSqaConsole')
+    expect(app).toContain('Review Operations Intelligence')
+    expect(intelligence).toContain('Prioritize the turnarounds that need action')
+    expect(intelligence).toContain('Review team setup')
+    expect(intelligence).toContain('Open operational role workspace')
+    expect(validationWorkspace).toContain('View Quality Dashboard')
+    expect(validationWorkspace).toContain('https://jayg67.github.io/cruise/')
+    expect(validationWorkspace).toContain('https://jayg67.github.io/cruise/lighthouse/')
+    expect(validationWorkspace).toContain('https://jayg67.github.io/cruise/coverage/')
   })
 
   it('keeps the live React client resilient when a static host returns HTML for API routes', () => {
-    const client = read('frontend/react/src/api/client.js')
+    const client = [read('frontend/react/src/api/client.js'), read('frontend/react/src/api/httpClient.js')].join('\n')
+    const staticFallback = read('frontend/react/src/api/staticFallback.js')
+    const staticFallbackData = read('frontend/react/src/api/staticFallbackData.js')
+    const staticFallbackReadiness = read('frontend/react/src/api/staticFallbackReadiness.js')
     const bundledDataPath = path.join(projectRoot, 'data/cruise.json')
     const bundledData = JSON.parse(fs.readFileSync(bundledDataPath, 'utf8'))
 
     expect(client).toContain('class ApiResponseFormatError extends Error')
-    expect(client).toContain("const STATIC_DATA_URL = '/data/cruise.json'")
+    expect(client).toContain("import { requestStaticFallback } from './staticFallback'")
+    expect(staticFallbackData).toContain("export const STATIC_DATA_URL = '/data/cruise.json'")
     expect(fs.existsSync(path.join(projectRoot, 'frontend/react/public/data/cruise.json'))).toBe(false)
     expect(client).toContain('requestStaticFallback(path, options)')
-    expect(client).toContain("path === '/cruise/bookings'")
-    expect(client).toContain('normalizeStaticBookings(seedData)')
-    expect(client).toContain('normalizeStaticCruiseLines(seedData)')
-    expect(client).toContain('getStaticShipsForCruiseLine(seedData')
+    expect(staticFallback).toContain("requestPath === '/cruise/bookings'")
+    expect(staticFallbackData).toContain('export function normalizeStaticBookings(seedData)')
+    expect(staticFallbackData).toContain('export function normalizeStaticCruiseLines(seedData)')
+    expect(staticFallbackData).toContain('export function getStaticShipsForCruiseLine(seedData')
+    expect(staticFallbackReadiness).toContain("status: 'ready'")
+    expect(staticFallbackReadiness).not.toContain('before launch')
+    expect(staticFallbackReadiness).not.toContain('Start the API')
     expect(client).not.toContain('React Vite proxy is configured for local preview')
     expect(bundledData.customers.length).toBeGreaterThan(0)
     expect(bundledData.bookings.length).toBeGreaterThan(0)
     expect(bundledData.demoUsers.length).toBeGreaterThan(0)
   })
 
+
+  it('keeps active operational surfaces free of reviewer and pre-release project language', () => {
+    const operationalSources = [
+      read('frontend/react/src/components/operations/OperationsLaunchCloseoutPanels.jsx'),
+      read('services/dataArchitectureReadiness.service.js'),
+      read('services/deploymentReadiness.service.js')
+    ].join('\n').toLowerCase()
+
+    expect(operationalSources).not.toContain('reviewer-ready')
+    expect(operationalSources).not.toContain('reviewer and closeout')
+    expect(operationalSources).not.toContain('before launch')
+    expect(operationalSources).not.toContain('first deploy')
+    expect(operationalSources).not.toContain('launch watchlist')
+  })
 
   it('serves the single root seed data file and shared public assets to the React app', () => {
     const app = read('app.js')
@@ -145,7 +190,7 @@ test('top navigation avoids duplicate current-location and workspace links', () 
   const appSource = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/App.jsx'), 'utf8')
 
   expect(appSource).not.toContain('href="#react-dashboard">Dashboard</a>')
-  expect(appSource).not.toContain('href="#react-employer-demo">Workspaces</a>')
-  expect(appSource).toContain('href="#react-employer-demo">Overview</a>')
+  expect(appSource).toContain('href="#react-platform-overview">Overview</a>')
+  expect(appSource).toContain('href="#react-platform-overview">Workspaces</a>')
   expect(appSource).toContain('Cruise Fleet Operations Platform')
 })

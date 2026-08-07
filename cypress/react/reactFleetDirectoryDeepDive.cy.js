@@ -27,6 +27,39 @@ describe('React fleet directory deep coverage expansion', () => {
     cy.getByTestId(rs.deleteCruiseLineButton).should('have.length', reactCruiseLines.length)
   })
 
+  it('refreshes fleet data with visible progress and completion feedback', () => {
+    const refreshedCruiseLines = [
+      ...reactCruiseLines,
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        name: 'Refreshed Ocean Cruises',
+        country: 'United States',
+        website: 'https://example.com/refreshed-ocean'
+      }
+    ]
+
+    cy.intercept('GET', '/cruise', req => {
+      req.on('response', response => {
+        response.setDelay(250)
+      })
+      req.reply(refreshedCruiseLines)
+    }).as('refreshFleetDirectory')
+
+    cy.getByTestId(rs.fleetRefreshControl).should('be.visible')
+    cy.get('.fleet-heading-row').then($heading => {
+      cy.getByTestId(rs.fleetRefreshControl).then($control => {
+        expect($control[0].getBoundingClientRect().top).to.be.at.least($heading[0].getBoundingClientRect().bottom)
+      })
+    })
+
+    cy.getByTestId(rs.fleetRefreshButton).click().should('be.disabled').and('contain.text', 'Refreshing fleet')
+    cy.getByTestId(rs.fleetRefreshStatus).should('contain.text', 'Refreshing fleet data')
+    cy.wait('@refreshFleetDirectory')
+    cy.getByTestId(rs.fleetRefreshStatus).should('contain.text', 'Fleet refreshed. 4 cruise lines loaded.')
+    cy.getByTestId(rs.fleetCard).should('have.length', refreshedCruiseLines.length)
+    cy.getByTestId(rs.fleetDirectory).should('contain.text', 'Refreshed Ocean Cruises')
+  })
+
   it('clears fleet search and restores the full React fleet', () => {
     cy.getByTestId(rs.fleetSearch).type('Princess')
     cy.getByTestId(rs.fleetCard).should('have.length', 1)

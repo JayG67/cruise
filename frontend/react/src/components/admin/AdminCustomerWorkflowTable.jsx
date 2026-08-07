@@ -36,7 +36,7 @@ export default function AdminCustomerWorkflowTable({
   return (
     <div id="react-customer-workflow-table" className="react-admin-table-wrap ce-editor-card" data-testid="react-customer-workflow-table">
       <div className="react-admin-table-heading">
-        <strong>Customer records with linked bookings</strong>
+        <strong id="react-customer-workflow-heading">Customer records with linked bookings</strong>
         <span>Showing {summary.customerCount} customer workflows with linked bookings available as expandable child rows.</span>
       </div>
 
@@ -55,7 +55,7 @@ export default function AdminCustomerWorkflowTable({
           {!hasActiveHierarchySearch && hiddenWorkflowRowCount > 0 && (
             <p className="result-summary compact" role="status" data-testid="react-customer-workflow-render-limit">Showing the first {visibleWorkflowRows.length} customer workflows. Use search to load a specific customer quickly.</p>
           )}
-          <div className="table-scroll react-admin-table-scroll" tabIndex="0">
+          <div className="table-scroll react-admin-table-scroll" role="region" aria-labelledby="react-customer-workflow-heading" tabIndex="0">
             <table className="react-admin-table">
               <caption>Admin-visible customers with expandable linked bookings and booking details</caption>
               <thead><tr data-testid="react-customer-header-row"><th scope="col">Customer</th><th scope="col">Email</th><th scope="col">Phone</th><th scope="col">Loyalty</th><th scope="col">Bookings</th><th scope="col">Actions</th></tr></thead>

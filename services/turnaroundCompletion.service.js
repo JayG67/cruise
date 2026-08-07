@@ -19,7 +19,7 @@ function buildCapabilityStatus({ id, label, score = 0, status = 'REVIEW', detail
   const normalizedScore = clampScore(score)
   let normalizedStatus = status
   if (!normalizedStatus || normalizedStatus === 'REVIEW') {
-    normalizedStatus = normalizedScore >= 90 ? 'COMPLETE' : normalizedScore >= 78 ? 'PRODUCTION_DEMO_READY' : normalizedScore >= 62 ? 'HARDENING' : 'NEEDS_WORK'
+    normalizedStatus = normalizedScore >= 90 ? 'COMPLETE' : normalizedScore >= 78 ? 'OPERATIONALLY_READY' : normalizedScore >= 62 ? 'IMPROVEMENT_IN_PROGRESS' : 'ACTION_REQUIRED'
   }
 
   return {
@@ -74,14 +74,14 @@ function buildTurnaroundCapabilityMap({
       id: 'role-scoped-command',
       label: 'Role-scoped command center',
       score: operation.id ? 95 : 70,
-      detail: 'Turnaround managers and department leads can assume demo roles while operational data remains scoped to the selected assignment.',
-      evidence: ['Demo role assumption remains enabled', 'Selected operation drives command context', 'Operational users do not receive admin CRUD controls']
+      detail: 'Turnaround managers and department leads can assume assigned operating roles while operational data remains scoped to the selected assignment.',
+      evidence: ['Assigned-role access remains enabled', 'Selected operation drives command context', 'Operational users do not receive admin CRUD controls']
     }),
     buildCapabilityStatus({
       id: 'workflow-crud',
       label: 'Operational workflow CRUD',
       score: Math.round((taskCompletion * 0.35) + (staffingCoverage * 0.2) + (dependencyCompletion * 0.15) + (handoffCompletion * 0.15) + (signoffCompletion * 0.15)),
-      detail: 'Tasks, staffing, dependencies, handoffs, escalations, and signoffs are live workflow objects rather than static demo text.',
+      detail: 'Tasks, staffing, dependencies, handoffs, escalations, and signoffs are live workflow objects rather than static presentation content.',
       evidence: [`${tasks.length} tasks`, `${staffing.length} staffing rows`, `${dependencies.length} dependencies`, `${handoffs.length} handoffs`, `${signoffs.length} signoffs`]
     }),
     buildCapabilityStatus({
@@ -95,7 +95,7 @@ function buildTurnaroundCapabilityMap({
       id: 'audit-timeline',
       label: 'Audit and timeline evidence',
       score: clampScore((Math.min(timelineEvents, 24) / 24) * 70 + (Math.min(auditEvents.length, 10) / 10) * 30),
-      detail: 'Timeline and audit evidence provide reviewer-visible proof that operations are tracked across command, department, and release workflows.',
+      detail: 'Timeline and audit evidence provide governance-ready proof that operations are tracked across command, department, and release workflows.',
       evidence: [`${timelineEvents} timeline events`, `${auditEvents.length} audit events`, 'Task updates', 'Escalation history']
     }),
     buildCapabilityStatus({
@@ -113,11 +113,11 @@ function buildTurnaroundCapabilityMap({
       evidence: [`Incident severity ${normalizeStatus(incidentCommand?.incidentSeverity, 'stable')}`, `After-action score ${reviewScore}%`, 'Department lessons']
     }),
     buildCapabilityStatus({
-      id: 'reviewer-outreach',
-      label: 'Reviewer and outreach readiness',
+      id: 'governance-communications',
+      label: 'Governance and stakeholder readiness',
       score: Math.round((reviewerScore * 0.45) + (clampScore(executiveBrief?.summary?.decisionScore || 0) * 0.25) + (outreachScore * 0.3)),
-      detail: 'Reviewer packet, executive brief, and outreach board turn operational state into a cruise-line presentation path.',
-      evidence: [`Reviewer packet ${reviewerScore}%`, `Outreach ${outreachScore}%`, 'Executive highlights', 'Reviewer next steps']
+      detail: 'Governance evidence, executive briefing, and stakeholder coordination turn operational state into an accountable decision path.',
+      evidence: [`Governance evidence ${reviewerScore}%`, `Stakeholder coordination ${outreachScore}%`, 'Executive highlights', 'Governance next steps']
     })
   ]
 }
@@ -135,9 +135,9 @@ function buildTurnaroundRemainingWork({ capabilities = [], incidentCommand = nul
   if (incidentScore >= 45) {
     work.unshift({
       id: 'reduce-incident-risk',
-      label: 'Reduce visible incident risk before outreach',
+      label: 'Reduce incident risk before operational release',
       priority: incidentScore >= 70 ? 'HIGH' : 'MEDIUM',
-      detail: `Incident command score is ${incidentScore}; resolve blockers, open dependencies, and staffing/signoff gaps before using this operation as the flagship demo.`
+      detail: `Incident command score is ${incidentScore}; resolve blockers, open dependencies, and staffing/signoff gaps before designating this operation as the verified operating baseline.`
     })
   }
 
@@ -147,16 +147,16 @@ function buildTurnaroundRemainingWork({ capabilities = [], incidentCommand = nul
       id: 'clean-data-quality-watch-items',
       label: 'Clean remaining operational data watch items',
       priority: dataQualityRisk >= 5 ? 'HIGH' : 'MEDIUM',
-      detail: `${dataQualityRisk} data-quality watch item${dataQualityRisk === 1 ? '' : 's'} remain in the reviewer/outreach path.`
+      detail: `${dataQualityRisk} data-quality watch item${dataQualityRisk === 1 ? '' : 's'} remain in the release-governance path.`
     })
   }
 
   if (work.length === 0) {
     work.push({
-      id: 'prepare-final-demo-script',
-      label: 'Prepare the final cruise-line demo script',
+      id: 'prepare-operational-review-route',
+      label: 'Prepare the operational review route',
       priority: 'MEDIUM',
-      detail: 'Core turnaround operations are now strong enough to package into a role-by-role demo route for external reviewers.'
+      detail: 'Core turnaround operations are ready for a role-by-role operational review across stakeholder perspectives.'
     })
   }
 
@@ -168,15 +168,15 @@ function buildTurnaroundNextSlices({ maturityScore = 0, remainingWork = [] } = {
   const nextSlices = []
 
   if (highPriority.length > 0) {
-    nextSlices.push('Resolve high-priority operational watch items so the selected operation can be used as the flagship reviewer scenario.')
+    nextSlices.push('Resolve high-priority operational watch items so the selected operation can serve as the reference operating scenario.')
   }
 
-  nextSlices.push('Add a reviewer demo script that walks through Admin, Passenger, Group Leader, Turnaround Manager, and department lead perspectives in one guided path.')
-  nextSlices.push('Finish data architecture hardening behind turnaround operations: IDs over names, constrained status values, indexed lookups, and reduced seed-JSON coupling.')
-  nextSlices.push('Add portfolio-level turnaround comparison across ships/cruise lines so one cruise line reviewer can see how the platform scales beyond a single operation.')
+  nextSlices.push('Document an operational review route across Admin, Passenger, Group Leader, Turnaround Manager, and department lead perspectives.')
+  nextSlices.push('Complete data architecture assurance behind turnaround operations: durable IDs, constrained statuses, indexed lookups, and controlled seed-data dependencies.')
+  nextSlices.push('Add cross-fleet turnaround comparison so leadership can evaluate operating performance across ships and cruise lines.')
 
   if (maturityScore >= 88) {
-    nextSlices.push('Freeze the core turnaround feature set and shift to polish, copy, screenshots, and application collateral.')
+    nextSlices.push('Approve the core turnaround release baseline and shift to operating guidance, service evidence, and controlled maintenance.')
   }
 
   return [...new Set(nextSlices)].slice(0, 5)
@@ -184,22 +184,22 @@ function buildTurnaroundNextSlices({ maturityScore = 0, remainingWork = [] } = {
 
 function buildContinuationSummary({ maturityScore = 0, maturityStatus = 'REVIEW', capabilities = [], remainingWork = [], nextSlices = [] } = {}) {
   return {
-    headline: `Turnaround management is ${maturityScore}% complete for a production-demo application with status ${normalizeStatus(maturityStatus)}.`,
-    currentState: 'The module now covers role-scoped operations, command planning, tasks, staffing, dependencies, handoffs, escalations, signoffs, release readiness, audit/timeline evidence, metrics, playbooks, variance, incident command, after-action review, executive brief, reviewer packet, and outreach board.',
+    headline: `Turnaround management readiness is ${maturityScore}% with status ${normalizeStatus(maturityStatus)}.`,
+    currentState: 'The module covers role-scoped operations, command planning, tasks, staffing, dependencies, handoffs, escalations, signoffs, release readiness, audit and timeline evidence, metrics, playbooks, variance, incident command, after-action review, executive briefing, release evidence, and stakeholder coordination.',
     strongestAreas: capabilities.filter(capability => capability.score >= 85).map(capability => capability.label).slice(0, 5),
     needsAttention: remainingWork.map(item => item.label).slice(0, 5),
-    recommendedNext: nextSlices[0] || 'Continue production-demo polish and data architecture hardening.'
+    recommendedNext: nextSlices[0] || 'Continue service-assurance review and data architecture governance.'
   }
 }
 
 function buildTurnaroundManagementStatus(input = {}) {
   const capabilities = buildTurnaroundCapabilityMap(input)
   const maturityScore = clampScore(capabilities.reduce((sum, capability) => sum + capability.score, 0) / Math.max(capabilities.length, 1))
-  let maturityStatus = 'PRODUCTION_DEMO_READY'
-  if (maturityScore < 65) maturityStatus = 'NEEDS_HARDENING'
-  else if (maturityScore < 78) maturityStatus = 'HARDENING_IN_PROGRESS'
-  else if (maturityScore < 88) maturityStatus = 'DEMO_READY_WITH_WATCH_ITEMS'
-  else if (maturityScore >= 94) maturityStatus = 'FLAGSHIP_READY'
+  let maturityStatus = 'OPERATIONALLY_READY'
+  if (maturityScore < 65) maturityStatus = 'ACTION_REQUIRED'
+  else if (maturityScore < 78) maturityStatus = 'IMPROVEMENT_IN_PROGRESS'
+  else if (maturityScore < 88) maturityStatus = 'OPERATIONALLY_READY_WITH_WATCH_ITEMS'
+  else if (maturityScore >= 94) maturityStatus = 'REFERENCE_BASELINE_READY'
 
   const remainingWork = buildTurnaroundRemainingWork({
     capabilities,

@@ -1,4 +1,9 @@
 const { byTestId, reactSelectorKeys: rs } = require('./support/reactSelectors')
+const {
+  interceptReactCoreApis,
+  reactCruiseLines,
+  reactShips
+} = require('./support/reactTestHelpers.js')
 Cypress.Commands.add('getByTestId', selectorKey => cy.get(byTestId(selectorKey)))
 
 function selectDemoUserByVisibleRole(roleText, personText = '') {
@@ -68,6 +73,18 @@ function visitReactAppAsAdmin() {
 
 describe('Cruise operations portfolio route', () => {
   beforeEach(() => {
+    interceptReactCoreApis({
+      cruiseLines: [
+        ...reactCruiseLines,
+        {
+          id: '44444444-4444-4444-8444-444444444444',
+          name: 'Norwegian Cruise Line',
+          country: 'United States',
+          website: 'https://www.ncl.com'
+        }
+      ]
+    })
+    cy.intercept('GET', '/cruise/ships/*', reactShips).as('reactAppShips')
     visitReactAppAsAdmin()
   })
 
@@ -82,7 +99,7 @@ describe('Cruise operations portfolio route', () => {
     cy.contains('Cruise operations command center').should('not.exist')
     cy.getByTestId(rs.activeRouteOperations).should('be.visible')
     cy.getByTestId(rs.fleetDirectory).should('be.visible')
-    cy.getByTestId(rs.sqaConsole).should('be.visible')
+    cy.getByTestId(rs.operationsIntelligenceCenter).should('be.visible')
   })
 
 
@@ -94,8 +111,8 @@ describe('Cruise operations portfolio route', () => {
     cy.getByTestId(rs.activeRouteOperations).should('be.visible')
     cy.getByTestId(rs.workspaceFleetButton).click()
     cy.getByTestId(rs.fleetDirectory).should('be.visible')
-    cy.getByTestId(rs.workspaceQualityButton).click()
-    cy.getByTestId(rs.sqaConsole).should('be.visible')
+    cy.getByTestId(rs.workspaceIntelligenceButton).click()
+    cy.getByTestId(rs.operationsIntelligenceCenter).should('be.visible')
   })
 
   it('switches from admin to passenger view when a passenger demo user is selected', () => {
@@ -305,7 +322,7 @@ describe('Cruise operations portfolio route', () => {
     cy.getByTestId(rs.activeRouteOperations).should('be.visible')
     cy.getByTestId(rs.fleetDirectory).should('be.visible')
     cy.getByTestId(rs.createCruiseLineWorkflow).should('be.visible')
-    cy.getByTestId(rs.sqaConsole).should('be.visible')
+    cy.getByTestId(rs.operationsIntelligenceCenter).should('be.visible')
   })
 
 
@@ -512,6 +529,7 @@ describe('Cruise operations portfolio route', () => {
     cy.getByTestId(rs.fleetCard).first().should('contain.text', 'Royal')
 
     cy.getByTestId(rs.viewShipsButton).first().click()
+    cy.wait('@reactAppShips')
     cy.getByTestId(rs.selectedShipsPanel).should('be.visible')
     cy.getByTestId(rs.selectedShipsPanel).should('contain.text', 'Royal')
     cy.getByTestId(rs.shipCard).should('have.length.greaterThan', 0)
@@ -525,7 +543,10 @@ describe('Cruise operations portfolio route', () => {
       id: 'royal-caribbean',
       name: 'Royal Caribbean International',
       country: 'United States',
-      website: 'https://www.royalcaribbean.com'
+      website: 'https://www.royalcaribbean.com',
+      brandFamily: 'Royal Caribbean Group',
+      brandTheme: 'Adventure Innovation',
+      marketPositioning: 'Contemporary family, adventure, private-destination, and innovation-led cruising'
     }
     cy.intercept('PATCH', '/cruise/cruise-line/*', req => {
       expect(req.url).to.match(/\/cruise\/cruise-line\/[0-9a-f-]{36}$/)
@@ -539,20 +560,29 @@ describe('Cruise operations portfolio route', () => {
       expect(req.body.marketPositioning).to.contain('innovation-led cruising')
 
       const cruiseLineId = req.url.split('/').pop()
+      updatedCruiseLine = {
+        ...royalCruiseLine,
+        id: cruiseLineId,
+        name: 'Royal Caribbean React Updated',
+        country: 'United States React',
+        website: 'https://react-updated.example.com',
+        brandFamily: 'Royal Caribbean Group',
+        brandTheme: 'Adventure Innovation',
+        marketPositioning: 'Contemporary family, adventure, private-destination, and innovation-led cruising'
+      }
 
-      req.reply({
-        statusCode: 200,
-        body: {
-          ...royalCruiseLine,
-          id: cruiseLineId,
-          name: 'Royal Caribbean React Updated',
-          country: 'United States React',
-          website: 'https://react-updated.example.com'
-        }
-      })
+      req.reply({ statusCode: 200, body: updatedCruiseLine })
     }).as('updateReactCruiseLine')
 
-    cy.intercept('GET', '/cruise').as('reloadFleetAfterUpdate')
+    let updatedCruiseLine = null
+    cy.intercept('GET', '/cruise', req => {
+      req.reply({
+        statusCode: 200,
+        body: updatedCruiseLine
+          ? reactCruiseLines.map(line => line.id === updatedCruiseLine.id ? updatedCruiseLine : line)
+          : reactCruiseLines
+      })
+    }).as('reloadFleetAfterUpdate')
 
     cy.getByTestId(rs.fleetSearch).type('Royal')
     cy.getByTestId(rs.viewShipsButton).first().click()
@@ -572,11 +602,25 @@ describe('Cruise operations portfolio route', () => {
 
   it('supports React fleet delete cancellation and confirmed deletion', () => {
     cy.getByTestId(rs.activeRouteOperations).should('be.visible')
-    cy.intercept('DELETE', '/cruise/cruise-line/*', {
-      statusCode: 200,
-      body: { deleted: true }
+    let deletedCruiseLineId = ''
+    cy.intercept('DELETE', '/cruise/cruise-line/*', req => {
+      deletedCruiseLineId = req.url.split('/').pop()
+      req.reply({ statusCode: 200, body: { deleted: true } })
     }).as('deleteCruiseLine')
-    cy.intercept('GET', '/cruise').as('loadCruiseLines')
+    cy.intercept('GET', '/cruise', req => {
+      req.reply({
+        statusCode: 200,
+        body: [
+          ...reactCruiseLines,
+          {
+            id: '44444444-4444-4444-8444-444444444444',
+            name: 'Norwegian Cruise Line',
+            country: 'United States',
+            website: 'https://www.ncl.com'
+          }
+        ].filter(line => line.id !== deletedCruiseLineId)
+      })
+    }).as('loadCruiseLines')
 
     cy.getByTestId(rs.fleetSearch).type('Norwegian')
     cy.getByTestId(rs.fleetCard).first().should('contain.text', 'Norwegian')
@@ -595,6 +639,7 @@ describe('Cruise operations portfolio route', () => {
 
 
   it('creates a React cruise line with starter ships and reset behavior', () => {
+    let createdReactCruiseLine = null
     cy.intercept('POST', '/cruise/cruise-line', req => {
       expect(req.body).to.deep.equal({
         name: 'React Test Cruises',
@@ -605,18 +650,16 @@ describe('Cruise operations portfolio route', () => {
         marketPositioning: 'Modern React cruise experiences'
       })
 
-      req.reply({
-        statusCode: 201,
-        body: {
-          id: 'react-test-cruise-line',
-          name: 'React Test Cruises',
-          country: 'United States',
-          website: 'https://react-test-cruises.example.com',
-          brandFamily: 'React Holdings',
-          brandTheme: 'Innovation',
-          marketPositioning: 'Modern React cruise experiences'
-        }
-      })
+      createdReactCruiseLine = {
+        id: 'react-test-cruise-line',
+        name: 'React Test Cruises',
+        country: 'United States',
+        website: 'https://react-test-cruises.example.com',
+        brandFamily: 'React Holdings',
+        brandTheme: 'Innovation',
+        marketPositioning: 'Modern React cruise experiences'
+      }
+      req.reply({ statusCode: 201, body: createdReactCruiseLine })
     }).as('createReactCruiseLine')
 
     cy.intercept('POST', '/cruise/ship', req => {
@@ -633,7 +676,12 @@ describe('Cruise operations portfolio route', () => {
       })
     }).as('createReactShip')
 
-    cy.intercept('GET', '/cruise').as('reloadFleetAfterCreate')
+    cy.intercept('GET', '/cruise', req => {
+      req.reply({
+        statusCode: 200,
+        body: createdReactCruiseLine ? [...reactCruiseLines, createdReactCruiseLine] : reactCruiseLines
+      })
+    }).as('reloadFleetAfterCreate')
 
     cy.getByTestId(rs.createCruiseLineName).clear().type('  React Test Cruises  ')
     cy.getByTestId(rs.createCruiseLineCountry).clear().type('  United States  ')
@@ -989,34 +1037,12 @@ describe('Cruise operations portfolio route', () => {
   })
 
 
-  it('resets React baseline data through a native React confirmation panel', () => {
-    cy.intercept('POST', '/admin/reset-demo-data', {
-      statusCode: 200,
-      body: { reset: true, customers: 24, bookings: 12 }
-    }).as('resetReactDemoData')
-
-    cy.getByTestId(rs.sqaConsole).should('be.visible')
-    cy.getByTestId(rs.sqaResetDemoDataButton).scrollIntoView().click()
-    cy.getByTestId(rs.sqaResetConfirmation)
-      .should('be.visible')
-      .and('contain.text', 'Reset baseline data back to the baseline dataset?')
-
-    cy.getByTestId(rs.sqaResetConfirmationCancel).click()
-    cy.getByTestId(rs.sqaResetConfirmation).should('not.exist')
-    cy.getByTestId(rs.sqaStatus).should('contain.text', 'Ready for validation')
-
-    cy.getByTestId(rs.sqaResetDemoDataButton).click()
-    cy.getByTestId(rs.sqaResetConfirmationConfirm).click()
-    cy.wait('@resetReactDemoData')
-    cy.getByTestId(rs.sqaOutput).should('contain.text', 'Baseline Data Recovery Result')
-    cy.getByTestId(rs.sqaOutput).should('contain.text', '"passed": true')
-    cy.getByTestId(rs.sqaResetConfirmation).should('not.exist')
-  })
-
-  it('runs a React quality health check and writes output', () => {
-    cy.getByTestId(rs.activeRouteOperations).should('be.visible')
-    cy.getByTestId(rs.sqaHealthButton).scrollIntoView().click()
-    cy.getByTestId(rs.sqaOutput).should('contain.text', 'Health Check Result')
-    cy.getByTestId(rs.sqaOutput).should('contain.text', '"passed": true')
+  it('reviews live turnaround intelligence and refreshes the operational dataset', () => {
+    cy.getByTestId(rs.operationsIntelligenceCenter).should('be.visible')
+    cy.getByTestId(rs.operationsIntelligenceDetail).should('contain.text', 'Priority actions')
+    cy.intercept({ method: 'GET', pathname: '/cruise/turnaround-operations' }).as('refreshOperationalDataset')
+    cy.getByTestId(rs.operationsIntelligenceRefreshButton).click()
+    cy.wait('@refreshOperationalDataset')
+    cy.getByTestId(rs.operationsIntelligenceDetail).should('be.visible')
   })
 })

@@ -392,8 +392,17 @@ async function deleteTurnaroundPerson(id) {
     throw buildServiceError('Only turnaround personnel can be removed from setup.', 400)
   }
 
-  const [deleted] = await db.delete(demoUserTable).where(eq(demoUserTable.id, id)).returning()
-  return deleted
+  const [unassigned] = await db
+    .update(demoUserTable)
+    .set({
+      assignedShipId: null,
+      assignedSailingId: null,
+      assignedShipName: null
+    })
+    .where(eq(demoUserTable.id, id))
+    .returning()
+
+  return unassigned
 }
 
 module.exports = {

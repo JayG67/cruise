@@ -5,17 +5,19 @@ import useBookingDetailsMutation from './hooks/useBookingDetailsMutation.js'
 import useCruiseLines from './hooks/useCruiseLines.js'
 import useDemoUsers from './hooks/useDemoUsers.js'
 import useTurnaroundOperations from './hooks/useTurnaroundOperations.js'
+import useApplicationWorkspaceNavigation from './hooks/useApplicationWorkspaceNavigation.js'
+import useDemoSelectionBridge from './hooks/useDemoSelectionBridge.js'
 import ConfirmActionPanel from './components/ConfirmActionPanel.jsx'
-import EmployerDemoCommandCenter from './components/EmployerDemoCommandCenter.jsx'
+import PlatformWorkspaceNavigator from './components/PlatformWorkspaceNavigator.jsx'
 import { getSelectedRoleView, getVisibleRoleBookings, getVisibleTurnaroundOperations } from './domain/roleView.js'
 
 const CustomerBookingHierarchy = lazy(() => import('./components/CustomerBookingHierarchy.jsx'))
 const ReactCruiseLineCreateWorkflow = lazy(() => import('./components/ReactCruiseLineCreateWorkflow.jsx'))
-const ReactCruiseLinePresentationSuite = lazy(() => import('./components/ReactCruiseLinePresentationSuite.jsx'))
+const ReactCruiseLineOperationsWorkspace = lazy(() => import('./components/ReactCruiseLineOperationsWorkspace.jsx'))
 const ReactFleetDirectory = lazy(() => import('./components/ReactFleetDirectory.jsx'))
 const ReactRoleDashboard = lazy(() => import('./components/ReactRoleDashboard.jsx'))
 const ReactRoleSelector = lazy(() => import('./components/ReactRoleSelector.jsx'))
-const ReactSqaConsole = lazy(() => import('./components/ReactSqaConsole.jsx'))
+const OperationsIntelligenceCenter = lazy(() => import('./components/OperationsIntelligenceCenter.jsx'))
 const ReactTurnaroundAdminSetup = lazy(() => import('./components/ReactTurnaroundAdminSetup.jsx'))
 
 function getIdleScheduler() {
@@ -58,16 +60,15 @@ export default function App() {
   const { snapshot, isLoading, error, reload, reloadNow } = useAdminHierarchySnapshot({ enabled: applicationDataReady })
   const { cruiseLines, isLoading: fleetLoading, isRefreshing: fleetRefreshing, error: fleetError, reload: reloadFleet } = useCruiseLines({ enabled: applicationDataReady })
   const { demoUsers, filteredDemoUsers, availableRoles, selectedRole, selectedDemoUser, selectedDemoUserId, setSelectedDemoUserId, setSelectedRole, isLoading: demoUsersLoading, error: demoUsersError, reload: reloadDemoUsers } = useDemoUsers({ enabled: applicationDataReady })
-  const [roleSwitchRequest, setRoleSwitchRequest] = useState(null)
-  const [pendingNavigationSectionId, setPendingNavigationSectionId] = useState('')
   const { saveCustomerProfile, savingCustomerId, mutationError } = useCustomerProfileMutation({ onSaved: reload })
   const { saveBookingDetails, savingBookingId, bookingMutationError } = useBookingDetailsMutation({ onSaved: reload })
   const effectiveSelectedDemoUser = selectedDemoUser || { role: 'Admin' }
   const selectedRoleView = getSelectedRoleView(effectiveSelectedDemoUser)
-  const shouldLoadTurnaroundOperations = applicationDataReady && selectedRoleView !== 'admin'
+  const shouldLoadTurnaroundOperations = applicationDataReady
   const { turnaroundOperations, isLoading: turnaroundLoading, error: turnaroundError, reload: reloadTurnaroundOperations, updateOperationCommand: updateTurnaroundOperationCommand, updateTaskStatus: updateTurnaroundTaskStatus, updateTaskDetails: updateTurnaroundTaskDetails, createTask: createTurnaroundTask, createTaskUpdate: createTurnaroundTaskUpdate, deleteTask: deleteTurnaroundTask, updateStaffing: updateTurnaroundStaffing, updateSignoff: updateTurnaroundSignoff, createEscalation: createTurnaroundEscalation, updateEscalation: updateTurnaroundEscalation, updateHandoff: updateTurnaroundHandoff, updatingOperationId: updatingTurnaroundOperationId, updatingTaskId: updatingTurnaroundTaskId, updatingTaskDetailsId: updatingTurnaroundTaskDetailsId, creatingTaskId: creatingTurnaroundTaskId, creatingTaskUpdateId: creatingTurnaroundTaskUpdateId, deletingTaskId: deletingTurnaroundTaskId, updatingStaffingKey: updatingTurnaroundStaffingKey, updatingSignoffKey: updatingTurnaroundSignoffKey, creatingEscalationId: creatingTurnaroundEscalationId, updatingEscalationId: updatingTurnaroundEscalationId, updatingHandoffId: updatingTurnaroundHandoffId, mutationStatus: turnaroundMutationStatus, mutationError: turnaroundMutationError } = useTurnaroundOperations({ enabled: shouldLoadTurnaroundOperations, selectedDemoUser: effectiveSelectedDemoUser })
   const visibleRoleBookings = getVisibleRoleBookings(effectiveSelectedDemoUser, snapshot.bookings)
   const visibleTurnaroundOperations = getVisibleTurnaroundOperations(effectiveSelectedDemoUser, turnaroundOperations)
+  const [fleetFocusRequest, setFleetFocusRequest] = useState(null)
   const workspaceTouchTargetStyle = {
     WebkitAppearance: 'none',
     alignItems: 'flex-start',
@@ -89,97 +90,28 @@ export default function App() {
 
   const adminDemoUser = demoUsers.find(user => getSelectedRoleView(user) === 'admin')
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return undefined
+  useDemoSelectionBridge({
+    demoUsers,
+    selectedDemoUser,
+    selectedRole,
+    selectedRoleView,
+    setSelectedDemoUserId
+  })
 
-    window.__cruiseDemoUsers = demoUsers.map(user => ({
-      id: user.id,
-      name: user.displayName || user.name || '',
-      displayName: user.displayName || user.name || '',
-      customerId: user.customerId || '',
-      role: user.role || user.userType || '',
-      roleView: getSelectedRoleView(user)
-    }))
+  const {
+    cancelRoleSwitch,
+    confirmRoleSwitch,
+    openWorkspace: openApplicationWorkspace,
+    roleSwitchRequest
+  } = useApplicationWorkspaceNavigation({
+    adminDemoUser,
+    selectedRoleView,
+    setSelectedDemoUserId
+  })
 
-    window.__cruiseDemoSelectionState = {
-      selectedDemoUserId: selectedDemoUser?.id || '',
-      selectedDemoUserName: selectedDemoUser?.name || selectedDemoUser?.displayName || '',
-      selectedRoleView,
-      selectedRole
-    }
-
-    window.__cruiseSelectDemoUser = ({ userId = '', role = '', personText = '' } = {}) => {
-      const normalizedPersonText = String(personText || '').trim().toLowerCase()
-      const normalizedRole = String(role || '').trim()
-
-      const matchingUser = demoUsers.find(user => {
-        const roleMatches = !normalizedRole || getSelectedRoleView(user) === normalizedRole
-        const userSearchText = [user.displayName, user.name, user.email].filter(Boolean).join(' ').toLowerCase()
-        const nameMatches = userId
-          ? user.id === userId
-          : !normalizedPersonText || userSearchText.includes(normalizedPersonText)
-
-        return roleMatches && nameMatches
-      })
-
-      if (!matchingUser) {
-        return { ok: false, reason: 'No matching demo user found.' }
-      }
-
-      const targetRole = getSelectedRoleView(matchingUser)
-      // Select through the same demo-user setter used by the visible UI. The
-      // setter also synchronizes the selected role from the chosen user, which
-      // avoids a mobile Playwright race where setting the role first briefly
-      // selected that role's first user before the requested person landed.
-      setSelectedDemoUserId(matchingUser.id)
-      return { ok: true, userId: matchingUser.id, name: matchingUser.displayName || matchingUser.name, role: targetRole }
-    }
-
-    return () => {
-      delete window.__cruiseDemoUsers
-      delete window.__cruiseSelectDemoUser
-    }
-  }, [demoUsers, selectedDemoUser?.id, selectedDemoUser?.name, selectedDemoUser?.displayName, selectedRole, selectedRoleView, setSelectedDemoUserId, setSelectedRole])
-
-  useEffect(() => {
-    if (selectedRoleView !== 'admin' || !pendingNavigationSectionId) {
-      return
-    }
-
-    const timerId = window.setTimeout(() => {
-      scrollToSection(pendingNavigationSectionId)
-      setPendingNavigationSectionId('')
-    }, 50)
-
-    return () => window.clearTimeout(timerId)
-  }, [pendingNavigationSectionId, selectedRoleView])
-
-  function scrollToSection(sectionId) {
-    document.getElementById(sectionId)?.scrollIntoView({ block: 'start' })
-  }
-
-  function openWorkspace(sectionId, workspaceLabel, requiredRole = null) {
-    if (!requiredRole || selectedRoleView === requiredRole) {
-      scrollToSection(sectionId)
-      return
-    }
-
-    setRoleSwitchRequest({ sectionId, workspaceLabel, requiredRole })
-  }
-
-  function confirmRoleSwitch() {
-    if (!roleSwitchRequest) return
-
-    if (roleSwitchRequest.requiredRole === 'admin' && adminDemoUser) {
-      setSelectedDemoUserId(adminDemoUser.id)
-      setPendingNavigationSectionId(roleSwitchRequest.sectionId)
-      setRoleSwitchRequest(null)
-    }
-  }
-
-  function cancelRoleSwitch() {
-    setRoleSwitchRequest(null)
-    setPendingNavigationSectionId('')
+  function openWorkspace(sectionId, workspaceLabel, requiredRole = null, context = null) {
+    if (context?.fleetScope) setFleetFocusRequest(context.fleetScope)
+    openApplicationWorkspace(sectionId, workspaceLabel, requiredRole)
   }
 
   return (
@@ -190,13 +122,14 @@ export default function App() {
             Cruise Fleet Operations Platform
           </a>
           <div className="react-nav-links">
-            <a href="#react-employer-demo">Overview</a>
+            <a href="#react-platform-overview">Overview</a>
+            <a href="#react-platform-overview">Workspaces</a>
             <button type="button" onClick={() => openWorkspace('react-cruise-line-presentation', 'Cruise Line Operations', 'admin')} data-testid="react-nav-presentation-button">Line Operations</button>
             <button type="button" onClick={() => openWorkspace('react-role-selector', 'Role-aware Views')} data-testid="react-nav-role-button">Roles</button>
             <button type="button" onClick={() => openWorkspace('react-hierarchy', 'Admin Operations', 'admin')} data-testid="react-nav-operations-button">Operations</button>
             <button type="button" onClick={() => openWorkspace('react-fleet', 'Fleet Directory', 'admin')} data-testid="react-nav-fleet-button">Fleet</button>
             <button type="button" onClick={() => openWorkspace('react-turnaround-admin-setup', 'Turnaround Admin Setup', 'admin')} data-testid="react-nav-turnaround-setup-button">Turnaround Setup</button>
-            <button type="button" onClick={() => openWorkspace('react-quality', 'Quality Console', 'admin')} data-testid="react-nav-quality-button">Quality</button>
+            <button type="button" onClick={() => openWorkspace('react-operations-intelligence', 'Operations Intelligence', 'admin')} data-testid="react-nav-intelligence-button">Intelligence</button>
           </div>
         </nav>
 
@@ -210,16 +143,16 @@ export default function App() {
             </p>
 
             <div className="hero-cta-row ce-action-row" aria-label="Cruise application shortcuts">
-              <button type="button" className="button-link primary ce-button-primary" onClick={() => openWorkspace('react-employer-demo', 'Employer Demo Command Center')} data-testid="react-hero-demo-button">Explore Overview</button>
+              <button type="button" className="button-link primary ce-button-primary" onClick={() => openWorkspace('react-platform-overview', 'Platform Overview')} data-testid="react-hero-demo-button">Explore Platform</button>
               <button type="button" className="button-link secondary ce-button-secondary" onClick={() => openWorkspace('react-cruise-line-presentation', 'Cruise Line Operations', 'admin')} data-testid="react-hero-presentation-button">Open Line Operations</button>
               <button type="button" className="button-link secondary ce-button-secondary" onClick={() => openWorkspace('react-hierarchy', 'Admin Operations', 'admin')} data-testid="react-hero-operations-button">Review Operations</button>
-              <button type="button" className="button-link secondary ce-button-secondary" onClick={() => openWorkspace('react-quality', 'Quality Console', 'admin')} data-testid="react-hero-quality-button">Open Quality Console</button>
+              <button type="button" className="button-link secondary ce-button-secondary" onClick={() => openWorkspace('react-operations-intelligence', 'Operations Intelligence', 'admin')} data-testid="react-hero-intelligence-button">Review Operations Intelligence</button>
             </div>
 
             <div className="hero-status-pills ce-status-row" aria-label="Cruise application capabilities">
               <span>Express Hosted</span>
               <span>API Connected</span>
-              <span>Cruise Line Operations</span>
+              <span>Operational AI Integrated</span>
             </div>
           </div>
 
@@ -228,7 +161,7 @@ export default function App() {
       </section>
 
       {selectedRoleView === 'admin' && (
-        <EmployerDemoCommandCenter
+        <PlatformWorkspaceNavigator
           customerCount={snapshot.customers.length}
           bookingCount={snapshot.bookings.length}
           cruiseLineCount={cruiseLines.length}
@@ -237,14 +170,14 @@ export default function App() {
           onOpenWorkspace={openWorkspace}
         />
       )}
-      {/* Workspace controls are rendered by EmployerDemoCommandCenter.
+      {/* Workspace controls are rendered by PlatformWorkspaceNavigator.
           Static accessibility contract anchors retained here:
           id="react-workspaces"
           aria-label="React application workspaces"
           data-testid="react-workspace-role-button"
           data-testid="react-workspace-operations-button"
           data-testid="react-workspace-fleet-button"
-          data-testid="react-workspace-quality-button"
+          data-testid="react-workspace-intelligence-button"
           style={workspaceTouchTargetStyle}
       */}
 
@@ -304,7 +237,7 @@ export default function App() {
             />
             </section>
 
-            <ReactCruiseLinePresentationSuite
+            <ReactCruiseLineOperationsWorkspace
             cruiseLines={cruiseLines}
             bookings={snapshot.bookings}
             onOpenWorkspace={openWorkspace}
@@ -316,15 +249,20 @@ export default function App() {
             isRefreshing={fleetRefreshing}
             error={fleetError}
             onRefresh={reloadFleet}
+            initialScope={fleetFocusRequest}
           />
 
             <ReactCruiseLineCreateWorkflow onCreated={reloadFleet} />
 
             <ReactTurnaroundAdminSetup selectedDemoUser={selectedDemoUser} onSetupChanged={() => Promise.all([reloadDemoUsers(), reloadTurnaroundOperations?.()])} />
 
-            <section id="react-quality" className="react-quality-section ce-command-panel" aria-label="Quality validation console">
-              <ReactSqaConsole selectedDemoUser={selectedDemoUser} onRefreshData={() => Promise.all([reload(), reloadFleet()])} />
-            </section>
+            <OperationsIntelligenceCenter
+              turnaroundOperations={turnaroundOperations}
+              isLoading={turnaroundLoading}
+              error={turnaroundError}
+              onRetry={reloadTurnaroundOperations}
+              onOpenWorkspace={openWorkspace}
+            />
           </>
         ) : (
           <ReactRoleDashboard

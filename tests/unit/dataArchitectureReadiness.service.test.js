@@ -43,6 +43,7 @@ describe('dataArchitectureReadiness service', () => {
     expect(readiness.schemaContract).toHaveLength(6)
     expect(readiness.riskRegister.length).toBeGreaterThan(0)
     expect(readiness.roadmap).toContain('Move operational dates to timezone-aware timestamp fields.')
+    expect(readiness.migrationBacklog.find(item => item.gateId === 'audit').acceptance).toContain('governance reviews and closeout records')
   })
 
   it('identifies string-date hardening work and status enum drift', () => {

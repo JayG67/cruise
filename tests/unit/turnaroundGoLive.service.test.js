@@ -1,3 +1,5 @@
+const fs = require('fs')
+const path = require('path')
 const {
   buildTurnaroundGoLiveCenter,
   buildGoLiveGates,
@@ -6,6 +8,8 @@ const {
 } = require('../../services/turnaroundGoLive.service')
 
 describe('turnaround go-live center service', () => {
+  const reactTestHelpers = fs.readFileSync(path.join(__dirname, '../../cypress/react/support/reactTestHelpers.js'), 'utf8')
+
   const operation = {
     id: 'turnaround-1',
     title: 'Miami same-day turnaround',
@@ -13,6 +17,13 @@ describe('turnaround go-live center service', () => {
     shipName: 'Odyssey of the Seas',
     turnaroundDate: '2026-12-12'
   }
+
+  it('keeps browser fallback go-live contracts production-oriented', () => {
+    expect(reactTestHelpers).toContain("id: 'release-governance-ready'")
+    expect(reactTestHelpers).toContain("id: 'service-assurance'")
+    expect(reactTestHelpers).toContain("id: 'data-architecture-assurance'")
+    expect(reactTestHelpers).not.toMatch(/reviewer-proof|Reviewer proof ready|Portfolio launch packaging|Production hardening|Data architecture hardening/)
+  })
 
   it('builds a launch decision packet with gates, actions, evidence, and remaining scope', () => {
     const packet = buildTurnaroundGoLiveCenter({
@@ -48,7 +59,11 @@ describe('turnaround go-live center service', () => {
     expect(packet.gates).toHaveLength(6)
     expect(packet.actions.length).toBeGreaterThan(0)
     expect(packet.evidence).toHaveLength(5)
-    expect(packet.remainingScope.map(item => item.id)).toEqual(['production-hardening', 'data-hardening', 'portfolio-launch'])
+    expect(packet.remainingScope.map(item => item.id)).toEqual(['service-assurance', 'data-architecture-assurance', 'release-evidence'])
+
+    expect(packet.gates.map(gate => gate.id)).toContain('release-governance-ready')
+    expect(packet.evidence.map(item => item.id)).toContain('release-governance-evidence')
+    expect(JSON.stringify(packet).toLowerCase()).not.toMatch(/reviewer|portfolio|hardening/)
   })
 
   it('promotes clean operations to launch-ready status with one freeze action', () => {
@@ -76,7 +91,7 @@ describe('turnaround go-live center service', () => {
     expect(packet.actions).toEqual(expect.arrayContaining([expect.objectContaining({ id: 'launch-freeze', priority: 'LOW' })]))
   })
 
-  it('keeps helper outputs bounded and portfolio-readable', () => {
+  it('keeps helper outputs bounded and operations-readable', () => {
     const gates = buildGoLiveGates({
       taskCompletion: 50,
       signoffCompletion: 50,

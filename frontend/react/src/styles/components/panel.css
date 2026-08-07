@@ -2,7 +2,7 @@
 
 .ce-panel,
 .ce-command-panel,
-.react-production-shell :where(.react-role-dashboard, .react-sqa-console, .employer-demo-command-center) {
+.react-production-shell :where(.react-role-dashboard, .react-sqa-console, .platform-workspace-navigator) {
   background: var(--ce-command-bg-soft, var(--ce-command-bg));
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);

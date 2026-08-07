@@ -17,7 +17,8 @@ describe('deployment readiness service', () => {
       'browserTests:react': 'npm run uiTests:react && npm run playwright:mobile:react && npm run playwright:responsive:react',
       'perf:smoke:local': 'start-server-and-test start http://localhost:8000 perf:smoke',
       'lighthouse:ci:local': 'npm run react:build && start-server-and-test start http://localhost:8000/health lighthouse:ci',
-      'portfolio:audit': 'npm run repo:hygiene && npm run test:all',
+      'release:source:audit': 'node scripts/verify-source-package.js',
+      'production:deployment:audit': 'node scripts/verify-production-deployment.js',
       'db:test:ready': 'docker compose up -d && node scripts/wait-for-test-db.js'
     },
     dependencies: {
@@ -40,7 +41,7 @@ describe('deployment readiness service', () => {
       env: { NODE_ENV: 'production' },
       renderConfig: 'startCommand: npm run start:prod\nhealthCheckPath: /health\nenvVars:\n  - key: DATABASE_URL\n  - key: NODE_ENV\n',
       dockerCompose: 'postgres:5432',
-      readme: 'Cruise portfolio turnaround operations deployment environment lighthouse recruiter walkthrough architecture DATABASE_URL PORT NODE_ENV'
+      readme: 'Cruise Fleet Operations Platform turnaround operations deployment environment lighthouse architecture operations verification runbook DATABASE_URL PORT NODE_ENV'
     })
 
     expect(readiness.title).toBe('Deployment Readiness Center')
@@ -50,7 +51,7 @@ describe('deployment readiness service', () => {
       'environment',
       'database',
       'quality-release',
-      'portfolio-launch'
+      'operational-release-documentation'
     ])
     expect(readiness.launchPlan).toHaveLength(5)
     expect(readiness.deploymentTargets.map(target => target.id)).toContain('render')
@@ -63,9 +64,10 @@ describe('deployment readiness service', () => {
     const readiness = buildDeploymentReadiness({ packageJson: { scripts: {} }, files: {}, readme: '' })
 
     expect(readiness.status).toBe('needs-work')
-    expect(readiness.summary).toContain('deployment launch blocker')
+    expect(readiness.summary).toContain('production release blocker')
     expect(readiness.gates.some(gate => gate.status === 'needs-work')).toBe(true)
     expect(readiness.launchPlan[0]).toEqual(expect.objectContaining({ sequence: 1 }))
+    expect(readiness.launchPlan[0].action).not.toContain('before launch')
   })
 
   it('scores platform, environment, and quality gates independently', () => {

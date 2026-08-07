@@ -45,14 +45,19 @@ export default function useTurnaroundOperations({ enabled = true, selectedDemoUs
     }
   }, [selectedDemoUser?.id])
 
-
-  const updateOperationCommand = useCallback(async (operationId, payload) => {
-    setUpdatingOperationId(operationId)
+  const runMutation = useCallback(async ({
+    pendingKey,
+    setPendingKey,
+    request,
+    successMessage,
+    errorMessage
+  }) => {
+    setPendingKey(pendingKey)
     setMutationStatus('')
     setMutationError('')
 
     try {
-      const response = await updateTurnaroundOperationCommand(operationId, payload, mutationScope)
+      const response = await request()
       if (response?.operation?.id) {
         setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
           operation.id === response.operation.id ? response.operation : operation
@@ -60,264 +65,103 @@ export default function useTurnaroundOperations({ enabled = true, selectedDemoUs
       } else {
         await reload()
       }
-      setMutationStatus(response?.message || 'Turnaround command plan updated successfully')
+      setMutationStatus(response?.message || successMessage)
       return response
-    } catch (updateError) {
-      setMutationError(updateError.message || 'Unable to update turnaround command plan.')
+    } catch (mutationFailure) {
+      setMutationError(mutationFailure.message || errorMessage)
       return null
     } finally {
-      setUpdatingOperationId('')
+      setPendingKey('')
     }
-  }, [reload, selectedDemoUser?.id])
+  }, [reload])
 
-  const updateTaskStatus = useCallback(async (taskId, status, options = {}) => {
-    setUpdatingTaskId(taskId)
-    setMutationStatus('')
-    setMutationError('')
+  const updateOperationCommand = useCallback((operationId, payload) => runMutation({
+    pendingKey: operationId,
+    setPendingKey: setUpdatingOperationId,
+    request: () => updateTurnaroundOperationCommand(operationId, payload, mutationScope),
+    successMessage: 'Turnaround command plan updated successfully',
+    errorMessage: 'Unable to update turnaround command plan.'
+  }), [runMutation, selectedDemoUser?.id])
 
-    try {
-      const response = await updateTurnaroundTaskStatus(taskId, status, { ...options, ...mutationScope })
-      if (response?.operation?.id) {
-        setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
-          operation.id === response.operation.id ? response.operation : operation
-        )))
-      } else {
-        await reload()
-      }
-      setMutationStatus(response?.message || 'Turnaround task status updated successfully')
-      return response
-    } catch (updateError) {
-      setMutationError(updateError.message || 'Unable to update turnaround task status.')
-      return null
-    } finally {
-      setUpdatingTaskId('')
-    }
-  }, [reload, selectedDemoUser?.id])
+  const updateTaskStatus = useCallback((taskId, status, options = {}) => runMutation({
+    pendingKey: taskId,
+    setPendingKey: setUpdatingTaskId,
+    request: () => updateTurnaroundTaskStatus(taskId, status, { ...options, ...mutationScope }),
+    successMessage: 'Turnaround task status updated successfully',
+    errorMessage: 'Unable to update turnaround task status.'
+  }), [runMutation, selectedDemoUser?.id])
 
+  const updateTaskDetails = useCallback((taskId, payload) => runMutation({
+    pendingKey: taskId,
+    setPendingKey: setUpdatingTaskDetailsId,
+    request: () => updateTurnaroundTaskDetails(taskId, payload, mutationScope),
+    successMessage: 'Turnaround task details updated successfully',
+    errorMessage: 'Unable to update turnaround task details.'
+  }), [runMutation, selectedDemoUser?.id])
 
+  const createTask = useCallback((operationId, payload) => runMutation({
+    pendingKey: operationId,
+    setPendingKey: setCreatingTaskId,
+    request: () => createTurnaroundTask(operationId, payload, mutationScope),
+    successMessage: 'Turnaround task created successfully',
+    errorMessage: 'Unable to create turnaround task.'
+  }), [runMutation, selectedDemoUser?.id])
 
-  const updateTaskDetails = useCallback(async (taskId, payload) => {
-    setUpdatingTaskDetailsId(taskId)
-    setMutationStatus('')
-    setMutationError('')
+  const createTaskUpdate = useCallback((taskId, payload) => runMutation({
+    pendingKey: taskId,
+    setPendingKey: setCreatingTaskUpdateId,
+    request: () => createTurnaroundTaskUpdate(taskId, payload, mutationScope),
+    successMessage: 'Turnaround task update added successfully',
+    errorMessage: 'Unable to add turnaround task update.'
+  }), [runMutation, selectedDemoUser?.id])
 
-    try {
-      const response = await updateTurnaroundTaskDetails(taskId, payload, mutationScope)
-      if (response?.operation?.id) {
-        setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
-          operation.id === response.operation.id ? response.operation : operation
-        )))
-      } else {
-        await reload()
-      }
-      setMutationStatus(response?.message || 'Turnaround task details updated successfully')
-      return response
-    } catch (updateError) {
-      setMutationError(updateError.message || 'Unable to update turnaround task details.')
-      return null
-    } finally {
-      setUpdatingTaskDetailsId('')
-    }
-  }, [reload, selectedDemoUser?.id])
+  const deleteTask = useCallback((taskId) => runMutation({
+    pendingKey: taskId,
+    setPendingKey: setDeletingTaskId,
+    request: () => deleteTurnaroundTask(taskId, mutationScope),
+    successMessage: 'Turnaround task removed successfully',
+    errorMessage: 'Unable to remove turnaround task.'
+  }), [runMutation, selectedDemoUser?.id])
 
+  const updateStaffing = useCallback((operationId, departmentRole, payload) => runMutation({
+    pendingKey: `${operationId}:${departmentRole}`,
+    setPendingKey: setUpdatingStaffingKey,
+    request: () => updateTurnaroundStaffing(operationId, departmentRole, payload, mutationScope),
+    successMessage: 'Turnaround staffing plan updated successfully',
+    errorMessage: 'Unable to update turnaround staffing plan.'
+  }), [runMutation, selectedDemoUser?.id])
 
-  const createTask = useCallback(async (operationId, payload) => {
-    setCreatingTaskId(operationId)
-    setMutationStatus('')
-    setMutationError('')
+  const updateSignoff = useCallback((operationId, departmentRole, payload) => runMutation({
+    pendingKey: `${operationId}:${departmentRole}`,
+    setPendingKey: setUpdatingSignoffKey,
+    request: () => updateTurnaroundSignoff(operationId, departmentRole, payload, mutationScope),
+    successMessage: 'Turnaround readiness signoff updated successfully',
+    errorMessage: 'Unable to update turnaround readiness signoff.'
+  }), [runMutation, selectedDemoUser?.id])
 
-    try {
-      const response = await createTurnaroundTask(operationId, payload, mutationScope)
-      if (response?.operation?.id) {
-        setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
-          operation.id === response.operation.id ? response.operation : operation
-        )))
-      } else {
-        await reload()
-      }
-      setMutationStatus(response?.message || 'Turnaround task created successfully')
-      return response
-    } catch (updateError) {
-      setMutationError(updateError.message || 'Unable to create turnaround task.')
-      return null
-    } finally {
-      setCreatingTaskId('')
-    }
-  }, [reload, selectedDemoUser?.id])
+  const createEscalation = useCallback((operationId, payload) => runMutation({
+    pendingKey: operationId,
+    setPendingKey: setCreatingEscalationId,
+    request: () => createTurnaroundEscalation(operationId, payload, mutationScope),
+    successMessage: 'Turnaround escalation created successfully',
+    errorMessage: 'Unable to create turnaround escalation.'
+  }), [runMutation, selectedDemoUser?.id])
 
-  const createTaskUpdate = useCallback(async (taskId, payload) => {
-    setCreatingTaskUpdateId(taskId)
-    setMutationStatus('')
-    setMutationError('')
+  const updateEscalation = useCallback((escalationId, payload) => runMutation({
+    pendingKey: escalationId,
+    setPendingKey: setUpdatingEscalationId,
+    request: () => updateTurnaroundEscalation(escalationId, payload, mutationScope),
+    successMessage: 'Turnaround escalation updated successfully',
+    errorMessage: 'Unable to update turnaround escalation.'
+  }), [runMutation, selectedDemoUser?.id])
 
-    try {
-      const response = await createTurnaroundTaskUpdate(taskId, payload, mutationScope)
-      if (response?.operation?.id) {
-        setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
-          operation.id === response.operation.id ? response.operation : operation
-        )))
-      } else {
-        await reload()
-      }
-      setMutationStatus(response?.message || 'Turnaround task update added successfully')
-      return response
-    } catch (updateError) {
-      setMutationError(updateError.message || 'Unable to add turnaround task update.')
-      return null
-    } finally {
-      setCreatingTaskUpdateId('')
-    }
-  }, [reload, selectedDemoUser?.id])
-
-
-  const deleteTask = useCallback(async (taskId) => {
-    setDeletingTaskId(taskId)
-    setMutationStatus('')
-    setMutationError('')
-
-    try {
-      const response = await deleteTurnaroundTask(taskId, mutationScope)
-      if (response?.operation?.id) {
-        setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
-          operation.id === response.operation.id ? response.operation : operation
-        )))
-      } else {
-        await reload()
-      }
-      setMutationStatus(response?.message || 'Turnaround task removed successfully')
-      return response
-    } catch (deleteError) {
-      setMutationError(deleteError.message || 'Unable to remove turnaround task.')
-      return null
-    } finally {
-      setDeletingTaskId('')
-    }
-  }, [reload, selectedDemoUser?.id])
-
-
-  const updateStaffing = useCallback(async (operationId, departmentRole, payload) => {
-    const staffingKey = `${operationId}:${departmentRole}`
-    setUpdatingStaffingKey(staffingKey)
-    setMutationStatus('')
-    setMutationError('')
-
-    try {
-      const response = await updateTurnaroundStaffing(operationId, departmentRole, payload, mutationScope)
-      if (response?.operation?.id) {
-        setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
-          operation.id === response.operation.id ? response.operation : operation
-        )))
-      } else {
-        await reload()
-      }
-      setMutationStatus(response?.message || 'Turnaround staffing plan updated successfully')
-      return response
-    } catch (updateError) {
-      setMutationError(updateError.message || 'Unable to update turnaround staffing plan.')
-      return null
-    } finally {
-      setUpdatingStaffingKey('')
-    }
-  }, [reload, selectedDemoUser?.id])
-
-  const updateSignoff = useCallback(async (operationId, departmentRole, payload) => {
-    const signoffKey = `${operationId}:${departmentRole}`
-    setUpdatingSignoffKey(signoffKey)
-    setMutationStatus('')
-    setMutationError('')
-
-    try {
-      const response = await updateTurnaroundSignoff(operationId, departmentRole, payload, mutationScope)
-      if (response?.operation?.id) {
-        setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
-          operation.id === response.operation.id ? response.operation : operation
-        )))
-      } else {
-        await reload()
-      }
-      setMutationStatus(response?.message || 'Turnaround readiness signoff updated successfully')
-      return response
-    } catch (updateError) {
-      setMutationError(updateError.message || 'Unable to update turnaround readiness signoff.')
-      return null
-    } finally {
-      setUpdatingSignoffKey('')
-    }
-  }, [reload, selectedDemoUser?.id])
-
-
-  const createEscalation = useCallback(async (operationId, payload) => {
-    setCreatingEscalationId(operationId)
-    setMutationStatus('')
-    setMutationError('')
-
-    try {
-      const response = await createTurnaroundEscalation(operationId, payload, mutationScope)
-      if (response?.operation?.id) {
-        setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
-          operation.id === response.operation.id ? response.operation : operation
-        )))
-      } else {
-        await reload()
-      }
-      setMutationStatus(response?.message || 'Turnaround escalation created successfully')
-      return response
-    } catch (createError) {
-      setMutationError(createError.message || 'Unable to create turnaround escalation.')
-      return null
-    } finally {
-      setCreatingEscalationId('')
-    }
-  }, [reload, selectedDemoUser?.id])
-
-  const updateEscalation = useCallback(async (escalationId, payload) => {
-    setUpdatingEscalationId(escalationId)
-    setMutationStatus('')
-    setMutationError('')
-
-    try {
-      const response = await updateTurnaroundEscalation(escalationId, payload, mutationScope)
-      if (response?.operation?.id) {
-        setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
-          operation.id === response.operation.id ? response.operation : operation
-        )))
-      } else {
-        await reload()
-      }
-      setMutationStatus(response?.message || 'Turnaround escalation updated successfully')
-      return response
-    } catch (updateError) {
-      setMutationError(updateError.message || 'Unable to update turnaround escalation.')
-      return null
-    } finally {
-      setUpdatingEscalationId('')
-    }
-  }, [reload, selectedDemoUser?.id])
-
-
-  const updateHandoff = useCallback(async (handoffId, payload) => {
-    setUpdatingHandoffId(handoffId)
-    setMutationStatus('')
-    setMutationError('')
-
-    try {
-      const response = await updateTurnaroundHandoff(handoffId, payload, mutationScope)
-      if (response?.operation?.id) {
-        setTurnaroundOperations(currentOperations => currentOperations.map(operation => (
-          operation.id === response.operation.id ? response.operation : operation
-        )))
-      } else {
-        await reload()
-      }
-      setMutationStatus(response?.message || 'Turnaround handoff updated successfully')
-      return response
-    } catch (updateError) {
-      setMutationError(updateError.message || 'Unable to update turnaround handoff.')
-      return null
-    } finally {
-      setUpdatingHandoffId('')
-    }
-  }, [reload, selectedDemoUser?.id])
+  const updateHandoff = useCallback((handoffId, payload) => runMutation({
+    pendingKey: handoffId,
+    setPendingKey: setUpdatingHandoffId,
+    request: () => updateTurnaroundHandoff(handoffId, payload, mutationScope),
+    successMessage: 'Turnaround handoff updated successfully',
+    errorMessage: 'Unable to update turnaround handoff.'
+  }), [runMutation, selectedDemoUser?.id])
 
   useEffect(() => {
     if (!enabled) {

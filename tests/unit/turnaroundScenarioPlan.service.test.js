@@ -13,7 +13,7 @@ describe('turnaroundScenarioPlan service', () => {
     portName: 'Port Canaveral'
   }
 
-  it('builds stress cases, triggers, contingencies, and a reviewer-safe drill runbook', () => {
+  it('builds stress cases, triggers, contingencies, and an operational resilience runbook', () => {
     const plan = buildTurnaroundScenarioPlan({
       operation,
       releasePacket: { releaseScore: 92, status: 'READY', blockers: [] },
@@ -23,11 +23,11 @@ describe('turnaroundScenarioPlan service', () => {
       afterActionReview: { summary: { reviewScore: 89 } },
       launchPlan: {
         launchScore: 90,
-        launchStatus: 'READY_FOR_REVIEWER_DEMO',
+        launchStatus: 'OPERATIONALLY_READY',
         demoRunbook: [{ id: 'admin-data-proof', label: 'Admin data proof' }],
         launchRisks: []
       },
-      managementStatus: { maturityStatus: 'FLAGSHIP_READY', remainingWork: [] }
+      managementStatus: { maturityStatus: 'OPERATIONALLY_MATURE', remainingWork: [] }
     })
 
     expect(plan.resilienceScore).toBeGreaterThanOrEqual(80)
@@ -37,21 +37,23 @@ describe('turnaroundScenarioPlan service', () => {
       'staffing-shortfall',
       'technical-blocker',
       'playbook-drift',
-      'reviewer-demo-disruption'
+      'unplanned-evidence-request'
     ]))
     expect(plan.triggerMatrix).toHaveLength(plan.stressCases.length)
     expect(plan.contingencyActions.length).toBeGreaterThanOrEqual(1)
+    expect(plan.headline).not.toMatch(/reviewer|demo/i)
+    expect(plan.summary).not.toMatch(/reviewer|demo/i)
     expect(plan.drillRunbook.map(step => step.id)).toEqual(expect.arrayContaining([
       'drill-open-command-center',
       'drill-apply-scenario',
       'drill-close-loop',
-      'drill-return-to-demo-runbook'
+      'drill-return-to-release-runbook'
     ]))
     expect(plan.evidence).toMatchObject({
       releaseStatus: 'READY',
       incidentSeverity: 'LOW',
-      launchStatus: 'READY FOR REVIEWER DEMO',
-      managementStatus: 'FLAGSHIP READY'
+      launchStatus: 'OPERATIONALLY READY',
+      managementStatus: 'OPERATIONALLY MATURE'
     })
   })
 
@@ -67,7 +69,7 @@ describe('turnaroundScenarioPlan service', () => {
     })
     const actions = buildContingencyActions({
       stressCases,
-      launchPlan: { launchRisks: [{ mitigation: 'Brief reviewer on active watch items.' }] },
+      launchPlan: { launchRisks: [{ mitigation: 'Brief operational leaders on active watch items.' }] },
       managementStatus: { remainingWork: [{ label: 'Normalize assignments', detail: 'Remove remaining display-name ownership bridges.' }] }
     })
 

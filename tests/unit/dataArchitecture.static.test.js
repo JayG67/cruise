@@ -6,22 +6,41 @@ const projectRoot = path.resolve(__dirname, '..', '..')
 function read(relativePath) {
   return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
 }
+const readRoleViewSurface = () => [
+  'roleView',
+  'roleIdentity',
+  'rolePassenger',
+  'roleOperations',
+  'roleOperationalAssignments',
+  'roleOperationalCommandCenters',
+  'roleOperationalReadiness'
+].map(name => read(`frontend/react/src/domain/${name}.js`)).join('\n')
+const readDatabaseBootstrap = () => ['initializeDatabase', 'databaseCompatibilityColumns', 'databaseIdentityMigration', 'databaseConstraintNormalization', 'databaseEntityMetadataMigration', 'databaseIndexProvisioning'].map(name => read(`services/${name}.service.js`)).join('\n')
+const readTurnaroundOperationAssembly = () => ['turnaroundOperationDetails', 'turnaroundOperationalArtifacts'].map(name => read(`services/${name}.service.js`)).join('\n')
+const readCruiseSeedLoader = () => ['loadCruiseData', 'cruiseSeedRows'].map(name => read(`services/${name}.service.js`)).join('\n')
+
+function readTurnaroundMutationControllers() {
+  return ['turnaroundMutation', 'turnaroundCommand', 'turnaroundEscalation', 'turnaroundWorkforce', 'turnaroundTask']
+    .map(name => read(`controllers/${name}.controller.js`)).join('\n')
+}
 
 function readOperationalDashboardSurface() {
   return [
     read('frontend/react/src/components/ReactRoleDashboard.jsx'),
-    read('frontend/react/src/components/operations/OperationalTurnaroundDashboard.jsx'),
+    read('frontend/react/src/components/operations/OperationalTurnaroundDashboard.jsx'), read('frontend/react/src/domain/operationalDashboardWorkspace.js'),
     read('frontend/react/src/components/operations/OperationsEvidencePanels.jsx'),
     read('frontend/react/src/components/operations/OperationsReadinessEvidencePanels.jsx'),
     read('frontend/react/src/components/operations/OperationsReleasePacketPanel.jsx'),
     read('frontend/react/src/components/operations/OperationsMetricsPanel.jsx'),
     read('frontend/react/src/components/operations/OperationsPlaybookPanels.jsx'),
-    read('frontend/react/src/components/operations/OperationsIncidentOutreachScenarioPanels.jsx'),
-    read('frontend/react/src/components/operations/OperationsDormantReadinessPanels.jsx'),
+    read('frontend/react/src/components/operations/OperationsIncidentBriefingScenarioPanels.jsx'),
     read('frontend/react/src/components/operations/OperationsCommandContinuityPanels.jsx'),
     read('frontend/react/src/components/operations/OperationsLaunchCloseoutPanels.jsx'),
     read('frontend/react/src/components/operations/OperationsTimelineAuditPanels.jsx'),
-    read('frontend/react/src/components/operations/operationalDashboardUtils.js')
+    read('frontend/react/src/components/operations/operationalDashboardUtils.js'),
+    read('frontend/react/src/components/operations/operationalDashboardLabels.js'),
+    read('frontend/react/src/components/operations/operationalDashboardReadiness.js'),
+    read('frontend/react/src/components/operations/operationalDashboardFormatting.js')
   ].join('\n')
 }
 
@@ -50,7 +69,7 @@ function readReactCssBundle() {
 
 describe('Production data architecture hardening guardrails', () => {
   it('creates indexes for high-volume cruise, booking, and turnaround query paths', () => {
-    const initializer = read('services/initializeDatabase.service.js')
+    const initializer = readDatabaseBootstrap()
 
     for (const indexName of [
       'idx_app_users_primary_customer',
@@ -93,12 +112,10 @@ describe('Production data architecture hardening guardrails', () => {
     }
   })
 
-
-
   it('adds database constraints for production-safe reference values and operational invariants', () => {
-    const initializer = read('services/initializeDatabase.service.js')
+    const initializer = readDatabaseBootstrap()
     const referenceData = read('domain/cruiseReferenceData.js')
-    const seedLoader = read('services/loadCruiseData.service.js')
+    const seedLoader = readCruiseSeedLoader()
 
     const idempotentConstraintChecks = {
       chk_bookings_booking_status: [
@@ -191,9 +208,8 @@ describe('Production data architecture hardening guardrails', () => {
     }
   })
 
-
   it('adds typed date time shadow columns and indexes for production migration compatibility', () => {
-    const initializer = read('services/initializeDatabase.service.js')
+    const initializer = readDatabaseBootstrap()
 
     for (const columnName of [
       '"departureDateValue" date',
@@ -231,10 +247,9 @@ describe('Production data architecture hardening guardrails', () => {
     }
   })
 
-
   it('adds normalized user and role bridge tables without removing existing demo-user compatibility', () => {
-    const initializer = read('services/initializeDatabase.service.js')
-    const loader = read('services/loadCruiseData.service.js')
+    const initializer = readDatabaseBootstrap()
+    const loader = readCruiseSeedLoader()
     const demoUserModel = read('models/demoUser.model.js')
 
     for (const tableName of [
@@ -269,9 +284,10 @@ describe('Production data architecture hardening guardrails', () => {
   })
 
   it('adds operational user-id attribution bridges while preserving display-name compatibility', () => {
-    const initializer = read('services/initializeDatabase.service.js')
-    const loader = read('services/loadCruiseData.service.js')
-    const controller = read('controllers/cruise.controller.js')
+    const initializer = readDatabaseBootstrap()
+    const loader = readCruiseSeedLoader()
+    const mutationController = readTurnaroundMutationControllers()
+    const mutationSupport = read('services/turnaroundMutationSupport.service.js')
 
     for (const column of [
       '"ownerUserId" varchar(40)',
@@ -303,28 +319,25 @@ describe('Production data architecture hardening guardrails', () => {
     }
 
     expect(loader).toContain('function buildAppUserLookup')
-    expect(controller).toContain('resolveOperationalUserIdByName')
-    expect(controller).toContain('async function getAssignedShipForOperation')
-    expect(controller).toContain('const exactMatches = await db')
-    expect(controller).not.toContain('await dbs')
-    expect(controller).toContain('ownerUserId: await resolveOperationalUserIdByName(ownerName, operation)')
-    expect(controller).toContain('approverUserId: await resolveOperationalUserIdByName(approverName, operation)')
-    expect(controller).toContain('authorUserId: await resolveOperationalUserIdByName(authorName, operation)')
+    expect(mutationSupport).toContain('async function resolveOperationalUserIdByName')
+    expect(mutationSupport).toContain('async function getAssignedShipForOperation')
+    expect(mutationSupport).toContain('const exactMatches = await db')
+    expect(mutationSupport).not.toContain('await dbs')
+    expect(mutationController).toContain('ownerUserId: await resolveOperationalUserIdByName(ownerName, operation)')
+    expect(mutationController).toContain('approverUserId: await resolveOperationalUserIdByName(approverName, operation)')
+    expect(mutationController).toContain('authorUserId: await resolveOperationalUserIdByName(authorName, operation)')
   })
 
-
-
-
   it('returns assignment-qualified operational person display names from turnaround APIs', () => {
-    const controller = read('controllers/cruise.controller.js')
+    const operationDetailsService = readTurnaroundOperationAssembly()
     const dashboard = readOperationalDashboardSurface()
 
-    expect(controller).toContain('async function buildAppUserDisplayLookup')
-    expect(controller).toContain("enrichOperationalPerson(signoff, userDisplayById, 'approverUserId', 'approverDisplayName')")
-    expect(controller).toContain("enrichOperationalPerson(escalation, userDisplayById, 'ownerUserId', 'ownerDisplayName')")
-    expect(controller).toContain("enrichOperationalPerson(handoff, userDisplayById, 'ownerUserId', 'ownerDisplayName')")
-    expect(controller).toContain("enrichOperationalPerson(task, userDisplayById, 'ownerUserId', 'ownerDisplayName')")
-    expect(controller).toContain("enrichOperationalPerson(update, userDisplayById, 'authorUserId', 'authorDisplayName')")
+    expect(operationDetailsService).toContain('async function buildAppUserDisplayLookup')
+    expect(operationDetailsService).toContain("enrichOperationalPerson(signoff, userDisplayById, 'approverUserId', 'approverDisplayName')")
+    expect(operationDetailsService).toContain("enrichOperationalPerson(escalation, userDisplayById, 'ownerUserId', 'ownerDisplayName')")
+    expect(operationDetailsService).toContain("enrichOperationalPerson(handoff, userDisplayById, 'ownerUserId', 'ownerDisplayName')")
+    expect(operationDetailsService).toContain("enrichOperationalPerson(task, userDisplayById, 'ownerUserId', 'ownerDisplayName')")
+    expect(operationDetailsService).toContain("enrichOperationalPerson(update, userDisplayById, 'authorUserId', 'authorDisplayName')")
 
     expect(dashboard).toContain('function getOperationalOwnerDisplay')
     expect(dashboard).toContain('function getOperationalAuthorDisplay')
@@ -333,14 +346,13 @@ describe('Production data architecture hardening guardrails', () => {
     expect(dashboard).toContain('signoff.approverDisplayName || signoff.approverName')
   })
 
-
   it('adds explicit cruise-line and ship assignment bridges for operational tenancy', () => {
-    const initializer = read('services/initializeDatabase.service.js')
-    const loader = read('services/loadCruiseData.service.js')
+    const initializer = readDatabaseBootstrap()
+    const loader = readCruiseSeedLoader()
     const appUserModel = read('models/appUser.model.js')
     const appUserRoleModel = read('models/appUserRole.model.js')
     const demoUserModel = read('models/demoUser.model.js')
-    const roleViewDomain = read('frontend/react/src/domain/roleView.js')
+    const roleViewDomain = readRoleViewSurface()
 
     for (const assignmentColumn of [
       '"cruiseLineId" uuid REFERENCES cruise_lines(id) ON DELETE SET NULL',
@@ -383,13 +395,13 @@ describe('Production data architecture hardening guardrails', () => {
     expect(roleViewDomain).toContain('selectedDemoUser.cruiseLineName')
   })
 
-
   it('loads turnaround operations through the selected demo-user assignment scope', () => {
     const controller = read('controllers/cruise.controller.js')
     const scopeService = read('services/turnaroundScope.service.js')
     const app = read('frontend/react/src/App.jsx')
     const hook = read('frontend/react/src/hooks/useTurnaroundOperations.js')
-    const client = read('frontend/react/src/api/client.js')
+    const client = [read('frontend/react/src/api/client.js'), read('frontend/react/src/api/httpClient.js'), read('frontend/react/src/api/turnaroundClient.js'), read('frontend/react/src/api/platformClient.js')].join('\n')
+    const staticFallback = read('frontend/react/src/api/staticFallback.js')
 
     expect(controller).toContain("getTurnaroundOperationsForRequest")
     expect(scopeService).toContain('async function getTurnaroundOperationsForRequest(req)')
@@ -401,21 +413,20 @@ describe('Production data architecture hardening guardrails', () => {
     expect(hook).toContain('getTurnaroundOperations({ signal: controller.signal, selectedDemoUser })')
     expect(hook).toContain('[selectedDemoUser?.id]')
     expect(client).toContain("'X-Cruise-Demo-User-Id': scopedDemoUserId")
-    expect(client).toContain('const requestPath = path.split')
+    expect(staticFallback).toContain('const requestPath = path.split')
   })
-
 
   it('enforces selected demo-user assignment scope on turnaround write paths', () => {
     const controller = read('controllers/cruise.controller.js')
     const scopeService = read('services/turnaroundScope.service.js')
     const hook = read('frontend/react/src/hooks/useTurnaroundOperations.js')
-    const client = read('frontend/react/src/api/client.js')
+    const client = [read('frontend/react/src/api/client.js'), read('frontend/react/src/api/httpClient.js'), read('frontend/react/src/api/turnaroundClient.js'), read('frontend/react/src/api/platformClient.js')].join('\n')
 
     expect(controller).toContain('canAccessTurnaroundOperationForRequest(req, operation)')
     expect(controller).toContain('sendTurnaroundOperationForbidden(res)')
     expect(scopeService).toContain('async function canAccessTurnaroundOperationForRequest(req, operation)')
     expect(scopeService).toContain('function sendTurnaroundOperationForbidden(res)')
-    expect(scopeService).toContain("Selected demo user is not assigned to this turnaround operation")
+    expect(scopeService).toContain("Selected person is not assigned to this turnaround operation")
     expect(scopeService).toContain('return scopedSailingIds.includes(operation.sailingId)')
 
     expect(client).toContain('function buildScopedApiPath(path)')
@@ -426,18 +437,21 @@ describe('Production data architecture hardening guardrails', () => {
     expect(client).toContain('buildScopedApiPath(`/cruise/turnaround-handoffs/${encodeURIComponent(handoffId)}`, options)')
 
     expect(hook).toContain('const mutationScope = { selectedDemoUser }')
+    expect(hook).toContain('const runMutation = useCallback(async ({')
+    expect(hook).toContain('setPendingKey(pendingKey)')
+    expect(hook).toContain("setPendingKey('')")
+    expect(hook.match(/response\?\.operation\?\.id/g)).toHaveLength(1)
     expect(hook).toContain('updateTurnaroundOperationCommand(operationId, payload, mutationScope)')
     expect(hook).toContain('updateTurnaroundTaskStatus(taskId, status, { ...options, ...mutationScope })')
     expect(hook).toContain('deleteTurnaroundTask(taskId, mutationScope)')
   })
-
 
   it('abstracts demo identity away from turnaround query strings before real auth is added', () => {
     const app = read('app.js')
     const middleware = read('middleware/requestIdentity.middleware.js')
     const controller = read('controllers/cruise.controller.js')
     const scopeService = read('services/turnaroundScope.service.js')
-    const client = read('frontend/react/src/api/client.js')
+    const client = [read('frontend/react/src/api/client.js'), read('frontend/react/src/api/httpClient.js'), read('frontend/react/src/api/turnaroundClient.js'), read('frontend/react/src/api/platformClient.js')].join('\n')
 
     expect(app).toContain("const { attachRequestIdentity } = require('./middleware/requestIdentity.middleware')")
     expect(app).toContain('app.use(attachRequestIdentity)')
@@ -452,14 +466,16 @@ describe('Production data architecture hardening guardrails', () => {
     expect(scopeService).toContain('const demoUserId = getScopedDemoUserId(req)')
     expect(client).toContain('function buildScopedHeaders(options = {})')
     expect(client).toContain("'X-Cruise-Demo-User-Id': scopedDemoUserId")
-    expect(client).toContain("requestJson('/cruise/turnaround-operations', getScopedRequestOptions(options))")
+    expect(client).toContain('const requestOptions = getScopedRequestOptions(options)')
+    expect(client).toContain("requestJson('/cruise/turnaround-operations', {")
+    expect(client).toContain('...requestOptions')
+    expect(client).toContain("cache: 'no-store'")
   })
-
 
   it('creates a production authorization seam before replacing demo identity', () => {
     const middleware = read('middleware/requestIdentity.middleware.js')
     const authorizationService = read('services/requestAuthorization.service.js')
-    const controller = read('controllers/cruise.controller.js')
+    const platformAdministrationController = [read('controllers/platformReadiness.controller.js'), read('controllers/platformOperationsAdmin.controller.js')].join('\n')
     const platformAuditService = read('services/platformAudit.service.js')
     const turnaroundScopeService = read('services/turnaroundScope.service.js')
 
@@ -469,8 +485,8 @@ describe('Production data architecture hardening guardrails', () => {
     expect(authorizationService).toContain('async function resolveRequestActor(req = {})')
     expect(authorizationService).toContain('async function requireAdminRequest(req, res)')
     expect(authorizationService).toContain('function getProductionPrincipal(req = {})')
-    expect(controller).toContain("const { requireAdminRequest } = require('../services/requestAuthorization.service')")
-    expect(controller).toContain('if (!(await requireAdminRequest(req, res))) return')
+    expect(platformAdministrationController).toContain("const { requireAdminRequest } = require('../services/requestAuthorization.service')")
+    expect(platformAdministrationController).toContain('if (!(await requireAdminRequest(req, res))) return')
     expect(platformAuditService).toContain("const { resolveRequestActor } = require('./requestAuthorization.service')")
     expect(turnaroundScopeService).toContain("const { resolveRequestActor } = require('./requestAuthorization.service')")
     expect(turnaroundScopeService).toContain('const actor = await resolveRequestActor(req)')
@@ -478,7 +494,7 @@ describe('Production data architecture hardening guardrails', () => {
 
 
   it('adds an append-only audit event bridge for production traceability', () => {
-    const initializer = read('services/initializeDatabase.service.js')
+    const initializer = readDatabaseBootstrap()
     const modelsIndex = read('models/index.js')
     const auditModel = read('models/auditEvent.model.js')
     const auditService = read('services/auditEvent.service.js')
@@ -522,13 +538,13 @@ describe('Production data architecture hardening guardrails', () => {
   })
 
   it('wires turnaround mutation endpoints to production audit events', () => {
-    const controller = read('controllers/cruise.controller.js')
+    const mutationController = readTurnaroundMutationControllers()
+    const mutationSupport = read('services/turnaroundMutationSupport.service.js')
     const scopeService = read('services/turnaroundScope.service.js')
 
-    expect(controller).toContain("recordAuditEvent } = require('../services/auditEvent.service')")
-    expect(controller).toContain('listAuditEventsForOperation')
-    expect(controller).toContain('async function recordTurnaroundAuditEvent(req, operation, event)')
-    expect(controller).toContain('buildTurnaroundAuditContext(req, operation)')
+    expect(mutationSupport).toContain("const { recordAuditEvent } = require('./auditEvent.service')")
+    expect(mutationSupport).toContain('async function recordTurnaroundAuditEvent(req, operation, event)')
+    expect(mutationSupport).toContain('buildTurnaroundAuditContext(req, operation)')
     expect(scopeService).toContain('async function buildTurnaroundAuditContext(req, operation = {})')
     expect(scopeService).toContain("source: TURNAROUND_AUDIT_SOURCE")
     expect(scopeService).toContain('actorUserId: actor.actorUserId || null')
@@ -547,7 +563,7 @@ describe('Production data architecture hardening guardrails', () => {
       'TURNAROUND_ESCALATION_UPDATED',
       'TURNAROUND_HANDOFF_UPDATED'
     ]) {
-      expect(controller).toContain(`eventType: '${eventType}'`)
+      expect(mutationController).toContain(`eventType: '${eventType}'`)
     }
 
     for (const entityType of [
@@ -558,13 +574,13 @@ describe('Production data architecture hardening guardrails', () => {
       'TURNAROUND_ESCALATION',
       'TURNAROUND_HANDOFF'
     ]) {
-      expect(controller).toContain(`entityType: '${entityType}'`)
+      expect(mutationController).toContain(`entityType: '${entityType}'`)
     }
   })
 
 
   it('extends production audit coverage across fleet, customer, and booking mutations', () => {
-    const controller = read('controllers/cruise.controller.js')
+    const controller = ['cruise', 'fleet', 'cruiseLineManagement', 'shipManagement', 'sailing', 'sailingManagement', 'itineraryQuery', 'itineraryManagement', 'customer', 'customerManagement', 'passengerExperience', 'booking', 'bookingManagement', 'bookingPassenger'].map(name => read(`controllers/${name}.controller.js`)).join('\n')
     const platformAuditService = read('services/platformAudit.service.js')
 
     expect(controller).toContain("require('../services/platformAudit.service')")
@@ -613,12 +629,9 @@ describe('Production data architecture hardening guardrails', () => {
     }
   })
 
-
-
-
   it('hardens core fleet, customer, and booking entities with UUID bridges, timestamps, and rich audit payloads', () => {
-    const initializer = read('services/initializeDatabase.service.js')
-    const controller = read('controllers/cruise.controller.js')
+    const initializer = readDatabaseBootstrap()
+    const controller = ['cruise', 'fleet', 'cruiseLineManagement', 'shipManagement', 'sailing', 'sailingManagement', 'itineraryQuery', 'itineraryManagement', 'customer', 'customerManagement', 'passengerExperience', 'booking', 'bookingManagement', 'bookingPassenger'].map(name => read(`controllers/${name}.controller.js`)).join('\n')
     const auditModel = read('models/auditEvent.model.js')
     const auditService = read('services/auditEvent.service.js')
     const entityHistoryService = read('services/entityHistory.service.js')
@@ -627,7 +640,6 @@ describe('Production data architecture hardening guardrails', () => {
     const sailingModel = read('models/sailing.model.js')
     const shipModel = read('models/ship.model.js')
     const cruiseLineModel = read('models/cruiseline.model.js')
-
     for (const column of [
       'ALTER TABLE customers ADD COLUMN IF NOT EXISTS "customerUuid" uuid DEFAULT gen_random_uuid()',
       'ALTER TABLE bookings ADD COLUMN IF NOT EXISTS "bookingUuid" uuid DEFAULT gen_random_uuid()',
@@ -688,11 +700,12 @@ describe('Production data architecture hardening guardrails', () => {
 
 
   it('hardens itinerary administration with timestamps and audit events', () => {
-    const initializer = read('services/initializeDatabase.service.js')
-    const controller = read('controllers/cruise.controller.js')
+    const initializer = readDatabaseBootstrap()
+    const controller = read('controllers/itineraryManagement.controller.js')
     const itineraryDayModel = read('models/itineraryDay.model.js')
     const activityScheduleModel = read('models/activitySchedule.model.js')
     const integration = read('tests/integration/sailings.integration.test.js')
+    const auditScopeService = read('services/sailingAuditScope.service.js')
 
     for (const column of [
       'ALTER TABLE itinerary_days ADD COLUMN IF NOT EXISTS "createdAt" varchar(40)',
@@ -720,7 +733,8 @@ describe('Production data architecture hardening guardrails', () => {
     expect(activityScheduleModel).toContain('updatedAtTimestamp: timestamp({ withTimezone: true })')
     expect(controller).toContain('function buildTimestampBridgeValues')
     expect(controller).toContain('function buildTimestampUpdateValues')
-    expect(controller).toContain('async function getItineraryDayAuditScope')
+    expect(controller).toContain('getItineraryDayAuditScope')
+    expect(auditScopeService).toContain('async function getItineraryDayAuditScope(itineraryDayOrId)')
 
     for (const eventType of [
       'ITINERARY_DAY_CREATED',
@@ -746,11 +760,12 @@ describe('Production data architecture hardening guardrails', () => {
   })
 
   it('hardens passenger self-service data with timestamps and audit events', () => {
-    const initializer = read('services/initializeDatabase.service.js')
-    const controller = read('controllers/cruise.controller.js')
+    const initializer = readDatabaseBootstrap()
+    const passengerExperienceController = read('controllers/passengerExperience.controller.js')
     const checklistModel = read('models/customerPreCruiseChecklist.model.js')
     const favoriteModel = read('models/customerItineraryFavorite.model.js')
     const bookingPassengerModel = read('models/bookingPassenger.model.js')
+    const auditScopeService = read('services/sailingAuditScope.service.js')
 
     for (const column of [
       'ALTER TABLE booking_passengers ADD COLUMN IF NOT EXISTS "updatedAt" varchar(40)',
@@ -774,11 +789,12 @@ describe('Production data architecture hardening guardrails', () => {
     expect(checklistModel).toContain('updatedAt: varchar({ length: 40 })')
     expect(favoriteModel).toContain('createdAt: varchar({ length: 40 })')
     expect(bookingPassengerModel).toContain('updatedAt: varchar({ length: 40 })')
-    expect(controller).toContain('function buildChecklistStorageValues')
-    expect(controller).toContain('async function getActivityAuditScope(activityScheduleId)')
-    expect(controller).toContain('async function refreshPassengerPreferenceTimestamp(customerId)')
-    expect(controller).toContain('async function refreshPreCruiseChecklistTimestamp(customerId)')
-    expect(controller).toContain('async function refreshItineraryFavoriteTimestamp(favoriteId)')
+    expect(passengerExperienceController).toContain('function buildChecklistStorageValues')
+    expect(passengerExperienceController).toContain('getActivityAuditScope')
+    expect(auditScopeService).toContain('async function getActivityAuditScope(activityScheduleId)')
+    expect(passengerExperienceController).toContain('async function refreshPassengerPreferenceTimestamp(customerId)')
+    expect(passengerExperienceController).toContain('async function refreshPreCruiseChecklistTimestamp(customerId)')
+    expect(passengerExperienceController).toContain('async function refreshItineraryFavoriteTimestamp(favoriteId)')
 
     for (const eventType of [
       'PASSENGER_PROFILE_UPDATED',
@@ -787,14 +803,14 @@ describe('Production data architecture hardening guardrails', () => {
       'PASSENGER_ITINERARY_FAVORITE_SAVED',
       'PASSENGER_ITINERARY_FAVORITE_REMOVED'
     ]) {
-      expect(controller).toContain(`eventType: '${eventType}'`)
+      expect(passengerExperienceController).toContain(`eventType: '${eventType}'`)
     }
 
     for (const entityType of [
       'CUSTOMER_PRE_CRUISE_CHECKLIST',
       'CUSTOMER_ITINERARY_FAVORITE'
     ]) {
-      expect(controller).toContain(`entityType: '${entityType}'`)
+      expect(passengerExperienceController).toContain(`entityType: '${entityType}'`)
     }
   })
 
@@ -802,19 +818,20 @@ describe('Production data architecture hardening guardrails', () => {
   it('exposes scoped turnaround audit history for production traceability review', () => {
     const routes = read('routes/cruise.routes.js')
     const controller = read('controllers/cruise.controller.js')
+    const operationDetailsService = readTurnaroundOperationAssembly()
     const auditService = read('services/auditEvent.service.js')
     const authorizationService = read('services/requestAuthorization.service.js')
     const dashboard = readOperationalDashboardSurface()
-    const client = read('frontend/react/src/api/client.js')
+    const client = [read('frontend/react/src/api/client.js'), read('frontend/react/src/api/httpClient.js'), read('frontend/react/src/api/turnaroundClient.js'), read('frontend/react/src/api/platformClient.js')].join('\n')
 
     expect(routes).toContain("'/turnaround-operations/:id/audit-events'")
     expect(routes).toContain('cruiseController.getTurnaroundOperationAuditEvents')
     expect(controller).toContain('exports.getTurnaroundOperationAuditEvents')
     expect(controller).toContain('canAccessTurnaroundOperationForRequest(req, operation)')
     expect(controller).toContain('listAuditEventsForOperation(operation.id')
-    expect(controller).toContain('const auditEvents = await listAuditEventsForOperation(operation.id, { limit: 8 })')
-    expect(controller).toContain('releasePacket,')
-    expect(controller).toContain('auditEvents,')
+    expect(operationDetailsService).toContain('const auditEvents = await listAuditEventsForOperation(operation.id, { limit: 8 })')
+    expect(operationDetailsService).toContain('releasePacket,')
+    expect(operationDetailsService).toContain('auditEvents,')
     expect(auditService).toContain('async function listAuditEventsForOperation(operationId')
     expect(auditService).toContain('function mapAuditEvent(row = {})')
     expect(auditService).toContain('function parseAuditPayload(eventPayload)')
@@ -827,14 +844,14 @@ describe('Production data architecture hardening guardrails', () => {
 
 
   it('adds a production turnaround release packet for final embarkation readiness', () => {
-    const controller = read('controllers/cruise.controller.js')
+    const operationDetailsService = readTurnaroundOperationAssembly()
     const releaseService = read('services/turnaroundRelease.service.js')
     const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
-    expect(controller).toContain("const { buildTurnaroundReleasePacket } = require('../services/turnaroundRelease.service')")
-    expect(controller).toContain('const releasePacket = buildTurnaroundReleasePacket({')
-    expect(controller).toContain('releasePacket,')
+    expect(operationDetailsService).toContain("const { buildTurnaroundReleasePacket } = require('./turnaroundRelease.service')")
+    expect(operationDetailsService).toContain('const releasePacket = buildTurnaroundReleasePacket({')
+    expect(operationDetailsService).toContain('releasePacket,')
     expect(releaseService).toContain('function buildTurnaroundReleasePacket')
     expect(releaseService).toContain('const releaseStatus =')
     expect(releaseService).toContain("id: 'audit'")
@@ -846,14 +863,14 @@ describe('Production data architecture hardening guardrails', () => {
 
 
   it('adds turnaround operational analytics for release-day performance review', () => {
-    const controller = read('controllers/cruise.controller.js')
+    const operationDetailsService = readTurnaroundOperationAssembly()
     const metricsService = read('services/turnaroundMetrics.service.js')
     const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
-    expect(controller).toContain("const { buildTurnaroundOperationalMetrics } = require('../services/turnaroundMetrics.service')")
-    expect(controller).toContain('const operationalMetrics = buildTurnaroundOperationalMetrics({')
-    expect(controller).toContain('operationalMetrics,')
+    expect(operationDetailsService).toContain("const { buildTurnaroundOperationalMetrics } = require('./turnaroundMetrics.service')")
+    expect(operationDetailsService).toContain('const operationalMetrics = buildTurnaroundOperationalMetrics({')
+    expect(operationDetailsService).toContain('operationalMetrics,')
     expect(metricsService).toContain('function buildTurnaroundOperationalMetrics')
     expect(metricsService).toContain('releaseConfidence')
     expect(metricsService).toContain('riskIndex')
@@ -868,14 +885,14 @@ describe('Production data architecture hardening guardrails', () => {
 
 
   it('adds a unified turnaround operational timeline for release-day command review', () => {
-    const controller = read('controllers/cruise.controller.js')
+    const operationDetailsService = readTurnaroundOperationAssembly()
     const timelineService = read('services/turnaroundTimeline.service.js')
     const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
-    expect(controller).toContain("const { buildTurnaroundOperationalTimeline } = require('../services/turnaroundTimeline.service')")
-    expect(controller).toContain('const operationalTimeline = buildTurnaroundOperationalTimeline({')
-    expect(controller).toContain('operationalTimeline,')
+    expect(operationDetailsService).toContain("const { buildTurnaroundOperationalTimeline } = require('./turnaroundTimeline.service')")
+    expect(operationDetailsService).toContain('const operationalTimeline = buildTurnaroundOperationalTimeline({')
+    expect(operationDetailsService).toContain('operationalTimeline,')
     expect(timelineService).toContain('function buildTurnaroundOperationalTimeline')
     expect(timelineService).toContain("source: 'TASK_UPDATE'")
     expect(timelineService).toContain("source: 'SIGNOFF'")
@@ -891,14 +908,14 @@ describe('Production data architecture hardening guardrails', () => {
 
 
   it('adds reusable turnaround playbook templates for repeatable operations planning', () => {
-    const controller = read('controllers/cruise.controller.js')
+    const operationDetailsService = readTurnaroundOperationAssembly()
     const playbookService = read('services/turnaroundPlaybook.service.js')
     const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
-    expect(controller).toContain("const { buildTurnaroundPlaybookTemplate } = require('../services/turnaroundPlaybook.service')")
-    expect(controller).toContain('const playbookTemplate = buildTurnaroundPlaybookTemplate({')
-    expect(controller).toContain('playbookTemplate,')
+    expect(operationDetailsService).toContain("const { buildTurnaroundPlaybookTemplate } = require('./turnaroundPlaybook.service')")
+    expect(operationDetailsService).toContain('const playbookTemplate = buildTurnaroundPlaybookTemplate({')
+    expect(operationDetailsService).toContain('playbookTemplate,')
     expect(playbookService).toContain('function buildTurnaroundPlaybookTemplate')
     expect(playbookService).toContain('templateReadinessScore')
     expect(playbookService).toContain('departmentPlaybooks')
@@ -913,14 +930,14 @@ describe('Production data architecture hardening guardrails', () => {
 
 
   it('adds playbook variance rehearsal scoring for live turnaround execution comparison', () => {
-    const controller = read('controllers/cruise.controller.js')
+    const operationDetailsService = readTurnaroundOperationAssembly()
     const varianceService = read('services/turnaroundVariance.service.js')
     const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
-    expect(controller).toContain("const { buildTurnaroundPlaybookVariance } = require('../services/turnaroundVariance.service')")
-    expect(controller).toContain('const playbookVariance = buildTurnaroundPlaybookVariance({')
-    expect(controller).toContain('playbookVariance,')
+    expect(operationDetailsService).toContain("const { buildTurnaroundPlaybookVariance } = require('./turnaroundVariance.service')")
+    expect(operationDetailsService).toContain('const playbookVariance = buildTurnaroundPlaybookVariance({')
+    expect(operationDetailsService).toContain('playbookVariance,')
     expect(varianceService).toContain('function buildTurnaroundPlaybookVariance')
     expect(varianceService).toContain('function buildDepartmentVariances')
     expect(varianceService).toContain('rehearsalScore')
@@ -935,14 +952,14 @@ describe('Production data architecture hardening guardrails', () => {
 
 
   it('adds turnaround incident command bridging for release-day exception management', () => {
-    const controller = read('controllers/cruise.controller.js')
+    const operationDetailsService = readTurnaroundOperationAssembly()
     const incidentService = read('services/turnaroundIncident.service.js')
     const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
-    expect(controller).toContain("const { buildTurnaroundIncidentCommand } = require('../services/turnaroundIncident.service')")
-    expect(controller).toContain('const incidentCommand = buildTurnaroundIncidentCommand({')
-    expect(controller).toContain('incidentCommand,')
+    expect(operationDetailsService).toContain("const { buildTurnaroundIncidentCommand } = require('./turnaroundIncident.service')")
+    expect(operationDetailsService).toContain('const incidentCommand = buildTurnaroundIncidentCommand({')
+    expect(operationDetailsService).toContain('incidentCommand,')
     expect(incidentService).toContain('function buildTurnaroundIncidentCommand')
     expect(incidentService).toContain('function buildIncidentSignals')
     expect(incidentService).toContain('incidentScore')
@@ -957,14 +974,14 @@ describe('Production data architecture hardening guardrails', () => {
 
 
   it('adds turnaround after-action review for post-operation production debriefs', () => {
-    const controller = read('controllers/cruise.controller.js')
+    const operationDetailsService = readTurnaroundOperationAssembly()
     const afterActionService = read('services/turnaroundAfterAction.service.js')
     const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
-    expect(controller).toContain("const { buildTurnaroundAfterActionReview } = require('../services/turnaroundAfterAction.service')")
-    expect(controller).toContain('const afterActionReview = buildTurnaroundAfterActionReview({')
-    expect(controller).toContain('afterActionReview,')
+    expect(operationDetailsService).toContain("const { buildTurnaroundAfterActionReview } = require('./turnaroundAfterAction.service')")
+    expect(operationDetailsService).toContain('const afterActionReview = buildTurnaroundAfterActionReview({')
+    expect(operationDetailsService).toContain('afterActionReview,')
     expect(afterActionService).toContain('function buildTurnaroundAfterActionReview')
     expect(afterActionService).toContain('buildDepartmentLessons')
     expect(afterActionService).toContain('buildAfterActionFindings')
@@ -979,14 +996,14 @@ describe('Production data architecture hardening guardrails', () => {
 
 
   it('adds turnaround shift briefing for next-shift handoff readiness', () => {
-    const controller = read('controllers/cruise.controller.js')
+    const operationDetailsService = readTurnaroundOperationAssembly()
     const shiftBriefingService = read('services/turnaroundShiftBriefing.service.js')
     const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
-    expect(controller).toContain("const { buildTurnaroundShiftBriefing } = require('../services/turnaroundShiftBriefing.service')")
-    expect(controller).toContain('const shiftBriefing = buildTurnaroundShiftBriefing({')
-    expect(controller).toContain('shiftBriefing,')
+    expect(operationDetailsService).toContain("const { buildTurnaroundShiftBriefing } = require('./turnaroundShiftBriefing.service')")
+    expect(operationDetailsService).toContain('const shiftBriefing = buildTurnaroundShiftBriefing({')
+    expect(operationDetailsService).toContain('shiftBriefing,')
     expect(shiftBriefingService).toContain('function buildTurnaroundShiftBriefing')
     expect(shiftBriefingService).toContain('buildBriefingCriticalItems')
     expect(shiftBriefingService).toContain('buildDepartmentBriefs')
@@ -1000,15 +1017,15 @@ describe('Production data architecture hardening guardrails', () => {
 
 
   it('adds turnaround go-live center for final launch readiness', () => {
-    const controller = read('controllers/cruise.controller.js')
+    const operationDetailsService = readTurnaroundOperationAssembly()
     const goLiveService = read('services/turnaroundGoLive.service.js')
     const dashboard = readOperationalDashboardSurface()
     const selectors = read('cypress/react/support/reactSelectors.js')
     const styles = readReactCssBundle()
 
-    expect(controller).toContain("const { buildTurnaroundGoLiveCenter } = require('../services/turnaroundGoLive.service')")
-    expect(controller).toContain('const goLiveCenter = buildTurnaroundGoLiveCenter({')
-    expect(controller).toContain('goLiveCenter,')
+    expect(operationDetailsService).toContain("const { buildTurnaroundGoLiveCenter } = require('./turnaroundGoLive.service')")
+    expect(operationDetailsService).toContain('const goLiveCenter = buildTurnaroundGoLiveCenter({')
+    expect(operationDetailsService).toContain('goLiveCenter,')
     expect(goLiveService).toContain('function buildTurnaroundGoLiveCenter')
     expect(goLiveService).toContain('buildGoLiveGates')
     expect(goLiveService).toContain('launchRecommendation')
@@ -1023,16 +1040,16 @@ describe('Production data architecture hardening guardrails', () => {
 
 
   it('adds turnaround operations control board for consolidated command-and-control', () => {
-    const controller = read('controllers/cruise.controller.js')
+    const operationDetailsService = readTurnaroundOperationAssembly()
     const controlBoardService = read('services/turnaroundOperationsControlBoard.service.js')
-    const roleView = read('frontend/react/src/domain/roleView.js')
+    const roleView = readRoleViewSurface()
     const dashboard = readOperationalDashboardSurface()
     const selectors = read('cypress/react/support/reactSelectors.js')
     const styles = readReactCssBundle()
 
-    expect(controller).toContain("const { buildTurnaroundOperationsControlBoard } = require('../services/turnaroundOperationsControlBoard.service')")
-    expect(controller).toContain('const operationsControlBoard = buildTurnaroundOperationsControlBoard({')
-    expect(controller).toContain('operationsControlBoard,')
+    expect(operationDetailsService).toContain("const { buildTurnaroundOperationsControlBoard } = require('./turnaroundOperationsControlBoard.service')")
+    expect(operationDetailsService).toContain('const operationsControlBoard = buildTurnaroundOperationsControlBoard({')
+    expect(operationDetailsService).toContain('operationsControlBoard,')
     expect(controlBoardService).toContain('function buildTurnaroundOperationsControlBoard')
     expect(controlBoardService).toContain('buildControlLanes')
     expect(controlBoardService).toContain('goNoGoStatus')
@@ -1047,11 +1064,15 @@ describe('Production data architecture hardening guardrails', () => {
 
   it('exposes admin-scoped platform audit history for production review', () => {
     const routes = read('routes/cruise.routes.js')
-    const controller = read('controllers/cruise.controller.js')
+    const controller = [read('controllers/platformReadiness.controller.js'), read('controllers/platformOperationsAdmin.controller.js')].join('\n')
     const auditService = read('services/auditEvent.service.js')
     const authorizationService = read('services/requestAuthorization.service.js')
-    const client = read('frontend/react/src/api/client.js')
-    const sqaConsole = read('frontend/react/src/components/ReactSqaConsole.jsx')
+    const client = [read('frontend/react/src/api/client.js'), read('frontend/react/src/api/httpClient.js'), read('frontend/react/src/api/turnaroundClient.js'), read('frontend/react/src/api/platformClient.js')].join('\n')
+    const staticFallback = read('frontend/react/src/api/staticFallback.js')
+    const sqaConsole = [
+      read('frontend/react/src/components/ReactSqaConsole.jsx'),
+      read('frontend/react/src/components/useAiQualityConsoleState.js')
+    ].join('\n')
     const app = read('frontend/react/src/App.jsx')
 
     expect(routes).toContain("'/audit-events'")
@@ -1068,7 +1089,7 @@ describe('Production data architecture hardening guardrails', () => {
     expect(auditService).toContain('entityType: auditEventTable.entityType')
     expect(auditService).toContain('source: auditEventTable.source')
     expect(client).toContain('export async function getPlatformAuditEvents(filters = {}, options = {})')
-    expect(client).toContain("requestPath === '/cruise/audit-events'")
+    expect(staticFallback).toContain("requestPath === '/cruise/audit-events'")
     expect(app).toContain('selectedDemoUser={selectedDemoUser}')
     expect(sqaConsole).toContain("testId: 'react-sqa-audit-history-button'")
     expect(sqaConsole).toContain("title: 'Audit History Review'")
@@ -1079,79 +1100,85 @@ describe('Production data architecture hardening guardrails', () => {
   })
 })
 
-describe('Turnaround reviewer packet guardrails', () => {
-  it('keeps cruise-line reviewer packet evidence out of the operational UI', () => {
-    const controller = read('controllers/cruise.controller.js')
-    const packetService = read('services/turnaroundReviewerPacket.service.js')
+describe('Turnaround operational assurance guardrails', () => {
+  it('keeps operational assurance evidence out of the primary operational UI', () => {
+    const operationDetailsService = readTurnaroundOperationAssembly()
+    const packetService = read('services/turnaroundOperationalAssurance.service.js')
     const dashboard = readOperationalDashboardSurface()
 
-    expect(controller).toContain("const { buildTurnaroundReviewerPacket } = require('../services/turnaroundReviewerPacket.service')")
-    expect(controller).toContain('const reviewerPacket = buildTurnaroundReviewerPacket({')
-    expect(controller).toContain('reviewerPacket,')
-    expect(packetService).toContain('function buildTurnaroundReviewerPacket')
-    expect(packetService).toContain('buildReviewerProofPoints')
-    expect(packetService).toContain('buildReviewerDataQuality')
-    expect(packetService).toContain('READY_FOR_CRUISE_LINE_REVIEW')
+    expect(operationDetailsService).toContain("const { buildTurnaroundOperationalAssurance } = require('./turnaroundOperationalAssurance.service')")
+    expect(operationDetailsService).toContain('const operationalAssurancePacket = buildTurnaroundOperationalAssurance({')
+    expect(operationDetailsService).toContain('reviewerPacket: operationalAssurancePacket,')
+    expect(packetService).toContain('function buildTurnaroundOperationalAssurance')
+    expect(packetService).toContain('buildAssuranceProofPoints')
+    expect(packetService).toContain('buildAssuranceDataQuality')
+    expect(packetService).toContain('READY_FOR_OPERATIONAL_REVIEW')
     expect(dashboard).not.toContain('data-testid="react-operations-reviewer-packet"')
     expect(dashboard).not.toContain('selectedOperation.reviewerPacket.proofPoints')
     expect(dashboard).not.toContain('Presentation-ready operational evidence packet')
   })
 })
 
-describe('Turnaround outreach board guardrails', () => {
-  it('adds a cruise-line outreach board generated from reviewer and executive evidence', () => {
-    const controller = read('controllers/cruise.controller.js')
-    const outreachService = read('services/turnaroundOutreach.service.js')
+describe('Turnaround operational briefing board guardrails', () => {
+  it('adds a leadership briefing board generated from operational assurance and executive evidence', () => {
+    const operationDetailsService = readTurnaroundOperationAssembly()
+    const briefingService = read('services/turnaroundOperationalBriefingBoard.service.js')
     const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
-    expect(controller).toContain("const { buildTurnaroundOutreachBoard } = require('../services/turnaroundOutreach.service')")
-    expect(controller).toContain('const outreachBoard = buildTurnaroundOutreachBoard({')
-    expect(controller).toContain('outreachBoard,')
-    expect(outreachService).toContain('function buildTurnaroundOutreachBoard')
-    expect(outreachService).toContain('buildApplicationChecklist')
-    expect(outreachService).toContain('buildTargetRecommendations')
-    expect(outreachService).toContain('READY_TO_SEND')
-    expect(dashboard).toContain('data-testid="react-operations-outreach-board"')
-    expect(dashboard).toContain('outreachBoard.targetRecommendations')
-    expect(dashboard).toContain('Application-ready reviewer strategy')
-    expect(styles).toContain('.operations-outreach-board')
-    expect(styles).toContain('.operations-outreach-board-grid')
+    expect(operationDetailsService).toContain("const { buildTurnaroundOperationalBriefingBoard } = require('./turnaroundOperationalBriefingBoard.service')")
+    expect(operationDetailsService).toContain('const operationalBriefingBoard = buildTurnaroundOperationalBriefingBoard({')
+    expect(operationDetailsService).toContain('outreachBoard: operationalBriefingBoard,')
+    expect(briefingService).toContain('function buildTurnaroundOperationalBriefingBoard')
+    expect(briefingService).toContain('buildBriefingChecklist')
+    expect(briefingService).toContain('buildAudienceRecommendations')
+    expect(briefingService).toContain('READY_FOR_BRIEFING')
+    expect(dashboard).toContain('data-testid="react-operations-operational-briefing-board"')
+    expect(dashboard).toContain('operationalBriefingBoard.audienceRecommendations')
+    expect(dashboard).toContain('Leadership-ready operational briefing')
+    expect(styles).toContain('.operations-operational-briefing-board')
+    expect(styles).toContain('.operations-operational-briefing-board-grid')
   })
 })
 
 describe('Turnaround management status guardrails', () => {
   it('keeps internal management status and maturity mapping out of the operational UI', () => {
-    const controller = read('controllers/cruise.controller.js')
+    const operationDetailsService = readTurnaroundOperationAssembly()
     const completionService = read('services/turnaroundCompletion.service.js')
     const dashboard = readOperationalDashboardSurface()
 
-    expect(controller).toContain("const { buildTurnaroundManagementStatus } = require('../services/turnaroundCompletion.service')")
-    expect(controller).toContain('const managementStatus = buildTurnaroundManagementStatus({')
-    expect(controller).toContain('managementStatus,')
+    expect(operationDetailsService).toContain("const { buildTurnaroundManagementStatus } = require('./turnaroundCompletion.service')")
+    expect(operationDetailsService).toContain('const managementStatus = buildTurnaroundManagementStatus({')
+    expect(operationDetailsService).toContain('managementStatus,')
     expect(completionService).toContain('function buildTurnaroundManagementStatus')
     expect(completionService).toContain('buildTurnaroundCapabilityMap')
     expect(completionService).toContain('buildContinuationSummary')
-    expect(completionService).toContain('FLAGSHIP_READY')
+    expect(completionService).toContain('REFERENCE_BASELINE_READY')
     expect(dashboard).not.toContain('data-testid="react-operations-management-status"')
     expect(dashboard).not.toContain('selectedOperation.managementStatus.capabilities')
     expect(dashboard).not.toContain('Production-demo completion map')
+    expect(fs.existsSync(path.join(projectRoot, 'frontend/react/src/styles/components/operations-evidence-management-status.css'))).toBe(false)
+    expect(read('scripts/repair-repository-structure.js')).toContain("'frontend/react/src/styles/components/operations-evidence-management-status.css'")
   })
 })
 
 describe('Turnaround launch plan guardrails', () => {
-  it('keeps reviewer-demo launch certification content out of the operational UI', () => {
-    const controller = read('controllers/cruise.controller.js')
+  it('keeps operational release certification content out of dormant UI surfaces', () => {
+    const operationDetailsService = readTurnaroundOperationAssembly()
     const launchService = read('services/turnaroundLaunchPlan.service.js')
     const dashboard = readOperationalDashboardSurface()
 
-    expect(controller).toContain("const { buildTurnaroundLaunchPlan } = require('../services/turnaroundLaunchPlan.service')")
-    expect(controller).toContain('const launchPlan = buildTurnaroundLaunchPlan({')
-    expect(controller).toContain('launchPlan,')
+    expect(operationDetailsService).toContain("const { buildTurnaroundLaunchPlan } = require('./turnaroundLaunchPlan.service')")
+    expect(operationDetailsService).toContain('const launchPlan = buildTurnaroundLaunchPlan({')
+    expect(operationDetailsService).toContain('launchPlan,')
     expect(launchService).toContain('function buildTurnaroundLaunchPlan')
     expect(launchService).toContain('buildCertificationGates')
     expect(launchService).toContain('buildDemoRunbook')
-    expect(launchService).toContain('READY_FOR_REVIEWER_DEMO')
+    expect(launchService).toContain('OPERATIONALLY_READY')
+    expect(launchService).not.toContain('READY_FOR_REVIEWER_DEMO')
+    expect(launchService).not.toContain('Reviewer demo certification gates')
+    expect(fs.existsSync(path.join(projectRoot, 'frontend/react/src/styles/components/operations-evidence-launch-plan.css'))).toBe(false)
+    expect(read('scripts/repair-repository-structure.js')).toContain("'frontend/react/src/styles/components/operations-evidence-launch-plan.css'")
     expect(dashboard).not.toContain('data-testid="react-operations-launch-plan"')
     expect(dashboard).not.toContain('selectedOperation.launchPlan.certificationGates')
     expect(dashboard).not.toContain('Reviewer demo certification gates')
@@ -1160,14 +1187,14 @@ describe('Turnaround launch plan guardrails', () => {
 
 describe('Turnaround scenario plan guardrails', () => {
   it('adds operational resilience scenarios generated from launch and management evidence', () => {
-    const controller = read('controllers/cruise.controller.js')
+    const operationDetailsService = readTurnaroundOperationAssembly()
     const scenarioService = read('services/turnaroundScenarioPlan.service.js')
     const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
-    expect(controller).toContain("const { buildTurnaroundScenarioPlan } = require('../services/turnaroundScenarioPlan.service')")
-    expect(controller).toContain('const scenarioPlan = buildTurnaroundScenarioPlan({')
-    expect(controller).toContain('scenarioPlan,')
+    expect(operationDetailsService).toContain("const { buildTurnaroundScenarioPlan } = require('./turnaroundScenarioPlan.service')")
+    expect(operationDetailsService).toContain('const scenarioPlan = buildTurnaroundScenarioPlan({')
+    expect(operationDetailsService).toContain('scenarioPlan,')
     expect(scenarioService).toContain('function buildTurnaroundScenarioPlan')
     expect(scenarioService).toContain('buildStressCases')
     expect(scenarioService).toContain('buildContingencyActions')
@@ -1180,68 +1207,44 @@ describe('Turnaround scenario plan guardrails', () => {
   })
 })
 
-describe('Turnaround production readiness cockpit guardrails', () => {
-  it('adds production readiness evidence without putting deep workflows back into Playwright', () => {
-    const controller = read('controllers/cruise.controller.js')
+describe('Retired turnaround readiness presentation guardrails', () => {
+  it('preserves readiness services while keeping duplicate dormant presentation surfaces retired', () => {
+    const operationDetailsService = readTurnaroundOperationAssembly()
     const productionService = read('services/turnaroundProductionReadiness.service.js')
+    const dossierService = read('services/turnaroundOperationalReleaseDossier.service.js')
     const dashboard = readOperationalDashboardSurface()
     const styles = readReactCssBundle()
 
-    expect(controller).toContain("const { buildTurnaroundProductionReadiness } = require('../services/turnaroundProductionReadiness.service')")
-    expect(controller).toContain('const productionReadiness = buildTurnaroundProductionReadiness({')
-    expect(controller).toContain('productionReadiness,')
+    expect(operationDetailsService).toContain("const { buildTurnaroundProductionReadiness } = require('./turnaroundProductionReadiness.service')")
+    expect(operationDetailsService).toContain('const productionReadiness = buildTurnaroundProductionReadiness({')
+    expect(operationDetailsService).toContain('productionReadiness,')
+    expect(operationDetailsService).toContain("const { buildTurnaroundOperationalReleaseDossier } = require('./turnaroundOperationalReleaseDossier.service')")
+    expect(operationDetailsService).toContain('const operationalReleaseDossier = buildTurnaroundOperationalReleaseDossier({')
+    expect(operationDetailsService).toContain('applicationDossier: operationalReleaseDossier,')
     expect(productionService).toContain('function buildTurnaroundProductionReadiness')
-    expect(productionService).toContain('buildProductionTestingContract')
-    expect(productionService).toContain('Full soup-to-nuts role workflow CRUD')
-    expect(productionService).toContain('Responsive layout, overflow, reachability, and selector stability only')
-    expect(dashboard).toContain('data-testid="react-operations-production-readiness"')
-    expect(dashboard).toContain('selectedOperation.productionReadiness.testingContract')
-    expect(dashboard).toContain('Reviewer demo readiness and test ownership')
-    expect(styles).toContain('.operations-production-readiness')
-    expect(styles).toContain('.operations-production-readiness [class*="grid"]')
+    expect(dossierService).toContain('function buildTurnaroundOperationalReleaseDossier')
+    expect(dashboard).not.toContain('react-operations-production-readiness')
+    expect(dashboard).not.toContain('react-operations-operational-release-dossier')
+    expect(styles).not.toContain('.operations-production-readiness')
+    expect(styles).not.toContain('.operations-operational-release-dossier')
   })
 })
 
-
-describe('Turnaround application dossier guardrails', () => {
-  it('adds cruise-line application proof package without expanding brittle Playwright workflow depth', () => {
-    const controller = read('controllers/cruise.controller.js')
-    const dossierService = read('services/turnaroundApplicationDossier.service.js')
-    const dashboard = readOperationalDashboardSurface()
-    const styles = readReactCssBundle()
-
-    expect(controller).toContain("const { buildTurnaroundApplicationDossier } = require('../services/turnaroundApplicationDossier.service')")
-    expect(controller).toContain('const applicationDossier = buildTurnaroundApplicationDossier({')
-    expect(controller).toContain('productionReadiness')
-    expect(controller).toContain('applicationDossier,')
-    expect(dossierService).toContain('function buildTurnaroundApplicationDossier')
-    expect(dossierService).toContain('buildEvidenceSections')
-    expect(dossierService).toContain('Application checklist')
-    expect(dossierService).toContain('Keep Playwright limited to responsive reachability, overflow, and selector stability')
-    expect(dashboard).toContain('data-testid="react-operations-application-dossier"')
-    expect(dashboard).toContain('selectedOperation.applicationDossier.evidenceSections')
-    expect(dashboard).toContain('Cruise-line application proof package')
-    expect(styles).toContain('.operations-application-dossier')
-    expect(styles).toContain('.operations-application-dossier [class*="grid"]')
-  })
-})
 
 describe('Turnaround closeout packet guardrails', () => {
   const projectRoot = path.resolve(__dirname, '../..')
   function read(relativePath) {
     return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
   }
-
-  it('adds a final closeout packet generated from operational, readiness, debrief, and reviewer proof layers', () => {
-    const controller = read('controllers/cruise.controller.js')
+  it('adds a final closeout packet generated from operational, readiness, debrief, and governance evidence layers', () => {
+    const operationDetailsService = readTurnaroundOperationAssembly()
     const closeoutService = read('services/turnaroundCloseout.service.js')
     const dashboard = readOperationalDashboardSurface()
-    const roleViewDomain = read('frontend/react/src/domain/roleView.js')
+    const roleViewDomain = readRoleViewSurface()
     const styles = readReactCssBundle()
-
-    expect(controller).toContain("const { buildTurnaroundCloseoutPacket } = require('../services/turnaroundCloseout.service')")
-    expect(controller).toContain('const closeoutPacket = buildTurnaroundCloseoutPacket({')
-    expect(controller).toContain('closeoutPacket,')
+    expect(operationDetailsService).toContain("const { buildTurnaroundCloseoutPacket } = require('./turnaroundCloseout.service')")
+    expect(operationDetailsService).toContain('const closeoutPacket = buildTurnaroundCloseoutPacket({')
+    expect(operationDetailsService).toContain('closeoutPacket,')
     expect(closeoutService).toContain('function buildTurnaroundCloseoutPacket')
     expect(closeoutService).toContain('buildCloseoutGates')
     expect(closeoutService).toContain('buildCloseoutChecklist')
@@ -1249,348 +1252,8 @@ describe('Turnaround closeout packet guardrails', () => {
     expect(roleViewDomain).toContain('closeoutPacket: operation.closeoutPacket || null')
     expect(dashboard).toContain('data-testid="react-operations-closeout-packet"')
     expect(dashboard).toContain('selectedOperation.closeoutPacket.gates')
-    expect(dashboard).toContain('Final management closeout and reusable operation proof')
+    expect(dashboard).toContain('Final management closeout and reusable operating baseline')
     expect(styles).toContain('.operations-closeout-packet')
     expect(styles).toContain('.operations-closeout-packet-grid')
-  })
-})
-
-describe('Phase 1 passenger audit history payload guardrails', () => {
-  it('keeps passenger self-service audit events on the shared before and after entity history contract', () => {
-    const controller = read('controllers/cruise.controller.js')
-    const integration = read('tests/integration/customersBookings.integration.test.js')
-
-    expect(controller).toContain('async function getCustomerPreCruiseChecklistRow(customerId)')
-    expect(controller).toContain('async function getCustomerItineraryFavoriteRow(favoriteId)')
-    expect(controller).toContain("operation: previousChecklistRow ? 'passenger-checklist-update' : 'passenger-checklist-create'")
-    expect(controller).toContain("operation: 'passenger-booking-preferences-update'")
-    expect(controller).toContain("operation: previousFavoriteRow ? 'passenger-itinerary-favorite-already-saved' : 'passenger-itinerary-favorite-create'")
-    expect(controller).toContain("operation: previousFavoriteRow ? 'passenger-itinerary-favorite-delete' : 'passenger-itinerary-favorite-delete-missing'")
-
-    for (const eventType of [
-      'PASSENGER_CHECKLIST_UPDATED',
-      'PASSENGER_BOOKING_PREFERENCES_UPDATED',
-      'PASSENGER_ITINERARY_FAVORITE_SAVED',
-      'PASSENGER_ITINERARY_FAVORITE_REMOVED'
-    ]) {
-      expect(controller).toContain(`eventType: '${eventType}'`)
-    }
-
-    for (const requiredFragment of [
-      'previous: previousChecklistRow',
-      'next: nextChecklistRow',
-      'previous: existingRows[0]',
-      'next: nextPassengerPreferences',
-      'previous: previousFavoriteRow',
-      'next: nextFavoriteRow',
-      "entityRefs: { bookingId, customerId }",
-      "entityRefs: { customerId, activityScheduleId }"
-    ]) {
-      expect(controller).toContain(requiredFragment)
-    }
-
-    expect(integration).toContain('records passenger self-service audit events with before and after history payloads')
-    expect(integration).toContain('/cruise/audit-events?demoUserId=UADMIN0001&entityType=CUSTOMER_PRE_CRUISE_CHECKLIST')
-    expect(integration).toContain("event.eventType === 'PASSENGER_BOOKING_PREFERENCES_UPDATED'")
-  })
-})
-
-
-describe('Phase 1 passenger relationship identity bridge guardrails', () => {
-  it('adds UUID bridges for passenger relationship records without removing readable IDs', () => {
-    const initializer = read('services/initializeDatabase.service.js')
-    const bookingPassengerModel = read('models/bookingPassenger.model.js')
-    const favoriteModel = read('models/customerItineraryFavorite.model.js')
-    const checklistModel = read('models/customerPreCruiseChecklist.model.js')
-    const controller = read('controllers/cruise.controller.js')
-    const integration = read('tests/integration/customersBookings.integration.test.js')
-
-    for (const bridgeColumn of [
-      '"bookingPassengerUuid" uuid DEFAULT gen_random_uuid()',
-      '"favoriteUuid" uuid DEFAULT gen_random_uuid()',
-      '"checklistUuid" uuid DEFAULT gen_random_uuid()'
-    ]) {
-      expect(initializer).toContain(bridgeColumn)
-    }
-
-    for (const indexName of [
-      'idx_booking_passengers_uuid',
-      'idx_customer_itinerary_favorites_uuid',
-      'idx_customer_pre_cruise_checklists_uuid'
-    ]) {
-      expect(initializer).toContain(`CREATE UNIQUE INDEX IF NOT EXISTS ${indexName}`)
-    }
-
-    expect(bookingPassengerModel).toContain('bookingPassengerUuid: uuid().defaultRandom()')
-    expect(favoriteModel).toContain('favoriteUuid: uuid().defaultRandom()')
-    expect(checklistModel).toContain('checklistUuid: uuid().defaultRandom()')
-    expect(controller).toContain('function buildBookingPassengerStorageValues')
-    expect(controller).toContain('existingPassenger?.bookingPassengerUuid')
-    expect(controller).toContain('values.bookingPassengerUuid = existingPassenger.bookingPassengerUuid')
-    expect(integration).toContain('booking passenger UUID bridge')
-  })
-})
-
-describe('Phase 1 turnaround audit history payload guardrails', () => {
-  it('keeps turnaround operational mutation audit events on the shared before and after entity history contract', () => {
-    const controller = read('controllers/cruise.controller.js')
-    const integration = read('tests/integration/turnaroundOperations.integration.test.js')
-
-    expect(controller).toContain('function buildTurnaroundHistoryPayload')
-    expect(controller).toContain("historyShape: 'TURNAROUND_BEFORE_AFTER_V1'")
-    expect(controller).toContain("domain: 'turnaround-operations'")
-    expect(controller).toContain('function mergeTurnaroundEntity')
-    expect((controller.match(/eventPayload: buildTurnaroundHistoryPayload/g) || []).length).toBeGreaterThanOrEqual(10)
-
-    for (const action of [
-      'update-command-plan',
-      'create-escalation',
-      'update-escalation',
-      'update-task-status',
-      'create-task',
-      'create-task-update',
-      'delete-task',
-      'update-task-details',
-      'update-handoff'
-    ]) {
-      expect(controller).toContain(`action: '${action}'`)
-    }
-
-    expect(controller).toContain("existingStaffing[0] ? 'update-staffing' : 'create-staffing'")
-    expect(controller).toContain("existingSignoffs[0] ? 'update-signoff' : 'create-signoff'")
-    expect(integration).toContain('records turnaround command audit events with shared before and after history payloads')
-    expect(integration).toContain("historyShape: 'TURNAROUND_BEFORE_AFTER_V1'")
-    expect(integration).toContain('/cruise/turnaround-operations/${operation.id}/audit-events?limit=10')
-  })
-})
-
-describe('Phase 1 durable API identity contract guardrails', () => {
-  it('promotes durable API identity metadata without replacing existing readable IDs', () => {
-    const identityBridge = read('services/apiIdentityBridge.service.js')
-    const controller = read('controllers/cruise.controller.js')
-    const integration = read('tests/integration/customersBookings.integration.test.js')
-
-    for (const helperName of [
-      'withCruiseLineApiIdentity',
-      'withShipApiIdentity',
-      'withSailingApiIdentity',
-      'withCustomerApiIdentity',
-      'withBookingApiIdentity',
-      'withBookingPassengerApiIdentity',
-      'withPreCruiseChecklistApiIdentity'
-    ]) {
-      expect(identityBridge).toContain(helperName)
-      expect(controller).toContain(helperName)
-    }
-
-    expect(identityBridge).toContain('apiIdentity')
-    expect(identityBridge).toContain('durableId')
-    expect(identityBridge).toContain('displayId')
-    expect(identityBridge).toContain('tenantScope')
-    expect(identityBridge).toContain('relationships')
-    expect(controller).toContain('cruiseLines.map(withCruiseLineApiIdentity)')
-    expect(controller).toContain('ships.map(withShipApiIdentity)')
-    expect(controller).toContain('(sailings || []).map(withSailingApiIdentity)')
-    expect(controller).toContain('withBookingPassengerApiIdentity')
-    expect(controller).toContain('withBookingApiIdentity')
-    expect(integration).toContain('durable API identity metadata')
-  })
-})
-
-describe('Phase 1 API payload profile guardrails', () => {
-  it('keeps compact booking list payload shaping centralized and opt-in', () => {
-    const payloadProfile = read('services/apiPayloadProfile.service.js')
-    const controller = read('controllers/cruise.controller.js')
-    const integration = read('tests/integration/customersBookings.integration.test.js')
-    const serviceTest = read('tests/unit/apiPayloadProfile.service.test.js')
-
-    expect(payloadProfile).toContain('function normalizePayloadProfile')
-    expect(payloadProfile).toContain('function compactBooking')
-    expect(payloadProfile).toContain('function compactCustomer')
-    expect(payloadProfile).toContain('function applyBookingPayloadProfile')
-    expect(payloadProfile).toContain('function applyCustomerPayloadProfile')
-    expect(payloadProfile).toContain('passengerCount')
-    expect(payloadProfile).toContain('primaryPassenger')
-    expect(payloadProfile).toContain('apiIdentity')
-    expect(controller).toContain('getRequestedPayloadProfile(req)')
-    expect(controller).toContain('applyBookingPayloadProfile(bookingDetails, getRequestedPayloadProfile(req))')
-    expect(controller).toContain('applyCustomerPayloadProfile(customerDetails, getRequestedPayloadProfile(req))')
-    expect(integration).toContain('GET /cruise/bookings?payload=compact')
-    expect(integration).toContain('GET /cruise/customers?payload=compact')
-    expect(integration).toContain('booking.itineraryDays).toBeUndefined()')
-    expect(serviceTest).toContain('builds compact customer payloads')
-    expect(serviceTest).toContain('leaves full payloads unchanged unless compact is requested')
-  })
-})
-
-describe('Phase 1 tenant boundary foundation guardrails', () => {
-  it('centralizes tenant boundary checks without changing existing readable API contracts', () => {
-    const tenantBoundary = read('services/tenantBoundary.service.js')
-    const serviceTest = read('tests/unit/tenantBoundary.service.test.js')
-
-    for (const helperName of [
-      'buildTenantBoundary',
-      'tenantBoundaryFromEntity',
-      'tenantBoundaryFromRequest',
-      'isTenantBoundaryCompatible',
-      'filterRowsByTenantBoundary',
-      'assertTenantBoundary'
-    ]) {
-      expect(tenantBoundary).toContain(helperName)
-      expect(serviceTest).toContain(helperName)
-    }
-
-    expect(tenantBoundary).toContain('x-cruise-tenant-id')
-    expect(tenantBoundary).toContain('TENANT_BOUNDARY_MISMATCH')
-    expect(tenantBoundary).toContain('apiIdentity')
-    expect(serviceTest).toContain('backward-compatible')
-    expect(serviceTest).toContain('legacy-row-without-scope')
-  })
-})
-
-describe('Phase 1 user actor identity bridge guardrails', () => {
-  it('centralizes resolved actor shapes before completing production user normalization', () => {
-    const authorizationService = read('services/requestAuthorization.service.js')
-    const authorizationTest = read('tests/unit/requestAuthorization.service.test.js')
-
-    for (const helperName of [
-      'ACTOR_IDENTITY_SOURCES',
-      'buildActorIdentity',
-      'buildProductionActor',
-      'buildDemoActor',
-      'buildAnonymousActor',
-      'assertResolvedActor',
-      'normalizeActorRole',
-      'normalizeActorDisplayName'
-    ]) {
-      expect(authorizationService).toContain(helperName)
-      expect(authorizationTest).toContain(helperName)
-    }
-
-    expect(authorizationService).toContain('ACTOR_IDENTITY_SOURCE_REQUIRED')
-    expect(authorizationService).toContain('ACTOR_DISPLAY_NAME_REQUIRED')
-    expect(authorizationService).toContain('return assertResolvedActor(buildProductionActor(principal))')
-    expect(authorizationService).toContain('return assertResolvedActor(buildDemoActor(demoUser) || buildAnonymousActor())')
-  })
-})
-
-
-describe('Phase 1 audit event query contract guardrails', () => {
-  it('centralizes audit history query filtering before deeper event history expansion', () => {
-    const controller = read('controllers/cruise.controller.js')
-    const queryService = read('services/auditEventQuery.service.js')
-    const queryServiceTest = read('tests/unit/auditEventQuery.service.test.js')
-
-    expect(controller).toContain("require('../services/auditEventQuery.service')")
-    expect(controller).toContain('buildAuditEventQueryContract(req.query')
-    expect(controller).toContain('buildAuditEventListResponse(auditEvents, auditEventQuery)')
-    expect(queryService).toContain('AUDIT_EVENT_FILTER_FIELDS')
-    expect(queryService).toContain('normalizeAuditEventFilters')
-    expect(queryService).toContain('normalizeAuditEventLimit')
-    expect(queryServiceTest).toContain('unexpectedTenantBypass')
-    expect(queryServiceTest).toContain('queryLimit')
-  })
-})
-
-describe('Phase 1 seed data decoupling bridge guardrails', () => {
-  it('documents seed JSON as a demo/reset input while production data moves to migrations and workflows', () => {
-    const seedManifestService = read('services/seedDataManifest.service.js')
-    const seedManifestTest = read('tests/unit/seedDataManifest.service.test.js')
-
-    for (const helperName of [
-      'DEFAULT_SEED_MANIFEST',
-      'normalizeSeedEntityName',
-      'uniqueSeedEntities',
-      'buildSeedDataManifest',
-      'describeSeedDataDecoupling',
-      'assertSeedDataManifest'
-    ]) {
-      expect(seedManifestService).toContain(helperName)
-      expect(seedManifestTest).toContain(helperName)
-    }
-
-    expect(seedManifestService).toContain('data/cruise.json')
-    expect(seedManifestService).toContain('database-migrations-and-admin-workflows')
-    expect(seedManifestService).toContain('forbidRuntimeSeedMutation')
-    expect(seedManifestTest).toContain('not the runtime source of truth')
-    expect(seedManifestTest).toContain('production data changes flow through migrations, APIs, and admin workflows')
-  })
-})
-
-describe('Phase 1 production indexing strategy guardrails', () => {
-  it('centralizes implemented and planned index contracts before final database index propagation', () => {
-    const indexStrategyService = read('services/productionIndexStrategy.service.js')
-    const indexStrategyTest = read('tests/unit/productionIndexStrategy.service.test.js')
-
-    for (const helperName of [
-      'DEFAULT_INDEX_STRATEGY',
-      'normalizeIndexPhase',
-      'normalizeIndexDefinition',
-      'buildProductionIndexStrategy',
-      'groupIndexesByPhase',
-      'findIndexesForTable',
-      'assertProductionIndexStrategy',
-      'describeProductionIndexStrategy'
-    ]) {
-      expect(indexStrategyService).toContain(helperName)
-      expect(indexStrategyTest).toContain(helperName)
-    }
-
-    expect(indexStrategyService).toContain('idx_bookings_sailing_status')
-    expect(indexStrategyService).toContain('idx_audit_events_entity_created_at')
-    expect(indexStrategyService).toContain('production-index-strategy-finalization')
-    expect(indexStrategyTest).toContain('planned production index work')
-  })
-})
-
-describe('Phase 1 closeout readiness bridge guardrails', () => {
-  it('centralizes the Phase 1 completion handoff before moving into final productionization', () => {
-    const closeoutService = read('services/phaseOneCloseoutReadiness.service.js')
-    const closeoutTest = read('tests/unit/phaseOneCloseoutReadiness.service.test.js')
-
-    for (const helperName of [
-      'DEFAULT_CLOSEOUT_AREAS',
-      'CLOSEOUT_STATUSES',
-      'normalizeCloseoutStatus',
-      'normalizeCloseoutArea',
-      'buildPhaseOneCloseoutReadiness',
-      'assertPhaseOneCloseoutReadiness',
-      'describePhaseOneCloseoutReadiness'
-    ]) {
-      expect(closeoutService).toContain(helperName)
-      expect(closeoutTest).toContain(helperName)
-    }
-
-    expect(closeoutService).toContain('phase-one-closeout-readiness')
-    expect(closeoutService).toContain('date-time-normalization')
-    expect(closeoutTest).toContain('without reopening completed bridge slices')
-  })
-})
-
-describe('Phase 1 completion handoff guardrails', () => {
-  it('closes Phase 1 with a final completion handoff and Phase 2 productionization boundaries', () => {
-    const completionService = read('services/phaseOneCompletionHandoff.service.js')
-    const completionTest = read('tests/unit/phaseOneCompletionHandoff.service.test.js')
-
-    for (const helperName of [
-      'PHASE_ONE_COMPLETION_GUARDRAIL',
-      'PHASE_ONE_COMPLETION_AREAS',
-      'PHASE_ONE_PRODUCTIONIZATION_HANDOFF',
-      'normalizeCompletionStatus',
-      'normalizeCompletionArea',
-      'buildPhaseOneCompletionHandoff',
-      'assertPhaseOneCompletionHandoff',
-      'describePhaseOneCompletionHandoff'
-    ]) {
-      expect(completionService).toContain(helperName)
-      expect(completionTest).toContain(helperName)
-    }
-
-    expect(completionService).toContain('phase-one-completion-handoff')
-    expect(completionService).toContain('Phase 1 Data Architecture Hardening')
-    expect(completionService).toContain('database-migrations')
-    expect(completionService).toContain('production-authentication')
-    expect(completionService).toContain('tenant-enforcement')
-    expect(completionTest).toContain('without reopening Phase 1 bridge slices')
   })
 })

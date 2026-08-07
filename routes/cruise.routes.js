@@ -73,12 +73,6 @@ router.get(
 )
 
 router.get(
-  '/portfolio/showcase',
-  cruiseController.getPortfolioShowcase
-)
-
-
-router.get(
   '/public-launch/readiness',
   cruiseController.getPublicLaunchReadiness
 )

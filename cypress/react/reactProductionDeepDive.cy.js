@@ -33,17 +33,17 @@ describe('React production deep-dive coverage', () => {
     cy.getByTestId(rs.workspaceFleetButton).click()
     cy.getByTestId(rs.fleetDirectory).should('be.visible')
 
-    cy.getByTestId(rs.workspaceQualityButton).click()
-    cy.getByTestId(rs.sqaConsole).should('be.visible')
+    cy.getByTestId(rs.workspaceIntelligenceButton).click()
+    cy.getByTestId(rs.operationsIntelligenceCenter).should('be.visible')
   })
 
-  it('keeps the product hero focused on the React app and quality console', () => {
+  it('keeps the product hero focused on cruise operations and operational intelligence', () => {
     cy.getByTestId(rs.productionHero).within(() => {
-      cy.getByTestId(rs.heroQualityButton).should('contain.text', 'Open Quality Console')
+      cy.getByTestId(rs.heroIntelligenceButton).should('contain.text', 'Review Operations Intelligence')
       cy.contains('Open Retired Pre-React App').should('not.exist')
     })
-    cy.getByTestId(rs.workspaceQualityButton).click()
-    cy.getByTestId(rs.sqaConsole).should('be.visible')
+    cy.getByTestId(rs.workspaceIntelligenceButton).click()
+    cy.getByTestId(rs.operationsIntelligenceCenter).should('be.visible')
   })
 
   it('removes passenger detail state when returning to admin operations', () => {
@@ -56,7 +56,7 @@ describe('React production deep-dive coverage', () => {
     selectDemoUserByVisibleRole('Admin')
     cy.getByTestId(rs.roleBookingDetails).should('not.exist')
     cy.getByTestId(rs.activeRouteOperations).should('be.visible')
-    cy.getByTestId(rs.sqaConsole).should('be.visible')
+    cy.getByTestId(rs.operationsIntelligenceCenter).should('be.visible')
   })
 
   it('limits the group leader dashboard to group-visible bookings and manifest rows', () => {
@@ -153,23 +153,10 @@ describe('React production deep-dive coverage', () => {
     cy.getByTestId(rs.itineraryActivity).should('not.contain.text', 'Terminal arrival')
   })
 
-  it('keeps quality reset confirmation explicit and refreshes app data after success', () => {
-    cy.intercept('POST', '/admin/reset-demo-data', {
-      statusCode: 200,
-      body: { message: 'Demo data reset successfully' }
-    }).as('resetDemoData')
-    cy.intercept('GET', '/cruise/customers', []).as('reloadCustomersAfterReset')
-    cy.intercept('GET', '/cruise/bookings', []).as('reloadBookingsAfterReset')
-    cy.intercept('GET', '/cruise', []).as('reloadCruiseLinesAfterReset')
-
-    cy.getByTestId(rs.sqaResetDemoDataButton).click()
-    cy.getByTestId(rs.sqaResetConfirmation).should('be.visible')
-    cy.getByTestId(rs.sqaResetConfirmationConfirm).click()
-    cy.wait('@resetDemoData')
-    cy.wait('@reloadCustomersAfterReset')
-    cy.wait('@reloadBookingsAfterReset')
-    cy.wait('@reloadCruiseLinesAfterReset')
-    cy.getByTestId(rs.sqaOutput).should('contain.text', 'Baseline Data Recovery Result')
-    cy.getByTestId(rs.sqaStatus).should('contain.text', 'Ready for validation')
+  it('keeps operational intelligence refresh explicit and visible', () => {
+    cy.intercept({ method: 'GET', pathname: '/cruise/turnaround-operations' }).as('refreshOperationalIntelligence')
+    cy.getByTestId(rs.operationsIntelligenceRefreshButton).click()
+    cy.wait('@refreshOperationalIntelligence')
+    cy.getByTestId(rs.operationsIntelligenceDetail).should('be.visible')
   })
 })

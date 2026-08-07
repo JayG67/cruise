@@ -24,7 +24,7 @@
   .role-profile-card.ce-command-card,
   .role-booking-detail-panel.ce-command-card,
   .role-itinerary-panel.ce-command-card,
-  .operations-portfolio-board.ce-command-panel,
+  .turnaround-fleet-board.ce-command-panel,
   .operations-release-board.ce-command-panel,
   .operations-role-brief-panel.ce-command-panel,
   .operations-directory-panel.ce-command-panel,
@@ -100,7 +100,7 @@
   .role-booking-list,
   .role-booking-detail-grid,
   .role-itinerary-list,
-  .operations-portfolio-list,
+  .turnaround-fleet-list,
   .operations-directory-layout,
   .operations-readiness-list,
   .operational-readiness-list

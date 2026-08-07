@@ -5,7 +5,8 @@
 /* Build 475 - lifecycle story tiles match lifecycle dark-card motif.
    The four story-beat tiles directly under the Turnaround Lifecycle header were
    still using the generic light tile style. They now match the dark phase cards
-   in the same panel, while the completion score badge remains the light KPI tile. */
+   in the same panel,
+while the completion score badge remains the light KPI tile. */
 .react-role-dashboard .operations-lifecycle-story {
   background: transparent !important;
   border: 0 !important;
@@ -47,7 +48,10 @@
 
 /* Build 476 - role-operations panels unified to workspace-selection style.
    This applies the same dark-card motif used by the Turnaround Person Finder:
-   dark panels, dark nested cards, white/light text, and light KPI/input tiles
+   dark panels,
+dark nested cards,
+white/light text,
+and light KPI/input tiles
    only where they are intentionally metric controls. */
 
 /* Lifecycle lower details: no more white utility panels inside the dark lifecycle panel. */
@@ -102,14 +106,11 @@
 .react-role-dashboard .operations-playbook,
 .react-role-dashboard .operations-playbook-variance,
 .react-role-dashboard .operations-incident-command,
-.react-role-dashboard .operations-reviewer-packet,
-.react-role-dashboard .operations-outreach-board,
+.react-role-dashboard .operations-operational-briefing-board,
 .react-role-dashboard .operations-after-action,
 .react-role-dashboard .operations-executive-brief,
 .react-role-dashboard .operations-command-center,
 .react-role-dashboard .operations-closeout-packet,
-.react-role-dashboard .operations-production-readiness,
-.react-role-dashboard .operations-application-dossier,
 .react-role-dashboard .operations-go-live-evidence,
 .react-role-dashboard .operations-launch-plan,
 .react-role-dashboard .operations-management-status,
@@ -129,8 +130,7 @@
 .react-role-dashboard .operations-playbook-header,
 .react-role-dashboard .operations-playbook-variance-header,
 .react-role-dashboard .operations-incident-command-header,
-.react-role-dashboard .operations-reviewer-packet-header,
-.react-role-dashboard .operations-outreach-board-header {
+.react-role-dashboard .operations-operational-briefing-board-header {
   background: transparent !important;
   border: 0 !important;
   color: #ffffff !important;
@@ -142,8 +142,7 @@
 .react-role-dashboard .operations-playbook-header *,
 .react-role-dashboard .operations-playbook-variance-header *,
 .react-role-dashboard .operations-incident-command-header *,
-.react-role-dashboard .operations-reviewer-packet-header *,
-.react-role-dashboard .operations-outreach-board-header * {
+.react-role-dashboard .operations-operational-briefing-board-header * {
   background: transparent !important;
   color: #ffffff !important;
   opacity: 1 !important;
@@ -161,20 +160,16 @@
 .react-role-dashboard .operations-playbook-variance [class*="actions"],
 .react-role-dashboard .operations-incident-command [class*="grid"] > *,
 .react-role-dashboard .operations-incident-command [class*="footer"],
-.react-role-dashboard .operations-reviewer-packet [class*="grid"] > *,
-.react-role-dashboard .operations-reviewer-packet [class*="details"],
-.react-role-dashboard .operations-outreach-board [class*="grid"] > *,
-.react-role-dashboard .operations-outreach-board [class*="actions"],
-.react-role-dashboard .operations-outreach-board [class*="details"],
-.react-role-dashboard .operations-outreach-board [class*="narrative"],
+.react-role-dashboard .operations-operational-briefing-board [class*="grid"] > *,
+.react-role-dashboard .operations-operational-briefing-board [class*="actions"],
+.react-role-dashboard .operations-operational-briefing-board [class*="details"],
+.react-role-dashboard .operations-operational-briefing-board [class*="narrative"],
 .react-role-dashboard .operations-after-action [class*="grid"] > *,
 .react-role-dashboard .operations-after-action [class*="details"],
 .react-role-dashboard .operations-executive-brief [class*="grid"] > *,
 .react-role-dashboard .operations-executive-brief [class*="details"],
 .react-role-dashboard .operations-command-center [class*="grid"] > *,
 .react-role-dashboard .operations-closeout-packet [class*="grid"] > *,
-.react-role-dashboard .operations-production-readiness [class*="grid"] > *,
-.react-role-dashboard .operations-application-dossier [class*="grid"] > *,
 .react-role-dashboard .operations-go-live-evidence [class*="grid"] > *,
 .react-role-dashboard .operations-launch-plan [class*="grid"] > *,
 .react-role-dashboard .operations-management-status [class*="grid"] > *,
@@ -198,20 +193,16 @@
 .react-role-dashboard .operations-playbook-variance [class*="actions"] *,
 .react-role-dashboard .operations-incident-command [class*="grid"] > * *,
 .react-role-dashboard .operations-incident-command [class*="footer"] *,
-.react-role-dashboard .operations-reviewer-packet [class*="grid"] > * *,
-.react-role-dashboard .operations-reviewer-packet [class*="details"] *,
-.react-role-dashboard .operations-outreach-board [class*="grid"] > * *,
-.react-role-dashboard .operations-outreach-board [class*="actions"] *,
-.react-role-dashboard .operations-outreach-board [class*="details"] *,
-.react-role-dashboard .operations-outreach-board [class*="narrative"] *,
+.react-role-dashboard .operations-operational-briefing-board [class*="grid"] > * *,
+.react-role-dashboard .operations-operational-briefing-board [class*="actions"] *,
+.react-role-dashboard .operations-operational-briefing-board [class*="details"] *,
+.react-role-dashboard .operations-operational-briefing-board [class*="narrative"] *,
 .react-role-dashboard .operations-after-action [class*="grid"] > * *,
 .react-role-dashboard .operations-after-action [class*="details"] *,
 .react-role-dashboard .operations-executive-brief [class*="grid"] > * *,
 .react-role-dashboard .operations-executive-brief [class*="details"] *,
 .react-role-dashboard .operations-command-center [class*="grid"] > * *,
 .react-role-dashboard .operations-closeout-packet [class*="grid"] > * *,
-.react-role-dashboard .operations-production-readiness [class*="grid"] > * *,
-.react-role-dashboard .operations-application-dossier [class*="grid"] > * *,
 .react-role-dashboard .operations-go-live-evidence [class*="grid"] > * *,
 .react-role-dashboard .operations-launch-plan [class*="grid"] > * *,
 .react-role-dashboard .operations-management-status [class*="grid"] > * *,
@@ -235,8 +226,7 @@
 .react-role-dashboard .operations-playbook [class*="score"],
 .react-role-dashboard .operations-playbook-variance [class*="score"],
 .react-role-dashboard .operations-incident-command [class*="score"],
-.react-role-dashboard .operations-reviewer-packet [class*="score"],
-.react-role-dashboard .operations-outreach-board [class*="score"] {
+.react-role-dashboard .operations-operational-briefing-board [class*="score"] {
   background: #f8fbff !important;
   border: 1px solid #b8cde0 !important;
   color: #0f172a !important;
@@ -247,8 +237,7 @@
 .react-role-dashboard .operations-playbook [class*="score"] *,
 .react-role-dashboard .operations-playbook-variance [class*="score"] *,
 .react-role-dashboard .operations-incident-command [class*="score"] *,
-.react-role-dashboard .operations-reviewer-packet [class*="score"] *,
-.react-role-dashboard .operations-outreach-board [class*="score"] * {
+.react-role-dashboard .operations-operational-briefing-board [class*="score"] * {
   color: #0f172a !important;
   opacity: 1 !important;
 }
@@ -260,20 +249,15 @@
 .react-role-dashboard .operations-playbook .eyebrow,
 .react-role-dashboard .operations-playbook-variance .eyebrow,
 .react-role-dashboard .operations-incident-command .eyebrow,
-.react-role-dashboard .operations-reviewer-packet .eyebrow,
-.react-role-dashboard .operations-outreach-board .eyebrow {
+.react-role-dashboard .operations-operational-briefing-board .eyebrow {
   color: #9ee7ff !important;
 }
 
-/* CSS Foundation Refactor Slice 37: operations continuity/reviewer detail panels moved to components/operations-continuity.css. */
-
-
-/* Final operational light-tile contrast contract.
-   These KPI tiles are nested inside dark command surfaces and must never inherit light text. */
+/* Final operational light-tile contrast contract. */
 .react-role-dashboard :is(
   .operational-metric-grid,
-  .operations-portfolio-summary,
-  .operations-portfolio-card dl
+  .turnaround-fleet-summary,
+  .turnaround-fleet-card dl
 ) > .ce-surface-light {
   background: #f8fbff !important;
   border-color: #b8cde0 !important;
@@ -285,8 +269,8 @@
 
 .react-role-dashboard :is(
   .operational-metric-grid,
-  .operations-portfolio-summary,
-  .operations-portfolio-card dl
+  .turnaround-fleet-summary,
+  .turnaround-fleet-card dl
 ) > .ce-surface-light * {
   background: transparent !important;
   color: #0f172a !important;
@@ -297,8 +281,8 @@
 
 .react-role-dashboard :is(
   .operational-metric-grid,
-  .operations-portfolio-summary,
-  .operations-portfolio-card dl
+  .turnaround-fleet-summary,
+  .turnaround-fleet-card dl
 ) > .ce-surface-light dt {
   color: #075985 !important;
   -webkit-text-fill-color: #075985 !important;
@@ -306,8 +290,8 @@
 
 .react-role-dashboard :is(
   .operational-metric-grid,
-  .operations-portfolio-summary,
-  .operations-portfolio-card dl
+  .turnaround-fleet-summary,
+  .turnaround-fleet-card dl
 ) > .ce-surface-light dd {
   color: #0f172a !important;
   -webkit-text-fill-color: #0f172a !important;

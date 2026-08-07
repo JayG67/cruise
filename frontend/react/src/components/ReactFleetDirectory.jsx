@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import ConfirmActionPanel from './ConfirmActionPanel.jsx'
 import ReactFleetCruiseLineGrid from './fleet/ReactFleetCruiseLineGrid.jsx'
 import ReactFleetItineraryPanel from './fleet/ReactFleetItineraryPanel.jsx'
@@ -5,7 +7,21 @@ import ReactFleetSailingPanel from './fleet/ReactFleetSailingPanel.jsx'
 import ReactFleetShipPanel from './fleet/ReactFleetShipPanel.jsx'
 import useFleetDirectoryState from './fleet/useFleetDirectoryState.js'
 
-export default function ReactFleetDirectory({ cruiseLines = [], isLoading = false, isRefreshing = false, error = '', onRefresh }) {
+export default function ReactFleetDirectory({ cruiseLines = [], isLoading = false, isRefreshing = false, error = '', onRefresh, initialScope = null }) {
+  const [refreshMessage, setRefreshMessage] = useState('')
+
+  async function handleRefreshFleet() {
+    setRefreshMessage('Refreshing fleet data…')
+    const refreshedCruiseLines = await onRefresh?.()
+
+    if (Array.isArray(refreshedCruiseLines)) {
+      setRefreshMessage(`Fleet refreshed. ${refreshedCruiseLines.length} cruise lines loaded.`)
+      return
+    }
+
+    setRefreshMessage('Fleet refresh could not be completed. Review the error message below and try again.')
+  }
+
   const {
     searchTerm,
     setSearchTerm,
@@ -85,7 +101,7 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
     requestDeleteCruiseLine,
     confirmPendingDelete,
     cancelPendingDelete
-  } = useFleetDirectoryState({ cruiseLines, onRefresh })
+  } = useFleetDirectoryState({ cruiseLines, onRefresh, initialScope })
 
   return (
     <section className="react-app-section fleet-directory-section ce-command-panel" id="react-fleet" aria-labelledby="react-fleet-heading" data-testid="react-fleet-directory">
@@ -97,10 +113,33 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
             Search, review, and manage the cruise lines currently available in the live application dataset.
           </p>
         </div>
-        <button type="button" className="button-link secondary light-action ce-button-secondary" onClick={onRefresh} disabled={isRefreshing} data-testid="react-fleet-refresh-button">
+      </div>
+
+      <div className="fleet-refresh-control" data-testid="react-fleet-refresh-control">
+        <div>
+          <strong>Fleet data</strong>
+          <span>Reload cruise lines from the live application data source.</span>
+        </div>
+        <button
+          type="button"
+          className="button-link secondary light-action ce-button-secondary"
+          onClick={handleRefreshFleet}
+          disabled={isRefreshing}
+          aria-describedby="react-fleet-refresh-status"
+          data-testid="react-fleet-refresh-button"
+        >
           {isRefreshing ? 'Refreshing fleet…' : 'Refresh fleet'}
         </button>
       </div>
+      <p
+        id="react-fleet-refresh-status"
+        className="fleet-refresh-status muted-status ce-muted"
+        role="status"
+        aria-live="polite"
+        data-testid="react-fleet-refresh-status"
+      >
+        {refreshMessage}
+      </p>
 
       <label className="search-control ce-field fleet-search-control">
         <span>Search cruise lines</span>

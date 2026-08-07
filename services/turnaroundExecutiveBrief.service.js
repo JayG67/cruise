@@ -124,7 +124,7 @@ function buildExecutiveActions({ decision = {}, incidentCommand = null, afterAct
   const actions = []
 
   if (decision.decisionStatus === 'EXECUTIVE_READY') {
-    actions.push('Publish the executive turnaround brief as ready for cruise-line review and portfolio demonstration.')
+    actions.push('Publish the executive turnaround brief for cruise-line leadership review and operational governance.')
   } else if (decision.decisionStatus === 'READY_WITH_WATCH_ITEMS') {
     actions.push('Publish with watch items and explicitly call out the remaining operational owner for each item.')
   } else {

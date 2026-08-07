@@ -1,0 +1,456 @@
+const { randomUUID } = require('crypto')
+
+function normalizeRoleId(role) {
+  return String(role || '').toLowerCase().replace(/_/g, '-')
+}
+
+function formatRoleDisplayName(role) {
+  return String(role || '').replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, character => character.toUpperCase())
+}
+
+function getNormalizedRoleType(role) {
+  const normalizedRole = String(role || '').trim().toUpperCase().replace(/[ -]/g, '_')
+
+  if (['ADMIN', 'PASSENGER', 'GROUP_LEADER'].includes(normalizedRole)) {
+    return normalizedRole
+  }
+
+  return 'OPERATIONS'
+}
+
+
+function buildAppUserLookup(appUserRows) {
+  const exactNameLookup = new Map()
+  const scopedPrefixNameLookup = new Map()
+  const prefixNameLookup = new Map()
+
+  for (const appUser of appUserRows) {
+    if (!exactNameLookup.has(appUser.displayName)) {
+      exactNameLookup.set(appUser.displayName, appUser.id)
+    }
+
+    const [displayNamePrefix] = String(appUser.displayName || '').split(' — ')
+    if (displayNamePrefix) {
+      const normalizedPrefix = displayNamePrefix.toLowerCase()
+      const normalizedAssignedShip = String(appUser.assignedShipName || '').toLowerCase()
+
+      if (normalizedAssignedShip) {
+        const scopedKey = `${normalizedPrefix}|${normalizedAssignedShip}`
+        if (!scopedPrefixNameLookup.has(scopedKey)) {
+          scopedPrefixNameLookup.set(scopedKey, appUser.id)
+        }
+      }
+
+      if (!prefixNameLookup.has(normalizedPrefix)) {
+        prefixNameLookup.set(normalizedPrefix, appUser.id)
+      }
+    }
+  }
+
+  return function resolveAppUserId(displayName, assignedShipName = '') {
+    if (!displayName) return null
+    const normalizedName = String(displayName).toLowerCase()
+    const normalizedAssignedShip = String(assignedShipName || '').toLowerCase()
+    const scopedKey = `${normalizedName}|${normalizedAssignedShip}`
+
+    return exactNameLookup.get(displayName) || scopedPrefixNameLookup.get(scopedKey) || prefixNameLookup.get(normalizedName) || null
+  }
+}
+
+
+function getOperationalAssignmentShipName(demoUser = {}) {
+  const explicitShip = demoUser.shipName
+    || demoUser.assignedShip
+    || demoUser.workspaceShip
+    || demoUser.assignmentShipName
+    || demoUser.assignedShipName
+
+  if (explicitShip) return String(explicitShip).trim()
+
+  const displayName = String(demoUser.displayName || '').trim()
+  if (displayName.includes(' — ')) {
+    return displayName.split(' — ').slice(1).join(' — ').trim()
+  }
+
+  return ''
+}
+
+function getOperationalAssignment({ demoUser = {}, shipByName = new Map(), cruiseLineByShipName = new Map() }) {
+  const roleType = getNormalizedRoleType(demoUser.role)
+  if (roleType !== 'OPERATIONS') {
+    return {
+      assignedShipId: null,
+      assignedShipName: null,
+      cruiseLineId: null,
+      cruiseLineName: null,
+      assignmentScope: demoUser.customerId ? 'CUSTOMER' : 'GLOBAL'
+    }
+  }
+
+  const assignedShipName = getOperationalAssignmentShipName(demoUser)
+  const normalizedShipName = assignedShipName.toLowerCase()
+  const assignedShip = normalizedShipName ? shipByName.get(normalizedShipName) : null
+  const assignedCruiseLine = normalizedShipName ? cruiseLineByShipName.get(normalizedShipName) : null
+
+  return {
+    assignedShipId: assignedShip?.id || null,
+    assignedShipName: assignedShip?.name || assignedShipName || null,
+    cruiseLineId: assignedCruiseLine?.id || null,
+    cruiseLineName: assignedCruiseLine?.name || demoUser.cruiseLineName || demoUser.assignedCruiseLine || null,
+    assignmentScope: assignedShip ? 'SHIP' : assignedCruiseLine ? 'CRUISE_LINE' : 'GLOBAL'
+  }
+}
+
+function getNormalizedUserType(role) {
+  const normalizedRoleType = getNormalizedRoleType(role)
+
+  return normalizedRoleType === 'PASSENGER' || normalizedRoleType === 'GROUP_LEADER'
+    ? 'PASSENGER'
+    : 'EMPLOYEE'
+}
+
+
+function buildSeedRows(cruiseData) {
+  const cruiseLineRows = []
+  const shipRows = []
+  const sailingRows = []
+  const itineraryDayRows = []
+  const activityRows = []
+  const customerRows = []
+  const bookingRows = []
+  const bookingPassengerRows = []
+  const demoUserRows = []
+  const appUserRows = []
+  const appRoleRows = []
+  const appUserRoleRows = []
+  const turnaroundOperationRows = []
+  const turnaroundTaskRows = []
+  const turnaroundTaskUpdateRows = []
+  const turnaroundSignoffRows = []
+  const turnaroundEscalationRows = []
+  const turnaroundStaffingRows = []
+  const turnaroundTaskDependencyRows = []
+  const turnaroundHandoffRows = []
+  const sailingIdBySeedKey = new Map()
+  const shipByName = new Map()
+  const cruiseLineByShipName = new Map()
+
+  for (const cruiseLine of cruiseData.cruiseLines || []) {
+    const cruiseLineId = randomUUID()
+
+    cruiseLineRows.push({
+      id: cruiseLineId,
+      name: cruiseLine.name,
+      country: cruiseLine.country,
+      website: cruiseLine.website,
+      brandFamily: cruiseLine.brandFamily,
+      brandTheme: cruiseLine.brandTheme,
+      marketPositioning: cruiseLine.marketPositioning
+    })
+
+    for (const ship of cruiseLine.ships || []) {
+      const shipId = randomUUID()
+
+      const shipRow = {
+        id: shipId,
+        name: ship.name,
+        currentPort: ship.currentPort,
+        cruiseLineId
+      }
+
+      shipRows.push(shipRow)
+      shipByName.set(String(ship.name || '').toLowerCase(), shipRow)
+      cruiseLineByShipName.set(String(ship.name || '').toLowerCase(), { id: cruiseLineId, name: cruiseLine.name })
+
+      for (const sailing of ship.sailings || []) {
+        const sailingId = randomUUID()
+
+        sailingIdBySeedKey.set(`${ship.name}|${sailing.departureDate}`, sailingId)
+        sailingRows.push({
+          id: sailingId,
+          shipId,
+          departureDate: sailing.departureDate,
+          port: sailing.port || sailing.departurePort,
+          departurePort: sailing.departurePort || sailing.port,
+          arrivalPort: sailing.arrivalPort || sailing.port,
+          days: sailing.days,
+          isRepositioning: Boolean(sailing.isRepositioning)
+        })
+
+        for (const itineraryDay of sailing.itinerary || []) {
+          const itineraryDayId = randomUUID()
+
+          itineraryDayRows.push({
+            id: itineraryDayId,
+            sailingId,
+            day: itineraryDay.day,
+            title: itineraryDay.title,
+            port: itineraryDay.port
+          })
+
+          for (const activity of itineraryDay.activitySchedule || []) {
+            activityRows.push({
+              id: randomUUID(),
+              itineraryDayId,
+              time: activity.time,
+              activity: activity.activity
+            })
+          }
+        }
+      }
+    }
+  }
+
+  for (const customer of cruiseData.customers || []) {
+    customerRows.push({
+      id: customer.id,
+      firstName: customer.firstName,
+      lastName: customer.lastName,
+      email: customer.email,
+      phone: customer.phone,
+      loyaltyNumber: customer.loyaltyNumber
+    })
+  }
+
+  for (const booking of cruiseData.bookings || []) {
+    const sailingId = booking.sailingId || sailingIdBySeedKey.get(`${booking.shipName}|${booking.departureDate}`)
+
+    if (!sailingId) {
+      throw new Error(`Unable to resolve sailing for booking ${booking.id}`)
+    }
+
+    bookingRows.push({
+      id: booking.id,
+      sailingId,
+      bookingStatus: booking.bookingStatus,
+      cabinNumber: booking.cabinNumber,
+      fareCode: booking.fareCode,
+      embarkationPort: booking.embarkationPort,
+      debarkationPort: booking.debarkationPort,
+      createdByCustomerId: booking.createdByCustomerId
+    })
+
+    for (const passenger of booking.passengers || []) {
+      bookingPassengerRows.push({
+        id: `${booking.id}-${passenger.customerId}`,
+        bookingId: booking.id,
+        customerId: passenger.customerId,
+        passengerRole: passenger.passengerRole,
+        isPrimaryGuest: Boolean(passenger.isPrimaryGuest),
+        diningPreference: passenger.diningPreference,
+        accessibilityNotes: passenger.accessibilityNotes,
+        boardingGroup: passenger.boardingGroup
+      })
+    }
+  }
+
+  const normalizedRoleIds = new Set()
+
+  for (const demoUser of cruiseData.demoUsers || []) {
+    const normalizedRoleId = normalizeRoleId(demoUser.role)
+    const normalizedUserId = demoUser.id
+
+    if (!normalizedRoleIds.has(normalizedRoleId)) {
+      normalizedRoleIds.add(normalizedRoleId)
+      appRoleRows.push({
+        id: normalizedRoleId,
+        displayName: formatRoleDisplayName(demoUser.role),
+        roleType: getNormalizedRoleType(demoUser.role),
+        description: `Normalized access role for ${formatRoleDisplayName(demoUser.role)} users`
+      })
+    }
+
+    const operationalAssignment = getOperationalAssignment({ demoUser, shipByName, cruiseLineByShipName })
+
+    appUserRows.push({
+      id: normalizedUserId,
+      displayName: demoUser.displayName,
+      email: `${demoUser.id}@cruise-explorer.local`,
+      userType: getNormalizedUserType(demoUser.role),
+      primaryCustomerId: demoUser.customerId,
+      cruiseLineId: operationalAssignment.cruiseLineId,
+      assignedShipId: operationalAssignment.assignedShipId,
+      status: 'ACTIVE'
+    })
+
+    appUserRoleRows.push({
+      id: `${normalizedUserId}-${normalizedRoleId}`,
+      userId: normalizedUserId,
+      roleId: normalizedRoleId,
+      assignmentScope: operationalAssignment.assignmentScope,
+      cruiseLineId: operationalAssignment.cruiseLineId,
+      assignedShipId: operationalAssignment.assignedShipId,
+      status: 'ACTIVE'
+    })
+
+    demoUserRows.push({
+      id: demoUser.id,
+      displayName: demoUser.displayName,
+      role: demoUser.role,
+      customerId: demoUser.customerId,
+      normalizedUserId,
+      normalizedRoleId,
+      cruiseLineId: operationalAssignment.cruiseLineId,
+      assignedShipId: operationalAssignment.assignedShipId,
+      cruiseLineName: operationalAssignment.cruiseLineName,
+      assignedShipName: operationalAssignment.assignedShipName
+    })
+  }
+
+  const resolveOperationalUserId = buildAppUserLookup(appUserRows)
+
+  for (const turnaroundOperation of cruiseData.turnaroundOperations || []) {
+    const operationId = randomUUID()
+    const sailingId = turnaroundOperation.sailingId || sailingIdBySeedKey.get(`${turnaroundOperation.shipName}|${turnaroundOperation.departureDate}`)
+
+    if (!sailingId) {
+      throw new Error(`Unable to resolve sailing for turnaround operation ${turnaroundOperation.title || turnaroundOperation.id || turnaroundOperation.shipName}`)
+    }
+
+    turnaroundOperationRows.push({
+      id: operationId,
+      sailingId,
+      title: turnaroundOperation.title,
+      turnaroundDate: turnaroundOperation.turnaroundDate || turnaroundOperation.departureDate,
+      port: turnaroundOperation.port,
+      status: turnaroundOperation.status,
+      readinessLevel: turnaroundOperation.readinessLevel,
+      notes: turnaroundOperation.notes
+    })
+
+    for (const signoff of turnaroundOperation.signoffs || []) {
+      turnaroundSignoffRows.push({
+        id: randomUUID(),
+        operationId,
+        departmentRole: signoff.departmentRole,
+        approverName: signoff.approverName,
+        approverUserId: resolveOperationalUserId(signoff.approverName, turnaroundOperation.shipName),
+        status: signoff.status || 'PENDING',
+        notes: signoff.notes,
+        signedAt: signoff.signedAt
+      })
+    }
+
+    for (const staffing of turnaroundOperation.staffing || []) {
+      turnaroundStaffingRows.push({
+        id: randomUUID(),
+        operationId,
+        departmentRole: staffing.departmentRole,
+        plannedCount: Number(staffing.plannedCount || 0),
+        checkedInCount: Number(staffing.checkedInCount || 0),
+        leadName: staffing.leadName,
+        musterLocation: staffing.musterLocation,
+        notes: staffing.notes
+      })
+    }
+
+    for (const escalation of turnaroundOperation.escalations || []) {
+      turnaroundEscalationRows.push({
+        id: randomUUID(),
+        operationId,
+        departmentRole: escalation.departmentRole,
+        severity: escalation.severity || 'WATCH',
+        title: escalation.title,
+        ownerName: escalation.ownerName,
+        ownerUserId: resolveOperationalUserId(escalation.ownerName, turnaroundOperation.shipName),
+        status: escalation.status || 'OPEN',
+        resolutionNotes: escalation.resolutionNotes,
+        createdAt: escalation.createdAt || new Date().toISOString()
+      })
+    }
+
+    const taskIdByName = new Map()
+
+    for (const [index, task] of (turnaroundOperation.tasks || []).entries()) {
+      const taskId = randomUUID()
+      taskIdByName.set(task.taskName, taskId)
+
+      turnaroundTaskRows.push({
+        id: taskId,
+        operationId,
+        departmentRole: task.departmentRole,
+        taskName: task.taskName,
+        ownerName: task.ownerName,
+        ownerUserId: resolveOperationalUserId(task.ownerName, turnaroundOperation.shipName),
+        dueTime: task.dueTime,
+        location: task.location,
+        blockerReason: task.blockerReason,
+        status: task.status,
+        sortOrder: task.sortOrder ?? index + 1
+      })
+
+      for (const update of task.updates || []) {
+        turnaroundTaskUpdateRows.push({
+          id: randomUUID(),
+          taskId,
+          authorName: update.authorName,
+          authorUserId: resolveOperationalUserId(update.authorName, turnaroundOperation.shipName),
+          updateType: update.updateType || 'NOTE',
+          message: update.message,
+          createdAt: update.createdAt || new Date().toISOString()
+        })
+      }
+    }
+
+    for (const dependency of turnaroundOperation.taskDependencies || []) {
+      const taskId = taskIdByName.get(dependency.taskName)
+      const dependsOnTaskId = taskIdByName.get(dependency.dependsOnTaskName)
+
+      if (!taskId || !dependsOnTaskId) {
+        throw new Error(`Unable to resolve turnaround task dependency for ${dependency.taskName || dependency.id || turnaroundOperation.title}`)
+      }
+
+      turnaroundTaskDependencyRows.push({
+        id: randomUUID(),
+        operationId,
+        taskId,
+        dependsOnTaskId,
+        dependencyType: dependency.dependencyType || 'BLOCKS',
+        status: dependency.status || 'ACTIVE',
+        notes: dependency.notes
+      })
+    }
+
+    for (const handoff of turnaroundOperation.handoffs || []) {
+      turnaroundHandoffRows.push({
+        id: randomUUID(),
+        operationId,
+        fromDepartmentRole: handoff.fromDepartmentRole,
+        toDepartmentRole: handoff.toDepartmentRole,
+        title: handoff.title,
+        status: handoff.status || 'PENDING',
+        ownerName: handoff.ownerName,
+        ownerUserId: resolveOperationalUserId(handoff.ownerName, turnaroundOperation.shipName),
+        dueTime: handoff.dueTime,
+        notes: handoff.notes,
+        completedAt: handoff.completedAt
+      })
+    }
+  }
+
+  return {
+    cruiseLineRows,
+    shipRows,
+    sailingRows,
+    itineraryDayRows,
+    activityRows,
+    customerRows,
+    bookingRows,
+    bookingPassengerRows,
+    demoUserRows,
+    appUserRows,
+    appRoleRows,
+    appUserRoleRows,
+    turnaroundOperationRows,
+    turnaroundTaskRows,
+    turnaroundTaskUpdateRows,
+    turnaroundSignoffRows,
+    turnaroundEscalationRows,
+    turnaroundStaffingRows,
+    turnaroundTaskDependencyRows,
+    turnaroundHandoffRows
+  }
+}
+
+
+module.exports = { buildSeedRows }

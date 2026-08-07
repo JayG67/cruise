@@ -1,4 +1,14 @@
-import { useState } from 'react'
+import {
+  buildEscalationCreateDraft,
+  buildEscalationUpdateDraft,
+  buildHandoffDraft,
+  buildOperationCommandDraft,
+  buildSignoffDraft,
+  buildStaffingDraft,
+  buildTaskCreateDraft,
+  buildTaskDetailDraft
+} from '../../domain/operationalDashboardDrafts.js'
+import { useKeyedDrafts } from './useKeyedDrafts.js'
 
 export function useOperationalDashboardDrafts({
   roleView,
@@ -15,373 +25,197 @@ export function useOperationalDashboardDrafts({
   onCreateTaskUpdate,
   onDeleteTask
 }) {
-  const [operationCommandDrafts, setOperationCommandDrafts] = useState({})
-  const [taskDetailDrafts, setTaskDetailDrafts] = useState({})
-  const [taskCreateDrafts, setTaskCreateDrafts] = useState({})
-  const [taskUpdateDrafts, setTaskUpdateDrafts] = useState({})
-  const [signoffDrafts, setSignoffDrafts] = useState({})
-  const [staffingDrafts, setStaffingDrafts] = useState({})
-  const [escalationCreateDrafts, setEscalationCreateDrafts] = useState({})
-  const [escalationUpdateDrafts, setEscalationUpdateDrafts] = useState({})
-  const [handoffDrafts, setHandoffDrafts] = useState({})
+  const operationCommands = useKeyedDrafts(buildOperationCommandDraft)
+  const escalationCreates = useKeyedDrafts(() => buildEscalationCreateDraft({ roleView, selectedPerson: selectedDemoUser }))
+  const escalationUpdates = useKeyedDrafts(buildEscalationUpdateDraft)
+  const handoffs = useKeyedDrafts(handoff => buildHandoffDraft(handoff, selectedDemoUser))
+  const staffing = useKeyedDrafts((operationCard, departmentRole) => buildStaffingDraft(operationCard, departmentRole, selectedDemoUser))
+  const signoffs = useKeyedDrafts((operationCard, departmentRole) => buildSignoffDraft(operationCard, departmentRole, selectedDemoUser))
+  const taskCreates = useKeyedDrafts(() => buildTaskCreateDraft({ roleView, selectedPerson: selectedDemoUser }))
+  const taskDetails = useKeyedDrafts(buildTaskDetailDraft)
+  const taskUpdates = useKeyedDrafts(() => '')
+
+  async function saveAndClear({ save, clear, key }) {
+    const response = await save()
+    if (response) clear(key)
+    return response
+  }
 
   function getOperationCommandDraft(operationCard) {
-    return operationCommandDrafts[operationCard.id] || {
-      status: operationCard.commandStatus || operationCard.status || 'PLANNED',
-      readinessLevel: operationCard.commandReadinessLevel || operationCard.readinessLevel || 'Standard coordination',
-      port: operationCard.port || operationCard.arrivalPort || '',
-      notes: operationCard.notes || ''
-    }
+    return operationCommands.getDraft(operationCard.id, operationCard)
   }
 
   function updateOperationCommandDraft(operationCard, fieldName, value) {
-    setOperationCommandDrafts(current => ({
-      ...current,
-      [operationCard.id]: {
-        ...getOperationCommandDraft(operationCard),
-        [fieldName]: value
-      }
-    }))
+    operationCommands.updateDraft(operationCard.id, fieldName, value, operationCard)
   }
 
-  async function saveOperationCommand(operationCard) {
-    const draft = getOperationCommandDraft(operationCard)
-    const response = await onUpdateOperationCommand?.(operationCard.id, draft)
-
-    if (response) {
-      setOperationCommandDrafts(current => {
-        const next = { ...current }
-        delete next[operationCard.id]
-        return next
-      })
-    }
+  function saveOperationCommand(operationCard) {
+    return saveAndClear({
+      key: operationCard.id,
+      clear: operationCommands.clearDraft,
+      save: () => onUpdateOperationCommand?.(operationCard.id, getOperationCommandDraft(operationCard))
+    })
   }
 
   function getEscalationCreateDraft(operationCard) {
-    return escalationCreateDrafts[operationCard.id] || {
-      departmentRole: roleView,
-      severity: 'WATCH',
-      title: '',
-      ownerName: selectedDemoUser?.displayName || '',
-      status: 'OPEN',
-      resolutionNotes: ''
-    }
+    return escalationCreates.getDraft(operationCard.id)
   }
 
   function updateEscalationCreateDraft(operationCard, fieldName, value) {
-    setEscalationCreateDrafts(current => ({
-      ...current,
-      [operationCard.id]: {
-        ...getEscalationCreateDraft(operationCard),
-        [fieldName]: value
-      }
-    }))
+    escalationCreates.updateDraft(operationCard.id, fieldName, value)
   }
 
-  async function saveEscalationCreate(operationCard) {
-    const draft = getEscalationCreateDraft(operationCard)
-    const response = await onCreateEscalation?.(operationCard.id, draft)
-
-    if (response) {
-      setEscalationCreateDrafts(current => {
-        const next = { ...current }
-        delete next[operationCard.id]
-        return next
-      })
-    }
+  function saveEscalationCreate(operationCard) {
+    return saveAndClear({
+      key: operationCard.id,
+      clear: escalationCreates.clearDraft,
+      save: () => onCreateEscalation?.(operationCard.id, getEscalationCreateDraft(operationCard))
+    })
   }
 
   function getEscalationUpdateDraft(escalation) {
-    return escalationUpdateDrafts[escalation.id] || {
-      severity: escalation.severity || 'WATCH',
-      title: escalation.title || '',
-      ownerName: escalation.ownerName || '',
-      status: escalation.status || 'OPEN',
-      resolutionNotes: escalation.resolutionNotes || ''
-    }
+    return escalationUpdates.getDraft(escalation.id, escalation)
   }
 
   function updateEscalationDraft(escalation, fieldName, value) {
-    setEscalationUpdateDrafts(current => ({
-      ...current,
-      [escalation.id]: {
-        ...getEscalationUpdateDraft(escalation),
-        [fieldName]: value
-      }
-    }))
+    escalationUpdates.updateDraft(escalation.id, fieldName, value, escalation)
   }
 
-  async function saveEscalationUpdate(escalation) {
-    const draft = getEscalationUpdateDraft(escalation)
-    const response = await onUpdateEscalation?.(escalation.id, draft)
-
-    if (response) {
-      setEscalationUpdateDrafts(current => {
-        const next = { ...current }
-        delete next[escalation.id]
-        return next
-      })
-    }
+  function saveEscalationUpdate(escalation) {
+    return saveAndClear({
+      key: escalation.id,
+      clear: escalationUpdates.clearDraft,
+      save: () => onUpdateEscalation?.(escalation.id, getEscalationUpdateDraft(escalation))
+    })
   }
 
   function getHandoffDraft(handoff) {
-    return handoffDrafts[handoff.id] || {
-      status: handoff.status || 'PENDING',
-      ownerName: handoff.ownerName || selectedDemoUser?.displayName || '',
-      dueTime: handoff.dueTime || '',
-      notes: handoff.notes || ''
-    }
+    return handoffs.getDraft(handoff.id, handoff)
   }
 
   function updateHandoffDraft(handoff, fieldName, value) {
-    setHandoffDrafts(current => ({
-      ...current,
-      [handoff.id]: {
-        ...getHandoffDraft(handoff),
-        [fieldName]: value
-      }
-    }))
+    handoffs.updateDraft(handoff.id, fieldName, value, handoff)
   }
 
-  async function saveHandoffUpdate(handoff) {
-    const response = await onUpdateHandoff?.(handoff.id, getHandoffDraft(handoff))
-
-    if (response) {
-      setHandoffDrafts(current => {
-        const next = { ...current }
-        delete next[handoff.id]
-        return next
-      })
-    }
-  }
-
-  function getRoleStaffing(operationCard, departmentRole = roleView) {
-    return (operationCard.staffing || []).find(staffing => staffing.departmentRole === departmentRole) || {
-      departmentRole,
-      plannedCount: 0,
-      checkedInCount: 0,
-      leadName: selectedDemoUser?.displayName || '',
-      musterLocation: '',
-      notes: ''
-    }
+  function saveHandoffUpdate(handoff) {
+    return saveAndClear({
+      key: handoff.id,
+      clear: handoffs.clearDraft,
+      save: () => onUpdateHandoff?.(handoff.id, getHandoffDraft(handoff))
+    })
   }
 
   function getStaffingDraft(operationCard, departmentRole = roleView) {
-    const existingStaffing = getRoleStaffing(operationCard, departmentRole)
     const draftKey = `${operationCard.id}:${departmentRole}`
-
-    return staffingDrafts[draftKey] || {
-      plannedCount: String(existingStaffing.plannedCount ?? 0),
-      checkedInCount: String(existingStaffing.checkedInCount ?? 0),
-      leadName: existingStaffing.leadName || selectedDemoUser?.displayName || '',
-      musterLocation: existingStaffing.musterLocation || '',
-      notes: existingStaffing.notes || ''
-    }
+    return staffing.getDraft(draftKey, operationCard, departmentRole)
   }
 
   function updateStaffingDraft(operationCard, fieldName, value, departmentRole = roleView) {
     const draftKey = `${operationCard.id}:${departmentRole}`
-
-    setStaffingDrafts(current => ({
-      ...current,
-      [draftKey]: {
-        ...getStaffingDraft(operationCard, departmentRole),
-        [fieldName]: value
-      }
-    }))
+    staffing.updateDraft(draftKey, fieldName, value, operationCard, departmentRole)
   }
 
-  async function saveStaffing(operationCard, departmentRole = roleView) {
+  function saveStaffing(operationCard, departmentRole = roleView) {
+    const draftKey = `${operationCard.id}:${departmentRole}`
     const draft = getStaffingDraft(operationCard, departmentRole)
     const payload = {
       ...draft,
       plannedCount: Number(draft.plannedCount || 0),
       checkedInCount: Number(draft.checkedInCount || 0)
     }
-    const response = await onUpdateStaffing?.(operationCard.id, departmentRole, payload)
 
-    if (response) {
-      setStaffingDrafts(current => {
-        const next = { ...current }
-        delete next[`${operationCard.id}:${departmentRole}`]
-        return next
-      })
-    }
-  }
-
-  function getRoleSignoff(operationCard, departmentRole = roleView) {
-    return (operationCard.signoffs || []).find(signoff => signoff.departmentRole === departmentRole) || {
-      departmentRole,
-      approverName: selectedDemoUser?.displayName || '',
-      status: 'PENDING',
-      notes: ''
-    }
+    return saveAndClear({
+      key: draftKey,
+      clear: staffing.clearDraft,
+      save: () => onUpdateStaffing?.(operationCard.id, departmentRole, payload)
+    })
   }
 
   function getSignoffDraft(operationCard, departmentRole = roleView) {
-    const existingSignoff = getRoleSignoff(operationCard, departmentRole)
     const draftKey = `${operationCard.id}:${departmentRole}`
-
-    return signoffDrafts[draftKey] || {
-      approverName: existingSignoff.approverName || selectedDemoUser?.displayName || '',
-      status: existingSignoff.status || 'PENDING',
-      notes: existingSignoff.notes || ''
-    }
+    return signoffs.getDraft(draftKey, operationCard, departmentRole)
   }
 
   function updateSignoffDraft(operationCard, fieldName, value, departmentRole = roleView) {
     const draftKey = `${operationCard.id}:${departmentRole}`
-
-    setSignoffDrafts(current => ({
-      ...current,
-      [draftKey]: {
-        ...getSignoffDraft(operationCard, departmentRole),
-        [fieldName]: value
-      }
-    }))
+    signoffs.updateDraft(draftKey, fieldName, value, operationCard, departmentRole)
   }
 
-  async function saveSignoff(operationCard, departmentRole = roleView) {
-    const draft = getSignoffDraft(operationCard, departmentRole)
-    const response = await onUpdateSignoff?.(operationCard.id, departmentRole, draft)
-
-    if (response) {
-      setSignoffDrafts(current => {
-        const next = { ...current }
-        delete next[`${operationCard.id}:${departmentRole}`]
-        return next
-      })
-    }
+  function saveSignoff(operationCard, departmentRole = roleView) {
+    const draftKey = `${operationCard.id}:${departmentRole}`
+    return saveAndClear({
+      key: draftKey,
+      clear: signoffs.clearDraft,
+      save: () => onUpdateSignoff?.(operationCard.id, departmentRole, getSignoffDraft(operationCard, departmentRole))
+    })
   }
 
   function getTaskCreateDraft(operationCard) {
-    return taskCreateDrafts[operationCard.id] || {
-      departmentRole: roleView,
-      taskName: '',
-      ownerName: selectedDemoUser?.displayName || '',
-      dueTime: '',
-      location: '',
-      blockerReason: ''
-    }
+    return taskCreates.getDraft(operationCard.id)
   }
 
   function updateTaskCreateDraft(operationCard, fieldName, value) {
-    setTaskCreateDrafts(current => ({
-      ...current,
-      [operationCard.id]: {
-        ...getTaskCreateDraft(operationCard),
-        [fieldName]: value
-      }
-    }))
+    taskCreates.updateDraft(operationCard.id, fieldName, value)
   }
 
-  async function saveTaskCreate(operationCard) {
-    const draft = getTaskCreateDraft(operationCard)
-    const response = await onCreateTask?.(operationCard.id, {
-      ...draft,
-      status: 'READY'
+  function saveTaskCreate(operationCard) {
+    return saveAndClear({
+      key: operationCard.id,
+      clear: taskCreates.clearDraft,
+      save: () => onCreateTask?.(operationCard.id, { ...getTaskCreateDraft(operationCard), status: 'READY' })
     })
-
-    if (response) {
-      setTaskCreateDrafts(current => {
-        const next = { ...current }
-        delete next[operationCard.id]
-        return next
-      })
-    }
   }
 
   function getTaskDetailDraft(task) {
-    return taskDetailDrafts[task.id] || {
-      ownerName: task.ownerName || '',
-      dueTime: task.dueTime || '',
-      location: task.location || '',
-      blockerReason: task.blockerReason || ''
-    }
+    return taskDetails.getDraft(task.id, task)
   }
 
   function updateTaskDetailDraft(task, fieldName, value) {
-    setTaskDetailDrafts(current => {
-      const existingDraft = current[task.id] || {
-        ownerName: task.ownerName || '',
-        dueTime: task.dueTime || '',
-        location: task.location || '',
-        blockerReason: task.blockerReason || ''
-      }
+    taskDetails.updateDraft(task.id, fieldName, value, task)
+  }
 
-      return {
-        ...current,
-        [task.id]: {
-          ...existingDraft,
-          [fieldName]: value
-        }
-      }
+  function saveTaskDetails(task) {
+    return saveAndClear({
+      key: task.id,
+      clear: taskDetails.clearDraft,
+      save: () => onUpdateTaskDetails?.(task.id, getTaskDetailDraft(task))
     })
   }
 
-  async function saveTaskDetails(task) {
-    const draft = getTaskDetailDraft(task)
-    const response = await onUpdateTaskDetails?.(task.id, draft)
-
-    if (response) {
-      setTaskDetailDrafts(current => {
-        const next = { ...current }
-        delete next[task.id]
-        return next
-      })
-    }
-  }
-
   function updateStatus(task, status) {
-    const draft = getTaskDetailDraft(task)
-    return onUpdateTaskStatus?.(task.id, status, { blockerReason: draft.blockerReason })
+    return onUpdateTaskStatus?.(task.id, status, { blockerReason: getTaskDetailDraft(task).blockerReason })
   }
 
   function getTaskUpdateDraft(task) {
-    return taskUpdateDrafts[task.id] || ''
+    return taskUpdates.getDraft(task.id)
   }
 
   function updateTaskUpdateDraft(task, value) {
-    setTaskUpdateDrafts(current => ({
-      ...current,
-      [task.id]: value
-    }))
+    taskUpdates.setDraft(task.id, value)
   }
 
   async function saveTaskUpdate(task) {
     const message = getTaskUpdateDraft(task).trim()
-    if (!message) return
+    if (!message) return undefined
 
-    const response = await onCreateTaskUpdate?.(task.id, {
-      authorName: selectedDemoUser?.displayName || 'Operational lead',
-      updateType: 'NOTE',
-      message
-    })
-
-    if (response) {
-      setTaskUpdateDrafts(current => {
-        const next = { ...current }
-        delete next[task.id]
-        return next
+    return saveAndClear({
+      key: task.id,
+      clear: taskUpdates.clearDraft,
+      save: () => onCreateTaskUpdate?.(task.id, {
+        authorName: selectedDemoUser?.displayName || 'Operational lead',
+        updateType: 'NOTE',
+        message
       })
-    }
+    })
   }
 
   async function removeTask(task) {
     const response = await onDeleteTask?.(task.id)
-
     if (response) {
-      setTaskDetailDrafts(current => {
-        const next = { ...current }
-        delete next[task.id]
-        return next
-      })
-      setTaskUpdateDrafts(current => {
-        const next = { ...current }
-        delete next[task.id]
-        return next
-      })
+      taskDetails.clearDraft(task.id)
+      taskUpdates.clearDraft(task.id)
     }
+    return response
   }
 
   return {

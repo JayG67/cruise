@@ -254,3 +254,76 @@ describe('AI controller authorization and failure boundaries', () => {
     expect(next).toHaveBeenCalledWith(error)
   })
 })
+
+describe('AI controller coverage boundaries', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    createAiProvider.mockReturnValue({ name: 'deterministic', model: 'test-model', credentialConfigured: true })
+  })
+
+  it.each([
+    ['AI_RUNTIME_CONFIG_INVALID', 500],
+    ['AI_PROVIDER_UNSUPPORTED', 500],
+    ['AI_PROVIDER_BAD_RESPONSE', 502]
+  ])('maps %s through the provider status helper', (code, status) => {
+    expect(controller.providerHttpStatus({ code })).toBe(status)
+  })
+
+  it('restricts evaluation management to administrators', () => {
+    expect(controller.canManageAiEvaluations({ actorRole: 'admin' })).toBe(true)
+    expect(controller.canManageAiEvaluations({ actorRole: 'turnaround_manager' })).toBe(false)
+    expect(controller.canManageAiEvaluations()).toBe(false)
+  })
+
+  it.each([
+    ['AI_CONTEXT_LIMIT_EXCEEDED', 413],
+    ['AI_BRIEFING_INVALID', 502]
+  ])('maps %s briefing validation failures', async (code, expectedStatus) => {
+    const { AiBriefingValidationError } = require('../../services/aiTurnaroundBriefing.service')
+    resolveRequestActor.mockResolvedValue({ actorUserId: 'admin-1', actorRole: 'ADMIN' })
+    generateTurnaroundBriefing.mockRejectedValue(new AiBriefingValidationError('invalid briefing', code, ['issue']))
+    const { res, status, json } = responseHarness()
+    await controller.generateTurnaroundBriefing({ body: {}, get: jest.fn() }, res, jest.fn())
+    expect(status).toHaveBeenCalledWith(expectedStatus)
+    expect(json).toHaveBeenCalledWith({ message: 'invalid briefing', code, issues: ['issue'] })
+  })
+
+  it('denies operational generation for non-operational roles', async () => {
+    resolveRequestActor.mockResolvedValue({ actorUserId: 'guest-1', actorRole: 'PASSENGER' })
+    const { res, status } = responseHarness()
+    await controller.generateOperationalTurnaroundBriefing({ params: { operationId: 'op-1' }, body: {}, get: jest.fn() }, res, jest.fn())
+    expect(status).toHaveBeenCalledWith(403)
+    expect(loadTurnaroundEvidence).not.toHaveBeenCalled()
+  })
+
+  it('blocks operational generation when the actor cannot access the operation', async () => {
+    const scope = require('../../services/turnaroundScope.service')
+    resolveRequestActor.mockResolvedValue({ actorUserId: 'manager-1', actorRole: 'TURNAROUND_MANAGER' })
+    loadTurnaroundEvidence.mockResolvedValue({ operation: { id: 'op-1' } })
+    scope.canAccessTurnaroundOperationForRequest.mockResolvedValueOnce(false)
+    const { res } = responseHarness()
+    await controller.generateOperationalTurnaroundBriefing({ params: { operationId: 'op-1' }, body: {}, get: jest.fn() }, res, jest.fn())
+    expect(scope.sendTurnaroundOperationForbidden).toHaveBeenCalledWith(res)
+    expect(generateOperationalTurnaroundBriefing).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['AI_TURNAROUND_OPERATION_NOT_FOUND', 404],
+    ['AI_TURNAROUND_EVIDENCE_INVALID', 400]
+  ])('maps %s evidence failures', async (code, expectedStatus) => {
+    const { AiTurnaroundEvidenceError } = require('../../services/aiTurnaroundEvidence.service')
+    resolveRequestActor.mockResolvedValue({ actorUserId: 'admin-1', actorRole: 'ADMIN' })
+    loadTurnaroundEvidence.mockRejectedValue(new AiTurnaroundEvidenceError('evidence failure', code))
+    const { res, status, json } = responseHarness()
+    await controller.generateOperationalTurnaroundBriefing({ params: { operationId: 'op-1' }, body: {}, get: jest.fn() }, res, jest.fn())
+    expect(status).toHaveBeenCalledWith(expectedStatus)
+    expect(json).toHaveBeenCalledWith({ message: 'evidence failure', code })
+  })
+
+  it('passes unexpected operational failures to Express', async () => {
+    resolveRequestActor.mockRejectedValue(new Error('actor failure'))
+    const next = jest.fn()
+    await controller.generateOperationalTurnaroundBriefing({ params: {}, body: {}, get: jest.fn() }, responseHarness().res, next)
+    expect(next).toHaveBeenCalledWith(expect.objectContaining({ message: 'actor failure' }))
+  })
+})

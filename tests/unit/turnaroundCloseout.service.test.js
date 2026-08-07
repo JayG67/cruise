@@ -14,7 +14,7 @@ describe('turnaroundCloseout service', () => {
     turnaroundDate: '2026-07-01'
   }
 
-  it('builds a final closeout packet from workflow, release, debrief, and reviewer evidence', () => {
+  it('builds a final closeout packet from workflow, release, debrief, and governance evidence', () => {
     const packet = buildTurnaroundCloseoutPacket({
       operation,
       tasks: [{ status: 'COMPLETE' }, { status: 'COMPLETE' }, { status: 'IN_PROGRESS' }],
@@ -29,10 +29,10 @@ describe('turnaroundCloseout service', () => {
       operationalTimeline: { summary: { totalEvents: 18 } },
       afterActionReview: { summary: { reviewScore: 88 }, followUpActions: ['Promote playbook owner.'] },
       reviewerPacket: { readiness: { readinessScore: 90 } },
-      managementStatus: { maturityScore: 91, maturityStatus: 'FLAGSHIP_READY', remainingWork: [] },
+      managementStatus: { maturityScore: 91, maturityStatus: 'REFERENCE_BASELINE_READY', remainingWork: [] },
       launchPlan: { launchScore: 89, launchStatus: 'READY' },
       scenarioPlan: { resilienceScore: 86 },
-      productionReadiness: { productionScore: 91, productionStatus: 'PRODUCTION_DEMO_READY', blockers: [] },
+      productionReadiness: { productionScore: 91, productionStatus: 'OPERATIONALLY_READY', blockers: [] },
       applicationDossier: { dossierScore: 90, dossierStatus: 'READY' },
       presentationGuide: { averageScore: 90 }
     })
@@ -44,8 +44,8 @@ describe('turnaroundCloseout service', () => {
       'release-ready',
       'workflow-closed',
       'operational-risk-clear',
-      'production-demo-ready',
-      'application-proof-ready',
+      'production-readiness',
+      'governance-evidence-ready',
       'post-operation-loop'
     ]))
     expect(packet.checklist.map(item => item.id)).toEqual(expect.arrayContaining([
@@ -56,8 +56,19 @@ describe('turnaroundCloseout service', () => {
     ]))
     expect(packet.evidenceArchive).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'release-evidence' }),
-      expect.objectContaining({ id: 'reviewer-evidence' })
+      expect.objectContaining({ id: 'governance-evidence' })
     ]))
+
+    const userVisibleText = JSON.stringify({
+      narrative: packet.narrative,
+      gates: packet.gates,
+      blockers: packet.blockers,
+      checklist: packet.checklist,
+      evidenceArchive: packet.evidenceArchive
+    }).toLowerCase()
+    for (const retiredPhrase of ['production demo', 'reviewer proof', 'reviewer closeout', 'flagship', 'application collateral', 'needs hardening']) {
+      expect(userVisibleText).not.toContain(retiredPhrase)
+    }
   })
 
   it('flags blocked gates and blockers when the operation is not ready to close', () => {
@@ -82,8 +93,8 @@ describe('turnaroundCloseout service', () => {
       totalSignoffs: 3,
       followUpActions: ['Run debrief.'],
       shipName: 'Utopia of the Seas',
-      productionStatus: 'NEEDS HARDENING',
-      dossierStatus: 'NEEDS PROOF HARDENING'
+      productionStatus: 'ACTION REQUIRED',
+      dossierStatus: 'EVIDENCE REQUIRED'
     })
 
     const blockers = buildCloseoutBlockers({

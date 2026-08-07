@@ -32,7 +32,7 @@ describe('browser test helper inventory', () => {
     expect(spec).toContain("cy.visit('/')")
     expect(spec).toContain("selectDemoUserByVisibleRole('Passenger')")
     expect(spec).toContain("selectDemoUserByVisibleRole('Admin')")
-    expect(spec).toContain('rs.sqaHealthButton')
+    expect(spec).toContain('rs.operationsIntelligenceRefreshButton')
   })
 
   it('keeps React Cypress spec self-contained without testing-library commands', () => {
@@ -60,7 +60,6 @@ describe('browser test helper inventory', () => {
     expect(spec).toContain('rs.fleetDeleteConfirmationCancel')
     expect(spec).toContain('rs.fleetDeleteConfirmationConfirm')
     expect(spec).toContain('rs.adminDeleteConfirmationConfirm')
-    expect(spec).toContain('rs.sqaResetConfirmationConfirm')
     expect(spec).not.toContain("cy.on('window:confirm', () => true)")
   })
 
@@ -72,6 +71,18 @@ describe('browser test helper inventory', () => {
     expect(spec).toContain('visitReactAppAsAdmin()')
     expect(spec).toContain("selectDemoUserByVisibleRole('Admin')")
     expect(spec).toContain("cy.getByTestId(rs.activeRouteOperations).should('be.visible')")
+  })
+
+
+  it('keeps the umbrella React app journey isolated from CI database timing', () => {
+    const specPath = path.join(projectRoot, 'cypress/react/reactApp.cy.js')
+    const spec = fs.readFileSync(specPath, 'utf8')
+
+    expect(spec).toContain('interceptReactCoreApis({')
+    expect(spec).toContain('...reactCruiseLines')
+    expect(spec).toContain("cy.intercept('GET', '/cruise/ships/*', reactShips).as('reactAppShips')")
+    expect(spec).toContain("cy.wait('@reactAppShips')")
+    expect(spec).toContain("cy.intercept('GET', '/cruise', req => {")
   })
 
   it('keeps React role switching test targeting the select control', () => {
@@ -88,7 +99,7 @@ describe('browser test helper inventory', () => {
   it('keeps React group leader dashboard assertion aligned with normalized role view', () => {
     const specPath = path.join(projectRoot, 'cypress/react/reactApp.cy.js')
     const spec = fs.readFileSync(specPath, 'utf8')
-    const roleView = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/roleView.js'), 'utf8')
+    const roleView = fs.readFileSync(path.join(projectRoot, 'frontend/react/src/domain/roleIdentity.js'), 'utf8')
 
     expect(roleView).toContain("return 'group-leader'")
     expect(spec).toContain("cy.getByTestId(rs.groupLeaderDashboard).should('be.visible')")
@@ -115,16 +126,16 @@ describe('browser test helper inventory', () => {
     const missingKeys = [...referencedKeys].filter(key => !Object.prototype.hasOwnProperty.call(reactSelectors, key)).sort()
 
     expect(missingKeys).toEqual([])
-    expect(reactSelectors.employerDemoCommandCenter).toBe('react-employer-demo-command-center')
+    expect(reactSelectors.platformOverviewCommandCenter).toBe('react-platform-overview-command-center')
   })
 
   it('resolves registered React selectors and rejects unknown selector keys', () => {
     const selectorMapPath = path.join(projectRoot, 'cypress/react/support/reactSelectors.js')
     const { reactSelectors, reactSelectorKeys, testId, byTestId } = require(selectorMapPath)
 
-    expect(testId('employerDemoCommandCenter')).toBe(reactSelectors.employerDemoCommandCenter)
-    expect(byTestId('employerDemoCommandCenter')).toBe(`[data-testid="${reactSelectors.employerDemoCommandCenter}"]`)
-    expect(reactSelectorKeys.employerDemoCommandCenter).toBe('employerDemoCommandCenter')
+    expect(testId('platformOverviewCommandCenter')).toBe(reactSelectors.platformOverviewCommandCenter)
+    expect(byTestId('platformOverviewCommandCenter')).toBe(`[data-testid="${reactSelectors.platformOverviewCommandCenter}"]`)
+    expect(reactSelectorKeys.platformOverviewCommandCenter).toBe('platformOverviewCommandCenter')
     expect(Object.isFrozen(reactSelectors)).toBe(true)
     expect(Object.isFrozen(reactSelectorKeys)).toBe(true)
     expect(() => testId('missingSelectorKey')).toThrow('Unknown React selector key: missingSelectorKey')
@@ -172,17 +183,18 @@ describe('browser test helper inventory', () => {
     expect(lifecycleSpec).toContain('Turnaround staffing plan updated successfully')
     const helper = fs.readFileSync(path.join(projectRoot, 'cypress/react/support/reactTestHelpers.js'), 'utf8')
     expect(helper).toContain('function buildReactTurnaroundLifecycleState')
-    expect(helper).toContain('function buildReactTurnaroundPresentationGuide')
+    expect(helper).not.toContain('function buildReactTurnaroundPresentationGuide')
     expect(helper).toContain('function buildReactTurnaroundCommandCenter')
     expect(helper).toContain('function buildReactTurnaroundContinuityCenter')
     expect(helper).toContain('function buildReactTurnaroundShiftBriefing')
     expect(helper).toContain('hydrateReactTurnaroundOperations')
     expect(helper).toContain('lifecycleState')
     expect(helper).toContain('lifecycleState: buildReactTurnaroundLifecycleState(operation)')
-    expect(helper).toContain('presentationGuide: buildReactTurnaroundPresentationGuide(operation)')
+    expect(helper).not.toContain('presentationGuide: buildReactTurnaroundPresentationGuide(operation)')
     expect(helper).toContain('commandCenter: operation.commandCenter || buildReactTurnaroundCommandCenter(operation)')
     expect(helper).toContain('continuityCenter: operation.continuityCenter || buildReactTurnaroundContinuityCenter(operation)')
     expect(helper).toContain('shiftBriefing: operation.shiftBriefing || buildReactTurnaroundShiftBriefing(operation)')
+    expect(helper).not.toMatch(/five-minute employer demo|reviewer-ready proof|Close with employer value|portfolio-close/)
     expect(helper).not.toContain('lifecycleState: operation.lifecycleState || buildReactTurnaroundLifecycleState(operation)')
     expect(lifecycleSpec).toContain('operationsCommandCenter')
     expect(lifecycleSpec).toContain('operationsCommandCenterKpis')
@@ -194,24 +206,24 @@ describe('browser test helper inventory', () => {
   })
 
 
-  it('keeps portfolio soup-to-nuts Cypress coverage present for employer-demo workflows', () => {
-    const portfolioSpecPath = path.join(projectRoot, 'cypress/react/reactPortfolioSoupToNuts.cy.js')
-    const portfolioSpec = fs.readFileSync(portfolioSpecPath, 'utf8')
+  it('keeps platform end-to-end Cypress coverage present for platform-workspace workflows', () => {
+    const workflowSpecPath = path.join(projectRoot, 'cypress/react/reactPlatformWorkflows.cy.js')
+    const workflowSpec = fs.readFileSync(workflowSpecPath, 'utf8')
 
-    expect(fs.existsSync(portfolioSpecPath)).toBe(true)
-    expect(portfolioSpec).toContain('Portfolio soup-to-nuts workflow journeys')
-    expect(portfolioSpec).toContain('walks the employer demo runway through every live application workspace')
-    expect(portfolioSpec).toContain('completes an admin data setup journey from cruise line to ship, sailing, and itinerary proof')
-    expect(portfolioSpec).toContain('completes passenger self-service booking from search to verified booking card, then proves group visibility')
-    expect(portfolioSpec).toContain('drives turnaround operations from admin setup through role execution and readiness evidence')
-    expect(portfolioSpec).toContain('finishes with quality, reset, and release-readiness evidence available from the same product surface')
-    expect(portfolioSpec).toContain("selectDemoUserByVisibleRole('Passenger')")
-    expect(portfolioSpec).toContain("selectDemoUserByVisibleRole('Group Leader')")
-    expect(portfolioSpec).toContain("selectDemoUserByVisibleRole('Turnaround Manager')")
-    expect(portfolioSpec).toContain("selectDemoUserByVisibleRole('Housekeeping Lead', 'Maria Rodriguez')")
-    expect(portfolioSpec).toContain("selectDemoUserByVisibleRole('Engineering Lead', 'David Torres')")
-    expect(portfolioSpec).toContain('cy.intercept')
-    expect(portfolioSpec).toContain('cy.wait')
+    expect(fs.existsSync(workflowSpecPath)).toBe(true)
+    expect(workflowSpec).toContain('Platform end-to-end workflow journeys')
+    expect(workflowSpec).toContain('walks the platform workspace navigator through every live application workspace')
+    expect(workflowSpec).toContain('completes an admin data setup journey from cruise line to ship, sailing, and itinerary proof')
+    expect(workflowSpec).toContain('completes passenger self-service booking from search to verified booking card, then proves group visibility')
+    expect(workflowSpec).toContain('drives turnaround operations from admin setup through role execution and readiness evidence')
+    expect(workflowSpec).toContain('finishes with actionable intelligence and continues into the operational workflow')
+    expect(workflowSpec).toContain("selectDemoUserByVisibleRole('Passenger')")
+    expect(workflowSpec).toContain("selectDemoUserByVisibleRole('Group Leader')")
+    expect(workflowSpec).toContain("selectDemoUserByVisibleRole('Turnaround Manager')")
+    expect(workflowSpec).toContain("selectDemoUserByVisibleRole('Housekeeping Lead', 'Maria Rodriguez')")
+    expect(workflowSpec).toContain("selectDemoUserByVisibleRole('Engineering Lead', 'David Torres')")
+    expect(workflowSpec).toContain('cy.intercept')
+    expect(workflowSpec).toContain('cy.wait')
   })
 
 

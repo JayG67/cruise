@@ -9,6 +9,10 @@ describe('GitHub Pages coverage report preparation', () => {
     const script = read('scripts/prepare-coverage-pages.js')
 
     expect(script).toContain("const coverageFinal = path.join(coverageDir, 'coverage-final.json')")
+    expect(script).toContain("const coverageLcov = path.join(coverageDir, 'lcov.info')")
+    expect(script).toContain("[coverageFinal, 'coverage-final.json']")
+    expect(script).toContain("[coverageLcov, 'lcov.info']")
+    expect(script).toContain('completeCoverageDataPublished')
     expect(script).toContain("fs.copyFileSync(generatedIndex, groupedIndex)")
     expect(script).toContain("fs.writeFileSync(generatedIndex, buildFlatCoverageIndex(coverageDetails))")
     expect(script).toContain('This flat report lists every covered source file')

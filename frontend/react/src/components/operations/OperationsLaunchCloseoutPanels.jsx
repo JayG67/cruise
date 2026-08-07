@@ -160,7 +160,7 @@ export function OperationsLaunchCloseoutPanels({ selectedOperation }) {
           <div className="operations-closeout-packet-header">
             <div>
               <p className="eyebrow ce-kicker">Turnaround closeout packet</p>
-              <h4 id="operations-closeout-packet-heading">Final management closeout and reusable operation proof</h4>
+              <h4 id="operations-closeout-packet-heading">Final management closeout and reusable operating baseline</h4>
               <p>{selectedOperation.closeoutPacket.narrative?.summary}</p>
             </div>
             <div className={`operations-closeout-packet-score ce-surface-light ${String(selectedOperation.closeoutPacket.closeoutStatus || '').toLowerCase()}`} aria-label={`Closeout score ${selectedOperation.closeoutPacket.closeoutScore || 0}%`}>
@@ -222,8 +222,8 @@ export function OperationsLaunchCloseoutPanels({ selectedOperation }) {
           <div className="operations-executive-brief-header">
             <div>
               <p className="eyebrow ce-kicker">Executive brief</p>
-              <h4 id="operations-executive-brief-heading">Cruise-line ready turnaround summary</h4>
-              <p>Executive brief consolidates release confidence, incident command, playbook variance, after-action lessons, and timeline depth into one reviewer-ready decision summary.</p>
+              <h4 id="operations-executive-brief-heading">Executive turnaround decision summary</h4>
+              <p>Executive brief consolidates release confidence, incident command, playbook variance, after-action lessons, and timeline depth into one operational decision summary.</p>
             </div>
             <div className={`operations-executive-brief-score ce-surface-light ${String(selectedOperation.executiveBrief.summary?.decisionTone || '').toLowerCase()}`} aria-label={`Executive readiness score ${selectedOperation.executiveBrief.summary?.decisionScore || 0}%`}>
               <span>{selectedOperation.executiveBrief.summary?.decisionScore || 0}%</span>

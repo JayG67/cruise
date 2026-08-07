@@ -121,6 +121,11 @@
   overflow: auto;
 }
 
+.react-admin-table-scroll:focus-visible {
+  outline: 4px solid #ffbf47;
+  outline-offset: 4px;
+}
+
 .react-admin-table {
   min-width: 980px;
 }

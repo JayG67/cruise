@@ -34,7 +34,7 @@
 }
 
 .react-production-shell :is(
-  .employer-demo-step-button.ce-button-secondary,
+  .platform-workspace-step-button.ce-button-secondary,
   .secondary-action-button.compact-action.ce-button-secondary,
   .secondary-action-button.compact-button.ce-button-secondary,
   .secondary-action-button.turnaround-roster-toggle.ce-button-secondary,

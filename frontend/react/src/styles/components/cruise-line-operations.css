@@ -1,0 +1,12 @@
+/*
+  Cruise-line operations aggregate.
+  Cruise-line operations workspace styles are split by responsibility
+  with a stable operational stylesheet boundary.
+*/
+
+@import './cruise-line-operations-layout.css';
+@import './cruise-line-operations-header.css';
+@import './cruise-line-operations-panels.css';
+@import './cruise-line-operations-controls.css';
+@import './cruise-line-operations-control-polish.css';
+@import './cruise-line-operations-hero-controls.css';

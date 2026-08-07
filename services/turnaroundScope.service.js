@@ -8,7 +8,7 @@ const turnaroundOperationTable = require('../models/turnaroundOperation.model')
 const { getScopedDemoUserId } = require('../middleware/requestIdentity.middleware')
 const { resolveRequestActor } = require('./requestAuthorization.service')
 
-const TURNAROUND_OPERATION_FORBIDDEN_MESSAGE = 'Selected demo user is not assigned to this turnaround operation'
+const TURNAROUND_OPERATION_FORBIDDEN_MESSAGE = 'Selected person is not assigned to this turnaround operation'
 const TURNAROUND_AUDIT_SOURCE = 'TURNAROUND_OPERATIONS_API'
 
 function isOperationalDemoRole(role = '') {

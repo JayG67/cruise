@@ -1,0 +1,80 @@
+/* Build 699: one wide administrator-home presentation rail.
+   The admin landing experience had accumulated several independent width
+   contracts (1120px, 1180px, and unconstrained). Keep every first-level admin
+   workspace on one responsive rail and give those outer panels one visual
+   treatment. Inner editor/data surfaces retain their task-specific styling. */
+:root {
+  --admin-home-rail-width: 1440px;
+  --admin-home-panel-background:
+    radial-gradient(circle at 92% 10%, rgba(96, 165, 250, 0.14), transparent 22rem),
+    radial-gradient(circle at 88% 100%, rgba(34, 197, 94, 0.18), transparent 24rem),
+    linear-gradient(135deg, #061827 0%, #07324a 52%, #0c674e 100%);
+}
+
+html body .react-production-shell :is(
+  .platform-workspace-navigator,
+  .role-selector-section,
+  .route-panel,
+  .cruise-line-presentation-suite,
+  .fleet-directory-section,
+  .react-create-workflow-section,
+  .turnaround-admin-setup-panel,
+  .operations-intelligence-center
+) {
+  background: var(--admin-home-panel-background) !important;
+  border: 1px solid rgba(174, 233, 255, 0.22) !important;
+  border-radius: clamp(1.25rem, 2vw, 1.75rem) !important;
+  box-shadow: 0 24px 58px rgba(7, 24, 39, 0.2) !important;
+  box-sizing: border-box !important;
+  color: #ffffff !important;
+  margin: clamp(1.5rem, 2.5vw, 2.25rem) auto !important;
+  max-width: var(--admin-home-rail-width) !important;
+  padding: clamp(1.35rem, 2.5vw, 2.25rem) !important;
+  width: min(calc(100% - 2rem), var(--admin-home-rail-width)) !important;
+}
+
+/* Keep top-level headings and supporting copy visually consistent while
+   allowing each workspace's internal cards/forms to preserve their own theme. */
+html body .react-production-shell :is(
+  .platform-workspace-navigator,
+  .role-selector-section,
+  .route-panel,
+  .cruise-line-presentation-suite,
+  .fleet-directory-section,
+  .react-create-workflow-section,
+  .turnaround-admin-setup-panel,
+  .operations-intelligence-center
+) > :is(.eyebrow, .ce-kicker),
+html body .react-production-shell :is(
+  .platform-workspace-navigator,
+  .role-selector-section,
+  .route-panel,
+  .cruise-line-presentation-suite,
+  .fleet-directory-section,
+  .react-create-workflow-section,
+  .turnaround-admin-setup-panel,
+  .operations-intelligence-center
+) :is(.platform-workspace-heading, .fleet-heading-row, .compact-turnaround-admin-heading, .operations-intelligence-header) .eyebrow {
+  color: #9fe8ff !important;
+}
+
+html body .react-production-shell .operations-intelligence-center {
+  overflow: hidden;
+}
+
+@media (max-width: 760px) {
+  html body .react-production-shell :is(
+    .platform-workspace-navigator,
+    .role-selector-section,
+    .route-panel,
+    .cruise-line-presentation-suite,
+    .fleet-directory-section,
+    .react-create-workflow-section,
+    .turnaround-admin-setup-panel,
+    .operations-intelligence-center
+  ) {
+    margin-block: 1rem !important;
+    padding: 1rem !important;
+    width: min(calc(100% - 1rem), var(--admin-home-rail-width)) !important;
+  }
+}

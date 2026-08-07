@@ -66,18 +66,18 @@ function buildCertificationGates({
       evidence: ['Findings', 'Department lessons', 'Follow-up action plan']
     }),
     buildLaunchGate({
-      id: 'reviewer-evidence-ready',
-      label: 'Reviewer evidence ready',
+      id: 'governance-evidence-ready',
+      label: 'Governance evidence ready',
       score: reviewerScore,
-      detail: 'Reviewer packet converts operational state into proof points, data-quality checks, and next steps.',
-      evidence: ['Reviewer packet', 'Proof points', 'Data-quality snapshot']
+      detail: 'Governance evidence converts operational state into decision records, data-quality checks, and accountable next steps.',
+      evidence: ['Governance evidence', 'Decision records', 'Data-quality snapshot']
     }),
     buildLaunchGate({
-      id: 'outreach-package-ready',
-      label: 'Outreach package ready',
+      id: 'stakeholder-coordination-ready',
+      label: 'Stakeholder coordination ready',
       score: outreachScore,
-      detail: 'Outreach board organizes target recommendations and application assets for cruise-line review.',
-      evidence: ['Outreach checklist', 'Reviewer assets', 'Target recommendations']
+      detail: 'Stakeholder coordination records organize recommendations, accountable owners, and required operational follow-through.',
+      evidence: ['Coordination checklist', 'Stakeholder records', 'Action recommendations']
     }),
     buildLaunchGate({
       id: 'management-continuation-ready',
@@ -96,47 +96,47 @@ function buildDemoRunbook({ operation = {}, gates = [], managementStatus = null 
 
   const steps = [
     {
-      id: 'admin-data-proof',
-      label: 'Admin data proof',
-      role: 'Admin',
-      detail: `Open fleet, ship, sailing, customer, booking, and quality workflows to show ${cruiseLine} data is not a static mock.`
+      id: 'admin-data-verification',
+      label: 'Administrative data verification',
+      role: 'Administrator',
+      detail: `Verify fleet, ship, sailing, customer, booking, and quality workflows for ${cruiseLine} using the current operational data baseline.`
     },
     {
-      id: 'passenger-booking-proof',
-      label: 'Passenger booking proof',
+      id: 'passenger-booking-verification',
+      label: 'Passenger booking verification',
       role: 'Passenger',
-      detail: 'Use the cascading cruise-line, ship, sailing, destination, departure, length, and ship-aware fare filters to prove passenger booking UX is data driven.'
+      detail: 'Verify the cascading cruise-line, ship, sailing, destination, departure, length, and ship-aware fare filters against the current operating data.'
     },
     {
-      id: 'group-leader-proof',
-      label: 'Group leader proof',
+      id: 'group-leader-verification',
+      label: 'Group leader verification',
       role: 'Group Leader',
-      detail: 'Show group-visible bookings and passenger manifest without admin-only operations.'
+      detail: 'Verify group-visible bookings and passenger manifests without administrator-only operations.'
     },
     {
-      id: 'turnaround-command-proof',
-      label: 'Turnaround command proof',
+      id: 'turnaround-command-verification',
+      label: 'Turnaround command verification',
       role: 'Turnaround Manager',
-      detail: `Select ${ship}, review the command plan, release board, metrics, timeline, incident command, after-action review, and launch gates.`
+      detail: `Select ${ship}, review the command plan, release board, metrics, timeline, incident command, after-action review, and release gates.`
     },
     {
-      id: 'department-lead-proof',
-      label: 'Department lead proof',
+      id: 'department-lead-verification',
+      label: 'Department lead verification',
       role: 'Department Lead',
-      detail: 'Assume housekeeping, guest services, engineering, and food and beverage leads to show role-specific task, staffing, dependency, handoff, and signoff workflows.'
+      detail: 'Verify housekeeping, guest services, engineering, and food and beverage role-specific task, staffing, dependency, handoff, and signoff workflows.'
     },
     {
-      id: 'reviewer-close-proof',
-      label: 'Reviewer close proof',
-      role: 'Reviewer',
-      detail: 'Finish with executive brief, reviewer packet, outreach board, and management status to show how the app is ready for cruise-line conversations.'
+      id: 'governance-closeout',
+      label: 'Governance closeout',
+      role: 'Operational Governance',
+      detail: 'Finish with the executive brief, governance evidence, stakeholder coordination records, and management status to support an accountable release decision.'
     }
   ]
 
   if (weakGate) {
     steps.push({
-      id: 'watch-item-proof',
-      label: 'Watch-item handling proof',
+      id: 'watch-item-response',
+      label: 'Watch-item response',
       role: 'Turnaround Manager',
       detail: `Call out the ${weakGate.label.toLowerCase()} gate as an explicit watch item instead of hiding it.`
     })
@@ -144,8 +144,8 @@ function buildDemoRunbook({ operation = {}, gates = [], managementStatus = null 
 
   if (managementStatus?.nextSlices?.length) {
     steps.push({
-      id: 'continuation-proof',
-      label: 'Continuation proof',
+      id: 'continuation-planning',
+      label: 'Continuation planning',
       role: 'Engineering Lead',
       detail: `Use the next-slice recommendation: ${managementStatus.nextSlices[0]}`
     })
@@ -160,10 +160,10 @@ function buildLaunchRisks({ gates = [], reviewerPacket = null, outreachBoard = n
     .map(gate => ({
       id: `risk-${gate.id}`,
       severity: gate.score < 65 ? 'HIGH' : 'MEDIUM',
-      label: `${gate.label} needs reviewer context`,
+      label: `${gate.label} requires release review`,
       mitigation: gate.score < 65
-        ? `Do not lead with this gate until the ${gate.label.toLowerCase()} evidence improves.`
-        : `Frame this as an active hardening area with visible evidence and next actions.`
+        ? `Hold release authorization until the ${gate.label.toLowerCase()} evidence improves.`
+        : 'Track the watch item with visible evidence, an accountable owner, and a dated next action.'
     }))
 
   const dataRisk = Number(outreachBoard?.readiness?.dataQualityRisk || reviewerPacket?.dataQuality?.blockerCount || 0)
@@ -171,8 +171,8 @@ function buildLaunchRisks({ gates = [], reviewerPacket = null, outreachBoard = n
     risks.unshift({
       id: 'risk-data-quality-watch-items',
       severity: dataRisk >= 5 ? 'HIGH' : 'MEDIUM',
-      label: 'Reviewer data-quality watch items remain',
-      mitigation: 'Use reviewer packet data-quality snapshot to explain the watch items and clean them before a flagship recording.'
+      label: 'Data-quality watch items remain',
+      mitigation: 'Use the governance data-quality snapshot to assign owners and clear the watch items before release authorization.'
     })
   }
 
@@ -181,17 +181,17 @@ function buildLaunchRisks({ gates = [], reviewerPacket = null, outreachBoard = n
     risks.unshift({
       id: 'risk-incident-score',
       severity: incidentScore >= 70 ? 'HIGH' : 'MEDIUM',
-      label: 'Incident score may distract from the demo story',
-      mitigation: 'Resolve visible blockers or position incident command as the reason the platform is valuable during disruption.'
+      label: 'Incident risk may block release confidence',
+      mitigation: 'Resolve visible blockers or document an accountable risk decision before release authorization.'
     })
   }
 
   if (risks.length === 0) {
     risks.push({
-      id: 'risk-demo-drift',
+      id: 'risk-release-scope-drift',
       severity: 'LOW',
-      label: 'Demo story may drift because the feature set is now broad',
-      mitigation: 'Use the launch runbook to keep the walkthrough focused on role progression and operational evidence.'
+      label: 'Release review may lose focus because the operational surface is broad',
+      mitigation: 'Use the release runbook to keep governance review focused on role progression, operational evidence, and accountable decisions.'
     })
   }
 
@@ -217,16 +217,16 @@ function buildQualityGates({ gates = [], managementStatus = null } = {}) {
       detail: 'Mobile checks should prove responsiveness and reachable workflows without reintroducing brittle selector-only paths.'
     },
     {
-      id: 'data-hardening',
-      label: 'Data hardening tracked',
+      id: 'data-assurance',
+      label: 'Data assurance tracked',
       status: (managementStatus?.remainingWork || []).some(item => String(item.priority).toUpperCase() === 'HIGH') ? 'WATCH' : 'READY',
-      detail: 'Remaining data architecture work is explicit in the management status and should be handled before real integrations.'
+      detail: 'Remaining data-architecture work is explicit in management status and should be resolved or accepted before production integrations.'
     },
     {
-      id: 'launch-gates',
-      label: 'Launch gates summarized',
+      id: 'release-gates',
+      label: 'Release gates summarized',
       status: redCount > 0 ? 'BLOCKED' : 'READY',
-      detail: `${greenCount} green, ${yellowCount} yellow, and ${redCount} red launch gates are visible to the reviewer.`
+      detail: `${greenCount} green, ${yellowCount} yellow, and ${redCount} red release gates are visible for governance review.`
     }
   ]
 }
@@ -236,8 +236,8 @@ function buildTurnaroundLaunchPlan(input = {}) {
   const launchScore = clampScore(gates.reduce((sum, gate) => sum + gate.score, 0) / Math.max(gates.length, 1))
   let launchStatus = 'READY_WITH_WATCH_ITEMS'
   if (launchScore < 65) launchStatus = 'NOT_READY'
-  else if (launchScore < 78) launchStatus = 'NEEDS_HARDENING'
-  else if (launchScore >= 90) launchStatus = 'READY_FOR_REVIEWER_DEMO'
+  else if (launchScore < 78) launchStatus = 'ACTION_REQUIRED'
+  else if (launchScore >= 90) launchStatus = 'OPERATIONALLY_READY'
 
   const demoRunbook = buildDemoRunbook({ operation: input.operation, gates, managementStatus: input.managementStatus })
   const launchRisks = buildLaunchRisks({ gates, reviewerPacket: input.reviewerPacket, outreachBoard: input.outreachBoard, incidentCommand: input.incidentCommand })
@@ -246,15 +246,15 @@ function buildTurnaroundLaunchPlan(input = {}) {
   return {
     launchScore,
     launchStatus,
-    headline: `Turnaround launch plan is ${launchScore}% ready with status ${normalizeStatus(launchStatus)}.`,
-    summary: 'This launch plan turns the current turnaround module into a guided reviewer demo path with certification gates, role-by-role runbook steps, risk mitigations, and quality gates.',
+    headline: `Turnaround release plan is ${launchScore}% ready with status ${normalizeStatus(launchStatus)}.`,
+    summary: 'This release plan combines certification gates, role-by-role verification steps, risk mitigations, and quality controls into an accountable operational release decision.',
     certificationGates: gates,
     demoRunbook,
     launchRisks,
     qualityGates,
     nextAction: launchRisks.some(risk => risk.severity === 'HIGH')
-      ? 'Resolve high-severity launch risks before using this operation as the flagship external demo.'
-      : 'Use the runbook to record or present the next cruise-line reviewer walkthrough.'
+      ? 'Resolve high-severity release risks before authorizing this operation.'
+      : 'Use the runbook to complete the next operational governance review.'
   }
 }
 

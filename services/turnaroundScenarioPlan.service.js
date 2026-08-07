@@ -91,20 +91,20 @@ function buildStressCases({
       severity: varianceScore < 75 ? 'HIGH' : 'LOW',
       score: varianceScore,
       trigger: 'Live execution diverges from reusable turnaround playbook baselines.',
-      impact: 'Reviewers may see inconsistency between template intent and actual operational readiness.',
+      impact: 'Operational leaders may see inconsistency between template intent and actual readiness evidence.',
       response: 'Use variance actions and after-action lessons to explain how drift becomes a controlled improvement loop.',
       owner: 'Turnaround Manager',
       evidence: ['Playbook variance', 'After-action findings', 'Template baselines']
     }),
     buildStressCase({
-      id: 'reviewer-demo-disruption',
-      label: 'Reviewer demo disruption',
+      id: 'unplanned-evidence-request',
+      label: 'Unplanned evidence request',
       severity: launchScore < 82 ? 'MEDIUM' : 'LOW',
       score: Math.min(launchScore || 75, reviewScore || 75),
-      trigger: 'A reviewer asks for operational proof outside the planned walkthrough path.',
-      impact: 'Demo can drift into disconnected feature browsing instead of role-based operational proof.',
-      response: 'Use launch gates, reviewer packet proof points, and the role-by-role runbook to steer back to evidence.',
-      owner: 'Demo Lead',
+      trigger: 'An operational leader requests evidence outside the planned resilience-drill sequence.',
+      impact: 'The review can drift into disconnected evidence browsing instead of role-based operational decision support.',
+      response: 'Use release gates, governance evidence, and the role-by-role runbook to restore a decision-focused review.',
+      owner: 'Operational Governance Lead',
       evidence: ['Launch plan', 'Reviewer packet', 'Management status']
     })
   ]
@@ -137,9 +137,9 @@ function buildContingencyActions({ stressCases = [], launchPlan = null, manageme
     actions.push({
       id: 'action-launch-risk-briefing',
       priority: 'P2',
-      label: 'Reviewer risk briefing',
+      label: 'Operational risk briefing',
       detail: launchPlan.launchRisks[0].mitigation,
-      owner: 'Demo Lead'
+      owner: 'Operational Governance Lead'
     })
   }
 
@@ -147,7 +147,7 @@ function buildContingencyActions({ stressCases = [], launchPlan = null, manageme
     actions.push({
       id: 'action-management-follow-through',
       priority: 'P3',
-      label: 'Management hardening follow-through',
+      label: 'Management assurance follow-through',
       detail: managementStatus.remainingWork[0].detail || managementStatus.remainingWork[0].label,
       owner: 'Engineering Lead'
     })
@@ -155,10 +155,10 @@ function buildContingencyActions({ stressCases = [], launchPlan = null, manageme
 
   if (actions.length === 0) {
     actions.push({
-      id: 'action-keep-green-room-ready',
+      id: 'action-keep-governance-evidence-current',
       priority: 'P3',
-      label: 'Keep green-room review ready',
-      detail: 'Refresh operational evidence, verify launch runbook order, and keep reviewer packet proof points current.',
+      label: 'Keep governance evidence current',
+      detail: 'Refresh operational evidence, verify release-runbook order, and keep governance proof points current.',
       owner: 'Turnaround Manager'
     })
   }
@@ -189,15 +189,15 @@ function buildDrillRunbook({ operation = {}, stressCases = [], launchPlan = null
     {
       id: 'drill-close-loop',
       label: 'Close the loop',
-      detail: 'Use after-action review, executive brief, reviewer packet, and launch gates to explain how the operation improves after disruption.'
+      detail: 'Use after-action review, executive brief, governance evidence, and release gates to explain how the operation improves after disruption.'
     }
   ]
 
   if (launchPlan?.demoRunbook?.length) {
     steps.push({
-      id: 'drill-return-to-demo-runbook',
-      label: 'Return to launch runbook',
-      detail: `Resume the reviewer demo at: ${launchPlan.demoRunbook[0].label}.`
+      id: 'drill-return-to-release-runbook',
+      label: 'Return to release runbook',
+      detail: `Resume the operational release runbook at: ${launchPlan.demoRunbook[0].label}.`
     })
   }
 
@@ -215,9 +215,9 @@ function buildTurnaroundScenarioPlan(input = {}) {
     resilienceScore,
     scenarioStatus,
     headline: scenarioStatus === 'DRILL_READY'
-      ? 'Turnaround operation is ready for reviewer disruption drills.'
-      : 'Turnaround operation has scenario watch items that should be rehearsed before the next demo.',
-    summary: `Scenario plan converts ${input.operation?.shipName || 'the selected ship'} operational evidence into stress cases, triggers, contingency actions, and a reviewer-safe drill runbook.`,
+      ? 'Turnaround operation is ready for operational resilience drills.'
+      : 'Turnaround operation has scenario watch items that should be rehearsed before the next resilience exercise.',
+    summary: `Scenario plan converts ${input.operation?.shipName || 'the selected ship'} operational evidence into stress cases, triggers, contingency actions, and an operational resilience runbook.`,
     stressCases,
     triggerMatrix: buildTriggerMatrix({ stressCases }),
     contingencyActions: buildContingencyActions({ stressCases, launchPlan: input.launchPlan, managementStatus: input.managementStatus }),
@@ -226,7 +226,7 @@ function buildTurnaroundScenarioPlan(input = {}) {
       releaseStatus: normalizeStatus(input.releasePacket?.status, 'release review'),
       incidentSeverity: normalizeStatus(input.incidentCommand?.incidentSeverity, 'stable'),
       launchStatus: normalizeStatus(input.launchPlan?.launchStatus, 'watch items'),
-      managementStatus: normalizeStatus(input.managementStatus?.maturityStatus, 'hardening in progress')
+      managementStatus: normalizeStatus(input.managementStatus?.maturityStatus, 'assurance review in progress')
     }
   }
 }

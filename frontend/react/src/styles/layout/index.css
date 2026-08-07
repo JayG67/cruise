@@ -1,7 +1,7 @@
 /* Reusable layout primitives. */
 
 .ce-page-shell,
-.react-production-shell :where(.react-role-dashboard, .react-sqa-console, .employer-demo-command-center) {
+.react-production-shell :where(.react-role-dashboard, .react-sqa-console, .platform-workspace-navigator) {
   width: min(1120px, calc(100% - 2rem));
   margin-inline: auto;
 }
