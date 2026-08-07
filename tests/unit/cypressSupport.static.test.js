@@ -73,6 +73,18 @@ describe('browser test helper inventory', () => {
     expect(spec).toContain("cy.getByTestId(rs.activeRouteOperations).should('be.visible')")
   })
 
+
+  it('keeps the umbrella React app journey isolated from CI database timing', () => {
+    const specPath = path.join(projectRoot, 'cypress/react/reactApp.cy.js')
+    const spec = fs.readFileSync(specPath, 'utf8')
+
+    expect(spec).toContain('interceptReactCoreApis({')
+    expect(spec).toContain('...reactCruiseLines')
+    expect(spec).toContain("cy.intercept('GET', '/cruise/ships/*', reactShips).as('reactAppShips')")
+    expect(spec).toContain("cy.wait('@reactAppShips')")
+    expect(spec).toContain("cy.intercept('GET', '/cruise', req => {")
+  })
+
   it('keeps React role switching test targeting the select control', () => {
     const specPath = path.join(projectRoot, 'cypress/react/reactApp.cy.js')
     const spec = fs.readFileSync(specPath, 'utf8')

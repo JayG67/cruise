@@ -3,13 +3,8 @@ const { reactTurnaroundOperations, selectDemoUserByVisibleRole, visitReactAppAsA
 
 describe('Operations intelligence end-to-end workflow', () => {
   beforeEach(() => {
-    visitReactAppAsAdmin({}, () => {
-      cy.intercept(
-        { method: 'GET', url: /\/cruise\/turnaround-operations(?:\?.*)?$/ },
-        { statusCode: 200, body: reactTurnaroundOperations, headers: { 'cache-control': 'no-store' } }
-      ).as('operationsIntelligenceFixture')
-    })
-    cy.wait('@operationsIntelligenceFixture')
+    visitReactAppAsAdmin({ turnaroundOperations: reactTurnaroundOperations })
+    cy.wait('@reactTurnaroundOperations')
     cy.getByTestId(rs.operationsIntelligenceCenter).scrollIntoView().should('be.visible')
     cy.getByTestId(rs.operationsIntelligenceSelect)
       .find('option')

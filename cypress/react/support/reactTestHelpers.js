@@ -15,7 +15,10 @@ const reactCruiseLines = [
     id: '11111111-1111-4111-8111-111111111111',
     name: 'Royal Caribbean International',
     country: 'United States',
-    website: 'https://www.royalcaribbean.com'
+    website: 'https://www.royalcaribbean.com',
+    brandFamily: 'Royal Caribbean Group',
+    brandTheme: 'Adventure Innovation',
+    marketPositioning: 'Contemporary family, adventure, private-destination, and innovation-led cruising'
   },
   {
     id: '22222222-2222-4222-8222-222222222222',
