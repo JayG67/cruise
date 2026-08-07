@@ -9,7 +9,7 @@
 */
 .react-role-dashboard :is(
   .operational-turnaround-panel,
-  .operations-portfolio-board,
+  .turnaround-fleet-board,
   .operations-workspace-panel,
   .operations-release-board,
   .operations-lifecycle,
@@ -20,8 +20,6 @@
   .operations-incident-command,
   .operations-scenario-plan,
   .operations-directory-panel,
-  .operations-production-readiness,
-  .operations-application-dossier,
   .operational-readiness-card
 ) {
   background: var(--ce-command-bg) !important;
@@ -34,7 +32,7 @@
 
 .react-role-dashboard :is(
   .operational-turnaround-panel,
-  .operations-portfolio-board,
+  .turnaround-fleet-board,
   .operations-workspace-panel,
   .operations-release-board,
   .operations-lifecycle,
@@ -45,8 +43,6 @@
   .operations-incident-command,
   .operations-scenario-plan,
   .operations-directory-panel,
-  .operations-production-readiness,
-  .operations-application-dossier,
   .operational-readiness-card
 ) :is(h1, h2, h3, h4, h5, h6, p, li, strong, span, dt, dd, caption) {
   color: inherit;
@@ -54,7 +50,7 @@
 }
 
 .react-role-dashboard :is(
-  .operations-portfolio-card,
+  .turnaround-fleet-card,
   .operations-release-card,
   .operations-lifecycle-phase,
   .operations-lifecycle-details > div,
@@ -76,14 +72,6 @@
   .operations-directory-detail,
   .operations-directory-metrics div,
   .operations-directory-contact,
-  .operations-production-readiness-card,
-  .operations-production-readiness-summary,
-  .operations-production-readiness-details > div,
-  .operations-production-readiness-runbook,
-  .operations-application-dossier-card,
-  .operations-application-dossier-summary,
-  .operations-application-dossier-details > div,
-  .operations-application-dossier-steps,
   .role-booking-fields,
   .operational-progress-summary,
   .operational-escalation-summary,
@@ -108,7 +96,7 @@
 }
 
 .react-role-dashboard :is(
-  .operations-portfolio-card,
+  .turnaround-fleet-card,
   .operations-release-card,
   .operations-lifecycle-phase,
   .operations-lifecycle-details > div,
@@ -130,14 +118,6 @@
   .operations-directory-detail,
   .operations-directory-metrics div,
   .operations-directory-contact,
-  .operations-production-readiness-card,
-  .operations-production-readiness-summary,
-  .operations-production-readiness-details > div,
-  .operations-production-readiness-runbook,
-  .operations-application-dossier-card,
-  .operations-application-dossier-summary,
-  .operations-application-dossier-details > div,
-  .operations-application-dossier-steps,
   .role-booking-fields,
   .operational-progress-summary,
   .operational-escalation-summary,
@@ -162,7 +142,7 @@
 
 .react-role-dashboard :is(
   .operational-turnaround-panel,
-  .operations-portfolio-board,
+  .turnaround-fleet-board,
   .operations-workspace-panel,
   .operations-release-board,
   .operations-lifecycle,
@@ -173,8 +153,6 @@
   .operations-incident-command,
   .operations-scenario-plan,
   .operations-directory-panel,
-  .operations-production-readiness,
-  .operations-application-dossier,
   .operational-readiness-card
 ) :is(.eyebrow, dt, label > span) {
   color: var(--ce-command-text-muted) !important;

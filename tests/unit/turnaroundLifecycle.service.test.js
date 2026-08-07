@@ -66,7 +66,9 @@ describe('turnaroundLifecycle service', () => {
     expect(lifecycle.currentPhaseId).toBe('completed')
     expect(lifecycle.completionPercent).toBe(100)
     expect(lifecycle.finalBlockers).toEqual([])
-    expect(lifecycle.nextBestAction).toContain('flagship')
+    expect(lifecycle.nextBestAction).toContain('verified reference')
+    expect(lifecycle.nextBestAction).toContain('executive operational review')
+    expect(lifecycle.nextBestAction).not.toMatch(/flagship|demo|reviewer/i)
   })
 
   it('summarizes department readiness without hiding open risks', () => {

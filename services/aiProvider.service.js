@@ -81,7 +81,7 @@ function createDisabledAiProvider() {
     model: 'not-configured',
     async generateStructured() {
       throw new AiProviderError(
-        'AI generation is not configured. Set AI_PROVIDER=deterministic for local portfolio demonstrations or configure a production provider in a later phase.',
+        'AI generation is not configured. Set AI_PROVIDER=deterministic for controlled local evaluation or configure an approved production provider.',
         'AI_PROVIDER_NOT_CONFIGURED'
       )
     }

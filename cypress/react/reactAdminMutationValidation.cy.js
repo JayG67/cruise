@@ -46,7 +46,7 @@ describe('React admin mutation validation coverage expansion', () => {
     cy.getByTestId(rs.adminCreateCustomerSubmit).click()
 
     cy.wait('@createTrimmedCustomer')
-    cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'Trimmed Customer was created through the React admin workspace.')
+    cy.getByTestId(rs.adminMutationMessage).should('contain.text', 'Trimmed Customer was created through the administrative workspace.')
   })
 
   it('surfaces customer create API failures without clearing draft inputs', () => {

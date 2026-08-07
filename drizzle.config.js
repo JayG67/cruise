@@ -1,4 +1,4 @@
-require("dotenv/config")
+require('./config/loadEnvironment').loadEnvironment()
 const { defineConfig } = require('drizzle-kit')
 
 const config = defineConfig({

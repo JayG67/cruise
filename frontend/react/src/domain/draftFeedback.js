@@ -22,7 +22,7 @@ export function createNoChangesFeedback(entityLabel) {
 }
 
 export function createSaveUnavailableFeedback(entityLabel) {
-  return createDraftFeedback('error', `${entityLabel} save boundary is not available in this portfolio application.`)
+  return createDraftFeedback('error', `${entityLabel} changes are not available in the current operating mode.`)
 }
 
 export function createSaveSuccessFeedback(fallbackMessage) {

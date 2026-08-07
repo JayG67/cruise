@@ -55,25 +55,25 @@ function collectGates(readiness = {}, source = '') {
   return asArray(readiness.gates).map(gate => ({ ...gate, source }))
 }
 
-function buildLaunchReadinessTracks({ dataArchitecture = {}, productionHardening = {}, deployment = {}, portfolio = {} }) {
+function buildLaunchReadinessTracks({ dataArchitecture = {}, productionHardening = {}, deployment = {} }) {
   return [
     buildEvidenceItem({
       id: 'data-architecture-hardening',
-      label: 'Data architecture hardening',
-      source: 'Data Architecture Hardening Center',
+      label: 'Data governance assurance',
+      source: 'Data Governance Control Center',
       score: getReadinessScore(dataArchitecture),
       status: getLaunchStatus(getReadinessScore(dataArchitecture), asArray(dataArchitecture.gates).filter(gate => isBlockingStatus(gate.status)).length, asArray(dataArchitecture.gates).filter(gate => isWatchStatus(gate.status)).length),
-      summary: dataArchitecture.summary || 'Normalize IDs, status values, audit streams, and tenant boundaries before public production use.',
-      action: asArray(dataArchitecture.migrationBacklog)[0]?.action || 'Clear the highest-priority migration backlog item.'
+      summary: dataArchitecture.summary || 'Confirm identity, status, audit, and tenant-boundary controls against the current operating baseline.',
+      action: asArray(dataArchitecture.migrationBacklog)[0]?.action || 'Resolve the highest-priority data-governance action.'
     }),
     buildEvidenceItem({
       id: 'production-hardening',
-      label: 'Production hardening',
-      source: 'Production Hardening Center',
+      label: 'Production assurance',
+      source: 'Production Assurance Center',
       score: getReadinessScore(productionHardening),
       status: getLaunchStatus(getReadinessScore(productionHardening), asArray(productionHardening.gates).filter(gate => isBlockingStatus(gate.status)).length, asArray(productionHardening.gates).filter(gate => isWatchStatus(gate.status)).length),
-      summary: productionHardening.summary || 'Confirm environment, error handling, logging, observability, deployment, and security gates.',
-      action: asArray(productionHardening.launchSequence)[0] || 'Close the lowest-scoring production hardening gate.'
+      summary: productionHardening.summary || 'Confirm environment, error handling, logging, observability, deployment, and security controls.',
+      action: asArray(productionHardening.launchSequence)[0] || 'Resolve the lowest-scoring production-assurance control.'
     }),
     buildEvidenceItem({
       id: 'deployment-readiness',
@@ -83,15 +83,6 @@ function buildLaunchReadinessTracks({ dataArchitecture = {}, productionHardening
       status: getLaunchStatus(getReadinessScore(deployment), asArray(deployment.gates).filter(gate => isBlockingStatus(gate.status)).length, asArray(deployment.gates).filter(gate => isWatchStatus(gate.status)).length),
       summary: deployment.summary || 'Verify hosting configuration, runtime scripts, build assets, and deployment documentation.',
       action: asArray(deployment.deploymentSequence)[0] || asArray(deployment.launchSequence)[0] || 'Run the deployment readiness sequence.'
-    }),
-    buildEvidenceItem({
-      id: 'portfolio-packaging',
-      label: 'Portfolio packaging',
-      source: 'Portfolio Polish Center',
-      score: getReadinessScore(portfolio),
-      status: getLaunchStatus(getReadinessScore(portfolio), asArray(portfolio.gates).filter(gate => isBlockingStatus(gate.status)).length, asArray(portfolio.gates).filter(gate => isWatchStatus(gate.status)).length),
-      summary: portfolio.summary || 'Package screenshots, architecture story, recruiter walkthrough, resume bullets, and launch assets.',
-      action: asArray(portfolio.launchChecklist)[0]?.action || 'Complete the next portfolio launch checklist item.'
     })
   ]
 }
@@ -105,12 +96,12 @@ function buildCriticalLaunchItems(tracks = [], readinessPayloads = []) {
     .map((gate, index) => ({
       id: `${gate.source}-${gate.id || index}`.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       sequence: index + 1,
-      title: gate.label || 'Launch readiness gate',
+      title: gate.label || 'Release readiness control',
       source: gate.source,
       status: normalizeStatus(gate.status) || 'watch',
       score: getGateScore(gate),
-      summary: gate.summary || 'Review this launch-readiness gate.',
-      action: asArray(gate.recommendations)[0] || 'Resolve this item before portfolio launch.'
+      summary: gate.summary || 'Review this release-readiness control.',
+      action: asArray(gate.recommendations)[0] || 'Resolve this item before production release.'
     }))
 
   if (gateItems.length) return gateItems
@@ -143,54 +134,52 @@ function buildLaunchRunbook({ tracks = [], criticalItems = [] }) {
       action: firstCriticalItem?.action || 'Run the complete test, browser, performance, and Lighthouse gate.'
     },
     {
-      id: 'clear-launch-risks',
-      phase: 'Clear launch risks',
+      id: 'clear-release-risks',
+      phase: 'Clear release risks',
       owner: 'Product / engineering',
-      exitCriteria: 'No blocked tracks and no unresolved critical launch items remain.',
-      action: lowestTrack ? `Lift ${lowestTrack.label} above watch threshold.` : 'Confirm each launch-readiness track is ready.'
+      exitCriteria: 'No blocked tracks and no unresolved critical release items remain.',
+      action: lowestTrack ? `Lift ${lowestTrack.label} above watch threshold.` : 'Confirm each release-readiness track is ready.'
     },
     {
-      id: 'stage-public-build',
-      phase: 'Stage public build',
+      id: 'verify-production-environment',
+      phase: 'Verify production environment',
       owner: 'Deployment owner',
-      exitCriteria: 'Production build, health check, and seeded demo data work on the target host.',
-      action: 'Deploy to the selected public hosting target and verify /health plus the React shell.'
+      exitCriteria: 'Production build, health check, and verified operating data work on the target host.',
+      action: 'Verify the configured production target, /health endpoint, and React application shell.'
     },
     {
-      id: 'package-portfolio',
-      phase: 'Package portfolio evidence',
-      owner: 'Portfolio owner',
-      exitCriteria: 'Screenshots, architecture notes, recruiter walkthrough, and resume bullets are captured.',
-      action: 'Capture the final screenshot sequence and copy the launch narrative into the README.'
+      id: 'verify-release-evidence',
+      phase: 'Verify release evidence',
+      owner: 'Quality engineering',
+      exitCriteria: 'Automated test, accessibility, performance, deployment, and operational evidence are current.',
+      action: 'Run the complete release gate and retain the generated verification artifacts.'
     },
     {
       id: 'go-live',
       phase: 'Go live',
-      owner: 'Jay Gallagher',
-      exitCriteria: 'Live URL, repo, walkthrough, and test evidence are ready for recruiter review.',
-      action: 'Publish the live URL and include it in the portfolio package.'
+      owner: 'Release owner',
+      exitCriteria: 'The production URL, health check, operational workspaces, and release evidence are verified.',
+      action: 'Publish the release and complete the post-deployment smoke review.'
     }
   ]
 }
 
-function buildProjectStatus({ dataArchitecture = {}, productionHardening = {}, deployment = {}, portfolio = {}, operationsControlBoard = {} }) {
+function buildProjectStatus({ dataArchitecture = {}, productionHardening = {}, deployment = {}, operationsControlBoard = {} }) {
   const operationalScore = getReadinessScore(operationsControlBoard) || 95
   const architectureScore = getReadinessScore(dataArchitecture)
   const hardeningScore = getReadinessScore(productionHardening)
   const deploymentScore = getReadinessScore(deployment)
-  const portfolioScore = getReadinessScore(portfolio)
 
   return {
     featureCompleteEstimate: asPercent(
-      operationalScore + architectureScore + hardeningScore + deploymentScore + portfolioScore,
-      500
+      operationalScore + architectureScore + hardeningScore + deploymentScore,
+      400
     ),
     tracks: [
-      { area: 'Turnaround operations UX', status: 'near-complete', percent: operationalScore, note: 'Control board, team workspace, continuity, shift briefing, executive/reviewer/closeout packets, and go/no-go orchestration are represented.' },
-      { area: 'Data architecture hardening', status: architectureScore >= 85 ? 'strong' : 'active-hardening', percent: architectureScore, note: 'Normalization, status vocabulary, audit stream, and tenant-boundary readiness are now tracked.' },
-      { area: 'Production hardening', status: hardeningScore >= 85 ? 'strong' : 'active-hardening', percent: hardeningScore, note: 'Environment, validation, logging, observability, deployment, and security gates are visible.' },
-      { area: 'Public deployment', status: deploymentScore >= 85 ? 'readying' : 'needs-final-target', percent: deploymentScore, note: 'The app has deployment readiness checks; final public host and live URL are still the major remaining proof point.' },
-      { area: 'Portfolio packaging', status: portfolioScore >= 85 ? 'readying' : 'needs-polish', percent: portfolioScore, note: 'Recruiter walkthrough, screenshots, architecture diagram, and resume integration remain the highest-value polish items.' }
+      { area: 'Turnaround operations', status: 'operational', percent: operationalScore, note: 'Control board, team workspace, continuity, shift briefing, executive decision records, closeout packets, and release orchestration are represented.' },
+      { area: 'Data governance assurance', status: architectureScore >= 85 ? 'strong' : 'action-required', percent: architectureScore, note: 'Identity normalization, status vocabulary, audit streams, and tenant-boundary controls are tracked.' },
+      { area: 'Production assurance', status: hardeningScore >= 85 ? 'strong' : 'action-required', percent: hardeningScore, note: 'Environment, validation, logging, observability, deployment, and security controls are visible.' },
+      { area: 'Production deployment', status: deploymentScore >= 85 ? 'ready' : 'action-required', percent: deploymentScore, note: 'Production target, runtime configuration, health checks, and release evidence are tracked.' }
     ]
   }
 }
@@ -199,14 +188,12 @@ function buildPublicLaunchReadiness(input = {}) {
   const dataArchitecture = asObject(input.dataArchitecture)
   const productionHardening = asObject(input.productionHardening)
   const deployment = asObject(input.deployment)
-  const portfolio = asObject(input.portfolio)
   const operationsControlBoard = asObject(input.operationsControlBoard)
-  const tracks = buildLaunchReadinessTracks({ dataArchitecture, productionHardening, deployment, portfolio })
+  const tracks = buildLaunchReadinessTracks({ dataArchitecture, productionHardening, deployment })
   const readinessPayloads = [
     { payload: dataArchitecture, source: 'Data Architecture' },
-    { payload: productionHardening, source: 'Production Hardening' },
-    { payload: deployment, source: 'Deployment' },
-    { payload: portfolio, source: 'Portfolio' }
+    { payload: productionHardening, source: 'Production Assurance' },
+    { payload: deployment, source: 'Deployment' }
   ]
   const blockerCount = tracks.filter(track => track.status === 'blocked').length
   const watchCount = tracks.filter(track => track.status === 'watch').length
@@ -218,14 +205,14 @@ function buildPublicLaunchReadiness(input = {}) {
     overallScore,
     status: getLaunchStatus(overallScore, blockerCount, watchCount),
     summary: blockerCount
-      ? `${blockerCount} launch track${blockerCount === 1 ? '' : 's'} still need blocker-level attention before public release.`
+      ? `${blockerCount} release track${blockerCount === 1 ? '' : 's'} require blocker-level attention before authorization.`
       : watchCount
-        ? `${watchCount} launch track${watchCount === 1 ? '' : 's'} remain on the watchlist before public release.`
-        : 'The project is ready for final public launch packaging.',
+        ? `${watchCount} release track${watchCount === 1 ? '' : 's'} remain on the operational watchlist.`
+        : 'The platform is ready for final production release verification.',
     tracks,
     criticalItems,
     launchRunbook: buildLaunchRunbook({ tracks, criticalItems }),
-    projectStatus: buildProjectStatus({ dataArchitecture, productionHardening, deployment, portfolio, operationsControlBoard })
+    projectStatus: buildProjectStatus({ dataArchitecture, productionHardening, deployment, operationsControlBoard })
   }
 }
 

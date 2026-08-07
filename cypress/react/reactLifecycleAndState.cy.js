@@ -7,12 +7,11 @@ describe('React lifecycle and state isolation coverage expansion', () => {
   })
 
   it('keeps data refresh behavior inside active workflow actions without leaving the root route', () => {
-    cy.intercept('GET', '/cruise/customers').as('refreshCustomers')
-    cy.intercept('GET', '/cruise/bookings').as('refreshBookings')
-
-    cy.getByTestId(rs.sqaResetDemoDataButton).click()
-    cy.getByTestId(rs.sqaResetConfirmationCancel).click()
+    cy.intercept({ method: 'GET', pathname: '/cruise/turnaround-operations' }).as('refreshTurnaroundOperations')
+    cy.getByTestId(rs.operationsIntelligenceRefreshButton).click()
+    cy.wait('@refreshTurnaroundOperations')
     cy.location('pathname').should('eq', '/')
+    cy.getByTestId(rs.operationsIntelligenceDetail).should('be.visible')
     cy.getByTestId(rs.queryStatusPanel).should('not.exist')
   })
 
@@ -88,11 +87,11 @@ describe('React lifecycle and state isolation coverage expansion', () => {
     cy.getByTestId(rs.roleItineraryDay).should('have.length.at.least', 1)
   })
 
-  it('keeps quality console available after admin data refreshes', () => {
-    cy.getByTestId(rs.workspaceQualityButton).click()
-    cy.getByTestId(rs.sqaConsole).should('be.visible')
-    cy.getByTestId(rs.sqaHealthButton).click()
-    cy.getByTestId(rs.sqaConsole).should('be.visible')
+  it('keeps operations intelligence available after admin data refreshes', () => {
+    cy.getByTestId(rs.workspaceIntelligenceButton).click()
+    cy.getByTestId(rs.operationsIntelligenceCenter).should('be.visible')
+    cy.getByTestId(rs.operationsIntelligenceRefreshButton).click()
+    cy.getByTestId(rs.operationsIntelligenceCenter).should('be.visible')
   })
 
   it('keeps retired rollback and implementation-history panels out of the product hero', () => {

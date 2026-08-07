@@ -28,7 +28,7 @@ export default function useDemoUsers({ enabled = true } = {}) {
       setError('')
     } catch (loadError) {
       if (loadError.name !== 'AbortError') {
-        setError(loadError.message || 'Unable to load demo users.')
+        setError(loadError.message || 'Unable to load assigned people.')
       }
     } finally {
       if (!controller.signal.aborted) {

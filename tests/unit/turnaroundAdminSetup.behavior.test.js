@@ -445,4 +445,23 @@ describe('turnaround admin setup service behavior', () => {
       statusCode: 400
     })
   })
+
+  it('keeps a removed turnaround person in the cruise-line roster by clearing only the active assignment', async () => {
+    const { service, state } = loadServiceWithFakeDb()
+
+    const unassigned = await service.deleteTurnaroundPerson('manager-1')
+
+    expect(unassigned).toMatchObject({
+      id: 'manager-1',
+      displayName: 'Alex Turner',
+      role: 'TURNAROUND_MANAGER',
+      cruiseLineId: 'cl-royal',
+      assignedShipId: null,
+      assignedSailingId: null,
+      assignedShipName: null
+    })
+    expect(state.demoUsers).toContainEqual(unassigned)
+    expect(state.demoUsers.some(user => user.id === 'manager-1')).toBe(true)
+  })
+
 })

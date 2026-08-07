@@ -41,7 +41,13 @@ export function OperationsWorkspaceCommandPanels({
             </button>
           ))}
         </nav>
-        <div className="operations-workspace-active-summary ce-surface-light" data-testid="react-operations-workspace-active-summary">
+        <div
+          className="operations-workspace-active-summary ce-surface-light"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          data-testid="react-operations-workspace-active-summary"
+        >
           <strong>{activeOperationsWorkspaceDetails.label}</strong>
           <span>{activeOperationsWorkspaceDetails.summary}</span>
         </div>

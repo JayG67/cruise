@@ -41,17 +41,17 @@ describe('React operational role foundation', () => {
     cy.getByTestId(rs.fleetDirectory).should('not.exist')
   })
 
-  it('shows a fleet operations portfolio and uses it to select a turnaround', () => {
+  it('shows a turnaround fleet board and uses it to select a sailing', () => {
     selectOperationalDemoUserByVisibleRole('Turnaround Manager')
 
-    cy.getByTestId(rs.operationsPortfolioBoard).should('be.visible')
-    cy.getByTestId(rs.operationsPortfolioSummary)
+    cy.getByTestId(rs.turnaroundFleetBoard).should('be.visible')
+    cy.getByTestId(rs.turnaroundFleetSummary)
       .should('contain.text', 'Average readiness')
       .and('contain.text', 'Needs attention')
       .and('contain.text', 'Open escalations')
-    cy.getByTestId(rs.operationsPortfolioList).within(() => {
-      cy.getByTestId(rs.operationsPortfolioCard).should('have.length', 2)
-      cy.contains(`${byTestId('operationsPortfolioCard')}`, 'San Juan repositioning turnaround readiness').click()
+    cy.getByTestId(rs.turnaroundFleetList).within(() => {
+      cy.getByTestId(rs.turnaroundFleetCard).should('have.length', 2)
+      cy.contains(`${byTestId('turnaroundFleetCard')}`, 'San Juan repositioning turnaround readiness').click()
     })
 
     cy.getByTestId(rs.operationalReadinessCard).should('contain.text', 'San Juan repositioning turnaround readiness')

@@ -28,10 +28,15 @@ function readCssBundle(relativePath, seen = new Set()) {
 
 describe('turnaround team workspace static contracts', () => {
   it('promotes the cruise-line to ship to sailing to team workflow as the primary staffing workspace', () => {
-    const component = read('frontend/react/src/components/ReactTurnaroundAdminSetup.jsx')
+    const component = [
+      read('frontend/react/src/components/ReactTurnaroundAdminSetup.jsx'),
+      read('frontend/react/src/components/useTurnaroundAdminSetupState.js')
+    ].join('\n')
     const styles = readCssBundle('frontend/react/src/styles/index.css')
+    const workspace = read('frontend/react/src/domain/turnaroundAdminWorkspace.js')
 
     expect(component).toContain('buildTurnaroundTeamWorkspace')
+    expect(workspace).toContain('export function buildTurnaroundTeamWorkspace')
     expect(component).toContain('data-testid="react-turnaround-team-workspace"')
     expect(component).toContain('1. Cruise line')
     expect(component).toContain('2. Ship')
@@ -56,7 +61,8 @@ describe('turnaround team workspace static contracts', () => {
     expect(component).toContain('Clear role')
     expect(component).toContain('turnaround-role-assignment-label')
     expect(component).toContain('turnaround-role-assignment-person')
-    expect(component).toContain('`${assignedPerson.displayName} — ${assignedPerson.assignedShipName || selectedShip.name}`')
+    expect(component).toContain('getBasePersonName(assignedPerson.displayName)')
+    expect(component).not.toContain('`${assignedPerson.displayName} — ${assignedPerson.assignedShipName || selectedShip.name}`')
     expect(styles).toContain('.turnaround-role-coverage-card .turnaround-role-assignment')
     expect(styles).toContain('gap: 0.35rem !important')
     expect(styles).toContain('.turnaround-role-coverage-grid')

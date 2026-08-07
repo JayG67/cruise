@@ -96,11 +96,11 @@ function buildGoLiveGates(inputs = {}) {
       detail: `${inputs.productionScore}% production readiness, ${inputs.releaseScore}% release signal, and ${inputs.commandScore}% command center score.`
     },
     {
-      id: 'reviewer-proof',
-      label: 'Reviewer proof ready',
-      owner: 'Portfolio Reviewer',
+      id: 'release-governance-ready',
+      label: 'Release evidence ready',
+      owner: 'Release Governance Lead',
       score: Math.round((inputs.dossierScore + inputs.launchScore + inputs.closeoutScore) / 3),
-      detail: `${inputs.dossierScore}% application dossier, ${inputs.launchScore}% launch plan, and ${inputs.closeoutScore}% closeout packet.`
+      detail: `${inputs.dossierScore}% operational release dossier, ${inputs.launchScore}% launch plan, and ${inputs.closeoutScore}% closeout packet.`
     }
   ]
 
@@ -127,14 +127,14 @@ function buildGoLiveActions(inputs = {}, gates = []) {
   })
 
   if (inputs.openHandoffs > 0) {
-    actions.push({ id: 'open-handoffs', owner: 'Shift Leads', priority: 'MEDIUM', action: `${inputs.openHandoffs} handoff${inputs.openHandoffs === 1 ? '' : 's'} still need completion proof before launch freeze.` })
+    actions.push({ id: 'open-handoffs', owner: 'Shift Leads', priority: 'MEDIUM', action: `${inputs.openHandoffs} handoff${inputs.openHandoffs === 1 ? '' : 's'} still need completion evidence before release authorization.` })
   }
   if (inputs.staffingGaps > 0) {
     actions.push({ id: 'staffing-gaps', owner: 'Staffing Coordinator', priority: 'MEDIUM', action: `${inputs.staffingGaps} staffing gap${inputs.staffingGaps === 1 ? '' : 's'} should be closed or documented as a workaround.` })
   }
 
   if (!actions.length) {
-    actions.push({ id: 'launch-freeze', owner: 'Project Lead', priority: 'LOW', action: 'Freeze the turnaround feature set, capture final screenshots, and deploy the portfolio build.' })
+    actions.push({ id: 'launch-freeze', owner: 'Project Lead', priority: 'LOW', action: 'Approve the release baseline, record final smoke-test evidence, and proceed with production deployment.' })
   }
 
   return actions.slice(0, 8)
@@ -146,7 +146,7 @@ function buildGoLiveEvidence(inputs = {}, gates = []) {
     { id: 'risk-evidence', label: 'Risk evidence', status: gates.find(gate => gate.id === 'risk-controlled')?.status || 'WATCH', detail: `${inputs.openEscalations} open escalations and ${inputs.activeDependencies} active dependencies visible.` },
     { id: 'handoff-evidence', label: 'Handoff evidence', status: gates.find(gate => gate.id === 'shift-handoff')?.status || 'WATCH', detail: `Shift briefing score ${inputs.shiftScore}% with closeout score ${inputs.closeoutScore}%.` },
     { id: 'production-evidence', label: 'Production evidence', status: gates.find(gate => gate.id === 'production-ready')?.status || 'WATCH', detail: `Release ${inputs.releaseScore}%, production ${inputs.productionScore}%, command ${inputs.commandScore}%.` },
-    { id: 'reviewer-evidence', label: 'Reviewer evidence', status: gates.find(gate => gate.id === 'reviewer-proof')?.status || 'WATCH', detail: `Dossier ${inputs.dossierScore}%, launch ${inputs.launchScore}%, closeout ${inputs.closeoutScore}%.` }
+    { id: 'release-governance-evidence', label: 'Release governance evidence', status: gates.find(gate => gate.id === 'release-governance-ready')?.status || 'WATCH', detail: `Dossier ${inputs.dossierScore}%, launch ${inputs.launchScore}%, closeout ${inputs.closeoutScore}%.` }
   ]
 }
 
@@ -171,7 +171,7 @@ function buildTurnaroundGoLiveCenter(input = {}) {
       noGoCount,
       actionCount: actions.filter(action => action.priority !== 'LOW').length,
       launchRecommendation: goLiveStatus === 'READY_TO_LAUNCH'
-        ? 'Deploy now after final smoke test and portfolio screenshot capture.'
+        ? 'Deploy after the final smoke test and release-evidence review.'
         : goLiveStatus === 'GO_WITH_WATCH'
           ? 'Deploy after resolving watch items or documenting them in the launch notes.'
           : 'Do not deploy until no-go gates are cleared.'
@@ -182,9 +182,9 @@ function buildTurnaroundGoLiveCenter(input = {}) {
     actions,
     evidence,
     remainingScope: [
-      { id: 'production-hardening', label: 'Production hardening', status: inputs.productionScore >= 90 ? 'DONE' : 'REMAINING', detail: 'Deployment settings, error states, and environment readiness.' },
-      { id: 'data-hardening', label: 'Data architecture hardening', status: inputs.lifecycleScore >= 90 ? 'READY_TO_START' : 'REMAINING', detail: 'Move from demo-heavy seed flow toward normalized, durable production data contracts.' },
-      { id: 'portfolio-launch', label: 'Portfolio launch packaging', status: inputs.dossierScore >= 90 ? 'DONE' : 'REMAINING', detail: 'Screenshots, README story, recruiter-facing walkthrough, and final live-site smoke evidence.' }
+      { id: 'service-assurance', label: 'Service assurance', status: inputs.productionScore >= 90 ? 'DONE' : 'REMAINING', detail: 'Deployment settings, error states, and environment readiness.' },
+      { id: 'data-architecture-assurance', label: 'Data architecture assurance', status: inputs.lifecycleScore >= 90 ? 'READY_TO_START' : 'REMAINING', detail: 'Confirm normalized, durable data contracts and controlled operational data flows.' },
+      { id: 'release-evidence', label: 'Release evidence package', status: inputs.dossierScore >= 90 ? 'DONE' : 'REMAINING', detail: 'Release notes, operating guidance, ownership records, and final live-service smoke evidence.' }
     ]
   }
 }

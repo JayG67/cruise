@@ -13,7 +13,6 @@
 .role-dashboard-section [class*="analytics"] [class*="card"],
 .role-dashboard-section [class*="playbook"] [class*="card"],
 .role-dashboard-section [class*="incident"] [class*="card"],
-.role-dashboard-section [class*="reviewer"] [class*="card"],
 .role-dashboard-section [class*="outreach"] [class*="card"],
 .react-role-dashboard [class*="turnaround"] [class*="card"],
 .react-role-dashboard [class*="turnaround"] [class*="metric"],
@@ -22,7 +21,6 @@
 .react-role-dashboard [class*="analytics"] [class*="card"],
 .react-role-dashboard [class*="playbook"] [class*="card"],
 .react-role-dashboard [class*="incident"] [class*="card"],
-.react-role-dashboard [class*="reviewer"] [class*="card"],
 .react-role-dashboard [class*="outreach"] [class*="card"] {
   color: #0f172a !important;
 }
@@ -34,7 +32,6 @@
 .role-dashboard-section [class*="analytics"] [class*="card"] *,
 .role-dashboard-section [class*="playbook"] [class*="card"] *,
 .role-dashboard-section [class*="incident"] [class*="card"] *,
-.role-dashboard-section [class*="reviewer"] [class*="card"] *,
 .role-dashboard-section [class*="outreach"] [class*="card"] *,
 .react-role-dashboard [class*="turnaround"] [class*="card"] *,
 .react-role-dashboard [class*="turnaround"] [class*="metric"] *,
@@ -43,7 +40,6 @@
 .react-role-dashboard [class*="analytics"] [class*="card"] *,
 .react-role-dashboard [class*="playbook"] [class*="card"] *,
 .react-role-dashboard [class*="incident"] [class*="card"] *,
-.react-role-dashboard [class*="reviewer"] [class*="card"] *,
 .react-role-dashboard [class*="outreach"] [class*="card"] * {
   color: #0f172a !important;
 }
@@ -67,7 +63,8 @@
    Build 464/465 left inherited white text on light cards and dark text on dark cards.
    This uses the actual rendered operation dashboard class names shown in the failing screen. */
 
-/* Page heading sits on the light app background, so it must be dark. */
+/* Page heading sits on the light app background,
+so it must be dark. */
 .react-role-dashboard > h2,
 .react-role-dashboard > p:not(.eyebrow) {
   color: #0f172a !important;
@@ -101,46 +98,47 @@
   color: #0f172a !important;
 }
 
-/* Fleet operations portfolio is a light panel. All text inside the light panel must be dark. */
-.react-role-dashboard .operations-portfolio-board,
-.react-role-dashboard .operations-portfolio-heading,
-.react-role-dashboard .operations-portfolio-heading *,
-.react-role-dashboard .operations-portfolio-summary,
-.react-role-dashboard .operations-portfolio-summary * {
+/* Turnaround fleet control is a light panel. All text inside the light panel must be dark. */
+.react-role-dashboard .turnaround-fleet-board,
+.react-role-dashboard .turnaround-fleet-heading,
+.react-role-dashboard .turnaround-fleet-heading *,
+.react-role-dashboard .turnaround-fleet-summary,
+.react-role-dashboard .turnaround-fleet-summary * {
   background-color: #ffffff !important;
   color: #0f172a !important;
   opacity: 1 !important;
   text-shadow: none !important;
 }
 
-.react-role-dashboard .operations-portfolio-board .eyebrow,
-.react-role-dashboard .operations-portfolio-heading .eyebrow {
+.react-role-dashboard .turnaround-fleet-board .eyebrow,
+.react-role-dashboard .turnaround-fleet-heading .eyebrow {
   color: #0369a1 !important;
 }
 
-.react-role-dashboard .operations-portfolio-card {
+.react-role-dashboard .turnaround-fleet-card {
   background: #334b5c !important;
   border-color: #6b879b !important;
   color: #ffffff !important;
 }
 
-.react-role-dashboard .operations-portfolio-card *,
-.react-role-dashboard .operations-portfolio-card strong,
-.react-role-dashboard .operations-portfolio-card span {
+.react-role-dashboard .turnaround-fleet-card *,
+.react-role-dashboard .turnaround-fleet-card strong,
+.react-role-dashboard .turnaround-fleet-card span {
   color: #ffffff !important;
   opacity: 1 !important;
   text-shadow: none !important;
 }
 
-.react-role-dashboard .operations-portfolio-card dl,
-.react-role-dashboard .operations-portfolio-card dl *,
-.react-role-dashboard .operations-portfolio-card [class*="metric"],
-.react-role-dashboard .operations-portfolio-card [class*="metric"] * {
+.react-role-dashboard .turnaround-fleet-card dl,
+.react-role-dashboard .turnaround-fleet-card dl *,
+.react-role-dashboard .turnaround-fleet-card [class*="metric"],
+.react-role-dashboard .turnaround-fleet-card [class*="metric"] * {
   background: #f8fafc !important;
   color: #0f172a !important;
 }
 
-/* Release board is a light panel. Keep the score badge dark, but make all light-card copy dark. */
+/* Release board is a light panel. Keep the score badge dark,
+but make all light-card copy dark. */
 .react-role-dashboard .operations-release-board,
 .react-role-dashboard .operations-release-board-header,
 .react-role-dashboard .operations-release-board-header *,

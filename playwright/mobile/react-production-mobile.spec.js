@@ -162,7 +162,7 @@ test.describe('React default mobile replacement checks', () => {
     await expect(page.getByTestId('react-active-route-operations')).toBeVisible()
     await expect(page.getByTestId('react-fleet-directory')).toBeVisible()
     await expect(page.getByTestId('react-create-cruise-line-workflow')).toBeVisible()
-    await expect(page.getByTestId('react-sqa-console')).toBeVisible()
+    await expect(page.getByTestId('react-operations-intelligence-center')).toBeVisible()
 
     await expectNoHorizontalOverflow(page)
   })
@@ -272,17 +272,19 @@ test.describe('React default mobile replacement checks', () => {
     await expectNoHorizontalOverflow(page)
   })
 
-  test('keeps React quality console action grid usable on mobile', async ({ page }) => {
+  test('keeps Operations Intelligence usable on mobile', async ({ page }) => {
     await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
-    const consolePanel = page.getByTestId('react-sqa-console')
-    await consolePanel.scrollIntoViewIfNeeded()
-    await expect(consolePanel).toBeVisible()
-    await expect(page.getByTestId('react-sqa-health-button')).toBeVisible()
-    await expect(page.getByTestId('react-sqa-data-button')).toBeVisible()
-    await expect(page.getByTestId('react-sqa-deployment-button')).toBeVisible()
-    await expect(page.getByTestId('react-sqa-output')).toBeVisible()
+    const intelligencePanel = page.getByTestId('react-operations-intelligence-center')
+    await intelligencePanel.scrollIntoViewIfNeeded()
+    await expect(intelligencePanel).toBeVisible()
+    await expect(page.getByTestId('react-operations-intelligence-select')).toBeVisible()
+    await expect(page.getByTestId('react-operations-intelligence-detail')).toBeVisible()
+    await expect(page.getByTestId('react-operations-intelligence-priority-list')).toBeVisible()
+    await expect(page.getByTestId('react-operations-intelligence-setup-button')).toBeVisible()
+    await expect(page.getByTestId('react-operations-intelligence-role-button')).toBeVisible()
+    await expect(page.getByTestId('react-operations-intelligence-refresh-button')).toBeVisible()
     await expectNoHorizontalOverflow(page)
   })
 
@@ -290,9 +292,9 @@ test.describe('React default mobile replacement checks', () => {
     await page.goto('/')
 
     await expect(page.getByTestId('react-retired-route-nav')).toHaveCount(0)
-    await page.getByTestId('react-workspace-quality-button').scrollIntoViewIfNeeded()
-    await page.getByTestId('react-workspace-quality-button').click()
-    await expect(page.getByTestId('react-sqa-console')).toBeVisible()
+    await page.getByTestId('react-workspace-intelligence-button').scrollIntoViewIfNeeded()
+    await page.getByTestId('react-workspace-intelligence-button').click()
+    await expect(page.getByTestId('react-operations-intelligence-center')).toBeVisible()
     await page.getByTestId('react-workspace-fleet-button').click()
     await expect(page.getByTestId('react-fleet-directory')).toBeVisible()
     await expectNoHorizontalOverflow(page)

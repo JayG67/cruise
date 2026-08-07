@@ -53,12 +53,18 @@ describe('turnaroundCompletion service', () => {
       'audit-timeline',
       'playbook-rehearsal',
       'incident-after-action',
-      'reviewer-outreach'
+      'governance-communications'
     ]))
     expect(status.continuationSummary.currentState).toContain('role-scoped operations')
     expect(status.nextSlices).toEqual(expect.arrayContaining([
-      expect.stringContaining('reviewer demo script')
+      expect.stringContaining('operational review route')
     ]))
+
+    const serializedStatus = JSON.stringify(status).toLowerCase()
+    expect(serializedStatus).not.toContain('demo')
+    expect(serializedStatus).not.toContain('reviewer')
+    expect(serializedStatus).not.toContain('flagship')
+    expect(serializedStatus).not.toContain('outreach')
   })
 
   it('flags high-priority remaining work when evidence scores are weak', () => {
@@ -86,16 +92,16 @@ describe('turnaroundCompletion service', () => {
     ]))
   })
 
-  it('keeps next slices focused on reviewer flow, architecture hardening, and portfolio scale', () => {
+  it('keeps next actions focused on operational review, architecture assurance, and fleet scale', () => {
     const nextSlices = buildTurnaroundNextSlices({
       maturityScore: 91,
       remainingWork: [{ priority: 'MEDIUM' }]
     })
 
     expect(nextSlices).toEqual(expect.arrayContaining([
-      expect.stringContaining('reviewer demo script'),
-      expect.stringContaining('data architecture hardening'),
-      expect.stringContaining('portfolio-level turnaround comparison')
+      expect.stringContaining('operational review route'),
+      expect.stringContaining('data architecture assurance'),
+      expect.stringContaining('cross-fleet turnaround comparison')
     ]))
   })
 })

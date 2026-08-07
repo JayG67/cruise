@@ -145,7 +145,7 @@ function buildCommandCenterKpis(inputs = {}) {
       label: 'Closeout readiness',
       value: `${inputs.closeoutScore || inputs.maturityScore || 0}%`,
       score: inputs.closeoutScore || inputs.maturityScore || 0,
-      detail: 'Closeout score summarizes workflow, release, reviewer, and after-action proof.'
+      detail: 'Closeout score summarizes workflow completion, release evidence, governance decisions, and after-action learning.'
     }
   ]
 }
@@ -347,7 +347,7 @@ function buildCommanderBrief(inputs = {}, kpis = [], decisions = [], criticalPat
     weakestSignal: weakestKpi ? `${weakestKpi.label}: ${weakestKpi.detail}` : 'No weak KPI signal is visible.',
     nextDecision: nextDecision ? `${nextDecision.owner}: ${nextDecision.decision}` : 'Maintain command cadence.',
     activePhase: activePhase ? `${activePhase.label}: ${activePhase.evidence}` : 'Critical path is ready.',
-    presentationLine: 'Use this board to show employers that turnaround management is no longer a collection of panels; it is an operational command workflow from assignment through closeout.'
+    presentationLine: 'Use this board to maintain a single operational command workflow from assignment through closeout, with accountable decisions, release evidence, and management visibility.'
   }
 }
 

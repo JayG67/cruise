@@ -19,12 +19,7 @@
 */
 
 .react-production-shell :is(
-  .employer-demo-command-center.ce-command-panel,
-  .production-hardening-center.ce-command-panel,
-  .data-architecture-readiness-center.ce-command-panel,
-  .deployment-readiness-center.ce-command-panel,
-  .public-launch-control-center.ce-command-panel,
-  .portfolio-polish-center.ce-command-panel,
+  .platform-workspace-navigator.ce-command-panel,
   .cruise-line-presentation-suite.ce-command-panel
 ) {
   display: grid;
@@ -33,30 +28,8 @@
 }
 
 .react-production-shell :is(
-  .employer-demo-proof-card.ce-command-card,
+  .platform-workspace-proof-card.ce-command-card,
   .self-guided-tour-card.ce-command-card,
-  .production-hardening-score-card.ce-command-card,
-  .production-hardening-gate-card.ce-command-card,
-  .production-hardening-priority-plan.ce-command-card,
-  .production-hardening-launch-sequence.ce-command-card,
-  .data-architecture-score-card.ce-command-card,
-  .data-architecture-gate-card.ce-command-card,
-  .data-architecture-priority-plan.ce-command-card,
-  .data-architecture-migration-board.ce-command-card,
-  .data-architecture-timeline.ce-command-card,
-  .data-architecture-risk-register.ce-command-card,
-  .data-architecture-roadmap.ce-command-card,
-  .deployment-readiness-score-card.ce-command-card,
-  .deployment-readiness-gate-card.ce-command-card,
-  .deployment-readiness-action-plan.ce-command-card,
-  .deployment-readiness-platform-board.ce-command-card,
-  .deployment-readiness-runbook.ce-command-card,
-  .public-launch-score-card.ce-command-card,
-  .public-launch-gate-card.ce-command-card,
-  .public-launch-panel.ce-command-card,
-  .portfolio-polish-score-card.ce-command-card,
-  .portfolio-polish-priority-panel.ce-command-card,
-  .portfolio-polish-list-panel.ce-command-card,
   .presentation-control-panel.ce-command-card,
   .presentation-hero-card.ce-command-card,
   .presentation-flow-card.ce-command-card,
@@ -68,22 +41,8 @@
 }
 
 .react-production-shell :is(
-  .production-hardening-scoreboard,
-  .production-hardening-gate-grid,
-  .data-architecture-scoreboard,
-  .data-architecture-gate-grid,
-  .data-architecture-migration-grid,
-  .data-architecture-timeline-risk,
-  .deployment-readiness-scoreboard,
-  .deployment-readiness-gate-grid,
-  .deployment-readiness-platform-grid,
-  .public-launch-scoreboard,
-  .public-launch-gate-grid,
-  .public-launch-layout,
-  .portfolio-polish-scoreboard,
-  .portfolio-polish-list-grid,
   .presentation-flow-grid,
-  .employer-demo-proof-grid,
+  .platform-workspace-proof-grid,
   .self-guided-tour-list
 ) {
   display: grid;
@@ -91,35 +50,16 @@
 }
 
 .react-production-shell :is(
-  .production-hardening-scoreboard,
-  .data-architecture-scoreboard,
-  .deployment-readiness-scoreboard,
-  .public-launch-scoreboard,
-  .portfolio-polish-scoreboard,
-  .employer-demo-proof-grid,
+  .platform-workspace-proof-grid,
   .presentation-flow-grid
 ) {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)) !important;
 }
 
 .react-production-shell :is(
-  .production-hardening-gate-grid,
-  .data-architecture-gate-grid,
-  .deployment-readiness-gate-grid,
-  .public-launch-gate-grid,
-  .portfolio-polish-list-grid
-) {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)) !important;
-}
-
-.react-production-shell :is(
-  .production-hardening-gate-header,
-  .data-architecture-gate-header,
-  .deployment-readiness-gate-header,
-  .public-launch-gate-header,
   .presentation-suite-heading,
   .cruise-line-operations-heading,
-  .employer-demo-heading,
+  .platform-workspace-heading,
   .self-guided-overview-heading
 ) {
   align-items: start;
@@ -129,10 +69,6 @@
 }
 
 .react-production-shell :is(
-  .production-hardening-recommendation.ce-editor-card,
-  .data-architecture-recommendation.ce-editor-card,
-  .deployment-readiness-recommendation.ce-editor-card,
-  .public-launch-recommendation.ce-editor-card,
   .passenger-booking-form.ce-editor-card,
   .passenger-booking-guests.ce-editor-card,
   .passenger-booking-guest-card.ce-editor-card,
@@ -208,13 +144,9 @@
 
 @media (max-width: 760px) {
   .react-production-shell :is(
-    .production-hardening-gate-header,
-    .data-architecture-gate-header,
-    .deployment-readiness-gate-header,
-    .public-launch-gate-header,
     .presentation-suite-heading,
     .cruise-line-operations-heading,
-    .employer-demo-heading,
+    .platform-workspace-heading,
     .self-guided-overview-heading
   ) {
     align-items: stretch;

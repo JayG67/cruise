@@ -214,7 +214,7 @@ describe('React role workflow UI verification', () => {
     cy.getByTestId(rs.demoUserSummary).should('contain.text', 'React Admin').and('contain.text', 'Admin')
     cy.getByTestId(rs.adminHierarchy).should('be.visible')
     cy.getByTestId(rs.fleetDirectory).should('be.visible')
-    cy.getByTestId(rs.sqaConsole).should('be.visible')
+    cy.getByTestId(rs.operationsIntelligenceCenter).should('be.visible')
     cy.getByTestId(rs.passengerDashboard).should('not.exist')
     cy.getByTestId(rs.operationalTurnaroundPanel).should('not.exist')
 

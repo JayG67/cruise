@@ -1,4 +1,4 @@
-require('dotenv/config')
+require('./config/loadEnvironment').loadEnvironment()
 
 const app = require('./app')
 const initializeDatabase = require('./services/initializeDatabase.service')

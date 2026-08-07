@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import {
   EMPTY_ACTIVITY_DRAFT,
@@ -14,7 +14,7 @@ import useFleetShipActions from './useFleetShipActions.js'
 
 const EMPTY_ACTIVITY_EDIT_DRAFT = { time: '', activity: '' }
 
-export default function useFleetDirectoryState({ cruiseLines = [], onRefresh }) {
+export default function useFleetDirectoryState({ cruiseLines = [], onRefresh, initialScope = null }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCruiseLine, setSelectedCruiseLine] = useState(null)
   const [selectedShips, setSelectedShips] = useState([])
@@ -111,6 +111,35 @@ export default function useFleetDirectoryState({ cruiseLines = [], onRefresh }) 
     setItineraryActionId, setActiveItineraryDayEditId, setItineraryDayEditDraft,
     setActiveActivityEditId, setActivityEditDraft, setPendingDelete
   })
+
+  useEffect(() => {
+    if (!initialScope?.requestId) return undefined
+    let active = true
+
+    async function applyInitialScope() {
+      const cruiseLine = cruiseLines.find(line => line.id === initialScope.lineId || line.name === initialScope.lineName)
+      if (!cruiseLine) return
+
+      const ships = await shipActions.handleViewShips(cruiseLine)
+      if (!active) return
+      const ship = ships?.find(item => item.id === initialScope.shipId || item.name === initialScope.shipName)
+      if (!ship) return
+
+      const nextSailings = await sailingActions.handleViewSailings(ship)
+      if (!active) return
+      const sailing = nextSailings?.find(item => item.id === initialScope.sailingId || item.departureDate === initialScope.departureDate)
+      if (!sailing) return
+
+      await itineraryActions.handleViewItinerary(sailing)
+      if (!active) return
+      window.setTimeout(() => {
+        document.getElementById('react-itinerary-heading')?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+      }, 0)
+    }
+
+    applyInitialScope().catch(() => {})
+    return () => { active = false }
+  }, [initialScope?.requestId, cruiseLines])
 
   async function confirmPendingDelete() {
     const action = pendingDelete

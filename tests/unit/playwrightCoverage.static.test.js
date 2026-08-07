@@ -107,7 +107,7 @@ describe('Playwright React coverage inventory', () => {
     const styles = readCssBundle(path.join(projectRoot, 'frontend/react/src/styles/components/index.css'))
 
     expect(mobileReactSpec).toContain('react-workspace-card-grid')
-    expect(mobileReactSpec).toContain('react-workspace-quality-button')
+    expect(mobileReactSpec).toContain('react-workspace-intelligence-button')
     expect(styles).toContain('min-height')
     expect(styles).toContain('.workflow-step-button')
   })

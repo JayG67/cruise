@@ -6,7 +6,11 @@
   Operational dashboard component architecture.
 
   Retires the remaining Phase 19 Build 464-484 operational role dashboard,
-  release board, lifecycle, reviewer packet, outreach, scenario, and lower-board
+release board,
+lifecycle,
+outreach,
+scenario,
+and lower-board
   compatibility CSS from design-system.css into a focused component layer.
 */
 
@@ -15,13 +19,17 @@
 
   Physical legacy-retirement slice: the historical Build 464-489 operational
   role-dashboard styling stack now lives in the component layer. This keeps
-  dark command-center panels, light metric/editor controls, release-board cards,
-  lifecycle/detail panels, and command workspaces on one shared post-app.css
+  dark command-center panels,
+light metric/editor controls,
+release-board cards,
+lifecycle/detail panels,
+and command workspaces on one shared post-app.css
   source of truth while shrinking both legacy compatibility stylesheets.
 */
 /* Build 464 - dark operational role dashboard motif.
    Convert role-aware turnaround operational panels from light cards to the same
-   dark teal/navy motif used by the operational selector, while preserving
+   dark teal/navy motif used by the operational selector,
+while preserving
    readable form controls and status accent cards. */
 .role-dashboard-section,
 .react-role-dashboard,
@@ -38,21 +46,18 @@
 .role-dashboard-section .turnaround-playbook-panel,
 .role-dashboard-section .turnaround-variance-panel,
 .role-dashboard-section .turnaround-incident-panel,
-.role-dashboard-section .turnaround-reviewer-packet,
 .role-dashboard-section .turnaround-outreach-board,
 .role-dashboard-section [class*="turnaround"][class*="panel"],
 .role-dashboard-section [class*="release"][class*="packet"],
 .role-dashboard-section [class*="analytics"],
 .role-dashboard-section [class*="playbook"],
 .role-dashboard-section [class*="incident"],
-.role-dashboard-section [class*="reviewer"],
 .role-dashboard-section [class*="outreach"],
 .react-role-dashboard [class*="turnaround"][class*="panel"],
 .react-role-dashboard [class*="release"][class*="packet"],
 .react-role-dashboard [class*="analytics"],
 .react-role-dashboard [class*="playbook"],
 .react-role-dashboard [class*="incident"],
-.react-role-dashboard [class*="reviewer"],
 .react-role-dashboard [class*="outreach"] {
   background: linear-gradient(135deg, #082334 0%, #0f5360 52%, #15713f 100%) !important;
   border: 1px solid rgba(125, 211, 252, 0.28) !important;
@@ -65,14 +70,12 @@
 .role-dashboard-section [class*="analytics"] *,
 .role-dashboard-section [class*="playbook"] *,
 .role-dashboard-section [class*="incident"] *,
-.role-dashboard-section [class*="reviewer"] *,
 .role-dashboard-section [class*="outreach"] *,
 .react-role-dashboard [class*="turnaround"] *,
 .react-role-dashboard [class*="release"] *,
 .react-role-dashboard [class*="analytics"] *,
 .react-role-dashboard [class*="playbook"] *,
 .react-role-dashboard [class*="incident"] *,
-.react-role-dashboard [class*="reviewer"] *,
 .react-role-dashboard [class*="outreach"] * {
   color: #ffffff !important;
   opacity: 1 !important;
@@ -84,19 +87,18 @@
 .role-dashboard-section [class*="analytics"] .eyebrow,
 .role-dashboard-section [class*="playbook"] .eyebrow,
 .role-dashboard-section [class*="incident"] .eyebrow,
-.role-dashboard-section [class*="reviewer"] .eyebrow,
 .role-dashboard-section [class*="outreach"] .eyebrow,
 .react-role-dashboard [class*="turnaround"] .eyebrow,
 .react-role-dashboard [class*="release"] .eyebrow,
 .react-role-dashboard [class*="analytics"] .eyebrow,
 .react-role-dashboard [class*="playbook"] .eyebrow,
 .react-role-dashboard [class*="incident"] .eyebrow,
-.react-role-dashboard [class*="reviewer"] .eyebrow,
 .react-role-dashboard [class*="outreach"] .eyebrow {
   color: #9ee7ff !important;
 }
 
-/* Inner information cards stay dark, not white. */
+/* Inner information cards stay dark,
+not white. */
 .role-dashboard-section [class*="turnaround"] [class*="card"],
 .role-dashboard-section [class*="turnaround"] [class*="item"],
 .role-dashboard-section [class*="turnaround"] [class*="metric"],
@@ -113,8 +115,6 @@
 .role-dashboard-section [class*="playbook"] [class*="item"],
 .role-dashboard-section [class*="incident"] [class*="card"],
 .role-dashboard-section [class*="incident"] [class*="item"],
-.role-dashboard-section [class*="reviewer"] [class*="card"],
-.role-dashboard-section [class*="reviewer"] [class*="item"],
 .role-dashboard-section [class*="outreach"] [class*="card"],
 .role-dashboard-section [class*="outreach"] [class*="item"],
 .react-role-dashboard [class*="turnaround"] [class*="card"],
@@ -125,7 +125,6 @@
 .react-role-dashboard [class*="analytics"] [class*="card"],
 .react-role-dashboard [class*="playbook"] [class*="card"],
 .react-role-dashboard [class*="incident"] [class*="card"],
-.react-role-dashboard [class*="reviewer"] [class*="card"],
 .react-role-dashboard [class*="outreach"] [class*="card"] {
   background: rgba(6, 30, 45, 0.84) !important;
   border: 1px solid rgba(125, 211, 252, 0.32) !important;
@@ -194,7 +193,7 @@
   overflow: hidden !important;
 }
 
-.role-dashboard-section .turnaround-outreach-board * ,
+.role-dashboard-section .turnaround-outreach-board *,
 .react-role-dashboard .turnaround-outreach-board * {
   overflow-wrap: anywhere;
 }

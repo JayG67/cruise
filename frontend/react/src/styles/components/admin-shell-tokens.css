@@ -2,7 +2,7 @@
    Replaces the overly broad dark-panel overrides from build 436/437 with a
    single readable light-card system for every admin-facing workspace panel. */
 :root {
-  --admin-rail-width: 1120px;
+  --admin-rail-width: 1440px;
   --admin-shell-bg: #f3f8fb;
   --admin-card-bg: #ffffff;
   --admin-card-soft-bg: #f8fbfe;

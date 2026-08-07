@@ -11,7 +11,7 @@
 /* Shared grids retain layout, but use one spacing scale. */
 .react-production-shell :is(
   .react-workspace-card-grid,
-  .employer-demo-proof-grid,
+  .platform-workspace-proof-grid,
   .self-guided-proof-grid,
   .self-guided-tour-list,
   .fleet-card-grid,
@@ -28,7 +28,6 @@
   .operations-lifecycle-phase-grid,
   .operational-dashboard-grid,
   .operational-readiness-list,
-  .portfolio-polish-showcase-grid,
   .presentation-action-grid,
   .turnaround-admin-grid,
   .turnaround-role-coverage-grid

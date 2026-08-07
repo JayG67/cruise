@@ -96,9 +96,9 @@ function buildCloseoutInputs({
     afterActionFindings: asArray(afterActionReview?.findings),
     followUpActions: asArray(afterActionReview?.followUpActions),
     launchStatus: normalizeStatus(launchPlan?.launchStatus, 'REVIEW'),
-    managementStatus: normalizeStatus(managementStatus?.maturityStatus, 'HARDENING IN PROGRESS'),
-    productionStatus: normalizeStatus(productionReadiness?.productionStatus, 'NEEDS HARDENING'),
-    dossierStatus: normalizeStatus(applicationDossier?.dossierStatus, 'NEEDS PROOF HARDENING')
+    managementStatus: normalizeStatus(managementStatus?.maturityStatus, 'IMPROVEMENT IN PROGRESS'),
+    productionStatus: normalizeStatus(productionReadiness?.productionStatus, 'ACTION REQUIRED'),
+    dossierStatus: normalizeStatus(applicationDossier?.dossierStatus, 'EVIDENCE REQUIRED')
   }
 }
 
@@ -108,8 +108,8 @@ function buildCloseoutGates(inputs = {}) {
     ['release-ready', 'Release ready', inputs.releaseScore, `${inputs.releaseScore}% release readiness for ${inputs.shipName}.`],
     ['workflow-closed', 'Workflow closed', Math.round((inputs.taskCompletion + inputs.signoffCompletion) / 2), `${inputs.completeTasks}/${inputs.totalTasks} tasks complete and ${inputs.approvedSignoffs}/${inputs.totalSignoffs} signoffs approved.`],
     ['operational-risk-clear', 'Operational risk clear', clampScore(100 - ((inputs.openEscalations * 15) + (inputs.openDependencies * 10) + (inputs.incompleteHandoffs * 8) + (inputs.staffingGaps * 8))), `${inputs.openEscalations} open escalations, ${inputs.openDependencies} dependencies, ${inputs.incompleteHandoffs} handoffs, and ${inputs.staffingGaps} staffing gaps remain.`],
-    ['production-demo-ready', 'Production demo ready', inputs.productionScore, `${inputs.productionStatus} production readiness status.`],
-    ['application-proof-ready', 'Application proof ready', Math.round((inputs.dossierScore + inputs.reviewerScore + inputs.presentationScore) / 3), `${inputs.dossierStatus} dossier status with reviewer and presentation evidence.`],
+    ['production-readiness', 'Production readiness', inputs.productionScore, `${inputs.productionStatus} production readiness status.`],
+    ['governance-evidence-ready', 'Governance evidence ready', Math.round((inputs.dossierScore + inputs.reviewerScore + inputs.presentationScore) / 3), `${inputs.dossierStatus} evidence status with governance and operational decision records.`],
     ['post-operation-loop', 'Post-operation loop', inputs.afterActionScore, `${inputs.afterActionScore}% after-action score with ${inputs.followUpActions.length} follow-up action${inputs.followUpActions.length === 1 ? '' : 's'}.`]
   ]
 
@@ -157,7 +157,7 @@ function buildCloseoutBlockers(inputs = {}, gates = []) {
   })
 
   if (!uniqueBlockers.length) {
-    uniqueBlockers.push({ id: 'closeout-ready', severity: 'INFO', owner: 'Turnaround Manager', detail: 'No closeout blockers are visible. Confirm final demo script and archive evidence.' })
+    uniqueBlockers.push({ id: 'closeout-ready', severity: 'INFO', owner: 'Turnaround Manager', detail: 'No closeout blockers are visible. Confirm final operating decision and archive evidence.' })
   }
 
   return uniqueBlockers.slice(0, 8)
@@ -172,9 +172,9 @@ function buildCloseoutChecklist(inputs = {}, gates = [], blockers = []) {
     { id: 'confirm-scope', label: 'Confirm operation scope', owner: 'Admin', status: inputs.operationId ? 'READY' : 'BLOCKED', detail: `${inputs.cruiseLineName} / ${inputs.shipName} / ${inputs.turnaroundDate}.` },
     { id: 'close-workflow', label: 'Close workflow objects', owner: 'Turnaround Manager', status: inputs.blockedTasks || inputs.openDependencies || inputs.incompleteHandoffs ? 'WATCH' : 'READY', detail: `${inputs.completeTasks}/${inputs.totalTasks} tasks complete; dependencies and handoffs are part of the closeout evidence.` },
     { id: 'approve-readiness', label: 'Approve department readiness', owner: 'Department Leads', status: inputs.signoffCompletion >= 100 ? 'READY' : 'WATCH', detail: `${inputs.approvedSignoffs}/${inputs.totalSignoffs} signoffs approved.` },
-    { id: 'resolve-risk', label: 'Resolve or explain risk', owner: 'Incident Commander', status: firstBlocker ? 'WATCH' : 'READY', detail: firstBlocker?.detail || 'Escalations and blockers are clear enough for reviewer closeout.' },
+    { id: 'resolve-risk', label: 'Resolve or explain risk', owner: 'Incident Commander', status: firstBlocker ? 'WATCH' : 'READY', detail: firstBlocker?.detail || 'Escalations and blockers are clear enough for operational closeout.' },
     { id: 'capture-debrief', label: 'Capture after-action learning', owner: 'Operations Lead', status: inputs.afterActionScore >= 78 ? 'READY' : 'WATCH', detail: firstAction || 'After-action review has no urgent follow-up action.' },
-    { id: 'package-proof', label: 'Package reviewer proof', owner: 'Reviewer Lead', status: inputs.dossierScore >= 78 && inputs.reviewerScore >= 78 ? 'READY' : 'WATCH', detail: `${inputs.dossierScore}% dossier, ${inputs.reviewerScore}% reviewer packet, ${inputs.presentationScore}% presentation guide.` },
+    { id: 'package-evidence', label: 'Package governance evidence', owner: 'Governance Lead', status: inputs.dossierScore >= 78 && inputs.reviewerScore >= 78 ? 'READY' : 'WATCH', detail: `${inputs.dossierScore}% release dossier, ${inputs.reviewerScore}% governance evidence, ${inputs.presentationScore}% operational briefing readiness.` },
     { id: 'archive-audit', label: 'Archive audit and timeline', owner: 'SQA Lead', status: inputs.auditEventCount || inputs.timelineEvents ? 'READY' : 'WATCH', detail: `${inputs.auditEventCount} audit events and ${inputs.timelineEvents} timeline events available.` },
     { id: 'call-out-weakest-gate', label: 'Call out weakest gate', owner: weakestGate?.label || 'Turnaround Manager', status: weakestGate?.status === 'BLOCKED' ? 'WATCH' : 'READY', detail: weakestGate ? `${weakestGate.label} is ${weakestGate.readinessScore}%.` : 'No weak gate detected.' }
   ]
@@ -186,7 +186,7 @@ function buildCloseoutEvidenceArchive(inputs = {}, gates = []) {
     { id: 'audit-evidence', label: 'Audit and timeline', status: inputs.auditEventCount || inputs.timelineEvents ? 'READY' : 'WATCH', detail: `${inputs.auditEventCount} audit events and ${inputs.timelineEvents} timeline events document the turnaround.` },
     { id: 'management-evidence', label: 'Management maturity', status: inputs.managementScore >= 78 ? 'READY' : 'WATCH', detail: `${inputs.managementScore}% management maturity and ${inputs.managementStatus} status.` },
     { id: 'production-evidence', label: 'Production readiness', status: inputs.productionScore >= 78 ? 'READY' : 'WATCH', detail: `${inputs.productionScore}% production readiness, ${inputs.launchScore}% launch plan, ${inputs.scenarioScore}% scenario plan.` },
-    { id: 'reviewer-evidence', label: 'Reviewer proof package', status: inputs.dossierScore >= 78 ? 'READY' : 'WATCH', detail: `${inputs.dossierScore}% dossier, ${inputs.reviewerScore}% reviewer packet, ${inputs.presentationScore}% presentation guide.` },
+    { id: 'governance-evidence', label: 'Governance evidence package', status: inputs.dossierScore >= 78 ? 'READY' : 'WATCH', detail: `${inputs.dossierScore}% release dossier, ${inputs.reviewerScore}% governance evidence, ${inputs.presentationScore}% operational briefing readiness.` },
     { id: 'gate-evidence', label: 'Closeout gates', status: gates.every(gate => gate.status !== 'BLOCKED') ? 'READY' : 'WATCH', detail: `${gates.filter(gate => gate.status === 'READY_TO_CLOSE').length}/${gates.length} closeout gates are ready to close.` }
   ]
 }
@@ -195,12 +195,12 @@ function buildCloseoutNarrative(inputs = {}, closeoutScore = 0, closeoutStatus =
   const statusLabel = normalizeStatus(closeoutStatus, 'review')
   return {
     headline: `${inputs.shipName} turnaround closeout is ${closeoutScore}% complete.`,
-    summary: `${inputs.operationTitle} now has a closeout packet that joins live workflow state, release readiness, debrief learning, production proof, and reviewer evidence into one final command decision.`,
+    summary: `${inputs.operationTitle} now has a closeout packet that joins live workflow state, release readiness, debrief learning, production assurance, and governance evidence into one final operating decision.`,
     recommendation: closeoutScore >= 90
-      ? 'Freeze the turnaround-management feature set and move into final polish, screenshots, and application collateral.'
+      ? 'Authorize closeout, preserve the verified operating baseline, and transition the operation to routine monitoring.'
       : closeoutScore >= 78
-        ? 'Resolve watch items, then promote this operation as the flagship turnaround-management demo.'
-        : 'Do not call the module done yet; close the blocked workflow, signoff, and proof gates first.',
+        ? 'Resolve watch items, document risk acceptance, and complete the operational closeout decision.'
+        : 'Do not authorize closeout yet; clear blocked workflow, signoff, and evidence gates first.',
     statusLine: `${statusLabel} with ${inputs.blockedTasks} blocked task signal${inputs.blockedTasks === 1 ? '' : 's'}, ${inputs.openEscalations} open escalation${inputs.openEscalations === 1 ? '' : 's'}, and ${inputs.followUpActions.length} debrief follow-up action${inputs.followUpActions.length === 1 ? '' : 's'}.`
   }
 }

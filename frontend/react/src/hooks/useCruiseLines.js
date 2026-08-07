@@ -22,10 +22,12 @@ export default function useCruiseLines({ enabled = true } = {}) {
 
       setCruiseLines(data)
       setError('')
+      return data
     } catch (loadError) {
       if (loadError.name !== 'AbortError') {
         setError(loadError.message || 'Unable to load cruise lines.')
       }
+      return null
     } finally {
       if (!controller.signal.aborted) {
         setIsLoading(false)

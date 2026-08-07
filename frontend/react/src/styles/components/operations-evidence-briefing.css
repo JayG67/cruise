@@ -1,0 +1,109 @@
+/* Operational outreach board evidence panels. */
+
+.operations-operational-briefing-board {
+  margin: 1.25rem 0;
+  padding: 1rem;
+  border: 1px solid #bae6fd;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #f0f9ff, #ffffff);
+}
+
+.operations-operational-briefing-board-header,
+.operations-operational-briefing-board-details {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+}
+
+.operations-operational-briefing-board-score {
+  min-width: 8rem;
+  padding: 0.85rem;
+  border-radius: 1rem;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid #7dd3fc;
+}
+
+.operations-operational-briefing-board-score span {
+  display: block;
+  color: #075985;
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.operations-operational-briefing-board-score small,
+.operations-operational-briefing-board-card span,
+.operations-operational-briefing-board-details span {
+  color: #0369a1;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.operations-operational-briefing-board-narrative,
+.operations-operational-briefing-board-details > div,
+.operations-operational-briefing-board-actions {
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border-radius: 0.85rem;
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+}
+
+.operations-operational-briefing-board-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.operations-operational-briefing-board-card {
+  padding: 0.85rem;
+  border-radius: 0.85rem;
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+}
+
+.operations-operational-briefing-board-card.fix {
+  border-color: #fecaca;
+  background: #fff7ed;
+}
+
+.operations-operational-briefing-board-card.watch,
+.operations-operational-briefing-board-card.review {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.operations-operational-briefing-board-card strong,
+.operations-operational-briefing-board-details strong,
+.operations-operational-briefing-board-actions strong {
+  display: block;
+  color: #0f172a;
+}
+
+.operations-operational-briefing-board-details ul,
+.operations-operational-briefing-board-actions ol {
+  margin: 0.75rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.operations-operational-briefing-board-details li,
+.operations-operational-briefing-board-actions li {
+  margin: 0.45rem 0;
+}
+
+@media (max-width: 760px) {
+  .operations-operational-briefing-board-header,
+  .operations-operational-briefing-board-details {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-operational-briefing-board-score {
+    width: 100%;
+  }
+}
+

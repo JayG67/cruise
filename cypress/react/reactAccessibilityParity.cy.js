@@ -12,12 +12,12 @@ describe('React accessibility and keyboard coverage expansion', () => {
     cy.getByTestId(rs.roleSelector).should('be.visible')
     cy.getByTestId(rs.fleetDirectory).should('be.visible')
     cy.getByTestId(rs.createCruiseLineWorkflow).should('be.visible')
-    cy.getByTestId(rs.sqaConsole).should('be.visible')
+    cy.getByTestId(rs.operationsIntelligenceCenter).should('be.visible')
   })
 
   it('keeps workspace buttons keyboard focusable and discoverable', () => {
-    cy.getByTestId(rs.workspaceQualityButton).focus().should('have.focus').click()
-    cy.getByTestId(rs.sqaConsole).should('be.visible')
+    cy.getByTestId(rs.workspaceIntelligenceButton).focus().should('have.focus').click()
+    cy.getByTestId(rs.operationsIntelligenceCenter).should('be.visible')
     cy.getByTestId(rs.workspaceFleetButton).focus().should('have.focus').click()
     cy.getByTestId(rs.fleetDirectory).should('be.visible')
   })
@@ -59,9 +59,9 @@ describe('React accessibility and keyboard coverage expansion', () => {
     cy.getByTestId(rs.fleetSearch).focus().should('have.focus')
   })
 
-  it('keeps quality output announced as a live region', () => {
-    cy.getByTestId(rs.sqaOutput).should('have.attr', 'aria-live')
-    cy.getByTestId(rs.sqaStatus).should('contain.text', 'Ready for validation')
+  it('keeps selected operational intelligence announced as a live region', () => {
+    cy.getByTestId(rs.operationsIntelligenceDetail).should('have.attr', 'aria-live', 'polite')
+    cy.getByTestId(rs.operationsIntelligenceRisk).should('be.visible')
   })
 
   it('keeps native confirmation panels using alertdialog semantics', () => {

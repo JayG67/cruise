@@ -38,6 +38,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify clean release revision
+        run: npm run release:integrity
+
+      - name: Verify source quality baseline
+        run: npm run quality:source
+
       - name: Verify release source contract
         run: npm run release:source:audit
 
@@ -299,7 +305,7 @@ jobs:
         run: npm run db:verify:test
 
       - name: Run React production Cypress tests
-        run: npm run uiTests:ci
+        run: npm run uiTests:react:ci
 
   playwright-mobile-tests:
     name: Playwright Mobile Tests

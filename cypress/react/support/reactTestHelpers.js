@@ -519,7 +519,7 @@ function buildReactTurnaroundGoLiveCenter(operation = {}) {
     { id: 'shift-handoff', label: 'Shift handoff ready', owner: 'Operations Lead', score: shiftBriefing.summary?.briefingScore || 72, status: 'WATCH', detail: 'Next-shift handoff evidence is available.' },
     { id: 'continuity-ready', label: 'Continuity ready', owner: 'Continuity Lead', score: continuityCenter.continuityScore || 72, status: 'WATCH', detail: 'Exception recovery evidence is available.' },
     { id: 'production-ready', label: 'Production surface ready', owner: 'Engineering Lead', score: productionScore, status: productionScore >= 90 ? 'GO' : 'WATCH', detail: 'Production and release evidence is available.' },
-    { id: 'reviewer-proof', label: 'Reviewer proof ready', owner: 'Portfolio Reviewer', score: closeoutPacket.closeoutScore || 72, status: 'WATCH', detail: 'Reviewer proof package is available.' }
+    { id: 'release-governance-ready', label: 'Release governance ready', owner: 'Release Governance Lead', score: closeoutPacket.closeoutScore || 72, status: 'WATCH', detail: 'Release governance evidence is available.' }
   ]
   const goLiveScore = Math.round(gates.reduce((total, gate) => total + gate.score, 0) / gates.length)
 
@@ -539,58 +539,10 @@ function buildReactTurnaroundGoLiveCenter(operation = {}) {
     actions: gates.filter(gate => gate.status !== 'GO').map(gate => ({ id: `gate-${gate.id}`, owner: gate.owner, priority: gate.status === 'NO_GO' ? 'HIGH' : 'MEDIUM', action: `${gate.label}: ${gate.detail}` })).slice(0, 8),
     evidence: gates.slice(0, 5).map(gate => ({ id: `evidence-${gate.id}`, label: gate.label, status: gate.status, detail: gate.detail })),
     remainingScope: [
-      { id: 'production-hardening', label: 'Production hardening', status: 'REMAINING', detail: 'Deployment settings, error states, and environment readiness.' },
-      { id: 'data-hardening', label: 'Data architecture hardening', status: 'REMAINING', detail: 'Normalize production data contracts.' },
-      { id: 'portfolio-launch', label: 'Portfolio launch packaging', status: 'REMAINING', detail: 'Screenshots, README story, and final live-site smoke evidence.' }
+      { id: 'service-assurance', label: 'Service assurance', status: 'REMAINING', detail: 'Deployment settings, error states, and environment readiness.' },
+      { id: 'data-architecture-assurance', label: 'Data architecture assurance', status: 'REMAINING', detail: 'Confirm normalized production data contracts.' },
+      { id: 'release-evidence', label: 'Release evidence package', status: 'REMAINING', detail: 'Release notes, operating guidance, ownership records, and final live-service smoke evidence.' }
     ]
-  }
-}
-
-function buildReactTurnaroundPresentationGuide(operation = {}) {
-  const lifecycleState = buildReactTurnaroundLifecycleState(operation)
-  const releaseScore = operation.releasePacket?.readinessScore || lifecycleState.completionPercent
-  const reviewerScore = operation.reviewerPacket?.readiness?.readinessScore || Math.max(55, releaseScore - 5)
-  const finalBlockers = lifecycleState.finalBlockers || []
-  const status = lifecycleState.completionPercent >= 85 && finalBlockers.length === 0
-    ? 'DEMO_READY'
-    : lifecycleState.completionPercent >= 55
-      ? 'PRESENTATION_HARDENING'
-      : 'NEEDS_FOCUS'
-  const firstBlocker = finalBlockers[0]
-
-  return {
-    status,
-    averageScore: Math.round((lifecycleState.completionPercent + releaseScore + reviewerScore) / 3),
-    headline: status === 'DEMO_READY'
-      ? 'Turnaround management is ready for the five-minute employer demo.'
-      : 'Turnaround management is close; use this guide to keep the demo tight.',
-    positioning: 'Show admin setup, scoped operational roles, lifecycle progress, and reviewer-ready proof.',
-    scores: {
-      lifecycleScore: lifecycleState.completionPercent,
-      releaseScore,
-      reviewerScore,
-      launchScore: releaseScore,
-      productionScore: reviewerScore,
-      dossierScore: reviewerScore
-    },
-    storyline: [
-      { id: 'admin-setup', label: 'Admin sets up operations', duration: '0:00-1:00', status: 'READY', detail: 'Open the admin setup board and show scoped people.' },
-      { id: 'role-work', label: 'Roles execute the turnaround', duration: '1:00-2:30', status: finalBlockers.length ? 'WATCH' : 'READY', detail: firstBlocker ? `Drive ${firstBlocker.type}: ${firstBlocker.label}.` : 'Show role work moving to completion.' },
-      { id: 'manager-command', label: 'Manager sees progress', duration: '2:30-3:30', status: 'WATCH', detail: `${lifecycleState.completionPercent}% lifecycle completion tells the command story.` },
-      { id: 'readiness-proof', label: 'Readiness becomes provable', duration: '3:30-4:30', status: 'WATCH', detail: 'Reviewer evidence turns workflow state into proof.' },
-      { id: 'portfolio-close', label: 'Close with employer value', duration: '4:30-5:00', status: 'READY', detail: 'Cypress owns the soup-to-nuts workflow and Playwright stays responsive-only.' }
-    ],
-    focus: {
-      priority: lifecycleState.nextBestAction,
-      talkingPoints: lifecycleState.storyBeats || [],
-      showFirst: ['Role selector', 'Lifecycle phase board', 'Reviewer packet']
-    },
-    risks: finalBlockers.length
-      ? finalBlockers.slice(0, 3).map(blocker => ({ id: blocker.id, label: blocker.type, mitigation: blocker.detail }))
-      : [{ id: 'presentation-ready', label: 'No critical demo risks surfaced', mitigation: 'Use the five-minute run of show.' }],
-    freezeRecommendation: status === 'DEMO_READY'
-      ? 'Freeze turnaround feature expansion and begin cross-app UX cleanup.'
-      : 'Finish the listed risks, rerun the Cypress lifecycle workflow, then freeze turnaround expansion.'
   }
 }
 
@@ -598,7 +550,6 @@ function hydrateReactTurnaroundOperation(operation = {}) {
   return {
     ...operation,
     lifecycleState: buildReactTurnaroundLifecycleState(operation),
-    presentationGuide: buildReactTurnaroundPresentationGuide(operation),
     commandCenter: operation.commandCenter || buildReactTurnaroundCommandCenter(operation),
     continuityCenter: operation.continuityCenter || buildReactTurnaroundContinuityCenter(operation),
     shiftBriefing: operation.shiftBriefing || buildReactTurnaroundShiftBriefing(operation),
@@ -832,7 +783,7 @@ function interceptReactCoreApis(overrides = {}) {
   const baseTurnaroundOperations = hydrateReactTurnaroundOperations(overrides.turnaroundOperations || reactTurnaroundOperations)
   cy.intercept({ method: 'GET', pathname: '/cruise/turnaround-operations' }, baseTurnaroundOperations).as('reactTurnaroundOperations')
 
-  const turnaroundSetup = {
+  let turnaroundSetup = {
     turnaroundPeople: (overrides.demoUsers || reactDemoUsers).filter(user => String(user.role || '').toLowerCase().includes('lead') || String(user.role || '').toLowerCase().includes('manager')),
     cruiseLines: overrides.cruiseLines || reactCruiseLines,
     ships: overrides.ships || reactShips,
@@ -850,8 +801,44 @@ function interceptReactCoreApis(overrides = {}) {
       cruiseLineName: (overrides.cruiseLines || reactCruiseLines).find(line => line.id === req.body?.cruiseLineId)?.name || 'Cruise line',
       assignedShipName: (overrides.ships || reactShips).find(ship => ship.id === req.body?.assignedShipId)?.name || null
     }
-    req.reply({ statusCode: 201, body: { message: 'Turnaround person created and assigned successfully', person, setup: { ...turnaroundSetup, turnaroundPeople: [...turnaroundSetup.turnaroundPeople, person] } } })
+    turnaroundSetup = { ...turnaroundSetup, turnaroundPeople: [...turnaroundSetup.turnaroundPeople, person] }
+    req.reply({ statusCode: 201, body: { message: 'Turnaround person created and assigned successfully', person, setup: turnaroundSetup } })
   }).as('reactCreateTurnaroundPerson')
+
+  cy.intercept({ method: 'PATCH', pathname: '/cruise/turnaround-admin/people/*' }, req => {
+    const personId = getPathSegmentAfter(getRequestPath(req), '/turnaround-admin/people/')
+    const existing = turnaroundSetup.turnaroundPeople.find(person => person.id === personId)
+    const updated = {
+      ...existing,
+      ...req.body,
+      role: String(req.body?.role || existing?.role || '').toUpperCase().replace(/-/g, '_'),
+      assignedSailingId: req.body?.assignedSailingId || req.body?.sailingId || null,
+      assignedShipName: (overrides.ships || reactShips).find(ship => ship.id === req.body?.assignedShipId)?.name || null
+    }
+    turnaroundSetup = {
+      ...turnaroundSetup,
+      turnaroundPeople: turnaroundSetup.turnaroundPeople.map(person => person.id === personId ? updated : person)
+    }
+    req.reply({ statusCode: 200, body: { message: 'Turnaround person assignment updated successfully', person: updated, setup: turnaroundSetup } })
+  }).as('reactUpdateTurnaroundPerson')
+
+  cy.intercept({ method: 'DELETE', pathname: '/cruise/turnaround-admin/people/*' }, req => {
+    const personId = getPathSegmentAfter(getRequestPath(req), '/turnaround-admin/people/')
+    const existing = turnaroundSetup.turnaroundPeople.find(person => person.id === personId)
+    const unassigned = { ...existing, assignedShipId: null, assignedSailingId: null, assignedShipName: null }
+    turnaroundSetup = {
+      ...turnaroundSetup,
+      turnaroundPeople: turnaroundSetup.turnaroundPeople.map(person => person.id === personId ? unassigned : person)
+    }
+    req.reply({
+      statusCode: 200,
+      body: {
+        message: 'Turnaround person removed from this team and kept in the cruise-line roster',
+        person: unassigned,
+        setup: turnaroundSetup
+      }
+    })
+  }).as('reactUnassignTurnaroundPerson')
 
   cy.intercept({ method: 'PATCH', pathname: '/cruise/turnaround-operations/*' }, req => {
     if (req.url.includes('/signoffs/') || req.url.includes('/staffing/')) return req.continue()
@@ -1143,12 +1130,17 @@ function interceptReactCoreApis(overrides = {}) {
 
     req.reply({ statusCode: 200, body: { message: 'Turnaround escalation updated successfully', operation: hydrateReactTurnaroundOperation(operation) } })
   }).as('reactUpdateTurnaroundEscalation')
+  cy.intercept('GET', `/cruise/ship/${reactShips[0].id}/sailings`, overrides.sailings || reactSailings).as('reactDefaultShipSailings')
+  cy.intercept('GET', `/cruise/sailings/${reactSailings[0].id}/itinerary`, overrides.itinerary || reactItinerary).as('reactDefaultItinerary')
   cy.intercept('GET', '/cruise', overrides.cruiseLines || reactCruiseLines).as('reactCruiseLines')
 }
 
 
-function visitReactAppAsAdmin(overrides = {}) {
+function visitReactAppAsAdmin(overrides = {}, beforeVisit = null) {
   interceptReactCoreApis(overrides)
+  if (typeof beforeVisit === 'function') {
+    beforeVisit()
+  }
   cy.visit('/')
   cy.wait('@reactDemoUsers')
   cy.wait('@reactCustomers')

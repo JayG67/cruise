@@ -3,19 +3,19 @@
 */
 
 /* Build 469 - restore white text on dark operational cards */
-.react-role-dashboard .operations-portfolio-list > *,
+.react-role-dashboard .turnaround-fleet-list > *,
 .react-role-dashboard .operations-release-card,
 .react-role-dashboard .operations-readiness-card {
   color: #ffffff !important;
 }
 
-.react-role-dashboard .operations-portfolio-list > * h1,
-.react-role-dashboard .operations-portfolio-list > * h2,
-.react-role-dashboard .operations-portfolio-list > * h3,
-.react-role-dashboard .operations-portfolio-list > * h4,
-.react-role-dashboard .operations-portfolio-list > * p,
-.react-role-dashboard .operations-portfolio-list > * span,
-.react-role-dashboard .operations-portfolio-list > * div,
+.react-role-dashboard .turnaround-fleet-list > * h1,
+.react-role-dashboard .turnaround-fleet-list > * h2,
+.react-role-dashboard .turnaround-fleet-list > * h3,
+.react-role-dashboard .turnaround-fleet-list > * h4,
+.react-role-dashboard .turnaround-fleet-list > * p,
+.react-role-dashboard .turnaround-fleet-list > * span,
+.react-role-dashboard .turnaround-fleet-list > * div,
 .react-role-dashboard .operations-release-card h1,
 .react-role-dashboard .operations-release-card h2,
 .react-role-dashboard .operations-release-card h3,
@@ -35,8 +35,8 @@
 }
 
 /* keep metric tiles dark text */
-.react-role-dashboard .operations-portfolio-list > * dl,
-.react-role-dashboard .operations-portfolio-list > * dl *,
+.react-role-dashboard .turnaround-fleet-list > * dl,
+.react-role-dashboard .turnaround-fleet-list > * dl *,
 .react-role-dashboard .operations-release-card dl,
 .react-role-dashboard .operations-release-card dl * {
   color: #0f172a !important;
@@ -44,52 +44,52 @@
 
 
 /* Build 470 - exact fleet portfolio dark-card text contrast.
-   The selected turnaround card inside .operations-portfolio-list was still using
+   The selected turnaround card inside .turnaround-fleet-list was still using
    inherited navy text on a dark teal card. Match the standard dark motif: white
    text on dark cards, with metric tiles kept dark-on-light. */
-.react-role-dashboard .operations-portfolio-list > article,
-.react-role-dashboard .operations-portfolio-list > div,
-.react-role-dashboard .operations-portfolio-list > li,
-.react-role-dashboard .operations-portfolio-list > * {
+.react-role-dashboard .turnaround-fleet-list > article,
+.react-role-dashboard .turnaround-fleet-list > div,
+.react-role-dashboard .turnaround-fleet-list > li,
+.react-role-dashboard .turnaround-fleet-list > * {
   background: rgba(6, 30, 45, 0.86) !important;
   border: 1px solid rgba(125, 211, 252, 0.35) !important;
   color: #ffffff !important;
 }
 
-.react-role-dashboard .operations-portfolio-list > article > :not(dl),
-.react-role-dashboard .operations-portfolio-list > div > :not(dl),
-.react-role-dashboard .operations-portfolio-list > li > :not(dl),
-.react-role-dashboard .operations-portfolio-list > * > :not(dl),
-.react-role-dashboard .operations-portfolio-list > article > :not(dl) *,
-.react-role-dashboard .operations-portfolio-list > div > :not(dl) *,
-.react-role-dashboard .operations-portfolio-list > li > :not(dl) *,
-.react-role-dashboard .operations-portfolio-list > * > :not(dl) * {
+.react-role-dashboard .turnaround-fleet-list > article > :not(dl),
+.react-role-dashboard .turnaround-fleet-list > div > :not(dl),
+.react-role-dashboard .turnaround-fleet-list > li > :not(dl),
+.react-role-dashboard .turnaround-fleet-list > * > :not(dl),
+.react-role-dashboard .turnaround-fleet-list > article > :not(dl) *,
+.react-role-dashboard .turnaround-fleet-list > div > :not(dl) *,
+.react-role-dashboard .turnaround-fleet-list > li > :not(dl) *,
+.react-role-dashboard .turnaround-fleet-list > * > :not(dl) * {
   background: transparent !important;
   color: #ffffff !important;
   opacity: 1 !important;
   text-shadow: none !important;
 }
 
-.react-role-dashboard .operations-portfolio-list > article .eyebrow,
-.react-role-dashboard .operations-portfolio-list > div .eyebrow,
-.react-role-dashboard .operations-portfolio-list > li .eyebrow,
-.react-role-dashboard .operations-portfolio-list > * .eyebrow {
+.react-role-dashboard .turnaround-fleet-list > article .eyebrow,
+.react-role-dashboard .turnaround-fleet-list > div .eyebrow,
+.react-role-dashboard .turnaround-fleet-list > li .eyebrow,
+.react-role-dashboard .turnaround-fleet-list > * .eyebrow {
   color: #9ee7ff !important;
 }
 
-.react-role-dashboard .operations-portfolio-list > article dl,
-.react-role-dashboard .operations-portfolio-list > div dl,
-.react-role-dashboard .operations-portfolio-list > li dl,
-.react-role-dashboard .operations-portfolio-list > * dl {
+.react-role-dashboard .turnaround-fleet-list > article dl,
+.react-role-dashboard .turnaround-fleet-list > div dl,
+.react-role-dashboard .turnaround-fleet-list > li dl,
+.react-role-dashboard .turnaround-fleet-list > * dl {
   background: #f8fbff !important;
   border: 1px solid #b8cde0 !important;
   color: #0f172a !important;
 }
 
-.react-role-dashboard .operations-portfolio-list > article dl *,
-.react-role-dashboard .operations-portfolio-list > div dl *,
-.react-role-dashboard .operations-portfolio-list > li dl *,
-.react-role-dashboard .operations-portfolio-list > * dl * {
+.react-role-dashboard .turnaround-fleet-list > article dl *,
+.react-role-dashboard .turnaround-fleet-list > div dl *,
+.react-role-dashboard .turnaround-fleet-list > li dl *,
+.react-role-dashboard .turnaround-fleet-list > * dl * {
   color: #0f172a !important;
   opacity: 1 !important;
 }
@@ -97,11 +97,11 @@
 
 /* Build 471 - exact selected turnaround portfolio-card contrast fix.
    The invisible text is inside the actual rendered button:
-   .operations-portfolio-card. Previous broad dashboard rules were still letting
+   .turnaround-fleet-card. Previous broad dashboard rules were still letting
    button text inherit dark navy. This final exact selector fixes that one card
    surface directly and leaves the metric strip light with dark text. */
-.react-role-dashboard .operations-portfolio-list button.operations-portfolio-card,
-.react-role-dashboard .operations-portfolio-list .operations-portfolio-card {
+.react-role-dashboard .turnaround-fleet-list button.turnaround-fleet-card,
+.react-role-dashboard .turnaround-fleet-list .turnaround-fleet-card {
   background: rgba(6, 30, 45, 0.92) !important;
   border: 1px solid rgba(125, 211, 252, 0.42) !important;
   color: #ffffff !important;
@@ -109,29 +109,29 @@
   text-shadow: none !important;
 }
 
-.react-role-dashboard .operations-portfolio-list button.operations-portfolio-card > span:not(.operations-portfolio-status),
-.react-role-dashboard .operations-portfolio-list button.operations-portfolio-card > strong,
-.react-role-dashboard .operations-portfolio-list .operations-portfolio-card > span:not(.operations-portfolio-status),
-.react-role-dashboard .operations-portfolio-list .operations-portfolio-card > strong {
+.react-role-dashboard .turnaround-fleet-list button.turnaround-fleet-card > span:not(.turnaround-fleet-status),
+.react-role-dashboard .turnaround-fleet-list button.turnaround-fleet-card > strong,
+.react-role-dashboard .turnaround-fleet-list .turnaround-fleet-card > span:not(.turnaround-fleet-status),
+.react-role-dashboard .turnaround-fleet-list .turnaround-fleet-card > strong {
   background: transparent !important;
   color: #ffffff !important;
   opacity: 1 !important;
   text-shadow: none !important;
 }
 
-.react-role-dashboard .operations-portfolio-list button.operations-portfolio-card > strong,
-.react-role-dashboard .operations-portfolio-list .operations-portfolio-card > strong {
+.react-role-dashboard .turnaround-fleet-list button.turnaround-fleet-card > strong,
+.react-role-dashboard .turnaround-fleet-list .turnaround-fleet-card > strong {
   color: #ffffff !important;
   font-weight: 900 !important;
 }
 
-.react-role-dashboard .operations-portfolio-list button.operations-portfolio-card > span:not(.operations-portfolio-status),
-.react-role-dashboard .operations-portfolio-list .operations-portfolio-card > span:not(.operations-portfolio-status) {
+.react-role-dashboard .turnaround-fleet-list button.turnaround-fleet-card > span:not(.turnaround-fleet-status),
+.react-role-dashboard .turnaround-fleet-list .turnaround-fleet-card > span:not(.turnaround-fleet-status) {
   color: #d7edf7 !important;
 }
 
-.react-role-dashboard .operations-portfolio-list button.operations-portfolio-card .operations-portfolio-status,
-.react-role-dashboard .operations-portfolio-list .operations-portfolio-card .operations-portfolio-status {
+.react-role-dashboard .turnaround-fleet-list button.turnaround-fleet-card .turnaround-fleet-status,
+.react-role-dashboard .turnaround-fleet-list .turnaround-fleet-card .turnaround-fleet-status {
   background: rgba(158, 231, 255, 0.16) !important;
   border: 1px solid rgba(158, 231, 255, 0.35) !important;
   border-radius: 999px !important;
@@ -141,17 +141,17 @@
   text-shadow: none !important;
 }
 
-.react-role-dashboard .operations-portfolio-list button.operations-portfolio-card .operations-portfolio-status.needs-attention,
-.react-role-dashboard .operations-portfolio-list button.operations-portfolio-card .operations-portfolio-status.attention,
-.react-role-dashboard .operations-portfolio-list .operations-portfolio-card .operations-portfolio-status.needs-attention,
-.react-role-dashboard .operations-portfolio-list .operations-portfolio-card .operations-portfolio-status.attention {
+.react-role-dashboard .turnaround-fleet-list button.turnaround-fleet-card .turnaround-fleet-status.needs-attention,
+.react-role-dashboard .turnaround-fleet-list button.turnaround-fleet-card .turnaround-fleet-status.attention,
+.react-role-dashboard .turnaround-fleet-list .turnaround-fleet-card .turnaround-fleet-status.needs-attention,
+.react-role-dashboard .turnaround-fleet-list .turnaround-fleet-card .turnaround-fleet-status.attention {
   background: rgba(251, 191, 36, 0.18) !important;
   border-color: rgba(251, 191, 36, 0.45) !important;
   color: #fde68a !important;
 }
 
-.react-role-dashboard .operations-portfolio-list button.operations-portfolio-card dl,
-.react-role-dashboard .operations-portfolio-list .operations-portfolio-card dl {
+.react-role-dashboard .turnaround-fleet-list button.turnaround-fleet-card dl,
+.react-role-dashboard .turnaround-fleet-list .turnaround-fleet-card dl {
   background: #f8fbff !important;
   border: 1px solid #b8cde0 !important;
   border-radius: 0.75rem !important;
@@ -159,8 +159,8 @@
   opacity: 1 !important;
 }
 
-.react-role-dashboard .operations-portfolio-list button.operations-portfolio-card dl *,
-.react-role-dashboard .operations-portfolio-list .operations-portfolio-card dl * {
+.react-role-dashboard .turnaround-fleet-list button.turnaround-fleet-card dl *,
+.react-role-dashboard .turnaround-fleet-list .turnaround-fleet-card dl * {
   background: transparent !important;
   color: #0f172a !important;
   opacity: 1 !important;

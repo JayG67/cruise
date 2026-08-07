@@ -1,4 +1,4 @@
-require('dotenv/config')
+require('./config/loadEnvironment').loadEnvironment()
 
 const path = require('path')
 const fs = require('fs')

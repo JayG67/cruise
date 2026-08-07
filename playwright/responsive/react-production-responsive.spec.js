@@ -52,14 +52,14 @@ test.describe('React default desktop and tablet replacement checks', () => {
     await expect(page.getByTestId('react-active-route-operations')).toBeVisible()
     await expect(page.getByTestId('react-fleet-directory')).toBeVisible()
     await expect(page.getByTestId('react-create-cruise-line-workflow')).toBeVisible()
-    await expect(page.getByTestId('react-sqa-console')).toBeVisible()
+    await expect(page.getByTestId('react-operations-intelligence-center')).toBeVisible()
 
     const order = await page.evaluate(() => [
       document.querySelector('[data-testid="react-role-selector"]')?.getBoundingClientRect().top,
       document.querySelector('[data-testid="react-active-route-operations"]')?.getBoundingClientRect().top,
       document.querySelector('[data-testid="react-fleet-directory"]')?.getBoundingClientRect().top,
       document.querySelector('[data-testid="react-create-cruise-line-workflow"]')?.getBoundingClientRect().top,
-      document.querySelector('[data-testid="react-sqa-console"]')?.getBoundingClientRect().top
+      document.querySelector('[data-testid="react-operations-intelligence-center"]')?.getBoundingClientRect().top
     ])
 
     expect(order.every(value => typeof value === 'number')).toBe(true)
@@ -230,19 +230,33 @@ test.describe('React default desktop and tablet replacement checks', () => {
       await expect(page.getByTestId('react-retired-route-nav')).toHaveCount(0)
       await page.getByTestId('react-workspace-fleet-button').click()
       await expect(page.getByTestId('react-fleet-directory')).toBeVisible()
-      await page.getByTestId('react-workspace-quality-button').click()
-      await expect(page.getByTestId('react-sqa-console')).toBeVisible()
+      await page.getByTestId('react-workspace-intelligence-button').click()
+      await expect(page.getByTestId('react-operations-intelligence-center')).toBeVisible()
       await expectNoHorizontalOverflow(page)
     }
   })
 
-  test('keeps React quality output panels readable without layout overflow', async ({ page }) => {
+  test('keeps operations intelligence readable without layout overflow', async ({ page }) => {
     await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 
-    await page.getByTestId('react-sqa-console').scrollIntoViewIfNeeded()
-    await page.getByTestId('react-sqa-data-button').click()
-    await expect(page.getByTestId('react-sqa-output')).toContainText('Data Verification Result')
+    const intelligenceCenter = page.getByTestId('react-operations-intelligence-center')
+    await intelligenceCenter.scrollIntoViewIfNeeded()
+    await expect(intelligenceCenter).toBeVisible()
+    await expect(intelligenceCenter.getByText('Loading turnaround intelligence...')).toHaveCount(0, { timeout: 15000 })
+
+    const intelligenceDetail = page.getByTestId('react-operations-intelligence-detail')
+    const emptyState = intelligenceCenter.getByRole('heading', { name: 'No turnaround operations are available' })
+    const errorState = intelligenceCenter.getByRole('alert')
+    await expect(intelligenceDetail.or(emptyState).or(errorState)).toBeVisible({ timeout: 15000 })
+
+    if (await intelligenceDetail.isVisible().catch(() => false)) {
+      const refreshButton = page.getByTestId('react-operations-intelligence-refresh-button')
+      await expect(refreshButton).toBeVisible()
+      await refreshButton.click()
+      await expect(intelligenceDetail.or(emptyState).or(errorState)).toBeVisible({ timeout: 15000 })
+    }
+
     await expectNoHorizontalOverflow(page)
   })
 

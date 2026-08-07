@@ -1,0 +1,9 @@
+/* Primary product headings use neutral tracking for readable display type.
+   This matches the established Add New Cruise Data heading treatment and
+   prevents oversized bold headings from visually collapsing letterforms. */
+:is(.react-production-shell, .react-app-shell) #react-app-title,
+:is(.react-production-shell, .react-app-shell) #react-cruise-line-presentation-heading,
+:is(.react-production-shell, .react-app-shell) #react-fleet-heading,
+:is(.react-production-shell, .react-app-shell) #react-turnaround-admin-setup-heading {
+  letter-spacing: 0 !important;
+}

@@ -53,6 +53,56 @@ section.turnaround-admin-setup-panel#react-turnaround-admin-setup::after {
   max-width: 800px !important;
 }
 
+.turnaround-admin-setup-panel .turnaround-admin-refresh-control {
+  align-items: center !important;
+  background: rgba(7, 24, 39, 0.44) !important;
+  border: 1px solid rgba(174, 233, 255, 0.2) !important;
+  border-radius: 1rem !important;
+  color: #ffffff !important;
+  display: flex !important;
+  gap: 1rem !important;
+  justify-content: space-between !important;
+  padding: 1rem 1.15rem !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-admin-refresh-control > div {
+  min-width: 0 !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-admin-refresh-control strong,
+.turnaround-admin-setup-panel .turnaround-admin-refresh-control p {
+  color: #ffffff !important;
+  margin: 0 !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-admin-refresh-control > div > p {
+  color: rgba(255, 255, 255, 0.8) !important;
+  margin-top: 0.3rem !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-admin-refresh-status {
+  color: #aee9ff !important;
+  font-weight: 750 !important;
+}
+
+.turnaround-admin-setup-panel .turnaround-admin-refresh-control button {
+  flex: 0 0 auto !important;
+  min-width: 12.5rem !important;
+}
+
+@media (max-width: 760px) {
+  .turnaround-admin-setup-panel .turnaround-admin-refresh-control {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .turnaround-admin-setup-panel .turnaround-admin-refresh-control button {
+    width: 100% !important;
+  }
+}
+
 .turnaround-admin-setup-panel .compact-turnaround-admin-heading .eyebrow,
 .turnaround-admin-setup-panel > .eyebrow {
   color: #60a5fa !important;
@@ -69,7 +119,7 @@ section.turnaround-admin-setup-panel#react-turnaround-admin-setup::after {
   color: #ffffff !important;
   font-size: clamp(2.25rem, 5vw, 4rem) !important;
   font-weight: 950 !important;
-  letter-spacing: -0.055em !important;
+  letter-spacing: 0 !important;
   line-height: 0.98 !important;
   margin: 0 0 0.65rem !important;
   max-width: 820px !important;

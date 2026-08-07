@@ -666,7 +666,7 @@
   .operations-playbook-score.ce-surface-light,
   .operations-playbook-variance-score.ce-surface-light,
   .operations-incident-command-score.ce-surface-light,
-  .operations-outreach-board-score.ce-surface-light,
+  .operations-operational-briefing-board-score.ce-surface-light,
   .operations-scenario-plan-score.ce-surface-light
 ),
 :is(.react-production-shell, .react-app-shell) :is(
@@ -674,7 +674,7 @@
   .operations-playbook-score.ce-surface-light,
   .operations-playbook-variance-score.ce-surface-light,
   .operations-incident-command-score.ce-surface-light,
-  .operations-outreach-board-score.ce-surface-light,
+  .operations-operational-briefing-board-score.ce-surface-light,
   .operations-scenario-plan-score.ce-surface-light
 ) :is(span, small, strong, p) {
   color: var(--ce-contrast-light-text) !important;
@@ -775,7 +775,7 @@
   .operations-playbook-score,
   .operations-playbook-variance-score,
   .operations-incident-command-score,
-  .operations-outreach-board-score,
+  .operations-operational-briefing-board-score,
   .operations-scenario-plan-score,
   .operations-metrics-confidence,
   .operations-release-score,
@@ -800,7 +800,7 @@
   .operations-playbook-score,
   .operations-playbook-variance-score,
   .operations-incident-command-score,
-  .operations-outreach-board-score,
+  .operations-operational-briefing-board-score,
   .operations-scenario-plan-score,
   .operations-metrics-confidence,
   .operations-release-score,
@@ -825,7 +825,7 @@
   .operations-playbook-score,
   .operations-playbook-variance-score,
   .operations-incident-command-score,
-  .operations-outreach-board-score,
+  .operations-operational-briefing-board-score,
   .operations-scenario-plan-score,
   .operations-metrics-confidence,
   .operations-release-score,
@@ -850,7 +850,7 @@
   .operations-playbook-score,
   .operations-playbook-variance-score,
   .operations-incident-command-score,
-  .operations-outreach-board-score,
+  .operations-operational-briefing-board-score,
   .operations-scenario-plan-score,
   .operations-metrics-confidence,
   .operations-release-score,

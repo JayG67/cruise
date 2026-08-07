@@ -17,7 +17,6 @@
   .react-sqa-action-card button:not(.danger-action-button),
   .operations-lifecycle-detail-action,
   .operations-lifecycle-next-action-button,
-  .public-launch-track-action,
   button[type="submit"]
 ) {
   background: var(--ce-action-primary-bg) !important;
@@ -41,7 +40,7 @@
   .customer-disclosure-button,
   .role-favorites-filter,
   .role-favorite-activity-toggle,
-  .employer-demo-step-button,
+  .platform-workspace-step-button,
   .turnaround-roster-toggle
 ) {
   background: var(--ce-action-secondary-bg) !important;

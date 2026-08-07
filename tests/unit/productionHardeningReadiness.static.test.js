@@ -26,8 +26,8 @@ function readCssBundle(relativePath, seen = new Set()) {
 describe('production hardening center static contracts', () => {
   it('exposes a live admin API and React client for production hardening readiness', () => {
     const routes = read('routes/cruise.routes.js')
-    const controller = read('controllers/cruise.controller.js')
-    const client = read('frontend/react/src/api/client.js')
+    const controller = read('controllers/platformReadiness.controller.js')
+    const client = read('frontend/react/src/api/platformClient.js')
 
     expect(routes).toContain("'/production-hardening/readiness'")
     expect(controller).toContain('exports.getProductionHardeningReadiness')
@@ -36,20 +36,14 @@ describe('production hardening center static contracts', () => {
     expect(client).toContain("'/cruise/production-hardening/readiness'")
   })
 
-  it('keeps production diagnostics available as code without mounting a recruiter-facing workspace', () => {
+  it('retires the unmounted standalone readiness workspace', () => {
     const app = read('frontend/react/src/App.jsx')
-    const component = read('frontend/react/src/components/ReactProductionHardeningCenter.jsx')
-    const styles = readCssBundle('frontend/react/src/styles/components/readiness-centers.css')
-
+    const repairScript = read('scripts/repair-repository-structure.js')
     expect(app).not.toContain('ReactProductionHardeningCenter')
     expect(app).not.toContain('react-workspace-production-hardening-button')
-    expect(component).toContain('data-testid="react-production-hardening-center"')
-    expect(component).toContain('environment')
-    expect(component).toContain('observability')
-    expect(component).toContain('deployment')
-    expect(component).toContain('security')
-    expect(component).toContain('buildHardeningPriorityPlan')
-    expect(styles).toContain('.production-hardening-center')
-    expect(styles).toContain('.production-hardening-gate-grid')
+    expect(repairScript).toContain("'frontend/react/src/components/ReactProductionHardeningCenter.jsx'")
+    expect(repairScript).toContain("'frontend/react/src/styles/components/readiness-production-hardening.css'")
+    expect(fs.existsSync(path.join(projectRoot, 'frontend/react/src/components/ReactProductionHardeningCenter.jsx'))).toBe(false)
+    expect(fs.existsSync(path.join(projectRoot, 'frontend/react/src/styles/components/readiness-production-hardening.css'))).toBe(false)
   })
 })

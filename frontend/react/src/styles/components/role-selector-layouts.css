@@ -160,3 +160,120 @@
     flex-direction: column;
   }
 }
+
+/* Build 702: compact desktop role-selector composition.
+   Keep the full-width administrator rail, but use its horizontal space as a
+   compact workflow: the role control becomes a shallow toolbar above the
+   person finder instead of consuming a tall standalone left column. The
+   person finder then uses the full rail for search, selected identity, and
+   available-person cards. */
+@media (min-width: 1100px) {
+  .react-production-shell .role-selector-section .role-selector-grid--compact-generic {
+    align-items: start;
+    grid-template-columns: 1fr;
+    gap: var(--ce-space-3);
+  }
+
+  .react-production-shell .role-selector-section .role-selector-grid--compact-generic > .role-selector-field {
+    align-items: center;
+    background: rgba(12, 66, 82, 0.52) !important;
+    border: 1px solid var(--ce-command-border) !important;
+    border-radius: var(--ce-radius-card) !important;
+    box-shadow: none !important;
+    display: grid;
+    gap: var(--ce-space-3);
+    grid-template-columns: auto minmax(18rem, 30rem) minmax(0, 1fr);
+    padding: var(--ce-space-3) var(--ce-space-4) !important;
+  }
+
+  .react-production-shell .role-selector-section .role-selector-grid--compact-generic > .role-selector-field > .ce-field-label {
+    color: var(--ce-command-text) !important;
+    -webkit-text-fill-color: var(--ce-command-text) !important;
+    margin: 0 !important;
+    white-space: nowrap;
+  }
+
+  .react-production-shell .role-selector-section .role-selector-grid--compact-generic > .role-selector-field > .react-select {
+    min-height: var(--ce-control-height) !important;
+  }
+
+  .react-production-shell .role-selector-section .role-selector-grid--compact-generic > .person-finder-panel {
+    grid-column: 1;
+    grid-template-columns: minmax(0, 0.9fr) minmax(16rem, 1.1fr);
+    grid-template-areas:
+      "heading heading"
+      "search search"
+      "selected results"
+      "note note";
+  }
+
+  .react-production-shell .role-selector-section .role-selector-grid--compact-generic .person-finder-heading {
+    grid-area: heading;
+  }
+
+  .react-production-shell .role-selector-section .role-selector-grid--compact-generic .person-finder-panel > .role-selector-field {
+    grid-area: search;
+  }
+
+  .react-production-shell .role-selector-section .role-selector-grid--compact-generic .selected-person-card {
+    align-content: start;
+    grid-area: selected;
+    min-height: 100%;
+  }
+
+  .react-production-shell .role-selector-section .role-selector-grid--compact-generic .person-finder-results {
+    align-content: start;
+    grid-area: results;
+    grid-template-columns: 1fr;
+    max-height: 15rem;
+  }
+
+  .react-production-shell .role-selector-section .role-selector-grid--compact-generic .finder-limit-note,
+  .react-production-shell .role-selector-section .role-selector-grid--compact-generic .person-finder-panel > .empty-state {
+    grid-area: note;
+  }
+
+  .react-production-shell .role-selector-section .role-summary-card {
+    align-items: stretch;
+    grid-template-columns: minmax(18rem, 0.72fr) minmax(0, 1.28fr);
+    gap: var(--ce-space-4);
+  }
+
+  .react-production-shell .role-selector-section .role-summary-identity,
+  .react-production-shell .role-selector-section .role-summary-metrics {
+    min-width: 0;
+  }
+
+  .react-production-shell .role-selector-section .role-summary-identity {
+    display: grid;
+    gap: var(--ce-space-2);
+    align-content: center;
+  }
+
+  .react-production-shell .role-selector-section .role-summary-metrics {
+    display: grid;
+    gap: var(--ce-space-3);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .react-production-shell .role-selector-section .role-summary-metrics > span {
+    background: rgba(12, 66, 82, 0.52) !important;
+    border: 1px solid var(--ce-command-border) !important;
+    border-radius: var(--ce-radius-control) !important;
+    display: grid;
+    gap: 0.15rem;
+    padding: var(--ce-space-3) !important;
+  }
+
+  .react-production-shell .role-selector-section .role-summary-metrics > span > strong {
+    font-size: 1.15rem;
+  }
+}
+
+@media (max-width: 1099px) {
+  .react-production-shell .role-selector-section .role-summary-identity,
+  .react-production-shell .role-selector-section .role-summary-metrics {
+    display: grid;
+    gap: var(--ce-space-2);
+  }
+}

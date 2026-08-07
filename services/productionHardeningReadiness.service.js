@@ -131,7 +131,7 @@ function buildLoggingGate({ packageJson = {}, files = {}, appSource = '', logger
       suppressDbLogs ? 'Database log suppression control is present.' : 'Database log suppression control is not detected.',
       hasCompression ? 'Compression dependency is available.' : 'Compression dependency is missing.'
     ],
-    recommendations: ['Add structured request IDs and machine-readable production logs when moving from portfolio hosting to live operations.']
+    recommendations: ['Add structured request IDs and machine-readable production logs before expanding live operational traffic.']
   })
 }
 
@@ -188,7 +188,7 @@ function buildDeploymentGate({ packageJson = {}, files = {} }) {
     ],
     recommendations: checks[4]
       ? ['Keep platform config synchronized with required environment variables.']
-      : ['Add a deployment platform config before the public portfolio launch.']
+      : ['Add a deployment platform configuration before production publication.']
   })
 }
 
@@ -244,14 +244,14 @@ function buildProductionHardeningReadiness(input = {}) {
   const status = blockers.length ? 'needs-hardening' : watchItems.length ? 'watch' : 'ready'
 
   return {
-    title: 'Production Hardening Center',
+    title: 'Service Assurance Center',
     overallScore,
     status,
     summary: blockers.length
-      ? `${blockers.length} production-hardening gates need attention before public deployment.`
+      ? `${blockers.length} service-assurance gate${blockers.length === 1 ? '' : 's'} need attention before production publication.`
       : watchItems.length
-        ? `${watchItems.length} production-hardening gates should stay on the launch watchlist.`
-        : 'Production hardening gates are ready for portfolio deployment planning.',
+        ? `${watchItems.length} service-assurance gate${watchItems.length === 1 ? '' : 's'} should remain on the release watchlist.`
+        : 'Service-assurance gates are ready for production release planning.',
     gates,
     launchSequence: [
       'Document required environment variables and deployment target assumptions.',

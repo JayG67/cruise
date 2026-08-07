@@ -40,6 +40,13 @@ function count(content, pattern) {
   return matches ? matches.length : 0
 }
 
+function assertNoTrailingFunctionalSelectorCommas(content, label) {
+  assert(
+    !/,\s*\)/.test(content) && !/:is\(\s*\)/.test(content),
+    `${label} has an invalid trailing comma or empty functional selector`
+  )
+}
+
 function assertBalancedBraces(content, label) {
   let balance = 0
 
@@ -57,6 +64,7 @@ function assertBalancedBraces(content, label) {
 }
 
 const styles = {
+  bundle: readCssBundle('frontend/react/src/styles/index.css'),
   index: read('frontend/react/src/styles/index.css'),
   tokens: read('frontend/react/src/styles/foundation/tokens.css'),
   theme: read('frontend/react/src/styles/foundation/theme.css'),
@@ -81,7 +89,7 @@ const styles = {
   productPolish: readCssBundle('frontend/react/src/styles/components/product-polish.css'),
   roleDashboard: readCssBundle('frontend/react/src/styles/components/role-dashboard.css'),
   adminWorkspaces: readCssBundle('frontend/react/src/styles/components/admin-workspaces.css'),
-  adminPresentation: readCssBundle('frontend/react/src/styles/components/admin-presentation.css'),
+  cruiseLineOperations: readCssBundle('frontend/react/src/styles/components/cruise-line-operations.css'),
   operationsTimeline: read('frontend/react/src/styles/components/operations-timeline.css'),
   operationsWorkspaces: readCssBundle('frontend/react/src/styles/components/operations-workspaces.css'),
   operationsQueues: readCssBundle('frontend/react/src/styles/components/operations-queues.css'),
@@ -100,6 +108,7 @@ const retiredAppCss = ''
 
 for (const [label, content] of Object.entries(styles)) {
   assertBalancedBraces(content, `${label}.css`)
+  assertNoTrailingFunctionalSelectorCommas(content, `${label}.css`)
 }
 
 assert(
@@ -157,7 +166,7 @@ for (const componentImport of [
   "@import './product-polish.css';",
   "@import './role-dashboard.css';",
   "@import './admin-workspaces.css';",
-  "@import './admin-presentation.css';",
+  "@import './cruise-line-operations.css';",
   "@import './operations-timeline.css';",
   "@import './operations-workspaces.css';",
   "@import './operations-queues.css';",
@@ -187,6 +196,17 @@ assert(
     styles.operationsRoleSurface.includes('.react-role-dashboard') &&
     styles.operationsRoleSurface.includes('.operational-turnaround-panel'),
   'components/operations-role-surface.css must own the split role-dashboard surface CSS from operations-dashboard.css'
+)
+
+assert(
+  !styles.operationsRoleSurface.toLowerCase().includes('reviewer'),
+  'components/operations-role-surface.css must not retain selectors or comments for retired reviewer surfaces'
+)
+
+assert(
+  styles.operationsRoleSurface.includes('Final operational light-tile contrast contract.') &&
+    styles.operationsRoleSurface.includes('.react-role-dashboard :is(\n  .operational-metric-grid,\n  .turnaround-fleet-summary,\n  .turnaround-fleet-card dl\n) > .ce-surface-light {'),
+  'components/operations-role-surface.css must preserve a valid operational light-tile contrast selector'
 )
 
 assert(
@@ -224,7 +244,7 @@ assert(
 assert(
   styles.roleDashboard.includes('Phase 1 operations compatibility bridge') &&
     styles.roleDashboard.includes('.operational-turnaround-panel') &&
-    styles.roleDashboard.includes('.operations-portfolio-card'),
+    styles.roleDashboard.includes('.turnaround-fleet-card'),
   'components/role-dashboard.css must own the retired Phase 1 operational compatibility bridge'
 )
 
@@ -347,7 +367,7 @@ assert(
   styles.operationsRelease.includes('CSS Foundation Refactor - Slice 36') &&
     styles.operationsRelease.includes('CSS Foundation Refactor - Slice 29') &&
     styles.operationsRelease.includes('.operations-release-board') &&
-    styles.operationsRelease.includes('.operations-portfolio-board') &&
+    styles.operationsRelease.includes('.turnaround-fleet-board') &&
     styles.operationsRelease.includes('.operations-audit-trail') &&
     styles.operationsRelease.includes('.operations-release-packet') &&
     styles.operationsRelease.includes('.operations-playbook-variance') &&
@@ -384,8 +404,8 @@ assert(
     !retiredAppCss.includes('.operations-readiness-workspace') &&
     !retiredAppCss.includes('/* Operations release board: executive-quality summary before workstream drilldown. */') &&
     !retiredAppCss.includes('.operations-release-board') &&
-    !retiredAppCss.includes('/* Fleet operations portfolio: portfolio-level view before single-sailing drilldown. */') &&
-    !retiredAppCss.includes('.operations-portfolio-board') &&
+    !retiredAppCss.includes('/* Turnaround fleet control: portfolio-level view before single-sailing drilldown. */') &&
+    !retiredAppCss.includes('.turnaround-fleet-board') &&
     !retiredAppCss.includes('.operations-audit-trail') &&
     !retiredAppCss.includes('.operations-release-packet') &&
     !retiredAppCss.includes('.operations-playbook-variance') &&
@@ -397,14 +417,14 @@ assert(
 assert(
   styles.productPolish.includes('CSS Foundation Refactor - Slice 42') &&
     styles.productPolish.includes('CSS Foundation Refactor - Slice 32') &&
-    styles.productPolish.includes('.employer-demo-command-center.self-guided-overview') &&
+    styles.productPolish.includes('.platform-workspace-navigator.self-guided-overview') &&
     styles.productPolish.includes('.react-admin-management-card') &&
     styles.productPolish.includes('.presentation-scope-controls'),
-  'components/product-polish.css must own retired Slice 32 product polish and reviewer-facing UX compatibility CSS'
+  'components/product-polish.css must own retired Slice 32 product polish and platform workspace UX compatibility CSS'
 )
 
 assert(
-  !retiredAppCss.includes('.employer-demo-command-center') &&
+  !retiredAppCss.includes('.platform-workspace-navigator') &&
     !retiredAppCss.includes('.role-selector-section') &&
     !retiredAppCss.includes('.react-admin-management-card') &&
     !retiredAppCss.includes('.presentation-scope-controls'),
@@ -530,7 +550,7 @@ for (const ownedPrimitive of [
 for (const legacyBridge of [
   '.react-role-dashboard',
   '.react-sqa-console',
-  '.employer-demo-command-center',
+  '.platform-workspace-navigator',
   '.role-card',
   '.workspace-card',
   '.metric-card',
@@ -573,7 +593,7 @@ const layeredCompatibilityImportantCount = count(
 ${styles.productPolish}
 ${styles.roleDashboard}
 ${styles.adminWorkspaces}
-${styles.adminPresentation}
+${styles.cruiseLineOperations}
 ${styles.operationsRoleSurface}
 ${styles.operationsRelease}
 ${styles.operationsWorkspaces}
@@ -701,8 +721,8 @@ for (const adminWorkspaceSelector of [
   ".turnaround-admin-setup-panel[data-testid='react-turnaround-admin-setup']",
 ]) {
   assert(
-    `${styles.adminWorkspaces}\n${styles.adminPresentation}`.includes(adminWorkspaceSelector),
-    `components/admin-workspaces.css/admin-presentation.css must own retired Phase 20 admin workspace contract ${adminWorkspaceSelector}`
+    `${styles.adminWorkspaces}\n${styles.cruiseLineOperations}`.includes(adminWorkspaceSelector),
+    `components/admin-workspaces.css/cruise-line-operations.css must own retired Phase 20 admin workspace contract ${adminWorkspaceSelector}`
   )
 }
 
@@ -769,9 +789,8 @@ for (const operationsDashboardSelector of [
 
 for (const operationsContinuitySelector of [
   'CSS Foundation Refactor Slice 37',
-  'Build 477 - reviewer packet detail layout repair',
   'Build 484 - unify remaining role-operations panels to the dark outreach-board motif',
-  '.operations-outreach-board',
+  '.operations-operational-briefing-board',
   '.operations-scenario-plan',
 ]) {
   assert(
@@ -780,11 +799,27 @@ for (const operationsContinuitySelector of [
   )
 }
 
+for (const retiredOperationalStylesheet of [
+  'frontend/react/src/styles/components/operations-evidence-reviewer-packet.css',
+  'frontend/react/src/styles/components/operations-continuity-reviewer.css',
+  'frontend/react/src/styles/components/operations-continuity-hidden-panels.css',
+  'frontend/react/src/styles/components/operations-evidence-management-status.css',
+  'frontend/react/src/styles/components/operations-evidence-launch-plan.css',
+]) {
+  assert(!fs.existsSync(path.join(projectRoot, retiredOperationalStylesheet)), `retired operational stylesheet must remain deleted: ${retiredOperationalStylesheet}`)
+}
+
+assert(!styles.operationsEvidence.includes('operations-evidence-reviewer-packet.css'), 'operations-evidence.css must not import the retired reviewer packet stylesheet')
+assert(!styles.operationsEvidence.includes('operations-evidence-management-status.css'), 'operations-evidence.css must not import retired management-status presentation CSS')
+assert(!styles.operationsEvidence.includes('operations-evidence-launch-plan.css'), 'operations-evidence.css must not import retired launch-plan presentation CSS')
+assert(!styles.operationsContinuity.includes('operations-continuity-hidden-panels.css'), 'operations-continuity.css must not import the retired hidden-panel compatibility layer')
+assert(!styles.operationsContinuity.includes('operations-continuity-reviewer.css'), 'operations-continuity.css must not import the retired reviewer detail stylesheet')
+
 for (const operationsReleaseSelector of [
   'CSS Foundation Refactor - Slice 36',
   'CSS Foundation Refactor - Slice 29',
   '.operations-release-board',
-  '.operations-portfolio-board',
+  '.turnaround-fleet-board',
   '.operations-audit-trail',
   '.operations-release-packet',
   '.operations-playbook-variance',
@@ -801,8 +836,6 @@ for (const operationsEvidenceSelector of [
   'CSS Foundation Refactor Slice 30',
   '.operations-after-action',
   '.operations-executive-brief',
-  '.operations-production-readiness',
-  '.operations-application-dossier',
   '.operations-lifecycle',
 ]) {
   assert(

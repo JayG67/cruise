@@ -26,8 +26,8 @@ function readCssBundle(relativePath, seen = new Set()) {
 describe('public launch readiness static contracts', () => {
   it('exposes an admin API and React client for the public launch control board', () => {
     const routes = read('routes/cruise.routes.js')
-    const controller = read('controllers/cruise.controller.js')
-    const client = read('frontend/react/src/api/client.js')
+    const controller = read('controllers/platformReadiness.controller.js')
+    const client = read('frontend/react/src/api/platformClient.js')
 
     expect(routes).toContain("'/public-launch/readiness'")
     expect(controller).toContain('exports.getPublicLaunchReadiness')
@@ -36,19 +36,14 @@ describe('public launch readiness static contracts', () => {
     expect(client).toContain("'/cruise/public-launch/readiness'")
   })
 
-  it('keeps public launch diagnostics available as code without mounting a recruiter-facing workspace', () => {
+  it('retires the unmounted standalone readiness workspace', () => {
     const app = read('frontend/react/src/App.jsx')
-    const component = read('frontend/react/src/components/ReactPublicLaunchControlCenter.jsx')
-    const styles = readCssBundle('frontend/react/src/styles/components/readiness-centers.css')
-
+    const repairScript = read('scripts/repair-repository-structure.js')
     expect(app).not.toContain('ReactPublicLaunchControlCenter')
     expect(app).not.toContain('react-workspace-public-launch-button')
-    expect(component).toContain('data-testid="react-public-launch-control-center"')
-    expect(component).toContain('Public Launch Control Center')
-    expect(component).toContain('buildLaunchDecision')
-    expect(component).toContain('react-public-launch-critical-items')
-    expect(component).toContain('react-project-status-panel')
-    expect(styles).toContain('.public-launch-control-center')
-    expect(styles).toContain('.public-launch-track-grid')
+    expect(repairScript).toContain("'frontend/react/src/components/ReactPublicLaunchControlCenter.jsx'")
+    expect(repairScript).toContain("'frontend/react/src/styles/components/readiness-public-launch.css'")
+    expect(fs.existsSync(path.join(projectRoot, 'frontend/react/src/components/ReactPublicLaunchControlCenter.jsx'))).toBe(false)
+    expect(fs.existsSync(path.join(projectRoot, 'frontend/react/src/styles/components/readiness-public-launch.css'))).toBe(false)
   })
 })

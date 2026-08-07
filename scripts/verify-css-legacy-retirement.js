@@ -74,7 +74,7 @@ const operationsDashboardDeleted = !fs.existsSync(path.join(projectRoot, 'fronte
 const operationsContinuityCss = readCssBundle('frontend/react/src/styles/components/operations-continuity.css')
 const operationsReleaseCss = readCssBundle('frontend/react/src/styles/components/operations-release.css')
 const operationsEvidenceCss = readCssBundle('frontend/react/src/styles/components/operations-evidence.css')
-const adminPresentationCss = readCssBundle('frontend/react/src/styles/components/admin-presentation.css')
+const cruiseLineOperationsCss = readCssBundle('frontend/react/src/styles/components/cruise-line-operations.css')
 
 const projectFiles = walk(projectRoot)
   .filter((filePath) => /\.(js|jsx|css)$/.test(filePath))
@@ -163,7 +163,7 @@ assert(
 assert(
   productPolishCss.includes('CSS Foundation Refactor - Slice 42') &&
     productPolishCss.includes('CSS Foundation Refactor - Slice 32') &&
-    productPolishCss.includes('.employer-demo-command-center.self-guided-overview') &&
+    productPolishCss.includes('.platform-workspace-navigator.self-guided-overview') &&
     productPolishCss.includes('.react-admin-management-card') &&
     productPolishCss.includes('.presentation-scope-controls'),
   'components/product-polish.css must own retired product polish and reviewer-facing selector cleanup'
@@ -185,7 +185,7 @@ assert(
 )
 
 const operationsWorkspaceLayerCss = `${operationsWorkspacesCss}\n${operationsQueuesCss}\n${operationsCoverageCss}`
-const adminWorkspaceLayerCss = `${adminWorkspacesCss}\n${adminPresentationCss}`
+const adminWorkspaceLayerCss = `${adminWorkspacesCss}\n${cruiseLineOperationsCss}`
 
 assert(
   operationsWorkspaceLayerCss.includes('CSS Foundation Refactor - Slice 24') &&
@@ -218,12 +218,13 @@ assert(
 )
 
 assert(
-  readinessCentersCss.includes('CSS Foundation Refactor Slice 31') &&
-    readinessCentersCss.includes('.data-architecture-readiness-center') &&
-    readinessCentersCss.includes('.production-hardening-center') &&
-    readinessCentersCss.includes('.deployment-readiness-center') &&
-    readinessCentersCss.includes('.public-launch-control-center'),
-  'components/readiness-centers.css must own retired readiness center CSS'
+  readinessCentersCss.includes('Readiness centers aggregate.') &&
+    readinessCentersCss.includes('.operations-control-board') &&
+    !readinessCentersCss.includes('.data-architecture-readiness-center') &&
+    !readinessCentersCss.includes('.production-hardening-center') &&
+    !readinessCentersCss.includes('.deployment-readiness-center') &&
+    !readinessCentersCss.includes('.public-launch-control-center'),
+  'components/readiness-centers.css must retain live operational readiness CSS without retired standalone workspace styles'
 )
 
 console.log('CSS retired file audit passed.')

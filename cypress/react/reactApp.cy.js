@@ -82,7 +82,7 @@ describe('Cruise operations portfolio route', () => {
     cy.contains('Cruise operations command center').should('not.exist')
     cy.getByTestId(rs.activeRouteOperations).should('be.visible')
     cy.getByTestId(rs.fleetDirectory).should('be.visible')
-    cy.getByTestId(rs.sqaConsole).should('be.visible')
+    cy.getByTestId(rs.operationsIntelligenceCenter).should('be.visible')
   })
 
 
@@ -94,8 +94,8 @@ describe('Cruise operations portfolio route', () => {
     cy.getByTestId(rs.activeRouteOperations).should('be.visible')
     cy.getByTestId(rs.workspaceFleetButton).click()
     cy.getByTestId(rs.fleetDirectory).should('be.visible')
-    cy.getByTestId(rs.workspaceQualityButton).click()
-    cy.getByTestId(rs.sqaConsole).should('be.visible')
+    cy.getByTestId(rs.workspaceIntelligenceButton).click()
+    cy.getByTestId(rs.operationsIntelligenceCenter).should('be.visible')
   })
 
   it('switches from admin to passenger view when a passenger demo user is selected', () => {
@@ -305,7 +305,7 @@ describe('Cruise operations portfolio route', () => {
     cy.getByTestId(rs.activeRouteOperations).should('be.visible')
     cy.getByTestId(rs.fleetDirectory).should('be.visible')
     cy.getByTestId(rs.createCruiseLineWorkflow).should('be.visible')
-    cy.getByTestId(rs.sqaConsole).should('be.visible')
+    cy.getByTestId(rs.operationsIntelligenceCenter).should('be.visible')
   })
 
 
@@ -989,34 +989,12 @@ describe('Cruise operations portfolio route', () => {
   })
 
 
-  it('resets React baseline data through a native React confirmation panel', () => {
-    cy.intercept('POST', '/admin/reset-demo-data', {
-      statusCode: 200,
-      body: { reset: true, customers: 24, bookings: 12 }
-    }).as('resetReactDemoData')
-
-    cy.getByTestId(rs.sqaConsole).should('be.visible')
-    cy.getByTestId(rs.sqaResetDemoDataButton).scrollIntoView().click()
-    cy.getByTestId(rs.sqaResetConfirmation)
-      .should('be.visible')
-      .and('contain.text', 'Reset baseline data back to the baseline dataset?')
-
-    cy.getByTestId(rs.sqaResetConfirmationCancel).click()
-    cy.getByTestId(rs.sqaResetConfirmation).should('not.exist')
-    cy.getByTestId(rs.sqaStatus).should('contain.text', 'Ready for validation')
-
-    cy.getByTestId(rs.sqaResetDemoDataButton).click()
-    cy.getByTestId(rs.sqaResetConfirmationConfirm).click()
-    cy.wait('@resetReactDemoData')
-    cy.getByTestId(rs.sqaOutput).should('contain.text', 'Baseline Data Recovery Result')
-    cy.getByTestId(rs.sqaOutput).should('contain.text', '"passed": true')
-    cy.getByTestId(rs.sqaResetConfirmation).should('not.exist')
-  })
-
-  it('runs a React quality health check and writes output', () => {
-    cy.getByTestId(rs.activeRouteOperations).should('be.visible')
-    cy.getByTestId(rs.sqaHealthButton).scrollIntoView().click()
-    cy.getByTestId(rs.sqaOutput).should('contain.text', 'Health Check Result')
-    cy.getByTestId(rs.sqaOutput).should('contain.text', '"passed": true')
+  it('reviews live turnaround intelligence and refreshes the operational dataset', () => {
+    cy.getByTestId(rs.operationsIntelligenceCenter).should('be.visible')
+    cy.getByTestId(rs.operationsIntelligenceDetail).should('contain.text', 'Priority actions')
+    cy.intercept({ method: 'GET', pathname: '/cruise/turnaround-operations' }).as('refreshOperationalDataset')
+    cy.getByTestId(rs.operationsIntelligenceRefreshButton).click()
+    cy.wait('@refreshOperationalDataset')
+    cy.getByTestId(rs.operationsIntelligenceDetail).should('be.visible')
   })
 })

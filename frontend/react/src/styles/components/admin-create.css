@@ -190,3 +190,76 @@
   background: #ffffff;
   border: 1px solid #cbd5e1;
 }
+
+/* Build 460: Create Workflow is a light editing card.
+   Do not inherit the dark command-card foreground into this white surface.
+   Pair every visible region with an explicit foreground so headings, helper
+   copy, the workflow badge, editor legends, and result text remain readable. */
+.react-create-workflow-section .react-create-card,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .react-create-card {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  border-color: #b8d5e7 !important;
+  color: #071827 !important;
+  -webkit-text-fill-color: #071827 !important;
+}
+
+.react-create-workflow-section .react-create-card-heading :is(h3, p),
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .react-create-card-heading :is(h3, p) {
+  color: #071827 !important;
+  -webkit-text-fill-color: #071827 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-create-workflow-section .react-create-card-heading .eyebrow,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .react-create-card-heading .eyebrow {
+  color: #075985 !important;
+  -webkit-text-fill-color: #075985 !important;
+}
+
+.react-create-workflow-section .create-workflow-pill,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .create-workflow-pill {
+  background: #eef9fd !important;
+  background-color: #eef9fd !important;
+  background-image: none !important;
+  border-color: #8fd3e8 !important;
+  color: #075985 !important;
+  -webkit-text-fill-color: #075985 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-create-workflow-section .react-create-form-grid .ce-editor-card,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .react-create-form-grid .ce-editor-card {
+  background: #f8fbff !important;
+  background-color: #f8fbff !important;
+  background-image: none !important;
+  border-color: #c7dced !important;
+  color: #071827 !important;
+  -webkit-text-fill-color: #071827 !important;
+}
+
+.react-create-workflow-section .react-create-form-grid .ce-editor-card :is(legend, h3, h4, h5, p, label, label > span, strong),
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .react-create-form-grid .ce-editor-card :is(legend, h3, h4, h5, p, label, label > span, strong) {
+  color: #071827 !important;
+  -webkit-text-fill-color: #071827 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-create-workflow-section .react-create-actions .result-summary,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .react-create-actions .result-summary {
+  color: #164e63 !important;
+  -webkit-text-fill-color: #164e63 !important;
+  font-weight: 800 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.react-create-workflow-section .react-create-actions .primary-action-button,
+:is(.react-production-shell, .react-app-shell) .react-create-workflow-section .react-create-actions .primary-action-button {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}

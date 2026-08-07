@@ -120,8 +120,28 @@ const bookings = [
   }
 ]
 
+
+function getFixtureItinerary(sailingId, lines = cruiseLines) {
+  for (const line of lines) {
+    for (const ship of line.ships || []) {
+      const sailing = (ship.sailings || []).find(candidate => candidate.id === sailingId)
+      if (sailing) return sailing.itinerary || []
+    }
+  }
+  return []
+}
+
+function interceptOperatingItineraries(lines = cruiseLines) {
+  cy.intercept('GET', /\/cruise\/sailings\/([^/]+)\/itinerary$/, request => {
+    const sailingId = request.url.match(/\/cruise\/sailings\/([^/]+)\/itinerary$/)?.[1]
+    request.reply(getFixtureItinerary(sailingId, lines))
+  }).as('operatingScopeItinerary')
+}
+
 function visitOperatingWorkspace(overrides = {}) {
+  const activeCruiseLines = overrides.cruiseLines || cruiseLines
   interceptReactCoreApis({ cruiseLines, bookings, customers, ...overrides })
+  interceptOperatingItineraries(activeCruiseLines)
   cy.visit('/')
   cy.wait(['@reactDemoUsers', '@reactCustomers', '@reactBookings', '@reactCruiseLines'])
   selectDemoUserByVisibleRole('Admin')
@@ -246,6 +266,154 @@ describe('Cruise line operating workspace complete coverage', () => {
     cy.contains('article', 'Sailing plan').should('contain.text', 'Atlas One · 2026-09-15.')
   })
 
+
+  it('makes the selected sailing scope visible and updates its operational summary immediately', () => {
+    visitOperatingWorkspace()
+
+    cy.getByTestId(rs.presentationSelectedScope)
+      .should('be.visible')
+      .and($panel => {
+        const panelStyle = getComputedStyle($panel[0])
+        expect(panelStyle.backgroundColor).to.equal('rgb(248, 251, 254)')
+        expect(panelStyle.color).to.equal('rgb(7, 24, 39)')
+
+        for (const element of $panel[0].querySelectorAll('h3, p, dt, dd')) {
+          expect(getComputedStyle(element).color).to.equal('rgb(7, 24, 39)')
+        }
+      })
+      .and('contain.text', 'Atlas One · 2026-08-05')
+      .and('contain.text', 'Miami, Florida to Nassau, Bahamas')
+      .and('contain.text', 'Bookings')
+      .and('contain.text', '1')
+      .and('contain.text', 'Passengers')
+      .and('contain.text', '2')
+
+    cy.getByTestId(rs.presentationSailingPicker).select('atlas-sailing-2')
+
+    cy.getByTestId(rs.presentationSelectedScope)
+      .should('contain.text', 'Atlas One · 2026-09-15')
+      .and('contain.text', 'Miami, Florida to CocoCay, Bahamas')
+      .and('contain.text', 'Bookings')
+      .and('contain.text', '0')
+      .and('contain.text', 'Itinerary days')
+      .and('contain.text', '3')
+  })
+
+  it('uses the authoritative itinerary API count when nested sailing data is incomplete', () => {
+    const persistentSailingId = '55555555-5555-4555-8555-555555555555'
+    const incompleteCruiseLines = structuredClone(cruiseLines)
+    incompleteCruiseLines[0].ships[0].sailings[0].id = persistentSailingId
+    incompleteCruiseLines[0].ships[0].sailings[0].days = 3
+    incompleteCruiseLines[0].ships[0].sailings[0].itinerary = incompleteCruiseLines[0].ships[0].sailings[0].itinerary.slice(0, 1)
+    const authoritativeItinerary = Array.from({ length: 13 }, (_, index) => ({
+      id: `atlas-day-${index + 1}`,
+      day: index + 1,
+      title: `Day ${index + 1}`,
+      port: index === 0 ? 'Miami, Florida' : 'At Sea',
+      activitySchedule: []
+    }))
+
+    interceptReactCoreApis({ cruiseLines: incompleteCruiseLines, bookings, customers })
+    cy.intercept('GET', `/cruise/sailings/${persistentSailingId}/itinerary`, authoritativeItinerary).as('authoritativeSelectedItinerary')
+    cy.visit('/')
+    cy.wait(['@reactDemoUsers', '@reactCustomers', '@reactBookings', '@reactCruiseLines', '@authoritativeSelectedItinerary'])
+    selectDemoUserByVisibleRole('Admin')
+
+    cy.getByTestId(rs.presentationSelectedScope)
+      .should('contain.text', 'Voyage length')
+      .and('contain.text', '13 days')
+      .and('contain.text', 'Itinerary days')
+      .and('contain.text', '13')
+  })
+
+  it('resolves booking-derived sailing choices to authoritative itinerary counts on every selection', () => {
+    const lineId = '11111111-1111-4111-8111-111111111111'
+    const shipId = '22222222-2222-4222-8222-222222222222'
+    const longSailingId = '33333333-3333-4333-8333-333333333333'
+    const shortSailingId = '44444444-4444-4444-8444-444444444444'
+    const derivedLines = [{ id: lineId, name: 'Authoritative Cruises', brandFamily: 'Authoritative Group' }]
+    const derivedBookings = [
+      {
+        id: 'authoritative-booking-long',
+        cruiseLine: { name: 'Authoritative Cruises' },
+        ship: { name: 'Authoritative One' },
+        embarkationPort: 'Miami, Florida',
+        debarkationPort: 'Barcelona, Spain',
+        sailing: { departureDate: '2026-10-01' },
+        passengers: [{ customerId: 'guest-a', customer: customers[0], passengerType: 'Primary' }]
+      },
+      {
+        id: 'authoritative-booking-short',
+        cruiseLine: { name: 'Authoritative Cruises' },
+        ship: { name: 'Authoritative One' },
+        embarkationPort: 'Miami, Florida',
+        debarkationPort: 'San Juan, Puerto Rico',
+        sailing: { departureDate: '2026-11-01' },
+        passengers: [{ customerId: 'guest-b', customer: customers[1], passengerType: 'Primary' }]
+      }
+    ]
+    const authoritativeSailings = [
+      { id: longSailingId, shipId, departureDate: '2026-10-01', departurePort: 'Miami, Florida', arrivalPort: 'Barcelona, Spain', days: 13 },
+      { id: shortSailingId, shipId, departureDate: '2026-11-01', departurePort: 'Miami, Florida', arrivalPort: 'San Juan, Puerto Rico', days: 7 }
+    ]
+    const longItinerary = Array.from({ length: 13 }, (_, index) => ({
+      id: `long-day-${index + 1}`,
+      day: index + 1,
+      title: `Long voyage day ${index + 1}`,
+      port: index === 12 ? 'Barcelona, Spain' : 'At Sea',
+      activitySchedule: []
+    }))
+    const shortItinerary = Array.from({ length: 7 }, (_, index) => ({
+      id: `short-day-${index + 1}`,
+      day: index + 1,
+      title: `Short voyage day ${index + 1}`,
+      port: index === 6 ? 'San Juan, Puerto Rico' : 'At Sea',
+      activitySchedule: []
+    }))
+
+    interceptReactCoreApis({ cruiseLines: derivedLines, bookings: derivedBookings, customers })
+    cy.intercept('GET', `/cruise/ships/${lineId}`, [{ id: shipId, name: 'Authoritative One', cruiseLineId: lineId }]).as('authoritativeScopeShips')
+    cy.intercept('GET', `/cruise/ship/${shipId}/sailings`, authoritativeSailings).as('authoritativeScopeSailings')
+    cy.intercept('GET', `/cruise/sailings/${longSailingId}/itinerary`, longItinerary).as('authoritativeLongItinerary')
+    cy.intercept('GET', `/cruise/sailings/${shortSailingId}/itinerary`, shortItinerary).as('authoritativeShortItinerary')
+
+    cy.visit('/')
+    cy.wait(['@reactDemoUsers', '@reactCustomers', '@reactBookings', '@reactCruiseLines', '@authoritativeScopeShips', '@authoritativeScopeSailings', '@authoritativeLongItinerary'])
+    selectDemoUserByVisibleRole('Admin')
+
+    cy.getByTestId(rs.presentationSelectedScope)
+      .should('contain.text', 'Voyage length')
+      .and('contain.text', '13 days')
+      .and('contain.text', 'Itinerary days')
+      .and('contain.text', '13')
+
+    cy.getByTestId(rs.presentationSailingPicker).select('Authoritative One|2026-11-01')
+    cy.wait(['@authoritativeScopeShips', '@authoritativeScopeSailings', '@authoritativeShortItinerary'])
+
+    cy.getByTestId(rs.presentationSelectedScope)
+      .should('contain.text', 'Voyage length')
+      .and('contain.text', '7 days')
+      .and('contain.text', 'Itinerary days')
+      .and('contain.text', '7')
+      .and('not.contain.text', '13 days')
+  })
+
+  it('opens the fleet directory already focused on the selected line, ship, sailing, and itinerary', () => {
+    visitOperatingWorkspace()
+
+    cy.intercept('GET', '/cruise/ships/line-atlas', [{ id: 'ship-atlas-one', name: 'Atlas One', cruiseLineId: 'line-atlas' }]).as('selectedScopeShips')
+    cy.intercept('GET', '/cruise/ship/ship-atlas-one/sailings', [cruiseLines[0].ships[0].sailings[0]]).as('selectedScopeSailings')
+    cy.intercept('GET', '/cruise/sailings/atlas-sailing-1/itinerary', cruiseLines[0].ships[0].sailings[0].itinerary).as('selectedScopeItinerary')
+
+    cy.getByTestId(rs.presentationOpenSelectedSailing).click()
+    cy.wait(['@selectedScopeShips', '@selectedScopeSailings', '@selectedScopeItinerary'])
+
+    cy.getByTestId(rs.fleetDirectory).should('be.visible')
+    cy.getByTestId(rs.selectedShipsPanel).should('contain.text', 'Atlas Voyages')
+    cy.getByTestId(rs.sailingsPanel).should('contain.text', 'Atlas One Sailings')
+    cy.get('#react-itinerary-heading').should('contain.text', '2026-08-05 Itinerary')
+  })
+
   it('derives usable ship and sailing scope from booking data when line records have no nested fleet', () => {
     const derivedLines = [{ id: 'line-derived', name: 'Derived Cruises', brandFamily: 'Derived Group' }]
     const derivedBookings = [
@@ -289,6 +457,13 @@ describe('Cruise line operating workspace complete coverage', () => {
   it('routes every operating action card to its intended live workspace', () => {
     visitOperatingWorkspace()
 
+    cy.intercept({ method: 'GET', pathname: '/cruise/ships/line-atlas' }, [
+      { id: 'ship-atlas-one', name: 'Atlas One', cruiseLineId: 'line-atlas' }
+    ]).as('fleetActionScopeShips')
+    cy.intercept({ method: 'GET', pathname: '/cruise/ship/ship-atlas-one/sailings' }, [
+      cruiseLines[0].ships[0].sailings[0]
+    ]).as('fleetActionScopeSailings')
+
     operatingActionCard('Fleet').should('have.length', 1).within(() => cy.contains('button', 'Open fleet').click())
     cy.getByTestId(rs.fleetDirectory).should('be.visible')
 
@@ -296,9 +471,23 @@ describe('Cruise line operating workspace complete coverage', () => {
     operatingActionCard('Guests').should('have.length', 1).within(() => cy.contains('button', 'Open roles').click())
     cy.getByTestId(rs.roleSelector).should('be.visible')
 
+    cy.intercept({ method: 'GET', pathname: '/cruise/ships/line-atlas' }, [
+      { id: 'ship-atlas-one', name: 'Atlas One', cruiseLineId: 'line-atlas' }
+    ]).as('actionScopeShips')
+    cy.intercept({ method: 'GET', pathname: '/cruise/ship/ship-atlas-one/sailings' }, [
+      cruiseLines[0].ships[0].sailings[0]
+    ]).as('actionScopeSailings')
+    cy.intercept({ method: 'GET', pathname: '/cruise/sailings/atlas-sailing-1/itinerary' },
+      cruiseLines[0].ships[0].sailings[0].itinerary
+    ).as('actionScopeItinerary')
+
     cy.getByTestId(rs.cruiseLinePresentationSuite).scrollIntoView()
-    operatingActionCard('Sailing plan').should('have.length', 1).within(() => cy.contains('button', 'Open sailings').click())
+    operatingActionCard('Sailing plan').should('have.length', 1).within(() => cy.contains('button', 'Open selected sailing').click())
+    cy.wait(['@actionScopeShips', '@actionScopeSailings', '@actionScopeItinerary'])
     cy.getByTestId(rs.fleetDirectory).should('be.visible')
+    cy.getByTestId(rs.selectedShipsPanel).should('contain.text', 'Atlas Voyages')
+    cy.getByTestId(rs.sailingsPanel).should('contain.text', 'Atlas One Sailings')
+    cy.get('#react-itinerary-heading').should('contain.text', '2026-08-05 Itinerary')
 
     cy.getByTestId(rs.cruiseLinePresentationSuite).scrollIntoView()
     operatingActionCard('Turnaround').should('have.length', 1).within(() => cy.contains('button', 'Open operations').click())
@@ -308,7 +497,18 @@ describe('Cruise line operating workspace complete coverage', () => {
   it('routes all bottom action buttons to their intended live workspaces', () => {
     visitOperatingWorkspace()
 
+    cy.intercept({ method: 'GET', pathname: '/cruise/ships/line-atlas' }, [
+      { id: 'ship-atlas-one', name: 'Atlas One', cruiseLineId: 'line-atlas' }
+    ]).as('bottomFleetScopeShips')
+    cy.intercept({ method: 'GET', pathname: '/cruise/ship/ship-atlas-one/sailings' }, [
+      cruiseLines[0].ships[0].sailings[0]
+    ]).as('bottomFleetScopeSailings')
+    cy.intercept({ method: 'GET', pathname: '/cruise/sailings/atlas-sailing-1/itinerary' },
+      cruiseLines[0].ships[0].sailings[0].itinerary
+    ).as('bottomFleetScopeItinerary')
+
     cy.getByTestId(rs.presentationOpenFleet).click()
+    cy.wait(['@bottomFleetScopeShips', '@bottomFleetScopeSailings', '@bottomFleetScopeItinerary'])
     cy.getByTestId(rs.fleetDirectory).should('be.visible')
 
     cy.getByTestId(rs.cruiseLinePresentationSuite).scrollIntoView()

@@ -80,12 +80,12 @@ function buildIdentityGate({ customers = [], bookings = [], bookingPassengers = 
     evidence: [
       `${bookingCustomerLinks} booking records link to customer IDs`,
       `${passengerCustomerLinks} booking passenger records link to customer IDs`,
-      `${normalizedDemoUsers} demo users have normalized user or customer references`,
+      `${normalizedDemoUsers} assigned people have normalized user or customer references`,
       `${appUserCoverage} normalized app user records are available`
     ],
     recommendations: score >= 85
-      ? ['Continue replacing portfolio/demo-only user references as new workflows are added.']
-      : ['Backfill normalizedUserId for demo users and keep booking ownership on customerId / createdByCustomerId.']
+      ? ['Continue replacing presentation-only user references with durable operational identities as workflows expand.']
+      : ['Backfill normalizedUserId for assigned people and keep booking ownership on customerId / createdByCustomerId.']
   })
 }
 
@@ -125,11 +125,11 @@ function buildRoleGate({ demoUsers = [], appRoles = [], appUserRoles = [] }) {
     label: 'Role normalization',
     score,
     status: score >= 85 ? 'ready' : score >= 55 ? 'watch' : 'needs-hardening',
-    summary: `${normalizedRoleIds} demo users are mapped to normalized role identifiers.`,
+    summary: `${normalizedRoleIds} assigned people are mapped to normalized role identifiers.`,
     evidence: [
       `${roleCatalogCoverage} app role catalog records detected`,
       `${userRoleAssignments} normalized user-role assignments detected`,
-      `${normalizedRoleIds} demo users have normalized role coverage`
+      `${normalizedRoleIds} assigned people have normalized role coverage`
     ],
     recommendations: score >= 85
       ? ['Keep role-gated UI paths driven by role IDs instead of display labels.']
@@ -226,9 +226,9 @@ function buildMigrationBacklog(gates = []) {
       owner: 'Platform data',
       effort: 'M',
       risk: 'medium',
-      dependency: 'Confirm canonical customer, passenger, app user, and demo-user mapping rules.',
+      dependency: 'Confirm canonical customer, passenger, application-user, and assigned-person mapping rules.',
       migration: 'Create nullable stable reference fields, backfill from current relationships, then make writes use IDs before tightening constraints.',
-      acceptance: 'Bookings, passengers, demo users, and app users can be joined without display-name matching.'
+      acceptance: 'Bookings, passengers, assigned people, and application users can be joined without display-name matching.'
     },
     dates: {
       title: 'Promote operational dates to timezone-aware timestamps',
@@ -247,7 +247,7 @@ function buildMigrationBacklog(gates = []) {
       effort: 'S',
       risk: 'medium',
       dependency: 'Finalize role catalog IDs and role-to-workspace permissions.',
-      migration: 'Use app_roles and app_user_roles as the source of truth while keeping demo labels as presentation-only metadata.',
+      migration: 'Use app_roles and app_user_roles as the source of truth while keeping display labels as presentation-only metadata.',
       acceptance: 'Every protected admin and turnaround workflow can authorize against role IDs rather than labels.'
     },
     statuses: {
@@ -268,7 +268,7 @@ function buildMigrationBacklog(gates = []) {
       risk: 'medium',
       dependency: 'Define required event payload shape for task, staffing, signoff, handoff, and escalation changes.',
       migration: 'Record normalized audit events for each mutating workflow and expose event streams by operation, entity, and tenant.',
-      acceptance: 'Operational changes can be replayed as a scoped event history for reviewer and closeout packets.'
+      acceptance: 'Operational changes can be replayed as a scoped event history for governance reviews and closeout records.'
     },
     'tenant-boundaries': {
       title: 'Enforce cruise-line tenant boundaries',

@@ -16,12 +16,12 @@ describe('production dependency security contracts', () => {
     const packageJson = readJson('package.json')
     const packageLock = readJson('package-lock.json')
 
-    expect(packageJson.dependencies.vite).toBe('7.3.6')
+    expect(packageJson.dependencies.vite).toBe('8.1.5')
     expect(packageJson.overrides.qs).toBe('6.15.3')
-    expect(packageJson.overrides.postcss).toBe('8.5.22')
-    expect(packageLock.packages['node_modules/vite'].version).toBe('7.3.6')
+    expect(packageJson.overrides.postcss).toBe('8.5.23')
+    expect(packageLock.packages['node_modules/vite'].version).toBe('8.1.5')
     expect(packageLock.packages['node_modules/qs'].version).toBe('6.15.3')
-    expect(packageLock.packages['node_modules/postcss'].version).toBe('8.5.22')
+    expect(packageLock.packages['node_modules/postcss'].version).toBe('8.5.23')
   })
 
   it('runs the production dependency audit locally, in test:all, and in CI', () => {
@@ -43,7 +43,7 @@ describe('production dependency security contracts', () => {
     const nodeVersion = read('.nvmrc').trim()
 
     expect(packageLockText).not.toContain('packages.applied-caas-gateway1.internal.api.openai.org')
-    expect(packageLockText).toContain('https://registry.npmjs.org/vite/-/vite-7.3.6.tgz')
+    expect(packageLockText).toContain('https://registry.npmjs.org/vite/-/vite-8.1.5.tgz')
     expect(npmConfig).toContain('registry=https://registry.npmjs.org/')
     expect(nodeVersion).toBe('22')
   })

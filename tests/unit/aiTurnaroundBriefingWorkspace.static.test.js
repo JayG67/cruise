@@ -7,8 +7,9 @@ const read = relativePath => fs.readFileSync(path.join(root, relativePath), 'utf
 describe('AI turnaround briefing React workspace', () => {
   const workspace = read('frontend/react/src/components/operations/AiTurnaroundBriefingWorkspace.jsx')
   const hook = read('frontend/react/src/hooks/useAiTurnaroundBriefing.js')
-  const client = read('frontend/react/src/api/client.js')
+  const client = read('frontend/react/src/api/platformClient.js')
   const dashboard = read('frontend/react/src/components/operations/OperationalTurnaroundDashboard.jsx')
+  const dashboardNavigation = read('frontend/react/src/components/operations/operationalDashboardNavigation.js')
   const styles = read('frontend/react/src/styles/components/operations-ai-briefing.css')
 
   it('provides generation, regeneration, history, findings, evidence, and human review UX', () => {
@@ -33,7 +34,8 @@ describe('AI turnaround briefing React workspace', () => {
   })
 
   it('integrates the workspace into operational navigation with responsive styles', () => {
-    expect(dashboard).toContain("id: 'ai-briefing'")
+    expect(dashboard).toContain("from './operationalDashboardNavigation.js'")
+    expect(dashboardNavigation).toContain("id: 'ai-briefing'")
     expect(dashboard).toContain('<AiTurnaroundBriefingWorkspace')
     expect(styles).toContain('@media (max-width: 800px)')
     expect(styles).toContain('.ai-briefing-layout')

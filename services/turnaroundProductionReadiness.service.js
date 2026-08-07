@@ -70,7 +70,7 @@ function buildReadinessInputs({
     completedTasks,
     launchStatus: normalizeStatus(launchPlan?.launchStatus, 'REVIEW'),
     scenarioStatus: normalizeStatus(scenarioPlan?.scenarioStatus, 'REVIEW'),
-    managementStatus: normalizeStatus(managementStatus?.maturityStatus, 'HARDENING IN PROGRESS'),
+    managementStatus: normalizeStatus(managementStatus?.maturityStatus, 'IMPROVEMENT IN PROGRESS'),
     releaseStatus: normalizeStatus(releasePacket?.releaseStatus, 'REVIEW'),
     incidentSeverity: normalizeStatus(incidentCommand?.incidentSeverity, 'STABLE')
   }
@@ -85,7 +85,7 @@ function buildProductionGates(inputs = {}) {
     ['launch-plan', 'Launch plan', inputs.launchScore, `${inputs.launchStatus} launch gate readiness.`],
     ['scenario-resilience', 'Scenario resilience', inputs.scenarioScore, `${inputs.scenarioStatus} drill and contingency coverage.`],
     ['management-maturity', 'Management maturity', inputs.managementScore, `${inputs.managementStatus} continuation state.`],
-    ['reviewer-package', 'Reviewer package', Math.round((inputs.reviewerScore + inputs.outreachScore) / 2), 'Reviewer packet and outreach board are ready for cruise-line conversations.']
+    ['governance-evidence', 'Governance evidence', Math.round((inputs.reviewerScore + inputs.outreachScore) / 2), 'Executive evidence and stakeholder coordination records are ready for operational governance review.']
   ]
 
   return gateDefinitions.map(([id, label, score, detail]) => {
@@ -103,16 +103,16 @@ function buildProductionGates(inputs = {}) {
 function buildProductionBlockers(inputs = {}) {
   const blockers = []
 
-  if (inputs.blockedTasks > 0) blockers.push({ id: 'blocked-tasks', severity: 'HIGH', owner: 'Turnaround Manager', detail: `${inputs.blockedTasks} tasks are blocked or at risk before production demo signoff.` })
-  if (inputs.unresolvedEscalations > 0) blockers.push({ id: 'open-escalations', severity: 'HIGH', owner: 'Incident Commander', detail: `${inputs.unresolvedEscalations} escalation items need closure or explicit reviewer-safe explanation.` })
+  if (inputs.blockedTasks > 0) blockers.push({ id: 'blocked-tasks', severity: 'HIGH', owner: 'Turnaround Manager', detail: `${inputs.blockedTasks} tasks are blocked or at risk before operational release signoff.` })
+  if (inputs.unresolvedEscalations > 0) blockers.push({ id: 'open-escalations', severity: 'HIGH', owner: 'Incident Commander', detail: `${inputs.unresolvedEscalations} escalation items need closure or a documented risk acceptance decision.` })
   if (inputs.openDependencies > 0) blockers.push({ id: 'open-dependencies', severity: 'MEDIUM', owner: 'Department Leads', detail: `${inputs.openDependencies} dependencies still need release-gate evidence.` })
   if (inputs.incompleteHandoffs > 0) blockers.push({ id: 'handoff-gaps', severity: 'MEDIUM', owner: 'Shift Leads', detail: `${inputs.incompleteHandoffs} handoffs are not yet complete.` })
   if (inputs.staffingGaps > 0) blockers.push({ id: 'staffing-gaps', severity: 'MEDIUM', owner: 'Staffing Coordinator', detail: `${inputs.staffingGaps} staffing plans are under target.` })
-  if (inputs.launchScore < 78) blockers.push({ id: 'launch-plan-watch', severity: 'HIGH', owner: 'Launch Lead', detail: 'Launch plan is below the minimum stable demo threshold.' })
-  if (inputs.scenarioScore < 78) blockers.push({ id: 'scenario-watch', severity: 'MEDIUM', owner: 'Operations Lead', detail: 'Scenario plan needs stronger contingency evidence before production demo signoff.' })
+  if (inputs.launchScore < 78) blockers.push({ id: 'launch-plan-watch', severity: 'HIGH', owner: 'Launch Lead', detail: 'Launch plan is below the minimum operational release threshold.' })
+  if (inputs.scenarioScore < 78) blockers.push({ id: 'scenario-watch', severity: 'MEDIUM', owner: 'Operations Lead', detail: 'Scenario plan needs stronger contingency evidence before operational release signoff.' })
 
   if (!blockers.length) {
-    blockers.push({ id: 'no-critical-blockers', severity: 'INFO', owner: 'Turnaround Manager', detail: 'No critical production-demo blockers are present; keep monitoring watch items.' })
+    blockers.push({ id: 'no-critical-blockers', severity: 'INFO', owner: 'Turnaround Manager', detail: 'No critical operational release blockers are present; keep monitoring watch items.' })
   }
 
   return blockers.slice(0, 8)
@@ -123,14 +123,14 @@ function buildProductionRunbook(inputs = {}, gates = [], blockers = []) {
   const firstBlocker = blockers.find(blocker => blocker.severity !== 'INFO')
 
   return [
-    { id: 'reset-baseline', label: 'Reset baseline', owner: 'Admin', detail: 'Reset demo data, verify fleet hierarchy, and open the selected turnaround operation from a clean state.' },
+    { id: 'reset-baseline', label: 'Reset baseline', owner: 'Admin', detail: 'Restore the verified baseline, confirm fleet hierarchy, and open the selected turnaround operation from a clean state.' },
     { id: 'prove-admin-crud', label: 'Prove admin CRUD', owner: 'Admin', detail: 'Create or update cruise line, ship, sailing, customer, booking, itinerary day, and activity data through the UI.' },
     { id: 'prove-passenger-path', label: 'Prove passenger path', owner: 'Passenger', detail: 'Use passenger search, booking filters, profile update, favorites, and visible booking details.' },
     { id: 'prove-command-path', label: 'Prove command path', owner: 'Turnaround Manager', detail: `Drive ${inputs.shipName} command plan, task creation, release gates, metrics, timeline, and incident review.` },
     { id: 'prove-lead-paths', label: 'Prove department lead paths', owner: 'Operational Leads', detail: 'Update task status, blockers, staffing, dependencies, handoffs, escalation log, shift notes, and readiness signoffs.' },
-    { id: 'prove-reviewer-path', label: 'Prove reviewer path', owner: 'Reviewer', detail: 'Finish with executive brief, reviewer packet, outreach board, launch plan, scenario plan, and production readiness cockpit.' },
+    { id: 'confirm-governance-path', label: 'Confirm governance path', owner: 'Operations Governance', detail: 'Finish with the executive brief, assurance evidence, stakeholder coordination, release plan, scenario plan, and production readiness cockpit.' },
     { id: 'handle-weakest-gate', label: 'Handle weakest gate', owner: weakestGate?.label || 'Turnaround Manager', detail: weakestGate ? `Call out ${weakestGate.label.toLowerCase()} at ${weakestGate.readinessScore}% and explain mitigation.` : 'Confirm no weak gate is hidden.' },
-    { id: 'handle-first-blocker', label: 'Handle first blocker', owner: firstBlocker?.owner || 'Turnaround Manager', detail: firstBlocker?.detail || 'Confirm no critical blocker is hidden from the reviewer.' }
+    { id: 'handle-first-blocker', label: 'Handle first blocker', owner: firstBlocker?.owner || 'Turnaround Manager', detail: firstBlocker?.detail || 'Confirm no critical blocker is omitted from the release decision.' }
   ]
 }
 
@@ -149,18 +149,18 @@ function buildTurnaroundProductionReadiness(input = {}) {
   const blockers = buildProductionBlockers(inputs)
   const productionScore = clampScore(Math.round(gates.reduce((total, gate) => total + gate.readinessScore, 0) / Math.max(gates.length, 1)))
   const productionStatus = productionScore >= 90 && blockers.every(blocker => blocker.severity !== 'HIGH')
-    ? 'PRODUCTION_DEMO_READY'
+    ? 'OPERATIONALLY_READY'
     : productionScore >= 78
       ? 'READY_WITH_WATCH_ITEMS'
-      : 'NEEDS_HARDENING'
+      : 'ACTION_REQUIRED'
 
   return {
     productionScore,
     productionStatus,
     headline: `${inputs.shipName} turnaround production readiness is ${productionScore}%`,
-    summary: `${inputs.cruiseLineName} production-demo readiness consolidates release, launch, scenario, management, reviewer, workflow, signoff, incident, and testing evidence for ${inputs.turnaroundDate}.`,
-    nextAction: productionStatus === 'PRODUCTION_DEMO_READY'
-      ? 'Use the runbook to execute the reviewer demo without adding new brittle Playwright workflow depth.'
+    summary: `${inputs.cruiseLineName} production readiness consolidates release, scenario, management, governance, workflow, signoff, incident, and testing evidence for ${inputs.turnaroundDate}.`,
+    nextAction: productionStatus === 'OPERATIONALLY_READY'
+      ? 'Use the runbook to complete the operational governance review while preserving focused browser-test ownership.'
       : 'Resolve high-severity blockers first, then rerun Cypress lifecycle and responsive Playwright guards.',
     evidence: inputs,
     gates,

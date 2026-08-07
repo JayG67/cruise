@@ -8,6 +8,8 @@ import {
   updateItineraryDay
 } from '../../api/client.js'
 
+import { createFleetItineraryActionLifecycle } from './fleetItineraryActionLifecycle.js'
+
 import {
   EMPTY_ACTIVITY_DRAFT,
   EMPTY_ITINERARY_DAY_DRAFT,
@@ -44,6 +46,12 @@ export default function useFleetItineraryActions({
     return nextItinerary
   }
 
+  const runItineraryAction = createFleetItineraryActionLifecycle({
+    reloadItinerary: reloadSelectedItinerary,
+    setActionId: setItineraryActionId,
+    setActionMessage: setItineraryActionMessage
+  })
+
   async function handleViewItinerary(sailing) {
     setSelectedSailingForItinerary(sailing)
     setItineraryDays([])
@@ -51,7 +59,9 @@ export default function useFleetItineraryActions({
     setItineraryActionMessage('')
     setItineraryLoading(true)
     try {
-      setItineraryDays(await getItineraryForSailing(sailing.id))
+      const nextItinerary = await getItineraryForSailing(sailing.id)
+      setItineraryDays(nextItinerary)
+      return nextItinerary
     } catch (loadError) {
       setItineraryError(loadError.message || 'No itinerary found for this sailing yet.')
     } finally {
@@ -74,18 +84,14 @@ export default function useFleetItineraryActions({
       setItineraryActionMessage('Day number and title are required.')
       return
     }
-    setItineraryActionId('create-day')
-    setItineraryActionMessage('Creating itinerary day…')
-    try {
-      await createItineraryDay(selectedSailingForItinerary.id, payload)
-      setItineraryDayDraft(EMPTY_ITINERARY_DAY_DRAFT)
-      await reloadSelectedItinerary()
-      setItineraryActionMessage(`Day ${payload.day} was created for this React itinerary.`)
-    } catch (createError) {
-      setItineraryActionMessage(createError.message || 'Unable to create itinerary day.')
-    } finally {
-      setItineraryActionId('')
-    }
+    await runItineraryAction({
+      actionId: 'create-day',
+      pendingMessage: 'Creating itinerary day…',
+      execute: () => createItineraryDay(selectedSailingForItinerary.id, payload),
+      afterSuccess: () => setItineraryDayDraft(EMPTY_ITINERARY_DAY_DRAFT),
+      successMessage: `Day ${payload.day} was created for this itinerary.`,
+      errorMessage: 'Unable to create itinerary day.'
+    })
   }
 
   function openItineraryDayEdit(day) {
@@ -111,19 +117,17 @@ export default function useFleetItineraryActions({
       setItineraryActionMessage('Day number and title are required.')
       return
     }
-    setItineraryActionId(day.id)
-    setItineraryActionMessage(`Updating day ${day.day}…`)
-    try {
-      await updateItineraryDay(day.id, payload)
-      await reloadSelectedItinerary()
-      setActiveItineraryDayEditId('')
-      setItineraryDayEditDraft(EMPTY_ITINERARY_DAY_DRAFT)
-      setItineraryActionMessage(`Day ${payload.day} was updated in this React itinerary.`)
-    } catch (updateError) {
-      setItineraryActionMessage(updateError.message || 'Unable to update itinerary day.')
-    } finally {
-      setItineraryActionId('')
-    }
+    await runItineraryAction({
+      actionId: day.id,
+      pendingMessage: `Updating day ${day.day}…`,
+      execute: () => updateItineraryDay(day.id, payload),
+      afterSuccess: () => {
+        setActiveItineraryDayEditId('')
+        setItineraryDayEditDraft(EMPTY_ITINERARY_DAY_DRAFT)
+      },
+      successMessage: `Day ${payload.day} was updated in this itinerary.`,
+      errorMessage: 'Unable to update itinerary day.'
+    })
   }
 
   function requestDeleteItineraryDay(day) {
@@ -134,17 +138,13 @@ export default function useFleetItineraryActions({
   }
 
   async function executeDeleteItineraryDay(day) {
-    setItineraryActionId(day.id)
-    setItineraryActionMessage(`Deleting day ${day.day}…`)
-    try {
-      await deleteItineraryDay(day.id)
-      await reloadSelectedItinerary()
-      setItineraryActionMessage(`Day ${day.day} was deleted from this React itinerary.`)
-    } catch (deleteError) {
-      setItineraryActionMessage(deleteError.message || 'Unable to delete itinerary day.')
-    } finally {
-      setItineraryActionId('')
-    }
+    await runItineraryAction({
+      actionId: day.id,
+      pendingMessage: `Deleting day ${day.day}…`,
+      execute: () => deleteItineraryDay(day.id),
+      successMessage: `Day ${day.day} was deleted from this itinerary.`,
+      errorMessage: 'Unable to delete itinerary day.'
+    })
   }
 
   async function handleCreateItineraryActivity(event) {
@@ -159,18 +159,14 @@ export default function useFleetItineraryActions({
       setItineraryActionMessage('Activity time and description are required.')
       return
     }
-    setItineraryActionId('create-activity')
-    setItineraryActionMessage('Creating activity…')
-    try {
-      await createItineraryActivity(itineraryDayId, payload)
-      setActivityDraft(EMPTY_ACTIVITY_DRAFT)
-      await reloadSelectedItinerary()
-      setItineraryActionMessage(`${payload.activity} was added to this React itinerary.`)
-    } catch (createError) {
-      setItineraryActionMessage(createError.message || 'Unable to create itinerary activity.')
-    } finally {
-      setItineraryActionId('')
-    }
+    await runItineraryAction({
+      actionId: 'create-activity',
+      pendingMessage: 'Creating activity…',
+      execute: () => createItineraryActivity(itineraryDayId, payload),
+      afterSuccess: () => setActivityDraft(EMPTY_ACTIVITY_DRAFT),
+      successMessage: `${payload.activity} was added to this itinerary.`,
+      errorMessage: 'Unable to create itinerary activity.'
+    })
   }
 
   function openActivityEdit(activity) {
@@ -192,19 +188,17 @@ export default function useFleetItineraryActions({
       setItineraryActionMessage('Activity time and description are required.')
       return
     }
-    setItineraryActionId(activity.id)
-    setItineraryActionMessage(`Updating ${activity.activity}…`)
-    try {
-      await updateItineraryActivity(activity.id, payload)
-      await reloadSelectedItinerary()
-      setActiveActivityEditId('')
-      setActivityEditDraft(EMPTY_ACTIVITY_EDIT_DRAFT)
-      setItineraryActionMessage(`${payload.activity} was updated in this React itinerary.`)
-    } catch (updateError) {
-      setItineraryActionMessage(updateError.message || 'Unable to update itinerary activity.')
-    } finally {
-      setItineraryActionId('')
-    }
+    await runItineraryAction({
+      actionId: activity.id,
+      pendingMessage: `Updating ${activity.activity}…`,
+      execute: () => updateItineraryActivity(activity.id, payload),
+      afterSuccess: () => {
+        setActiveActivityEditId('')
+        setActivityEditDraft(EMPTY_ACTIVITY_EDIT_DRAFT)
+      },
+      successMessage: `${payload.activity} was updated in this itinerary.`,
+      errorMessage: 'Unable to update itinerary activity.'
+    })
   }
 
   function requestDeleteItineraryActivity(activity) {
@@ -215,17 +209,13 @@ export default function useFleetItineraryActions({
   }
 
   async function executeDeleteItineraryActivity(activity) {
-    setItineraryActionId(activity.id)
-    setItineraryActionMessage(`Deleting ${activity.activity}…`)
-    try {
-      await deleteItineraryActivity(activity.id)
-      await reloadSelectedItinerary()
-      setItineraryActionMessage(`${activity.activity} was deleted from this React itinerary.`)
-    } catch (deleteError) {
-      setItineraryActionMessage(deleteError.message || 'Unable to delete itinerary activity.')
-    } finally {
-      setItineraryActionId('')
-    }
+    await runItineraryAction({
+      actionId: activity.id,
+      pendingMessage: `Deleting ${activity.activity}…`,
+      execute: () => deleteItineraryActivity(activity.id),
+      successMessage: `${activity.activity} was deleted from this itinerary.`,
+      errorMessage: 'Unable to delete itinerary activity.'
+    })
   }
 
   return {

@@ -9,7 +9,7 @@ const requiredFiles = [
   'services/aiQualityConsoleReleasePolicy.service.js',
   'frontend/react/src/components/ReactSqaConsole.jsx',
   'frontend/react/src/api/client.js',
-  'cypress/react/reactQualityConsoleFailureModes.cy.js',
+  'cypress/react/reactOperationsIntelligence.cy.js',
   'tests/unit/aiPhaseFourCompletion.service.test.js',
   'tests/unit/sqaConsole.static.test.js'
 ]

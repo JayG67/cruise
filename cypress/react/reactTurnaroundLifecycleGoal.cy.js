@@ -25,9 +25,35 @@ describe('Turnaround lifecycle soup-to-nuts Cypress architecture', () => {
     cy.getByTestId(rs.activeRouteOperations).should('be.visible')
     cy.getByTestId(rs.adminMutationPanel).should('be.visible')
     cy.getByTestId(rs.fleetDirectory).should('be.visible')
-    cy.getByTestId(rs.sqaConsole).should('be.visible')
+    cy.getByTestId(rs.operationsIntelligenceCenter).should('be.visible')
   })
 
+
+
+  it('reloads turnaround setup data with visible progress, completion, and refreshed content', () => {
+    cy.wait('@reactTurnaroundAdminSetup')
+    cy.getByTestId(rs.turnaroundAdminRefreshControl).should('be.visible')
+    cy.getByTestId(rs.turnaroundAdminRefreshButton).should('be.visible').and('not.be.disabled')
+    cy.getByTestId(rs.turnaroundAdminRefreshStatus).should('contain.text', 'Setup data loads automatically')
+
+    cy.intercept('GET', '/cruise/turnaround-admin/setup', req => {
+      req.on('response', response => { response.setDelay(150) })
+      req.reply({
+        turnaroundPeople: [{ id: 'reload-person-1', displayName: 'Reloaded Setup Lead', role: 'TURNAROUND_MANAGER', cruiseLineId: 'line-royal', assignedShipId: 'ship-react-icon' }],
+        cruiseLines: [{ id: 'line-royal', name: 'Royal Caribbean International' }],
+        ships: [{ id: 'ship-react-icon', name: 'React Icon', cruiseLineId: 'line-royal', currentPort: 'Miami, Florida' }],
+        sailings: [{ id: 'sailing-react-icon', shipId: 'ship-react-icon', departureDate: '2026-12-12', departurePort: 'Miami, Florida' }],
+        supportedRoles: ['turnaround-manager']
+      })
+    }).as('reloadedTurnaroundAdminSetup')
+
+    cy.getByTestId(rs.turnaroundAdminRefreshButton).click()
+    cy.getByTestId(rs.turnaroundAdminRefreshButton).should('be.disabled').and('contain.text', 'Reloading setup data')
+    cy.getByTestId(rs.turnaroundAdminRefreshStatus).should('contain.text', 'Reloading turnaround setup data')
+    cy.wait('@reloadedTurnaroundAdminSetup')
+    cy.getByTestId(rs.turnaroundAdminRefreshStatus).should('contain.text', 'Setup data reloaded. 1 people, 1 ships, and 1 sailings available.')
+    cy.getByTestId(rs.turnaroundAdminRoster).should('contain.text', 'Reloaded Setup Lead')
+  })
 
   it('starts the admin-created turnaround setup contract with scoped personnel assignment', () => {
     cy.getByTestId(rs.turnaroundAdminSetup).should('be.visible')
@@ -45,8 +71,24 @@ describe('Turnaround lifecycle soup-to-nuts Cypress architecture', () => {
 
     cy.wait('@reactCreateTurnaroundPerson')
     cy.getByTestId(rs.turnaroundAdminMessage).should('contain.text', 'Turnaround person created and assigned successfully')
-    cy.getByTestId(rs.turnaroundAdminRoster).should('contain.text', personName)
-    cy.getByTestId(rs.turnaroundAdminRoster).should('contain.text', 'React Icon')
+    cy.getByTestId(rs.turnaroundAdminSelectedTeam).should('contain.text', personName)
+    cy.getByTestId(rs.turnaroundAdminSelectedTeam)
+      .contains(byTestId(rs.turnaroundAdminTeamMember), personName)
+      .within(() => cy.getByTestId(rs.turnaroundAdminRemovePerson).click())
+
+    cy.wait('@reactUnassignTurnaroundPerson')
+    cy.getByTestId(rs.turnaroundAdminMessage).should('contain.text', 'kept in the cruise-line roster')
+    cy.getByTestId(rs.turnaroundAdminSelectedTeam).should('not.contain.text', personName)
+
+    cy.getByTestId(rs.turnaroundAdminRoster).find('summary').click()
+    cy.getByTestId(rs.turnaroundAdminRosterSearch).clear().type(personName)
+    cy.getByTestId(rs.turnaroundAdminRosterPerson).should('contain.text', personName).within(() => {
+      cy.getByTestId(rs.turnaroundAdminAssignExistingPerson).click()
+    })
+
+    cy.wait('@reactUpdateTurnaroundPerson')
+    cy.getByTestId(rs.turnaroundAdminSelectedTeam).should('contain.text', personName)
+    cy.getByTestId(rs.turnaroundAdminSelectedTeam).should('contain.text', 'React Icon')
   })
 
   it('walks the deepest current admin-to-turnaround role lifecycle through visible UI state', () => {

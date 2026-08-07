@@ -11,8 +11,8 @@ describe('local test database script guardrails', () => {
     expect(packageJson.scripts['db:test:ready']).toContain('scripts/wait-for-test-db.js')
     expect(packageJson.scripts['jest:coverage:all']).toContain('npm run db:test:ready')
     expect(packageJson.scripts['jest:coverage:all']).toContain('jest --coverage')
-    expect(packageJson.scripts.coverage).toContain('jest:coverage:all')
-    expect(packageJson.scripts['coverage:all']).toContain('jest:coverage:all')
+    expect(packageJson.scripts.coverage).toBeUndefined()
+    expect(packageJson.scripts['coverage:all']).toBeUndefined()
     expect(packageJson.scripts.integrationTests).toContain('npm run db:test:ready')
   })
 
@@ -28,8 +28,8 @@ describe('local test database script guardrails', () => {
 
   it('keeps full Jest coverage while avoiding a duplicate integration pass in the default test script', () => {
     expect(packageJson.scripts['jest:coverage:all']).toContain('jest --coverage')
-    expect(packageJson.scripts.coverage).not.toContain('tests/unit')
-    expect(packageJson.scripts.coverage).not.toContain('tests/integration')
+    expect(packageJson.scripts['jest:coverage:all']).not.toContain('tests/unit')
+    expect(packageJson.scripts['jest:coverage:all']).not.toContain('tests/integration')
     expect(packageJson.scripts.test).toContain('npm run jest:coverage:all')
     expect(packageJson.scripts.test).toContain('npm run uiTests:react')
     expect(packageJson.scripts.test).not.toContain('npm run integrationTests')
@@ -37,10 +37,10 @@ describe('local test database script guardrails', () => {
   })
 
   it('runs only React browser regression scripts after pre-React retirement', () => {
-    expect(packageJson.scripts['cypress:run']).toContain('cypress/react/**/*.cy.js')
+    expect(packageJson.scripts['cypress:run']).toBeUndefined()
     expect(packageJson.scripts['cypress:run:react']).toContain('cypress/react/**/*.cy.js')
-    expect(packageJson.scripts['uiTests']).toContain('uiTests:react')
-    expect(packageJson.scripts['uiTests:ci']).toContain('uiTests:react')
+    expect(packageJson.scripts.uiTests).toBeUndefined()
+    expect(packageJson.scripts['uiTests:ci']).toBeUndefined()
     expect(packageJson.scripts['uiTests:react']).toContain('http://localhost:8000')
     expect(packageJson.scripts['playwright:mobile:react']).toContain('react-production-mobile.spec.js')
     expect(packageJson.scripts['playwright:responsive:react']).toContain('react-production-responsive.spec.js')
@@ -49,7 +49,7 @@ describe('local test database script guardrails', () => {
     expect(packageJson.scripts['browserTests:react:run']).toContain('cypress:run:react')
     expect(packageJson.scripts['browserTests:react:run']).toContain('playwright:mobile:run')
     expect(packageJson.scripts['browserTests:react:run']).toContain('playwright:responsive:run')
-    expect(packageJson.scripts['test:react:all']).toContain('browserTests:react')
+    expect(packageJson.scripts['test:react:all']).toBeUndefined()
     expect(packageJson.scripts['react:production:complete']).toContain('verify-react-production-complete.js')
   })
 
@@ -74,7 +74,7 @@ describe('local test database script guardrails', () => {
     }
 
     expect(packageJson.scripts['test:all']).not.toContain('retired')
-    expect(packageJson.scripts['portfolio:audit']).not.toContain('retired')
+    expect(packageJson.scripts['portfolio:audit']).toBeUndefined()
   })
 
   it('keeps Render production startup resilient when dashboard build settings are stale', () => {
@@ -90,6 +90,8 @@ describe('local test database script guardrails', () => {
 
   it('keeps test all focused on the production React application gate', () => {
     expect(packageJson.scripts['test:all']).toContain('npm run test:inventory:audit')
+    expect(packageJson.scripts['test:all']).toContain('npm run repo:repair')
+    expect(packageJson.scripts['test:all']).toMatch(/^npm run repo:repair && npm run test:inventory:audit/)
     expect(packageJson.scripts['test:all']).toContain('npm run react:production:complete')
     expect(packageJson.scripts['test:all']).toContain('npm run jest:coverage:all')
     expect(packageJson.scripts['test:all']).toContain('npm run browserTests:react')
@@ -103,15 +105,15 @@ describe('local test database script guardrails', () => {
 
     expect(cypressConfig).toContain('cypress/react/**/*.cy.js')
     expect(cypressConfig).not.toContain('cypress/e2e')
-    expect(packageJson.scripts['cypress:run']).toContain('cypress/react/**/*.cy.js')
+    expect(packageJson.scripts['cypress:run']).toBeUndefined()
     expect(packageJson.scripts['cypress:run:react']).toContain('cypress/react/**/*.cy.js')
     expect(packageJson.scripts['uiTests:react']).toContain('cypress:run:react')
   })
 
   it('builds React assets before Playwright suites that exercise the production app', () => {
-    expect(packageJson.scripts['playwright:mobile:local']).toContain('playwright:mobile:react')
+    expect(packageJson.scripts['playwright:mobile:local']).toBeUndefined()
     expect(packageJson.scripts['playwright:mobile:ci']).toContain('npm run react:build &&')
-    expect(packageJson.scripts['playwright:responsive:local']).toContain('playwright:responsive:react')
+    expect(packageJson.scripts['playwright:responsive:local']).toBeUndefined()
     expect(packageJson.scripts['playwright:responsive:ci']).toContain('npm run react:build &&')
     expect(packageJson.scripts['playwright:mobile:react']).toContain('react-production-mobile.spec.js')
     expect(packageJson.scripts['playwright:responsive:react']).toContain('react-production-responsive.spec.js')
@@ -123,12 +125,35 @@ describe('local test database script guardrails', () => {
 
     expect(packageJson.scripts['test:inventory:audit']).toContain('scripts/verify-test-all-inventory.js')
     expect(packageJson.scripts['test:all']).toContain('npm run test:inventory:audit')
+    expect(packageJson.scripts['test:all']).toMatch(/^npm run repo:repair && npm run test:inventory:audit/)
+    expect(inventoryScript).toContain('must repair known obsolete files')
     expect(inventoryScript).toContain('cypress/react')
     expect(inventoryScript).toContain('playwright/mobile/react-production-mobile.spec.js')
     expect(inventoryScript).toContain('playwright/responsive/react-production-responsive.spec.js')
     expect(inventoryScript).toContain('retiredCypressSpecs.length === 0')
     expect(inventoryScript).toContain('retiredPlaywrightSpecs.length === 0')
     expect(inventoryScript).not.toContain("console.log('Retired Cypress specs: 0')")
+  })
+
+
+  it('keeps every GitHub Actions npm command backed by a package script', () => {
+    const workflowsDirectory = path.join(projectRoot, '.github/workflows')
+    const workflowFiles = fs.readdirSync(workflowsDirectory)
+      .filter(file => /\.ya?ml$/.test(file))
+
+    for (const workflowFile of workflowFiles) {
+      const workflow = fs.readFileSync(path.join(workflowsDirectory, workflowFile), 'utf8')
+      const referencedScripts = [...workflow.matchAll(/npm\s+run\s+([A-Za-z0-9:_-]+)/g)]
+        .map(match => match[1])
+
+      for (const scriptName of referencedScripts) {
+        expect(packageJson.scripts[scriptName]).toEqual(expect.any(String))
+      }
+    }
+
+    const ciWorkflow = fs.readFileSync(path.join(workflowsDirectory, 'ci.yml'), 'utf8')
+    expect(ciWorkflow).toContain('npm run uiTests:react:ci')
+    expect(ciWorkflow).not.toContain('npm run uiTests:ci')
   })
 
   it('keeps the GitHub workflow running an explicit Lighthouse mobile quality gate', () => {
@@ -147,6 +172,41 @@ describe('local test database script guardrails', () => {
     expect(lighthouseConfig).toContain('http://localhost:8000/lighthouse-ci')
     expect(lighthouseConfig).toContain('"throttlingMethod": "provided"')
     expect(lighthouseConfig).toContain('"minScore": 0.85')
+  })
+
+  it('keeps the public command surface intentionally small and canonical', () => {
+    expect(Object.keys(packageJson.scripts).length).toBeLessThanOrEqual(79)
+
+    for (const redundantAlias of [
+      'coverage',
+      'coverage:all',
+      'uiTests',
+      'uiTests:ci',
+      'cypress:run',
+      'playwright:mobile',
+      'playwright:mobile:local',
+      'playwright:responsive',
+      'playwright:responsive:local',
+      'react:default:audit',
+      'test:react:all',
+      'portfolio:audit',
+      'lighthouse:mobile',
+      'lighthouse:mobile:local',
+      'react:preview',
+      'react:preview:local',
+      'quality:runtime:run',
+      'quality:runtime:local',
+      'ai:phase3:test',
+      'ai:phase4:test',
+      'ai:phase6:test'
+    ]) {
+      expect(packageJson.scripts[redundantAlias]).toBeUndefined()
+    }
+
+    expect(packageJson.scripts['jest:coverage:all']).toContain('jest --coverage --runInBand')
+    expect(packageJson.scripts['uiTests:react']).toContain('cypress:run:react')
+    expect(packageJson.scripts['playwright:mobile:react']).toContain('react-production-mobile.spec.js')
+    expect(packageJson.scripts['playwright:responsive:react']).toContain('react-production-responsive.spec.js')
   })
 
 })

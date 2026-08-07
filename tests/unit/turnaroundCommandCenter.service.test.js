@@ -67,7 +67,13 @@ describe('turnaroundCommandCenter service', () => {
     expect(commandCenter.handoffTimeline).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'handoff-1', owner: 'Avery Ops' })
     ]))
-    expect(commandCenter.commanderBrief.presentationLine).toContain('operational command workflow')
+    expect(commandCenter.commanderBrief.presentationLine).toContain('single operational command workflow')
+    expect(commandCenter.commanderBrief.presentationLine).toContain('accountable decisions')
+    const visibleCommandCenterText = JSON.stringify(commandCenter).toLowerCase()
+    expect(visibleCommandCenterText).not.toContain('reviewer')
+    expect(visibleCommandCenterText).not.toContain('demo')
+    expect(visibleCommandCenterText).not.toContain('employer')
+    expect(commandCenter.kpis.find(kpi => kpi.id === 'closeout-readiness')?.detail).toContain('governance decisions')
   })
 
   it('returns an info decision when no command blockers are visible', () => {

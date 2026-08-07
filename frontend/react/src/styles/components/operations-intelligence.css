@@ -1,0 +1,153 @@
+.operations-intelligence-center {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.operations-intelligence-header,
+.operations-intelligence-detail-heading,
+.operations-intelligence-actions {
+  align-items: flex-start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.operations-intelligence-header > div:first-child {
+  max-width: 52rem;
+}
+
+.operations-intelligence-fleet-status {
+  display: grid;
+  gap: 0.35rem;
+  min-width: min(100%, 18rem);
+}
+
+.operations-intelligence-selector,
+.operations-intelligence-empty,
+.operations-intelligence-message {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.operations-intelligence-selector label {
+  font-weight: 800;
+}
+
+.operations-intelligence-selector select {
+  width: 100%;
+}
+
+.operations-intelligence-detail {
+  background: #f8fbfe;
+  border: 1px solid #b9d8ed;
+  border-radius: 1rem;
+  color: #071827;
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.5rem;
+}
+
+.operations-intelligence-detail :where(h3, h4, p, dt, dd, strong, span) {
+  color: inherit;
+  opacity: 1;
+  text-shadow: none;
+  -webkit-text-fill-color: currentColor;
+}
+
+.operations-intelligence-risk {
+  background: #e1f4ff;
+  border: 1px solid #1697c7;
+  border-radius: 999px;
+  color: #07324a;
+  font-weight: 800;
+  padding: 0.65rem 1rem;
+  white-space: nowrap;
+}
+
+.operations-intelligence-detail.is-attention .operations-intelligence-risk {
+  background: #fff0ed;
+  border-color: #cf4a3c;
+  color: #7a2019;
+}
+
+.operations-intelligence-detail.is-watch .operations-intelligence-risk {
+  background: #fff4dc;
+  border-color: #d48a19;
+  color: #654000;
+}
+
+.operations-intelligence-metrics {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+}
+
+.operations-intelligence-metrics > div {
+  background: #ffffff;
+  border: 1px solid #c7deee;
+  border-radius: 0.8rem;
+  display: grid;
+  gap: 0.25rem;
+  padding: 1rem;
+}
+
+.operations-intelligence-metrics dt,
+.operations-intelligence-priorities h4 {
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.operations-intelligence-metrics dd {
+  font-size: 1.6rem;
+  font-weight: 900;
+  margin: 0;
+}
+
+.operations-intelligence-priorities ul {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.operations-intelligence-priorities li {
+  border-left: 0.3rem solid #198bb0;
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.7rem 0.9rem;
+}
+
+.operations-intelligence-priorities li.is-attention { border-left-color: #cf4a3c; }
+.operations-intelligence-priorities li.is-watch { border-left-color: #d48a19; }
+.operations-intelligence-priorities li.is-ready { border-left-color: #16845b; }
+
+.operations-intelligence-message.is-error {
+  background: #fff0ed;
+  border: 1px solid #cf4a3c;
+  border-radius: 0.75rem;
+  color: #7a2019;
+  padding: 1rem;
+}
+
+@media (max-width: 860px) {
+  .operations-intelligence-header,
+  .operations-intelligence-detail-heading,
+  .operations-intelligence-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .operations-intelligence-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .operations-intelligence-metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

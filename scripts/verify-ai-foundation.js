@@ -20,6 +20,10 @@ const requiredFiles = [
   'services/aiTurnaroundBriefing.service.js',
   'services/aiProgramStatus.service.js',
   'controllers/ai.controller.js',
+  'controllers/aiControllerSupport.js',
+  'controllers/aiStatus.controller.js',
+  'controllers/aiBriefing.controller.js',
+  'controllers/aiEvaluation.controller.js',
   'routes/ai.routes.js',
   'validation/ai.validation.js'
 ]

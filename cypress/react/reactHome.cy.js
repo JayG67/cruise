@@ -18,30 +18,30 @@ describe('React home and workspace coverage', () => {
       cy.contains('Operations').should('be.visible')
       cy.contains('Fleet').should('be.visible')
       cy.contains('Turnaround Setup').should('be.visible')
-      cy.contains('Quality').should('be.visible')
+      cy.contains('Intelligence').should('be.visible')
     })
   })
 
   it('renders every React workspace card with accessible actions', () => {
     cy.getByTestId(rs.workspaceCardGrid).should('be.visible')
-    cy.getByTestId(rs.employerDemoCommandCenter).should('contain.text', 'Cruise operations at a glance')
+    cy.getByTestId(rs.platformOverviewCommandCenter).should('contain.text', 'Operational workspaces and platform capabilities')
     cy.getByTestId(rs.workspaceRoleButton).should('contain.text', 'Role-aware Views')
     cy.getByTestId(rs.workspaceOperationsButton).should('contain.text', 'Admin Operations')
     cy.getByTestId(rs.workspaceFleetButton).should('contain.text', 'Fleet Directory')
-    cy.getByTestId(rs.workspaceQualityButton).should('contain.text', 'Quality Console')
+    cy.getByTestId(rs.workspaceIntelligenceButton).should('contain.text', 'Operations Intelligence')
   })
 
   it('drives workspace shortcuts to real application sections', () => {
     cy.getByTestId(rs.heroDemoButton).click()
-    cy.getByTestId(rs.employerDemoCommandCenter).should('be.visible')
+    cy.getByTestId(rs.platformOverviewCommandCenter).should('be.visible')
     cy.getByTestId(rs.workspaceRoleButton).click()
     cy.getByTestId(rs.roleSelector).should('be.visible')
     cy.getByTestId(rs.workspaceOperationsButton).click()
     cy.getByTestId(rs.activeRouteOperations).should('be.visible')
     cy.getByTestId(rs.workspaceFleetButton).click()
     cy.getByTestId(rs.fleetDirectory).should('be.visible')
-    cy.getByTestId(rs.workspaceQualityButton).click()
-    cy.getByTestId(rs.sqaConsole).should('be.visible')
+    cy.getByTestId(rs.workspaceIntelligenceButton).click()
+    cy.getByTestId(rs.operationsIntelligenceCenter).should('be.visible')
   })
 
   it('keeps implementation-history review panels out of the product UI', () => {
@@ -58,7 +58,7 @@ describe('React home and workspace coverage', () => {
     cy.getByTestId(rs.toggleCustomerWorkflows).click()
     cy.getByTestId(rs.adminHierarchy).should('contain.text', 'Customer')
     cy.getByTestId(rs.fleetDirectory).should('be.visible')
-    cy.getByTestId(rs.sqaConsole).should('be.visible')
+    cy.getByTestId(rs.operationsIntelligenceCenter).should('be.visible')
   })
 
 
@@ -83,12 +83,12 @@ describe('React home and workspace coverage', () => {
 
   it('switches to admin and opens the requested workspace when a passenger accepts', () => {
     selectDemoUserByVisibleRole('Passenger')
-    cy.getByTestId(rs.navQualityButton).click()
+    cy.getByTestId(rs.navIntelligenceButton).click()
     cy.getByTestId(rs.roleSwitchConfirmationOverlay).should('be.visible')
     cy.getByTestId(rs.roleSwitchConfirmationConfirm).click()
 
     cy.getByTestId(rs.demoUserSummary).should('contain.text', 'Admin')
-    cy.getByTestId(rs.sqaConsole).should('be.visible')
+    cy.getByTestId(rs.operationsIntelligenceCenter).should('be.visible')
     cy.getByTestId(rs.roleSwitchConfirmation).should('not.exist')
     cy.getByTestId(rs.roleSwitchConfirmationOverlay).should('not.exist')
   })
