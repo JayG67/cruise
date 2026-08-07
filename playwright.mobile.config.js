@@ -24,11 +24,11 @@ module.exports = defineConfig({
   expect: {
     timeout: 5_000
   },
-  // Tests remain serial inside each browser project, while the two independent
-  // browser projects can execute concurrently. Test data created by the suite
-  // is project-suffixed to prevent cross-project record collisions.
+  // Tests remain serial inside each browser project. CI also serializes the
+  // browser projects because they share one database-backed application server;
+  // local development retains two workers for faster feedback.
   fullyParallel: false,
-  workers: 2,
+  workers: process.env.CI ? 1 : 2,
   retries: process.env.CI ? 1 : 0,
   reporter: [
     ['list'],
