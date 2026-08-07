@@ -1236,14 +1236,12 @@ describe('Turnaround closeout packet guardrails', () => {
   function read(relativePath) {
     return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
   }
-
   it('adds a final closeout packet generated from operational, readiness, debrief, and governance evidence layers', () => {
     const operationDetailsService = readTurnaroundOperationAssembly()
     const closeoutService = read('services/turnaroundCloseout.service.js')
     const dashboard = readOperationalDashboardSurface()
     const roleViewDomain = readRoleViewSurface()
     const styles = readReactCssBundle()
-
     expect(operationDetailsService).toContain("const { buildTurnaroundCloseoutPacket } = require('./turnaroundCloseout.service')")
     expect(operationDetailsService).toContain('const closeoutPacket = buildTurnaroundCloseoutPacket({')
     expect(operationDetailsService).toContain('closeoutPacket,')
@@ -1259,4 +1257,3 @@ describe('Turnaround closeout packet guardrails', () => {
     expect(styles).toContain('.operations-closeout-packet-grid')
   })
 })
-
