@@ -135,8 +135,10 @@ describe('React route preview accessibility contracts', () => {
   it('keeps the self-guided overview concise and separate from workspace cards', () => {
     const app = read('frontend/react/src/App.jsx')
     const overview = read('frontend/react/src/components/PlatformWorkspaceNavigator.jsx')
+    const density = read('frontend/react/src/styles/components/platform-workspace-density.css')
     const hierarchy = readAdminHierarchySurface()
-
+    expect(density).toContain('grid-template-columns: repeat(5, minmax(0, 1fr))')
+    expect(density).toContain('@media (max-width: 760px)')
     expect(app).not.toContain('aria-label="Recommended workflow controls"')
     expect(app).not.toContain('type="button" className="workflow-step-button"')
     expect(app).not.toContain('data-testid="react-workspace-demo-button"')
@@ -564,6 +566,30 @@ ${bookingGuests}`
     expect(fleet).toContain('data-testid="react-fleet-action-message"')
     expect(cypress).toContain('supports React fleet delete cancellation and confirmed deletion')
     expect(responsive).toContain('keeps React fleet delete guarded by a native React confirmation panel')
+  })
+
+
+  it('keeps the Fleet Directory on the wide admin rail with dense responsive cards', () => {
+    const density = read('frontend/react/src/styles/components/fleet-directory-density.css')
+    const index = read('frontend/react/src/styles/components/index.css')
+
+    expect(index).toContain("@import './fleet-directory-density.css';")
+    expect(density).toContain('max-width: var(--admin-home-rail-width, 1440px) !important')
+    expect(density).toContain('padding-right: clamp(9rem, 12vw, 11rem) !important')
+    expect(density).toContain('grid-template-columns: minmax(18rem, 1fr) auto !important')
+    expect(density).toContain('grid-template-columns: repeat(4, minmax(0, 1fr)) !important')
+    expect(density).toContain('grid-template-columns: repeat(2, minmax(0, 1fr)) !important')
+    expect(density).toContain('grid-template-columns: 1fr !important')
+  })
+
+
+  it('keeps Turnaround Admin Setup on the shared wide administrator rail', () => {
+    const turnaround = read('frontend/react/src/styles/components/admin-turnaround.css')
+
+    expect(turnaround).toContain('max-width: var(--admin-home-rail-width, 1440px) !important')
+    expect(turnaround).toContain('width: min(calc(100% - 2rem), var(--admin-home-rail-width, 1440px)) !important')
+    expect(turnaround).not.toContain('max-width: 1180px !important')
+    expect(turnaround).not.toContain('width: min(100% - 2rem, 1180px) !important')
   })
 
 

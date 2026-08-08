@@ -1,0 +1,23 @@
+/* Keep the five platform workspace destinations on one efficient desktop row. */
+@media (min-width: 1181px) {
+  .platform-workspace-navigator .self-guided-tour-list {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .platform-workspace-navigator .self-guided-tour-card {
+    align-content: start;
+    height: 100%;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1180px) {
+  .platform-workspace-navigator .self-guided-tour-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .platform-workspace-navigator .self-guided-tour-list {
+    grid-template-columns: 1fr;
+  }
+}

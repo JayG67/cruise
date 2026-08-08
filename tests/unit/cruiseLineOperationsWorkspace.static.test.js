@@ -95,6 +95,18 @@ describe('cruise line operations workspace', () => {
     expect(selectionBridge).not.toContain('No matching demo user found.')
   })
 
+  it('keeps the wide operating workspace compact instead of stacking sparse full-width cards', () => {
+    const componentIndexCss = read('frontend/react/src/styles/components/index.css')
+    const densityCss = read('frontend/react/src/styles/components/cruise-line-operations-density.css')
+
+    expect(componentIndexCss).toContain("@import './cruise-line-operations-density.css';")
+    expect(densityCss).toContain('grid-template-columns: repeat(6, minmax(0, 1fr)) !important;')
+    expect(densityCss).toContain('grid-template-columns: repeat(4, minmax(0, 1fr)) !important;')
+    expect(densityCss).toContain('grid-template-columns: repeat(2, minmax(0, 1fr)) !important;')
+    expect(densityCss).toContain('grid-template-columns: 1fr !important;')
+    expect(densityCss).toContain('min-height: 0 !important;')
+  })
+
   it('styles the operations workspace through the shared design system', () => {
     const productShellCss = readCssBundle('frontend/react/src/styles/components/product-shell.css')
     const componentIndexCss = read('frontend/react/src/styles/components/index.css')

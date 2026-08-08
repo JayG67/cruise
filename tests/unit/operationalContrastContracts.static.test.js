@@ -469,7 +469,7 @@ test('administrator home workspaces share one wide presentation rail and outer p
   expect(layoutCss).toContain('.platform-workspace-navigator')
   expect(layoutCss).toContain('.role-selector-section')
   expect(layoutCss).toContain('.route-panel')
-  expect(layoutCss).toContain('.cruise-line-presentation-suite')
+  expect(layoutCss).toContain("main.react-production-shell > .cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite']")
   expect(layoutCss).toContain('.fleet-directory-section')
   expect(layoutCss).toContain('.react-create-workflow-section')
   expect(layoutCss).toContain('.turnaround-admin-setup-panel')

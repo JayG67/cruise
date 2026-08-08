@@ -1,20 +1,23 @@
 const { reactSelectorKeys: rs } = require('./support/reactSelectors')
 const { reactTurnaroundOperations, selectDemoUserByVisibleRole, visitReactAppAsAdmin } = require('./support/reactTestHelpers.js')
 
-describe('Operations intelligence end-to-end workflow', () => {
-  beforeEach(() => {
-    visitReactAppAsAdmin({ turnaroundOperations: reactTurnaroundOperations })
-    cy.wait('@reactTurnaroundOperations')
-    cy.getByTestId(rs.operationsIntelligenceCenter).scrollIntoView().should('be.visible')
-    cy.getByTestId(rs.operationsIntelligenceSelect)
-      .find('option')
-      .should('contain.text', 'Miami same-day turnaround readiness')
-    cy.getByTestId(rs.operationsIntelligenceSelect)
-      .select('Miami same-day turnaround readiness · 2026-12-12')
-    cy.getByTestId(rs.operationsIntelligenceDetail).should('contain.text', 'React Icon')
-  })
+function openFixtureIntelligence() {
+  visitReactAppAsAdmin()
+  cy.getByTestId(rs.operationsIntelligenceCenter).scrollIntoView().should('be.visible')
+  cy.intercept({ method: 'GET', pathname: '/cruise/turnaround-operations' }, reactTurnaroundOperations).as('fixtureOperationsIntelligence')
+  cy.getByTestId(rs.operationsIntelligenceRefreshButton).click()
+  cy.wait('@fixtureOperationsIntelligence')
+  cy.getByTestId(rs.operationsIntelligenceSelect)
+    .find('option')
+    .should('contain.text', 'Miami same-day turnaround readiness')
+  cy.getByTestId(rs.operationsIntelligenceSelect)
+    .select('Miami same-day turnaround readiness · 2026-12-12')
+  cy.getByTestId(rs.operationsIntelligenceDetail).should('contain.text', 'React Icon')
+}
 
+describe('Operations intelligence end-to-end workflow', () => {
   it('shows actionable turnaround risks instead of engineering release controls', () => {
+    openFixtureIntelligence()
     cy.getByTestId(rs.operationsIntelligenceCenter)
       .should('contain.text', 'Prioritize the turnarounds that need action')
       .and('contain.text', 'staffing gaps')
@@ -35,6 +38,7 @@ describe('Operations intelligence end-to-end workflow', () => {
   })
 
   it('updates the complete operational picture when another turnaround is selected', () => {
+    openFixtureIntelligence()
     cy.getByTestId(rs.operationsIntelligenceSelect)
       .find('option')
       .should('have.length', reactTurnaroundOperations.length)
@@ -54,6 +58,7 @@ describe('Operations intelligence end-to-end workflow', () => {
   })
 
   it('refreshes the live operation data and visibly renders the returned changes', () => {
+    openFixtureIntelligence()
     const refreshed = reactTurnaroundOperations.map((operation, index) => index === 0
       ? {
           ...operation,
@@ -79,6 +84,8 @@ describe('Operations intelligence end-to-end workflow', () => {
   })
 
   it('continues from intelligence to team setup and the full operational role workflow', () => {
+    visitReactAppAsAdmin()
+    cy.getByTestId(rs.operationsIntelligenceCenter).scrollIntoView().should('be.visible')
     cy.getByTestId(rs.operationsIntelligenceSetupButton).click()
     cy.getByTestId(rs.turnaroundAdminSetup).should('be.visible')
 

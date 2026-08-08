@@ -1,0 +1,160 @@
+/* Build 713: Fleet Directory uses the same wide administrator rail as its peers
+   and consolidates low-density controls so horizontal space replaces empty
+   vertical bands. */
+html body :is(.react-production-shell, .react-app-shell) .fleet-directory-section[data-testid='react-fleet-directory'],
+html body section.fleet-directory-section#react-fleet {
+  max-width: var(--admin-home-rail-width, 1440px) !important;
+  padding: clamp(1.25rem, 2.2vw, 2rem) !important;
+  width: min(calc(100% - 2rem), var(--admin-home-rail-width, 1440px)) !important;
+}
+
+html body .fleet-directory-section .fleet-heading-row {
+  align-items: end !important;
+  display: grid !important;
+  gap: 1rem 1.5rem !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  margin-bottom: 1rem !important;
+  padding-right: clamp(9rem, 12vw, 11rem) !important;
+}
+
+html body .fleet-directory-section .fleet-heading-row > div {
+  max-width: none !important;
+}
+
+html body .fleet-directory-section .fleet-header-refresh {
+  align-self: end !important;
+  margin-bottom: 0.15rem !important;
+  white-space: nowrap !important;
+}
+
+html body .fleet-directory-section .fleet-directory-toolbar {
+  align-items: end !important;
+  background: rgba(7, 24, 39, 0.34) !important;
+  border: 1px solid rgba(174, 233, 255, 0.22) !important;
+  border-radius: 1rem !important;
+  display: grid !important;
+  gap: 0.65rem 1rem !important;
+  grid-template-columns: minmax(18rem, 1fr) auto !important;
+  margin: 0 0 0.85rem !important;
+  padding: 0.8rem 0.9rem !important;
+}
+
+html body .fleet-directory-section .fleet-search-control {
+  gap: 0.4rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html body .fleet-directory-section .fleet-search-control input {
+  min-height: 2.65rem !important;
+}
+
+html body .fleet-directory-section .fleet-directory-toolbar-status {
+  align-items: flex-end !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.2rem !important;
+  justify-content: center !important;
+  min-width: max-content !important;
+}
+
+html body .fleet-directory-section #react-fleet-count,
+html body .fleet-directory-section .fleet-refresh-status {
+  margin: 0 !important;
+  min-height: 0 !important;
+  text-align: right !important;
+}
+
+html body .fleet-directory-section .fleet-card-grid {
+  gap: 0.8rem !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  margin-top: 0.45rem !important;
+}
+
+html body .fleet-directory-section .fleet-card {
+  gap: 0.5rem !important;
+  padding: 0.9rem !important;
+}
+
+html body .fleet-directory-section .fleet-card h3 {
+  font-size: 1.02rem !important;
+  line-height: 1.2 !important;
+}
+
+html body .fleet-directory-section .brand-theme-summary {
+  display: grid !important;
+  gap: 0.45rem !important;
+  margin: 0.15rem 0 0 !important;
+  padding: 0.65rem !important;
+}
+
+html body .fleet-directory-section .brand-theme-summary > div {
+  display: grid !important;
+  gap: 0.06rem !important;
+}
+
+html body .fleet-directory-section .brand-theme-summary dt {
+  font-size: 0.66rem !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+}
+
+html body .fleet-directory-section .brand-theme-summary dd {
+  line-height: 1.25 !important;
+  margin: 0 !important;
+}
+
+html body .fleet-directory-section .fleet-card-actions {
+  gap: 0.4rem !important;
+  margin-top: auto !important;
+  padding-top: 0.2rem !important;
+}
+
+@media (max-width: 1180px) {
+  html body .fleet-directory-section .fleet-card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  html body .fleet-directory-section .fleet-directory-toolbar {
+    align-items: stretch !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  html body .fleet-directory-section .fleet-directory-toolbar-status {
+    align-items: flex-start !important;
+    min-width: 0 !important;
+  }
+
+  html body .fleet-directory-section #react-fleet-count,
+  html body .fleet-directory-section .fleet-refresh-status {
+    text-align: left !important;
+  }
+
+  html body .fleet-directory-section .fleet-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 620px) {
+  html body :is(.react-production-shell, .react-app-shell) .fleet-directory-section[data-testid='react-fleet-directory'],
+  html body section.fleet-directory-section#react-fleet {
+    padding: 1rem !important;
+    width: min(calc(100% - 1rem), var(--admin-home-rail-width, 1440px)) !important;
+  }
+
+  html body .fleet-directory-section .fleet-heading-row {
+    align-items: stretch !important;
+    grid-template-columns: 1fr !important;
+    padding-right: 0 !important;
+  }
+
+  html body .fleet-directory-section .fleet-header-refresh {
+    justify-self: start !important;
+  }
+
+  html body .fleet-directory-section .fleet-card-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

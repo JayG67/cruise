@@ -78,3 +78,32 @@ html body .react-production-shell .operations-intelligence-center {
     width: min(calc(100% - 1rem), var(--admin-home-rail-width)) !important;
   }
 }
+
+/* Build 708: the cruise-line operations workspace historically carried its own
+   1120/1180px rail. On the administrator home page it is a peer of the other
+   primary workspaces, so the complete suite must occupy the shared wide rail. */
+html body main.react-production-shell > .cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite'] {
+  max-width: var(--admin-home-rail-width) !important;
+  width: min(calc(100% - 2rem), var(--admin-home-rail-width)) !important;
+}
+
+html body main.react-production-shell > .cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite'] > :is(
+  .cruise-line-operations-control-panel,
+  .cruise-line-selected-scope,
+  .presentation-hero-card,
+  .presentation-demo-flow,
+  .presentation-section-grid,
+  .presentation-card-grid
+) {
+  box-sizing: border-box !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  max-width: none !important;
+  width: 100% !important;
+}
+
+@media (max-width: 760px) {
+  html body main.react-production-shell > .cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite'] {
+    width: min(calc(100% - 1rem), var(--admin-home-rail-width)) !important;
+  }
+}

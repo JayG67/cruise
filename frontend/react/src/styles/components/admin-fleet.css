@@ -16,11 +16,11 @@ section.fleet-directory-section#react-fleet {
   box-sizing: border-box !important;
   color: #ffffff !important;
   margin: clamp(1.75rem, 3vw, 2.75rem) auto !important;
-  max-width: 1180px !important;
+  max-width: var(--admin-home-rail-width, 1440px) !important;
   overflow: hidden !important;
   padding: clamp(1.5rem, 3.4vw, 2.65rem) !important;
   position: relative !important;
-  width: min(100% - 2rem, 1180px) !important;
+  width: min(100% - 2rem, var(--admin-home-rail-width, 1440px)) !important;
 }
 
 .fleet-directory-section[data-testid='react-fleet-directory']::after,
