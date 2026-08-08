@@ -1,0 +1,74 @@
+/* Build 719 - staffing coverage uses the same dark operational surface language as after-action review. */
+#react-role-dashboard.react-role-dashboard .operations-staffing-workspace {
+  background: linear-gradient(135deg, #082334 0%, #0f5360 52%, #15713f 100%) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  box-shadow: 0 24px 60px rgba(7, 24, 39, 0.22) !important;
+  color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-staffing-workspace-header,
+#react-role-dashboard.react-role-dashboard .operations-staffing-list-panel,
+#react-role-dashboard.react-role-dashboard .operations-staffing-detail-panel {
+  background: rgba(6, 30, 45, 0.88) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-staffing-workspace-header {
+  border-radius: 0.95rem !important;
+  padding: 1rem !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-staffing-workspace-metrics div,
+#react-role-dashboard.react-role-dashboard .operations-staffing-detail-list div,
+#react-role-dashboard.react-role-dashboard .operations-staffing-note {
+  background: rgba(8, 35, 52, 0.95) !important;
+  border: 1px solid rgba(125, 211, 252, 0.3) !important;
+  color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-staffing-list-heading span,
+#react-role-dashboard.react-role-dashboard .operations-staffing-status-pill {
+  background: rgba(14, 116, 144, 0.28) !important;
+  border: 1px solid rgba(125, 211, 252, 0.45) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-staffing-list-item {
+  background: linear-gradient(135deg, #0b789f 0%, #19a9b8 100%) !important;
+  border: 1px solid rgba(125, 211, 252, 0.42) !important;
+  color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-staffing-list-item.active,
+#react-role-dashboard.react-role-dashboard .operations-staffing-list-item:hover,
+#react-role-dashboard.react-role-dashboard .operations-staffing-list-item:focus-visible {
+  background: linear-gradient(135deg, #08769c 0%, #19b8c6 100%) !important;
+  border-color: rgba(186, 230, 253, 0.9) !important;
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.18) !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-staffing-list-item.staffing-gap {
+  background: linear-gradient(135deg, #8a4b08 0%, #b86a13 100%) !important;
+  border-color: rgba(253, 224, 71, 0.58) !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-staffing-detail-form {
+  background: rgba(6, 30, 45, 0.88) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-staffing-detail-form label > span {
+  color: #bae6fd !important;
+  -webkit-text-fill-color: #bae6fd !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-staffing-detail-form :is(input, textarea, select) {
+  background: #ffffff !important;
+  border: 1px solid #b9d8ec !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}

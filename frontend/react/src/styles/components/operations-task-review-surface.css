@@ -1,0 +1,117 @@
+/* Build 722 - task queue follows the dark operational review surface used by after-action review. */
+#react-role-dashboard.react-role-dashboard .operations-task-workspace {
+  background: linear-gradient(135deg, #082334 0%, #0f5360 52%, #15713f 100%) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 0 24px 60px rgba(7, 24, 39, 0.22) !important;
+  color: #ffffff !important;
+  padding: clamp(1rem, 2.4vw, 1.5rem) !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-task-list-panel,
+#react-role-dashboard.react-role-dashboard .operations-task-detail-panel {
+  background: rgba(6, 30, 45, 0.88) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-task-list-heading h5,
+#react-role-dashboard.react-role-dashboard .operations-task-detail-header h5,
+#react-role-dashboard.react-role-dashboard .operations-task-detail-panel > :is(p, div, dl),
+#react-role-dashboard.react-role-dashboard .operations-task-detail-panel dd,
+#react-role-dashboard.react-role-dashboard .operations-task-detail-panel strong {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-task-detail-header .eyebrow,
+#react-role-dashboard.react-role-dashboard .operations-task-detail-panel dt,
+#react-role-dashboard.react-role-dashboard .operations-task-updates span:first-child {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-task-detail-panel .operational-task-detail-list > div,
+#react-role-dashboard.react-role-dashboard .operations-task-detail-panel .operational-blocker-note,
+#react-role-dashboard.react-role-dashboard .operations-task-detail-panel .operational-task-updates {
+  background: rgba(5, 32, 48, 0.72) !important;
+  border: 1px solid rgba(125, 211, 252, 0.32) !important;
+  border-radius: 0.9rem !important;
+  color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-task-detail-panel .operational-blocker-note {
+  border-color: rgba(251, 146, 60, 0.62) !important;
+  color: #ffedd5 !important;
+  -webkit-text-fill-color: #ffedd5 !important;
+}
+
+
+#react-role-dashboard.react-role-dashboard .operations-task-detail-panel .operational-task-updates * {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-task-detail-panel .operational-task-actions :is(button, .secondary-action-button, .compact-button),
+#react-role-dashboard.react-role-dashboard .operations-task-detail-panel .operational-task-actions :is(button, .secondary-action-button, .compact-button) * {
+  color: #102033 !important;
+  -webkit-text-fill-color: #102033 !important;
+  text-shadow: none !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-task-detail-panel .operations-task-status-pill {
+  background: rgba(158, 231, 255, 0.14) !important;
+  border: 1px solid rgba(125, 211, 252, 0.38) !important;
+  color: #dff7ff !important;
+  -webkit-text-fill-color: #dff7ff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-task-detail-panel .operational-task-update-form,
+#react-role-dashboard.react-role-dashboard .operations-task-detail-panel .operations-task-detail-edit-form,
+#react-role-dashboard.react-role-dashboard .operations-task-quick-add {
+  background: rgba(5, 32, 48, 0.72) !important;
+  border: 1px solid rgba(125, 211, 252, 0.32) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-task-detail-panel :is(.operational-task-update-form, .operations-task-detail-edit-form) *,
+#react-role-dashboard.react-role-dashboard .operations-task-quick-add * {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-task-detail-panel :is(.operational-task-update-form, .operations-task-detail-edit-form) label > span,
+#react-role-dashboard.react-role-dashboard .operations-task-quick-add label > span,
+#react-role-dashboard.react-role-dashboard .operations-task-quick-add .eyebrow {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-task-detail-panel :is(input, select, textarea),
+#react-role-dashboard.react-role-dashboard .operations-task-quick-add :is(input, select, textarea) {
+  background: #ffffff !important;
+  border-color: #b9d5e8 !important;
+  color: #102033 !important;
+  -webkit-text-fill-color: #102033 !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-task-detail-panel .operational-task-actions {
+  border-top: 1px solid rgba(125, 211, 252, 0.24) !important;
+  padding-top: 0.85rem !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-task-detail-panel .operational-task-remove-action {
+  background: rgba(127, 29, 29, 0.38) !important;
+  border: 1px solid rgba(252, 165, 165, 0.55) !important;
+  color: #fecaca !important;
+  -webkit-text-fill-color: #fecaca !important;
+}
+
+@media (max-width: 980px) {
+  #react-role-dashboard.react-role-dashboard .operations-task-detail-panel {
+    padding: 0.9rem !important;
+  }
+}

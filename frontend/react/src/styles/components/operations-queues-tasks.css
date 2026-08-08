@@ -234,3 +234,140 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Build 718 - task management uses the approved dark operational shell with readable light editors. */
+.react-role-dashboard .operations-task-workspace {
+  background: linear-gradient(135deg, #082334 0%, #0f5360 52%, #15713f 100%) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  box-shadow: 0 24px 60px rgba(7, 24, 39, 0.22) !important;
+  color: #ffffff !important;
+}
+
+.react-role-dashboard .operations-task-workspace-header,
+.react-role-dashboard .operations-task-workspace-header h4,
+.react-role-dashboard .operations-task-workspace-header p {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.react-role-dashboard .operations-task-workspace-header p {
+  color: #d7eff7 !important;
+  -webkit-text-fill-color: #d7eff7 !important;
+}
+
+.react-role-dashboard .operations-task-workspace-metrics div {
+  background: rgba(5, 32, 48, 0.58) !important;
+  border-color: rgba(125, 211, 252, 0.42) !important;
+}
+
+.react-role-dashboard .operations-task-workspace-metrics dt {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+}
+
+.react-role-dashboard .operations-task-workspace-metrics dd {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.react-role-dashboard .operations-task-layout {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.react-role-dashboard .operations-task-list-panel {
+  background: rgba(5, 32, 48, 0.72) !important;
+  border-color: rgba(125, 211, 252, 0.35) !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+}
+
+.react-role-dashboard .operations-task-list-heading h5 {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.react-role-dashboard .operations-task-list-heading span {
+  background: rgba(158, 231, 255, 0.14) !important;
+  color: #dff7ff !important;
+  -webkit-text-fill-color: #dff7ff !important;
+}
+
+.react-role-dashboard .operations-task-list-item {
+  background: rgba(7, 46, 63, 0.9) !important;
+  border-color: rgba(125, 211, 252, 0.34) !important;
+  color: #ffffff !important;
+}
+
+.react-role-dashboard .operations-task-list-item *,
+.react-role-dashboard .operations-task-list-item strong,
+.react-role-dashboard .operations-task-list-item span,
+.react-role-dashboard .operations-task-list-item small {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.react-role-dashboard .operations-task-list-item.active,
+.react-role-dashboard .operations-task-list-item:hover,
+.react-role-dashboard .operations-task-list-item:focus-visible {
+  background: linear-gradient(135deg, #0d86b6, #18a8b8) !important;
+  border-color: #7dd3fc !important;
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.18) !important;
+}
+
+.react-role-dashboard .operations-task-list-item.blocked:not(.active) {
+  background: rgba(91, 38, 25, 0.82) !important;
+  border-color: rgba(251, 146, 60, 0.62) !important;
+}
+
+.react-role-dashboard .operations-task-detail-panel,
+.react-role-dashboard .operations-task-quick-add,
+.react-role-dashboard .operations-task-detail-edit-form,
+.react-role-dashboard .operational-task-update-form {
+  background: #f7fbff !important;
+  border-color: #c7dced !important;
+  color: #102033 !important;
+  -webkit-text-fill-color: #102033 !important;
+}
+
+.react-role-dashboard .operations-task-detail-panel *,
+.react-role-dashboard .operations-task-quick-add *,
+.react-role-dashboard .operations-task-detail-edit-form *,
+.react-role-dashboard .operational-task-update-form * {
+  color: #102033 !important;
+  -webkit-text-fill-color: #102033 !important;
+  text-shadow: none !important;
+}
+
+.react-role-dashboard .operations-task-detail-panel .eyebrow,
+.react-role-dashboard .operations-task-quick-add .eyebrow,
+.react-role-dashboard .operations-task-detail-edit-form label > span,
+.react-role-dashboard .operational-task-update-form label > span {
+  color: #315b7c !important;
+  -webkit-text-fill-color: #315b7c !important;
+}
+
+.react-role-dashboard .operations-task-detail-panel :is(input, select, textarea),
+.react-role-dashboard .operations-task-quick-add :is(input, select, textarea),
+.react-role-dashboard .operations-task-detail-edit-form :is(input, select, textarea),
+.react-role-dashboard .operational-task-update-form :is(input, select, textarea) {
+  background: #ffffff !important;
+  border-color: #b9d5e8 !important;
+  color: #102033 !important;
+  -webkit-text-fill-color: #102033 !important;
+}
+
+.react-role-dashboard .operations-task-detail-panel .operational-task-detail-list > div {
+  background: #ffffff !important;
+  border-color: #c7dced !important;
+}
+
+.react-role-dashboard .operations-task-detail-panel .operations-task-status-pill {
+  background: #e8f4ff !important;
+  color: #17456f !important;
+  -webkit-text-fill-color: #17456f !important;
+}
+
+.react-role-dashboard .operations-task-detail-panel .operational-task-remove-action {
+  color: #991b1b !important;
+  -webkit-text-fill-color: #991b1b !important;
+}

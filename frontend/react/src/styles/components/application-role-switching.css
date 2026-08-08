@@ -2,7 +2,8 @@
 
 /* Role switching support: selected person changes the visible application workspace. */
 .react-role-dashboard {
-  width: min(1120px, calc(100% - 2rem));
+  width: min(var(--admin-rail-width, 1440px), calc(100% - 2rem));
+  max-width: var(--admin-rail-width, 1440px);
   margin: 1.5rem auto;
 }
 
@@ -119,6 +120,12 @@
 
   .role-booking-fields {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .react-role-dashboard {
+    width: min(var(--admin-rail-width, 1440px), calc(100% - 1rem));
   }
 }
 

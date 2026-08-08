@@ -1,0 +1,93 @@
+/* Build 721 - dependency gates follows the same dark operational review surface as after-action review. */
+#react-role-dashboard.react-role-dashboard .operations-dependency-workspace {
+  background: linear-gradient(135deg, #082334 0%, #0f5360 52%, #15713f 100%) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  box-shadow: 0 24px 60px rgba(7, 24, 39, 0.22) !important;
+  color: #ffffff !important;
+  overflow: hidden !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-dependency-workspace-header {
+  background: transparent !important;
+  border: 0 !important;
+  color: #ffffff !important;
+  padding: 0 !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-dependency-workspace-header :is(h4, p),
+#react-role-dashboard.react-role-dashboard .operations-dependency-list-heading,
+#react-role-dashboard.react-role-dashboard .operations-dependency-detail-header {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-dependency-workspace-header .ce-kicker,
+#react-role-dashboard.react-role-dashboard .operations-dependency-detail-header .ce-kicker {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-dependency-workspace-metrics div,
+#react-role-dashboard.react-role-dashboard .operations-dependency-list-panel,
+#react-role-dashboard.react-role-dashboard .operations-dependency-detail-panel,
+#react-role-dashboard.react-role-dashboard .operations-dependency-detail-list div,
+#react-role-dashboard.react-role-dashboard .operations-dependency-note {
+  background: rgba(6, 30, 45, 0.88) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-dependency-workspace-metrics :is(dt, dd),
+#react-role-dashboard.react-role-dashboard .operations-dependency-detail-list :is(dt, dd),
+#react-role-dashboard.react-role-dashboard .operations-dependency-note :is(strong, p) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-dependency-list-heading span,
+#react-role-dashboard.react-role-dashboard .operations-dependency-status-pill {
+  background: rgba(14, 116, 144, 0.28) !important;
+  border: 1px solid rgba(125, 211, 252, 0.45) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-dependency-list-item {
+  background: rgba(8, 35, 52, 0.95) !important;
+  border: 1px solid rgba(125, 211, 252, 0.3) !important;
+  color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-dependency-list-item :is(strong, span, small) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-dependency-list-item.active,
+#react-role-dashboard.react-role-dashboard .operations-dependency-list-item:hover,
+#react-role-dashboard.react-role-dashboard .operations-dependency-list-item:focus-visible {
+  background: linear-gradient(135deg, #0b789f 0%, #19a9b8 100%) !important;
+  border-color: rgba(186, 230, 253, 0.9) !important;
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.18) !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-dependency-list-item.active-gate,
+#react-role-dashboard.react-role-dashboard .operations-dependency-status-pill.active {
+  background: rgba(120, 53, 15, 0.9) !important;
+  border-color: rgba(251, 146, 60, 0.7) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-dependency-status-pill.cleared {
+  background: rgba(21, 128, 61, 0.55) !important;
+  border-color: rgba(134, 239, 172, 0.6) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-dependency-list-item.active.active-gate {
+  background: linear-gradient(135deg, #0b789f 0%, #19a9b8 100%) !important;
+  border-color: rgba(186, 230, 253, 0.9) !important;
+}

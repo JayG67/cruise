@@ -1,0 +1,96 @@
+/* Build 720 - readiness approvals follows the same dark operational review surface as after-action review. */
+#react-role-dashboard.react-role-dashboard .operations-readiness-workspace {
+  background: linear-gradient(135deg, #082334 0%, #0f5360 52%, #15713f 100%) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  box-shadow: 0 24px 60px rgba(7, 24, 39, 0.22) !important;
+  color: #ffffff !important;
+  overflow: hidden !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-readiness-workspace-header {
+  background: transparent !important;
+  border: 0 !important;
+  color: #ffffff !important;
+  padding: 0 !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-readiness-workspace-header :is(h4, p),
+#react-role-dashboard.react-role-dashboard .operations-readiness-list-heading,
+#react-role-dashboard.react-role-dashboard .operations-readiness-detail-header {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-readiness-workspace-header .ce-kicker,
+#react-role-dashboard.react-role-dashboard .operations-readiness-detail-header .ce-kicker {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-readiness-workspace-metrics div,
+#react-role-dashboard.react-role-dashboard .operations-readiness-list-panel,
+#react-role-dashboard.react-role-dashboard .operations-readiness-detail-panel,
+#react-role-dashboard.react-role-dashboard .operations-readiness-detail-list div,
+#react-role-dashboard.react-role-dashboard .operations-readiness-note {
+  background: rgba(6, 30, 45, 0.88) !important;
+  border: 1px solid rgba(125, 211, 252, 0.35) !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-readiness-workspace-metrics :is(dt, dd),
+#react-role-dashboard.react-role-dashboard .operations-readiness-detail-list :is(dt, dd),
+#react-role-dashboard.react-role-dashboard .operations-readiness-note :is(strong, p) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-readiness-list-heading span,
+#react-role-dashboard.react-role-dashboard .operations-readiness-status-pill {
+  background: rgba(14, 116, 144, 0.28) !important;
+  border: 1px solid rgba(125, 211, 252, 0.45) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-readiness-list-item {
+  background: rgba(8, 35, 52, 0.95) !important;
+  border: 1px solid rgba(125, 211, 252, 0.3) !important;
+  color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-readiness-list-item :is(strong, span, small) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-readiness-list-item.active,
+#react-role-dashboard.react-role-dashboard .operations-readiness-list-item:hover,
+#react-role-dashboard.react-role-dashboard .operations-readiness-list-item:focus-visible {
+  background: linear-gradient(135deg, #0b789f 0%, #19a9b8 100%) !important;
+  border-color: rgba(186, 230, 253, 0.9) !important;
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.18) !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-readiness-list-item.blocked {
+  background: rgba(107, 39, 20, 0.92) !important;
+  border-color: rgba(251, 146, 60, 0.65) !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-readiness-detail-form {
+  background: #f8fbff !important;
+  border: 1px solid #cbdff5 !important;
+  color: #0f172a !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-readiness-detail-form label > span {
+  color: #345e86 !important;
+  -webkit-text-fill-color: #345e86 !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-readiness-detail-form :is(input, textarea, select) {
+  background: #ffffff !important;
+  border: 1px solid #b9d8ec !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
