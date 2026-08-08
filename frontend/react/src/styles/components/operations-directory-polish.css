@@ -1,0 +1,65 @@
+/* Build 725 - operations directory cards align with the restrained application card motif. */
+
+#react-role-dashboard.react-role-dashboard .operations-directory-panel .operations-directory-list {
+  gap: 0.8rem !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-directory-panel .operations-directory-card {
+  background: rgba(6, 30, 45, 0.9) !important;
+  border: 1px solid rgba(125, 211, 252, 0.28) !important;
+  border-radius: 1rem !important;
+  box-shadow: none !important;
+  gap: 0.55rem !important;
+  padding: 0.95rem 1rem !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-directory-panel .operations-directory-card:hover,
+#react-role-dashboard.react-role-dashboard .operations-directory-panel .operations-directory-card:focus-visible {
+  background: rgba(8, 40, 57, 0.96) !important;
+  border-color: rgba(158, 231, 255, 0.55) !important;
+  box-shadow: 0 0.7rem 1.5rem rgba(7, 24, 39, 0.18) !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-directory-panel .operations-directory-card.active {
+  background: linear-gradient(135deg, rgba(8, 48, 67, 0.98), rgba(13, 79, 76, 0.96)) !important;
+  border-color: rgba(94, 234, 212, 0.58) !important;
+  box-shadow: inset 3px 0 0 rgba(94, 234, 212, 0.75), 0 0.7rem 1.5rem rgba(7, 24, 39, 0.18) !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-directory-panel .operations-directory-card.current-role:not(.active) {
+  background: rgba(8, 39, 55, 0.94) !important;
+  border-color: rgba(125, 211, 252, 0.36) !important;
+  box-shadow: inset 3px 0 0 rgba(125, 211, 252, 0.5) !important;
+}
+
+/* The generic operational surface selector matches class names containing "card".
+   Reset title and summary wrappers so they remain content rows instead of nested blue cards. */
+#react-role-dashboard.react-role-dashboard .operations-directory-panel :is(
+  .operations-directory-card-title,
+  .operations-directory-card-title > span,
+  .operations-directory-card-summary
+) {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-directory-panel .operations-directory-card-summary {
+  color: rgba(226, 244, 250, 0.9) !important;
+  -webkit-text-fill-color: rgba(226, 244, 250, 0.9) !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-directory-panel .operations-directory-card-title .eyebrow {
+  color: #9ee7ff !important;
+  -webkit-text-fill-color: #9ee7ff !important;
+  letter-spacing: 0.08em !important;
+}
+
+#react-role-dashboard.react-role-dashboard .operations-directory-panel .operations-directory-health {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-width: 1px !important;
+  box-shadow: none !important;
+}
