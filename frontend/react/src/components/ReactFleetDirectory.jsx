@@ -113,16 +113,9 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
             Search, review, and manage the cruise lines currently available in the live application dataset.
           </p>
         </div>
-      </div>
-
-      <div className="fleet-refresh-control" data-testid="react-fleet-refresh-control">
-        <div>
-          <strong>Fleet data</strong>
-          <span>Reload cruise lines from the live application data source.</span>
-        </div>
         <button
           type="button"
-          className="button-link secondary light-action ce-button-secondary"
+          className="button-link secondary light-action ce-button-secondary fleet-header-refresh"
           onClick={handleRefreshFleet}
           disabled={isRefreshing}
           aria-describedby="react-fleet-refresh-status"
@@ -131,27 +124,34 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
           {isRefreshing ? 'Refreshing fleet…' : 'Refresh fleet'}
         </button>
       </div>
-      <p
-        id="react-fleet-refresh-status"
-        className="fleet-refresh-status muted-status ce-muted"
-        role="status"
-        aria-live="polite"
-        data-testid="react-fleet-refresh-status"
-      >
-        {refreshMessage}
-      </p>
 
-      <label className="search-control ce-field fleet-search-control">
-        <span>Search cruise lines</span>
-        <input
-          type="search"
-          placeholder="Search cruise lines..."
-          aria-describedby="react-fleet-count"
-          value={searchTerm}
-          onChange={event => setSearchTerm(event.target.value)}
-          data-testid="react-fleet-search"
-        />
-      </label>
+      <div className="fleet-directory-toolbar" data-testid="react-fleet-refresh-control">
+        <label className="search-control ce-field fleet-search-control">
+          <span>Search cruise lines</span>
+          <input
+            type="search"
+            placeholder="Search cruise lines..."
+            aria-describedby="react-fleet-count"
+            value={searchTerm}
+            onChange={event => setSearchTerm(event.target.value)}
+            data-testid="react-fleet-search"
+          />
+        </label>
+        <div className="fleet-directory-toolbar-status">
+          <p id="react-fleet-count" className="muted-status ce-muted" data-testid="react-fleet-count">
+            Showing {visibleCruiseLines.length} of {filteredCruiseLines.length} matching cruise lines.
+          </p>
+          <p
+            id="react-fleet-refresh-status"
+            className="fleet-refresh-status muted-status ce-muted"
+            role="status"
+            aria-live="polite"
+            data-testid="react-fleet-refresh-status"
+          >
+            {refreshMessage}
+          </p>
+        </div>
+      </div>
 
       {error && <p className="error" role="alert">{error}</p>}
       {fleetActionMessage && <p className="muted-status ce-muted" role="status" data-testid="react-fleet-action-message">{fleetActionMessage}</p>}
@@ -165,10 +165,6 @@ export default function ReactFleetDirectory({ cruiseLines = [], isLoading = fals
         testId="react-fleet-delete-confirmation"
       />
       {isLoading && <p className="muted-status ce-muted">Loading cruise line directory…</p>}
-
-      <p id="react-fleet-count" className="muted-status ce-muted" data-testid="react-fleet-count">
-        Showing {visibleCruiseLines.length} of {filteredCruiseLines.length} matching cruise lines.
-      </p>
 
       <ReactFleetCruiseLineGrid
         visibleCruiseLines={visibleCruiseLines}

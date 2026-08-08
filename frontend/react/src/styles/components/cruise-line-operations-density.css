@@ -1,0 +1,101 @@
+/* Build 710: compact the wide Cruise Line Operating Workspace.
+   The workspace now shares the administrator rail, so its internal presentation
+   should use that horizontal room instead of stretching small amounts of content
+   into tall full-width cards. This layer intentionally loads after the shared
+   admin-home rail contract and only affects this workspace. */
+
+html body main.react-production-shell > .cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite'] .presentation-hero-card {
+  align-items: center !important;
+  display: grid !important;
+  gap: clamp(1rem, 2vw, 1.5rem) !important;
+  grid-template-columns: minmax(16rem, 0.8fr) minmax(0, 2.2fr) !important;
+  margin-bottom: 1rem !important;
+  padding: clamp(1rem, 1.8vw, 1.35rem) !important;
+}
+
+html body main.react-production-shell > .cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite'] .presentation-hero-card > div:first-child {
+  align-self: start !important;
+  min-width: 0 !important;
+}
+
+html body main.react-production-shell > .cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite'] .presentation-hero-card > div:first-child > :last-child {
+  margin-bottom: 0 !important;
+  max-width: 42rem !important;
+}
+
+html body main.react-production-shell > .cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite'] .presentation-metric-grid {
+  align-self: stretch !important;
+  display: grid !important;
+  gap: 0.55rem !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  width: 100% !important;
+}
+
+html body main.react-production-shell > .cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite'] .presentation-metric-grid article {
+  align-content: center !important;
+  min-height: 4.25rem !important;
+  padding: 0.7rem 0.75rem !important;
+}
+
+html body main.react-production-shell > .cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite'] .presentation-demo-flow.presentation-action-grid {
+  display: grid !important;
+  gap: 0.75rem !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  margin-bottom: 0.9rem !important;
+}
+
+html body main.react-production-shell > .cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite'] .presentation-action-grid .presentation-flow-card {
+  align-content: start !important;
+  display: grid !important;
+  gap: 0.65rem !important;
+  grid-template-rows: auto minmax(2.6rem, 1fr) auto !important;
+  min-height: 0 !important;
+  padding: 1rem !important;
+}
+
+html body main.react-production-shell > .cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite'] .presentation-action-grid .presentation-flow-card p {
+  margin: 0 !important;
+}
+
+html body main.react-production-shell > .cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite'] .presentation-action-grid .presentation-flow-card .secondary-action-button {
+  align-self: end !important;
+  margin-top: 0 !important;
+  min-width: 0 !important;
+  width: fit-content !important;
+}
+
+html body main.react-production-shell > .cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite'] .presentation-action-row {
+  align-items: center !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.65rem !important;
+  margin-top: 0 !important;
+}
+
+@media (max-width: 1180px) {
+  html body main.react-production-shell > .cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite'] .presentation-hero-card {
+    grid-template-columns: minmax(14rem, 0.9fr) minmax(0, 2.1fr) !important;
+  }
+
+  html body main.react-production-shell > .cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite'] .presentation-metric-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  html body main.react-production-shell > .cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite'] .presentation-demo-flow.presentation-action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  html body main.react-production-shell > .cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite'] .presentation-hero-card {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body main.react-production-shell > .cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite'] .presentation-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body main.react-production-shell > .cruise-line-presentation-suite[data-testid='react-cruise-line-presentation-suite'] .presentation-demo-flow.presentation-action-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
