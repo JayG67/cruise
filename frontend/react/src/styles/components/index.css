@@ -43,3 +43,13 @@
 @import './platform-workspace-density.css';
 
 @import './fleet-directory-density.css';
+
+@import './operations-staffing-surface.css';
+
+@import './operations-readiness-surface.css';
+
+@import './operations-dependency-surface.css';
+
+@import './operations-task-review-surface.css';
+
+@import './operations-escalation-surface.css';

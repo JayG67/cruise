@@ -1092,6 +1092,9 @@ describe('Passenger booking summary spacing contract', () => {
   test('keeps booking field labels and values away from bordered tile edges', () => {
     const roleSwitchingCss = readProjectFile('frontend/react/src/styles/components/application-role-switching.css')
 
+    expect(roleSwitchingCss).toContain('width: min(var(--admin-rail-width, 1440px), calc(100% - 2rem));')
+    expect(roleSwitchingCss).toContain('max-width: var(--admin-rail-width, 1440px);')
+    expect(roleSwitchingCss).not.toContain('width: min(1120px, calc(100% - 2rem));')
     expect(roleSwitchingCss).toContain('.role-booking-fields > .role-booking-field {')
     expect(roleSwitchingCss).toContain('padding: 0.75rem 0.9rem 0.8rem;')
     expect(roleSwitchingCss).toContain('.role-booking-fields > .role-booking-field dt,')
@@ -1211,4 +1214,41 @@ describe('Public application audience contract', () => {
     expect(app).not.toContain('<PortfolioRoleAlignment')
     expect(app).not.toContain('<PortfolioReleaseCenter')
   })
+})
+
+test('build 722 task workspace matches the dark operational review surface without an empty detail column', () => {
+  const css = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/operations-task-review-surface.css'), 'utf8')
+  expect(css).toContain('Build 722 - task queue follows the dark operational review surface used by after-action review')
+  expect(css).toContain('#react-role-dashboard.react-role-dashboard .operations-task-detail-panel')
+  expect(css).toContain('background: rgba(6, 30, 45, 0.88) !important')
+  expect(css).toContain('.operations-task-detail-edit-form')
+  expect(css).toContain('background: #ffffff !important')
+  expect(css).toContain('color: #102033 !important'); expect(css).toContain('.operational-task-actions :is(button, .secondary-action-button, .compact-button)'); expect(css).not.toContain('.operational-task-actions * {\n  color: #ffffff !important;')
+})
+
+test('build 719 staffing coverage matches the dark operational review surface', () => {
+  const styles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/operations-staffing-surface.css'), 'utf8')
+  const index = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/index.css'), 'utf8')
+  expect(index).toContain("@import './operations-staffing-surface.css';")
+  expect(styles).toContain('Build 719 - staffing coverage uses the same dark operational surface language as after-action review')
+  expect(styles).toContain('#react-role-dashboard.react-role-dashboard .operations-staffing-workspace')
+  expect(styles).toContain('background: linear-gradient(135deg, #082334 0%, #0f5360 52%, #15713f 100%) !important')
+  expect(styles).toContain('#react-role-dashboard.react-role-dashboard .operations-staffing-detail-form')
+  expect(styles).toContain('background: #ffffff !important')
+  expect(styles).toContain('-webkit-text-fill-color: #0f172a !important')
+})
+
+test('build 720 readiness approvals matches the dark operational review surface', () => {
+  const styles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/operations-readiness-surface.css'), 'utf8')
+  const index = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/index.css'), 'utf8')
+  expect(index).toContain("@import './operations-readiness-surface.css';")
+  expect(styles).toContain('Build 720 - readiness approvals follows the same dark operational review surface as after-action review')
+  expect(styles).toContain('#react-role-dashboard.react-role-dashboard .operations-readiness-workspace')
+  expect(styles).toContain('#react-role-dashboard.react-role-dashboard .operations-readiness-detail-form')
+})
+test('builds 721 and 724 keep dependency and escalation workspaces on the dark operational review surface', () => {
+  const styles = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/operations-dependency-surface.css'), 'utf8'), escalation = fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/operations-escalation-surface.css'), 'utf8')
+  expect(fs.readFileSync(path.join(__dirname, '../../frontend/react/src/styles/components/index.css'), 'utf8')).toContain("@import './operations-escalation-surface.css';")
+  expect(styles).toContain('#react-role-dashboard.react-role-dashboard .operations-dependency-workspace'); expect(escalation).toContain('Build 724 - escalation management follows the dark operational review surface used by after-action review')
+  expect(escalation).toContain('#react-role-dashboard.react-role-dashboard .operations-escalation-workspace'); expect(escalation).toContain('color: #0f172a !important')
 })
