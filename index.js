@@ -3,6 +3,7 @@ require('./config/loadEnvironment').loadEnvironment()
 const app = require('./app')
 const initializeDatabase = require('./services/initializeDatabase.service')
 const loadCruiseData = require('./services/loadCruiseData.service')
+const { shouldLoadDemoDataOnStartup } = require('./services/demoDataPolicy.service')
 
 const PORT = process.env.PORT || 8000
 const startupAttempts = Number(process.env.DB_STARTUP_ATTEMPTS || 30)
@@ -16,7 +17,11 @@ async function prepareDatabaseWithRetry() {
   for (let attempt = 1; attempt <= startupAttempts; attempt += 1) {
     try {
       await initializeDatabase()
-      await loadCruiseData()
+
+      if (shouldLoadDemoDataOnStartup()) {
+        await loadCruiseData()
+      }
+
       return
     } catch (err) {
       const isLastAttempt = attempt === startupAttempts

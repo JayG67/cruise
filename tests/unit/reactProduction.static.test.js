@@ -158,7 +158,7 @@ describe('Cruise operations product presentation guardrails', () => {
     expect(operationalSources).not.toContain('launch watchlist')
   })
 
-  it('serves the single root seed data file and shared public assets to the React app', () => {
+  it('keeps root seed data available only through the demo-data policy while serving shared public assets', () => {
     const app = read('app.js')
     const viteConfig = read('frontend/react/vite.config.js')
     const indexHtml = read('frontend/react/index.html')
@@ -166,7 +166,9 @@ describe('Cruise operations product presentation guardrails', () => {
     const productShellCss = readCssBundle('frontend/react/src/styles/components/product-shell.css')
 
     expect(app).toContain("const seedDataDir = path.join(__dirname, 'data')")
-    expect(app).toContain("app.use('/data', express.static(seedDataDir")
+    expect(app).toContain('const seedDataStatic = express.static(seedDataDir')
+    expect(app).toContain("app.use('/data', (req, res, next) => {")
+    expect(app).toContain('if (!canExposeSeedDataOverHttp())')
     expect(viteConfig).toContain("publicDir: path.resolve(__dirname, '../../public')")
     expect(indexHtml).not.toContain('rel="preload"')
     expect(indexHtml).toContain('class="initial-shell"')

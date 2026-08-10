@@ -27,6 +27,7 @@ function main() {
   const renderConfig = read('render.yaml')
   const workflow = read('.github/workflows/ci.yml')
   const app = read('app.js')
+  const index = read('index.js')
   const gitignore = read('.gitignore')
 
   assert(packageJson.engines?.node === '>=22 <23', 'package.json must pin production to Node.js 22 with engines.node ">=22 <23".')
@@ -43,7 +44,9 @@ function main() {
     'autoDeployTrigger: checksPass',
     'key: NODE_ENV',
     'value: production',
-    'key: DATABASE_URL'
+    'key: DATABASE_URL',
+    'key: CRUISE_DEMO_DATA_MODE',
+    'value: disabled'
   ]) {
     assertIncludes(renderConfig, expected, 'render.yaml')
   }
@@ -57,6 +60,10 @@ function main() {
   assert(!workflow.includes('image: postgres:17.4'), '.github/workflows/ci.yml must not depend directly on Docker Hub for PostgreSQL service containers.')
   assertIncludes(app, "app.get('/health'", 'app.js')
   assertIncludes(app, "res.status(200).json({ status: 'ok' })", 'app.js')
+
+  assertIncludes(index, 'if (shouldLoadDemoDataOnStartup())', 'index.js')
+  assertIncludes(index, 'await loadCruiseData()', 'index.js')
+  assertIncludes(app, 'if (!canExposeSeedDataOverHttp())', 'app.js')
 
   for (const ignoredPath of [
     'node_modules/',

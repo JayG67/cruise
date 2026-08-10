@@ -10,6 +10,7 @@ const adminRouter = require('./routes/admin.routes')
 const aiRouter = require('./routes/ai.routes')
 const { serverLogger } = require('./middleware/loggers')
 const { attachRequestIdentity } = require('./middleware/requestIdentity.middleware')
+const { canExposeSeedDataOverHttp } = require('./services/demoDataPolicy.service')
 
 const app = express()
 
@@ -124,7 +125,15 @@ app.get('/health', (req, res) => {
 })
 
 app.use('/images', express.static(publicImagesDir, { redirect: false, setHeaders: setLongTermAssetCache }))
-app.use('/data', express.static(seedDataDir, { redirect: false, setHeaders: setReactBuildCache }))
+
+const seedDataStatic = express.static(seedDataDir, { redirect: false, setHeaders: setReactBuildCache })
+app.use('/data', (req, res, next) => {
+  if (!canExposeSeedDataOverHttp()) {
+    return res.status(404).type('text/plain').send('Not found')
+  }
+
+  return seedDataStatic(req, res, next)
+})
 app.use(express.static(reactBuildDir, { redirect: false, setHeaders: setReactBuildCache }))
 app.get('/lighthouse-ci', sendLighthouseAuditPage)
 app.get('/', sendReactApp)

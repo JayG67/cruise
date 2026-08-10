@@ -17,7 +17,7 @@ describe('application security headers', () => {
     expect(res.headers['content-security-policy']).toContain("frame-ancestors 'none'")
   })
 
-  it('does not treat spoofed production identity headers as authentication in production', async () => {
+  it('keeps the destructive production reset endpoint unavailable even with spoofed identity headers', async () => {
     const previousNodeEnv = process.env.NODE_ENV
     const previousSecret = process.env.CRUISE_JWT_SECRET
     process.env.NODE_ENV = 'production'
@@ -30,8 +30,10 @@ describe('application security headers', () => {
         .set('X-Cruise-User-Role', 'ADMIN')
         .set('X-Cruise-Demo-User-Id', 'UADMIN0001')
 
-      expect(res.statusCode).toBe(403)
-      expect(res.body.message).toMatch(/Admin access requires/i)
+      // Production intentionally hides this destructive demo-only surface instead of
+      // revealing whether a supplied identity would otherwise be authorized.
+      expect(res.statusCode).toBe(404)
+      expect(res.body).toEqual({ message: 'Not found' })
     } finally {
       if (previousNodeEnv === undefined) delete process.env.NODE_ENV
       else process.env.NODE_ENV = previousNodeEnv
