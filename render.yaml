@@ -12,6 +12,10 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: CRUISE_AUTH_MODE
+        value: jwt
+      - key: CRUISE_JWT_SECRET
+        sync: false
       - key: DATABASE_URL
         fromDatabase:
           name: cruise-db

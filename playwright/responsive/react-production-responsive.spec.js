@@ -237,6 +237,29 @@ test.describe('React default desktop and tablet replacement checks', () => {
   })
 
   test('keeps operations intelligence readable without layout overflow', async ({ page }) => {
+    const responsiveIntelligenceFixture = [{
+      id: 'responsive-intelligence-operation',
+      title: 'Responsive turnaround readiness',
+      turnaroundDate: '2027-02-14',
+      port: 'Miami',
+      cruiseLine: { id: 'responsive-line', name: 'Responsive Cruise Line' },
+      ship: { id: 'responsive-ship', name: 'Responsive Voyager' },
+      taskSummary: { totalTasks: 4, completeTasks: 2, blockedTasks: 0 },
+      staffingSummary: { checkedInCount: 38, gapCount: 2 },
+      escalationSummary: { openEscalations: 1, criticalEscalations: 0 },
+      signoffSummary: { approvedSignoffs: 2, pendingSignoffs: 1, blockedSignoffs: 0 },
+      dependencySummary: { activeDependencies: 1 },
+      handoffSummary: { openHandoffs: 1 }
+    }]
+
+    await page.route('**/cruise/turnaround-operations*', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(responsiveIntelligenceFixture)
+      })
+    })
+
     await page.goto('/')
     await selectDemoUserByRole(page, 'Admin')
 

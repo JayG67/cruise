@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 
-const projectRoot = path.resolve(__dirname, '..', '..')
+const projectRoot = path.resolve(__dirname, '..', '..', '..')
 
 function read(relativePath) {
   return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
@@ -459,7 +459,7 @@ describe('Production data architecture hardening guardrails', () => {
     expect(middleware).toContain('function buildRequestIdentity(req = {})')
     expect(middleware).toContain('function getScopedDemoUserId(req)')
     expect(middleware).toContain('function buildProductionPrincipal(req = {})')
-    expect(middleware).toContain("'X-Cruise-User-Id'")
+    expect(middleware).toContain('buildJwtPrincipal(req)')
     expect(middleware).toContain("identitySource: principal?.identitySource || (headerDemoUserId ? 'demo-header' : queryDemoUserId ? 'demo-query' : 'anonymous')")
     expect(controller).toContain("require('../services/turnaroundScope.service')")
     expect(scopeService).toContain("const { getScopedDemoUserId } = require('../middleware/requestIdentity.middleware')")
@@ -480,8 +480,8 @@ describe('Production data architecture hardening guardrails', () => {
     const turnaroundScopeService = read('services/turnaroundScope.service.js')
 
     expect(middleware).toContain('function buildProductionPrincipal(req = {})')
-    expect(middleware).toContain("'X-Cruise-User-Role'")
-    expect(middleware).toContain("'X-Cruise-Tenant-Id'")
+    expect(middleware).toContain('buildJwtPrincipal(req)')
+    expect(middleware).toContain("identitySource: 'test-header'")
     expect(authorizationService).toContain('async function resolveRequestActor(req = {})')
     expect(authorizationService).toContain('async function requireAdminRequest(req, res)')
     expect(authorizationService).toContain('function getProductionPrincipal(req = {})')
@@ -1232,7 +1232,7 @@ describe('Retired turnaround readiness presentation guardrails', () => {
 
 
 describe('Turnaround closeout packet guardrails', () => {
-  const projectRoot = path.resolve(__dirname, '../..')
+  const projectRoot = path.resolve(__dirname, '../../..')
   function read(relativePath) {
     return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8')
   }

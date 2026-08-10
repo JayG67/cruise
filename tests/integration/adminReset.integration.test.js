@@ -10,7 +10,14 @@ beforeAll(async () => {
 })
 
 describe('Admin reset demo data integration tests', () => {
+  const asAdmin = requestBuilder => requestBuilder.set('X-Cruise-Demo-User-Id', 'UADMIN0001')
   jest.setTimeout(120000)
+
+
+  it('POST /admin/reset-demo-data rejects anonymous callers', async () => {
+    const res = await request(app).post('/admin/reset-demo-data')
+    expect(res.statusCode).toBe(403)
+  })
 
   it('POST /admin/reset-demo-data should reset data from the seed file', async () => {
     const temporaryCruiseLineName = `Temporary Reset Test Line ${Date.now()}`
@@ -25,7 +32,7 @@ describe('Admin reset demo data integration tests', () => {
 
     expect(createRes.statusCode).toBe(201)
 
-    const resetRes = await request(app).post('/admin/reset-demo-data')
+    const resetRes = await asAdmin(request(app).post('/admin/reset-demo-data'))
 
     expect(resetRes.statusCode).toBe(200)
     expect(resetRes.body.message).toBe('Demo data reset successfully')
@@ -41,7 +48,7 @@ describe('Admin reset demo data integration tests', () => {
   })
 
   it('POST /admin/reset-demo-data should return JSON response metadata', async () => {
-    const res = await request(app).post('/admin/reset-demo-data')
+    const res = await asAdmin(request(app).post('/admin/reset-demo-data'))
 
     expect(res.statusCode).toBe(200)
     expect(res.headers['content-type']).toContain('application/json')
@@ -59,13 +66,13 @@ describe('Admin reset demo data integration tests', () => {
   })
 
   it('POST /admin/reset-demo-data should be idempotent when demo users already exist', async () => {
-    const firstResetRes = await request(app).post('/admin/reset-demo-data')
+    const firstResetRes = await asAdmin(request(app).post('/admin/reset-demo-data'))
 
     expect(firstResetRes.statusCode).toBe(200)
     expect(firstResetRes.body.message).toBe('Demo data reset successfully')
     expect(firstResetRes.body.demoUserCount).toBeGreaterThan(0)
 
-    const secondResetRes = await request(app).post('/admin/reset-demo-data')
+    const secondResetRes = await asAdmin(request(app).post('/admin/reset-demo-data'))
 
     expect(secondResetRes.statusCode).toBe(200)
     expect(secondResetRes.body.message).toBe('Demo data reset successfully')
@@ -85,8 +92,8 @@ describe('Admin reset demo data integration tests', () => {
   })
 
   it('POST /admin/reset-demo-data should preserve seeded role context after repeated resets', async () => {
-    await request(app).post('/admin/reset-demo-data')
-    await request(app).post('/admin/reset-demo-data')
+    await asAdmin(request(app).post('/admin/reset-demo-data'))
+    await asAdmin(request(app).post('/admin/reset-demo-data'))
 
     const adminContextRes = await request(app).get('/cruise/demo-users/UADMIN0001/context')
     const passengerContextRes = await request(app).get('/cruise/demo-users/UPASS00001/context')
