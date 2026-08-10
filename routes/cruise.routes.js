@@ -2,6 +2,7 @@ const express = require('express')
 
 const cruiseController = require('../controllers/cruise.controller')
 const validate = require('../middleware/validate.middleware')
+const { requireAdminMutation } = require('../middleware/authorization.middleware')
 
 const {
   cruiseLineSchema,
@@ -85,18 +86,21 @@ router.get(
 
 router.post(
   '/turnaround-admin/people',
+  requireAdminMutation,
   validate(turnaroundPersonAssignmentSchema),
   cruiseController.createTurnaroundPerson
 )
 
 router.patch(
   '/turnaround-admin/people/:id',
+  requireAdminMutation,
   validate(turnaroundPersonAssignmentSchema.omit({ id: true })),
   cruiseController.updateTurnaroundPerson
 )
 
 router.delete(
   '/turnaround-admin/people/:id',
+  requireAdminMutation,
   cruiseController.deleteTurnaroundPerson
 )
 
@@ -301,85 +305,100 @@ router.get(
 
 router.post(
   '/cruise-line',
+  requireAdminMutation,
   validate(cruiseLineSchema),
   cruiseController.insertCruiseLine
 )
 
 router.post(
   '/ship',
+  requireAdminMutation,
   validate(shipSchema),
   cruiseController.insertShip
 )
 
 router.patch(
   '/cruise-line/:id',
+  requireAdminMutation,
   validate(cruiseLineSchema),
   cruiseController.updateCruiseLine
 )
 
 router.patch(
   '/ship/:id',
+  requireAdminMutation,
   validate(shipSchema),
   cruiseController.updateShip
 )
 
 router.delete(
   '/cruise-line/:id',
+  requireAdminMutation,
   cruiseController.deleteCruiseLine
 )
 
 router.delete(
   '/ship/:id',
+  requireAdminMutation,
   cruiseController.deleteShip
 )
 
 
 router.post(
   '/ship/:shipId/sailings',
+  requireAdminMutation,
   validate(sailingSchema),
   cruiseController.insertSailing
 )
 
 router.patch(
   '/sailings/:id',
+  requireAdminMutation,
   validate(sailingSchema),
   cruiseController.updateSailing
 )
 
 router.delete(
   '/sailings/:id',
+  requireAdminMutation,
   cruiseController.deleteSailing
 )
 
 router.post(
   '/sailings/:sailingId/itinerary',
+  requireAdminMutation,
   validate(itineraryDaySchema),
   cruiseController.insertItineraryDay
 )
 
 router.patch(
   '/itinerary-days/:id',
+  requireAdminMutation,
   cruiseController.updateItineraryDay
 )
 
 router.delete(
   '/itinerary-days/:id',
+  requireAdminMutation,
   cruiseController.deleteItineraryDay
 )
 
 router.post(
   '/itinerary-days/:itineraryDayId/activities',
+  requireAdminMutation,
   validate(activityScheduleSchema),
   cruiseController.insertActivitySchedule
 )
 
 router.patch(
   '/activities/:id',
+  requireAdminMutation,
   cruiseController.updateActivitySchedule
 )
 
 router.delete(
   '/activities/:id',
+  requireAdminMutation,
   cruiseController.deleteActivitySchedule
 )
 
