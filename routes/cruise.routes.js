@@ -2,7 +2,15 @@ const express = require('express')
 
 const cruiseController = require('../controllers/cruise.controller')
 const validate = require('../middleware/validate.middleware')
-const { requireAdminMutation } = require('../middleware/authorization.middleware')
+const {
+  requireAdminAccess,
+  requireAdminMutation,
+  requireBookingAccess,
+  requireBookingCreationAccess,
+  requireBookingPassengerAccess,
+  requireCustomerAccess,
+  requireFavoriteCustomerAccess
+} = require('../middleware/authorization.middleware')
 
 const {
   cruiseLineSchema,
@@ -194,102 +202,120 @@ router.get(
 
 router.get(
   '/customers',
+  requireAdminAccess,
   cruiseController.getCustomers
 )
 
 router.get(
   '/customers/:id',
+  requireCustomerAccess('id'),
   cruiseController.getCustomerById
 )
 
 router.get(
   '/customers/:customerId/bookings',
+  requireCustomerAccess('customerId'),
   cruiseController.getBookingsByCustomer
 )
 
 router.get(
   '/bookings',
+  requireAdminAccess,
   cruiseController.getBookings
 )
 
 router.get(
   '/bookings/:id',
+  requireBookingAccess('id'),
   cruiseController.getBookingById
 )
 
 router.post(
   '/customers',
+  requireAdminMutation,
   validate(customerSchema),
   cruiseController.insertCustomer
 )
 
 router.patch(
   '/customers/:id',
+  requireAdminMutation,
   validate(customerSchema.omit({ id: true })),
   cruiseController.updateCustomer
 )
 
 router.delete(
   '/customers/:id',
+  requireAdminMutation,
   cruiseController.deleteCustomer
 )
 
 
 router.patch(
   '/customers/:id/passenger-profile',
+  requireCustomerAccess('id'),
   validate(passengerCustomerUpdateSchema),
   cruiseController.updatePassengerSelfServiceProfile
 )
 
 router.patch(
   '/bookings/:bookingId/passengers/:customerId/preferences',
+  requireBookingPassengerAccess,
   validate(bookingPreferenceUpdateSchema),
   cruiseController.updatePassengerBookingPreferences
 )
 
 router.patch(
   '/customers/:id/pre-cruise-checklist',
+  requireCustomerAccess('id'),
   validate(preCruiseChecklistSchema),
   cruiseController.updatePassengerPreCruiseChecklist
 )
 
 router.post(
   '/itinerary-favorites',
+  requireFavoriteCustomerAccess,
   validate(itineraryFavoriteSchema),
   cruiseController.addItineraryFavorite
 )
 
 router.delete(
   '/itinerary-favorites/:customerId/:activityScheduleId',
+  requireFavoriteCustomerAccess,
   cruiseController.deleteItineraryFavorite
 )
 
 
 router.post(
   '/bookings',
+  requireBookingCreationAccess,
   validate(bookingSchema),
   cruiseController.insertBooking
 )
 
 router.patch(
   '/bookings/:id',
+  requireAdminMutation,
   validate(bookingSchema.omit({ id: true })),
   cruiseController.updateBooking
 )
 
 router.delete(
   '/bookings/:id',
+  requireAdminMutation,
   cruiseController.deleteBooking
 )
 
 router.post(
   '/bookings/:bookingId/passengers',
+  requireAdminMutation,
   validate(bookingPassengerCreateSchema),
   cruiseController.addBookingPassenger
 )
 
 router.delete(
   '/bookings/:bookingId/passengers/:customerId',
+  requireAdminMutation,
   cruiseController.deleteBookingPassenger
 )
 

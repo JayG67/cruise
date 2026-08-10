@@ -27,7 +27,7 @@ const protectedAdminMutations = [
 
 describe('administrator mutation authorization contracts', () => {
   it('routes fleet, sailing, itinerary, and turnaround-team writes through the admin mutation boundary', () => {
-    expect(routes).toContain("const { requireAdminMutation } = require('../middleware/authorization.middleware')")
+    expect(routes).toMatch(/const\s*\{[\s\S]*?\brequireAdminMutation\b[\s\S]*?\}\s*=\s*require\('\.\.\/middleware\/authorization\.middleware'\)/)
 
     for (const [method, routePath] of protectedAdminMutations) {
       const routeSignature = `router.${method}(\n  '${routePath}'`
