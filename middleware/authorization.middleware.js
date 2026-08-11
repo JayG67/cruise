@@ -163,13 +163,17 @@ async function requireTenantAuditAccess(req, res, next) {
   return next()
 }
 
-async function requireGlobalAdminMutation(req, res, next) {
+async function requireGlobalAdminAccess(req, res, next) {
   if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
   if (!(await requireAdminRequest(req, res))) return undefined
   if (!(await canCreateCruiseLineTenant(req))) {
     return res.status(403).json({ message: GLOBAL_ADMIN_REQUIRED_MESSAGE })
   }
   return next()
+}
+
+async function requireGlobalAdminMutation(req, res, next) {
+  return requireGlobalAdminAccess(req, res, next)
 }
 
 function requireCruiseLineTenantAccess(paramName = 'id') {
@@ -232,6 +236,7 @@ module.exports = {
   requireBookingPassengerAccess,
   requireCustomerAccess,
   requireFavoriteCustomerAccess,
+  requireGlobalAdminAccess,
   requireGlobalAdminMutation,
   requireCruiseLineTenantAccess,
   requireItineraryDayTenantAccess,

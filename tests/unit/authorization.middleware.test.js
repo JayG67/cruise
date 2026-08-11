@@ -69,6 +69,7 @@ const {
   requireAdminAccess,
   requireAdminMutation,
   requireCruiseLineTenantAccess,
+  requireGlobalAdminAccess,
   requireGlobalAdminMutation,
   requireItineraryDayTenantAccess,
   requireSailingTenantAccess,
@@ -128,6 +129,23 @@ describe('authorization middleware', () => {
     await requireAdminMutation({}, {}, next)
 
     expect(next).not.toHaveBeenCalled()
+  })
+
+  it('requires a server-confirmed global administrator for platform-wide AI access', async () => {
+    getAuthenticationMode.mockReturnValue('jwt')
+    requireAdminRequest.mockResolvedValue(true)
+    canCreateCruiseLineTenant.mockResolvedValueOnce(true).mockResolvedValueOnce(false)
+    const allowedNext = jest.fn()
+    const deniedNext = jest.fn()
+    const deniedRes = responseDouble()
+
+    await requireGlobalAdminAccess({ requestIdentity: { principal: { userId: 'global-admin', role: 'ADMIN' } } }, responseDouble(), allowedNext)
+    await requireGlobalAdminAccess({ requestIdentity: { principal: { userId: 'tenant-admin', role: 'ADMIN' } } }, deniedRes, deniedNext)
+
+    expect(allowedNext).toHaveBeenCalledTimes(1)
+    expect(deniedNext).not.toHaveBeenCalled()
+    expect(deniedRes.status).toHaveBeenCalledWith(403)
+    expect(deniedRes.json).toHaveBeenCalledWith({ message: 'This operation requires a global administrator.' })
   })
 
   it('allows only the authenticated customer through customer-scoped routes', async () => {

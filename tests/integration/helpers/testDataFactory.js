@@ -19,12 +19,12 @@ const createdCustomerIds = []
 const createdBookingIds = []
 
 function uniqueSeedSafeId(prefix) {
-  // Use 36 bits of cryptographic entropy per generated ID. The resulting
-  // identifier remains 10 characters, matches the public C/B ID contracts,
-  // and does not depend on clock modulo values or process-local sequences.
-  // This prevents retries from repeatedly colliding with records left by a
-  // previous local/CI integration run.
-  const entropy = crypto.randomBytes(5).toString('hex').slice(0, 9).toUpperCase()
+  // Use a 9-character base-36 value sourced from 48 bits of cryptographic
+  // entropy. This preserves the public 10-character C/B ID contracts while
+  // using the full A-Z0-9 namespace instead of only hexadecimal characters.
+  // The larger namespace further reduces collisions with seed/stale test rows.
+  const randomValue = BigInt(`0x${crypto.randomBytes(6).toString('hex')}`)
+  const entropy = randomValue.toString(36).toUpperCase().padStart(9, '0').slice(-9)
   return `${prefix}${entropy}`
 }
 

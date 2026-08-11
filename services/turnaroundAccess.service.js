@@ -37,10 +37,6 @@ async function resolvePrincipalOperationalScope(req = {}) {
   const principal = req?.requestIdentity?.principal || null
   if (!principal?.userId) return null
 
-  if (isAdminRole(principal.role)) {
-    return { userId: principal.userId, role: normalizeOperationalRole(principal.role), isAdmin: true, cruiseLineId: null, assignedShipId: null }
-  }
-
   const appUser = await selectFirst(appUserTable, eq(appUserTable.id, principal.userId))
   if (!appUser || String(appUser.status || '').toUpperCase() !== 'ACTIVE') return null
 
@@ -52,12 +48,19 @@ async function resolvePrincipalOperationalScope(req = {}) {
   const matchedRole = roleRows.find(row => normalizeOperationalRole(row.roleId) === normalizedRole)
   if (!matchedRole) return null
 
+  const cruiseLineId = matchedRole.cruiseLineId || appUser.cruiseLineId || null
+  const assignedShipId = matchedRole.assignedShipId || appUser.assignedShipId || null
+  const assignmentScope = String(matchedRole.assignmentScope || '').trim().toUpperCase()
+  const isAdmin = isAdminRole(normalizedRole)
+  const isGlobalAdmin = isAdmin && assignmentScope === 'GLOBAL' && !cruiseLineId && !assignedShipId
+
   return {
     userId: principal.userId,
     role: normalizedRole,
-    isAdmin: false,
-    cruiseLineId: matchedRole.cruiseLineId || appUser.cruiseLineId || null,
-    assignedShipId: matchedRole.assignedShipId || appUser.assignedShipId || null
+    isAdmin,
+    isGlobalAdmin,
+    cruiseLineId,
+    assignedShipId
   }
 }
 
@@ -75,8 +78,8 @@ async function resolveOperationContext(operationId) {
 async function canAccessOperationScope(req, operationId) {
   const scope = await resolvePrincipalOperationalScope(req)
   if (!scope) return false
-  if (scope.isAdmin) return true
-  if (!isTurnaroundManager(scope.role) && !scope.role.endsWith('_LEAD')) return false
+  if (!scope.isAdmin && !isTurnaroundManager(scope.role) && !scope.role.endsWith('_LEAD')) return false
+  if (scope.isGlobalAdmin) return true
 
   const context = await resolveOperationContext(operationId)
   if (!context) return false
@@ -89,15 +92,15 @@ async function canAccessOperationScope(req, operationId) {
 async function canReadTurnaroundOperations(req) {
   const scope = await resolvePrincipalOperationalScope(req)
   if (!scope) return false
-  if (scope.isAdmin) return true
+  if (scope.isAdmin) return Boolean(scope.isGlobalAdmin || scope.assignedShipId || scope.cruiseLineId)
   return isTurnaroundManager(scope.role) || scope.role.endsWith('_LEAD')
 }
 
 async function canManageOperation(req, operationId) {
   const scope = await resolvePrincipalOperationalScope(req)
   if (!scope) return false
-  if (scope.isAdmin) return true
-  if (!isTurnaroundManager(scope.role)) return false
+  if (!scope.isAdmin && !isTurnaroundManager(scope.role)) return false
+  if (scope.isGlobalAdmin) return true
   return canAccessOperationScope(req, operationId)
 }
 
@@ -105,6 +108,7 @@ async function canManageOperationDepartment(req, operationId, departmentRole) {
   const scope = await resolvePrincipalOperationalScope(req)
   if (!scope) return false
   if (!canRoleManageDepartment(scope.role, departmentRole)) return false
+  if (scope.isGlobalAdmin) return true
   return canAccessOperationScope(req, operationId)
 }
 
@@ -139,6 +143,7 @@ async function canManageHandoff(req, handoffId) {
   if (!scope) return false
   const allowedDepartment = canRoleManageDepartment(scope.role, handoff.fromDepartmentRole) || canRoleManageDepartment(scope.role, handoff.toDepartmentRole)
   if (!allowedDepartment) return false
+  if (scope.isGlobalAdmin) return true
   return canAccessOperationScope(req, handoff.operationId)
 }
 

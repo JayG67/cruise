@@ -179,7 +179,7 @@ describe('AI controller authorization and failure boundaries', () => {
     resolveRequestActor.mockResolvedValue(actor)
     generateTurnaroundBriefing.mockResolvedValue(result)
     const { res, status, json } = responseHarness()
-    const req = { body: { operationId: 'op-1' }, get: jest.fn().mockReturnValue('request-1') }
+    const req = { body: { operationId: 'op-1' }, requestId: 'request-1', get: jest.fn() }
 
     await controller.generateTurnaroundBriefing(req, res, jest.fn())
 
@@ -201,7 +201,7 @@ describe('AI controller authorization and failure boundaries', () => {
     loadTurnaroundEvidence.mockResolvedValue(evidenceBundle)
     generateOperationalTurnaroundBriefing.mockResolvedValue(result)
     const { res, status, json } = responseHarness()
-    const req = { params: { operationId: 'op-1' }, body: { question: 'What is at risk?' }, get: jest.fn().mockReturnValue('request-2') }
+    const req = { params: { operationId: 'op-1' }, body: { question: 'What is at risk?' }, requestId: 'request-2', get: jest.fn() }
 
     await controller.generateOperationalTurnaroundBriefing(req, res, jest.fn())
 

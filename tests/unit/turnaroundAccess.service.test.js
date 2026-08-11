@@ -75,15 +75,19 @@ describe('turnaround operational authorization role contracts', () => {
     await expect(canManageOperation({}, 'OP-1')).resolves.toBe(false)
   })
 
-  it('returns an unrestricted operational scope for administrators without database lookup', async () => {
+  it('requires an active server-side global assignment before granting administrator operational override', async () => {
+    queueSelectRows(
+      [{ id: 'admin-1', status: 'ACTIVE' }],
+      [{ roleId: 'ADMIN', status: 'ACTIVE', assignmentScope: 'GLOBAL', cruiseLineId: null, assignedShipId: null }]
+    )
     await expect(resolvePrincipalOperationalScope(requestFor('admin-1', 'ADMIN'))).resolves.toEqual({
       userId: 'admin-1',
       role: 'ADMIN',
       isAdmin: true,
+      isGlobalAdmin: true,
       cruiseLineId: null,
       assignedShipId: null
     })
-    expect(db.select).not.toHaveBeenCalled()
   })
 
   it('requires an active app user and matching active role assignment', async () => {
@@ -110,6 +114,7 @@ describe('turnaround operational authorization role contracts', () => {
       userId: 'user-1',
       role: 'HOUSEKEEPING_LEAD',
       isAdmin: false,
+      isGlobalAdmin: false,
       cruiseLineId: 'CL-1',
       assignedShipId: 'SHIP-1'
     })
@@ -165,7 +170,11 @@ describe('turnaround operational authorization role contracts', () => {
     await expect(canAccessOperationScope(requestFor('user-2', 'PASSENGER'), 'OP-1')).resolves.toBe(false)
   })
 
-  it('allows operational reads only for admins, managers, and department leads', async () => {
+  it('allows operational reads only for server-confirmed admins, managers, and department leads', async () => {
+    queueSelectRows(
+      [{ id: 'admin-1', status: 'ACTIVE' }],
+      [{ roleId: 'ADMIN', status: 'ACTIVE', assignmentScope: 'GLOBAL' }]
+    )
     await expect(canReadTurnaroundOperations(requestFor('admin-1', 'ADMIN'))).resolves.toBe(true)
 
     queueSelectRows(
@@ -214,14 +223,39 @@ describe('turnaround operational authorization role contracts', () => {
     await expect(canManageHandoff(requestFor('lead-1', 'HOUSEKEEPING_LEAD'), 'HANDOFF-1')).resolves.toBe(false)
   })
 
-  it('lets administrators manage existing tasks, escalations, and handoffs', async () => {
-    queueSelectRows([{ id: 'TASK-1', operationId: 'OP-1', departmentRole: 'HOUSEKEEPING_LEAD' }])
+  it('lets server-confirmed global administrators manage existing tasks, escalations, and handoffs', async () => {
+    const adminScope = [
+      { id: 'admin-1', status: 'ACTIVE' },
+      { roleId: 'ADMIN', status: 'ACTIVE', assignmentScope: 'GLOBAL' }
+    ]
+
+    queueSelectRows(
+      [{ id: 'TASK-1', operationId: 'OP-1', departmentRole: 'HOUSEKEEPING_LEAD' }],
+      [adminScope[0]], [adminScope[1]]
+    )
     await expect(canManageTask(requestFor('admin-1', 'ADMIN'), 'TASK-1')).resolves.toBe(true)
 
-    queueSelectRows([{ id: 'ESC-1', operationId: 'OP-1', departmentRole: 'ENGINEERING_LEAD' }])
+    queueSelectRows(
+      [{ id: 'ESC-1', operationId: 'OP-1', departmentRole: 'ENGINEERING_LEAD' }],
+      [adminScope[0]], [adminScope[1]]
+    )
     await expect(canManageEscalation(requestFor('admin-1', 'ADMIN'), 'ESC-1')).resolves.toBe(true)
 
-    queueSelectRows([{ id: 'HANDOFF-1', operationId: 'OP-1', fromDepartmentRole: 'HOUSEKEEPING_LEAD', toDepartmentRole: 'ENGINEERING_LEAD' }])
+    queueSelectRows(
+      [{ id: 'HANDOFF-1', operationId: 'OP-1', fromDepartmentRole: 'HOUSEKEEPING_LEAD', toDepartmentRole: 'ENGINEERING_LEAD' }],
+      [adminScope[0]], [adminScope[1]]
+    )
     await expect(canManageHandoff(requestFor('admin-1', 'ADMIN'), 'HANDOFF-1')).resolves.toBe(true)
+  })
+
+  it('constrains tenant administrators to their assigned operational tenant', async () => {
+    queueSelectRows(
+      [{ id: 'admin-tenant', status: 'ACTIVE', cruiseLineId: 'CL-1' }],
+      [{ roleId: 'ADMIN', status: 'ACTIVE', assignmentScope: 'CRUISE_LINE', cruiseLineId: 'CL-1' }],
+      [{ id: 'OP-1', sailingId: 'SAIL-1' }],
+      [{ id: 'SAIL-1', shipId: 'SHIP-1' }],
+      [{ id: 'SHIP-1', cruiseLineId: 'CL-2' }]
+    )
+    await expect(canAccessOperationScope(requestFor('admin-tenant', 'ADMIN'), 'OP-1')).resolves.toBe(false)
   })
 })

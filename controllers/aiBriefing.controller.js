@@ -34,7 +34,7 @@ exports.generateOperationalTurnaroundBriefing = async (req, res, next) => {
       runtimeConfig: getAiRuntimeConfig(),
       auditRecorder: recordAuditEvent,
       telemetryRecorder: recordAiTelemetry,
-      requestId: req.get('X-Request-Id') || null
+      requestId: req.requestId || null
     })
 
     return res.status(200).json(result)
@@ -70,7 +70,7 @@ exports.generateTurnaroundBriefing = async (req, res, next) => {
       runtimeConfig: getAiRuntimeConfig(),
       auditRecorder: recordAuditEvent,
       telemetryRecorder: recordAiTelemetry,
-      requestId: req.get('X-Request-Id') || null
+      requestId: req.requestId || null
     })
 
     return res.status(200).json(result)

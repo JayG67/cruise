@@ -8,7 +8,7 @@ const turnaroundOperationTable = require('../models/turnaroundOperation.model')
 const { getScopedDemoUserId } = require('../middleware/requestIdentity.middleware')
 const { resolveRequestActor } = require('./requestAuthorization.service')
 const { AUTH_MODES, getAuthenticationMode } = require('./authentication.service')
-const { resolvePrincipalOperationalScope } = require('./turnaroundAccess.service')
+const { canAccessOperationScope, resolvePrincipalOperationalScope } = require('./turnaroundAccess.service')
 
 const TURNAROUND_OPERATION_FORBIDDEN_MESSAGE = 'Selected person is not assigned to this turnaround operation'
 const TURNAROUND_AUDIT_SOURCE = 'TURNAROUND_OPERATIONS_API'
@@ -77,7 +77,7 @@ async function getTurnaroundOperationsForRequest(req) {
   if (getAuthenticationMode() === AUTH_MODES.JWT) {
     const scope = await resolvePrincipalOperationalScope(req)
     if (!scope) return []
-    if (scope.isAdmin) return db.select().from(turnaroundOperationTable)
+    if (scope.isGlobalAdmin) return db.select().from(turnaroundOperationTable)
 
     let sailingRows = []
     if (scope.assignedShipId) {
@@ -115,8 +115,11 @@ async function getTurnaroundOperationsForRequest(req) {
 }
 
 async function canAccessTurnaroundOperationForRequest(req, operation) {
-  if (!getScopedDemoUserId(req)) return true
   if (!operation) return false
+  if (getAuthenticationMode() === AUTH_MODES.JWT) {
+    return canAccessOperationScope(req, operation.id)
+  }
+  if (!getScopedDemoUserId(req)) return true
 
   const demoUser = await resolveRequestDemoUser(req)
   if (!demoUser) return false
