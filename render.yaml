@@ -16,6 +16,14 @@ services:
         value: jwt
       - key: CRUISE_DEMO_DATA_MODE
         value: disabled
+      - key: CRUISE_RATE_LIMIT_MODE
+        value: enabled
+      - key: CRUISE_API_RATE_LIMIT
+        value: 600
+      - key: CRUISE_MUTATION_RATE_LIMIT
+        value: 180
+      - key: CRUISE_AI_RATE_LIMIT
+        value: 30
       - key: CRUISE_JWT_SECRET
         sync: false
       - key: DATABASE_URL

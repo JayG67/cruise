@@ -11,8 +11,22 @@ const aiRouter = require('./routes/ai.routes')
 const { serverLogger } = require('./middleware/loggers')
 const { attachRequestIdentity } = require('./middleware/requestIdentity.middleware')
 const { canExposeSeedDataOverHttp } = require('./services/demoDataPolicy.service')
+const {
+  attachRequestContext,
+  securityHeaders,
+  apiNoStore,
+  generalApiRateLimit,
+  mutationRateLimitWhenNeeded,
+  aiRateLimitWhenNeeded,
+  errorHandler
+} = require('./middleware/security.middleware')
 
 const app = express()
+app.disable('x-powered-by')
+
+if (String(process.env.NODE_ENV || '').trim().toLowerCase() === 'production') {
+  app.set('trust proxy', 1)
+}
 
 const reactBuildDir = path.join(__dirname, 'dist', 'react')
 const reactIndexPath = path.join(reactBuildDir, 'index.html')
@@ -93,28 +107,7 @@ function sendReactApp(req, res, next) {
   })
 }
 
-function securityHeaders(req, res, next) {
-  res.setHeader('X-Content-Type-Options', 'nosniff')
-  res.setHeader('X-Frame-Options', 'DENY')
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
-  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
-  res.setHeader(
-    'Content-Security-Policy',
-    [
-      "default-src 'self'",
-      "base-uri 'self'",
-      "connect-src 'self'",
-      "form-action 'self'",
-      "frame-ancestors 'none'",
-      "img-src 'self' data:",
-      "script-src 'self'",
-      "style-src 'self' 'unsafe-inline'"
-    ].join('; ')
-  )
-
-  next()
-}
-
+app.use(attachRequestContext)
 app.use(securityHeaders)
 app.use(compression())
 
@@ -138,27 +131,16 @@ app.use(express.static(reactBuildDir, { redirect: false, setHeaders: setReactBui
 app.get('/lighthouse-ci', sendLighthouseAuditPage)
 app.get('/', sendReactApp)
 
-app.use(express.json())
+app.use(express.json({ limit: '512kb' }))
 app.use(serverLogger)
 app.use(attachRequestIdentity)
 
-app.use('/cruise', cruiseRouter)
-app.use('/admin', adminRouter)
-app.use('/ai', aiRouter)
+app.use('/cruise', apiNoStore, generalApiRateLimit, mutationRateLimitWhenNeeded, cruiseRouter)
+app.use('/admin', apiNoStore, generalApiRateLimit, mutationRateLimitWhenNeeded, adminRouter)
+app.use('/ai', apiNoStore, generalApiRateLimit, aiRateLimitWhenNeeded, aiRouter)
 
 app.get(/^\/(?!cruise|admin|ai|health|images|data|retired|lighthouse-ci)(?:.*)?$/, sendReactApp)
 
-app.use((err, req, res, next) => {
-  console.error(err)
-
-  if (res.headersSent) {
-    return next(err)
-  }
-
-  return res.status(500).json({
-    message: 'Internal server error',
-    error: err.message
-  })
-})
+app.use(errorHandler)
 
 module.exports = app

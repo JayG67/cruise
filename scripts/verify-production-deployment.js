@@ -46,7 +46,11 @@ function main() {
     'value: production',
     'key: DATABASE_URL',
     'key: CRUISE_DEMO_DATA_MODE',
-    'value: disabled'
+    'value: disabled',
+    'key: CRUISE_RATE_LIMIT_MODE',
+    'key: CRUISE_API_RATE_LIMIT',
+    'key: CRUISE_MUTATION_RATE_LIMIT',
+    'key: CRUISE_AI_RATE_LIMIT'
   ]) {
     assertIncludes(renderConfig, expected, 'render.yaml')
   }
@@ -60,6 +64,20 @@ function main() {
   assert(!workflow.includes('image: postgres:17.4'), '.github/workflows/ci.yml must not depend directly on Docker Hub for PostgreSQL service containers.')
   assertIncludes(app, "app.get('/health'", 'app.js')
   assertIncludes(app, "res.status(200).json({ status: 'ok' })", 'app.js')
+  assertIncludes(app, "app.disable('x-powered-by')", 'app.js')
+  assertIncludes(app, "app.set('trust proxy', 1)", 'app.js')
+  assertIncludes(app, 'app.use(attachRequestContext)', 'app.js')
+  assertIncludes(app, "express.json({ limit: '512kb' })", 'app.js')
+  assertIncludes(app, 'generalApiRateLimit', 'app.js')
+  assertIncludes(app, 'mutationRateLimitWhenNeeded', 'app.js')
+  assertIncludes(app, 'aiRateLimitWhenNeeded', 'app.js')
+  assertIncludes(app, 'app.use(errorHandler)', 'app.js')
+
+  const securityMiddleware = read('middleware/security.middleware.js')
+  assertIncludes(securityMiddleware, "if (isProduction()) return true", 'middleware/security.middleware.js')
+  assertIncludes(securityMiddleware, "Strict-Transport-Security", 'middleware/security.middleware.js')
+  assertIncludes(securityMiddleware, "message: 'Internal server error', requestId", 'middleware/security.middleware.js')
+  assert(!securityMiddleware.includes('error: err.message'), 'Production security middleware must not echo raw exception messages.')
 
   assertIncludes(index, 'if (shouldLoadDemoDataOnStartup())', 'index.js')
   assertIncludes(index, 'await loadCruiseData()', 'index.js')
