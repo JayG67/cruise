@@ -1084,7 +1084,7 @@ describe('Production data architecture hardening guardrails', () => {
     expect(authorizationService).toContain('Admin access requires an admin request identity.')
     expect(authorizationService).toContain('async function requireAdminRequest(req, res)')
     expect(authorizationService).toContain('async function isAdminRequest(req = {})')
-    expect(controller).toContain('listAuditEvents(buildAuditEventFilters(req.query)')
+    expect(controller).toContain('listAuditEvents(req.tenantAuditFilters || buildAuditEventFilters(req.query)')
     expect(auditService).toContain('async function listAuditEvents(filters = {}, { limit = 25 } = {})')
     expect(auditService).toContain('entityType: auditEventTable.entityType')
     expect(auditService).toContain('source: auditEventTable.source')

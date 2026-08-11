@@ -17,6 +17,20 @@ jest.mock('../../services/customerAccess.service', () => ({
 }))
 
 
+
+jest.mock('../../services/tenantAccess.service', () => ({
+  GLOBAL_ADMIN_REQUIRED_MESSAGE: 'This operation requires a global administrator.',
+  TENANT_ACCESS_FORBIDDEN_MESSAGE: 'You do not have access to this cruise-line tenant.',
+  canAccessActivityTenant: jest.fn(),
+  canAccessCruiseLineTenant: jest.fn(),
+  canAccessItineraryDayTenant: jest.fn(),
+  canAccessSailingTenant: jest.fn(),
+  canAccessShipTenant: jest.fn(),
+  canCreateCruiseLineTenant: jest.fn(),
+  constrainAuditFiltersToTenant: jest.fn(),
+  resolvePrincipalTenantScope: jest.fn()
+}))
+
 jest.mock('../../services/turnaroundAccess.service', () => ({
   TURNAROUND_ACCESS_FORBIDDEN_MESSAGE: 'You do not have access to modify this turnaround operation.',
   TURNAROUND_DEPARTMENT_FORBIDDEN_MESSAGE: 'You do not have access to modify this turnaround department.',
@@ -30,6 +44,17 @@ jest.mock('../../services/turnaroundAccess.service', () => ({
 }))
 
 const { getAuthenticationMode } = require('../../services/authentication.service')
+const {
+  canAccessActivityTenant,
+  canAccessCruiseLineTenant,
+  canAccessItineraryDayTenant,
+  canAccessSailingTenant,
+  canAccessShipTenant,
+  canCreateCruiseLineTenant,
+  constrainAuditFiltersToTenant,
+  resolvePrincipalTenantScope
+} = require('../../services/tenantAccess.service')
+
 const { requireAdminRequest } = require('../../services/requestAuthorization.service')
 const { canAccessBooking, canAccessCustomer, canCreateBooking } = require('../../services/customerAccess.service')
 const {
@@ -40,8 +65,15 @@ const {
   canReadTurnaroundOperations
 } = require('../../services/turnaroundAccess.service')
 const {
+  requireActivityTenantAccess,
   requireAdminAccess,
   requireAdminMutation,
+  requireCruiseLineTenantAccess,
+  requireGlobalAdminMutation,
+  requireItineraryDayTenantAccess,
+  requireSailingTenantAccess,
+  requireShipTenantAccess,
+  requireTenantAuditAccess,
   requireBookingAccess,
   requireBookingCreationAccess,
   requireBookingPassengerAccess,
@@ -228,6 +260,96 @@ describe('authorization middleware', () => {
 
     expect(canManageTask).toHaveBeenCalledWith(expect.any(Object), 'TASK1')
     expect(res.status).toHaveBeenCalledWith(403)
+  })
+
+  it('requires both admin identity and global server scope for new tenant creation', async () => {
+    getAuthenticationMode.mockReturnValue('jwt')
+    requireAdminRequest.mockResolvedValue(true)
+    canCreateCruiseLineTenant.mockResolvedValue(false)
+    const res = responseDouble()
+    const next = jest.fn()
+
+    await requireGlobalAdminMutation({}, res, next)
+
+    expect(requireAdminRequest).toHaveBeenCalled()
+    expect(canCreateCruiseLineTenant).toHaveBeenCalled()
+    expect(res.status).toHaveBeenCalledWith(403)
+    expect(res.json).toHaveBeenCalledWith({ message: 'This operation requires a global administrator.' })
+    expect(next).not.toHaveBeenCalled()
+  })
+
+  it('allows a global administrator through the new-tenant boundary', async () => {
+    getAuthenticationMode.mockReturnValue('jwt')
+    requireAdminRequest.mockResolvedValue(true)
+    canCreateCruiseLineTenant.mockResolvedValue(true)
+    const next = jest.fn()
+
+    await requireGlobalAdminMutation({}, {}, next)
+
+    expect(next).toHaveBeenCalledTimes(1)
+  })
+
+  it('enforces cruise-line tenant scope from params or body', async () => {
+    getAuthenticationMode.mockReturnValue('jwt')
+    canAccessCruiseLineTenant.mockResolvedValueOnce(true).mockResolvedValueOnce(false)
+    const next = jest.fn()
+    const deniedRes = responseDouble()
+
+    await requireCruiseLineTenantAccess('cruiseLineId')({ params: {}, body: { cruiseLineId: 'CL-1' } }, {}, next)
+    await requireCruiseLineTenantAccess('id')({ params: { id: 'CL-2' }, body: {} }, deniedRes, next)
+
+    expect(canAccessCruiseLineTenant).toHaveBeenNthCalledWith(1, expect.any(Object), 'CL-1')
+    expect(canAccessCruiseLineTenant).toHaveBeenNthCalledWith(2, expect.any(Object), 'CL-2')
+    expect(next).toHaveBeenCalledTimes(1)
+    expect(deniedRes.status).toHaveBeenCalledWith(403)
+  })
+
+  it.each([
+    ['ship', requireShipTenantAccess('id'), canAccessShipTenant],
+    ['sailing', requireSailingTenantAccess('id'), canAccessSailingTenant],
+    ['itinerary day', requireItineraryDayTenantAccess('id'), canAccessItineraryDayTenant],
+    ['activity', requireActivityTenantAccess('id'), canAccessActivityTenant]
+  ])('enforces %s tenant scope before controller execution', async (_label, middleware, accessCheck) => {
+    getAuthenticationMode.mockReturnValue('jwt')
+    accessCheck.mockResolvedValue(false)
+    const res = responseDouble()
+    const next = jest.fn()
+
+    await middleware({ params: { id: 'RESOURCE-1' } }, res, next)
+
+    expect(accessCheck).toHaveBeenCalledWith(expect.any(Object), 'RESOURCE-1')
+    expect(res.status).toHaveBeenCalledWith(403)
+    expect(next).not.toHaveBeenCalled()
+  })
+
+  it('preserves demo-mode compatibility for tenant middleware without database checks', async () => {
+    getAuthenticationMode.mockReturnValue('demo')
+    const next = jest.fn()
+
+    await requireCruiseLineTenantAccess('id')({ params: { id: 'CL-1' } }, {}, next)
+    await requireShipTenantAccess('id')({ params: { id: 'SHIP-1' } }, {}, next)
+
+    expect(canAccessCruiseLineTenant).not.toHaveBeenCalled()
+    expect(canAccessShipTenant).not.toHaveBeenCalled()
+    expect(next).toHaveBeenCalledTimes(2)
+  })
+
+  it('attaches tenant-constrained audit filters in JWT mode and rejects cross-tenant filters', async () => {
+    getAuthenticationMode.mockReturnValue('jwt')
+    resolvePrincipalTenantScope.mockResolvedValue({ isGlobalAdmin: false, cruiseLineId: 'CL-1' })
+    constrainAuditFiltersToTenant
+      .mockReturnValueOnce({ source: 'TEST', cruiseLineId: 'CL-1' })
+      .mockReturnValueOnce(null)
+    const next = jest.fn()
+    const allowedReq = { query: { source: 'TEST' } }
+    const deniedRes = responseDouble()
+
+    await requireTenantAuditAccess(allowedReq, {}, next)
+    await requireTenantAuditAccess({ query: { cruiseLineId: 'CL-2' } }, deniedRes, next)
+
+    expect(allowedReq.tenantAuditFilters).toEqual({ source: 'TEST', cruiseLineId: 'CL-1' })
+    expect(next).toHaveBeenCalledTimes(1)
+    expect(deniedRes.status).toHaveBeenCalledWith(403)
   })
 
 })

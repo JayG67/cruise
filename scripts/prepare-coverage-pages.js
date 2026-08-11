@@ -9,6 +9,8 @@ const coverageFinal = path.join(coverageDir, 'coverage-final.json')
 const coverageLcov = path.join(coverageDir, 'lcov.info')
 const coverageCobertura = path.join(coverageDir, 'cobertura-coverage.xml')
 const coverageClover = path.join(coverageDir, 'clover.xml')
+const coverageEvidenceJson = path.join(coverageDir, 'coverage-evidence.json')
+const coverageEvidenceMarkdown = path.join(coverageDir, 'coverage-evidence.md')
 const outputDir = path.resolve(projectRoot, 'github-pages', 'coverage')
 
 function ensureDirectory(dir) {
@@ -255,7 +257,9 @@ const productionCoverageArtifacts = [
   [coverageFinal, 'coverage-final.json'],
   [coverageLcov, 'lcov.info'],
   [coverageCobertura, 'cobertura-coverage.xml'],
-  [coverageClover, 'clover.xml']
+  [coverageClover, 'clover.xml'],
+  [coverageEvidenceJson, 'coverage-evidence.json'],
+  [coverageEvidenceMarkdown, 'coverage-evidence.md']
 ]
 
 const publishedArtifacts = []
@@ -286,7 +290,7 @@ const metadata = {
   generatedAt: new Date().toISOString(),
   htmlReportCopied: copiedHtml,
   summaryCopied: fs.existsSync(coverageSummary),
-  completeCoverageDataPublished: [coverageSummary, coverageFinal, coverageLcov, coverageCobertura, coverageClover].every(filePath => fs.existsSync(filePath)),
+  completeCoverageDataPublished: [coverageSummary, coverageFinal, coverageLcov, coverageCobertura, coverageClover, coverageEvidenceJson, coverageEvidenceMarkdown].every(filePath => fs.existsSync(filePath)),
   publishedArtifacts,
   flatIndexGenerated: Boolean(copiedHtml && coverageDetails),
   fileCount: coverageDetails?.files.length || 0,

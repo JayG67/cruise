@@ -4,6 +4,8 @@ const request = require('supertest')
 const app = require('../../app')
 const db = require('../../db')
 const { cruiseLineTable } = require('../../models')
+const initializeDatabase = require('../../services/initializeDatabase.service')
+const loadCruiseData = require('../../services/loadCruiseData.service')
 
 const ORIGINAL_AUTH_MODE = process.env.CRUISE_AUTH_MODE
 const ORIGINAL_JWT_SECRET = process.env.CRUISE_JWT_SECRET
@@ -20,7 +22,8 @@ function signToken(payload) {
 
 function bearer(role = 'ADMIN') {
   const now = Math.floor(Date.now() / 1000)
-  return `Bearer ${signToken({ sub: `integration-${role.toLowerCase()}`, role, name: `Integration ${role}`, exp: now + 300 })}`
+  const userId = role === 'ADMIN' ? 'UADMIN0001' : 'UPASS00001'
+  return `Bearer ${signToken({ sub: userId, role, name: `Integration ${role}`, exp: now + 300 })}`
 }
 
 const protectedRequests = [
@@ -44,9 +47,11 @@ const protectedRequests = [
   { method: 'delete', path: '/cruise/activities/00000000-0000-4000-8000-000000000001' }
 ]
 
-beforeAll(() => {
+beforeAll(async () => {
   process.env.CRUISE_AUTH_MODE = 'jwt'
   process.env.CRUISE_JWT_SECRET = JWT_SECRET
+  await initializeDatabase()
+  await loadCruiseData()
 })
 
 afterAll(() => {

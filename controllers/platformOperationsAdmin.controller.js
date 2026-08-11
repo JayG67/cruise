@@ -116,11 +116,11 @@ exports.getPlatformAuditEvents = async (req, res, next) => {
     if (!(await requireAdminRequest(req, res))) return
 
     const auditEventQuery = buildAuditEventQueryContract(req.query, { defaultLimit: 50 })
-    const auditEvents = await listAuditEvents(buildAuditEventFilters(req.query), {
+    const auditEvents = await listAuditEvents(req.tenantAuditFilters || buildAuditEventFilters(req.query), {
       limit: auditEventQuery.limit
     })
 
-    return res.status(200).json(buildAuditEventListResponse(auditEvents, auditEventQuery))
+    return res.status(200).json(buildAuditEventListResponse(auditEvents, { ...auditEventQuery, filters: req.tenantAuditFilters || auditEventQuery.filters }))
   } catch (error) {
     return next(error)
   }

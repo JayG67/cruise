@@ -12,6 +12,8 @@ const rawArtifacts = [
   'lcov.info',
   'cobertura-coverage.xml',
   'clover.xml',
+  'coverage-evidence.json',
+  'coverage-evidence.md',
   path.join('lcov-report', 'index.html')
 ]
 
@@ -21,6 +23,8 @@ const publishedArtifacts = [
   'lcov.info',
   'cobertura-coverage.xml',
   'clover.xml',
+  'coverage-evidence.json',
+  'coverage-evidence.md',
   'index.html',
   'grouped-index.html',
   'metadata.json'

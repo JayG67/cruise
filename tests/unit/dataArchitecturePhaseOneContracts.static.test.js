@@ -205,7 +205,7 @@ describe('Phase 1 tenant boundary foundation guardrails', () => {
     expect(tenantBoundary).toContain('x-cruise-tenant-id')
     expect(tenantBoundary).toContain('TENANT_BOUNDARY_MISMATCH')
     expect(tenantBoundary).toContain('apiIdentity')
-    expect(serviceTest).toContain('backward-compatible')
+    expect(serviceTest).toContain('fails closed')
     expect(serviceTest).toContain('legacy-row-without-scope')
   })
 })
@@ -245,7 +245,7 @@ describe('Phase 1 audit event query contract guardrails', () => {
 
     expect(controller).toContain("require('../services/auditEventQuery.service')")
     expect(controller).toContain('buildAuditEventQueryContract(req.query')
-    expect(controller).toContain('buildAuditEventListResponse(auditEvents, auditEventQuery)')
+    expect(controller).toContain('buildAuditEventListResponse(auditEvents, { ...auditEventQuery, filters: req.tenantAuditFilters || auditEventQuery.filters })')
     expect(queryService).toContain('AUDIT_EVENT_FILTER_FIELDS')
     expect(queryService).toContain('normalizeAuditEventFilters')
     expect(queryService).toContain('normalizeAuditEventLimit')

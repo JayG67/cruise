@@ -16,12 +16,22 @@ module.exports = {
     '<rootDir>/validation/.*\\.test\\.js$'
   ],
 
+  coverageReporters: [
+    'json',
+    'json-summary',
+    'lcov',
+    'cobertura',
+    'clover',
+    'text',
+    'text-summary'
+  ],
+
   coverageThreshold: {
     global: {
-      statements: 90,
-      branches: 65,
-      functions: 94,
-      lines: 92
+      statements: 90.5,
+      branches: 65.5,
+      functions: 94.5,
+      lines: 92.25
     }
   },
 

@@ -31,7 +31,6 @@ const { eq } = require('drizzle-orm')
 
 
 
-
 async function decorateCruiseLinesForPresentation(cruiseLines = []) {
   const [ships, sailings, itineraryDays, activities] = await Promise.all([
     db.select().from(shipTable),

@@ -5,6 +5,13 @@ const validate = require('../middleware/validate.middleware')
 const {
   requireAdminAccess,
   requireAdminMutation,
+  requireActivityTenantAccess,
+  requireCruiseLineTenantAccess,
+  requireGlobalAdminMutation,
+  requireItineraryDayTenantAccess,
+  requireSailingTenantAccess,
+  requireShipTenantAccess,
+  requireTenantAuditAccess,
   requireBookingAccess,
   requireBookingCreationAccess,
   requireBookingPassengerAccess,
@@ -68,6 +75,8 @@ router.get(
 
 router.get(
   '/audit-events',
+  requireAdminAccess,
+  requireTenantAuditAccess,
   cruiseController.getPlatformAuditEvents
 )
 
@@ -352,7 +361,7 @@ router.get(
 
 router.post(
   '/cruise-line',
-  requireAdminMutation,
+  requireGlobalAdminMutation,
   validate(cruiseLineSchema),
   cruiseController.insertCruiseLine
 )
@@ -360,6 +369,7 @@ router.post(
 router.post(
   '/ship',
   requireAdminMutation,
+  requireCruiseLineTenantAccess('cruiseLineId'),
   validate(shipSchema),
   cruiseController.insertShip
 )
@@ -367,6 +377,7 @@ router.post(
 router.patch(
   '/cruise-line/:id',
   requireAdminMutation,
+  requireCruiseLineTenantAccess('id'),
   validate(cruiseLineSchema),
   cruiseController.updateCruiseLine
 )
@@ -374,6 +385,8 @@ router.patch(
 router.patch(
   '/ship/:id',
   requireAdminMutation,
+  requireShipTenantAccess('id'),
+  requireCruiseLineTenantAccess('cruiseLineId'),
   validate(shipSchema),
   cruiseController.updateShip
 )
@@ -381,12 +394,14 @@ router.patch(
 router.delete(
   '/cruise-line/:id',
   requireAdminMutation,
+  requireCruiseLineTenantAccess('id'),
   cruiseController.deleteCruiseLine
 )
 
 router.delete(
   '/ship/:id',
   requireAdminMutation,
+  requireShipTenantAccess('id'),
   cruiseController.deleteShip
 )
 
@@ -394,6 +409,7 @@ router.delete(
 router.post(
   '/ship/:shipId/sailings',
   requireAdminMutation,
+  requireShipTenantAccess('shipId'),
   validate(sailingSchema),
   cruiseController.insertSailing
 )
@@ -401,6 +417,7 @@ router.post(
 router.patch(
   '/sailings/:id',
   requireAdminMutation,
+  requireSailingTenantAccess('id'),
   validate(sailingSchema),
   cruiseController.updateSailing
 )
@@ -408,12 +425,14 @@ router.patch(
 router.delete(
   '/sailings/:id',
   requireAdminMutation,
+  requireSailingTenantAccess('id'),
   cruiseController.deleteSailing
 )
 
 router.post(
   '/sailings/:sailingId/itinerary',
   requireAdminMutation,
+  requireSailingTenantAccess('sailingId'),
   validate(itineraryDaySchema),
   cruiseController.insertItineraryDay
 )
@@ -421,18 +440,21 @@ router.post(
 router.patch(
   '/itinerary-days/:id',
   requireAdminMutation,
+  requireItineraryDayTenantAccess('id'),
   cruiseController.updateItineraryDay
 )
 
 router.delete(
   '/itinerary-days/:id',
   requireAdminMutation,
+  requireItineraryDayTenantAccess('id'),
   cruiseController.deleteItineraryDay
 )
 
 router.post(
   '/itinerary-days/:itineraryDayId/activities',
   requireAdminMutation,
+  requireItineraryDayTenantAccess('itineraryDayId'),
   validate(activityScheduleSchema),
   cruiseController.insertActivitySchedule
 )
@@ -440,12 +462,14 @@ router.post(
 router.patch(
   '/activities/:id',
   requireAdminMutation,
+  requireActivityTenantAccess('id'),
   cruiseController.updateActivitySchedule
 )
 
 router.delete(
   '/activities/:id',
   requireAdminMutation,
+  requireActivityTenantAccess('id'),
   cruiseController.deleteActivitySchedule
 )
 

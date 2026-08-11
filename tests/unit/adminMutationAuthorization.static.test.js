@@ -8,7 +8,6 @@ const protectedAdminMutations = [
   ['post', '/turnaround-admin/people'],
   ['patch', '/turnaround-admin/people/:id'],
   ['delete', '/turnaround-admin/people/:id'],
-  ['post', '/cruise-line'],
   ['patch', '/cruise-line/:id'],
   ['delete', '/cruise-line/:id'],
   ['post', '/ship'],
@@ -38,4 +37,12 @@ describe('administrator mutation authorization contracts', () => {
       expect(routeWindow).toContain('requireAdminMutation')
     }
   })
+  it('reserves new cruise-line tenant creation for the global administrator boundary', () => {
+    const routeSignature = `router.post(
+  '/cruise-line'`
+    const routeIndex = routes.indexOf(routeSignature)
+    expect(routeIndex).toBeGreaterThanOrEqual(0)
+    expect(routes.slice(routeIndex, routeIndex + 220)).toContain('requireGlobalAdminMutation')
+  })
+
 })

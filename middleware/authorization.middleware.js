@@ -9,6 +9,18 @@ const {
   canCreateBooking
 } = require('../services/customerAccess.service')
 const {
+  GLOBAL_ADMIN_REQUIRED_MESSAGE,
+  TENANT_ACCESS_FORBIDDEN_MESSAGE,
+  canAccessActivityTenant,
+  canAccessCruiseLineTenant,
+  canAccessItineraryDayTenant,
+  canAccessSailingTenant,
+  canAccessShipTenant,
+  canCreateCruiseLineTenant,
+  constrainAuditFiltersToTenant,
+  resolvePrincipalTenantScope
+} = require('../services/tenantAccess.service')
+const {
   TURNAROUND_ACCESS_FORBIDDEN_MESSAGE,
   TURNAROUND_DEPARTMENT_FORBIDDEN_MESSAGE,
   canManageEscalation,
@@ -140,7 +152,79 @@ async function requireTurnaroundHandoffAccess(req, res, next) {
   return next()
 }
 
+async function requireTenantAuditAccess(req, res, next) {
+  if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+  const tenantScope = await resolvePrincipalTenantScope(req)
+  const auditFilters = constrainAuditFiltersToTenant(req.query || {}, tenantScope)
+  if (!auditFilters) {
+    return res.status(403).json({ message: TENANT_ACCESS_FORBIDDEN_MESSAGE })
+  }
+  req.tenantAuditFilters = auditFilters
+  return next()
+}
+
+async function requireGlobalAdminMutation(req, res, next) {
+  if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+  if (!(await requireAdminRequest(req, res))) return undefined
+  if (!(await canCreateCruiseLineTenant(req))) {
+    return res.status(403).json({ message: GLOBAL_ADMIN_REQUIRED_MESSAGE })
+  }
+  return next()
+}
+
+function requireCruiseLineTenantAccess(paramName = 'id') {
+  return async function cruiseLineTenantAccessMiddleware(req, res, next) {
+    if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+    const cruiseLineId = req.params?.[paramName] || req.body?.[paramName]
+    if (!(await canAccessCruiseLineTenant(req, cruiseLineId))) {
+      return res.status(403).json({ message: TENANT_ACCESS_FORBIDDEN_MESSAGE })
+    }
+    return next()
+  }
+}
+
+function requireShipTenantAccess(paramName = 'id') {
+  return async function shipTenantAccessMiddleware(req, res, next) {
+    if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+    if (!(await canAccessShipTenant(req, req.params?.[paramName]))) {
+      return res.status(403).json({ message: TENANT_ACCESS_FORBIDDEN_MESSAGE })
+    }
+    return next()
+  }
+}
+
+function requireSailingTenantAccess(paramName = 'id') {
+  return async function sailingTenantAccessMiddleware(req, res, next) {
+    if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+    if (!(await canAccessSailingTenant(req, req.params?.[paramName]))) {
+      return res.status(403).json({ message: TENANT_ACCESS_FORBIDDEN_MESSAGE })
+    }
+    return next()
+  }
+}
+
+function requireItineraryDayTenantAccess(paramName = 'id') {
+  return async function itineraryDayTenantAccessMiddleware(req, res, next) {
+    if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+    if (!(await canAccessItineraryDayTenant(req, req.params?.[paramName]))) {
+      return res.status(403).json({ message: TENANT_ACCESS_FORBIDDEN_MESSAGE })
+    }
+    return next()
+  }
+}
+
+function requireActivityTenantAccess(paramName = 'id') {
+  return async function activityTenantAccessMiddleware(req, res, next) {
+    if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+    if (!(await canAccessActivityTenant(req, req.params?.[paramName]))) {
+      return res.status(403).json({ message: TENANT_ACCESS_FORBIDDEN_MESSAGE })
+    }
+    return next()
+  }
+}
+
 module.exports = {
+  requireActivityTenantAccess,
   requireAdminAccess,
   requireAdminMutation,
   requireBookingAccess,
@@ -148,6 +232,12 @@ module.exports = {
   requireBookingPassengerAccess,
   requireCustomerAccess,
   requireFavoriteCustomerAccess,
+  requireGlobalAdminMutation,
+  requireCruiseLineTenantAccess,
+  requireItineraryDayTenantAccess,
+  requireSailingTenantAccess,
+  requireShipTenantAccess,
+  requireTenantAuditAccess,
   requireTurnaroundCommandAccess,
   requireTurnaroundDepartmentAccess,
   requireTurnaroundEscalationAccess,
