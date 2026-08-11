@@ -1,5 +1,5 @@
 const { AUTH_MODES, getAuthenticationMode } = require('../services/authentication.service')
-const { requireAdminRequest } = require('../services/requestAuthorization.service')
+const { isAdminRole, requireAdminRequest } = require('../services/requestAuthorization.service')
 const {
   BOOKING_ACCESS_FORBIDDEN_MESSAGE,
   BOOKING_CREATE_FORBIDDEN_MESSAGE,
@@ -8,6 +8,10 @@ const {
   canAccessCustomer,
   canCreateBooking
 } = require('../services/customerAccess.service')
+const {
+  canAdminAccessBookingTenant,
+  canAdminAccessCustomerTenant
+} = require('../services/customerTenantAccess.service')
 const {
   GLOBAL_ADMIN_REQUIRED_MESSAGE,
   TENANT_ACCESS_FORBIDDEN_MESSAGE,
@@ -89,6 +93,54 @@ async function requireBookingCreationAccess(req, res, next) {
   return next()
 }
 
+
+
+
+async function requireDemoReadAccess(req, res, next) {
+  if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+  return res.status(404).json({ message: 'Not found' })
+}
+
+async function requireBookingCreationTenantAccess(req, res, next) {
+  if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+  const principal = req?.requestIdentity?.principal || null
+  if (!isAdminRole(principal?.role)) return next()
+  if (!req.body?.sailingId) return next()
+  if (!(await canAccessSailingTenant(req, req.body.sailingId))) {
+    return res.status(403).json({ message: TENANT_ACCESS_FORBIDDEN_MESSAGE })
+  }
+  return next()
+}
+
+
+async function requireBookingDestinationTenantAccess(req, res, next) {
+  if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+  if (!req.body?.sailingId) return next()
+  if (!(await canAccessSailingTenant(req, req.body.sailingId))) {
+    return res.status(403).json({ message: TENANT_ACCESS_FORBIDDEN_MESSAGE })
+  }
+  return next()
+}
+
+function requireCustomerTenantAdminAccess(paramName = 'id') {
+  return async function customerTenantAdminAccessMiddleware(req, res, next) {
+    if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+    if (!(await canAdminAccessCustomerTenant(req, req.params?.[paramName]))) {
+      return res.status(403).json({ message: TENANT_ACCESS_FORBIDDEN_MESSAGE })
+    }
+    return next()
+  }
+}
+
+function requireBookingTenantAdminAccess(paramName = 'id') {
+  return async function bookingTenantAdminAccessMiddleware(req, res, next) {
+    if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+    if (!(await canAdminAccessBookingTenant(req, req.params?.[paramName]))) {
+      return res.status(403).json({ message: TENANT_ACCESS_FORBIDDEN_MESSAGE })
+    }
+    return next()
+  }
+}
 
 async function requireTurnaroundReadAccess(req, res, next) {
   if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
@@ -233,8 +285,13 @@ module.exports = {
   requireAdminMutation,
   requireBookingAccess,
   requireBookingCreationAccess,
+  requireBookingCreationTenantAccess,
+  requireBookingDestinationTenantAccess,
   requireBookingPassengerAccess,
+  requireBookingTenantAdminAccess,
   requireCustomerAccess,
+  requireCustomerTenantAdminAccess,
+  requireDemoReadAccess,
   requireFavoriteCustomerAccess,
   requireGlobalAdminAccess,
   requireGlobalAdminMutation,

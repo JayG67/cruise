@@ -3,6 +3,7 @@ const customerTable = require('../models/customer.model')
 const bookingTable = require('../models/booking.model')
 const bookingPassengerTable = require('../models/bookingPassenger.model')
 const db = require('../db')
+const { AUTH_MODES, getAuthenticationMode } = require('../services/authentication.service')
 const { eq } = require('drizzle-orm')
 const {
   getBookingAuditScope,
@@ -25,6 +26,7 @@ const {
   selectByIds
 } = require('../services/bookingDomain.service')
 const { validateBookingPassengerSet } = require('../services/bookingPassengerValidation.service')
+const { filterBookingsForAdminTenant } = require('../services/customerTenantAccess.service')
 
 async function recordCruiseManagementAuditEvent(req, event) {
   return recordPlatformAuditEvent(req, event)
@@ -32,7 +34,10 @@ async function recordCruiseManagementAuditEvent(req, event) {
 
 exports.getBookings = async (req, res, next) => {
   try {
-    const bookings = await db.select().from(bookingTable)
+    const allBookings = await db.select().from(bookingTable)
+    const bookings = getAuthenticationMode() === AUTH_MODES.DEMO
+      ? allBookings
+      : await filterBookingsForAdminTenant(req, allBookings)
 
     if (!bookings || bookings.length === 0) {
       return res.status(404).json({ message: 'No bookings found' })
@@ -94,7 +99,16 @@ exports.getBookingsByCustomer = async (req, res, next) => {
       passengerRows.map(passengerRow => passengerRow.bookingId)
     )
 
-    const bookingDetails = await getBookingDetailsBatch(bookingRows)
+    const principalRole = String(req?.requestIdentity?.principal?.role || '').trim().toUpperCase()
+    const visibleBookingRows = getAuthenticationMode() === AUTH_MODES.JWT && principalRole === 'ADMIN'
+      ? await filterBookingsForAdminTenant(req, bookingRows)
+      : bookingRows
+
+    if (visibleBookingRows.length === 0) {
+      return res.status(404).json({ message: 'No bookings found for the specified customer' })
+    }
+
+    const bookingDetails = await getBookingDetailsBatch(visibleBookingRows)
     return res.status(200).json(applyBookingPayloadProfile(bookingDetails, getRequestedPayloadProfile(req)))
   } catch (err) {
     next(err)

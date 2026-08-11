@@ -7,6 +7,7 @@ const {
   requireAdminMutation,
   requireActivityTenantAccess,
   requireCruiseLineTenantAccess,
+  requireGlobalAdminAccess,
   requireGlobalAdminMutation,
   requireItineraryDayTenantAccess,
   requireSailingTenantAccess,
@@ -14,8 +15,13 @@ const {
   requireTenantAuditAccess,
   requireBookingAccess,
   requireBookingCreationAccess,
+  requireBookingCreationTenantAccess,
+  requireBookingDestinationTenantAccess,
   requireBookingPassengerAccess,
+  requireBookingTenantAdminAccess,
   requireCustomerAccess,
+  requireCustomerTenantAdminAccess,
+  requireDemoReadAccess,
   requireFavoriteCustomerAccess,
   requireTurnaroundCommandAccess,
   requireTurnaroundDepartmentAccess,
@@ -84,28 +90,32 @@ router.get(
 
 router.get(
   '/data-architecture/readiness',
+  requireGlobalAdminAccess,
   cruiseController.getDataArchitectureReadiness
 )
 
 router.get(
   '/production-hardening/readiness',
+  requireGlobalAdminAccess,
   cruiseController.getProductionHardeningReadiness
 )
 
 router.get(
   '/deployment/readiness',
+  requireGlobalAdminAccess,
   cruiseController.getDeploymentReadiness
 )
 
 router.get(
   '/public-launch/readiness',
+  requireGlobalAdminAccess,
   cruiseController.getPublicLaunchReadiness
 )
 
 
 router.get(
   '/turnaround-admin/setup',
-  requireAdminAccess,
+  requireGlobalAdminAccess,
   cruiseController.getTurnaroundAdminSetup
 )
 
@@ -222,11 +232,13 @@ router.delete(
 
 router.get(
   '/demo-users',
+  requireDemoReadAccess,
   cruiseController.getDemoUsers
 )
 
 router.get(
   '/demo-users/:id/context',
+  requireDemoReadAccess,
   cruiseController.getDemoUserContext
 )
 
@@ -262,7 +274,7 @@ router.get(
 
 router.post(
   '/customers',
-  requireAdminMutation,
+  requireGlobalAdminMutation,
   validate(customerSchema),
   cruiseController.insertCustomer
 )
@@ -270,6 +282,7 @@ router.post(
 router.patch(
   '/customers/:id',
   requireAdminMutation,
+  requireCustomerTenantAdminAccess('id'),
   validate(customerSchema.omit({ id: true })),
   cruiseController.updateCustomer
 )
@@ -277,6 +290,7 @@ router.patch(
 router.delete(
   '/customers/:id',
   requireAdminMutation,
+  requireCustomerTenantAdminAccess('id'),
   cruiseController.deleteCustomer
 )
 
@@ -319,6 +333,8 @@ router.delete(
 router.post(
   '/bookings',
   requireBookingCreationAccess,
+  requireBookingCreationTenantAccess,
+  requireBookingDestinationTenantAccess,
   validate(bookingSchema),
   cruiseController.insertBooking
 )
@@ -326,6 +342,8 @@ router.post(
 router.patch(
   '/bookings/:id',
   requireAdminMutation,
+  requireBookingTenantAdminAccess('id'),
+  requireBookingDestinationTenantAccess,
   validate(bookingSchema.omit({ id: true })),
   cruiseController.updateBooking
 )
@@ -333,12 +351,14 @@ router.patch(
 router.delete(
   '/bookings/:id',
   requireAdminMutation,
+  requireBookingTenantAdminAccess('id'),
   cruiseController.deleteBooking
 )
 
 router.post(
   '/bookings/:bookingId/passengers',
   requireAdminMutation,
+  requireBookingTenantAdminAccess('bookingId'),
   validate(bookingPassengerCreateSchema),
   cruiseController.addBookingPassenger
 )
@@ -346,6 +366,7 @@ router.post(
 router.delete(
   '/bookings/:bookingId/passengers/:customerId',
   requireAdminMutation,
+  requireBookingTenantAdminAccess('bookingId'),
   cruiseController.deleteBookingPassenger
 )
 

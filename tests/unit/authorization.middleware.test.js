@@ -4,6 +4,7 @@ jest.mock('../../services/authentication.service', () => ({
 }))
 
 jest.mock('../../services/requestAuthorization.service', () => ({
+  isAdminRole: jest.fn(role => String(role || '').toUpperCase() === 'ADMIN'),
   requireAdminRequest: jest.fn()
 }))
 
@@ -17,6 +18,11 @@ jest.mock('../../services/customerAccess.service', () => ({
 }))
 
 
+
+jest.mock('../../services/customerTenantAccess.service', () => ({
+  canAdminAccessBookingTenant: jest.fn(),
+  canAdminAccessCustomerTenant: jest.fn()
+}))
 
 jest.mock('../../services/tenantAccess.service', () => ({
   GLOBAL_ADMIN_REQUIRED_MESSAGE: 'This operation requires a global administrator.',
@@ -57,6 +63,7 @@ const {
 
 const { requireAdminRequest } = require('../../services/requestAuthorization.service')
 const { canAccessBooking, canAccessCustomer, canCreateBooking } = require('../../services/customerAccess.service')
+const { canAdminAccessBookingTenant, canAdminAccessCustomerTenant } = require('../../services/customerTenantAccess.service')
 const {
   canAccessOperationScope,
   canManageOperation,
@@ -77,8 +84,12 @@ const {
   requireTenantAuditAccess,
   requireBookingAccess,
   requireBookingCreationAccess,
+  requireBookingCreationTenantAccess,
+  requireBookingDestinationTenantAccess,
   requireBookingPassengerAccess,
   requireCustomerAccess,
+  requireCustomerTenantAdminAccess,
+  requireDemoReadAccess,
   requireFavoriteCustomerAccess,
   requireTurnaroundCommandAccess,
   requireTurnaroundDepartmentAccess,
@@ -217,6 +228,60 @@ describe('authorization middleware', () => {
     expect(canCreateBooking).toHaveBeenCalledWith(req, req.body)
     expect(res.status).toHaveBeenCalledWith(403)
     expect(res.json).toHaveBeenCalledWith({ message: 'Bookings must be created for the authenticated customer.' })
+    expect(next).not.toHaveBeenCalled()
+  })
+
+
+  it('tenant-checks admin booking destinations while allowing validation to handle a missing sailing', async () => {
+    getAuthenticationMode.mockReturnValue('jwt')
+    canAccessSailingTenant.mockResolvedValueOnce(true).mockResolvedValueOnce(false)
+
+    const allowedNext = jest.fn()
+    await requireBookingCreationTenantAccess(
+      { requestIdentity: { principal: { role: 'ADMIN' } }, body: { sailingId: 'SAIL-1' } },
+      responseDouble(),
+      allowedNext
+    )
+    expect(allowedNext).toHaveBeenCalledTimes(1)
+
+    const deniedRes = responseDouble()
+    const deniedNext = jest.fn()
+    await requireBookingDestinationTenantAccess(
+      { body: { sailingId: 'SAIL-2' } },
+      deniedRes,
+      deniedNext
+    )
+    expect(deniedRes.status).toHaveBeenCalledWith(403)
+    expect(deniedNext).not.toHaveBeenCalled()
+
+    const validationNext = jest.fn()
+    await requireBookingDestinationTenantAccess({ body: {} }, responseDouble(), validationNext)
+    expect(validationNext).toHaveBeenCalledTimes(1)
+  })
+
+  it('enforces tenant-admin customer and booking resource middleware', async () => {
+    getAuthenticationMode.mockReturnValue('jwt')
+    canAdminAccessCustomerTenant.mockResolvedValue(false)
+    canAdminAccessBookingTenant.mockResolvedValue(false)
+    const customerRes = responseDouble()
+    const bookingRes = responseDouble()
+
+    await requireCustomerTenantAdminAccess('customerId')({ params: { customerId: 'C2' } }, customerRes, jest.fn())
+    const bookingMiddleware = require('../../middleware/authorization.middleware').requireBookingTenantAdminAccess('bookingId')
+    await bookingMiddleware({ params: { bookingId: 'B2' } }, bookingRes, jest.fn())
+
+    expect(customerRes.status).toHaveBeenCalledWith(403)
+    expect(bookingRes.status).toHaveBeenCalledWith(403)
+  })
+
+  it('returns not-found for demo identity read surfaces outside demo mode', async () => {
+    getAuthenticationMode.mockReturnValue('jwt')
+    const res = responseDouble()
+    const next = jest.fn()
+
+    await requireDemoReadAccess({}, res, next)
+
+    expect(res.status).toHaveBeenCalledWith(404)
     expect(next).not.toHaveBeenCalled()
   })
 

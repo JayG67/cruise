@@ -27,9 +27,13 @@ describe('customer and booking authorization contracts', () => {
     const customerDelete = routes.indexOf("router.delete(\n  '/customers/:id'")
     const bookingUpdate = routes.indexOf("router.patch(\n  '/bookings/:id'")
     const bookingDelete = routes.indexOf("router.delete(\n  '/bookings/:id'")
-    ;[customerCreate, customerUpdate, customerDelete, bookingUpdate, bookingDelete].forEach(index => {
+
+    expect(customerCreate).toBeGreaterThanOrEqual(0)
+    expect(routes.slice(customerCreate, customerCreate + 180)).toContain('requireGlobalAdminMutation')
+
+    ;[customerUpdate, customerDelete, bookingUpdate, bookingDelete].forEach(index => {
       expect(index).toBeGreaterThanOrEqual(0)
-      expect(routes.slice(index, index + 180)).toContain('requireAdminMutation')
+      expect(routes.slice(index, index + 220)).toContain('requireAdminMutation')
     })
   })
 

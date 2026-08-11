@@ -7,6 +7,7 @@ const bookingPassengerTable = require('../models/bookingPassenger.model')
 const demoUserTable = require('../models/demoUser.model')
 const { getAuthenticationMode, AUTH_MODES } = require('./authentication.service')
 const { isAdminRole } = require('./requestAuthorization.service')
+const { canAdminAccessBookingTenant, canAdminAccessCustomerTenant } = require('./customerTenantAccess.service')
 
 const CUSTOMER_ACCESS_FORBIDDEN_MESSAGE = 'You do not have access to this customer record.'
 const BOOKING_ACCESS_FORBIDDEN_MESSAGE = 'You do not have access to this booking record.'
@@ -61,13 +62,13 @@ async function resolveRequestCustomerScope(req = {}) {
 
 async function canAccessCustomer(req, customerId) {
   const scope = await resolveRequestCustomerScope(req)
-  if (scope.isAdmin) return true
+  if (scope.isAdmin) return canAdminAccessCustomerTenant(req, customerId)
   return Boolean(scope.customerId && scope.customerId === String(customerId || '').trim())
 }
 
 async function canAccessBooking(req, bookingId) {
   const scope = await resolveRequestCustomerScope(req)
-  if (scope.isAdmin) return true
+  if (scope.isAdmin) return canAdminAccessBookingTenant(req, bookingId)
   if (!scope.customerId || !bookingId) return false
 
   const booking = await selectFirst(bookingTable, eq(bookingTable.id, bookingId))

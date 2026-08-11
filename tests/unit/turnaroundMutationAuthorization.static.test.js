@@ -6,7 +6,7 @@ const routes = fs.readFileSync(path.join(projectRoot, 'routes/cruise.routes.js')
 const service = fs.readFileSync(path.join(projectRoot, 'services/turnaroundAccess.service.js'), 'utf8')
 
 const protectedReadRoutes = [
-  ["get", '/turnaround-admin/setup', 'requireAdminAccess'],
+  ["get", '/turnaround-admin/setup', 'requireGlobalAdminAccess'],
   ["get", '/turnaround-operations', 'requireTurnaroundReadAccess'],
   ["get", '/turnaround-operations/:id/audit-events', 'requireTurnaroundOperationReadAccess']
 ]
