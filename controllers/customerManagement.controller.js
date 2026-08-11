@@ -10,17 +10,14 @@ const { withCustomerApiIdentity, withPreCruiseChecklistApiIdentity } = require('
 const { applyCustomerPayloadProfile, getRequestedPayloadProfile } = require('../services/apiPayloadProfile.service')
 const { eq, inArray } = require('drizzle-orm')
 const { filterCustomersForAdminTenant } = require('../services/customerTenantAccess.service')
-
 async function recordCruiseManagementAuditEvent(req, event) {
   return recordPlatformAuditEvent(req, event)
 }
-
 async function selectByIds(table, column, ids) {
   const uniqueIds = [...new Set((ids || []).filter(Boolean))]
   if (uniqueIds.length === 0) return []
   return db.select().from(table).where(inArray(column, uniqueIds))
 }
-
 const DEFAULT_PRE_CRUISE_CHECKLIST = Object.freeze({
   documents: false,
   luggage: false,
@@ -231,5 +228,3 @@ exports.deleteCustomer = async (req, res, next) => {
     next(err)
   }
 }
-
-

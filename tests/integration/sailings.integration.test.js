@@ -526,11 +526,11 @@ describe('Relational cascade and full hierarchy integrity', () => {
 
     expect(shipRes.statusCode).toBe(201)
 
+    const cascadeDepartureYear = new Date().getUTCFullYear() + 5
     const sailingRes = await request(app)
       .post(`/cruise/ship/${shipRes.body.id}/sailings`)
       .send({
-        departureDate: '2026-12-01',
-        port: 'Miami, Florida',
+        departureDate: `${cascadeDepartureYear}-12-01`,
         departurePort: 'Miami, Florida',
         arrivalPort: 'Nassau, Bahamas',
         days: 4,

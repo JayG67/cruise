@@ -44,6 +44,9 @@ function main() {
     'autoDeployTrigger: checksPass',
     'key: NODE_ENV',
     'value: production',
+    'key: CRUISE_JWT_SECRET',
+    'key: CRUISE_JWT_ISSUER',
+    'key: CRUISE_JWT_AUDIENCE',
     'key: DATABASE_URL',
     'key: CRUISE_DEMO_DATA_MODE',
     'value: disabled',
@@ -72,6 +75,12 @@ function main() {
   assertIncludes(app, 'mutationRateLimitWhenNeeded', 'app.js')
   assertIncludes(app, 'aiRateLimitWhenNeeded', 'app.js')
   assertIncludes(app, 'app.use(errorHandler)', 'app.js')
+
+  const authenticationService = read('services/authentication.service.js')
+  assertIncludes(authenticationService, 'validateJwtConfiguration', 'services/authentication.service.js')
+  assertIncludes(authenticationService, 'Production JWT authentication requires CRUISE_JWT_ISSUER.', 'services/authentication.service.js')
+  assertIncludes(authenticationService, 'Production JWT authentication requires CRUISE_JWT_AUDIENCE.', 'services/authentication.service.js')
+  assertIncludes(index, 'validateJwtConfiguration(process.env)', 'index.js')
 
   const securityMiddleware = read('middleware/security.middleware.js')
   assertIncludes(securityMiddleware, "if (isProduction()) return true", 'middleware/security.middleware.js')

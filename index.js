@@ -4,6 +4,7 @@ const app = require('./app')
 const initializeDatabase = require('./services/initializeDatabase.service')
 const loadCruiseData = require('./services/loadCruiseData.service')
 const { shouldLoadDemoDataOnStartup } = require('./services/demoDataPolicy.service')
+const { validateJwtConfiguration } = require('./services/authentication.service')
 
 const PORT = process.env.PORT || 8000
 const startupAttempts = Number(process.env.DB_STARTUP_ATTEMPTS || 30)
@@ -41,6 +42,7 @@ async function prepareDatabaseWithRetry() {
 
 async function startServer() {
   try {
+    validateJwtConfiguration(process.env)
     await prepareDatabaseWithRetry()
 
     app.listen(PORT, () => {

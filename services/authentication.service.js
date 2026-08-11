@@ -127,6 +127,34 @@ function getJwtVerificationOptions(env = process.env) {
   }
 }
 
+
+function validateJwtConfiguration(env = process.env) {
+  if (getAuthenticationMode(env) !== AUTH_MODES.JWT) return true
+
+  const secret = String(env.CRUISE_JWT_SECRET || '').trim()
+  if (secret.length < MINIMUM_HS256_SECRET_LENGTH) {
+    const error = new Error('JWT authentication requires CRUISE_JWT_SECRET with at least 32 characters.')
+    error.code = 'AUTH_CONFIG_INVALID'
+    throw error
+  }
+
+  const isProduction = String(env.NODE_ENV || '').trim().toLowerCase() === 'production'
+  if (isProduction) {
+    if (!String(env.CRUISE_JWT_ISSUER || '').trim()) {
+      const error = new Error('Production JWT authentication requires CRUISE_JWT_ISSUER.')
+      error.code = 'AUTH_CONFIG_INVALID'
+      throw error
+    }
+    if (!String(env.CRUISE_JWT_AUDIENCE || '').trim()) {
+      const error = new Error('Production JWT authentication requires CRUISE_JWT_AUDIENCE.')
+      error.code = 'AUTH_CONFIG_INVALID'
+      throw error
+    }
+  }
+
+  return true
+}
+
 function extractBearerToken(req = {}) {
   const authorization = typeof req.get === 'function'
     ? req.get('Authorization')
@@ -160,5 +188,6 @@ module.exports = {
   getAuthenticationMode,
   getJwtVerificationOptions,
   isDemoAuthenticationEnabled,
+  validateJwtConfiguration,
   verifyHs256Jwt
 }

@@ -340,8 +340,6 @@ exports.updateBooking = async (req, res, next) => {
     next(err)
   }
 }
-
-
 exports.deleteBooking = async (req, res, next) => {
   try {
     const { id } = req.params

@@ -55,6 +55,26 @@ describe('authentication service', () => {
     })).toThrow('audience')
   })
 
+  it('requires a strong secret plus issuer and audience for production JWT configuration', () => {
+    expect(() => authentication.validateJwtConfiguration({ NODE_ENV: 'production', CRUISE_JWT_SECRET: 'short' })).toThrow('CRUISE_JWT_SECRET')
+    expect(() => authentication.validateJwtConfiguration({ NODE_ENV: 'production', CRUISE_JWT_SECRET: secret })).toThrow('CRUISE_JWT_ISSUER')
+    expect(() => authentication.validateJwtConfiguration({ NODE_ENV: 'production', CRUISE_JWT_SECRET: secret, CRUISE_JWT_ISSUER: 'https://identity.example.test' })).toThrow('CRUISE_JWT_AUDIENCE')
+    expect(authentication.validateJwtConfiguration({
+      NODE_ENV: 'production',
+      CRUISE_JWT_SECRET: secret,
+      CRUISE_JWT_ISSUER: 'https://identity.example.test',
+      CRUISE_JWT_AUDIENCE: 'cruise-api'
+    })).toBe(true)
+  })
+
+  it('keeps non-production JWT issuer and audience optional for integration harnesses', () => {
+    expect(authentication.validateJwtConfiguration({
+      NODE_ENV: 'test',
+      CRUISE_AUTH_MODE: 'jwt',
+      CRUISE_JWT_SECRET: secret
+    })).toBe(true)
+  })
+
   it('builds production principals only from verified bearer tokens', () => {
     const token = signToken({
       sub: 'auth-user-1',
@@ -62,13 +82,17 @@ describe('authentication service', () => {
       name: 'Operations Admin',
       role: 'ADMIN',
       tenant_id: 'tenant-1',
+      iss: 'https://identity.example.test',
+      aud: 'cruise-api',
       exp: Math.floor(Date.now() / 1000) + 60
     }, secret)
     const req = { headers: { authorization: `Bearer ${token}` } }
 
     expect(authentication.buildJwtPrincipal(req, {
       NODE_ENV: 'production',
-      CRUISE_JWT_SECRET: secret
+      CRUISE_JWT_SECRET: secret,
+      CRUISE_JWT_ISSUER: 'https://identity.example.test',
+      CRUISE_JWT_AUDIENCE: 'cruise-api'
     })).toEqual({
       userId: 'auth-user-1',
       email: 'admin@example.com',
