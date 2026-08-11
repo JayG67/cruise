@@ -9,7 +9,14 @@ const {
   requireBookingCreationAccess,
   requireBookingPassengerAccess,
   requireCustomerAccess,
-  requireFavoriteCustomerAccess
+  requireFavoriteCustomerAccess,
+  requireTurnaroundCommandAccess,
+  requireTurnaroundDepartmentAccess,
+  requireTurnaroundEscalationAccess,
+  requireTurnaroundHandoffAccess,
+  requireTurnaroundOperationReadAccess,
+  requireTurnaroundReadAccess,
+  requireTurnaroundTaskAccess
 } = require('../middleware/authorization.middleware')
 
 const {
@@ -89,6 +96,7 @@ router.get(
 
 router.get(
   '/turnaround-admin/setup',
+  requireAdminAccess,
   cruiseController.getTurnaroundAdminSetup
 )
 
@@ -114,17 +122,20 @@ router.delete(
 
 router.get(
   '/turnaround-operations',
+  requireTurnaroundReadAccess,
   cruiseController.getTurnaroundOperations
 )
 
 router.get(
   '/turnaround-operations/:id/audit-events',
+  requireTurnaroundOperationReadAccess('id'),
   cruiseController.getTurnaroundOperationAuditEvents
 )
 
 
 router.patch(
   '/turnaround-operations/:id',
+  requireTurnaroundCommandAccess,
   validate(turnaroundOperationCommandUpdateSchema),
   cruiseController.updateTurnaroundOperationCommand
 )
@@ -132,18 +143,21 @@ router.patch(
 
 router.post(
   '/turnaround-operations/:id/escalations',
+  requireTurnaroundDepartmentAccess('id', 'departmentRole'),
   validate(turnaroundEscalationCreateSchema),
   cruiseController.createTurnaroundEscalation
 )
 
 router.patch(
   '/turnaround-escalations/:id',
+  requireTurnaroundEscalationAccess,
   validate(turnaroundEscalationUpdateSchema),
   cruiseController.updateTurnaroundEscalation
 )
 
 router.patch(
   '/turnaround-handoffs/:id',
+  requireTurnaroundHandoffAccess,
   validate(turnaroundHandoffUpdateSchema),
   cruiseController.updateTurnaroundHandoff
 )
@@ -151,42 +165,49 @@ router.patch(
 
 router.patch(
   '/turnaround-operations/:id/staffing/:departmentRole',
+  requireTurnaroundDepartmentAccess('id', 'departmentRole'),
   validate(turnaroundStaffingUpdateSchema),
   cruiseController.updateTurnaroundStaffing
 )
 
 router.patch(
   '/turnaround-operations/:id/signoffs/:departmentRole',
+  requireTurnaroundDepartmentAccess('id', 'departmentRole'),
   validate(turnaroundSignoffUpdateSchema),
   cruiseController.updateTurnaroundSignoff
 )
 
 router.patch(
   '/turnaround-tasks/:id/status',
+  requireTurnaroundTaskAccess,
   validate(turnaroundTaskStatusUpdateSchema),
   cruiseController.updateTurnaroundTaskStatus
 )
 
 router.patch(
   '/turnaround-tasks/:id/details',
+  requireTurnaroundTaskAccess,
   validate(turnaroundTaskDetailUpdateSchema),
   cruiseController.updateTurnaroundTaskDetails
 )
 
 router.post(
   '/turnaround-operations/:id/tasks',
+  requireTurnaroundDepartmentAccess('id', 'departmentRole'),
   validate(turnaroundTaskCreateSchema),
   cruiseController.createTurnaroundTask
 )
 
 router.post(
   '/turnaround-tasks/:id/updates',
+  requireTurnaroundTaskAccess,
   validate(turnaroundTaskUpdateSchema),
   cruiseController.createTurnaroundTaskUpdate
 )
 
 router.delete(
   '/turnaround-tasks/:id',
+  requireTurnaroundTaskAccess,
   cruiseController.deleteTurnaroundTask
 )
 

@@ -29,7 +29,7 @@
     "lighthouse:ci:ci": "npm run react:build && start-server-and-test start:ci http://localhost:8000/health lighthouse:ci",
     "lighthouse:prepare-pages": "node scripts/prepare-lighthouse-pages.js",
     "quality:prepare-dashboard": "node scripts/prepare-quality-dashboard.js",
-    "coverage:ci": "jest --coverage --runInBand --coverageReporters=json-summary --coverageReporters=lcov --coverageReporters=text",
+    "coverage:ci": "jest --coverage --runInBand --coverageReporters=json --coverageReporters=json-summary --coverageReporters=lcov --coverageReporters=cobertura --coverageReporters=clover --coverageReporters=text --coverageReporters=text-summary",
     "coverage:prepare-pages": "node scripts/prepare-coverage-pages.js",
     "playwright:mobile:ci": "npm run react:build && start-server-and-test start:ci http://localhost:8000 \"playwright test --config=playwright.mobile.config.js playwright/mobile/react-production-mobile.spec.js\"",
     "playwright:responsive:ci": "npm run react:build && start-server-and-test start:ci http://localhost:8000 \"playwright test --config=playwright.responsive.config.js playwright/responsive/react-production-responsive.spec.js\"",

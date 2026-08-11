@@ -15,6 +15,7 @@ const demoUserTable = require('../models/demoUser.model')
 const turnaroundOperationTable = require('../models/turnaroundOperation.model')
 const db = require('../db')
 const loadCruiseData = require('../services/loadCruiseData.service')
+const { isDemoDataEnabled } = require('../services/demoDataPolicy.service')
 const { listAuditEventsForOperation } = require('../services/auditEvent.service')
 const {
   canAccessTurnaroundOperationForRequest,
@@ -106,7 +107,7 @@ exports.getTurnaroundOperations = async (req, res, next) => {
   try {
     let operations = await getTurnaroundOperationsForRequest(req)
 
-    if (!operations || operations.length === 0) {
+    if ((!operations || operations.length === 0) && isDemoDataEnabled()) {
       // Guard against an empty turnaround dataset after destructive test/demo resets.
       // Reloading the seed keeps the operations API contract stable for the app and
       // for integration tests that expect at least one operation with task details.

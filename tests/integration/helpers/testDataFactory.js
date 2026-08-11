@@ -1,3 +1,4 @@
+const crypto = require('crypto')
 const request = require('supertest')
 const { eq, inArray } = require('drizzle-orm')
 
@@ -17,34 +18,22 @@ const createdShipIds = []
 const createdCustomerIds = []
 const createdBookingIds = []
 
-let uniqueCustomerSequence = 0
-let uniqueBookingSequence = 0
-
-const integrationRunEntropy = Math.floor(Math.random() * 1296)
-  .toString(36)
-  .toUpperCase()
-  .padStart(2, '0')
-
-function uniqueSeedSafeId(prefix, sequence) {
-  const timePart = (Date.now() % 1679616).toString(36).toUpperCase().padStart(4, '0')
-  const sequencePart = (sequence % 1296).toString(36).toUpperCase().padStart(2, '0')
-
-  // Keep generated integration IDs in their own namespace so they cannot
-  // accidentally collide with stable seed records such as C000000001 or
-  // B000000001 when a local run happens to land on a low timestamp modulo.
-  return `${prefix}T${timePart}${integrationRunEntropy}${sequencePart}`
+function uniqueSeedSafeId(prefix) {
+  // Use 36 bits of cryptographic entropy per generated ID. The resulting
+  // identifier remains 10 characters, matches the public C/B ID contracts,
+  // and does not depend on clock modulo values or process-local sequences.
+  // This prevents retries from repeatedly colliding with records left by a
+  // previous local/CI integration run.
+  const entropy = crypto.randomBytes(5).toString('hex').slice(0, 9).toUpperCase()
+  return `${prefix}${entropy}`
 }
 
 function uniqueCustomerId() {
-  uniqueCustomerSequence += 1
-
-  return uniqueSeedSafeId('C', uniqueCustomerSequence)
+  return uniqueSeedSafeId('C')
 }
 
 function uniqueBookingId() {
-  uniqueBookingSequence += 1
-
-  return uniqueSeedSafeId('B', uniqueBookingSequence)
+  return uniqueSeedSafeId('B')
 }
 
 async function createCustomer(overrides = {}) {

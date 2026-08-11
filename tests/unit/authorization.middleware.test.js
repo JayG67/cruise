@@ -16,9 +16,29 @@ jest.mock('../../services/customerAccess.service', () => ({
   canCreateBooking: jest.fn()
 }))
 
+
+jest.mock('../../services/turnaroundAccess.service', () => ({
+  TURNAROUND_ACCESS_FORBIDDEN_MESSAGE: 'You do not have access to modify this turnaround operation.',
+  TURNAROUND_DEPARTMENT_FORBIDDEN_MESSAGE: 'You do not have access to modify this turnaround department.',
+  canAccessOperationScope: jest.fn(),
+  canManageEscalation: jest.fn(),
+  canManageHandoff: jest.fn(),
+  canManageOperation: jest.fn(),
+  canManageOperationDepartment: jest.fn(),
+  canManageTask: jest.fn(),
+  canReadTurnaroundOperations: jest.fn()
+}))
+
 const { getAuthenticationMode } = require('../../services/authentication.service')
 const { requireAdminRequest } = require('../../services/requestAuthorization.service')
 const { canAccessBooking, canAccessCustomer, canCreateBooking } = require('../../services/customerAccess.service')
+const {
+  canAccessOperationScope,
+  canManageOperation,
+  canManageOperationDepartment,
+  canManageTask,
+  canReadTurnaroundOperations
+} = require('../../services/turnaroundAccess.service')
 const {
   requireAdminAccess,
   requireAdminMutation,
@@ -26,7 +46,12 @@ const {
   requireBookingCreationAccess,
   requireBookingPassengerAccess,
   requireCustomerAccess,
-  requireFavoriteCustomerAccess
+  requireFavoriteCustomerAccess,
+  requireTurnaroundCommandAccess,
+  requireTurnaroundDepartmentAccess,
+  requireTurnaroundOperationReadAccess,
+  requireTurnaroundReadAccess,
+  requireTurnaroundTaskAccess
 } = require('../../middleware/authorization.middleware')
 
 function responseDouble() {
@@ -144,4 +169,65 @@ describe('authorization middleware', () => {
     expect(res.json).toHaveBeenCalledWith({ message: 'Bookings must be created for the authenticated customer.' })
     expect(next).not.toHaveBeenCalled()
   })
+
+  it('requires an authenticated operational scope for turnaround reads in JWT mode', async () => {
+    getAuthenticationMode.mockReturnValue('jwt')
+    canReadTurnaroundOperations.mockResolvedValue(false)
+    const res = responseDouble()
+    const next = jest.fn()
+
+    await requireTurnaroundReadAccess({}, res, next)
+
+    expect(res.status).toHaveBeenCalledWith(403)
+    expect(next).not.toHaveBeenCalled()
+  })
+
+  it('checks operation scope before exposing a turnaround audit stream', async () => {
+    getAuthenticationMode.mockReturnValue('jwt')
+    canAccessOperationScope.mockResolvedValue(false)
+    const res = responseDouble()
+    const next = jest.fn()
+
+    await requireTurnaroundOperationReadAccess('operationId')({ params: { operationId: 'OP1' } }, res, next)
+
+    expect(canAccessOperationScope).toHaveBeenCalledWith(expect.any(Object), 'OP1')
+    expect(res.status).toHaveBeenCalledWith(403)
+  })
+
+  it('requires manager authority for operation-wide turnaround commands', async () => {
+    getAuthenticationMode.mockReturnValue('jwt')
+    canManageOperation.mockResolvedValue(false)
+    const res = responseDouble()
+    const next = jest.fn()
+
+    await requireTurnaroundCommandAccess({ params: { id: 'OP1' } }, res, next)
+
+    expect(canManageOperation).toHaveBeenCalledWith(expect.any(Object), 'OP1')
+    expect(res.status).toHaveBeenCalledWith(403)
+  })
+
+  it('binds department mutations to both operation scope and department role', async () => {
+    getAuthenticationMode.mockReturnValue('jwt')
+    canManageOperationDepartment.mockResolvedValue(false)
+    const res = responseDouble()
+    const next = jest.fn()
+
+    await requireTurnaroundDepartmentAccess('id', 'departmentRole')({ params: { id: 'OP1', departmentRole: 'ENGINEERING_LEAD' }, body: {} }, res, next)
+
+    expect(canManageOperationDepartment).toHaveBeenCalledWith(expect.any(Object), 'OP1', 'ENGINEERING_LEAD')
+    expect(res.status).toHaveBeenCalledWith(403)
+  })
+
+  it('resolves task ownership server-side before allowing task mutations', async () => {
+    getAuthenticationMode.mockReturnValue('jwt')
+    canManageTask.mockResolvedValue(false)
+    const res = responseDouble()
+    const next = jest.fn()
+
+    await requireTurnaroundTaskAccess({ params: { id: 'TASK1' } }, res, next)
+
+    expect(canManageTask).toHaveBeenCalledWith(expect.any(Object), 'TASK1')
+    expect(res.status).toHaveBeenCalledWith(403)
+  })
+
 })

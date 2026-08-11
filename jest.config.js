@@ -16,6 +16,15 @@ module.exports = {
     '<rootDir>/validation/.*\\.test\\.js$'
   ],
 
+  coverageThreshold: {
+    global: {
+      statements: 90,
+      branches: 65,
+      functions: 94,
+      lines: 92
+    }
+  },
+
   coveragePathIgnorePatterns: [
     '/node_modules/',
     '<rootDir>/github-pages',

@@ -8,6 +8,17 @@ const {
   canAccessCustomer,
   canCreateBooking
 } = require('../services/customerAccess.service')
+const {
+  TURNAROUND_ACCESS_FORBIDDEN_MESSAGE,
+  TURNAROUND_DEPARTMENT_FORBIDDEN_MESSAGE,
+  canManageEscalation,
+  canReadTurnaroundOperations,
+  canAccessOperationScope,
+  canManageHandoff,
+  canManageOperation,
+  canManageOperationDepartment,
+  canManageTask
+} = require('../services/turnaroundAccess.service')
 
 async function requireAdminAccess(req, res, next) {
   if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
@@ -66,6 +77,69 @@ async function requireBookingCreationAccess(req, res, next) {
   return next()
 }
 
+
+async function requireTurnaroundReadAccess(req, res, next) {
+  if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+  if (!(await canReadTurnaroundOperations(req))) {
+    return res.status(403).json({ message: TURNAROUND_ACCESS_FORBIDDEN_MESSAGE })
+  }
+  return next()
+}
+
+function requireTurnaroundOperationReadAccess(paramName = 'id') {
+  return async function turnaroundOperationReadAccessMiddleware(req, res, next) {
+    if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+    if (!(await canAccessOperationScope(req, req.params?.[paramName]))) {
+      return res.status(403).json({ message: TURNAROUND_ACCESS_FORBIDDEN_MESSAGE })
+    }
+    return next()
+  }
+}
+
+async function requireTurnaroundCommandAccess(req, res, next) {
+  if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+  if (!(await canManageOperation(req, req.params?.id))) {
+    return res.status(403).json({ message: TURNAROUND_ACCESS_FORBIDDEN_MESSAGE })
+  }
+  return next()
+}
+
+function requireTurnaroundDepartmentAccess(operationParam = 'id', departmentSource = 'departmentRole') {
+  return async function turnaroundDepartmentAccessMiddleware(req, res, next) {
+    if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+    const operationId = req.params?.[operationParam]
+    const departmentRole = req.params?.[departmentSource] || req.body?.[departmentSource]
+    if (!(await canManageOperationDepartment(req, operationId, departmentRole))) {
+      return res.status(403).json({ message: TURNAROUND_DEPARTMENT_FORBIDDEN_MESSAGE })
+    }
+    return next()
+  }
+}
+
+async function requireTurnaroundTaskAccess(req, res, next) {
+  if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+  if (!(await canManageTask(req, req.params?.id))) {
+    return res.status(403).json({ message: TURNAROUND_DEPARTMENT_FORBIDDEN_MESSAGE })
+  }
+  return next()
+}
+
+async function requireTurnaroundEscalationAccess(req, res, next) {
+  if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+  if (!(await canManageEscalation(req, req.params?.id))) {
+    return res.status(403).json({ message: TURNAROUND_DEPARTMENT_FORBIDDEN_MESSAGE })
+  }
+  return next()
+}
+
+async function requireTurnaroundHandoffAccess(req, res, next) {
+  if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+  if (!(await canManageHandoff(req, req.params?.id))) {
+    return res.status(403).json({ message: TURNAROUND_DEPARTMENT_FORBIDDEN_MESSAGE })
+  }
+  return next()
+}
+
 module.exports = {
   requireAdminAccess,
   requireAdminMutation,
@@ -73,5 +147,12 @@ module.exports = {
   requireBookingCreationAccess,
   requireBookingPassengerAccess,
   requireCustomerAccess,
-  requireFavoriteCustomerAccess
+  requireFavoriteCustomerAccess,
+  requireTurnaroundCommandAccess,
+  requireTurnaroundDepartmentAccess,
+  requireTurnaroundEscalationAccess,
+  requireTurnaroundHandoffAccess,
+  requireTurnaroundOperationReadAccess,
+  requireTurnaroundReadAccess,
+  requireTurnaroundTaskAccess
 }

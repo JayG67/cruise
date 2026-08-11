@@ -203,12 +203,33 @@ jobs:
         run: npm run db:verify:test
 
       - name: Run Jest coverage
+        id: jest-coverage
+        continue-on-error: true
         run: npm run coverage:ci
 
+      - name: Verify complete raw coverage artifact set
+        if: always()
+        run: node scripts/verify-coverage-artifacts.js
+
       - name: Prepare coverage report for GitHub Pages
+        if: always()
         run: npm run coverage:prepare-pages
 
+      - name: Verify complete published coverage artifact set
+        if: always()
+        run: node scripts/verify-coverage-artifacts.js --published
+
+      - name: Add coverage result to job summary
+        if: always()
+        run: |
+          echo "## Jest Coverage" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          node -e "const c=require('./coverage/coverage-summary.json').total; for (const key of ['statements','branches','functions','lines']) console.log(key[0].toUpperCase()+key.slice(1)+': **'+c[key].pct+'%** ('+c[key].covered+'/'+c[key].total+')')" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Artifact includes HTML, LCOV, JSON, JSON summary, Cobertura XML, and Clover XML coverage outputs." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload coverage reports
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: jest-coverage-report
@@ -216,6 +237,15 @@ jobs:
             coverage
             github-pages/coverage
           if-no-files-found: error
+          retention-days: 30
+
+      - name: Enforce Jest coverage gate result
+        if: always()
+        run: |
+          if [ "${{ steps.jest-coverage.outcome }}" != "success" ]; then
+            echo "Jest tests or coverage thresholds failed. See the uploaded jest-coverage-report artifact for complete coverage evidence."
+            exit 1
+          fi
 
 
   integration-tests:
