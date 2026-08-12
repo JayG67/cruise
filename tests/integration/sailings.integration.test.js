@@ -3,7 +3,6 @@ const app = require('../../app')
 const initializeDatabase = require('../../services/initializeDatabase.service')
 const loadCruiseData = require('../../services/loadCruiseData.service')
 
-jest.setTimeout(30000)
 
 beforeAll(async () => {
   await initializeDatabase()
