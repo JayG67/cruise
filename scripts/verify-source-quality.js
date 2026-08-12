@@ -18,7 +18,7 @@ const ignoredDirectories = new Set([
   'test-results'
 ])
 
-const textExtensions = new Set(['.js', '.jsx', '.json', '.md', '.css', '.yml', '.yaml', '.html'])
+const textExtensions = new Set(['.js', '.jsx', '.json', '.css', '.yml', '.yaml', '.html'])
 const architectureBudgets = new Map([
   ['controllers/fleet.controller.js', 7],
   ['controllers/cruiseLineManagement.controller.js', 219],

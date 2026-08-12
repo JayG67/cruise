@@ -3,13 +3,16 @@ const request = require('supertest')
 
 const app = require('../../app')
 const db = require('../../db')
-const { cruiseLineTable } = require('../../models')
+const { appUserRoleTable, appUserTable, cruiseLineTable } = require('../../models')
 const initializeDatabase = require('../../services/initializeDatabase.service')
 const loadCruiseData = require('../../services/loadCruiseData.service')
 
 const ORIGINAL_AUTH_MODE = process.env.CRUISE_AUTH_MODE
 const ORIGINAL_JWT_SECRET = process.env.CRUISE_JWT_SECRET
 const JWT_SECRET = 'integration-security-secret-32-bytes-minimum-value'
+const TENANT_ADMIN_ID = 'turnaround-admin-tenant-test'
+const TENANT_ADMIN_ROLE_ID = `${TENANT_ADMIN_ID}-role`
+let tenantCruiseLineId
 
 function signToken(payload) {
   const header = { alg: 'HS256', typ: 'JWT' }
@@ -52,6 +55,36 @@ beforeAll(async () => {
   process.env.CRUISE_JWT_SECRET = JWT_SECRET
   await initializeDatabase()
   await loadCruiseData()
+
+  const [tenantCruiseLine] = await db.select().from(cruiseLineTable).limit(1)
+  tenantCruiseLineId = tenantCruiseLine?.id
+  if (!tenantCruiseLineId) throw new Error('Turnaround admin authorization requires a seeded cruise line')
+
+  await db.insert(appUserTable).values({
+    id: TENANT_ADMIN_ID,
+    displayName: 'Turnaround Tenant Admin',
+    email: `${TENANT_ADMIN_ID}@cruise-explorer.local`,
+    userType: 'EMPLOYEE',
+    cruiseLineId: tenantCruiseLineId,
+    assignedShipId: null,
+    status: 'ACTIVE'
+  }).onConflictDoNothing()
+
+  await db.insert(appUserRoleTable).values({
+    id: TENANT_ADMIN_ROLE_ID,
+    userId: TENANT_ADMIN_ID,
+    roleId: 'admin',
+    assignmentScope: 'CRUISE_LINE',
+    cruiseLineId: tenantCruiseLineId,
+    assignedShipId: null,
+    status: 'ACTIVE'
+  }).onConflictDoNothing()
+
+  global.registerDatabaseCleanup(async () => {
+    const { eq } = require('drizzle-orm')
+    await db.delete(appUserRoleTable).where(eq(appUserRoleTable.id, TENANT_ADMIN_ROLE_ID))
+    await db.delete(appUserTable).where(eq(appUserTable.id, TENANT_ADMIN_ID))
+  })
 })
 
 afterAll(() => {
@@ -71,6 +104,38 @@ describe('production administrator mutation authorization', () => {
     expect(response.body).toEqual({
       message: 'Admin access requires an admin request identity.'
     })
+  })
+
+  it.each([
+    ['post', '/cruise/turnaround-admin/people', {}],
+    ['patch', '/cruise/turnaround-admin/people/security-test-person', {}],
+    ['delete', '/cruise/turnaround-admin/people/security-test-person', undefined]
+  ])('rejects tenant-scoped admin access to global turnaround setup: %s %s', async (method, path, body) => {
+    const now = Math.floor(Date.now() / 1000)
+    const token = `Bearer ${signToken({
+      sub: TENANT_ADMIN_ID,
+      role: 'ADMIN',
+      tenantId: tenantCruiseLineId,
+      name: 'Turnaround Tenant Admin',
+      exp: now + 300
+    })}`
+    const call = request(app)[method](path).set('Authorization', token)
+    const response = body === undefined ? await call : await call.send(body)
+
+    expect(response.statusCode).toBe(403)
+    expect(response.body).toEqual({ message: 'This operation requires a global administrator.' })
+  })
+
+  it.each([
+    ['post', '/cruise/turnaround-admin/people', {}],
+    ['patch', '/cruise/turnaround-admin/people/security-test-person', {}],
+    ['delete', '/cruise/turnaround-admin/people/security-test-person', undefined]
+  ])('allows GLOBAL admin through the turnaround setup authorization boundary: %s %s', async (method, path, body) => {
+    const call = request(app)[method](path).set('Authorization', bearer('ADMIN'))
+    const response = body === undefined ? await call : await call.send(body)
+
+    expect(response.statusCode).not.toBe(403)
+    expect([400, 404]).toContain(response.statusCode)
   })
 
   it('rejects a valid non-admin JWT on an administrator mutation', async () => {

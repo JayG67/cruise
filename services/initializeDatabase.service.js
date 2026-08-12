@@ -5,6 +5,7 @@ const applyDatabaseConstraintsAndTemporalNormalization = require('./databaseCons
 const migrateDatabaseIdentityAndOperationalOwnership = require('./databaseIdentityMigration.service')
 const migrateDatabaseEntityMetadata = require('./databaseEntityMetadataMigration.service')
 const provisionDatabaseIndexes = require('./databaseIndexProvisioning.service')
+const provisionRateLimitStore = require('./databaseRateLimitStoreMigration.service')
 
 async function initializeDatabase() {
   await db.execute(sql`
@@ -363,8 +364,8 @@ async function initializeDatabase() {
     END $$;
   `)
 
+  await provisionRateLimitStore(db)
   await migrateDatabaseIdentityAndOperationalOwnership(db)
-
   await applyDatabaseConstraintsAndTemporalNormalization(db)
 
   await migrateDatabaseEntityMetadata(db)

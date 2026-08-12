@@ -1,10 +1,10 @@
 const crypto = require('crypto')
+const { getRateLimitStore } = require('../services/rateLimitStore.service')
 
 const DEFAULT_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
 const DEFAULT_API_LIMIT = 600
 const DEFAULT_MUTATION_LIMIT = 180
 const DEFAULT_AI_LIMIT = 30
-const MAX_RATE_LIMIT_BUCKETS = 10000
 
 function isProduction() {
   return String(process.env.NODE_ENV || '').trim().toLowerCase() === 'production'
@@ -81,30 +81,28 @@ function getAuthenticatedRateLimitKey(req) {
   return `ip:${req.ip || req.socket?.remoteAddress || 'unknown'}`
 }
 
-function pruneBuckets(buckets, now, windowMs) {
-  for (const [key, bucket] of buckets) {
-    if (bucket.resetAt <= now) buckets.delete(key)
-  }
+function applyRateLimitResult({ result, effectiveLimit, now, req, res, next }) {
+  const remaining = Math.max(0, effectiveLimit - result.count)
+  const resetSeconds = Math.max(1, Math.ceil((result.resetAt - now) / 1000))
 
-  if (buckets.size <= MAX_RATE_LIMIT_BUCKETS) return
+  res.setHeader('RateLimit-Limit', String(effectiveLimit))
+  res.setHeader('RateLimit-Remaining', String(remaining))
+  res.setHeader('RateLimit-Reset', String(resetSeconds))
 
-  const overflow = buckets.size - MAX_RATE_LIMIT_BUCKETS
-  let removed = 0
-  for (const key of buckets.keys()) {
-    buckets.delete(key)
-    removed += 1
-    if (removed >= overflow) break
+  if (result.count > effectiveLimit) {
+    res.setHeader('Retry-After', String(resetSeconds))
+    return res.status(429).json({ message: 'Too many requests', requestId: req.requestId || null })
   }
+  return next()
 }
 
 function createRateLimiter({
   name,
   limit,
   windowMs = DEFAULT_RATE_LIMIT_WINDOW_MS,
-  keyGenerator = getAuthenticatedRateLimitKey
+  keyGenerator = getAuthenticatedRateLimitKey,
+  storeProvider = getRateLimitStore
 }) {
-  const buckets = new Map()
-
   return function rateLimitMiddleware(req, res, next) {
     if (!shouldEnforceRateLimits()) return next()
 
@@ -113,34 +111,13 @@ function createRateLimiter({
     const effectiveLimit = parsePositiveInteger(configuredLimit, DEFAULT_API_LIMIT)
     const effectiveWindowMs = parsePositiveInteger(windowMs, DEFAULT_RATE_LIMIT_WINDOW_MS)
     const key = `${name}:${keyGenerator(req)}`
-    let bucket = buckets.get(key)
+    const consumption = storeProvider().consume({ key, now, windowMs: effectiveWindowMs })
+    const apply = result => applyRateLimitResult({ result, effectiveLimit, now, req, res, next })
 
-    if (!bucket || bucket.resetAt <= now) {
-      bucket = { count: 0, resetAt: now + effectiveWindowMs }
-      buckets.set(key, bucket)
+    if (consumption && typeof consumption.then === 'function') {
+      return consumption.then(apply).catch(next)
     }
-
-    bucket.count += 1
-    const remaining = Math.max(0, effectiveLimit - bucket.count)
-    const resetSeconds = Math.max(1, Math.ceil((bucket.resetAt - now) / 1000))
-
-    res.setHeader('RateLimit-Limit', String(effectiveLimit))
-    res.setHeader('RateLimit-Remaining', String(remaining))
-    res.setHeader('RateLimit-Reset', String(resetSeconds))
-
-    if (bucket.count > effectiveLimit) {
-      res.setHeader('Retry-After', String(resetSeconds))
-      return res.status(429).json({
-        message: 'Too many requests',
-        requestId: req.requestId || null
-      })
-    }
-
-    if (buckets.size > MAX_RATE_LIMIT_BUCKETS || bucket.count === 1) {
-      pruneBuckets(buckets, now, effectiveWindowMs)
-    }
-
-    return next()
+    return apply(consumption)
   }
 }
 

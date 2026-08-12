@@ -21,14 +21,17 @@ describe('production HTTP security hardening contracts', () => {
     expect(app).not.toContain('error: err.message')
   })
 
-  it('keeps the limiter production-enforced, principal-scoped and memory-bounded', () => {
+  it('keeps the limiter production-enforced, principal-scoped and shared-store backed', () => {
     const security = read('middleware/security.middleware.js')
+    const store = read('services/rateLimitStore.service.js')
 
     expect(security).toContain("if (isProduction()) return true")
     expect(security).toContain('req.requestIdentity?.principal?.userId')
     expect(security).toContain("return `user:${principalId}`")
     expect(security).toContain("return `ip:${req.ip || req.socket?.remoteAddress || 'unknown'}`")
-    expect(security).toContain('MAX_RATE_LIMIT_BUCKETS = 10000')
+    expect(security).toContain('storeProvider = getRateLimitStore')
+    expect(store).toContain("type: 'database'")
+    expect(store).toContain('ON CONFLICT ("bucketKey") DO UPDATE')
     expect(security).toContain("res.setHeader('Retry-After'")
     expect(security).toContain("message: 'Too many requests'")
     expect(security).toContain('CRUISE_API_RATE_LIMIT')
@@ -86,7 +89,6 @@ describe('production HTTP security hardening contracts', () => {
 
     for (const artifact of [
       'coverage-evidence.json',
-      'coverage-evidence.md',
       'cobertura-coverage.xml',
       'clover.xml',
       'coverage-final.json',

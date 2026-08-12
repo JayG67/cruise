@@ -81,6 +81,8 @@ if (forbiddenTrackedFiles.length > 0) {
 for (const relativePath of requiredFiles) {
   if (!fs.existsSync(path.join(projectRoot, relativePath))) {
     problems.push(`Required release file is missing: ${relativePath}`)
+  } else if (!trackedFiles.includes(relativePath)) {
+    problems.push(`Required release file is not tracked by Git: ${relativePath}`)
   }
 }
 

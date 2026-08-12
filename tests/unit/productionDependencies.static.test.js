@@ -34,6 +34,8 @@ describe('production dependency security contracts', () => {
     expect(workflow).toContain('run: npm run production:dependencies:audit')
     expect(auditScript).toContain("spawnSync('npm', ['audit', '--omit=dev', '--json']")
     expect(auditScript).toContain('Production dependency audit passed.')
+    expect(auditScript).toContain('MAX_ACCEPTED_LOW_SEVERITY = 1')
+    expect(auditScript).toContain('lowCount > MAX_ACCEPTED_LOW_SEVERITY')
   })
 
 

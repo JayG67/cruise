@@ -121,21 +121,21 @@ router.get(
 
 router.post(
   '/turnaround-admin/people',
-  requireAdminMutation,
+  requireGlobalAdminMutation,
   validate(turnaroundPersonAssignmentSchema),
   cruiseController.createTurnaroundPerson
 )
 
 router.patch(
   '/turnaround-admin/people/:id',
-  requireAdminMutation,
+  requireGlobalAdminMutation,
   validate(turnaroundPersonAssignmentSchema.omit({ id: true })),
   cruiseController.updateTurnaroundPerson
 )
 
 router.delete(
   '/turnaround-admin/people/:id',
-  requireAdminMutation,
+  requireGlobalAdminMutation,
   cruiseController.deleteTurnaroundPerson
 )
 

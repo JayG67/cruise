@@ -144,6 +144,30 @@ describe('security middleware', () => {
     expect(blockedRes.body).toEqual({ message: 'Too many requests', requestId: 'req-1' })
   })
 
+  it('waits for asynchronous shared-store decisions and fails closed through Express error handling', async () => {
+    process.env.NODE_ENV = 'test'
+    process.env.CRUISE_RATE_LIMIT_MODE = 'enabled'
+    const consume = jest.fn().mockResolvedValue({ count: 2, resetAt: Date.now() + 60000 })
+    const limiter = createRateLimiter({ name: 'shared', limit: 1, storeProvider: () => ({ consume }) })
+    const res = createResponse()
+    const next = jest.fn()
+
+    await limiter({ requestId: 'shared-1', ip: '1.2.3.4' }, res, next)
+    expect(res.statusCode).toBe(429)
+    expect(next).not.toHaveBeenCalled()
+    expect(consume).toHaveBeenCalledTimes(1)
+
+    const failure = new Error('rate-limit database unavailable')
+    const failedNext = jest.fn()
+    const failingLimiter = createRateLimiter({
+      name: 'shared-failure',
+      limit: 1,
+      storeProvider: () => ({ consume: jest.fn().mockRejectedValue(failure) })
+    })
+    await failingLimiter({ requestId: 'shared-2', ip: '1.2.3.4' }, createResponse(), failedNext)
+    expect(failedNext).toHaveBeenCalledWith(failure)
+  })
+
   it('bypasses rate limiting when enforcement is disabled', () => {
     process.env.NODE_ENV = 'test'
     process.env.CRUISE_RATE_LIMIT_MODE = 'disabled'

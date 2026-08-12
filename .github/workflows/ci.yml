@@ -56,6 +56,9 @@ jobs:
       - name: Verify security closeout contracts
         run: node scripts/verify-security-closeout.js
 
+      - name: Verify final security release matrix
+        run: node scripts/verify-security-release-matrix.js
+
       - name: Run unit tests
         run: npm run unitTests
 

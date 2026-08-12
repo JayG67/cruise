@@ -5,9 +5,6 @@ const projectRoot = path.join(__dirname, '..', '..')
 const routes = fs.readFileSync(path.join(projectRoot, 'routes', 'cruise.routes.js'), 'utf8')
 
 const protectedAdminMutations = [
-  ['post', '/turnaround-admin/people'],
-  ['patch', '/turnaround-admin/people/:id'],
-  ['delete', '/turnaround-admin/people/:id'],
   ['patch', '/cruise-line/:id'],
   ['delete', '/cruise-line/:id'],
   ['post', '/ship'],
@@ -37,6 +34,20 @@ describe('administrator mutation authorization contracts', () => {
       expect(routeWindow).toContain('requireAdminMutation')
     }
   })
+
+  it('reserves turnaround administration mutations for the global administrator boundary', () => {
+    for (const [method, routePath] of [
+      ['post', '/turnaround-admin/people'],
+      ['patch', '/turnaround-admin/people/:id'],
+      ['delete', '/turnaround-admin/people/:id']
+    ]) {
+      const routeSignature = `router.${method}(\n  '${routePath}'`
+      const routeIndex = routes.indexOf(routeSignature)
+      expect(routeIndex).toBeGreaterThanOrEqual(0)
+      expect(routes.slice(routeIndex, routeIndex + 260)).toContain('requireGlobalAdminMutation')
+    }
+  })
+
   it('reserves new cruise-line tenant creation for the global administrator boundary', () => {
     const routeSignature = `router.post(
   '/cruise-line'`

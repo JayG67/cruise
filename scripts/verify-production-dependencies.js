@@ -1,5 +1,7 @@
 const { spawnSync } = require('child_process')
 
+const MAX_ACCEPTED_LOW_SEVERITY = 1
+
 const audit = spawnSync('npm', ['audit', '--omit=dev', '--json'], {
   cwd: process.cwd(),
   encoding: 'utf8',
@@ -18,12 +20,14 @@ try {
 
 const vulnerabilities = report.metadata?.vulnerabilities || {}
 const blockingCount = (vulnerabilities.moderate || 0) + (vulnerabilities.high || 0) + (vulnerabilities.critical || 0)
+const lowCount = vulnerabilities.low || 0
 
-if (blockingCount > 0) {
+if (blockingCount > 0 || lowCount > MAX_ACCEPTED_LOW_SEVERITY) {
   console.error('Production dependency audit failed.')
   console.error(`Moderate: ${vulnerabilities.moderate || 0}`)
   console.error(`High: ${vulnerabilities.high || 0}`)
   console.error(`Critical: ${vulnerabilities.critical || 0}`)
+  console.error(`Low: ${lowCount} (maximum accepted: ${MAX_ACCEPTED_LOW_SEVERITY})`)
 
   const findings = Object.entries(report.vulnerabilities || {})
     .filter(([, finding]) => ['moderate', 'high', 'critical'].includes(finding.severity))
@@ -36,4 +40,4 @@ if (blockingCount > 0) {
 
 console.log('Production dependency audit passed.')
 console.log(`Production vulnerabilities: ${vulnerabilities.total || 0}`)
-console.log(`Low severity accepted: ${vulnerabilities.low || 0}`)
+console.log(`Low severity accepted: ${lowCount}/${MAX_ACCEPTED_LOW_SEVERITY}`)
