@@ -1,5 +1,11 @@
 const request = require('supertest')
 
+jest.mock('../../../services/rateLimitStore.service', () => {
+  const actual = jest.requireActual('../../../services/rateLimitStore.service')
+  const unitTestStore = actual.createMemoryRateLimitStore()
+  return { ...actual, getRateLimitStore: () => unitTestStore }
+})
+
 const app = require('../../../app')
 
 describe('application security headers', () => {
