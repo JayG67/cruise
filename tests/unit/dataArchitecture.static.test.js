@@ -487,9 +487,9 @@ describe('Production data architecture hardening guardrails', () => {
     expect(authorizationService).toContain('function getProductionPrincipal(req = {})')
     expect(platformAdministrationController).toContain("const { requireAdminRequest } = require('../services/requestAuthorization.service')")
     expect(platformAdministrationController).toContain('if (!(await requireAdminRequest(req, res))) return')
-    expect(platformAuditService).toContain("const { resolveRequestActor } = require('./requestAuthorization.service')")
-    expect(turnaroundScopeService).toContain("const { resolveRequestActor } = require('./requestAuthorization.service')")
-    expect(turnaroundScopeService).toContain('const actor = await resolveRequestActor(req)')
+    expect(platformAuditService).toContain("const { resolveRequestAuditActor } = require('./requestAuthorization.service')")
+    expect(turnaroundScopeService).toContain("const { resolveRequestAuditActor } = require('./requestAuthorization.service')")
+    expect(turnaroundScopeService).toContain('const actor = await resolveRequestAuditActor(req)')
   })
 
 

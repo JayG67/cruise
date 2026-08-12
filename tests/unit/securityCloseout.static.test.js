@@ -21,9 +21,24 @@ describe('security remediation closeout contracts', () => {
     expect(read('.github/workflows/ci.yml')).toContain('jest-coverage-report')
   })
 
-  it('runs the security closeout audit in the full project gate', () => {
+  it('constrains process-local rate limiting to a single production instance', () => {
+    const render = read('render.yaml')
+    const security = read('middleware/security.middleware.js')
+    expect(render).toContain('numInstances: 1')
+    expect(security).toContain('const buckets = new Map()')
+  })
+
+  it('requires attributable actors for interactive audit sources', () => {
+    const audit = read('services/auditEvent.service.js')
+    expect(audit).toContain('assertAuditEventIntegrity')
+    expect(audit).toContain('AUDIT_ACTOR_REQUIRED')
+    expect(audit).toContain('AUDIT_ACTOR_USER_ID_REQUIRED')
+  })
+
+  it('runs the security closeout audit in the full project gate and GitHub CI', () => {
     const pkg = JSON.parse(read('package.json'))
     expect(pkg.scripts['security:closeout:audit']).toBeUndefined()
     expect(pkg.scripts['test:all']).toContain('node scripts/verify-security-closeout.js')
+    expect(read('.github/workflows/ci.yml')).toContain('run: node scripts/verify-security-closeout.js')
   })
 })

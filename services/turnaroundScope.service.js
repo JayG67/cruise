@@ -6,7 +6,7 @@ const shipTable = require('../models/ship.model')
 const sailingTable = require('../models/sailing.model')
 const turnaroundOperationTable = require('../models/turnaroundOperation.model')
 const { getScopedDemoUserId } = require('../middleware/requestIdentity.middleware')
-const { resolveRequestActor } = require('./requestAuthorization.service')
+const { resolveRequestAuditActor } = require('./requestAuthorization.service')
 const { AUTH_MODES, getAuthenticationMode } = require('./authentication.service')
 const { canAccessOperationScope, resolvePrincipalOperationalScope } = require('./turnaroundAccess.service')
 
@@ -164,7 +164,7 @@ async function getTurnaroundScopeForOperation(operation = {}) {
 }
 
 async function buildTurnaroundAuditContext(req, operation = {}) {
-  const actor = await resolveRequestActor(req)
+  const actor = await resolveRequestAuditActor(req)
   const scope = await getTurnaroundScopeForOperation(operation)
 
   return {

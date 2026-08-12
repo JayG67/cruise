@@ -53,6 +53,9 @@ jobs:
       - name: Verify production dependencies
         run: npm run production:dependencies:audit
 
+      - name: Verify security closeout contracts
+        run: node scripts/verify-security-closeout.js
+
       - name: Run unit tests
         run: npm run unitTests
 

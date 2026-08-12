@@ -38,6 +38,7 @@ function main() {
 
   for (const expected of [
     'runtime: node',
+    'numInstances: 1',
     'buildCommand: npm ci --include=dev && npm run react:build',
     'startCommand: npm run start:prod',
     'healthCheckPath: /health',

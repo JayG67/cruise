@@ -37,6 +37,7 @@ describe('production deployment static contracts', () => {
     expect(packageJson.scripts['start:prod']).toBe('npm run react:build && node index.js')
     expect(renderConfig).toContain('buildCommand: npm ci --include=dev && npm run react:build')
     expect(renderConfig).toContain('startCommand: npm run start:prod')
+    expect(renderConfig).toContain('numInstances: 1')
     expect(renderConfig).toContain('healthCheckPath: /health')
     expect(renderConfig).toContain('autoDeployTrigger: checksPass')
   })

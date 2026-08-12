@@ -3,6 +3,7 @@ services:
     name: cruise-explorer
     runtime: node
     plan: starter
+    numInstances: 1
     region: virginia
     branch: main
     buildCommand: npm ci --include=dev && npm run react:build
@@ -38,4 +39,5 @@ services:
 databases:
   - name: cruise-db
     plan: starter
+    numInstances: 1
     region: virginia
