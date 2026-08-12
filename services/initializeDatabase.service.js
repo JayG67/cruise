@@ -155,8 +155,6 @@ async function initializeDatabase() {
     );
   `)
 
-
-
   await db.execute(sql`
     CREATE TABLE IF NOT EXISTS turnaround_task_dependencies (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
