@@ -52,7 +52,13 @@ function securityHeaders(req, res, next) {
       "img-src 'self' data:",
       "object-src 'none'",
       "script-src 'self'",
-      "style-src 'self' 'unsafe-inline'"
+      "script-src-attr 'none'",
+      "style-src 'self'",
+      "style-src-attr 'none'",
+      "font-src 'self'",
+      "manifest-src 'self'",
+      "media-src 'self'",
+      "worker-src 'self'"
     ].join('; ')
   )
 

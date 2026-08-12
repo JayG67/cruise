@@ -103,3 +103,112 @@ describe('authentication service', () => {
     })
   })
 })
+
+describe('authentication service edge coverage', () => {
+  const secret = '0123456789abcdef0123456789abcdef'
+
+  it('honors explicit JWT mode outside production and normalizes verification options', () => {
+    expect(authentication.getAuthenticationMode({ NODE_ENV: 'test', CRUISE_AUTH_MODE: ' JWT ' })).toBe('jwt')
+    expect(authentication.getJwtVerificationOptions({
+      CRUISE_JWT_SECRET: secret,
+      CRUISE_JWT_ISSUER: '  https://issuer.example.test  ',
+      CRUISE_JWT_AUDIENCE: ' cruise-api '
+    })).toEqual({
+      secret,
+      issuer: 'https://issuer.example.test',
+      audience: 'cruise-api'
+    })
+    expect(authentication.getJwtVerificationOptions({ CRUISE_JWT_SECRET: secret })).toEqual({
+      secret,
+      issuer: undefined,
+      audience: undefined
+    })
+  })
+
+  it('rejects malformed JSON, unsupported algorithms, invalid token types, and weak secrets', () => {
+    expect(() => authentication.verifyHs256Jwt('one.two', { secret })).toThrow('malformed')
+
+    const malformedHeader = `${Buffer.from('{').toString('base64url')}.${Buffer.from(JSON.stringify({ sub: 'u1', exp: 2000 })).toString('base64url')}.sig`
+    expect(() => authentication.verifyHs256Jwt(malformedHeader, { secret, nowSeconds: 1000 })).toThrow('JWT header is invalid')
+
+    const unsupported = signToken({ sub: 'u1', exp: 2000 }, secret, { alg: 'HS512', typ: 'JWT' })
+    expect(() => authentication.verifyHs256Jwt(unsupported, { secret, nowSeconds: 1000 })).toThrow('algorithm')
+
+    const wrongType = signToken({ sub: 'u1', exp: 2000 }, secret, { alg: 'HS256', typ: 'JOSE' })
+    expect(() => authentication.verifyHs256Jwt(wrongType, { secret, nowSeconds: 1000 })).toThrow('algorithm')
+
+    const valid = signToken({ sub: 'u1', exp: 2000 }, secret)
+    expect(() => authentication.verifyHs256Jwt(valid, { secret: 'short', nowSeconds: 1000 })).toThrow('sufficiently strong secret')
+  })
+
+  it('requires subject and expiration and enforces not-before plus issuer claims', () => {
+    expect(() => authentication.verifyHs256Jwt(signToken({ exp: 2000 }, secret), { secret, nowSeconds: 1000 })).toThrow('subject')
+    expect(() => authentication.verifyHs256Jwt(signToken({ sub: 'u1' }, secret), { secret, nowSeconds: 1000 })).toThrow('expiration')
+    expect(() => authentication.verifyHs256Jwt(signToken({ sub: 'u1', exp: 2000, nbf: 1100 }, secret), {
+      secret,
+      nowSeconds: 1000,
+      clockSkewSeconds: 0
+    })).toThrow('not active yet')
+    expect(() => authentication.verifyHs256Jwt(signToken({ sub: 'u1', exp: 2000, iss: 'issuer-a' }, secret), {
+      secret,
+      issuer: 'issuer-b',
+      nowSeconds: 1000
+    })).toThrow('issuer')
+  })
+
+  it('accepts array audiences and claims inside the clock-skew window while rejecting the expiration boundary', () => {
+    const payload = { sub: 'u1', exp: 971, nbf: 1030, aud: ['other', 'cruise-api'] }
+    const token = signToken(payload, secret)
+    expect(authentication.verifyHs256Jwt(token, {
+      secret,
+      audience: 'cruise-api',
+      nowSeconds: 1000,
+      clockSkewSeconds: 30
+    })).toEqual(payload)
+
+    const expiredAtBoundary = signToken({ ...payload, exp: 970 }, secret)
+    expect(() => authentication.verifyHs256Jwt(expiredAtBoundary, {
+      secret,
+      audience: 'cruise-api',
+      nowSeconds: 1000,
+      clockSkewSeconds: 30
+    })).toThrow('expired')
+  })
+
+  it('extracts bearer tokens from Express getters and plain headers while rejecting other schemes', () => {
+    expect(authentication.extractBearerToken({ get: name => name === 'Authorization' ? 'Bearer token-value' : null })).toBe('token-value')
+    expect(authentication.extractBearerToken({ headers: { authorization: 'bearer another-token' } })).toBe('another-token')
+    expect(authentication.extractBearerToken({ headers: { authorization: 'Basic abc' } })).toBe('')
+    expect(authentication.extractBearerToken({})).toBe('')
+  })
+
+  it('returns null principals outside JWT mode or without a bearer token', () => {
+    expect(authentication.buildJwtPrincipal({}, { NODE_ENV: 'test', CRUISE_AUTH_MODE: 'demo' })).toBeNull()
+    expect(authentication.buildJwtPrincipal({}, { NODE_ENV: 'test', CRUISE_AUTH_MODE: 'jwt', CRUISE_JWT_SECRET: secret })).toBeNull()
+  })
+
+  it('builds minimal JWT principals with subject fallbacks and camel-case tenant claims', () => {
+    const token = signToken({
+      sub: 'user-minimal',
+      tenantId: 'tenant-camel',
+      exp: Math.floor(Date.now() / 1000) + 60
+    }, secret)
+
+    expect(authentication.buildJwtPrincipal({ headers: { authorization: `Bearer ${token}` } }, {
+      NODE_ENV: 'test',
+      CRUISE_AUTH_MODE: 'jwt',
+      CRUISE_JWT_SECRET: secret
+    })).toEqual({
+      userId: 'user-minimal',
+      email: null,
+      displayName: 'user-minimal',
+      role: null,
+      tenantId: 'tenant-camel',
+      identitySource: 'jwt'
+    })
+  })
+
+  it('skips JWT configuration validation entirely in demo mode', () => {
+    expect(authentication.validateJwtConfiguration({ NODE_ENV: 'test', CRUISE_AUTH_MODE: 'demo' })).toBe(true)
+  })
+})

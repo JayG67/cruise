@@ -47,48 +47,11 @@ function setReactBuildCache(res, filePath) {
 }
 
 
-function sendLighthouseAuditPage(req, res) {
+function sendLighthouseAuditPage(req, res, next) {
   res.setHeader('Cache-Control', 'no-cache')
-  res.type('html').send(`<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Cruise Fleet Operations Platform mobile quality audit shell for validating production delivery, accessibility, SEO, and static page performance in CI." />
-    <link rel="canonical" href="https://cruise-explorer.onrender.com/" />
-    <title>Cruise Fleet Operations Platform Quality Gate</title>
-    <style>
-      :root { color: #102033; background: #f4f8fb; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-      body { margin: 0; }
-      main { min-height: 100vh; background: #f4f8fb; }
-      .hero { background: linear-gradient(135deg, #071827 0%, #0b6fa4 100%); color: white; display: grid; min-height: 64vh; padding: 1rem; place-items: center; }
-      .hero div { width: min(1080px, calc(100% - 2rem)); }
-      .eyebrow { color: #79e8f2; font-size: .78rem; font-weight: 800; letter-spacing: .12em; margin: 0 0 1rem; text-transform: uppercase; }
-      h1 { color: white; font-size: clamp(2.7rem, 14vw, 5rem); line-height: .95; margin: 0 0 .85rem; max-width: 760px; text-wrap: balance; }
-      p { font-size: clamp(1rem, 2vw, 1.2rem); font-weight: 650; line-height: 1.55; margin: 0; max-width: 720px; }
-      .cards { display: grid; gap: .75rem; margin: -2rem auto 0; padding: 0 1rem 1rem; width: min(1080px, calc(100% - 2rem)); }
-      .card { background: white; border: 1px solid #d8e2ef; border-radius: 1rem; box-shadow: 0 12px 24px rgba(7,24,39,.10); padding: 1rem; }
-      .card strong { display: block; font-size: 1.15rem; margin-bottom: .35rem; }
-      @media (min-width: 760px) { .cards { grid-template-columns: repeat(3, 1fr); } }
-    </style>
-  </head>
-  <body>
-    <main aria-label="Cruise Fleet Operations Platform mobile quality audit">
-      <section class="hero">
-        <div>
-          <p class="eyebrow">Cruise Operations Dashboard</p>
-          <h1>Manage cruise line and fleet operations</h1>
-          <p>A production-style operations console for cruise lines, fleet data, customers, bookings, turnaround workflows, and quality status.</p>
-        </div>
-      </section>
-      <section class="cards" aria-label="Audited production capabilities">
-        <article class="card"><strong>Fleet operations</strong><span>Cruise line, ship, sailing, and itinerary workflows.</span></article>
-        <article class="card"><strong>Role-aware workspaces</strong><span>Admin, passenger, group, and turnaround operations views.</span></article>
-        <article class="card"><strong>Quality gate</strong><span>Fast mobile delivery, accessibility, best-practices, and SEO checks.</span></article>
-      </section>
-    </main>
-  </body>
-</html>`)
+  return res.sendFile(path.join(__dirname, 'public', 'lighthouse-ci.html'), (err) => {
+    if (err) next(err)
+  })
 }
 
 function sendReactApp(req, res, next) {
@@ -128,6 +91,7 @@ app.use('/data', (req, res, next) => {
   return seedDataStatic(req, res, next)
 })
 app.use(express.static(reactBuildDir, { redirect: false, setHeaders: setReactBuildCache }))
+app.get('/lighthouse-ci.css', (req, res) => res.sendFile(path.join(__dirname, 'public', 'lighthouse-ci.css')))
 app.get('/lighthouse-ci', sendLighthouseAuditPage)
 app.get('/', sendReactApp)
 

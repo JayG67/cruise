@@ -28,6 +28,10 @@ function main() {
   assert(auth.includes('validateJwtConfiguration'), 'JWT configuration validation must exist.')
   assert(render.includes('numInstances: 1'), 'Render must remain single-instance while rate limiting uses process-local memory.')
   assert(security.includes('const buckets = new Map()'), 'The current rate limiter storage contract must remain explicit for closeout verification.')
+  assert(!security.includes("'unsafe-inline'"), 'Production CSP must not permit unsafe-inline styles or scripts.')
+  assert(security.includes("\"style-src 'self'\""), 'CSP must restrict stylesheets to same-origin resources.')
+  assert(security.includes("\"style-src-attr 'none'\""), 'CSP must reject inline style attributes.')
+  assert(security.includes("\"script-src-attr 'none'\""), 'CSP must reject inline script attributes.')
   assert(audit.includes('assertAuditEventIntegrity'), 'Audit event integrity validation must exist.')
   assert(audit.includes("endsWith(INTERACTIVE_AUDIT_SOURCE_SUFFIX)"), 'Interactive API audit sources must be classified explicitly.')
   assert(audit.includes('AUDIT_ACTOR_USER_ID_REQUIRED'), 'Production interactive audit events must require a server-attributed user id.')
@@ -45,6 +49,7 @@ function main() {
   console.log('Production JWT secret, issuer, and audience are required by deployment/startup contracts.')
   console.log('Interactive API audit events require attributable actors; production API events require actor user ids.')
   console.log('Process-local rate limiting is constrained to a single Render instance until a shared limiter store is introduced.')
+  console.log('Content Security Policy no longer permits unsafe-inline styles or scripts.')
   console.log('Coverage artifact publication contract remains enforced.')
 }
 

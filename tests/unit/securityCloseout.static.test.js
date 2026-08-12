@@ -21,6 +21,20 @@ describe('security remediation closeout contracts', () => {
     expect(read('.github/workflows/ci.yml')).toContain('jest-coverage-report')
   })
 
+  it('keeps the browser content-security policy free of unsafe-inline allowances', () => {
+    const security = read('middleware/security.middleware.js')
+    const app = read('app.js')
+    const lighthouseHtml = read('public/lighthouse-ci.html')
+
+    expect(security).not.toContain("'unsafe-inline'")
+    expect(security).toContain("\"style-src 'self'\"")
+    expect(security).toContain("\"style-src-attr 'none'\"")
+    expect(security).toContain("\"script-src-attr 'none'\"")
+    expect(app).toContain("app.get('/lighthouse-ci.css'")
+    expect(lighthouseHtml).toContain('rel="stylesheet" href="/lighthouse-ci.css"')
+    expect(lighthouseHtml).not.toContain('<style')
+  })
+
   it('constrains process-local rate limiting to a single production instance', () => {
     const render = read('render.yaml')
     const security = read('middleware/security.middleware.js')

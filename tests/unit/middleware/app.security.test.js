@@ -18,9 +18,24 @@ describe('application security headers', () => {
     expect(res.headers['content-security-policy']).toContain("default-src 'self'")
     expect(res.headers['content-security-policy']).toContain("frame-ancestors 'none'")
     expect(res.headers['content-security-policy']).toContain("object-src 'none'")
+    expect(res.headers['content-security-policy']).toContain("style-src 'self'")
+    expect(res.headers['content-security-policy']).toContain("style-src-attr 'none'")
+    expect(res.headers['content-security-policy']).toContain("script-src-attr 'none'")
+    expect(res.headers['content-security-policy']).not.toContain("'unsafe-inline'")
     expect(res.headers['x-dns-prefetch-control']).toBe('off')
     expect(res.headers['cross-origin-opener-policy']).toBe('same-origin')
     expect(res.headers['cross-origin-resource-policy']).toBe('same-origin')
+  })
+
+  it('serves the Lighthouse audit shell without inline styles under the strict CSP', async () => {
+    const page = await request(app).get('/lighthouse-ci')
+    const stylesheet = await request(app).get('/lighthouse-ci.css')
+
+    expect(page.statusCode).toBe(200)
+    expect(page.text).toContain('rel="stylesheet" href="/lighthouse-ci.css"')
+    expect(page.text).not.toContain('<style')
+    expect(stylesheet.statusCode).toBe(200)
+    expect(stylesheet.headers['content-type']).toMatch(/text\/css/)
   })
 
   it('keeps the destructive production reset endpoint unavailable even with spoofed identity headers', async () => {
