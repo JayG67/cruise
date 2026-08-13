@@ -1,3 +1,4 @@
+const crypto = require('crypto')
 const request = require('supertest')
 const { eq, inArray } = require('drizzle-orm')
 
@@ -17,34 +18,22 @@ const createdShipIds = []
 const createdCustomerIds = []
 const createdBookingIds = []
 
-let uniqueCustomerSequence = 0
-let uniqueBookingSequence = 0
-
-const integrationRunEntropy = Math.floor(Math.random() * 1296)
-  .toString(36)
-  .toUpperCase()
-  .padStart(2, '0')
-
-function uniqueSeedSafeId(prefix, sequence) {
-  const timePart = (Date.now() % 1679616).toString(36).toUpperCase().padStart(4, '0')
-  const sequencePart = (sequence % 1296).toString(36).toUpperCase().padStart(2, '0')
-
-  // Keep generated integration IDs in their own namespace so they cannot
-  // accidentally collide with stable seed records such as C000000001 or
-  // B000000001 when a local run happens to land on a low timestamp modulo.
-  return `${prefix}T${timePart}${integrationRunEntropy}${sequencePart}`
+function uniqueSeedSafeId(prefix) {
+  // Use a 9-character base-36 value sourced from 48 bits of cryptographic
+  // entropy. This preserves the public 10-character C/B ID contracts while
+  // using the full A-Z0-9 namespace instead of only hexadecimal characters.
+  // The larger namespace further reduces collisions with seed/stale test rows.
+  const randomValue = BigInt(`0x${crypto.randomBytes(6).toString('hex')}`)
+  const entropy = randomValue.toString(36).toUpperCase().padStart(9, '0').slice(-9)
+  return `${prefix}${entropy}`
 }
 
 function uniqueCustomerId() {
-  uniqueCustomerSequence += 1
-
-  return uniqueSeedSafeId('C', uniqueCustomerSequence)
+  return uniqueSeedSafeId('C')
 }
 
 function uniqueBookingId() {
-  uniqueBookingSequence += 1
-
-  return uniqueSeedSafeId('B', uniqueBookingSequence)
+  return uniqueSeedSafeId('B')
 }
 
 async function createCustomer(overrides = {}) {

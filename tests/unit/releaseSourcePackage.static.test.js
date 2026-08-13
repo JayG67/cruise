@@ -69,4 +69,6 @@ describe('release source package contracts', () => {
       expect(gitignore).toContain(ignoredPath)
     }
   })
+
+
 })

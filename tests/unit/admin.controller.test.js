@@ -1,12 +1,17 @@
 jest.mock('../../services/loadCruiseData.service', () => jest.fn())
+jest.mock('../../services/requestAuthorization.service', () => ({
+  requireAdminRequest: jest.fn()
+}))
 
 const loadCruiseData = require('../../services/loadCruiseData.service')
+const { requireAdminRequest } = require('../../services/requestAuthorization.service')
 const adminController = require('../../controllers/admin.controller')
 const mockResponse = require('./helpers/mockResponse')
 
 describe('Admin Controller resetDemoData', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    requireAdminRequest.mockResolvedValue(true)
   })
 
   it('should reset demo data and return metadata from the loader', async () => {

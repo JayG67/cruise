@@ -3,6 +3,37 @@ const { and, desc, eq } = require('drizzle-orm')
 const auditEventTable = require('../models/auditEvent.model')
 const db = require('../db')
 
+const INTERACTIVE_AUDIT_SOURCE_SUFFIX = '_API'
+
+function isProduction() {
+  return String(process.env.NODE_ENV || '').trim().toLowerCase() === 'production'
+}
+
+function isInteractiveAuditSource(source = '') {
+  return String(source || '').trim().toUpperCase().endsWith(INTERACTIVE_AUDIT_SOURCE_SUFFIX)
+}
+
+function assertAuditEventIntegrity(values = {}) {
+  if (!String(values.source || '').trim()) {
+    const error = new Error('Audit event source is required.')
+    error.code = 'AUDIT_SOURCE_REQUIRED'
+    throw error
+  }
+
+  if (isInteractiveAuditSource(values.source) && !String(values.actorDisplayName || '').trim()) {
+    const error = new Error('Interactive audit events require an attributed actor display name.')
+    error.code = 'AUDIT_ACTOR_REQUIRED'
+    throw error
+  }
+
+  if (isProduction() && isInteractiveAuditSource(values.source) && !String(values.actorUserId || '').trim()) {
+    const error = new Error('Production interactive audit events require an attributed actor user id.')
+    error.code = 'AUDIT_ACTOR_USER_ID_REQUIRED'
+    throw error
+  }
+
+  return values
+}
 
 function parseAuditPayload(eventPayload) {
   if (!eventPayload) return null
@@ -135,13 +166,16 @@ async function listAuditEventsForOperation(operationId, { limit = 25 } = {}) {
 }
 
 async function recordAuditEvent(event) {
-  const values = buildAuditEventValues(event)
+  const values = assertAuditEventIntegrity(buildAuditEventValues(event))
   await db.insert(auditEventTable).values(values)
   return values
 }
 
 module.exports = {
+  INTERACTIVE_AUDIT_SOURCE_SUFFIX,
+  assertAuditEventIntegrity,
   buildAuditEventValues,
+  isInteractiveAuditSource,
   listAuditEvents,
   listAuditEventsForOperation,
   mapAuditEvent,

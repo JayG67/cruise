@@ -1,6 +1,20 @@
 jest.setTimeout(30000)
 
+const databaseCleanupTasks = []
+
+global.registerDatabaseCleanup = cleanup => {
+  if (typeof cleanup !== 'function') {
+    throw new TypeError('Database cleanup must be a function')
+  }
+
+  databaseCleanupTasks.push(cleanup)
+}
+
 afterAll(async () => {
+  for (const cleanup of databaseCleanupTasks) {
+    await cleanup()
+  }
+
   try {
     const db = require('../../db')
 

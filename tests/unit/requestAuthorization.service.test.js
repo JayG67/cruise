@@ -106,6 +106,40 @@ describe('requestAuthorization service', () => {
     })
   })
 
+  it('uses a labeled server-generated audit actor for anonymous demo-mode mutations', async () => {
+    const previousMode = process.env.CRUISE_AUTH_MODE
+    delete process.env.CRUISE_AUTH_MODE
+
+    try {
+      await expect(service.resolveRequestAuditActor({ requestIdentity: {}, query: {} })).resolves.toEqual({
+        actorUserId: null,
+        actorDisplayName: service.DEMO_AUDIT_ACTOR_DISPLAY_NAME,
+        actorRole: null,
+        identitySource: 'demo'
+      })
+    } finally {
+      if (previousMode === undefined) delete process.env.CRUISE_AUTH_MODE
+      else process.env.CRUISE_AUTH_MODE = previousMode
+    }
+  })
+
+  it('does not synthesize a demo audit actor when JWT mode is active', async () => {
+    const previousMode = process.env.CRUISE_AUTH_MODE
+    process.env.CRUISE_AUTH_MODE = 'jwt'
+
+    try {
+      await expect(service.resolveRequestAuditActor({ requestIdentity: {}, query: {} })).resolves.toEqual({
+        actorUserId: null,
+        actorDisplayName: null,
+        actorRole: null,
+        identitySource: 'anonymous'
+      })
+    } finally {
+      if (previousMode === undefined) delete process.env.CRUISE_AUTH_MODE
+      else process.env.CRUISE_AUTH_MODE = previousMode
+    }
+  })
+
   it('writes a structured forbidden response for non-admin audit review requests', async () => {
     const status = jest.fn(() => ({ json }))
     const json = jest.fn()

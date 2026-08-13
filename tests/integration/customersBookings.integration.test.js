@@ -27,29 +27,10 @@ afterEach(async () => {
 })
 
 async function getFirstSeededSailing() {
-  const cruiseRes = await request(app).get('/cruise')
-  expect(cruiseRes.statusCode).toBe(200)
-
-  for (const cruiseLine of cruiseRes.body) {
-    const shipsRes = await request(app).get(`/cruise/ships/${cruiseLine.id}`)
-
-    if (shipsRes.statusCode !== 200 || !Array.isArray(shipsRes.body)) {
-      continue
-    }
-
-    for (const ship of shipsRes.body) {
-      const sailingsRes = await request(app).get(`/cruise/ship/${ship.id}/sailings`)
-
-      if (
-        sailingsRes.statusCode === 200
-        && Array.isArray(sailingsRes.body)
-        && sailingsRes.body.length > 0
-      ) {
-        return sailingsRes.body[0]
-      }
-    }
-  }
-
+  // This helper prepares test data; sailing API behavior has dedicated integration coverage.
+  // Query the fixture directly so booking tests do not repeatedly traverse cruise line -> ship -> sailing over HTTP.
+  const rows = await db.select().from(sailingTable).limit(1)
+  if (rows[0]) return rows[0]
   throw new Error('No seeded sailings found in test data')
 }
 

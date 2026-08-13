@@ -72,6 +72,14 @@ describe('Playwright React coverage inventory', () => {
     expect(config).toContain('Tablet Chrome - 900px')
   })
 
+  it('keeps responsive operations intelligence layout coverage independent from live API timing', () => {
+    const responsiveReactSpec = fs.readFileSync(responsiveReactSpecPath, 'utf8')
+
+    expect(responsiveReactSpec).toContain("page.route('**/cruise/turnaround-operations*'")
+    expect(responsiveReactSpec).toContain("id: 'responsive-intelligence-operation'")
+    expect(responsiveReactSpec).toContain('body: JSON.stringify(responsiveIntelligenceFixture)')
+  })
+
   it('keeps React Playwright specs on the production root route', () => {
     const mobileReactSpec = fs.readFileSync(mobileReactSpecPath, 'utf8')
     const responsiveReactSpec = fs.readFileSync(responsiveReactSpecPath, 'utf8')

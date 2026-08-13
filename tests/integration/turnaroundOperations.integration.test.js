@@ -1,6 +1,8 @@
 const request = require('supertest')
 
 const app = require('../../app')
+const db = require('../../db')
+const turnaroundHandoffTable = require('../../models/turnaroundHandoff.model')
 const initializeDatabase = require('../../services/initializeDatabase.service')
 const loadCruiseData = require('../../services/loadCruiseData.service')
 
@@ -8,6 +10,12 @@ beforeAll(async () => {
   await initializeDatabase()
   await loadCruiseData()
 })
+
+async function getFirstSeededHandoff() {
+  const rows = await db.select().from(turnaroundHandoffTable).limit(1)
+  if (!rows[0]) throw new Error('Expected at least one seeded turnaround handoff')
+  return rows[0]
+}
 
 describe('Turnaround operations API integration tests', () => {
   it('GET /cruise/turnaround-operations returns database-backed plans with sailing context and role tasks', async () => {
@@ -534,8 +542,7 @@ describe('Turnaround operations API integration tests', () => {
   })
 
   it('PATCH /cruise/turnaround-handoffs/:id updates a database-backed department handoff', async () => {
-    const operationsRes = await request(app).get('/cruise/turnaround-operations')
-    const handoff = operationsRes.body[0].handoffs[0]
+    const handoff = await getFirstSeededHandoff()
 
     const res = await request(app)
       .patch(`/cruise/turnaround-handoffs/${handoff.id}`)
@@ -562,8 +569,7 @@ describe('Turnaround operations API integration tests', () => {
   })
 
   it('rejects invalid turnaround handoff status updates before writing handoff rows', async () => {
-    const operationsRes = await request(app).get('/cruise/turnaround-operations')
-    const handoff = operationsRes.body[0].handoffs[0]
+    const handoff = await getFirstSeededHandoff()
 
     const res = await request(app)
       .patch(`/cruise/turnaround-handoffs/${handoff.id}`)

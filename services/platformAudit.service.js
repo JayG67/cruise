@@ -5,7 +5,7 @@ const bookingTable = require('../models/booking.model')
 const sailingTable = require('../models/sailing.model')
 const shipTable = require('../models/ship.model')
 const appUserTable = require('../models/appUser.model')
-const { resolveRequestActor } = require('./requestAuthorization.service')
+const { resolveRequestAuditActor } = require('./requestAuthorization.service')
 const { recordAuditEvent } = require('./auditEvent.service')
 
 const PLATFORM_AUDIT_SOURCE = 'PLATFORM_ADMIN_API'
@@ -39,7 +39,7 @@ async function ensurePlatformAuditActor(actor) {
 }
 
 async function resolvePlatformAuditActor(req) {
-  const actor = await resolveRequestActor(req)
+  const actor = await resolveRequestAuditActor(req)
   const ensuredActor = await ensurePlatformAuditActor(actor)
 
   return {

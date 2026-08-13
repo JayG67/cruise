@@ -3,11 +3,12 @@ jest.mock('../../db', () => ({
 }))
 
 jest.mock('../../services/requestAuthorization.service', () => ({
-  resolveRequestActor: jest.fn()
+  resolveRequestActor: jest.fn(),
+  resolveRequestAuditActor: jest.fn()
 }))
 
 const db = require('../../db')
-const { resolveRequestActor } = require('../../services/requestAuthorization.service')
+const { resolveRequestActor, resolveRequestAuditActor } = require('../../services/requestAuthorization.service')
 const demoUserTable = require('../../models/demoUser.model')
 const shipTable = require('../../models/ship.model')
 const sailingTable = require('../../models/sailing.model')
@@ -38,6 +39,10 @@ describe('turnaroundScope service', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     resolveRequestActor.mockResolvedValue({
+      actorUserId: 'actor-1',
+      actorDisplayName: 'Ops Reviewer'
+    })
+    resolveRequestAuditActor.mockResolvedValue({
       actorUserId: 'actor-1',
       actorDisplayName: 'Ops Reviewer'
     })
@@ -164,7 +169,9 @@ describe('turnaroundScope service', () => {
   it('combines actor, tenant scope, and source for audit context', async () => {
     queueSelectRows([{ sailingId: 'sailing-1', shipId: 'ship-1', cruiseLineId: 'cruise-line-1' }])
 
-    await expect(service.buildTurnaroundAuditContext(scopedRequest(), { id: 'operation-1', sailingId: 'sailing-1' })).resolves.toEqual({
+    const req = scopedRequest()
+
+    await expect(service.buildTurnaroundAuditContext(req, { id: 'operation-1', sailingId: 'sailing-1' })).resolves.toEqual({
       actorUserId: 'actor-1',
       actorDisplayName: 'Ops Reviewer',
       cruiseLineId: 'cruise-line-1',
@@ -173,6 +180,7 @@ describe('turnaroundScope service', () => {
       operationId: 'operation-1',
       source: 'TURNAROUND_OPERATIONS_API'
     })
+    expect(resolveRequestAuditActor).toHaveBeenCalledWith(req)
   })
 
   it('sends the standardized forbidden response', () => {

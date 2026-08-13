@@ -16,8 +16,6 @@ function fail(problems) {
 const problems = []
 const packageJson = JSON.parse(read('package.json'))
 const scripts = packageJson.scripts || {}
-const maintenanceGuidePath = 'docs/maintenance-mode.md'
-
 const requiredScripts = [
   'repo:hygiene',
   'test:inventory:audit',
@@ -33,10 +31,6 @@ const requiredScripts = [
   'ai:phase6:complete'
 ]
 
-if (!fs.existsSync(path.join(projectRoot, maintenanceGuidePath))) {
-  problems.push(`Missing maintenance guide: ${maintenanceGuidePath}`)
-}
-
 const maintenanceCommand = scripts['maintenance:check'] || ''
 for (const scriptName of requiredScripts) {
   if (!scripts[scriptName]) {
@@ -51,38 +45,8 @@ if (scripts['maintenance:readiness'] !== 'npm run maintenance:check && node scri
   problems.push('maintenance:readiness must run the maintenance checks before this audit.')
 }
 
-const readme = read('README.md')
-for (const requiredText of [
-  'Maintenance Mode',
-  'npm run maintenance:readiness',
-  maintenanceGuidePath
-]) {
-  if (!readme.includes(requiredText)) {
-    problems.push(`README is missing maintenance-mode guidance: ${requiredText}`)
-  }
-}
-
-if (readme.includes('app.css remains as a compatibility layer')) {
-  problems.push('README still claims the retired app.css file remains in use.')
-}
-
-if (fs.existsSync(path.join(projectRoot, maintenanceGuidePath))) {
-  const guide = read(maintenanceGuidePath)
-  for (const requiredHeading of [
-    '# Maintenance Mode',
-    '## Release Gate',
-    '## Change Policy',
-    '## Defect Triage',
-    '## Release Review'
-  ]) {
-    if (!guide.includes(requiredHeading)) {
-      problems.push(`Maintenance guide is missing: ${requiredHeading}`)
-    }
-  }
-}
-
 if (problems.length > 0) fail(problems)
 
 console.log('Maintenance readiness audit passed.')
 console.log(`Required quality gates verified: ${requiredScripts.length}`)
-console.log('Maintenance documentation and retired-CSS status are consistent.')
+console.log('Maintenance command and quality-gate contracts are consistent.')

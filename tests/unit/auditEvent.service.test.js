@@ -150,3 +150,53 @@ describe('auditEvent service', () => {
     expect(valuesChain.values).toHaveBeenCalledWith(expect.objectContaining({ entityId: 'booking-1' }))
   })
 })
+
+describe('auditEvent security integrity', () => {
+  const originalNodeEnv = process.env.NODE_ENV
+
+  afterEach(() => {
+    if (originalNodeEnv === undefined) delete process.env.NODE_ENV
+    else process.env.NODE_ENV = originalNodeEnv
+  })
+
+  it('classifies interactive API audit sources without treating background sources as interactive', () => {
+    expect(service.isInteractiveAuditSource('PLATFORM_ADMIN_API')).toBe(true)
+    expect(service.isInteractiveAuditSource('turnaround_operations_api')).toBe(true)
+    expect(service.isInteractiveAuditSource('AI')).toBe(false)
+    expect(service.isInteractiveAuditSource('APPLICATION')).toBe(false)
+  })
+
+  it('requires an attributed display name for interactive API audit events', () => {
+    process.env.NODE_ENV = 'test'
+
+    expect(() => service.assertAuditEventIntegrity({
+      source: 'PLATFORM_ADMIN_API',
+      actorUserId: 'admin-1'
+    })).toThrow('Interactive audit events require an attributed actor display name.')
+
+    expect(service.assertAuditEventIntegrity({
+      source: 'PLATFORM_ADMIN_API',
+      actorDisplayName: 'Admin One'
+    })).toEqual(expect.objectContaining({ source: 'PLATFORM_ADMIN_API' }))
+  })
+
+  it('requires a server-attributed actor user id for production interactive API events', () => {
+    process.env.NODE_ENV = 'production'
+
+    expect(() => service.assertAuditEventIntegrity({
+      source: 'TURNAROUND_OPERATIONS_API',
+      actorDisplayName: 'Operations Lead'
+    })).toThrow('Production interactive audit events require an attributed actor user id.')
+
+    expect(service.assertAuditEventIntegrity({
+      source: 'TURNAROUND_OPERATIONS_API',
+      actorUserId: 'ops-1',
+      actorDisplayName: 'Operations Lead'
+    })).toEqual(expect.objectContaining({ actorUserId: 'ops-1' }))
+  })
+
+  it('rejects empty audit sources and preserves background/system audit compatibility', () => {
+    expect(() => service.assertAuditEventIntegrity({ source: ' ' })).toThrow('Audit event source is required.')
+    expect(service.assertAuditEventIntegrity({ source: 'AI', actorUserId: null })).toEqual({ source: 'AI', actorUserId: null })
+  })
+})

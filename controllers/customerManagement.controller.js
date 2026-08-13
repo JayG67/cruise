@@ -3,22 +3,21 @@ const bookingTable = require('../models/booking.model')
 const bookingPassengerTable = require('../models/bookingPassenger.model')
 const customerPreCruiseChecklistTable = require('../models/customerPreCruiseChecklist.model')
 const db = require('../db')
+const { AUTH_MODES, getAuthenticationMode } = require('../services/authentication.service')
 const { recordPlatformAuditEvent } = require('../services/platformAudit.service')
 const { buildEntityHistoryPayload, buildEntityLifecycleTimestamps, buildEntityUpdateTimestamp } = require('../services/entityHistory.service')
 const { withCustomerApiIdentity, withPreCruiseChecklistApiIdentity } = require('../services/apiIdentityBridge.service')
 const { applyCustomerPayloadProfile, getRequestedPayloadProfile } = require('../services/apiPayloadProfile.service')
 const { eq, inArray } = require('drizzle-orm')
-
+const { filterCustomersForAdminTenant } = require('../services/customerTenantAccess.service')
 async function recordCruiseManagementAuditEvent(req, event) {
   return recordPlatformAuditEvent(req, event)
 }
-
 async function selectByIds(table, column, ids) {
   const uniqueIds = [...new Set((ids || []).filter(Boolean))]
   if (uniqueIds.length === 0) return []
   return db.select().from(table).where(inArray(column, uniqueIds))
 }
-
 const DEFAULT_PRE_CRUISE_CHECKLIST = Object.freeze({
   documents: false,
   luggage: false,
@@ -55,7 +54,10 @@ async function getCustomerPreCruiseChecklistMap(customerIds = []) {
 
 exports.getCustomers = async (req, res, next) => {
   try {
-    const customers = await db.select().from(customerTable)
+    const allCustomers = await db.select().from(customerTable)
+    const customers = getAuthenticationMode() === AUTH_MODES.DEMO
+      ? allCustomers
+      : await filterCustomersForAdminTenant(req, allCustomers)
 
     if (!customers || customers.length === 0) {
       return res.status(404).json({ message: 'No customers found' })
@@ -226,5 +228,3 @@ exports.deleteCustomer = async (req, res, next) => {
     next(err)
   }
 }
-
-

@@ -56,7 +56,7 @@ function isTenantBoundaryCompatible(candidate = {}, required = {}) {
 
   return Object.entries(normalizedRequired).every(([key, requiredValue]) => {
     const candidateValue = normalizedCandidate[key]
-    return !candidateValue || candidateValue === requiredValue
+    return Boolean(candidateValue && candidateValue === requiredValue)
   })
 }
 

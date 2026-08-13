@@ -158,11 +158,13 @@ describe('Request identity middleware', () => {
 
     expect(getScopedDemoUserId(req)).toBe('turnaround-manager-harmony')
     expect(buildRequestIdentity(req)).toEqual({
+      authMode: 'demo',
       demoUserId: 'turnaround-manager-harmony',
       principal: null,
-      identitySource: 'header',
+      identitySource: 'demo-header',
       isDemoIdentity: true,
-      isAuthenticated: true
+      isAuthenticated: true,
+      authenticationError: null
     })
   })
 
@@ -176,11 +178,13 @@ describe('Request identity middleware', () => {
 
     expect(getScopedDemoUserId(req)).toBe('legacy-query-user')
     expect(buildRequestIdentity(req)).toEqual({
+      authMode: 'demo',
       demoUserId: 'legacy-query-user',
       principal: null,
-      identitySource: 'query',
+      identitySource: 'demo-query',
       isDemoIdentity: true,
-      isAuthenticated: true
+      isAuthenticated: true,
+      authenticationError: null
     })
   })
 
@@ -202,11 +206,11 @@ describe('Request identity middleware', () => {
       displayName: 'Operations Admin',
       role: 'ADMIN',
       tenantId: 'royal-caribbean',
-      identitySource: 'principal-header'
+      identitySource: 'test-header'
     })
     expect(buildRequestIdentity(req)).toMatchObject({
       demoUserId: null,
-      identitySource: 'principal-header',
+      identitySource: 'test-header',
       isDemoIdentity: false,
       isAuthenticated: true
     })

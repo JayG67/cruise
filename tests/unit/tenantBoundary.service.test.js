@@ -57,13 +57,13 @@ describe('tenantBoundary.service', () => {
     })
   })
 
-  it('treats missing candidate scope as backward-compatible but rejects conflicting known tenant values', () => {
+  it('fails closed when candidate tenant scope is missing or conflicting', () => {
     expect(isTenantBoundaryCompatible({ cruiseLineId: 'line-1' }, { cruiseLineId: 'line-1' })).toBe(true)
-    expect(isTenantBoundaryCompatible({}, { cruiseLineId: 'line-1' })).toBe(true)
+    expect(isTenantBoundaryCompatible({}, { cruiseLineId: 'line-1' })).toBe(false)
     expect(isTenantBoundaryCompatible({ cruiseLineId: 'line-2' }, { cruiseLineId: 'line-1' })).toBe(false)
   })
 
-  it('filters scoped rows without dropping legacy rows that have not yet gained tenant metadata', () => {
+  it('filters scoped rows and drops legacy rows that lack required tenant metadata', () => {
     const rows = [
       { id: 'ship-1', cruiseLineId: 'line-1' },
       { id: 'ship-2', cruiseLineId: 'line-2' },
@@ -71,8 +71,7 @@ describe('tenantBoundary.service', () => {
     ]
 
     expect(filterRowsByTenantBoundary(rows, { cruiseLineId: 'line-1' }).map(row => row.id)).toEqual([
-      'ship-1',
-      'legacy-row-without-scope'
+      'ship-1'
     ])
     expect(filterRowsByTenantBoundary(rows, {}).map(row => row.id)).toEqual(['ship-1', 'ship-2', 'legacy-row-without-scope'])
   })

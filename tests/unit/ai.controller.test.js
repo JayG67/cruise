@@ -38,6 +38,11 @@ jest.mock('../../services/aiRuntimeConfig.service', () => ({
   describeAiRuntimeConfig: jest.fn(config => ({ ...config }))
 }))
 
+
+jest.mock('../../services/aiCiEvidenceConsole.service', () => ({
+  buildAiCiEvidenceConsoleSummary: jest.fn(() => ({ status: 'ready', latestEvidence: null }))
+}))
+
 jest.mock('../../services/turnaroundScope.service', () => ({
   canAccessTurnaroundOperationForRequest: jest.fn().mockResolvedValue(true),
   sendTurnaroundOperationForbidden: jest.fn(res => res.status(403).json({ message: 'forbidden' }))
@@ -73,6 +78,7 @@ const { AiProviderError, createAiProvider } = require('../../services/aiProvider
 const { generateTurnaroundBriefing } = require('../../services/aiTurnaroundBriefing.service')
 const { loadTurnaroundEvidence } = require('../../services/aiTurnaroundEvidence.service')
 const { generateOperationalTurnaroundBriefing } = require('../../services/aiOperationalTurnaroundBriefing.service')
+const { buildAiCiEvidenceConsoleSummary } = require('../../services/aiCiEvidenceConsole.service')
 const controller = require('../../controllers/ai.controller')
 
 function responseHarness() {
@@ -93,6 +99,27 @@ describe('AI controller authorization and failure boundaries', () => {
     expect(controller.canGenerateAiBriefing({ actorRole: 'PASSENGER' })).toBe(false)
     expect(controller.canGenerateAiBriefing({ actorRole: 'GROUP_LEADER' })).toBe(false)
     expect(controller.canGenerateAiBriefing({})).toBe(false)
+  })
+
+  it('restricts CI evidence to administrators', async () => {
+    resolveRequestActor.mockResolvedValue({ actorUserId: 'passenger-1', actorRole: 'PASSENGER' })
+    const { res, status, json } = responseHarness()
+
+    await controller.getAiCiEvidenceSummary({}, res, jest.fn())
+
+    expect(status).toHaveBeenCalledWith(403)
+    expect(json).toHaveBeenCalledWith({ message: 'AI CI evidence requires an administrator.' })
+    expect(buildAiCiEvidenceConsoleSummary).not.toHaveBeenCalled()
+  })
+
+  it('returns CI evidence to an administrator', async () => {
+    resolveRequestActor.mockResolvedValue({ actorUserId: 'admin-1', actorRole: 'ADMIN' })
+    const { res, status, json } = responseHarness()
+
+    await controller.getAiCiEvidenceSummary({}, res, jest.fn())
+
+    expect(status).toHaveBeenCalledWith(200)
+    expect(json).toHaveBeenCalledWith({ status: 'ready', latestEvidence: null })
   })
 
   it('returns the six-phase program status and runtime configuration', () => {
@@ -179,7 +206,7 @@ describe('AI controller authorization and failure boundaries', () => {
     resolveRequestActor.mockResolvedValue(actor)
     generateTurnaroundBriefing.mockResolvedValue(result)
     const { res, status, json } = responseHarness()
-    const req = { body: { operationId: 'op-1' }, get: jest.fn().mockReturnValue('request-1') }
+    const req = { body: { operationId: 'op-1' }, requestId: 'request-1', get: jest.fn() }
 
     await controller.generateTurnaroundBriefing(req, res, jest.fn())
 
@@ -201,7 +228,7 @@ describe('AI controller authorization and failure boundaries', () => {
     loadTurnaroundEvidence.mockResolvedValue(evidenceBundle)
     generateOperationalTurnaroundBriefing.mockResolvedValue(result)
     const { res, status, json } = responseHarness()
-    const req = { params: { operationId: 'op-1' }, body: { question: 'What is at risk?' }, get: jest.fn().mockReturnValue('request-2') }
+    const req = { params: { operationId: 'op-1' }, body: { question: 'What is at risk?' }, requestId: 'request-2', get: jest.fn() }
 
     await controller.generateOperationalTurnaroundBriefing(req, res, jest.fn())
 

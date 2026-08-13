@@ -2,8 +2,10 @@ const { eq } = require('drizzle-orm')
 
 const db = require('../db')
 const demoUserTable = require('../models/demoUser.model')
+const { AUTH_MODES, getAuthenticationMode } = require('./authentication.service')
 
 const ADMIN_FORBIDDEN_MESSAGE = 'Admin access requires an admin request identity.'
+const DEMO_AUDIT_ACTOR_DISPLAY_NAME = 'Cruise Explorer Demo Session'
 const ACTOR_IDENTITY_SOURCES = Object.freeze({
   ANONYMOUS: 'anonymous',
   DEMO: 'demo',
@@ -121,6 +123,23 @@ async function resolveRequestActor(req = {}) {
   return assertResolvedActor(buildDemoActor(demoUser) || buildAnonymousActor())
 }
 
+
+function buildDemoSessionAuditActor() {
+  return buildActorIdentity({
+    actorUserId: null,
+    actorDisplayName: DEMO_AUDIT_ACTOR_DISPLAY_NAME,
+    actorRole: null,
+    identitySource: ACTOR_IDENTITY_SOURCES.DEMO
+  })
+}
+
+async function resolveRequestAuditActor(req = {}) {
+  const actor = await resolveRequestActor(req)
+  if (actor.identitySource !== ACTOR_IDENTITY_SOURCES.ANONYMOUS) return actor
+  if (getAuthenticationMode() !== AUTH_MODES.DEMO) return actor
+  return buildDemoSessionAuditActor()
+}
+
 async function isAdminRequest(req = {}) {
   const principal = getProductionPrincipal(req)
   if (principal) return isAdminRole(principal.role)
@@ -138,10 +157,12 @@ async function requireAdminRequest(req, res) {
 module.exports = {
   ACTOR_IDENTITY_SOURCES,
   ADMIN_FORBIDDEN_MESSAGE,
+  DEMO_AUDIT_ACTOR_DISPLAY_NAME,
   assertResolvedActor,
   buildActorIdentity,
   buildAnonymousActor,
   buildDemoActor,
+  buildDemoSessionAuditActor,
   buildProductionActor,
   getProductionPrincipal,
   isAdminRequest,
@@ -151,5 +172,6 @@ module.exports = {
   normalizeRole,
   requireAdminRequest,
   resolveDemoUserForRequest,
-  resolveRequestActor
+  resolveRequestActor,
+  resolveRequestAuditActor
 }

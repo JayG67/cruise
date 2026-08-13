@@ -16,7 +16,6 @@ const {
   removeTrackedCruiseLine
 } = require('./helpers/testDataFactory')
 
-jest.setTimeout(30000)
 
 beforeAll(async () => {
   await initializeDatabase()

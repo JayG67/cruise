@@ -305,13 +305,12 @@ describe('Engineering quality and release-integrity contracts', () => {
     expect(compatibilitySurface).not.toContain('function PassengerVoyagePlanner')
   })
 
-  test('documents the quality baseline and structural tooling roadmap', () => {
-    const standards = read('docs/engineering-quality-standards.md')
+  test('keeps source-quality validation focused on executable and configuration source files', () => {
+    const sourceAudit = read('scripts/verify-source-quality.js')
 
-    expect(standards).toContain('# Engineering Quality Standards')
-    expect(standards).toContain('A budget may only move downward.')
-    expect(standards).toContain('Add ESLint with meaningful correctness rules.')
-    expect(standards).toContain('Add JSDoc-backed TypeScript `checkJs` coverage by domain.')
+    for (const extension of ["'.js'", "'.jsx'", "'.json'", "'.css'", "'.yml'", "'.yaml'", "'.html'"]) {
+      expect(sourceAudit).toContain(extension)
+    }
   })
   it('keeps role selector transformations outside the React rendering component', () => {
     const selector = read('frontend/react/src/components/ReactRoleSelector.jsx')

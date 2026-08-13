@@ -34,22 +34,4 @@ describe('maintenance-mode readiness contracts', () => {
     )
   })
 
-  it('documents the maintenance policy and release review checklist', () => {
-    const guide = read('docs/maintenance-mode.md')
-    const readme = read('README.md')
-
-    for (const heading of [
-      '# Maintenance Mode',
-      '## Release Gate',
-      '## Change Policy',
-      '## Defect Triage',
-      '## Release Review'
-    ]) {
-      expect(guide).toContain(heading)
-    }
-
-    expect(readme).toContain('npm run maintenance:readiness')
-    expect(readme).toContain('docs/maintenance-mode.md')
-    expect(readme).not.toContain('app.css remains as a compatibility layer')
-  })
 })

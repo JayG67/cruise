@@ -16,6 +16,25 @@ module.exports = {
     '<rootDir>/validation/.*\\.test\\.js$'
   ],
 
+  coverageReporters: [
+    'json',
+    'json-summary',
+    'lcov',
+    'cobertura',
+    'clover',
+    'text',
+    'text-summary'
+  ],
+
+  coverageThreshold: {
+    global: {
+      statements: 90.5,
+      branches: 65.5,
+      functions: 94.5,
+      lines: 92.25
+    }
+  },
+
   coveragePathIgnorePatterns: [
     '/node_modules/',
     '<rootDir>/github-pages',

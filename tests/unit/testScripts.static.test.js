@@ -26,6 +26,40 @@ describe('local test database script guardrails', () => {
     expect(waitScript).toContain('Test database did not become ready in time.')
   })
 
+  it('keeps integration suites on the shared CI-safe timeout instead of lowering it locally', () => {
+    const integrationConfig = fs.readFileSync(path.join(projectRoot, 'jest.integration.config.js'), 'utf8')
+    const integrationSetup = fs.readFileSync(path.join(projectRoot, 'tests/integration/jest.integration.setup.js'), 'utf8')
+    const integrationDirectory = path.join(projectRoot, 'tests/integration')
+    const integrationFiles = fs.readdirSync(integrationDirectory)
+      .filter(file => file.endsWith('.integration.test.js'))
+
+    expect(integrationConfig).toContain('testTimeout: 120000')
+    expect(integrationSetup).toContain('jest.setTimeout(120000)')
+
+    for (const integrationFile of integrationFiles) {
+      const source = fs.readFileSync(path.join(integrationDirectory, integrationFile), 'utf8')
+      const explicitTimeouts = [...source.matchAll(/jest\.setTimeout\((\d+)\)/g)]
+        .map(match => Number(match[1]))
+
+      for (const timeout of explicitTimeouts) {
+        expect(timeout).toBeGreaterThanOrEqual(120000)
+      }
+    }
+  })
+
+  it('keeps standalone integration cleanup registration aligned with the full Jest database lifecycle', () => {
+    const integrationConfig = fs.readFileSync(path.join(projectRoot, 'jest.integration.config.js'), 'utf8')
+    const integrationSetup = fs.readFileSync(path.join(projectRoot, 'tests/integration/jest.integration.setup.js'), 'utf8')
+
+    expect(integrationConfig).toContain("setupFilesAfterEnv: ['<rootDir>/tests/integration/jest.integration.setup.js']")
+    expect(integrationSetup).toContain('global.registerDatabaseCleanup = cleanup =>')
+    expect(integrationSetup).toContain('databaseCleanupTasks.push(cleanup)')
+    expect(integrationSetup).toContain('for (const cleanup of databaseCleanupTasks)')
+    expect(integrationSetup.indexOf('for (const cleanup of databaseCleanupTasks)'))
+      .toBeLessThan(integrationSetup.indexOf('await db.closePool()'))
+    expect(integrationSetup).toContain("throw new TypeError('Database cleanup must be a function')")
+  })
+
   it('keeps full Jest coverage while avoiding a duplicate integration pass in the default test script', () => {
     expect(packageJson.scripts['jest:coverage:all']).toContain('jest --coverage')
     expect(packageJson.scripts['jest:coverage:all']).not.toContain('tests/unit')
