@@ -2,8 +2,9 @@ const fs = require('fs')
 const path = require('path')
 
 const root = path.resolve(__dirname, '..')
+const evidenceDirectory = path.join(root, 'security-quality-evidence')
+const evidencePath = path.join(evidenceDirectory, 'release-matrix.json')
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8')
-const assert = (condition, message) => { if (!condition) throw new Error(message) }
 
 function main() {
   const app = read('app.js')
@@ -13,7 +14,6 @@ function main() {
   const limiterStore = read('services/rateLimitStore.service.js')
   const limiterMigration = read('services/databaseRateLimitStoreMigration.service.js')
   const audit = read('services/auditEvent.service.js')
-  const requestAuthorization = read('services/requestAuthorization.service.js')
   const customerAccess = read('services/customerAccess.service.js')
   const cruiseRoutes = read('routes/cruise.routes.js')
   const aiRoutes = read('routes/ai.routes.js')
@@ -21,7 +21,7 @@ function main() {
   const coverageVerifier = read('scripts/verify-coverage-artifacts.js')
   const dependencyVerifier = read('scripts/verify-production-dependencies.js')
 
-  const checks = [
+  const controls = [
     ['production JWT validation', auth.includes('validateJwtConfiguration') && auth.includes('CRUISE_JWT_AUDIENCE')],
     ['server identity attachment', app.includes('attachRequestIdentity')],
     ['GLOBAL admin verification', authorization.includes('requireGlobalAdminAccess') && cruiseRoutes.includes('requireGlobalAdminMutation')],
@@ -38,13 +38,41 @@ function main() {
     ['coverage evidence', workflow.includes('jest-coverage-report') && coverageVerifier.includes('coverage-evidence.json')],
     ['security closeout in CI', workflow.includes('node scripts/verify-security-closeout.js')],
     ['bounded dependency residual risk', dependencyVerifier.includes('MAX_ACCEPTED_LOW_SEVERITY = 1') && dependencyVerifier.includes('lowCount > MAX_ACCEPTED_LOW_SEVERITY')]
-  ]
+  ].map(([name, passed]) => ({ name, status: passed ? 'PASSED' : 'FAILED' }))
 
-  for (const [name, passed] of checks) assert(passed, `Security release matrix failed: ${name}.`)
-  console.log(`Security release matrix passed: ${checks.length}/${checks.length} controls verified.`)
+  const failedControls = controls.filter(control => control.status === 'FAILED')
+  const evidence = {
+    schemaVersion: 1,
+    gate: 'Final security release matrix',
+    generatedAt: new Date().toISOString(),
+    git: {
+      sha: process.env.GITHUB_SHA || null,
+      ref: process.env.GITHUB_REF || null,
+      runId: process.env.GITHUB_RUN_ID || null,
+      runAttempt: process.env.GITHUB_RUN_ATTEMPT || null
+    },
+    status: failedControls.length === 0 ? 'PASSED' : 'FAILED',
+    releaseDecision: failedControls.length === 0 ? 'APPROVED' : 'BLOCKED',
+    totalControls: controls.length,
+    passedControls: controls.length - failedControls.length,
+    failedControls: failedControls.length,
+    controls
+  }
+
+  fs.mkdirSync(evidenceDirectory, { recursive: true })
+  fs.writeFileSync(evidencePath, `${JSON.stringify(evidence, null, 2)}\n`)
+  console.log(`Security release evidence written to ${path.relative(root, evidencePath)}`)
+
+  if (failedControls.length > 0) {
+    throw new Error(`Security release matrix failed: ${failedControls.map(control => control.name).join(', ')}.`)
+  }
+
+  console.log(`Security release matrix passed: ${controls.length}/${controls.length} controls verified.`)
 }
 
-try { main() } catch (error) {
+try {
+  main()
+} catch (error) {
   console.error(error.message)
   process.exitCode = 1
 }

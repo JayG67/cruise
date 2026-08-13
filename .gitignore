@@ -35,3 +35,6 @@ test-results/
 
 # Generated AI CI evidence
 ai-quality-evidence/
+
+# Generated security CI evidence
+security-quality-evidence/
