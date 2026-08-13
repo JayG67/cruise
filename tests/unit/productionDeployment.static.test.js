@@ -34,7 +34,11 @@ describe('production deployment static contracts', () => {
     const packageJson = readJson('package.json')
     const renderConfig = read('render.yaml')
 
-    expect(packageJson.scripts['start:prod']).toBe('npm run react:build && node index.js')
+    expect(packageJson.scripts['start:prod']).toBe('node index.js')
+    expect(packageJson.dependencies.vite).toBeUndefined()
+    expect(packageJson.dependencies['@vitejs/plugin-react']).toBeUndefined()
+    expect(packageJson.devDependencies.vite).toBe('8.1.5')
+    expect(packageJson.devDependencies['@vitejs/plugin-react']).toBeDefined()
     expect(renderConfig).toContain('buildCommand: npm ci --include=dev && npm run react:build')
     expect(renderConfig).toContain('startCommand: npm run start:prod')
     expect(renderConfig).toContain('numInstances: 1')

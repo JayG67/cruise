@@ -32,7 +32,11 @@ function main() {
 
   assert(packageJson.engines?.node === '>=22 <23', 'package.json must pin production to Node.js 22 with engines.node ">=22 <23".')
   assert(packageLock.packages?.['']?.engines?.node === '>=22 <23', 'package-lock.json root metadata must match the Node.js 22 production runtime.')
-  assert(packageJson.scripts?.['start:prod'] === 'npm run react:build && node index.js', 'start:prod must build the React client and start index.js without local Docker dependencies.')
+  assert(packageJson.scripts?.['start:prod'] === 'node index.js', 'start:prod must launch the prebuilt application without production build-tool dependencies.')
+  assert(packageJson.devDependencies?.vite === '8.1.5', 'Vite must remain a development/build dependency, not a production runtime dependency.')
+  assert(packageJson.devDependencies?.['@vitejs/plugin-react'], '@vitejs/plugin-react must remain a development/build dependency, not a production runtime dependency.')
+  assert(!packageJson.dependencies?.vite, 'Vite must not be installed as a production runtime dependency.')
+  assert(!packageJson.dependencies?.['@vitejs/plugin-react'], '@vitejs/plugin-react must not be installed as a production runtime dependency.')
   assert(packageJson.scripts?.['production:deployment:audit'] === 'node scripts/verify-production-deployment.js', 'package.json must expose production:deployment:audit.')
   assert(packageJson.scripts?.['test:all']?.includes('npm run production:deployment:audit'), 'test:all must run the production deployment audit.')
 

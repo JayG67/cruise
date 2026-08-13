@@ -114,10 +114,11 @@ describe('local test database script guardrails', () => {
   it('keeps Render production startup resilient when dashboard build settings are stale', () => {
     const renderYaml = fs.readFileSync(path.join(projectRoot, 'render.yaml'), 'utf8')
 
-    expect(packageJson.scripts['start:prod']).toContain('npm run react:build')
-    expect(packageJson.scripts['start:prod']).toContain('node index.js')
-    expect(packageJson.dependencies.vite).toBeDefined()
-    expect(packageJson.dependencies['@vitejs/plugin-react']).toBeDefined()
+    expect(packageJson.scripts['start:prod']).toBe('node index.js')
+    expect(packageJson.dependencies.vite).toBeUndefined()
+    expect(packageJson.dependencies['@vitejs/plugin-react']).toBeUndefined()
+    expect(packageJson.devDependencies.vite).toBe('8.1.5')
+    expect(packageJson.devDependencies['@vitejs/plugin-react']).toBeDefined()
     expect(renderYaml).toContain('buildCommand: npm ci --include=dev && npm run react:build')
     expect(renderYaml).toContain('startCommand: npm run start:prod')
   })
