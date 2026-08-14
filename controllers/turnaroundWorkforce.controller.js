@@ -206,7 +206,8 @@ function createTurnaroundWorkforceController({ getTurnaroundOperationDetails }) 
 
       const operation = operationRows[0]
 
-      if (operation && !(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      if (!operation) return res.status(404).json({ message: 'Turnaround operation not found' })
+      if (!(await canAccessTurnaroundOperationForRequest(req, operation))) {
         return sendTurnaroundOperationForbidden(res)
       }
 
@@ -219,8 +220,7 @@ function createTurnaroundWorkforceController({ getTurnaroundOperationDetails }) 
         .set(handoffUpdates)
         .where(eq(turnaroundHandoffTable.id, id))
 
-      if (operation) {
-        await recordTurnaroundAuditEvent(req, operation, {
+      await recordTurnaroundAuditEvent(req, operation, {
           eventType: 'TURNAROUND_HANDOFF_UPDATED',
           entityType: 'TURNAROUND_HANDOFF',
           entityId: id,
@@ -232,11 +232,10 @@ function createTurnaroundWorkforceController({ getTurnaroundOperationDetails }) 
             metadata: { action: 'update-handoff' }
           })
         })
-      }
 
       return res.status(200).json({
         message: 'Turnaround handoff updated successfully',
-        operation: operation ? await getTurnaroundOperationDetails(operation) : undefined
+        operation: await getTurnaroundOperationDetails(operation)
       })
     } catch (err) {
       next(err)

@@ -64,7 +64,8 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
 
       const operation = operationRows[0]
 
-      if (operation && !(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      if (!operation) return res.status(404).json({ message: 'Turnaround operation not found' })
+      if (!(await canAccessTurnaroundOperationForRequest(req, operation))) {
         return sendTurnaroundOperationForbidden(res)
       }
 
@@ -73,8 +74,7 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
         .set(nextTaskValues)
         .where(eq(turnaroundTaskTable.id, id))
 
-      if (operation) {
-        await recordTurnaroundAuditEvent(req, operation, {
+      await recordTurnaroundAuditEvent(req, operation, {
           eventType: 'TURNAROUND_TASK_STATUS_UPDATED',
           entityType: 'TURNAROUND_TASK',
           entityId: id,
@@ -86,11 +86,6 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
             metadata: { action: 'update-task-status' }
           })
         })
-      }
-
-      if (!operation) {
-        return res.status(200).json({ message: 'Turnaround task status updated successfully' })
-      }
 
       return res.status(200).json({
         message: 'Turnaround task status updated successfully',
@@ -193,7 +188,8 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
 
       const operation = operationRows[0]
 
-      if (operation && !(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      if (!operation) return res.status(404).json({ message: 'Turnaround operation not found' })
+      if (!(await canAccessTurnaroundOperationForRequest(req, operation))) {
         return sendTurnaroundOperationForbidden(res)
       }
 
@@ -210,8 +206,7 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
         .insert(turnaroundTaskUpdateTable)
         .values(taskUpdateValues)
 
-      if (operation) {
-        await recordTurnaroundAuditEvent(req, operation, {
+      await recordTurnaroundAuditEvent(req, operation, {
           eventType: 'TURNAROUND_TASK_UPDATE_CREATED',
           entityType: 'TURNAROUND_TASK',
           entityId: id,
@@ -223,11 +218,10 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
             metadata: { action: 'create-task-update' }
           })
         })
-      }
 
       return res.status(201).json({
         message: 'Turnaround task update added successfully',
-        operation: operation ? await getTurnaroundOperationDetails(operation) : undefined
+        operation: await getTurnaroundOperationDetails(operation)
       })
     } catch (err) {
       next(err)
@@ -258,7 +252,8 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
 
       const operation = operationRows[0]
 
-      if (operation && !(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      if (!operation) return res.status(404).json({ message: 'Turnaround operation not found' })
+      if (!(await canAccessTurnaroundOperationForRequest(req, operation))) {
         return sendTurnaroundOperationForbidden(res)
       }
 
@@ -278,8 +273,7 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
         .delete(turnaroundTaskTable)
         .where(eq(turnaroundTaskTable.id, id))
 
-      if (operation) {
-        await recordTurnaroundAuditEvent(req, operation, {
+      await recordTurnaroundAuditEvent(req, operation, {
           eventType: 'TURNAROUND_TASK_DELETED',
           entityType: 'TURNAROUND_TASK',
           entityId: id,
@@ -291,11 +285,10 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
             metadata: { action: 'delete-task' }
           })
         })
-      }
 
       return res.status(200).json({
         message: 'Turnaround task removed successfully',
-        operation: operation ? await getTurnaroundOperationDetails(operation) : undefined
+        operation: await getTurnaroundOperationDetails(operation)
       })
     } catch (err) {
       next(err)
@@ -338,7 +331,8 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
 
       const operation = operationRows[0]
 
-      if (operation && !(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      if (!operation) return res.status(404).json({ message: 'Turnaround operation not found' })
+      if (!(await canAccessTurnaroundOperationForRequest(req, operation))) {
         return sendTurnaroundOperationForbidden(res)
       }
 
@@ -351,8 +345,7 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
         .set(taskUpdates)
         .where(eq(turnaroundTaskTable.id, id))
 
-      if (operation) {
-        await recordTurnaroundAuditEvent(req, operation, {
+      await recordTurnaroundAuditEvent(req, operation, {
           eventType: 'TURNAROUND_TASK_DETAILS_UPDATED',
           entityType: 'TURNAROUND_TASK',
           entityId: id,
@@ -364,11 +357,10 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
             metadata: { action: 'update-task-details' }
           })
         })
-      }
 
       return res.status(200).json({
         message: 'Turnaround task details updated successfully',
-        operation: operation ? await getTurnaroundOperationDetails(operation) : undefined
+        operation: await getTurnaroundOperationDetails(operation)
       })
     } catch (err) {
       next(err)
