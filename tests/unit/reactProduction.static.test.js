@@ -34,8 +34,8 @@ describe('Cruise operations product presentation guardrails', () => {
     const app = read('app.js')
 
     expect(viteConfig).toContain("publicDir: path.resolve(__dirname, '../../public')")
-    expect(app).toContain("const publicRobotsPath = path.join(__dirname, 'public', 'robots.txt')")
-    expect(app).toContain("app.get('/robots.txt', (req, res) => res.type('text/plain').sendFile(publicRobotsPath))")
+    expect(app).toContain("const ROBOTS_POLICY = 'User-agent: *\\nAllow: /\\n'")
+    expect(app).toContain("app.get('/robots.txt', (req, res) => res.status(200).type('text/plain').send(ROBOTS_POLICY))")
     expect(robots).toBe('User-agent: *\nAllow: /\n')
     expect(robots).not.toContain('<!DOCTYPE html>')
   })

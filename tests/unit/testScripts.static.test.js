@@ -206,6 +206,8 @@ describe('local test database script guardrails', () => {
     expect(lighthouseConfig).toContain('"formFactor": "mobile"')
     expect(lighthouseConfig).toContain('"mobile": true')
     expect(lighthouseConfig).toContain('http://localhost:8000/lighthouse-ci')
+    expect(lighthouseConfig).toContain('\"robots-txt\"')
+    expect(lighthouseConfig).toContain('\"minScore\": 1')
     expect(robots).toBe('User-agent: *\nAllow: /\n')
     expect(lighthouseConfig).toContain('"throttlingMethod": "provided"')
     expect(lighthouseConfig).toContain('"minScore": 0.85')

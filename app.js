@@ -31,7 +31,7 @@ if (String(process.env.NODE_ENV || '').trim().toLowerCase() === 'production') {
 const reactBuildDir = path.join(__dirname, 'dist', 'react')
 const reactIndexPath = path.join(reactBuildDir, 'index.html')
 const publicImagesDir = path.join(__dirname, 'public', 'images')
-const publicRobotsPath = path.join(__dirname, 'public', 'robots.txt')
+const ROBOTS_POLICY = 'User-agent: *\nAllow: /\n'
 const seedDataDir = path.join(__dirname, 'data')
 
 function setLongTermAssetCache(res) {
@@ -82,7 +82,7 @@ app.get('/health', (req, res) => {
 })
 
 app.use('/images', express.static(publicImagesDir, { redirect: false, setHeaders: setLongTermAssetCache }))
-app.get('/robots.txt', (req, res) => res.type('text/plain').sendFile(publicRobotsPath))
+app.get('/robots.txt', (req, res) => res.status(200).type('text/plain').send(ROBOTS_POLICY))
 
 const seedDataStatic = express.static(seedDataDir, { redirect: false, setHeaders: setReactBuildCache })
 app.use('/data', (req, res, next) => {

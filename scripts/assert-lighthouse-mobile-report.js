@@ -57,6 +57,14 @@ function score(categoryName) {
   return typeof value === 'number' ? value.toFixed(2) : 'n/a'
 }
 
+const rawPayload = JSON.parse(fs.readFileSync(mobileReport.reportPath, 'utf8'))
+const audits = rawPayload.audits || rawPayload.lhr?.audits || {}
+const robotsAudit = audits['robots-txt']
+if (!robotsAudit || robotsAudit.score !== 1) {
+  const detail = robotsAudit?.displayValue || robotsAudit?.title || 'robots.txt audit missing'
+  throw new Error(`Lighthouse robots.txt audit must pass before publication. ${detail}`)
+}
+
 const relativePath = path.relative(projectRoot, mobileReport.reportPath)
 console.log('Verified Lighthouse mobile report artifact.')
 console.log(`Report: ${relativePath}`)
@@ -64,3 +72,4 @@ console.log(`Performance: ${score('performance')}`)
 console.log(`Accessibility: ${score('accessibility')}`)
 console.log(`Best Practices: ${score('best-practices')}`)
 console.log(`SEO: ${score('seo')}`)
+console.log('robots.txt: valid')
