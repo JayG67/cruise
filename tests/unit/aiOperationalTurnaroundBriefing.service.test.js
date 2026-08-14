@@ -26,4 +26,25 @@ describe('Phase 2 operation-scoped briefing orchestration', () => {
       operation: expect.objectContaining({ id: 'op-1', port: 'Miami' })
     }))
   })
+
+  it('uses the default briefing question and includes requestedAt only when supplied', async () => {
+    const evidenceLoader = jest.fn().mockResolvedValue({
+      operation: { id: 'op-2', title: 'Turnaround 2', status: 'PLANNED', readinessLevel: 'PLANNING', turnaroundDate: '2026-09-01', port: 'Nassau' },
+      evidence: [],
+      evidenceSummary: { totalAvailable: 0, included: 0, truncated: false, countsByType: {} }
+    })
+    const briefingGenerator = jest.fn().mockResolvedValue({ briefing: { riskLevel: 'low' } })
+
+    await generateOperationalTurnaroundBriefing({
+      operationId: 'op-2', requestedAt: '2026-08-14T12:00:00.000Z', evidenceLoader, briefingGenerator
+    })
+
+    expect(briefingGenerator).toHaveBeenCalledWith(expect.objectContaining({
+      input: expect.objectContaining({
+        question: 'Summarize current turnaround readiness and the most important next actions.',
+        requestedAt: '2026-08-14T12:00:00.000Z'
+      })
+    }))
+  })
+
 })
