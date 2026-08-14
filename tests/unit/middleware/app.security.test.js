@@ -33,6 +33,15 @@ describe('application security headers', () => {
     expect(res.headers['cross-origin-resource-policy']).toBe('same-origin')
   })
 
+  it('serves robots.txt as plain text instead of the React SPA fallback', async () => {
+    const res = await request(app).get('/robots.txt')
+
+    expect(res.statusCode).toBe(200)
+    expect(res.headers['content-type']).toMatch(/text\/plain/)
+    expect(res.text).toBe('User-agent: *\nAllow: /\n')
+    expect(res.text).not.toContain('<!DOCTYPE html>')
+  })
+
   it('serves the Lighthouse audit shell without inline styles under the strict CSP', async () => {
     const page = await request(app).get('/lighthouse-ci')
     const stylesheet = await request(app).get('/lighthouse-ci.css')

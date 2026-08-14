@@ -50,6 +50,12 @@
           {
             "minScore": 0.85
           }
+        ],
+        "robots-txt": [
+          "error",
+          {
+            "minScore": 1
+          }
         ]
       }
     },

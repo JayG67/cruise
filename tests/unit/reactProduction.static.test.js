@@ -27,6 +27,19 @@ function readCssBundle(relativePath, seen = new Set()) {
 }
 
 describe('Cruise operations product presentation guardrails', () => {
+  it('publishes a valid robots.txt through the shared Vite public directory', () => {
+    const robots = read('public/robots.txt')
+    const viteConfig = read('frontend/react/vite.config.js')
+
+    const app = read('app.js')
+
+    expect(viteConfig).toContain("publicDir: path.resolve(__dirname, '../../public')")
+    expect(app).toContain("const ROBOTS_POLICY = 'User-agent: *\\nAllow: /\\n'")
+    expect(app).toContain("app.get('/robots.txt', (req, res) => res.status(200).type('text/plain').send(ROBOTS_POLICY))")
+    expect(robots).toBe('User-agent: *\nAllow: /\n')
+    expect(robots).not.toContain('<!DOCTYPE html>')
+  })
+
   it('serves the React operations application as the default product experience', () => {
     const app = read('app.js')
     const packageJson = require('../../package.json')
