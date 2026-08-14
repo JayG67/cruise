@@ -98,7 +98,7 @@ function buildDepartmentRecommendation(department = {}) {
 }
 
 function buildAfterActionFindings({ tasks = [], staffing = [], signoffs = [], escalations = [], dependencies = [], handoffs = [], operationalMetrics = null, playbookVariance = null, incidentCommand = null } = {}) {
-  const blockedTasks = getOpenRows(tasks.filter(task => String(task.status || '').toUpperCase() === 'BLOCKED'), [])
+  const blockedTasks = getOpenRows((tasks || []).filter(task => String(task.status || '').toUpperCase() === 'BLOCKED'), [])
   const openEscalations = getOpenRows(escalations, ['RESOLVED'])
   const activeDependencies = getOpenRows(dependencies, ['CLEARED'])
   const openHandoffs = getOpenRows(handoffs, ['COMPLETE'])
@@ -181,12 +181,12 @@ function buildTurnaroundAfterActionReview({ operation = {}, tasks = [], staffing
   const releaseConfidence = Number(operationalMetrics?.summary?.releaseConfidence || 0)
   const rehearsalScore = Number(playbookVariance?.summary?.rehearsalScore || 0)
   const incidentScore = Number(incidentCommand?.incidentScore || 0)
-  const timelineEvents = Number(operationalTimeline?.summary?.totalEvents || auditEvents.length || 0)
+  const timelineEvents = Number(operationalTimeline?.summary?.totalEvents ?? (auditEvents || []).length)
   const reviewScore = Math.max(0, Math.min(100, Math.round(((releaseConfidence || 0) + (rehearsalScore || 0) + Math.max(0, 100 - incidentScore)) / 3) - actionCount * 5))
   const reviewStatus = actionCount > 1 ? 'NEEDS_DEBRIEF' : watchCount > 1 ? 'FOLLOW_UP' : 'READY_TO_PROMOTE'
 
   return {
-    operationId: operation.id || null,
+    operationId: operation?.id || null,
     generatedAt: new Date().toISOString(),
     summary: {
       reviewScore,
