@@ -194,6 +194,7 @@ describe('local test database script guardrails', () => {
   it('keeps the GitHub workflow running an explicit Lighthouse mobile quality gate', () => {
     const workflow = fs.readFileSync(path.join(projectRoot, '.github/workflows/ci.yml'), 'utf8')
     const lighthouseConfig = fs.readFileSync(path.join(projectRoot, '.github/lighthouserc.json'), 'utf8')
+    const robots = fs.readFileSync(path.join(projectRoot, 'public/robots.txt'), 'utf8')
 
     expect(workflow).toContain('lighthouse-mobile-audit:')
     expect(workflow).toContain('name: Mobile Quality & UX Gate')
@@ -205,6 +206,7 @@ describe('local test database script guardrails', () => {
     expect(lighthouseConfig).toContain('"formFactor": "mobile"')
     expect(lighthouseConfig).toContain('"mobile": true')
     expect(lighthouseConfig).toContain('http://localhost:8000/lighthouse-ci')
+    expect(robots).toBe('User-agent: *\nAllow: /\n')
     expect(lighthouseConfig).toContain('"throttlingMethod": "provided"')
     expect(lighthouseConfig).toContain('"minScore": 0.85')
   })
