@@ -37,6 +37,7 @@ function addTimelineItem(items, item) {
 
 function buildTurnaroundOperationalTimeline({ operation = {}, tasks = [], staffing = [], signoffs = [], escalations = [], dependencies = [], handoffs = [], auditEvents = [] } = {}) {
   const items = []
+  operation = operation || {}
   const operationDate = operation.turnaroundDate ? `${operation.turnaroundDate}T00:00:00.000Z` : null
 
   addTimelineItem(items, {
@@ -140,7 +141,7 @@ function buildTurnaroundOperationalTimeline({ operation = {}, tasks = [], staffi
       id: `escalation:${escalation.id}`,
       source: 'ESCALATION',
       sourceId: escalation.id,
-      severity: escalation.severity || 'WATCH',
+      severity: escalation.status === 'RESOLVED' ? 'SUCCESS' : escalation.severity || 'WATCH',
       status: escalation.status || 'OPEN',
       title: escalation.title || 'Turnaround escalation',
       actorDisplayName: timelineActor(escalation.ownerDisplayName, escalation.ownerName),

@@ -99,7 +99,7 @@ function buildTurnaroundOperationalMetrics({ operation = {}, tasks = [], staffin
   const riskIndex = Math.min(100, blockedTasks * 12 + criticalEscalations * 20 + openEscalations * 8 + activeDependencies * 6 + openHandoffs * 5 + staffingGap * 4)
   const releaseConfidence = Math.max(0, Math.min(100, readinessScore - Math.round(riskIndex * 0.55)))
   const bottleneckDepartment = departmentMetrics[0]?.riskScore > 0 ? departmentMetrics[0] : null
-  const eventVelocity = operationalTimeline?.summary?.totalEvents || auditEvents.length || 0
+  const eventVelocity = operationalTimeline?.summary?.totalEvents ?? auditEvents.length ?? 0
 
   return {
     operationId: operation.id || null,
