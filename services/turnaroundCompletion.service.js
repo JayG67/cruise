@@ -52,28 +52,34 @@ function buildTurnaroundCapabilityMap({
   reviewerPacket = null,
   outreachBoard = null
 } = {}) {
-  const completedTasks = tasks.filter(task => ['DONE', 'COMPLETE', 'COMPLETED', 'APPROVED'].includes(String(task.status || '').toUpperCase())).length
-  const taskCompletion = getPercent(completedTasks, tasks.length)
-  const approvedSignoffs = signoffs.filter(signoff => String(signoff.status || '').toUpperCase() === 'APPROVED').length
-  const signoffCompletion = getPercent(approvedSignoffs, signoffs.length)
-  const closedDependencies = dependencies.filter(dependency => String(dependency.status || '').toUpperCase() === 'COMPLETE').length
-  const dependencyCompletion = getPercent(closedDependencies, dependencies.length)
-  const closedHandoffs = handoffs.filter(handoff => String(handoff.status || '').toUpperCase() === 'COMPLETE').length
-  const handoffCompletion = getPercent(closedHandoffs, handoffs.length)
-  const staffingCoverage = clampScore(operationalMetrics?.summary?.staffingCoverage || operationalMetrics?.staffingCoverage || 0)
-  const releaseScore = clampScore(releasePacket?.releaseScore || operationalMetrics?.summary?.releaseConfidence || executiveBrief?.summary?.releaseConfidence || 0)
-  const incidentSafety = clampScore(100 - Number(incidentCommand?.incidentScore || executiveBrief?.summary?.incidentScore || 0))
-  const playbookScore = clampScore(playbookVariance?.summary?.rehearsalScore || playbookTemplate?.readinessScore || 0)
-  const reviewScore = clampScore(afterActionReview?.summary?.reviewScore || executiveBrief?.summary?.reviewScore || 0)
-  const reviewerScore = clampScore(reviewerPacket?.readiness?.readinessScore || 0)
-  const outreachScore = clampScore(outreachBoard?.readiness?.readinessScore || 0)
-  const timelineEvents = Number(operationalTimeline?.summary?.totalEvents || operationalTimeline?.items?.length || 0)
+  const taskRows = asArray(tasks)
+  const staffingRows = asArray(staffing)
+  const signoffRows = asArray(signoffs)
+  const dependencyRows = asArray(dependencies)
+  const handoffRows = asArray(handoffs)
+  const auditRows = asArray(auditEvents)
+  const completedTasks = taskRows.filter(task => ['DONE', 'COMPLETE', 'COMPLETED', 'APPROVED'].includes(String(task.status || '').toUpperCase())).length
+  const taskCompletion = getPercent(completedTasks, taskRows.length)
+  const approvedSignoffs = signoffRows.filter(signoff => String(signoff.status || '').toUpperCase() === 'APPROVED').length
+  const signoffCompletion = getPercent(approvedSignoffs, signoffRows.length)
+  const closedDependencies = dependencyRows.filter(dependency => String(dependency.status || '').toUpperCase() === 'COMPLETE').length
+  const dependencyCompletion = getPercent(closedDependencies, dependencyRows.length)
+  const closedHandoffs = handoffRows.filter(handoff => String(handoff.status || '').toUpperCase() === 'COMPLETE').length
+  const handoffCompletion = getPercent(closedHandoffs, handoffRows.length)
+  const staffingCoverage = clampScore(operationalMetrics?.summary?.staffingCoverage ?? operationalMetrics?.staffingCoverage ?? 0)
+  const releaseScore = clampScore(releasePacket?.releaseScore ?? operationalMetrics?.summary?.releaseConfidence ?? executiveBrief?.summary?.releaseConfidence ?? 0)
+  const incidentSafety = clampScore(100 - Number(incidentCommand?.incidentScore ?? executiveBrief?.summary?.incidentScore ?? 0))
+  const playbookScore = clampScore(playbookVariance?.summary?.rehearsalScore ?? playbookTemplate?.readinessScore ?? 0)
+  const reviewScore = clampScore(afterActionReview?.summary?.reviewScore ?? executiveBrief?.summary?.reviewScore ?? 0)
+  const reviewerScore = clampScore(reviewerPacket?.readiness?.readinessScore ?? 0)
+  const outreachScore = clampScore(outreachBoard?.readiness?.readinessScore ?? 0)
+  const timelineEvents = Number(operationalTimeline?.summary?.totalEvents ?? operationalTimeline?.items?.length ?? 0)
 
   return [
     buildCapabilityStatus({
       id: 'role-scoped-command',
       label: 'Role-scoped command center',
-      score: operation.id ? 95 : 70,
+      score: operation?.id ? 95 : 70,
       detail: 'Turnaround managers and department leads can assume assigned operating roles while operational data remains scoped to the selected assignment.',
       evidence: ['Assigned-role access remains enabled', 'Selected operation drives command context', 'Operational users do not receive admin CRUD controls']
     }),
@@ -82,7 +88,7 @@ function buildTurnaroundCapabilityMap({
       label: 'Operational workflow CRUD',
       score: Math.round((taskCompletion * 0.35) + (staffingCoverage * 0.2) + (dependencyCompletion * 0.15) + (handoffCompletion * 0.15) + (signoffCompletion * 0.15)),
       detail: 'Tasks, staffing, dependencies, handoffs, escalations, and signoffs are live workflow objects rather than static presentation content.',
-      evidence: [`${tasks.length} tasks`, `${staffing.length} staffing rows`, `${dependencies.length} dependencies`, `${handoffs.length} handoffs`, `${signoffs.length} signoffs`]
+      evidence: [`${taskRows.length} tasks`, `${staffingRows.length} staffing rows`, `${dependencyRows.length} dependencies`, `${handoffRows.length} handoffs`, `${signoffRows.length} signoffs`]
     }),
     buildCapabilityStatus({
       id: 'release-readiness',
@@ -94,9 +100,9 @@ function buildTurnaroundCapabilityMap({
     buildCapabilityStatus({
       id: 'audit-timeline',
       label: 'Audit and timeline evidence',
-      score: clampScore((Math.min(timelineEvents, 24) / 24) * 70 + (Math.min(auditEvents.length, 10) / 10) * 30),
+      score: clampScore((Math.min(timelineEvents, 24) / 24) * 70 + (Math.min(auditRows.length, 10) / 10) * 30),
       detail: 'Timeline and audit evidence provide governance-ready proof that operations are tracked across command, department, and release workflows.',
-      evidence: [`${timelineEvents} timeline events`, `${auditEvents.length} audit events`, 'Task updates', 'Escalation history']
+      evidence: [`${timelineEvents} timeline events`, `${auditRows.length} audit events`, 'Task updates', 'Escalation history']
     }),
     buildCapabilityStatus({
       id: 'playbook-rehearsal',
@@ -115,7 +121,7 @@ function buildTurnaroundCapabilityMap({
     buildCapabilityStatus({
       id: 'governance-communications',
       label: 'Governance and stakeholder readiness',
-      score: Math.round((reviewerScore * 0.45) + (clampScore(executiveBrief?.summary?.decisionScore || 0) * 0.25) + (outreachScore * 0.3)),
+      score: Math.round((reviewerScore * 0.45) + (clampScore(executiveBrief?.summary?.decisionScore ?? 0) * 0.25) + (outreachScore * 0.3)),
       detail: 'Governance evidence, executive briefing, and stakeholder coordination turn operational state into an accountable decision path.',
       evidence: [`Governance evidence ${reviewerScore}%`, `Stakeholder coordination ${outreachScore}%`, 'Executive highlights', 'Governance next steps']
     })

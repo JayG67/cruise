@@ -52,6 +52,24 @@ describe('publicLaunchReadiness service', () => {
     expect(items[0]).toMatchObject({ id: 'deployment-readiness', sequence: 1, action: 'Choose host.' })
   })
 
+  it('sorts fallback critical items without mutating the published launch-track order', () => {
+    const tracks = buildLaunchReadinessTracks({
+      dataArchitecture: { overallScore: 95, gates: [] },
+      productionHardening: { overallScore: 70, gates: [] },
+      deployment: { overallScore: 85, gates: [] }
+    })
+    const originalOrder = tracks.map(track => track.id)
+
+    const items = buildCriticalLaunchItems(tracks, [])
+
+    expect(items.map(item => item.id)).toEqual([
+      'production-hardening',
+      'deployment-readiness',
+      'data-architecture-hardening'
+    ])
+    expect(tracks.map(track => track.id)).toEqual(originalOrder)
+  })
+
   it('keeps management readiness output free of development-stage presentation language', () => {
     const readiness = buildPublicLaunchReadiness({
       dataArchitecture: { overallScore: 95, gates: [] },
@@ -72,4 +90,81 @@ describe('publicLaunchReadiness service', () => {
     expect(getLaunchStatus(82, 0, 1)).toBe('watch')
     expect(getLaunchStatus(95, 1, 0)).toBe('blocked')
   })
+
+  it('preserves an explicit zero operations score instead of replacing it with the portfolio default', () => {
+    const readiness = buildPublicLaunchReadiness({
+      dataArchitecture: { overallScore: 100, gates: [] },
+      productionHardening: { overallScore: 100, gates: [] },
+      deployment: { overallScore: 100, gates: [] },
+      operationsControlBoard: { overallScore: 0 }
+    })
+
+    const operationsTrack = readiness.projectStatus.tracks.find(track => track.area === 'Turnaround operations')
+    expect(operationsTrack).toMatchObject({ percent: 0, status: 'operational' })
+    expect(readiness.projectStatus.featureCompleteEstimate).toBe(75)
+  })
+
+  it('uses the operations portfolio default only when no operations score is supplied', () => {
+    const readiness = buildPublicLaunchReadiness({
+      dataArchitecture: { overallScore: 100, gates: [] },
+      productionHardening: { overallScore: 100, gates: [] },
+      deployment: { overallScore: 100, gates: [] },
+      operationsControlBoard: {}
+    })
+
+    const operationsTrack = readiness.projectStatus.tracks.find(track => track.area === 'Turnaround operations')
+    expect(operationsTrack.percent).toBe(95)
+    expect(readiness.projectStatus.featureCompleteEstimate).toBe(99)
+  })
+
+  it('clamps malformed and out-of-range readiness scores without inflating launch status', () => {
+    const readiness = buildPublicLaunchReadiness({
+      dataArchitecture: { overallScore: -20, gates: [] },
+      productionHardening: { overallScore: 160, gates: [] },
+      deployment: { overallScore: 'not-a-score', gates: [] },
+      operationsControlBoard: { score: 140 }
+    })
+
+    expect(readiness.tracks.map(track => track.score)).toEqual([0, 100, 0])
+    expect(readiness.status).toBe('blocked')
+    expect(readiness.projectStatus.tracks.find(track => track.area === 'Turnaround operations').percent).toBe(100)
+  })
+
+
+  it('distinguishes ready, watch, and blocked consolidated launch summaries', () => {
+    const ready = buildPublicLaunchReadiness({
+      dataArchitecture: { overallScore: 95, gates: [] },
+      productionHardening: { overallScore: 95, gates: [] },
+      deployment: { overallScore: 95, gates: [] }
+    })
+    expect(ready.status).toBe('ready')
+    expect(ready.summary).toContain('ready for final production release verification')
+
+    const watch = buildPublicLaunchReadiness({
+      dataArchitecture: { overallScore: 90, gates: [] },
+      productionHardening: { overallScore: 90, gates: [] },
+      deployment: { overallScore: 82, gates: [] }
+    })
+    expect(watch.status).toBe('watch')
+    expect(watch.summary).toContain('operational watchlist')
+  })
+
+  it('orders critical gate evidence by score and uses recommendation fallbacks', () => {
+    const readiness = buildPublicLaunchReadiness({
+      dataArchitecture: {
+        overallScore: 80,
+        gates: [
+          { id: 'tenant', label: 'Tenant boundaries', score: 55, status: 'watch', recommendations: ['Tighten tenant scope.'] },
+          { id: 'identity', label: 'Identity', score: 30, status: 'needs-hardening' }
+        ]
+      },
+      productionHardening: { overallScore: 95, gates: [] },
+      deployment: { overallScore: 95, gates: [] }
+    })
+
+    expect(readiness.criticalItems.map(item => item.title)).toEqual(['Identity', 'Tenant boundaries'])
+    expect(readiness.criticalItems[0].action).toBe('Resolve this item before production release.')
+    expect(readiness.criticalItems[1].action).toBe('Tighten tenant scope.')
+  })
+
 })

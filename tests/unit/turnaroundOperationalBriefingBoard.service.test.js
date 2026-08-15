@@ -96,3 +96,92 @@ describe('turnaroundOperationalBriefingBoard service', () => {
     expect(audiences[0]).toMatchObject({ label: 'Disney Cruise Line leadership', status: 'READY' })
   })
 })
+
+describe('turnaroundOperationalBriefingBoard authoritative evidence and resilience', () => {
+  it('preserves explicit zero executive, review, and incident scores instead of replacing them with fallbacks', () => {
+    const readiness = buildBriefingReadiness({
+      operationalAssurancePacket: {
+        readiness: { readinessScore: 90 },
+        dataQuality: {}
+      },
+      executiveBrief: {
+        summary: { decisionScore: 0, reviewScore: 85, incidentScore: 80 }
+      },
+      afterActionReview: {
+        summary: { reviewScore: 0 }
+      },
+      incidentCommand: { incidentScore: 0 }
+    })
+
+    expect(readiness).toMatchObject({
+      assuranceScore: 90,
+      executiveScore: 0,
+      reviewScore: 0,
+      incidentScore: 0
+    })
+    expect(readiness.readinessStatus).toBe('HOLD_FOR_FIXES')
+  })
+
+  it('uses fallback evidence only when authoritative values are absent', () => {
+    const readiness = buildBriefingReadiness({
+      operationalAssurancePacket: {
+        readiness: { readinessScore: 80 },
+        dataQuality: {}
+      },
+      executiveBrief: {
+        summary: { reviewScore: 72, incidentScore: 18 }
+      }
+    })
+
+    expect(readiness).toMatchObject({
+      assuranceScore: 80,
+      executiveScore: 80,
+      reviewScore: 72,
+      incidentScore: 18
+    })
+  })
+
+  it('builds a safe briefing board from explicit null operation and collection inputs', () => {
+    const board = buildTurnaroundOperationalBriefingBoard({
+      operation: null,
+      operationalAssurancePacket: {
+        readiness: { readinessScore: 0 },
+        dataQuality: null,
+        proofPoints: null,
+        nextSteps: null
+      },
+      executiveBrief: {
+        summary: { decisionScore: 0, reviewScore: 0, incidentScore: 0 },
+        highlights: null,
+        decisionHighlights: null,
+        executiveActions: null
+      },
+      afterActionReview: {
+        summary: { reviewScore: 0 },
+        departmentLessons: null,
+        followUpActions: null
+      },
+      incidentCommand: { incidentScore: 0 }
+    })
+
+    expect(board.narrative.headline).toBe('Selected ship operational briefing is 24% ready.')
+    expect(board.audienceRecommendations[0].label).toBe('Current cruise line leadership')
+    expect(board.assets.find(asset => asset.id === 'proof-points')).toMatchObject({ status: '0 READY' })
+    expect(board.assets.find(asset => asset.id === 'lessons')).toMatchObject({ status: '0 TRACKED' })
+    expect(board.readiness.incidentScore).toBe(0)
+  })
+
+  it('keeps explicit zero values visible in briefing checklist details', () => {
+    const checklist = buildBriefingChecklist({
+      operationalAssurancePacket: { readiness: { readinessScore: 0 }, dataQuality: null },
+      executiveBrief: { summary: { decisionScore: 0 } },
+      afterActionReview: { summary: { reviewScore: 0 } },
+      incidentCommand: { incidentScore: 0, incidentSeverity: 'STABLE' }
+    })
+
+    expect(checklist.find(item => item.id === 'operational-assurance').detail).toContain('0% assurance readiness')
+    expect(checklist.find(item => item.id === 'executive-brief').detail).toContain('0% executive decision score')
+    expect(checklist.find(item => item.id === 'incident-risk').detail).toContain('Incident command score 0')
+    expect(checklist.find(item => item.id === 'learning-loop').detail).toContain('0% after-action review score')
+  })
+})

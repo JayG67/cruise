@@ -92,6 +92,74 @@ describe('turnaroundCompletion service', () => {
     ]))
   })
 
+  it('preserves authoritative zero evidence instead of substituting healthier fallback scores', () => {
+    const capabilities = buildTurnaroundCapabilityMap({
+      operation,
+      releasePacket: { releaseScore: 0 },
+      operationalMetrics: { summary: { releaseConfidence: 92, staffingCoverage: 0 }, staffingCoverage: 88 },
+      incidentCommand: { incidentScore: 0 },
+      executiveBrief: { summary: { releaseConfidence: 94, incidentScore: 70, reviewScore: 91, decisionScore: 93 } },
+      playbookVariance: { summary: { rehearsalScore: 0 } },
+      playbookTemplate: { readinessScore: 90 },
+      afterActionReview: { summary: { reviewScore: 0 } },
+      operationalTimeline: { summary: { totalEvents: 0 }, items: new Array(12).fill({}) },
+      auditEvents: []
+    })
+
+    const byId = Object.fromEntries(capabilities.map(capability => [capability.id, capability]))
+    expect(byId['release-readiness'].score).toBe(0)
+    expect(byId['playbook-rehearsal'].score).toBe(0)
+    expect(byId['incident-after-action'].score).toBe(55)
+    expect(byId['audit-timeline'].score).toBe(0)
+    expect(byId['workflow-crud'].score).toBe(0)
+  })
+
+  it('falls back only when authoritative completion evidence is absent', () => {
+    const capabilities = buildTurnaroundCapabilityMap({
+      operation,
+      operationalMetrics: { summary: { releaseConfidence: 82 }, staffingCoverage: 75 },
+      executiveBrief: { summary: { incidentScore: 20, reviewScore: 80 } },
+      playbookTemplate: { readinessScore: 77 },
+      operationalTimeline: { items: new Array(6).fill({}) }
+    })
+
+    const byId = Object.fromEntries(capabilities.map(capability => [capability.id, capability]))
+    expect(byId['release-readiness'].score).toBe(82)
+    expect(byId['playbook-rehearsal'].score).toBe(77)
+    expect(byId['incident-after-action'].score).toBe(80)
+    expect(byId['audit-timeline'].evidence[0]).toBe('6 timeline events')
+  })
+
+  it('degrades explicit null operational collections to empty evidence instead of throwing', () => {
+    expect(() => buildTurnaroundCapabilityMap({
+      operation: null,
+      tasks: null,
+      staffing: null,
+      signoffs: null,
+      dependencies: null,
+      handoffs: null,
+      auditEvents: null
+    })).not.toThrow()
+
+    const capabilities = buildTurnaroundCapabilityMap({
+      operation: null,
+      tasks: null,
+      staffing: null,
+      signoffs: null,
+      dependencies: null,
+      handoffs: null,
+      auditEvents: null
+    })
+    expect(capabilities.find(capability => capability.id === 'audit-timeline').score).toBe(0)
+    expect(capabilities.find(capability => capability.id === 'workflow-crud').evidence).toEqual([
+      '0 tasks',
+      '0 staffing rows',
+      '0 dependencies',
+      '0 handoffs',
+      '0 signoffs'
+    ])
+  })
+
   it('keeps next actions focused on operational review, architecture assurance, and fleet scale', () => {
     const nextSlices = buildTurnaroundNextSlices({
       maturityScore: 91,

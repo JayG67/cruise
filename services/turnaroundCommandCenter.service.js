@@ -47,7 +47,7 @@ function buildTurnaroundCommandInputs({
   incidentCommand = null,
   managementStatus = null,
   closeoutPacket = null,
-  passengerCount = 0
+  passengerCount
 } = {}) {
   const taskRows = asArray(tasks)
   const staffingRows = asArray(staffing)
@@ -73,7 +73,7 @@ function buildTurnaroundCommandInputs({
     shipName: operation.shipName || operation.ship?.name || 'Selected ship',
     cruiseLineName: operation.cruiseLineName || operation.cruiseLine?.name || 'Selected cruise line',
     turnaroundDate: operation.turnaroundDate || operation.date || 'Selected date',
-    passengerCount: Number(passengerCount || operation.passengerCount || 0),
+    passengerCount: Number(passengerCount ?? operation.passengerCount ?? 0),
     tasks: taskRows,
     staffing: staffingRows,
     signoffs: signoffRows,
@@ -94,12 +94,12 @@ function buildTurnaroundCommandInputs({
     blockedSignoffs,
     signoffCompletion: getPercent(approvedSignoffs, signoffRows.length),
     staffingGaps,
-    staffingCoverage: clampScore(operationalMetrics?.summary?.staffingCoverage || operation.staffingSummary?.checkInPercent || 0),
-    lifecycleScore: clampScore(lifecycleState?.completionPercent || 0),
-    releaseScore: clampScore(releasePacket?.releaseScore || releasePacket?.readinessScore || operationalMetrics?.summary?.releaseConfidence || 0),
-    riskScore: clampScore(incidentCommand?.incidentScore || operationalMetrics?.summary?.riskIndex || 0),
-    maturityScore: clampScore(managementStatus?.maturityScore || 0),
-    closeoutScore: clampScore(closeoutPacket?.closeoutScore || 0)
+    staffingCoverage: clampScore(operationalMetrics?.summary?.staffingCoverage ?? operation.staffingSummary?.checkInPercent ?? 0),
+    lifecycleScore: clampScore(lifecycleState?.completionPercent ?? 0),
+    releaseScore: clampScore(releasePacket?.releaseScore ?? releasePacket?.readinessScore ?? operationalMetrics?.summary?.releaseConfidence ?? 0),
+    riskScore: clampScore(incidentCommand?.incidentScore ?? operationalMetrics?.summary?.riskIndex ?? 0),
+    maturityScore: clampScore(managementStatus?.maturityScore ?? 0),
+    closeoutScore: clampScore(closeoutPacket?.closeoutScore ?? 0)
   }
 }
 
@@ -143,8 +143,8 @@ function buildCommandCenterKpis(inputs = {}) {
     {
       id: 'closeout-readiness',
       label: 'Closeout readiness',
-      value: `${inputs.closeoutScore || inputs.maturityScore || 0}%`,
-      score: inputs.closeoutScore || inputs.maturityScore || 0,
+      value: `${inputs.closeoutScore ?? inputs.maturityScore ?? 0}%`,
+      score: inputs.closeoutScore ?? inputs.maturityScore ?? 0,
       detail: 'Closeout score summarizes workflow completion, release evidence, governance decisions, and after-action learning.'
     }
   ]
@@ -213,7 +213,7 @@ function buildCommandCriticalPath(inputs = {}) {
   const dependencyCompletion = (inputs.dependencies?.length || 0) ? getPercent(Math.max((inputs.dependencies?.length || 0) - (inputs.activeDependencies?.length || 0), 0), inputs.dependencies?.length || 0) : 100
   const handoffCompletion = inputs.handoffCompletion || 0
   const signoffCompletion = inputs.signoffCompletion || 0
-  const closeoutScore = inputs.closeoutScore || inputs.maturityScore || 0
+  const closeoutScore = inputs.closeoutScore ?? inputs.maturityScore ?? 0
 
   return [
     {
@@ -342,7 +342,7 @@ function buildCommanderBrief(inputs = {}, kpis = [], decisions = [], criticalPat
   const activePhase = criticalPath.find(phase => phase.status !== 'READY') || criticalPath[criticalPath.length - 1]
 
   return {
-    headline: `${inputs.shipName} command center is ${inputs.releaseScore || inputs.lifecycleScore || 0}% release-oriented with ${decisions.length} decision item${decisions.length === 1 ? '' : 's'}.`,
+    headline: `${inputs.shipName} command center is ${inputs.releaseScore ?? inputs.lifecycleScore ?? 0}% release-oriented with ${decisions.length} decision item${decisions.length === 1 ? '' : 's'}.`,
     summary: `${inputs.operationTitle} now has a single manager view for KPIs, decisions, critical path, department readiness, handoffs, and closeout proof.`,
     weakestSignal: weakestKpi ? `${weakestKpi.label}: ${weakestKpi.detail}` : 'No weak KPI signal is visible.',
     nextDecision: nextDecision ? `${nextDecision.owner}: ${nextDecision.decision}` : 'Maintain command cadence.',
@@ -366,7 +366,7 @@ function buildTurnaroundCommandCenter(input = {}) {
     (inputs.staffingCoverage * 0.12) +
     (inputs.signoffCompletion * 0.12) +
     (clampScore(100 - inputs.riskScore) * 0.1) +
-    ((inputs.closeoutScore || inputs.maturityScore) * 0.08)
+    ((inputs.closeoutScore ?? inputs.maturityScore ?? 0) * 0.08)
   ))
 
   return {

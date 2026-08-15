@@ -21,11 +21,11 @@ function firstNonEmpty(...values) {
 }
 
 function buildExecutiveDecision({ operationalMetrics = null, incidentCommand = null, afterActionReview = null, releasePacket = null, playbookVariance = null } = {}) {
-  const releaseConfidence = clampScore(operationalMetrics?.summary?.releaseConfidence || releasePacket?.releaseScore || 0)
-  const incidentScore = clampScore(incidentCommand?.incidentScore || 0)
-  const reviewScore = clampScore(afterActionReview?.summary?.reviewScore || 0)
-  const rehearsalScore = clampScore(playbookVariance?.summary?.rehearsalScore || 0)
-  const openActionCount = Number(afterActionReview?.summary?.actionCount || 0)
+  const releaseConfidence = clampScore(operationalMetrics?.summary?.releaseConfidence ?? releasePacket?.releaseScore ?? 0)
+  const incidentScore = clampScore(incidentCommand?.incidentScore ?? 0)
+  const reviewScore = clampScore(afterActionReview?.summary?.reviewScore ?? 0)
+  const rehearsalScore = clampScore(playbookVariance?.summary?.rehearsalScore ?? 0)
+  const openActionCount = Number(afterActionReview?.summary?.actionCount ?? 0)
   const decisionScore = clampScore((releaseConfidence * 0.36) + ((100 - incidentScore) * 0.24) + (reviewScore * 0.24) + (rehearsalScore * 0.16) - (openActionCount * 3))
   const status = getBriefStatus(decisionScore, incidentScore, openActionCount)
 
@@ -83,7 +83,7 @@ function buildExecutiveDepartments({ operationalMetrics = null, incidentCommand 
     const key = row.departmentRole || row.role || 'department'
     rowsByRole.set(key, {
       departmentRole: key,
-      riskScore: clampScore(row.riskScore || row.score || 0),
+      riskScore: clampScore(row.riskScore ?? row.score ?? 0),
       status: row.status || 'WATCH',
       driver: row.driver || row.label || 'Operational signal'
     })
@@ -92,7 +92,7 @@ function buildExecutiveDepartments({ operationalMetrics = null, incidentCommand 
   for (const row of incidentCommand?.incidentDepartments || []) {
     const key = row.departmentRole || row.role || 'department'
     const current = rowsByRole.get(key) || { departmentRole: key, riskScore: 0, status: 'WATCH', driver: 'Incident signal' }
-    current.riskScore = Math.max(current.riskScore, clampScore(row.score || row.riskScore || 0))
+    current.riskScore = Math.max(current.riskScore, clampScore(row.score ?? row.riskScore ?? 0))
     current.status = row.severity || current.status
     current.driver = firstNonEmpty(row.title, row.driver, current.driver)
     rowsByRole.set(key, current)
@@ -110,7 +110,7 @@ function buildExecutiveDepartments({ operationalMetrics = null, incidentCommand 
     const key = row.departmentRole || 'department'
     const current = rowsByRole.get(key) || { departmentRole: key, riskScore: 0, status: 'WATCH', driver: 'Playbook variance' }
     current.varianceScore = row.varianceScore
-    current.riskScore = Math.max(current.riskScore, clampScore(row.varianceScore || 0))
+    current.riskScore = Math.max(current.riskScore, clampScore(row.varianceScore ?? 0))
     current.recommendation = current.recommendation || row.recommendation
     rowsByRole.set(key, current)
   }
@@ -142,18 +142,19 @@ function buildExecutiveActions({ decision = {}, incidentCommand = null, afterAct
 }
 
 function buildTurnaroundExecutiveBrief({ operation = {}, releasePacket = null, operationalTimeline = null, operationalMetrics = null, playbookTemplate = null, playbookVariance = null, incidentCommand = null, afterActionReview = null } = {}) {
+  const operationContext = operation || {}
   const decision = buildExecutiveDecision({ operationalMetrics, incidentCommand, afterActionReview, releasePacket, playbookVariance })
-  const highlights = buildExecutiveHighlights({ operation, operationalMetrics, incidentCommand, afterActionReview, playbookTemplate, playbookVariance, releasePacket })
+  const highlights = buildExecutiveHighlights({ operation: operationContext, operationalMetrics, incidentCommand, afterActionReview, playbookTemplate, playbookVariance, releasePacket })
   const departments = buildExecutiveDepartments({ operationalMetrics, incidentCommand, afterActionReview, playbookVariance })
   const executiveActions = buildExecutiveActions({ decision, incidentCommand, afterActionReview, playbookVariance, operationalMetrics })
 
   return {
     summary: {
       ...decision,
-      operationId: operation.id,
-      operationTitle: operation.title,
-      shipName: operation.shipName,
-      cruiseLineName: operation.cruiseLineName,
+      operationId: operationContext.id,
+      operationTitle: operationContext.title,
+      shipName: operationContext.shipName,
+      cruiseLineName: operationContext.cruiseLineName,
       timelineEvents: Number(operationalTimeline?.summary?.totalEvents || 0),
       generatedFrom: ['releasePacket', 'operationalMetrics', 'incidentCommand', 'playbookVariance', 'afterActionReview']
     },

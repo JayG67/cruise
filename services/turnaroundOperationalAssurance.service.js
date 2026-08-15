@@ -1,3 +1,7 @@
+function asArray(value) {
+  return Array.isArray(value) ? value : []
+}
+
 function clampScore(value) {
   return Math.max(0, Math.min(100, Math.round(Number(value) || 0)))
 }
@@ -11,11 +15,11 @@ function firstNonEmpty(...values) {
 }
 
 function buildAssuranceReadiness({ executiveBrief = null, releasePacket = null, incidentCommand = null, afterActionReview = null, playbookVariance = null } = {}) {
-  const executiveScore = clampScore(executiveBrief?.summary?.decisionScore || 0)
-  const releaseScore = clampScore(releasePacket?.releaseScore || executiveBrief?.summary?.releaseConfidence || 0)
-  const incidentScore = clampScore(incidentCommand?.incidentScore || executiveBrief?.summary?.incidentScore || 0)
-  const debriefScore = clampScore(afterActionReview?.summary?.reviewScore || executiveBrief?.summary?.reviewScore || 0)
-  const rehearsalScore = clampScore(playbookVariance?.summary?.rehearsalScore || executiveBrief?.summary?.rehearsalScore || 0)
+  const executiveScore = clampScore(executiveBrief?.summary?.decisionScore ?? 0)
+  const releaseScore = clampScore(releasePacket?.releaseScore ?? executiveBrief?.summary?.releaseConfidence ?? 0)
+  const incidentScore = clampScore(incidentCommand?.incidentScore ?? executiveBrief?.summary?.incidentScore ?? 0)
+  const debriefScore = clampScore(afterActionReview?.summary?.reviewScore ?? executiveBrief?.summary?.reviewScore ?? 0)
+  const rehearsalScore = clampScore(playbookVariance?.summary?.rehearsalScore ?? executiveBrief?.summary?.rehearsalScore ?? 0)
   const readinessScore = clampScore((executiveScore * 0.34) + (releaseScore * 0.24) + ((100 - incidentScore) * 0.18) + (debriefScore * 0.14) + (rehearsalScore * 0.1))
   let status = 'READY_FOR_OPERATIONAL_REVIEW'
   if (readinessScore < 62 || incidentScore >= 70) status = 'HOLD_FOR_COMMAND_ASSURANCE'
@@ -34,6 +38,8 @@ function buildAssuranceReadiness({ executiveBrief = null, releasePacket = null, 
 }
 
 function buildAssuranceHeader({ operation = {}, readiness = {} } = {}) {
+  operation = operation || {}
+  readiness = readiness || {}
   return {
     title: `${operation.shipName || operation.title || 'Turnaround operation'} operational assurance packet`,
     subtitle: `${operation.cruiseLineName || 'Cruise line'} · ${operation.turnaroundDate || 'scheduled turnaround'}`,
@@ -48,6 +54,7 @@ function buildAssuranceHeader({ operation = {}, readiness = {} } = {}) {
 }
 
 function buildAssuranceProofPoints({ operation = {}, executiveBrief = null, releasePacket = null, operationalTimeline = null, operationalMetrics = null, playbookTemplate = null, playbookVariance = null, incidentCommand = null, afterActionReview = null } = {}) {
+  operation = operation || {}
   const proofPoints = []
 
   proofPoints.push({
@@ -61,13 +68,13 @@ function buildAssuranceProofPoints({ operation = {}, executiveBrief = null, rele
     id: 'release-readiness',
     label: 'Release readiness',
     status: normalizeStatus(releasePacket?.status || operationalMetrics?.summary?.releaseStatus, 'IN REVIEW'),
-    detail: firstNonEmpty(releasePacket?.summary, `Release confidence ${operationalMetrics?.summary?.releaseConfidence || executiveBrief?.summary?.releaseConfidence || 0}%.`)
+    detail: firstNonEmpty(releasePacket?.summary, `Release confidence ${operationalMetrics?.summary?.releaseConfidence ?? executiveBrief?.summary?.releaseConfidence ?? 0}%.`)
   })
 
   proofPoints.push({
     id: 'timeline-depth',
     label: 'Operational evidence trail',
-    status: `${operationalTimeline?.summary?.totalEvents || executiveBrief?.summary?.timelineEvents || 0} EVENTS`,
+    status: `${operationalTimeline?.summary?.totalEvents ?? executiveBrief?.summary?.timelineEvents ?? 0} EVENTS`,
     detail: 'Timeline combines command status, task activity, staffing, dependencies, handoffs, signoffs, escalations, and audit evidence into one operating record.'
   })
 
@@ -96,6 +103,8 @@ function buildAssuranceProofPoints({ operation = {}, executiveBrief = null, rele
 }
 
 function buildAssuranceNarrative({ operation = {}, readiness = {}, executiveBrief = null, incidentCommand = null, afterActionReview = null } = {}) {
+  operation = operation || {}
+  readiness = readiness || {}
   const status = normalizeStatus(readiness.readinessStatus)
   const topAction = firstNonEmpty(executiveBrief?.executiveActions?.[0], incidentCommand?.commandActions?.[0], afterActionReview?.followUpActions?.[0], 'Continue operational assurance validation with role-specific dashboards and operational audit evidence.')
 
@@ -107,6 +116,14 @@ function buildAssuranceNarrative({ operation = {}, readiness = {}, executiveBrie
 }
 
 function buildAssuranceDataQuality({ tasks = [], staffing = [], signoffs = [], dependencies = [], handoffs = [], escalations = [], auditEvents = [] } = {}) {
+  tasks = asArray(tasks)
+  staffing = asArray(staffing)
+  signoffs = asArray(signoffs)
+  dependencies = asArray(dependencies)
+  handoffs = asArray(handoffs)
+  escalations = asArray(escalations)
+  auditEvents = asArray(auditEvents)
+
   const blockerCount = tasks.filter(task => String(task.status || '').toUpperCase() === 'BLOCKED' || String(task.blocker || '').trim()).length
   const openEscalations = escalations.filter(escalation => !['RESOLVED', 'CLOSED'].includes(String(escalation.status || '').toUpperCase())).length
   const staffingGaps = staffing.filter(row => Number(row.assignedCount || row.assigned || 0) < Number(row.requiredCount || row.required || 0)).length
@@ -145,6 +162,7 @@ function buildAssuranceNextSteps({ readiness = {}, executiveBrief = null, afterA
 }
 
 function buildTurnaroundOperationalAssurance({ operation = {}, tasks = [], staffing = [], signoffs = [], escalations = [], dependencies = [], handoffs = [], auditEvents = [], releasePacket = null, operationalTimeline = null, operationalMetrics = null, playbookTemplate = null, playbookVariance = null, incidentCommand = null, afterActionReview = null, executiveBrief = null } = {}) {
+  operation = operation || {}
   const readiness = buildAssuranceReadiness({ executiveBrief, releasePacket, incidentCommand, afterActionReview, playbookVariance })
 
   return {

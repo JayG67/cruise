@@ -85,6 +85,21 @@ describe('cruise turnaround read and recovery behavior', () => {
     expect(res.status).toHaveBeenCalledWith(404)
   })
 
+  it('returns 404 when demo reseeding still produces no accessible turnaround operations', async () => {
+    const res = mockResponse()
+    isDemoDataEnabled.mockReturnValue(true)
+    scope.getTurnaroundOperationsForRequest
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce([])
+
+    await controller.getTurnaroundOperations({}, res, jest.fn())
+
+    expect(loadCruiseData).toHaveBeenCalledTimes(1)
+    expect(scope.getTurnaroundOperationsForRequest).toHaveBeenCalledTimes(2)
+    expect(res.status).toHaveBeenCalledWith(404)
+    expect(getTurnaroundOperationDetails).not.toHaveBeenCalled()
+  })
+
   it('sorts decorated turnaround operations by date', async () => {
     const res = mockResponse()
     scope.getTurnaroundOperationsForRequest.mockResolvedValue([
@@ -186,6 +201,16 @@ describe('demo user visibility context', () => {
     expect(res.json).toHaveBeenCalledWith(users)
   })
 
+  it('forwards assigned-people lookup failures', async () => {
+    const error = new Error('assigned people lookup failed')
+    const next = jest.fn()
+    db.select.mockImplementationOnce(() => { throw error })
+
+    await controller.getDemoUsers({}, mockResponse(), next)
+
+    expect(next).toHaveBeenCalledWith(error)
+  })
+
   it('returns 404 for an unknown selected demo user', async () => {
     const res = mockResponse()
     selectLimit([])
@@ -253,6 +278,43 @@ describe('demo user visibility context', () => {
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
       bookings: [expect.objectContaining({ id: 'B-1' })],
       visibility: expect.objectContaining({ accessibleCustomerCount: 2, accessibleBookingCount: 1 })
+    }))
+  })
+
+  it('deduplicates inconsistent passenger links so a booking appears only once', async () => {
+    const res = mockResponse()
+    const user = { id: 'P-DUP', role: 'PASSENGER', customerId: 'C-1' }
+    const customer = { id: 'C-1' }
+    selectLimit([user])
+    selectLimit([customer])
+    selectWhere([{ bookingId: 'B-1' }, { bookingId: 'B-1' }, { bookingId: null }])
+    selectLimit([{ id: 'B-1' }])
+    getBookingDetails.mockResolvedValue({ id: 'B-1', passengers: [{ customerId: 'C-1' }] })
+
+    await controller.getDemoUserContext({ params: { id: user.id } }, res, jest.fn())
+
+    expect(getBookingDetails).toHaveBeenCalledTimes(1)
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      bookings: [expect.objectContaining({ id: 'B-1' })],
+      visibility: expect.objectContaining({ accessibleBookingCount: 1 })
+    }))
+  })
+
+  it('keeps group-leader context stable when hydrated booking passenger evidence is missing', async () => {
+    const res = mockResponse()
+    const user = { id: 'GL-SPARSE', role: 'GROUP_LEADER', customerId: 'C-1' }
+    const customer = { id: 'C-1' }
+    selectLimit([user])
+    selectLimit([customer])
+    selectWhere([{ bookingId: 'B-1' }])
+    selectLimit([{ id: 'B-1' }])
+    getBookingDetails.mockResolvedValue({ id: 'B-1' })
+
+    await controller.getDemoUserContext({ params: { id: user.id } }, res, jest.fn())
+
+    expect(res.status).toHaveBeenCalledWith(200)
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      visibility: expect.objectContaining({ accessibleCustomerCount: 1, accessibleBookingCount: 1 })
     }))
   })
 

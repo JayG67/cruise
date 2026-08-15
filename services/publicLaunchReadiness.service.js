@@ -106,7 +106,7 @@ function buildCriticalLaunchItems(tracks = [], readinessPayloads = []) {
 
   if (gateItems.length) return gateItems
 
-  return tracks
+  return [...tracks]
     .sort((a, b) => a.score - b.score)
     .slice(0, 4)
     .map((track, index) => ({
@@ -165,7 +165,8 @@ function buildLaunchRunbook({ tracks = [], criticalItems = [] }) {
 }
 
 function buildProjectStatus({ dataArchitecture = {}, productionHardening = {}, deployment = {}, operationsControlBoard = {} }) {
-  const operationalScore = getReadinessScore(operationsControlBoard) || 95
+  const hasOperationalScore = operationsControlBoard.overallScore != null || operationsControlBoard.score != null
+  const operationalScore = hasOperationalScore ? getReadinessScore(operationsControlBoard) : 95
   const architectureScore = getReadinessScore(dataArchitecture)
   const hardeningScore = getReadinessScore(productionHardening)
   const deploymentScore = getReadinessScore(deployment)

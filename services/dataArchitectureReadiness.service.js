@@ -210,6 +210,7 @@ function buildTenantGate({ cruiseLines = [], ships = [], sailings = [], turnarou
 }
 
 function buildMigrationBacklog(gates = []) {
+  const normalizedGates = asArray(gates)
   const gatePriority = {
     dates: 1,
     roles: 2,
@@ -282,7 +283,7 @@ function buildMigrationBacklog(gates = []) {
     }
   }
 
-  return [...gates]
+  return [...normalizedGates]
     .sort((a, b) => (a.status === b.status ? gatePriority[a.id] - gatePriority[b.id] : a.score - b.score))
     .map((gate, index) => ({
       id: `migration-${gate.id}`,
@@ -304,11 +305,12 @@ function buildMigrationBacklog(gates = []) {
 }
 
 function buildMigrationTimeline(backlog = []) {
+  const normalizedBacklog = asArray(backlog)
   const phases = ['Foundation', 'Access model', 'Domain model', 'Observability', 'Scale readiness']
 
   return phases
     .map((phase, index) => {
-      const items = backlog.filter(item => item.phase === phase)
+      const items = normalizedBacklog.filter(item => item.phase === phase)
       const maxRisk = items.some(item => item.risk === 'high') ? 'high' : items.some(item => item.risk === 'medium') ? 'medium' : 'low'
 
       return {
@@ -325,7 +327,7 @@ function buildMigrationTimeline(backlog = []) {
 }
 
 function buildSchemaContract(gates = []) {
-  return gates.map(gate => ({
+  return asArray(gates).map(gate => ({
     gateId: gate.id,
     label: gate.label,
     targetState: gate.status === 'ready'
@@ -337,7 +339,7 @@ function buildSchemaContract(gates = []) {
 }
 
 function buildHardeningRiskRegister(backlog = []) {
-  return backlog
+  return asArray(backlog)
     .filter(item => item.risk === 'high' || item.status !== 'ready')
     .slice(0, 6)
     .map(item => ({
@@ -350,13 +352,14 @@ function buildHardeningRiskRegister(backlog = []) {
 }
 
 function buildDataArchitectureReadiness(input = {}) {
+  const source = input && typeof input === 'object' ? input : {}
   const gates = [
-    buildIdentityGate(input),
-    buildDateGate(input),
-    buildRoleGate(input),
-    buildStatusGate(input),
-    buildAuditGate(input),
-    buildTenantGate(input)
+    buildIdentityGate(source),
+    buildDateGate(source),
+    buildRoleGate(source),
+    buildStatusGate(source),
+    buildAuditGate(source),
+    buildTenantGate(source)
   ]
 
   const overallScore = Math.round(gates.reduce((total, gate) => total + gate.score, 0) / gates.length)

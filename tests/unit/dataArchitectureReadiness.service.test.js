@@ -85,3 +85,88 @@ describe('dataArchitectureReadiness service', () => {
     expect(looksTimezoneAware('2026-08-01')).toBe(false)
   })
 })
+
+it('fails safely on null readiness input and still returns a complete hardening plan', () => {
+  const readiness = buildDataArchitectureReadiness(null)
+
+  expect(readiness.gates).toHaveLength(6)
+  expect(readiness.status).toBe('needs-hardening')
+  expect(readiness.overallScore).toBeGreaterThanOrEqual(0)
+  expect(readiness.migrationBacklog).toHaveLength(6)
+  expect(readiness.migrationTimeline).toHaveLength(5)
+  expect(readiness.schemaContract).toHaveLength(6)
+  expect(readiness.riskRegister.length).toBeGreaterThan(0)
+})
+
+it('treats explicit null migration collections as empty instead of throwing', () => {
+  expect(buildMigrationBacklog(null)).toEqual([])
+
+  const timeline = buildMigrationTimeline(null)
+  expect(timeline).toHaveLength(5)
+  expect(timeline.every(phase => phase.status === 'ready')).toBe(true)
+  expect(timeline.every(phase => phase.risk === 'low')).toBe(true)
+  expect(timeline.every(phase => phase.items.length === 0)).toBe(true)
+})
+
+it('covers ready, watch, and needs-hardening architecture summaries', () => {
+  const ready = buildDataArchitectureReadiness({
+    ships: [{ cruiseLineId: 'cl-1' }],
+    sailings: [{ shipId: 'ship-1', departureDate: '2026-08-01T10:00:00Z' }],
+    bookings: [{ customerId: 'cust-1', status: 'CONFIRMED' }],
+    bookingPassengers: [{ customerId: 'cust-1' }],
+    demoUsers: [{ normalizedUserId: 'user-1', normalizedRoleId: 'turnaround-manager', role: 'TURNAROUND_MANAGER', cruiseLineId: 'cl-1' }],
+    appUsers: [{ id: 'user-1' }],
+    appRoles: [{ id: 'turnaround-manager', name: 'Turnaround Manager' }],
+    appUserRoles: [{ userId: 'user-1', roleId: 'turnaround-manager' }],
+    turnaroundOperations: [{ sailingId: 'sailing-1', turnaroundDate: '2026-08-01T12:00:00Z', status: 'READY' }],
+    turnaroundTasks: [{ status: 'COMPLETE' }],
+    auditEvents: [
+      { entityType: 'TURNAROUND_OPERATION', entityId: 'op-1', operationId: 'op-1', createdAt: '2026-08-01T10:00:00+00:00' },
+      { entityType: 'TURNAROUND_TASK', entityId: 'task-1', operationId: 'op-1', occurredAt: '2026-08-01T10:05:00Z' }
+    ]
+  })
+
+  expect(ready.gates.find(gate => gate.id === 'dates').status).toBe('ready')
+  expect(ready.gates.find(gate => gate.id === 'identity').status).toBe('ready')
+  expect(ready.summary).toMatch(/ready|watched/i)
+
+  const watch = buildDataArchitectureReadiness({
+    demoUsers: [
+      { normalizedUserId: 'u1', normalizedRoleId: 'turnaround-manager', cruiseLineId: 'cl-1' },
+      { role: 'TURNAROUND_MANAGER', cruiseLineId: 'cl-1' }
+    ],
+    appRoles: [{ id: 'turnaround-manager', name: 'Turnaround Manager' }],
+    appUserRoles: [{ userId: 'u1', roleId: 'turnaround-manager' }],
+    auditEvents: [{ entityType: 'A', entityId: '1', createdAt: '2026-08-01T10:00:00Z' }]
+  })
+
+  expect(['watch', 'needs-hardening']).toContain(watch.status)
+})
+
+it('uses fallback migration metadata for unknown gates and limits the risk register', () => {
+  const gates = Array.from({ length: 8 }, (_, index) => ({
+    id: `custom-${index}`,
+    label: `Custom Gate ${index}`,
+    score: 20 + index,
+    status: index === 7 ? 'ready' : 'needs-hardening',
+    summary: `Summary ${index}`,
+    evidence: [],
+    recommendations: index % 2 === 0 ? [`Recommendation ${index}`] : []
+  }))
+
+  const backlog = buildMigrationBacklog(gates)
+  expect(backlog[0]).toEqual(expect.objectContaining({
+    phase: 'Hardening',
+    owner: 'Platform',
+    migration: expect.any(String)
+  }))
+
+  const { buildSchemaContract, buildHardeningRiskRegister } = require('../../services/dataArchitectureReadiness.service')
+  const schema = buildSchemaContract(gates)
+  const risks = buildHardeningRiskRegister(backlog)
+
+  expect(schema.find(item => item.gateId === 'custom-7').targetState).toContain('Preserve current production-ready contract')
+  expect(schema.find(item => item.gateId === 'custom-1').targetState).toContain('Define and enforce')
+  expect(risks).toHaveLength(6)
+  expect(risks.every(item => ['medium', 'watch', 'high'].includes(item.severity))).toBe(true)
+})
