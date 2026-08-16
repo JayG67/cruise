@@ -126,9 +126,9 @@ async function recordPlatformAuditEvent(req, event) {
   const actor = await resolvePlatformAuditActor(req)
 
   return recordAuditEvent({
-    ...actor,
-    source: PLATFORM_AUDIT_SOURCE,
-    ...event
+    ...event,
+    source: event?.source || PLATFORM_AUDIT_SOURCE,
+    ...actor
   })
 }
 

@@ -69,4 +69,37 @@ describe('AI CI evidence release policy', () => {
       reason: 'One or more required AI quality checks failed.'
     })
   })
+  it('rejects duplicate check ids so historical comparison is unambiguous', () => {
+    const evidence = buildEvidence()
+    evidence.checks.push({ ...evidence.checks[0] })
+    evidence.totalChecks += 1
+    evidence.passedChecks += 1
+
+    expect(validateAiCiEvidence(evidence)).toEqual(expect.objectContaining({
+      valid: false,
+      issues: expect.arrayContaining(['Check ids must be unique.'])
+    }))
+    expect(evaluateAiCiReleasePolicy(evidence).allowed).toBe(false)
+  })
+
+  it('rejects malformed checks and inconsistent summary fields fail closed', () => {
+    const evidence = buildEvidence()
+    evidence.checks = [...evidence.checks, null, { id: '', status: 'UNKNOWN', exitCode: -1 }]
+    evidence.totalChecks = 999
+    evidence.passedChecks = 999
+    evidence.failedChecks = 999
+
+    const result = validateAiCiEvidence(evidence)
+    expect(result.valid).toBe(false)
+    expect(result.issues).toEqual(expect.arrayContaining([
+      'Every check must be an object.',
+      'Every check must have an id.',
+      'Check unknown has an invalid status.',
+      'Check unknown has an invalid exitCode.',
+      'totalChecks does not match the checks array.',
+      'passedChecks does not match the checks array.',
+      'failedChecks does not match the checks array.'
+    ]))
+  })
+
 })

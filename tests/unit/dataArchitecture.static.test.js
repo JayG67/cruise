@@ -591,7 +591,7 @@ describe('Production data architecture hardening guardrails', () => {
     expect(platformAuditService).toContain('async function getShipAuditScope(shipId)')
     expect(platformAuditService).toContain('async function getSailingAuditScope(sailingOrId)')
     expect(platformAuditService).toContain('async function getBookingAuditScope(bookingOrId)')
-    expect(platformAuditService).toContain('source: PLATFORM_AUDIT_SOURCE')
+    expect(platformAuditService).toMatch(/source: event\?\.source \|\| PLATFORM_AUDIT_SOURCE,[\s\S]*\.\.\.actor/)
     expect(platformAuditService).toContain("userType: 'SYSTEM'")
     expect(platformAuditService).not.toContain("userType: 'PLATFORM'")
 
