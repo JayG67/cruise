@@ -117,4 +117,91 @@ describe('turnaroundContinuity.service', () => {
     expect(watchlist).toHaveLength(0)
     expect(center.commandStatus).toBe('CONTINUITY_READY')
   })
+
+  it('keeps explicit zero continuity evidence authoritative and includes it in the score', () => {
+    const inputs = buildContinuityInputs({
+      operation: { passengerCount: 5600 },
+      passengerCount: 0,
+      releasePacket: { releaseScore: 0, readinessScore: 95 },
+      commandCenter: { commandScore: 0 },
+      closeoutPacket: { closeoutScore: 0 },
+      productionReadiness: { readinessScore: 100 },
+      lifecycleState: { completionPercent: 0 }
+    })
+
+    expect(inputs.passengerCount).toBe(0)
+    expect(inputs.releaseScore).toBe(0)
+    expect(inputs.commandScore).toBe(0)
+    expect(inputs.closeoutScore).toBe(0)
+    expect(inputs.productionScore).toBe(100)
+    expect(buildContinuityScore(inputs)).toBe(0)
+  })
+
+  it('uses fallback evidence only when the authoritative continuity value is absent', () => {
+    const inputs = buildContinuityInputs({
+      operation: null,
+      releasePacket: { readinessScore: 88 },
+      productionReadiness: { productionScore: 92 },
+      tasks: null,
+      staffing: null,
+      signoffs: null,
+      escalations: null,
+      dependencies: null,
+      handoffs: null
+    })
+
+    expect(inputs).toMatchObject({
+      operationId: null,
+      operationTitle: 'Selected turnaround',
+      shipName: 'Selected ship',
+      port: 'Selected port',
+      releaseScore: 88,
+      productionScore: 92
+    })
+    expect(buildContinuityScore(inputs)).toBe(90)
+    expect(() => buildTurnaroundContinuityCenter({ operation: null })).not.toThrow()
+  })
+
+  it('covers medium and high recovery scenario branches without inventing critical severity', () => {
+    const inputs = buildContinuityInputs({
+      dependencies: [{ id: 'dep-only', taskName: 'Terminal clearance', status: 'OPEN' }],
+      staffing: [{ departmentRole: 'guest-services-lead', plannedCount: 5, checkedInCount: 4 }],
+      handoffs: [{ id: 'handoff-blocked', status: 'BLOCKED' }],
+      signoffs: [{ id: 'signoff-blocked', departmentRole: 'engineering-lead', status: 'BLOCKED' }],
+      escalations: [{ id: 'esc-watch', status: 'OPEN', title: 'Watch item' }]
+    })
+    const scenarios = buildContinuityScenarios(inputs)
+
+    expect(scenarios.find(item => item.id === 'critical-path-delay').severity).toBe('MEDIUM')
+    expect(scenarios.find(item => item.id === 'staffing-shortfall').severity).toBe('MEDIUM')
+    expect(scenarios.find(item => item.id === 'handoff-miss').severity).toBe('HIGH')
+    expect(scenarios.find(item => item.id === 'readiness-signoff-gap').severity).toBe('HIGH')
+    expect(scenarios.find(item => item.id === 'active-escalation').severity).toBe('MEDIUM')
+  })
+
+  it('covers fallback department ownership, continuity watch state, and watchlist presentation cap', () => {
+    const emptyInputs = buildContinuityInputs({})
+    expect(buildContinuityDepartments(emptyInputs)).toEqual([
+      expect.objectContaining({ departmentRole: 'Turnaround Manager', status: 'WATCH', staffingGap: false })
+    ])
+
+    const watchCenter = buildTurnaroundContinuityCenter({
+      operation: { shipName: 'Watch Ship' },
+      tasks: [{ status: 'COMPLETE' }, { status: 'IN_PROGRESS' }],
+      signoffs: [{ status: 'APPROVED' }],
+      handoffs: [{ status: 'COMPLETE' }],
+      lifecycleState: { completionPercent: 80 },
+      releasePacket: { releaseScore: 80 },
+      commandCenter: { commandScore: 80 },
+      closeoutPacket: { closeoutScore: 80 }
+    })
+    expect(watchCenter.commandStatus).toBe('CONTINUITY_WATCH')
+    expect(watchCenter.executivePrompt).toContain('active command attention')
+
+    const cappedInputs = buildContinuityInputs({
+      tasks: Array.from({ length: 12 }, (_, index) => ({ id: `blocked-${index}`, taskName: `Blocked ${index}`, status: 'BLOCKED' }))
+    })
+    expect(buildContinuityWatchlist(cappedInputs)).toHaveLength(10)
+  })
+
 })

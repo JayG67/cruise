@@ -245,7 +245,7 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           node -e "const c=require('./coverage/coverage-summary.json').total; for (const key of ['statements','branches','functions','lines']) console.log(key[0].toUpperCase()+key.slice(1)+': **'+c[key].pct+'%** ('+c[key].covered+'/'+c[key].total+')')" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Artifact includes HTML, LCOV, JSON, JSON summary, Cobertura XML, Clover XML, and complete per-file JSON/Markdown coverage evidence." >> "$GITHUB_STEP_SUMMARY"
+          echo "Artifact includes HTML, LCOV, JSON, JSON summary, Cobertura XML, Clover XML, and complete per-file JSON/Markdown/CSV coverage evidence." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload coverage reports
         if: always()

@@ -89,6 +89,8 @@ describe('production HTTP security hardening contracts', () => {
 
     for (const artifact of [
       'coverage-evidence.json',
+      'coverage-evidence.md',
+      'coverage-evidence.csv',
       'cobertura-coverage.xml',
       'clover.xml',
       'coverage-final.json',

@@ -54,6 +54,7 @@ function buildContinuityInputs({
   productionReadiness = null,
   passengerCount = 0
 } = {}) {
+  const operationDetails = operation || {}
   const taskRows = asArray(tasks)
   const staffingRows = asArray(staffing)
   const signoffRows = asArray(signoffs)
@@ -72,11 +73,11 @@ function buildContinuityInputs({
   const completedTasks = taskRows.length - incompleteTasks.length
 
   return {
-    operationId: operation.id || null,
-    operationTitle: operation.title || operation.operationName || 'Selected turnaround',
-    shipName: operation.shipName || operation.ship?.name || 'Selected ship',
-    port: operation.port || operation.arrivalPort || operation.sailing?.arrivalPort || 'Selected port',
-    passengerCount: Number(passengerCount || operation.passengerCount || 0),
+    operationId: operationDetails.id || null,
+    operationTitle: operationDetails.title || operationDetails.operationName || 'Selected turnaround',
+    shipName: operationDetails.shipName || operationDetails.ship?.name || 'Selected ship',
+    port: operationDetails.port || operationDetails.arrivalPort || operationDetails.sailing?.arrivalPort || 'Selected port',
+    passengerCount: Number(passengerCount ?? operationDetails.passengerCount ?? 0),
     tasks: taskRows,
     staffing: staffingRows,
     signoffs: signoffRows,
@@ -94,24 +95,32 @@ function buildContinuityInputs({
     taskCompletion: getPercent(completedTasks, taskRows.length),
     signoffCompletion: getPercent(signoffRows.length - pendingSignoffs.length, signoffRows.length),
     handoffCompletion: getPercent(handoffRows.length - openHandoffs.length, handoffRows.length),
-    lifecycleScore: clampScore(lifecycleState?.completionPercent || 0),
-    releaseScore: clampScore(releasePacket?.releaseScore || releasePacket?.readinessScore || 0),
-    commandScore: clampScore(commandCenter?.commandScore || 0),
-    closeoutScore: clampScore(closeoutPacket?.closeoutScore || 0),
-    productionScore: clampScore(productionReadiness?.readinessScore || productionReadiness?.productionScore || 0)
+    hasTaskEvidence: taskRows.length > 0,
+    hasSignoffEvidence: signoffRows.length > 0,
+    hasHandoffEvidence: handoffRows.length > 0,
+    hasLifecycleEvidence: lifecycleState?.completionPercent != null,
+    hasReleaseEvidence: releasePacket?.releaseScore != null || releasePacket?.readinessScore != null,
+    hasCommandEvidence: commandCenter?.commandScore != null,
+    hasCloseoutEvidence: closeoutPacket?.closeoutScore != null,
+    hasProductionEvidence: productionReadiness?.readinessScore != null || productionReadiness?.productionScore != null,
+    lifecycleScore: lifecycleState?.completionPercent == null ? null : clampScore(lifecycleState.completionPercent),
+    releaseScore: releasePacket?.releaseScore == null && releasePacket?.readinessScore == null ? null : clampScore(releasePacket?.releaseScore ?? releasePacket?.readinessScore),
+    commandScore: commandCenter?.commandScore == null ? null : clampScore(commandCenter.commandScore),
+    closeoutScore: closeoutPacket?.closeoutScore == null ? null : clampScore(closeoutPacket.closeoutScore),
+    productionScore: productionReadiness?.readinessScore == null && productionReadiness?.productionScore == null ? null : clampScore(productionReadiness?.readinessScore ?? productionReadiness?.productionScore)
   }
 }
 
 function buildContinuityScore(inputs = {}) {
   const operationalSignals = [
-    inputs.taskCompletion,
-    inputs.signoffCompletion,
-    inputs.handoffCompletion,
-    inputs.lifecycleScore,
-    inputs.releaseScore,
-    inputs.commandScore,
-    inputs.closeoutScore || inputs.productionScore
-  ].filter(score => Number(score) > 0)
+    inputs.hasTaskEvidence ? inputs.taskCompletion : null,
+    inputs.hasSignoffEvidence ? inputs.signoffCompletion : null,
+    inputs.hasHandoffEvidence ? inputs.handoffCompletion : null,
+    inputs.hasLifecycleEvidence ? inputs.lifecycleScore : null,
+    inputs.hasReleaseEvidence ? inputs.releaseScore : null,
+    inputs.hasCommandEvidence ? inputs.commandScore : null,
+    inputs.hasCloseoutEvidence ? inputs.closeoutScore : inputs.hasProductionEvidence ? inputs.productionScore : null
+  ].filter(score => score != null)
 
   const baseScore = operationalSignals.length
     ? operationalSignals.reduce((sum, score) => sum + Number(score || 0), 0) / operationalSignals.length

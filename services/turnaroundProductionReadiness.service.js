@@ -34,6 +34,7 @@ function buildReadinessInputs({
   launchPlan = null,
   scenarioPlan = null
 } = {}) {
+  const operationDetails = operation || {}
   const totalTasks = asArray(tasks).length
   const completedTasks = countItems(tasks, task => String(task.status || '').toUpperCase() === 'COMPLETED')
   const blockedTasks = countItems(tasks, task => ['BLOCKED', 'AT_RISK'].includes(String(task.status || '').toUpperCase()))
@@ -46,19 +47,19 @@ function buildReadinessInputs({
   const signoffCompletion = asArray(signoffs).length ? clampScore((approvedSignoffs / asArray(signoffs).length) * 100) : 0
 
   return {
-    operationId: operation.id,
-    shipName: operation.shipName || operation.ship?.name || 'Selected ship',
-    cruiseLineName: operation.cruiseLineName || operation.cruiseLine?.name || 'Selected cruise line',
-    turnaroundDate: operation.turnaroundDate || operation.date || 'Selected turnaround',
-    releaseScore: clampScore(releasePacket?.releaseScore || operationalMetrics?.summary?.releaseConfidence || executiveBrief?.summary?.releaseConfidence || 0),
-    launchScore: clampScore(launchPlan?.launchScore || 0),
-    scenarioScore: clampScore(scenarioPlan?.resilienceScore || 0),
-    managementScore: clampScore(managementStatus?.maturityScore || 0),
-    reviewerScore: clampScore(reviewerPacket?.readiness?.readinessScore || 0),
-    outreachScore: clampScore(outreachBoard?.readiness?.readinessScore || 0),
-    afterActionScore: clampScore(afterActionReview?.summary?.reviewScore || 0),
-    incidentScore: clampScore(incidentCommand?.incidentScore || executiveBrief?.summary?.incidentScore || 0),
-    varianceScore: clampScore(100 - Number(playbookVariance?.varianceScore || 0)),
+    operationId: operationDetails.id,
+    shipName: operationDetails.shipName || operationDetails.ship?.name || 'Selected ship',
+    cruiseLineName: operationDetails.cruiseLineName || operationDetails.cruiseLine?.name || 'Selected cruise line',
+    turnaroundDate: operationDetails.turnaroundDate || operationDetails.date || 'Selected turnaround',
+    releaseScore: clampScore(releasePacket?.releaseScore ?? operationalMetrics?.summary?.releaseConfidence ?? executiveBrief?.summary?.releaseConfidence ?? 0),
+    launchScore: clampScore(launchPlan?.launchScore ?? 0),
+    scenarioScore: clampScore(scenarioPlan?.resilienceScore ?? 0),
+    managementScore: clampScore(managementStatus?.maturityScore ?? 0),
+    reviewerScore: clampScore(reviewerPacket?.readiness?.readinessScore ?? 0),
+    outreachScore: clampScore(outreachBoard?.readiness?.readinessScore ?? 0),
+    afterActionScore: clampScore(afterActionReview?.summary?.reviewScore ?? 0),
+    incidentScore: clampScore(incidentCommand?.incidentScore ?? executiveBrief?.summary?.incidentScore ?? 0),
+    varianceScore: clampScore(100 - Number(playbookVariance?.varianceScore ?? 0)),
     taskCompletion,
     signoffCompletion,
     blockedTasks,

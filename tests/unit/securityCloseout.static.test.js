@@ -15,7 +15,7 @@ describe('security remediation closeout contracts', () => {
 
   it('keeps complete GitHub coverage evidence in the closeout gate', () => {
     const verifier = read('scripts/verify-coverage-artifacts.js')
-    for (const artifact of ['coverage-summary.json', 'coverage-final.json', 'cobertura-coverage.xml', 'clover.xml', 'coverage-evidence.json']) {
+    for (const artifact of ['coverage-summary.json', 'coverage-final.json', 'cobertura-coverage.xml', 'clover.xml', 'coverage-evidence.json', 'coverage-evidence.md', 'coverage-evidence.csv']) {
       expect(verifier).toContain(artifact)
     }
     expect(read('.github/workflows/ci.yml')).toContain('jest-coverage-report')

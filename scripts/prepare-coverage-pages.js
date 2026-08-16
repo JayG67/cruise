@@ -11,6 +11,7 @@ const coverageCobertura = path.join(coverageDir, 'cobertura-coverage.xml')
 const coverageClover = path.join(coverageDir, 'clover.xml')
 const coverageEvidenceJson = path.join(coverageDir, 'coverage-evidence.json')
 const coverageEvidenceMarkdown = path.join(coverageDir, 'coverage-evidence.md')
+const coverageEvidenceCsv = path.join(coverageDir, 'coverage-evidence.csv')
 const outputDir = path.resolve(projectRoot, 'github-pages', 'coverage')
 
 function ensureDirectory(dir) {
@@ -259,7 +260,8 @@ const productionCoverageArtifacts = [
   [coverageCobertura, 'cobertura-coverage.xml'],
   [coverageClover, 'clover.xml'],
   [coverageEvidenceJson, 'coverage-evidence.json'],
-  [coverageEvidenceMarkdown, 'coverage-evidence.md']
+  [coverageEvidenceMarkdown, 'coverage-evidence.md'],
+  [coverageEvidenceCsv, 'coverage-evidence.csv']
 ]
 
 const publishedArtifacts = []
