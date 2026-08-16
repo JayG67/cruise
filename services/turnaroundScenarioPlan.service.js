@@ -39,15 +39,16 @@ function buildStressCases({
   afterActionReview = null,
   launchPlan = null
 } = {}) {
-  const releaseScore = clampScore(releasePacket?.releaseScore || operationalMetrics?.summary?.releaseConfidence || 0)
+  operation = operation || {}
+  const releaseScore = clampScore(releasePacket?.releaseScore ?? operationalMetrics?.summary?.releaseConfidence ?? 0)
   const incidentScore = getCount(incidentCommand?.incidentScore)
-  const staffingCoverage = clampScore(operationalMetrics?.summary?.staffingCoverage || 0)
-  const taskCompletion = clampScore(operationalMetrics?.summary?.taskCompletion || 0)
-  const varianceScore = clampScore(playbookVariance?.summary?.rehearsalScore || 0)
-  const reviewScore = clampScore(afterActionReview?.summary?.reviewScore || 0)
-  const launchScore = clampScore(launchPlan?.launchScore || 0)
+  const staffingCoverage = clampScore(operationalMetrics?.summary?.staffingCoverage ?? 0)
+  const taskCompletion = clampScore(operationalMetrics?.summary?.taskCompletion ?? 0)
+  const varianceScore = clampScore(playbookVariance?.summary?.rehearsalScore ?? 0)
+  const reviewScore = clampScore(afterActionReview?.summary?.reviewScore ?? 0)
+  const launchScore = clampScore(launchPlan?.launchScore ?? 0)
 
-  const blockerCount = getCount(releasePacket?.blockers?.length || operationalMetrics?.summary?.blockerCount)
+  const blockerCount = getCount(releasePacket?.blockers?.length ?? operationalMetrics?.summary?.blockerCount ?? 0)
   const ship = operation.shipName || 'selected ship'
   const port = operation.portName || operation.turnaroundPort || 'turnaround port'
 
@@ -100,7 +101,7 @@ function buildStressCases({
       id: 'unplanned-evidence-request',
       label: 'Unplanned evidence request',
       severity: launchScore < 82 ? 'MEDIUM' : 'LOW',
-      score: Math.min(launchScore || 75, reviewScore || 75),
+      score: Math.min(launchPlan?.launchScore == null ? 75 : launchScore, afterActionReview?.summary?.reviewScore == null ? 75 : reviewScore),
       trigger: 'An operational leader requests evidence outside the planned resilience-drill sequence.',
       impact: 'The review can drift into disconnected evidence browsing instead of role-based operational decision support.',
       response: 'Use release gates, governance evidence, and the role-by-role runbook to restore a decision-focused review.',
@@ -167,6 +168,7 @@ function buildContingencyActions({ stressCases = [], launchPlan = null, manageme
 }
 
 function buildDrillRunbook({ operation = {}, stressCases = [], launchPlan = null } = {}) {
+  operation = operation || {}
   const topStressCase = stressCases.find(stressCase => stressCase.status !== 'READY') || stressCases[0]
   const ship = operation.shipName || 'selected ship'
 
@@ -205,6 +207,7 @@ function buildDrillRunbook({ operation = {}, stressCases = [], launchPlan = null
 }
 
 function buildTurnaroundScenarioPlan(input = {}) {
+  input = input || {}
   const stressCases = buildStressCases(input)
   const readyCount = stressCases.filter(stressCase => stressCase.status === 'READY').length
   const actionCount = stressCases.filter(stressCase => stressCase.status === 'ACTION_REQUIRED').length

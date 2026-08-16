@@ -149,10 +149,10 @@ function buildDepartmentBriefs({ tasks = [], staffing = [], signoffs = [], escal
 }
 
 function buildShiftChecklist({ releasePacket = null, operationalMetrics = null, commandCenter = null, continuityCenter = null, closeoutPacket = null } = {}) {
-  const releaseReady = Number(operationalMetrics?.summary?.releaseConfidence || 0) >= 80
-  const commandOpen = Number(commandCenter?.summary?.decisionQueueCount || commandCenter?.decisionQueue?.length || 0)
-  const continuityOpen = Number(continuityCenter?.summary?.watchlistCount || continuityCenter?.watchlist?.length || 0)
-  const closeoutScore = Number(closeoutPacket?.summary?.closeoutScore || 0)
+  const releaseReady = Number(operationalMetrics?.summary?.releaseConfidence ?? 0) >= 80
+  const commandOpen = Number(commandCenter?.summary?.decisionQueueCount ?? commandCenter?.decisionQueue?.length ?? 0)
+  const continuityOpen = Number(continuityCenter?.summary?.watchlistCount ?? continuityCenter?.watchlist?.length ?? 0)
+  const closeoutScore = Number(closeoutPacket?.summary?.closeoutScore ?? 0)
 
   return [
     {
@@ -183,14 +183,16 @@ function buildShiftChecklist({ releasePacket = null, operationalMetrics = null, 
 }
 
 function buildTurnaroundShiftBriefing({ operation = {}, tasks = [], staffing = [], signoffs = [], escalations = [], dependencies = [], handoffs = [], releasePacket = null, operationalMetrics = null, commandCenter = null, continuityCenter = null, closeoutPacket = null } = {}) {
+  operation = operation || {}
   const criticalItems = buildBriefingCriticalItems({ tasks, dependencies, handoffs, escalations, signoffs })
   const departmentBriefs = buildDepartmentBriefs({ tasks, staffing, signoffs, escalations })
   const checklist = buildShiftChecklist({ releasePacket, operationalMetrics, commandCenter, continuityCenter, closeoutPacket })
   const actionCount = criticalItems.filter(item => item.priority >= 80).length + checklist.filter(item => item.status === 'ACTION').length
   const watchCount = criticalItems.filter(item => item.priority < 80).length + checklist.filter(item => item.status === 'WATCH').length
   const handoffStatus = actionCount > 0 ? 'COMMAND_REVIEW' : watchCount > 1 ? 'WATCH_HANDOFF' : 'READY_HANDOFF'
-  const releaseConfidence = Number(operationalMetrics?.summary?.releaseConfidence || 0)
-  const briefingScore = Math.max(0, Math.min(100, Math.round(releaseConfidence || 75) - actionCount * 7 - watchCount * 3))
+  const releaseConfidenceSource = operationalMetrics?.summary?.releaseConfidence
+  const releaseConfidence = releaseConfidenceSource == null ? 75 : Number(releaseConfidenceSource) || 0
+  const briefingScore = Math.max(0, Math.min(100, Math.round(releaseConfidence) - actionCount * 7 - watchCount * 3))
 
   return {
     operationId: operation.id || null,

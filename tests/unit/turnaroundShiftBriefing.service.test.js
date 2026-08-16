@@ -56,6 +56,50 @@ describe('turnaroundShiftBriefing service', () => {
     expect(criticalItems.map(item => item.type)).toEqual(expect.arrayContaining(['BLOCKER', 'START_READY']))
   })
 
+
+  it('preserves zero release confidence and authoritative zero queue counts', () => {
+    const briefing = buildTurnaroundShiftBriefing({
+      operation: null,
+      operationalMetrics: { summary: { releaseConfidence: 0 } },
+      commandCenter: { summary: { decisionQueueCount: 0 }, decisionQueue: [{ id: 'stale-command' }] },
+      continuityCenter: { summary: { watchlistCount: 0 }, watchlist: [{ id: 'stale-watch' }] },
+      closeoutPacket: { summary: { closeoutScore: 90 } }
+    })
+
+    expect(briefing.operationId).toBeNull()
+    expect(briefing.summary.briefingScore).toBe(0)
+    expect(briefing.summary.handoffStatus).toBe('READY_HANDOFF')
+    expect(briefing.checklist).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'decision-queue', status: 'READY' }),
+      expect.objectContaining({ id: 'continuity-watchlist', status: 'READY' }),
+      expect.objectContaining({ id: 'release-confidence', status: 'WATCH' })
+    ]))
+  })
+
+  it('falls back to queue arrays only when summary counts are absent', () => {
+    const checklist = buildShiftChecklist({
+      operationalMetrics: { summary: { releaseConfidence: 90 } },
+      commandCenter: { decisionQueue: [{ id: 'command-1' }, { id: 'command-2' }] },
+      continuityCenter: { watchlist: [{ id: 'watch-1' }] },
+      closeoutPacket: { summary: { closeoutScore: 90 } }
+    })
+
+    expect(checklist).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'decision-queue', status: 'ACTION', detail: expect.stringContaining('2 command decisions') }),
+      expect.objectContaining({ id: 'continuity-watchlist', status: 'WATCH', detail: expect.stringContaining('1 continuity watch item') })
+    ]))
+  })
+
+  it('uses the neutral briefing baseline only when release confidence is absent', () => {
+    const briefing = buildTurnaroundShiftBriefing({
+      operation: { id: 'turnaround-neutral' },
+      closeoutPacket: { summary: { closeoutScore: 90 } }
+    })
+
+    expect(briefing.summary.briefingScore).toBe(72)
+    expect(briefing.summary.handoffStatus).toBe('READY_HANDOFF')
+  })
+
   it('summarizes department focus and checklist readiness for clean handoffs', () => {
     const departmentBriefs = buildDepartmentBriefs({
       tasks: [{ id: 'task-4', departmentRole: 'FOOD_BEVERAGE_LEAD', taskName: 'Provision stores', status: 'COMPLETE' }],

@@ -35,7 +35,7 @@ function main() {
     ['CSP inline execution blocked', !security.includes("'unsafe-inline'") && security.includes("\"script-src-attr 'none'\"")],
     ['safe production errors', security.includes("message: 'Internal server error', requestId")],
     ['bounded request bodies', app.includes("express.json({ limit: '512kb' })")],
-    ['coverage evidence', workflow.includes('jest-coverage-report') && coverageVerifier.includes('coverage-evidence.json')],
+    ['coverage evidence', workflow.includes('jest-coverage-report') && ['coverage-evidence.json', 'coverage-evidence.md', 'coverage-evidence.csv'].every(file => coverageVerifier.includes(file))],
     ['security closeout in CI', workflow.includes('node scripts/verify-security-closeout.js')],
     ['bounded dependency residual risk', dependencyVerifier.includes('MAX_ACCEPTED_LOW_SEVERITY = 1') && dependencyVerifier.includes('lowCount > MAX_ACCEPTED_LOW_SEVERITY')]
   ].map(([name, passed]) => ({ name, status: passed ? 'PASSED' : 'FAILED' }))

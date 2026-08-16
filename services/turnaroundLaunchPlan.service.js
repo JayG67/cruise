@@ -36,9 +36,11 @@ function buildCertificationGates({
   outreachBoard = null,
   managementStatus = null
 } = {}) {
-  const releaseScore = clampScore(releasePacket?.releaseScore || operationalMetrics?.summary?.releaseConfidence || executiveBrief?.summary?.releaseConfidence || 0)
-  const incidentSafety = clampScore(100 - Number(incidentCommand?.incidentScore || executiveBrief?.summary?.incidentScore || 0))
-  const reviewScore = clampScore(afterActionReview?.summary?.reviewScore || executiveBrief?.summary?.reviewScore || 0)
+  operation = operation || {}
+  const releaseScore = clampScore(releasePacket?.releaseScore ?? operationalMetrics?.summary?.releaseConfidence ?? executiveBrief?.summary?.releaseConfidence ?? 0)
+  const incidentScore = Number(incidentCommand?.incidentScore ?? executiveBrief?.summary?.incidentScore ?? 0)
+  const incidentSafety = clampScore(100 - incidentScore)
+  const reviewScore = clampScore(afterActionReview?.summary?.reviewScore ?? executiveBrief?.summary?.reviewScore ?? 0)
   const reviewerScore = clampScore(reviewerPacket?.readiness?.readinessScore || 0)
   const outreachScore = clampScore(outreachBoard?.readiness?.readinessScore || 0)
   const maturityScore = clampScore(managementStatus?.maturityScore || 0)
@@ -55,7 +57,7 @@ function buildCertificationGates({
       id: 'incident-risk-contained',
       label: 'Incident risk contained',
       score: incidentSafety,
-      detail: `Incident command severity is ${normalizeStatus(incidentCommand?.incidentSeverity, 'stable')} with a risk score of ${Number(incidentCommand?.incidentScore || 0)}.`,
+      detail: `Incident command severity is ${normalizeStatus(incidentCommand?.incidentSeverity, 'stable')} with a risk score of ${incidentScore}.`,
       evidence: ['Incident command bridge', 'Escalation severity', 'Open dependency review']
     }),
     buildLaunchGate({
@@ -90,6 +92,7 @@ function buildCertificationGates({
 }
 
 function buildDemoRunbook({ operation = {}, gates = [], managementStatus = null } = {}) {
+  operation = operation || {}
   const ship = operation.shipName || 'selected ship'
   const cruiseLine = operation.cruiseLineName || 'selected cruise line'
   const weakGate = gates.find(gate => gate.score < 78)

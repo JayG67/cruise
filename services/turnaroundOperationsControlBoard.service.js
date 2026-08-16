@@ -12,20 +12,21 @@ function clampScore(value) {
 }
 
 function buildBoardSummary({ tasks = [], staffing = [], signoffs = [], escalations = [], dependencies = [], handoffs = [], commandCenter = null, continuityCenter = null, shiftBriefing = null, goLiveCenter = null } = {}) {
+  tasks = Array.isArray(tasks) ? tasks : []; staffing = Array.isArray(staffing) ? staffing : []; signoffs = Array.isArray(signoffs) ? signoffs : []; escalations = Array.isArray(escalations) ? escalations : []; dependencies = Array.isArray(dependencies) ? dependencies : []; handoffs = Array.isArray(handoffs) ? handoffs : []
   const totalTasks = tasks.length
   const completeTasks = tasks.filter(task => normalizeStatus(task.status) === 'COMPLETE').length
   const blockedTasks = tasks.filter(task => normalizeStatus(task.status) === 'BLOCKED').length
   const openDependencies = dependencies.filter(dependency => normalizeStatus(dependency.status) !== 'CLEARED').length
   const openHandoffs = handoffs.filter(handoff => normalizeStatus(handoff.status) !== 'COMPLETE').length
   const openEscalations = escalations.filter(escalation => !['RESOLVED', 'CLOSED'].includes(normalizeStatus(escalation.status))).length
-  const criticalEscalations = escalations.filter(escalation => normalizeStatus(escalation.severity) === 'CRITICAL').length
+  const criticalEscalations = escalations.filter(escalation => normalizeStatus(escalation.severity) === 'CRITICAL' && !['RESOLVED', 'CLOSED'].includes(normalizeStatus(escalation.status))).length
   const pendingSignoffs = signoffs.filter(signoff => normalizeStatus(signoff.status) !== 'APPROVED').length
   const staffingGap = staffing.reduce((sum, row) => sum + Math.max(numberFrom(row.plannedCount) - numberFrom(row.checkedInCount), 0), 0)
   const completionPercent = totalTasks ? Math.round((completeTasks / totalTasks) * 100) : 0
-  const commandScore = clampScore(commandCenter?.summary?.commandScore || commandCenter?.commandScore || completionPercent)
-  const continuityScore = clampScore(continuityCenter?.summary?.continuityScore || continuityCenter?.continuityScore || commandScore)
-  const briefingScore = clampScore(shiftBriefing?.summary?.briefingScore || commandScore)
-  const goLiveScore = clampScore(goLiveCenter?.summary?.goLiveScore || commandScore)
+  const commandScore = clampScore(commandCenter?.summary?.commandScore ?? commandCenter?.commandScore ?? completionPercent)
+  const continuityScore = clampScore(continuityCenter?.summary?.continuityScore ?? continuityCenter?.continuityScore ?? commandScore)
+  const briefingScore = clampScore(shiftBriefing?.summary?.briefingScore ?? commandScore)
+  const goLiveScore = clampScore(goLiveCenter?.summary?.goLiveScore ?? commandScore)
   const controlScore = clampScore((completionPercent + commandScore + continuityScore + briefingScore + goLiveScore) / 5 - (blockedTasks * 4) - (criticalEscalations * 5) - (openDependencies * 2) - Math.min(staffingGap, 10))
   const blockerCount = blockedTasks + openDependencies + criticalEscalations + pendingSignoffs + Math.min(staffingGap, 99)
   const goNoGoStatus = criticalEscalations > 0 || blockedTasks > 1 || goLiveScore < 60
@@ -103,6 +104,7 @@ function buildControlLanes({ summary = {}, commandCenter = null, continuityCente
 }
 
 function buildControlActions({ tasks = [], escalations = [], dependencies = [], handoffs = [], commandCenter = null, continuityCenter = null, shiftBriefing = null, goLiveCenter = null } = {}) {
+  tasks = Array.isArray(tasks) ? tasks : []; escalations = Array.isArray(escalations) ? escalations : []; dependencies = Array.isArray(dependencies) ? dependencies : []; handoffs = Array.isArray(handoffs) ? handoffs : []
   return [
     ...(commandCenter?.decisionQueue || []).map(item => ({ id: `decision-${item.id}`, priority: item.severity || 'NORMAL', owner: item.owner || 'Command', action: item.action || item.decision, source: 'Command center' })),
     ...(shiftBriefing?.criticalItems || []).map(item => ({ id: `briefing-${item.id}`, priority: item.type || 'WATCH', owner: item.owner || item.departmentRole || 'Shift lead', action: `${item.label}: ${item.detail}`, source: 'Shift briefing' })),

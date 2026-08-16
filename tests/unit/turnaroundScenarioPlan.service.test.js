@@ -81,6 +81,56 @@ describe('turnaroundScenarioPlan service', () => {
     ]))
   })
 
+
+  it('preserves authoritative zero evidence instead of substituting healthier fallbacks', () => {
+    const stressCases = buildStressCases({
+      operation,
+      releasePacket: { releaseScore: 0, blockers: [] },
+      operationalMetrics: { summary: { releaseConfidence: 92, staffingCoverage: 90, taskCompletion: 88, blockerCount: 4 } },
+      launchPlan: { launchScore: 0 },
+      afterActionReview: { summary: { reviewScore: 0 } },
+      playbookVariance: { summary: { rehearsalScore: 90 } }
+    })
+
+    expect(stressCases.find(item => item.id === 'late-cabin-release')).toEqual(expect.objectContaining({
+      resilienceScore: 0,
+      severity: 'MEDIUM',
+      status: 'ACTION_REQUIRED'
+    }))
+    expect(stressCases.find(item => item.id === 'unplanned-evidence-request')).toEqual(expect.objectContaining({
+      resilienceScore: 0,
+      status: 'ACTION_REQUIRED'
+    }))
+  })
+
+  it('uses fallback evidence only when authoritative scenario values are absent', () => {
+    const stressCases = buildStressCases({
+      operation,
+      releasePacket: {},
+      operationalMetrics: { summary: { releaseConfidence: 91, staffingCoverage: 88, taskCompletion: 90, blockerCount: 2 } },
+      launchPlan: {},
+      afterActionReview: { summary: {} },
+      playbookVariance: { summary: { rehearsalScore: 86 } }
+    })
+
+    expect(stressCases.find(item => item.id === 'late-cabin-release')).toEqual(expect.objectContaining({
+      severity: 'HIGH',
+      resilienceScore: 82
+    }))
+    expect(stressCases.find(item => item.id === 'unplanned-evidence-request')).toEqual(expect.objectContaining({
+      resilienceScore: 75
+    }))
+  })
+
+  it('degrades safely when scenario operation input is explicitly null', () => {
+    const plan = buildTurnaroundScenarioPlan({ operation: null })
+    const runbook = buildDrillRunbook({ operation: null, stressCases: [] })
+
+    expect(plan.summary).toContain('the selected ship')
+    expect(plan.stressCases).toHaveLength(5)
+    expect(runbook[0].detail).toContain('selected ship')
+  })
+
   it('keeps the drill runbook focused even when launch-plan data is unavailable', () => {
     const runbook = buildDrillRunbook({
       operation,
