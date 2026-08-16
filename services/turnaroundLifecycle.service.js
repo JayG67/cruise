@@ -67,6 +67,10 @@ function clampPercent(value) {
   return Math.max(0, Math.min(100, Math.round(Number(value) || 0)))
 }
 
+function asArray(value) {
+  return Array.isArray(value) ? value : []
+}
+
 function percent(part, total) {
   if (!total) return 0
   return clampPercent((Number(part || 0) / Number(total || 1)) * 100)
@@ -268,6 +272,9 @@ function buildPhaseBlockers(phaseId, context) {
 }
 
 function buildTurnaroundLifecycleState({ operation = {}, tasks = [], staffing = [], signoffs = [], escalations = [], dependencies = [], handoffs = [], releasePacket = null, operationalMetrics = null } = {}) {
+  operation = operation || {}
+  tasks = asArray(tasks); staffing = asArray(staffing); signoffs = asArray(signoffs)
+  escalations = asArray(escalations); dependencies = asArray(dependencies); handoffs = asArray(handoffs)
   const totalTasks = tasks.length
   const completedTasks = tasks.filter(isCompleteTask).length
   const blockedTasks = tasks.filter(isBlockedTask).length

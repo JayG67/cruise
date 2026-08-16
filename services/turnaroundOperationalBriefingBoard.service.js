@@ -10,14 +10,20 @@ function firstNonEmpty(...values) {
   return values.find(value => String(value || '').trim().length > 0) || ''
 }
 
+function normalizeRiskCount(value) {
+  const count = Number(value)
+  if (!Number.isFinite(count)) return 0
+  return Math.max(0, Math.trunc(count))
+}
+
 function getDataQualityRisk(dataQuality = {}) {
   dataQuality = dataQuality || {}
-  return Number(dataQuality.blockerCount || 0) +
-    Number(dataQuality.openEscalations || 0) +
-    Number(dataQuality.staffingGaps || 0) +
-    Number(dataQuality.incompleteSignoffs || 0) +
-    Number(dataQuality.openDependencies || 0) +
-    Number(dataQuality.openHandoffs || 0)
+  return normalizeRiskCount(dataQuality.blockerCount) +
+    normalizeRiskCount(dataQuality.openEscalations) +
+    normalizeRiskCount(dataQuality.staffingGaps) +
+    normalizeRiskCount(dataQuality.incompleteSignoffs) +
+    normalizeRiskCount(dataQuality.openDependencies) +
+    normalizeRiskCount(dataQuality.openHandoffs)
 }
 
 function buildBriefingReadiness({ operationalAssurancePacket = null, executiveBrief = null, afterActionReview = null, incidentCommand = null } = {}) {

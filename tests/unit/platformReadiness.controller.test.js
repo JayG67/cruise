@@ -73,6 +73,42 @@ describe('platformReadiness controller', () => {
     expect(buildDeploymentReadiness).not.toHaveBeenCalled()
   })
 
+
+  it('reads deployment evidence from the canonical case-sensitive README.md path', async () => {
+    const fs = require('fs')
+    const readSpy = jest.spyOn(fs, 'readFileSync').mockImplementation(filePath => {
+      const value = String(filePath)
+      if (value.endsWith('/package.json')) return '{}'
+      if (value.endsWith('/README.md')) return 'canonical-readme-evidence'
+      return ''
+    })
+
+    try {
+      await controller.getDeploymentReadiness({}, response(), jest.fn())
+      expect(buildDeploymentReadiness).toHaveBeenCalledWith(expect.objectContaining({
+        readme: 'canonical-readme-evidence'
+      }))
+      expect(readSpy.mock.calls.some(([filePath]) => String(filePath).endsWith('/Readme.md'))).toBe(false)
+    } finally {
+      readSpy.mockRestore()
+    }
+  })
+
+  it.each([
+    'getPublicLaunchReadiness',
+    'getDeploymentReadiness',
+    'getProductionHardeningReadiness',
+    'getDataArchitectureReadiness'
+  ])('short-circuits %s before file or database evidence is collected when authorization fails', async handler => {
+    requireAdminRequest.mockResolvedValue(false)
+    await controller[handler]({}, response(), jest.fn())
+    expect(db.select).not.toHaveBeenCalled()
+    expect(buildPublicLaunchReadiness).not.toHaveBeenCalled()
+    expect(buildDeploymentReadiness).not.toHaveBeenCalled()
+    expect(buildProductionHardeningReadiness).not.toHaveBeenCalled()
+    expect(buildDataArchitectureReadiness).not.toHaveBeenCalled()
+  })
+
   it('forwards readiness failures to Express error handling', async () => {
     buildDeploymentReadiness.mockImplementationOnce(() => { throw new Error('readiness failed') })
     const next = jest.fn()

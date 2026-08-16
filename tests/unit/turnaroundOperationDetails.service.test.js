@@ -142,6 +142,45 @@ describe('turnaround operation details branch coverage', () => {
     expect(result.handoffSummary).toEqual(expect.objectContaining({ blockedHandoffs: 1, openHandoffs: 1 }))
   })
 
+
+  test('does not report embarkation readiness while staffing, dependency, or handoff release blockers remain', async () => {
+    async function runReleaseCandidate({ staffing, dependencies, handoffs }) {
+      mockRows.clear()
+      setRows(mockTables.sailing, [{ id: 'SAIL-R', shipId: null }])
+      setRows(mockTables.task, [{ id: 'T-R', taskName: 'Complete task', status: 'COMPLETE', sortOrder: 1 }])
+      setRows(mockTables.signoff, [{ departmentRole: 'Bridge', status: 'APPROVED' }])
+      setRows(mockTables.escalation, [])
+      setRows(mockTables.staffing, staffing)
+      setRows(mockTables.dependency, dependencies)
+      setRows(mockTables.handoff, handoffs)
+      setRows(mockTables.update, [])
+      setRows(mockTables.booking, [])
+      return getTurnaroundOperationDetails({ id: 'OP-R', sailingId: 'SAIL-R' })
+    }
+
+    const staffingBlocked = await runReleaseCandidate({
+      staffing: [{ departmentRole: 'Hotel', plannedCount: 4, checkedInCount: 3 }],
+      dependencies: [],
+      handoffs: []
+    })
+    expect(staffingBlocked.status).toBe('COMPLETE')
+    expect(staffingBlocked.readinessLevel).toBe('Blocked')
+
+    const dependencyBlocked = await runReleaseCandidate({
+      staffing: [{ departmentRole: 'Hotel', plannedCount: 4, checkedInCount: 4 }],
+      dependencies: [{ id: 'D-R', status: 'ACTIVE', taskId: 'T-R', dependsOnTaskId: 'T-R' }],
+      handoffs: []
+    })
+    expect(dependencyBlocked.readinessLevel).toBe('Blocked')
+
+    const handoffBlocked = await runReleaseCandidate({
+      staffing: [{ departmentRole: 'Hotel', plannedCount: 4, checkedInCount: 4 }],
+      dependencies: [],
+      handoffs: [{ id: 'H-R', status: 'PENDING', dueTime: '12:00' }]
+    })
+    expect(handoffBlocked.readinessLevel).toBe('Blocked')
+  })
+
   test('derives in-progress and planning states including zero-denominator summaries', async () => {
     setRows(mockTables.sailing, [{ id: 'SAIL3', shipId: null }])
     setRows(mockTables.task, [{ id: 'T1', taskName: 'Started', status: 'IN_PROGRESS', sortOrder: null }])

@@ -46,15 +46,15 @@ function buildGoLiveReadinessInputs(input = {}) {
     activeDependencies,
     openHandoffs,
     staffingGaps,
-    commandScore: scoreFrom(input.commandCenter?.summary?.commandScore || input.commandCenter?.commandScore, 72),
-    continuityScore: scoreFrom(input.continuityCenter?.continuityScore || input.continuityCenter?.summary?.continuityScore, 72),
+    commandScore: scoreFrom(input.commandCenter?.summary?.commandScore ?? input.commandCenter?.commandScore, 72),
+    continuityScore: scoreFrom(input.continuityCenter?.continuityScore ?? input.continuityCenter?.summary?.continuityScore, 72),
     shiftScore: scoreFrom(input.shiftBriefing?.summary?.briefingScore, 72),
-    closeoutScore: scoreFrom(input.closeoutPacket?.closeoutScore || input.closeoutPacket?.summary?.closeoutScore, 72),
-    productionScore: scoreFrom(input.productionReadiness?.readinessScore || input.productionReadiness?.summary?.readinessScore, 72),
-    launchScore: scoreFrom(input.launchPlan?.launchScore || input.launchPlan?.summary?.launchScore, 72),
-    dossierScore: scoreFrom(input.applicationDossier?.dossierScore || input.applicationDossier?.summary?.dossierScore, 72),
-    releaseScore: scoreFrom(input.releasePacket?.summary?.releaseScore || input.operationalMetrics?.summary?.releaseConfidence, 72),
-    lifecycleScore: scoreFrom(input.lifecycleState?.completionPercent || input.lifecycleState?.summary?.completionPercent, 72)
+    closeoutScore: scoreFrom(input.closeoutPacket?.closeoutScore ?? input.closeoutPacket?.summary?.closeoutScore, 72),
+    productionScore: scoreFrom(input.productionReadiness?.readinessScore ?? input.productionReadiness?.summary?.readinessScore, 72),
+    launchScore: scoreFrom(input.launchPlan?.launchScore ?? input.launchPlan?.summary?.launchScore, 72),
+    dossierScore: scoreFrom(input.applicationDossier?.dossierScore ?? input.applicationDossier?.summary?.dossierScore, 72),
+    releaseScore: scoreFrom(input.releasePacket?.summary?.releaseScore ?? input.operationalMetrics?.summary?.releaseConfidence, 72),
+    lifecycleScore: scoreFrom(input.lifecycleState?.completionPercent ?? input.lifecycleState?.summary?.completionPercent, 72)
   }
 }
 

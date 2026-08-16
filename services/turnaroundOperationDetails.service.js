@@ -123,12 +123,12 @@ function getTurnaroundStaffingSummary(staffing = []) {
   }
 }
 
-function getDerivedTurnaroundReadinessLevel(tasks = [], signoffs = [], escalations = []) {
+function getDerivedTurnaroundReadinessLevel(tasks = [], signoffs = [], escalations = [], staffing = [], dependencies = [], handoffs = []) {
   const progress = getTurnaroundProgress(tasks)
   const signoffSummary = getTurnaroundSignoffSummary(signoffs)
   const escalationSummary = getTurnaroundEscalationSummary(escalations)
-
-  if (progress.blockedTasks > 0 || signoffSummary.blockedSignoffs > 0 || escalationSummary.criticalEscalations > 0) return 'Blocked'
+  const releaseBlockers = getTurnaroundStaffingSummary(staffing).gapCount + getTurnaroundDependencySummary(dependencies).activeDependencies + getTurnaroundHandoffSummary(handoffs).openHandoffs
+  if (progress.blockedTasks > 0 || signoffSummary.blockedSignoffs > 0 || escalationSummary.criticalEscalations > 0 || releaseBlockers > 0) return 'Blocked'
   if (progress.totalTasks > 0 && progress.completeTasks === progress.totalTasks && signoffSummary.totalSignoffs > 0 && signoffSummary.approvedSignoffs === signoffSummary.totalSignoffs) return 'Ready for embarkation'
   if (progress.inProgressTasks > 0 || progress.completeTasks > 0 || signoffSummary.approvedSignoffs > 0) return 'In progress'
 
@@ -326,7 +326,7 @@ async function getTurnaroundOperationDetails(operation) {
     commandStatus: operation.status,
     commandReadinessLevel: operation.readinessLevel,
     status: getDerivedTurnaroundStatus(sortedTasks, sortedEscalations),
-    readinessLevel: getDerivedTurnaroundReadinessLevel(sortedTasks, sortedSignoffs, sortedEscalations),
+    readinessLevel: getDerivedTurnaroundReadinessLevel(sortedTasks, sortedSignoffs, sortedEscalations, sortedStaffing, enrichedDependencies, sortedHandoffs),
     signoffs: sortedSignoffs,
     signoffSummary: getTurnaroundSignoffSummary(sortedSignoffs),
     escalations: sortedEscalations,

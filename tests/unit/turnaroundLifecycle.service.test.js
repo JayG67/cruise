@@ -100,3 +100,60 @@ describe('turnaroundLifecycle service', () => {
     expect(percent(10, 0)).toBe(0)
   })
 })
+
+describe('turnaroundLifecycle resilience hardening', () => {
+  it('preserves explicit zero release confidence instead of replacing it with a release-packet fallback', () => {
+    const lifecycle = buildTurnaroundLifecycleState({
+      operation: { id: 'turnaround-zero', status: 'ACTIVE' },
+      tasks: [{ status: 'COMPLETE' }],
+      signoffs: [{ status: 'APPROVED' }],
+      operationalMetrics: { summary: { releaseConfidence: 0 } },
+      releasePacket: { readinessScore: 95 }
+    })
+
+    expect(lifecycle.summary.releaseConfidence).toBe(0)
+    expect(lifecycle.completed).toBe(false)
+  })
+
+  it('degrades safely when operation and operational collections are explicitly null', () => {
+    const lifecycle = buildTurnaroundLifecycleState({
+      operation: null,
+      tasks: null,
+      staffing: null,
+      signoffs: null,
+      escalations: null,
+      dependencies: null,
+      handoffs: null
+    })
+
+    expect(lifecycle.operationId).toBeNull()
+    expect(lifecycle.summary.totalTasks).toBe(0)
+    expect(lifecycle.summary.totalSignoffs).toBe(0)
+    expect(lifecycle.completed).toBe(false)
+    expect(lifecycle.phases).toHaveLength(TURNAROUND_LIFECYCLE_PHASES.length)
+  })
+})
+
+describe('turnaroundLifecycle branch coverage', () => {
+  it('uses the release-packet confidence only when operational confidence is absent', () => {
+    const lifecycle = buildTurnaroundLifecycleState({
+      operation: { id: 'fallback', commanderIntent: 'Release safely' },
+      tasks: [{ status: 'COMPLETE' }],
+      staffing: [{ plannedCount: 2, checkedInCount: 2 }],
+      signoffs: [{ status: 'APPROVED' }],
+      releasePacket: { readinessScore: 88 }
+    })
+    expect(lifecycle.summary.releaseConfidence).toBe(88)
+  })
+
+  it('keeps department ordering deterministic when risk scores tie', () => {
+    const rows = buildDepartmentLifecycleRows({
+      tasks: [
+        { departmentRole: 'Zulu', status: 'COMPLETE' },
+        { departmentRole: 'Alpha', status: 'COMPLETE' }
+      ]
+    })
+    expect(rows.map(row => row.departmentRole)).toEqual(['Alpha', 'Zulu'])
+    expect(rows.every(row => row.ready)).toBe(true)
+  })
+})

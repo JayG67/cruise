@@ -143,3 +143,94 @@ describe('turnaroundCloseout service', () => {
     ]))
   })
 })
+
+describe('turnaroundCloseout authoritative evidence hardening', () => {
+  it('preserves explicit zero scores instead of replacing them with healthier fallback evidence', () => {
+    const packet = buildTurnaroundCloseoutPacket({
+      operation: { id: 'turnaround-zero', shipName: 'Zero Ship' },
+      tasks: [], signoffs: [], staffing: [], escalations: [], dependencies: [], handoffs: [], auditEvents: [],
+      lifecycleState: { completionPercent: 0 },
+      releasePacket: { readinessScore: 0, releaseScore: 94 },
+      operationalMetrics: { summary: { releaseConfidence: 96 } },
+      afterActionReview: { summary: { reviewScore: 0 }, followUpActions: [] },
+      executiveBrief: { summary: { reviewScore: 90 } },
+      operationalTimeline: { summary: { totalEvents: 0 }, items: [{ id: 'stale-event' }] }
+    })
+
+    expect(packet.evidence.releaseScore).toBe(0)
+    expect(packet.evidence.afterActionScore).toBe(0)
+    expect(packet.evidence.timelineEvents).toBe(0)
+    expect(packet.closeoutStatus).toBe('NOT_READY_TO_CLOSE')
+  })
+
+  it('uses fallback evidence only when the authoritative value is absent', () => {
+    const packet = buildTurnaroundCloseoutPacket({
+      operation: { id: 'turnaround-fallback' },
+      releasePacket: { releaseScore: 83 },
+      operationalMetrics: { summary: { releaseConfidence: 91 } },
+      executiveBrief: { summary: { reviewScore: 79 } },
+      operationalTimeline: { items: [{ id: 'event-1' }, { id: 'event-2' }] }
+    })
+
+    expect(packet.evidence.releaseScore).toBe(83)
+    expect(packet.evidence.afterActionScore).toBe(79)
+    expect(packet.evidence.timelineEvents).toBe(2)
+  })
+
+  it('degrades safely for explicit null operation and collection inputs', () => {
+    const packet = buildTurnaroundCloseoutPacket({
+      operation: null,
+      tasks: null,
+      staffing: null,
+      signoffs: null,
+      escalations: null,
+      dependencies: null,
+      handoffs: null,
+      auditEvents: null
+    })
+
+    expect(packet.operationId).toBeNull()
+    expect(packet.evidence.totalTasks).toBe(0)
+    expect(packet.evidence.totalSignoffs).toBe(0)
+    expect(packet.evidence.auditEventCount).toBe(0)
+    expect(packet.closeoutStatus).toBe('NOT_READY_TO_CLOSE')
+  })
+})
+
+describe('turnaroundCloseout decision branches', () => {
+  it('returns READY_TO_CLOSE when all gates are strong and no high blocker remains', () => {
+    const packet = buildTurnaroundCloseoutPacket({
+      operation: { id: 'ready', shipName: 'Ready Ship' },
+      tasks: [{ status: 'COMPLETE' }],
+      signoffs: [{ status: 'APPROVED' }],
+      lifecycleState: { completionPercent: 100 },
+      releasePacket: { readinessScore: 100 },
+      managementStatus: { maturityScore: 100, remainingWork: [] },
+      productionReadiness: { productionScore: 100 },
+      applicationDossier: { dossierScore: 100 },
+      reviewerPacket: { readiness: { readinessScore: 100 } },
+      presentationGuide: { averageScore: 100 },
+      afterActionReview: { summary: { reviewScore: 100 }, followUpActions: [] },
+      operationalTimeline: { summary: { totalEvents: 1 } }
+    })
+    expect(packet.closeoutStatus).toBe('READY_TO_CLOSE')
+    expect(packet.blockers).toEqual([expect.objectContaining({ id: 'closeout-ready', severity: 'INFO' })])
+  })
+
+  it('returns CLOSE_WITH_WATCH_ITEMS for a watch-range packet without high blockers', () => {
+    const packet = buildTurnaroundCloseoutPacket({
+      operation: { id: 'watch' },
+      tasks: [{ status: 'COMPLETE' }],
+      signoffs: [{ status: 'APPROVED' }],
+      lifecycleState: { completionPercent: 82 },
+      releasePacket: { readinessScore: 82 },
+      productionReadiness: { productionScore: 82 },
+      applicationDossier: { dossierScore: 82 },
+      reviewerPacket: { readiness: { readinessScore: 82 } },
+      presentationGuide: { averageScore: 82 },
+      afterActionReview: { summary: { reviewScore: 82 }, followUpActions: [] }
+    })
+    expect(packet.closeoutStatus).toBe('CLOSE_WITH_WATCH_ITEMS')
+    expect(packet.gates.every(gate => gate.status !== 'BLOCKED')).toBe(true)
+  })
+})

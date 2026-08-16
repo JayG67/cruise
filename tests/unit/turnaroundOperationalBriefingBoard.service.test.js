@@ -185,3 +185,44 @@ describe('turnaroundOperationalBriefingBoard authoritative evidence and resilien
     expect(checklist.find(item => item.id === 'learning-loop').detail).toContain('0% after-action review score')
   })
 })
+
+describe('turnaroundOperationalBriefingBoard malformed evidence hardening', () => {
+  it('does not let negative or malformed data-quality counts make briefing evidence look healthier', () => {
+    const readiness = buildBriefingReadiness({
+      operationalAssurancePacket: {
+        readiness: { readinessScore: 92 },
+        dataQuality: {
+          blockerCount: -4,
+          openEscalations: '2.9',
+          staffingGaps: 'not-a-number',
+          incompleteSignoffs: -1,
+          openDependencies: 1,
+          openHandoffs: 0
+        }
+      },
+      executiveBrief: { summary: { decisionScore: 92 } },
+      afterActionReview: { summary: { reviewScore: 92 } },
+      incidentCommand: { incidentScore: 0 }
+    })
+
+    expect(readiness.dataQualityRisk).toBe(3)
+    expect(readiness.dataQualityScore).toBe(76)
+    expect(readiness.readinessStatus).toBe('READY_WITH_NOTES')
+  })
+
+  it('covers review and ready status thresholds without relying on malformed evidence', () => {
+    expect(buildBriefingReadiness({
+      operationalAssurancePacket: { readiness: { readinessScore: 70 }, dataQuality: {} },
+      executiveBrief: { summary: { decisionScore: 70 } },
+      afterActionReview: { summary: { reviewScore: 70 } },
+      incidentCommand: { incidentScore: 20 }
+    }).readinessStatus).toBe('REVIEW_BEFORE_BRIEFING')
+
+    expect(buildBriefingReadiness({
+      operationalAssurancePacket: { readiness: { readinessScore: 98 }, dataQuality: {} },
+      executiveBrief: { summary: { decisionScore: 98 } },
+      afterActionReview: { summary: { reviewScore: 98 } },
+      incidentCommand: { incidentScore: 0 }
+    }).readinessStatus).toBe('READY_FOR_BRIEFING')
+  })
+})

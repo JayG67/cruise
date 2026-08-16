@@ -72,7 +72,6 @@ describe('booking domain behavior and relational resilience', () => {
   test('skips the booking being updated and ignores missing booking or sailing relationships', async () => {
     queueSelectResults(
       [{ bookingId: 'SELF', customerId: 'C1' }, { bookingId: 'MISSING', customerId: 'C1' }, { bookingId: 'NO-SAIL', customerId: 'C1' }],
-      [],
       [{ id: 'NO-SAIL', sailingId: 'S404' }],
       []
     )
@@ -93,6 +92,27 @@ describe('booking domain behavior and relational resilience', () => {
     await expect(findBookingOverlapForPassengers({
       sailing: { departureDate: '2026-08-14', days: 7 }, passengers: [{ customerId: 'C1' }]
     })).resolves.toBeNull()
+  })
+
+
+  test('bulk overlap detection de-duplicates passenger ids and skips database work for empty passenger sets', async () => {
+    await expect(findBookingOverlapForPassengers({
+      sailing: { departureDate: '2026-08-14', days: 7 },
+      passengers: []
+    })).resolves.toBeNull()
+    expect(db.select).not.toHaveBeenCalled()
+
+    queueSelectResults(
+      [{ bookingId: 'OLD1', customerId: 'C1' }],
+      [{ id: 'OLD1', sailingId: 'S-OLD' }],
+      [{ id: 'S-OLD', departureDate: '2026-08-14', days: 7 }]
+    )
+
+    await expect(findBookingOverlapForPassengers({
+      sailing: { departureDate: '2026-08-14', days: 7 },
+      passengers: [{ customerId: 'C1' }, { customerId: 'C1' }, { customerId: null }]
+    })).resolves.toEqual({ customerId: 'C1', bookingId: 'OLD1', departureDate: '2026-08-14' })
+    expect(db.select).toHaveBeenCalledTimes(3)
   })
 
   test('batch hydration keeps missing relationships null while hydrating available passenger/customer data', async () => {
