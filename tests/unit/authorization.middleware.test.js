@@ -14,6 +14,7 @@ jest.mock('../../services/customerAccess.service', () => ({
   CUSTOMER_ACCESS_FORBIDDEN_MESSAGE: 'You do not have access to this customer record.',
   canAccessBooking: jest.fn(),
   canAccessCustomer: jest.fn(),
+  canAccessCustomerActivity: jest.fn(),
   canCreateBooking: jest.fn()
 }))
 
@@ -62,7 +63,7 @@ const {
 } = require('../../services/tenantAccess.service')
 
 const { requireAdminRequest } = require('../../services/requestAuthorization.service')
-const { canAccessBooking, canAccessCustomer, canCreateBooking } = require('../../services/customerAccess.service')
+const { canAccessBooking, canAccessCustomer, canAccessCustomerActivity, canCreateBooking } = require('../../services/customerAccess.service')
 const { canAdminAccessBookingTenant, canAdminAccessCustomerTenant } = require('../../services/customerTenantAccess.service')
 const {
   canAccessOperationScope,
@@ -204,16 +205,24 @@ describe('authorization middleware', () => {
     expect(next).not.toHaveBeenCalled()
   })
 
-  it('binds itinerary favorites to the authenticated customer', async () => {
+  it('binds itinerary favorites to both the authenticated customer and an activity on an accessible voyage', async () => {
     getAuthenticationMode.mockReturnValue('jwt')
-    canAccessCustomer.mockResolvedValue(false)
-    const res = responseDouble()
+    canAccessCustomer.mockResolvedValueOnce(false).mockResolvedValueOnce(true)
+    canAccessCustomerActivity.mockResolvedValue(false)
+    const deniedCustomerRes = responseDouble()
+    const deniedActivityRes = responseDouble()
     const next = jest.fn()
 
-    await requireFavoriteCustomerAccess({ params: {}, body: { customerId: 'C2' } }, res, next)
+    await requireFavoriteCustomerAccess({ params: {}, body: { customerId: 'C2', activityScheduleId: 'A2' } }, deniedCustomerRes, next)
+    await requireFavoriteCustomerAccess({ params: { customerId: 'C1', activityScheduleId: 'A9' }, body: {} }, deniedActivityRes, next)
+    await requireFavoriteCustomerAccess({ params: {}, body: { customerId: 'C1' } }, responseDouble(), next)
 
-    expect(canAccessCustomer).toHaveBeenCalledWith(expect.any(Object), 'C2')
-    expect(res.status).toHaveBeenCalledWith(403)
+    expect(canAccessCustomer).toHaveBeenNthCalledWith(1, expect.any(Object), 'C2')
+    expect(canAccessCustomerActivity).not.toHaveBeenCalledWith(expect.any(Object), 'C2', 'A2')
+    expect(canAccessCustomerActivity).toHaveBeenCalledWith(expect.any(Object), 'C1', 'A9')
+    expect(deniedCustomerRes.status).toHaveBeenCalledWith(403)
+    expect(deniedActivityRes.status).toHaveBeenCalledWith(403)
+    expect(next).toHaveBeenCalledTimes(1)
   })
 
   it('requires passenger-led booking creation to belong to the authenticated customer', async () => {

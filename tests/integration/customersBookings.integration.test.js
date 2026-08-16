@@ -2,7 +2,7 @@ const request = require('supertest')
 
 const app = require('../../app')
 const db = require('../../db')
-const { sailingTable } = require('../../models')
+const { sailingTable, bookingTable, bookingPassengerTable } = require('../../models')
 const initializeDatabase = require('../../services/initializeDatabase.service')
 const loadCruiseData = require('../../services/loadCruiseData.service')
 
@@ -1115,14 +1115,28 @@ describe('Customer and booking API integration tests', () => {
       sailing: firstSailing
     })
 
-    const secondBooking = await createBooking({
-      primaryCustomer: customer,
-      sailing: laterSailing,
-      payload: {
+    const secondBooking = { id: uniqueBookingId() }
+    await db.transaction(async tx => {
+      await tx.insert(bookingTable).values({
+        id: secondBooking.id,
+        sailingId: laterSailing.id,
+        bookingStatus: 'CONFIRMED',
+        cabinNumber: '13333',
+        fareCode: 'BALCONY',
         embarkationPort: laterSailing.departurePort,
-        debarkationPort: laterSailing.arrivalPort
-      }
+        debarkationPort: laterSailing.arrivalPort,
+        createdByCustomerId: customer.id
+      })
+      await tx.insert(bookingPassengerTable).values({
+        id: `${secondBooking.id}-${customer.id}`,
+        bookingId: secondBooking.id,
+        customerId: customer.id,
+        passengerRole: 'PRIMARY',
+        isPrimaryGuest: true,
+        diningPreference: 'Early seating'
+      })
     })
+    trackBooking(secondBooking.id)
 
     const updateRes = await request(app)
       .patch(`/cruise/bookings/${secondBooking.id}`)

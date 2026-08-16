@@ -6,6 +6,7 @@ const {
   CUSTOMER_ACCESS_FORBIDDEN_MESSAGE,
   canAccessBooking,
   canAccessCustomer,
+  canAccessCustomerActivity,
   canCreateBooking
 } = require('../services/customerAccess.service')
 const {
@@ -79,7 +80,11 @@ async function requireBookingPassengerAccess(req, res, next) {
 async function requireFavoriteCustomerAccess(req, res, next) {
   if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
   const customerId = req.params?.customerId || req.body?.customerId
+  const activityScheduleId = req.params?.activityScheduleId || req.body?.activityScheduleId
   if (!(await canAccessCustomer(req, customerId))) {
+    return res.status(403).json({ message: CUSTOMER_ACCESS_FORBIDDEN_MESSAGE })
+  }
+  if (activityScheduleId && !(await canAccessCustomerActivity(req, customerId, activityScheduleId))) {
     return res.status(403).json({ message: CUSTOMER_ACCESS_FORBIDDEN_MESSAGE })
   }
   return next()

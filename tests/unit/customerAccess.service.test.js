@@ -3,9 +3,11 @@ jest.mock('../../services/customerTenantAccess.service', () => ({
   canAdminAccessBookingTenant: jest.fn(),
   canAdminAccessCustomerTenant: jest.fn()
 }))
+jest.mock('../../services/tenantAccess.service', () => ({ canAccessActivityTenant: jest.fn() }))
 
 const db = require('../../db')
 const tenantAccess = require('../../services/customerTenantAccess.service')
+const resourceTenantAccess = require('../../services/tenantAccess.service')
 const service = require('../../services/customerAccess.service')
 
 function queueSelectRows(...rowSets) {
@@ -133,6 +135,44 @@ describe('customer access service', () => {
 
     queueSelectRows([{ primaryCustomerId: null, userType: 'PASSENGER' }])
     await expect(service.canAccessBooking(principalRequest('user-1'), 'BOOK-1')).resolves.toBe(false)
+  })
+
+
+  it('authorizes itinerary activities only when they belong to the customer booking scope', async () => {
+    process.env.CRUISE_AUTH_MODE = 'jwt'
+    db.select
+      .mockImplementationOnce(() => ({ from: () => ({ where: () => ({ limit: async () => [{ primaryCustomerId: 'CUST-1', userType: 'PASSENGER' }] }) }) }))
+      .mockImplementationOnce(() => ({ from: () => ({ where: () => ({ limit: async () => [{ id: 'ACT-1', itineraryDayId: 'DAY-1' }] }) }) }))
+      .mockImplementationOnce(() => ({ from: () => ({ where: () => ({ limit: async () => [{ id: 'DAY-1', sailingId: 'SAIL-1' }] }) }) }))
+      .mockImplementationOnce(() => ({ from: () => ({ where: async () => [{ bookingId: 'BOOK-1', customerId: 'CUST-1' }] }) }))
+      .mockImplementationOnce(() => ({ from: () => ({ where: () => ({ limit: async () => [{ id: 'BOOK-1', sailingId: 'SAIL-1' }] }) }) }))
+
+    await expect(service.canAccessCustomerActivity(principalRequest('user-1'), 'CUST-1', 'ACT-1')).resolves.toBe(true)
+  })
+
+  it('fails itinerary activity access closed for cross-customer, missing relationship, and empty booking scopes', async () => {
+    process.env.CRUISE_AUTH_MODE = 'jwt'
+    queueSelectRows([{ primaryCustomerId: 'CUST-1', userType: 'PASSENGER' }])
+    await expect(service.canAccessCustomerActivity(principalRequest('user-1'), 'CUST-2', 'ACT-1')).resolves.toBe(false)
+
+    db.select
+      .mockImplementationOnce(() => ({ from: () => ({ where: () => ({ limit: async () => [{ primaryCustomerId: 'CUST-1', userType: 'PASSENGER' }] }) }) }))
+      .mockImplementationOnce(() => ({ from: () => ({ where: () => ({ limit: async () => [] }) }) }))
+    await expect(service.canAccessCustomerActivity(principalRequest('user-1'), 'CUST-1', 'ACT-MISSING')).resolves.toBe(false)
+
+    db.select
+      .mockImplementationOnce(() => ({ from: () => ({ where: () => ({ limit: async () => [{ primaryCustomerId: 'CUST-1', userType: 'PASSENGER' }] }) }) }))
+      .mockImplementationOnce(() => ({ from: () => ({ where: () => ({ limit: async () => [{ id: 'ACT-1', itineraryDayId: 'DAY-1' }] }) }) }))
+      .mockImplementationOnce(() => ({ from: () => ({ where: () => ({ limit: async () => [{ id: 'DAY-1', sailingId: 'SAIL-1' }] }) }) }))
+      .mockImplementationOnce(() => ({ from: () => ({ where: async () => [] }) }))
+    await expect(service.canAccessCustomerActivity(principalRequest('user-1'), 'CUST-1', 'ACT-1')).resolves.toBe(false)
+  })
+
+  it('requires administrators to have access to both the customer tenant and activity tenant', async () => {
+    tenantAccess.canAdminAccessCustomerTenant.mockResolvedValue(true)
+    resourceTenantAccess.canAccessActivityTenant.mockResolvedValueOnce(true).mockResolvedValueOnce(false)
+    await expect(service.canAccessCustomerActivity(principalRequest('admin-1', 'ADMIN'), 'CUST-1', 'ACT-1')).resolves.toBe(true)
+    await expect(service.canAccessCustomerActivity(principalRequest('admin-1', 'ADMIN'), 'CUST-1', 'ACT-2')).resolves.toBe(false)
   })
 
   it('requires self-owned booking creation with at least one matching passenger', async () => {
