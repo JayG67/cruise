@@ -6,6 +6,11 @@ function clampScore(value) {
   return Math.max(0, Math.min(100, Math.round(Number(value) || 0)))
 }
 
+function normalizeCount(value) {
+  const count = Number(value ?? 0)
+  return Number.isFinite(count) && count >= 0 ? Math.floor(count) : 0
+}
+
 function normalizeStatus(value, fallback = 'REVIEW') {
   return String(value || fallback).replace(/_/g, ' ').trim()
 }
@@ -65,7 +70,7 @@ function buildTurnaroundCommandInputs({
   const completedHandoffs = handoffRows.filter(handoff => isCompleteStatus(handoff.status)).length
   const approvedSignoffs = signoffRows.filter(signoff => String(signoff.status || '').toUpperCase() === 'APPROVED').length
   const blockedSignoffs = signoffRows.filter(signoff => String(signoff.status || '').toUpperCase() === 'BLOCKED')
-  const staffingGaps = staffingRows.filter(row => Number(row.plannedCount || row.requiredCount || row.required || 0) > Number(row.checkedInCount || row.assignedCount || row.assigned || 0))
+  const staffingGaps = staffingRows.filter(row => normalizeCount(row.plannedCount ?? row.requiredCount ?? row.required) > normalizeCount(row.checkedInCount ?? row.assignedCount ?? row.assigned))
 
   return {
     operationId: operation.id || null,
@@ -73,7 +78,7 @@ function buildTurnaroundCommandInputs({
     shipName: operation.shipName || operation.ship?.name || 'Selected ship',
     cruiseLineName: operation.cruiseLineName || operation.cruiseLine?.name || 'Selected cruise line',
     turnaroundDate: operation.turnaroundDate || operation.date || 'Selected date',
-    passengerCount: Number(passengerCount ?? operation.passengerCount ?? 0),
+    passengerCount: normalizeCount(passengerCount ?? operation.passengerCount),
     tasks: taskRows,
     staffing: staffingRows,
     signoffs: signoffRows,
@@ -182,7 +187,7 @@ function buildCommandDecisionQueue(inputs = {}) {
     severity: 'MEDIUM',
     owner: getDepartmentRole(row),
     decision: `Close staffing gap for ${getDepartmentRole(row)}`,
-    action: `${Number(row.checkedInCount || row.assignedCount || 0)}/${Number(row.plannedCount || row.requiredCount || 0)} people checked in or assigned.`
+    action: `${normalizeCount(row.checkedInCount ?? row.assignedCount ?? row.assigned)}/${normalizeCount(row.plannedCount ?? row.requiredCount ?? row.required)} people checked in or assigned.`
   }))
 
   inputs.blockedSignoffs.slice(0, 3).forEach(signoff => decisions.push({
@@ -289,8 +294,8 @@ function buildDepartmentCommandBoard(inputs = {}) {
     const taskCompletion = getPercent(department.tasks.filter(task => isCompleteStatus(task.status)).length, department.tasks.length)
     const staffingCoverage = department.staffing.length
       ? getPercent(
-        department.staffing.reduce((sum, row) => sum + Number(row.checkedInCount || row.assignedCount || 0), 0),
-        department.staffing.reduce((sum, row) => sum + Number(row.plannedCount || row.requiredCount || 0), 0)
+        department.staffing.reduce((sum, row) => sum + normalizeCount(row.checkedInCount ?? row.assignedCount ?? row.assigned), 0),
+        department.staffing.reduce((sum, row) => sum + normalizeCount(row.plannedCount ?? row.requiredCount ?? row.required), 0)
       )
       : 100
     const signoffCompletion = getPercent(department.signoffs.filter(signoff => String(signoff.status || '').toUpperCase() === 'APPROVED').length, department.signoffs.length)

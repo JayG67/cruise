@@ -4,6 +4,11 @@ function clampScore(value) {
   return Math.max(0, Math.min(100, Math.round(numeric)))
 }
 
+function nonNegativeNumber(value) {
+  const numeric = Number(value)
+  return Number.isFinite(numeric) ? Math.max(numeric, 0) : 0
+}
+
 function normalizeStatus(value = '', fallback = 'NEEDS REVIEW') {
   return String(value || fallback).replace(/_/g, ' ')
 }
@@ -50,7 +55,7 @@ function buildOperationalReviewFocus({ tasks = [], escalations = [], dependencie
   const openDependencies = countOpen(dependencies, ['CLEARED', 'COMPLETE', 'RESOLVED'])
   const openHandoffs = countOpen(handoffs, ['COMPLETE', 'COMPLETED', 'CLEARED'])
   const pendingSignoffs = countOpen(signoffs, ['APPROVED', 'SIGNED'])
-  const staffingGaps = staffing.reduce((sum, row) => sum + Math.max(Number(row.plannedCount || 0) - Number(row.checkedInCount || 0), 0), 0)
+  const staffingGaps = staffing.reduce((sum, row) => sum + Math.max(nonNegativeNumber(row.plannedCount) - nonNegativeNumber(row.checkedInCount), 0), 0)
   return {
     priority: blockedTasks[0] ? `Resolve blocked task: ${blockedTasks[0].taskName}.` : openEscalations[0] ? `Resolve escalation: ${openEscalations[0].title}.` : lifecycleState?.nextBestAction || 'Continue toward final operational readiness.',
     reviewSignals: [`${blockedTasks.length} blocked task${blockedTasks.length === 1 ? '' : 's'}`, `${openEscalations.length} open escalation${openEscalations.length === 1 ? '' : 's'}`, `${openDependencies} open dependenc${openDependencies === 1 ? 'y' : 'ies'}`, `${openHandoffs} open handoff${openHandoffs === 1 ? '' : 's'}`, `${pendingSignoffs} pending signoff${pendingSignoffs === 1 ? '' : 's'}`, `${staffingGaps} staffing gap${staffingGaps === 1 ? '' : 's'}`],

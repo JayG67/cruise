@@ -52,6 +52,8 @@ describe('turnaroundScope service', () => {
     expect(service.isOperationalDemoRole('turnaround-manager')).toBe(true)
     expect(service.isOperationalDemoRole('GUEST_SERVICES_LEAD')).toBe(true)
     expect(service.isOperationalDemoRole('food_beverage_lead')).toBe(true)
+    expect(service.isOperationalDemoRole(' turnaround manager ')).toBe(true)
+    expect(service.isOperationalDemoRole('guest services lead')).toBe(true)
     expect(service.isOperationalDemoRole('ADMIN')).toBe(false)
     expect(service.isOperationalDemoRole()).toBe(false)
   })
@@ -107,6 +109,20 @@ describe('turnaroundScope service', () => {
       [{ id: 'operation-2' }]
     )
     await expect(service.getTurnaroundOperationsForRequest(scopedRequest('admin-demo'))).resolves.toEqual([{ id: 'operation-2' }])
+  })
+
+
+  it('does not fail open when an operational demo role uses spaces instead of underscores', async () => {
+    queueSelectRows(
+      [{ id: 'ops-demo', role: 'turnaround manager', assignedShipId: 'ship-1' }],
+      [{ id: 'sailing-1' }],
+      [{ id: 'operation-1', sailingId: 'sailing-1' }]
+    )
+
+    await expect(service.getTurnaroundOperationsForRequest(scopedRequest('ops-demo'))).resolves.toEqual([
+      { id: 'operation-1', sailingId: 'sailing-1' }
+    ])
+    expect(db.select).toHaveBeenCalledTimes(3)
   })
 
   it('returns no operations for missing demo users or operational users without scoped sailings', async () => {
@@ -203,5 +219,15 @@ describe('turnaroundScope service', () => {
     expect(shipTable).toBeDefined()
     expect(sailingTable).toBeDefined()
     expect(turnaroundOperationTable).toBeDefined()
+  })
+  it('uses an explicit sailing assignment as the narrowest operational demo scope', async () => {
+    await expect(service.getSailingIdsForOperationalAssignment({
+      role: 'TURNAROUND_MANAGER',
+      assignedSailingId: 'sailing-specific',
+      assignedShipId: 'ship-1',
+      cruiseLineId: 'line-1'
+    })).resolves.toEqual(['sailing-specific'])
+
+    expect(db.select).not.toHaveBeenCalled()
   })
 })

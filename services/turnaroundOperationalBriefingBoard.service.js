@@ -128,7 +128,7 @@ function buildBriefingAssets({ operationalAssurancePacket = null, executiveBrief
     {
       id: 'executive-highlights',
       label: 'Executive highlights',
-      status: `${executiveHighlights.length || 3} READY`,
+      status: `${executiveHighlights.length} READY`,
       detail: executiveHighlights.slice(0, 2).join(' ') || firstNonEmpty(executiveBrief?.narrative?.summary, 'Executive brief is ready for leadership discussion.')
     },
     {

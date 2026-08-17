@@ -173,3 +173,35 @@ describe('turnaroundCompletion service', () => {
     ]))
   })
 })
+
+it('covers maturity thresholds, high-priority next slices, and the no-work fallback', () => {
+  const noWork = buildTurnaroundRemainingWork({
+    capabilities: [{ id: 'strong', label: 'Strong capability', score: 100, detail: 'ready' }],
+    incidentCommand: { incidentScore: 0 },
+    reviewerPacket: { dataQuality: { blockerCount: 0 } }
+  })
+  expect(noWork).toEqual([expect.objectContaining({ id: 'prepare-operational-review-route' })])
+
+  const next = buildTurnaroundNextSlices({
+    maturityScore: 95,
+    remainingWork: [{ priority: 'HIGH' }]
+  })
+  expect(next[0]).toContain('high-priority')
+  expect(next).toEqual(expect.arrayContaining([expect.stringContaining('Approve the core turnaround release baseline')]))
+
+  const required = buildTurnaroundManagementStatus({ operation: {}, incidentCommand: { incidentScore: 100 } })
+  expect(required.maturityStatus).toBe('ACTION_REQUIRED')
+})
+
+it('covers singular data-quality wording and medium incident-risk prioritization', () => {
+  const work = buildTurnaroundRemainingWork({
+    capabilities: [],
+    incidentCommand: { incidentScore: 50 },
+    outreachBoard: { readiness: { dataQualityRisk: 1 } }
+  })
+
+  expect(work).toEqual(expect.arrayContaining([
+    expect.objectContaining({ id: 'reduce-incident-risk', priority: 'MEDIUM' }),
+    expect.objectContaining({ id: 'clean-data-quality-watch-items', priority: 'MEDIUM', detail: expect.stringContaining('1 data-quality watch item remain') })
+  ]))
+})

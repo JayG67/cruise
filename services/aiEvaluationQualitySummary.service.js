@@ -32,14 +32,14 @@ function summarizeFailedCase(result = {}) {
 function summarizeRun(run = {}) {
   const metadata = run.metadata || {}
   const results = Array.isArray(run.results) ? run.results : []
-  const failedCases = results.filter(result => !result.passed).map(summarizeFailedCase)
+  const failedCases = results.filter(result => result.passed !== true).map(summarizeFailedCase)
   return {
     runId: run.runId || null,
     suiteId: run.suiteId || null,
     completedAt: run.completedAt || run.recordedAt || null,
     passRate: numeric(run.passRate),
     averageScore: numeric(run.averageScore),
-    passed: Boolean(run.passed),
+    passed: run.passed === true,
     durationMs: numeric(run.durationMs),
     provider: metadata.provider || run.provider || 'unknown',
     model: metadata.model || run.model || 'unknown',

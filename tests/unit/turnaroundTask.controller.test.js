@@ -31,8 +31,9 @@ function selectWhere(result) {
   db.select.mockReturnValueOnce({ from: jest.fn().mockReturnValue({ where }) })
 }
 
-function mockUpdate() {
-  const where = jest.fn().mockResolvedValue()
+function mockUpdate(result = [{ id: 'TASK-1' }]) {
+  const returning = jest.fn().mockResolvedValue(result)
+  const where = jest.fn().mockReturnValue({ returning })
   const set = jest.fn().mockReturnValue({ where })
   db.update.mockReturnValueOnce({ set })
   return set
@@ -129,6 +130,21 @@ describe('turnaround task controller defect-discovery coverage', () => {
     expect(db.delete).toHaveBeenCalledTimes(4)
     expect(mutationSupport.recordTurnaroundAuditEvent).toHaveBeenCalled()
     expect(res.status).toHaveBeenCalledWith(200)
+  })
+
+
+  it.each(['updateTurnaroundTaskStatus', 'updateTurnaroundTaskDetails'])('%s fails closed when the authorized task disappears before update', async (method) => {
+    const res = mockResponse()
+    const task = { id: 'TASK-1', operationId: 'OP-1', departmentRole: 'ENGINEERING', status: 'READY' }
+    const operation = { id: 'OP-1' }
+    selectLimit([task]); selectLimit([operation]); mockUpdate([])
+    const body = method === 'updateTurnaroundTaskStatus' ? { status: 'WATCH' } : { location: 'Pier 2' }
+
+    await controller[method]({ params: { id: task.id }, body }, res, jest.fn())
+
+    expect(res.status).toHaveBeenCalledWith(404)
+    expect(mutationSupport.recordTurnaroundAuditEvent).not.toHaveBeenCalled()
+    expect(getTurnaroundOperationDetails).not.toHaveBeenCalled()
   })
 
   it('forwards persistence failures without converting them to success', async () => {

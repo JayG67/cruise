@@ -340,8 +340,14 @@ async function updateTurnaroundPerson(id, payload = {}) {
   const displayName = String(payload.displayName ?? existing.displayName).trim()
   const role = normalizeOperationalRole(payload.role ?? existing.role)
   const cruiseLineId = payload.cruiseLineId ?? existing.cruiseLineId
-  const assignedShipId = payload.assignedShipId ?? existing.assignedShipId
-  const assignedSailingId = payload.assignedSailingId || payload.sailingId || null
+  const assignedShipId = Object.prototype.hasOwnProperty.call(payload, 'assignedShipId')
+    ? payload.assignedShipId
+    : existing.assignedShipId
+  const assignedSailingId = Object.prototype.hasOwnProperty.call(payload, 'assignedSailingId')
+    ? payload.assignedSailingId
+    : Object.prototype.hasOwnProperty.call(payload, 'sailingId')
+      ? payload.sailingId
+      : existing.assignedSailingId
 
   if (!displayName) {
     throw buildServiceError('Turnaround person display name is required.', 400)

@@ -1,7 +1,8 @@
 const {
   AiTurnaroundEvidenceError,
   buildTurnaroundEvidence,
-  loadTurnaroundEvidence
+  loadTurnaroundEvidence,
+  statusPriority
 } = require('../../services/aiTurnaroundEvidence.service')
 
 describe('Phase 2 turnaround operation evidence assembly', () => {
@@ -55,4 +56,70 @@ describe('Phase 2 turnaround operation evidence assembly', () => {
       code: 'AI_TURNAROUND_OPERATION_NOT_FOUND'
     }))
   })
+
+  it('de-prioritizes resolved critical incidents so closed risk does not displace active evidence', () => {
+    const result = buildTurnaroundEvidence({
+      operation: { id: 'op-1', title: 'Turnaround' },
+      tasks: [{ id: 'task-active', taskName: 'Gate check', status: 'PENDING' }],
+      escalations: [{ id: 'esc-resolved', title: 'Closed emergency', severity: 'CRITICAL', status: 'RESOLVED' }]
+    }, { maxRecords: 2 })
+
+    expect(result.evidence.map(item => item.id)).toEqual(['operation:op-1', 'task:task-active'])
+    expect(statusPriority('CRITICAL RESOLVED')).toBeGreaterThan(statusPriority('PENDING'))
+  })
+
+  it('rejects blank operation IDs before calling the evidence repository', async () => {
+    const repository = { load: jest.fn() }
+    await expect(loadTurnaroundEvidence('   ', { repository })).rejects.toMatchObject({
+      code: 'AI_TURNAROUND_OPERATION_ID_REQUIRED'
+    })
+    expect(repository.load).not.toHaveBeenCalled()
+  })
+
+  it('normalizes missing optional evidence collections to an operation-only evidence packet', () => {
+    const result = buildTurnaroundEvidence({ operation: { id: 'op-empty' } })
+    expect(result.evidence).toEqual([expect.objectContaining({ id: 'operation:op-empty', status: 'UNKNOWN' })])
+    expect(result.evidenceSummary).toMatchObject({ totalAvailable: 1, included: 1, truncated: false })
+  })
+
+
+  it('classifies operational evidence priorities across resolved, critical, pending, progress, and neutral states', () => {
+    expect(statusPriority('RESOLVED')).toBe(3)
+    expect(statusPriority('CLOSED CRITICAL')).toBe(3)
+    expect(statusPriority('BLOCKED')).toBe(0)
+    expect(statusPriority('OVERDUE')).toBe(0)
+    expect(statusPriority('AT_RISK')).toBe(1)
+    expect(statusPriority('OPEN')).toBe(1)
+    expect(statusPriority('IN_PROGRESS')).toBe(2)
+    expect(statusPriority('READY')).toBe(2)
+    expect(statusPriority('COMPLETE')).toBe(3)
+    expect(statusPriority('UNKNOWN')).toBe(3)
+  })
+
+  it('sanitizes sparse evidence fields and retains useful optional details', () => {
+    const result = buildTurnaroundEvidence({
+      operation: { id: 'op-2', port: 'Miami', turnaroundDate: '2026-08-17' },
+      tasks: [{ id: 't1', dueTime: '13:00', location: 'Terminal A' }],
+      dependencies: [{ id: 'd1', taskId: 't1', dependsOnTaskId: 't0' }],
+      handoffs: [{ id: 'h1', fromDepartmentRole: 'A', toDepartmentRole: 'B', dueTime: '14:00' }],
+      staffing: [{ id: 's1', departmentRole: 'Security', plannedCount: 2, checkedInCount: 2, musterLocation: 'Pier 1' }],
+      signoffs: [{ id: 'g1', departmentRole: 'Security' }],
+      escalations: [{ id: 'e1', createdAt: '2026-08-17T12:00:00Z' }]
+    })
+
+    expect(result.evidence.find(item => item.id === 'task:t1')).toMatchObject({ title: 'Operational evidence', status: 'UNKNOWN', details: 'Due: 13:00. Location: Terminal A' })
+    expect(result.evidence.find(item => item.id === 'staffing:s1')).toMatchObject({ status: 'READY', details: '2 of 2 checked in. Muster: Pier 1' })
+    expect(result.evidenceSummary.countsByType).toEqual(expect.objectContaining({ dependency: 1, handoff: 1, signoff: 1 }))
+  })
+
+  it('reports truncation accurately at zero and oversized evidence limits', () => {
+    const zero = buildTurnaroundEvidence(snapshot, { maxRecords: 0 })
+    expect(zero.evidence).toEqual([])
+    expect(zero.evidenceSummary).toMatchObject({ included: 0, truncated: true })
+
+    const all = buildTurnaroundEvidence(snapshot, { maxRecords: 999 })
+    expect(all.evidenceSummary.included).toBe(all.evidenceSummary.totalAvailable)
+    expect(all.evidenceSummary.truncated).toBe(false)
+  })
+
 })

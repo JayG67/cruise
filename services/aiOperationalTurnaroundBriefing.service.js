@@ -11,6 +11,12 @@ async function generateOperationalTurnaroundBriefing({
   ...generationOptions
 } = {}) {
   const evidenceBundle = await evidenceLoader(operationId)
+  if (!evidenceBundle?.operation?.id) {
+    const error = new Error('Operational turnaround briefing requires an existing operation.')
+    error.code = 'TURNAROUND_OPERATION_NOT_FOUND'
+    throw error
+  }
+
   const result = await briefingGenerator({
     ...generationOptions,
     actor,

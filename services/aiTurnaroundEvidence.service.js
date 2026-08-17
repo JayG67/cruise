@@ -22,6 +22,7 @@ function recordId(type, id) {
 
 function statusPriority(status = '') {
   const normalized = String(status).toUpperCase()
+  if (/RESOLVED|CLOSED|COMPLETE|COMPLETED|APPROVED/.test(normalized)) return 3
   if (/CRITICAL|EMERGENCY|FAILED|BLOCKED|OVERDUE|SHORTFALL|MISSING/.test(normalized)) return 0
   if (/AT_RISK|PENDING|NOT_STARTED|OPEN|ACTIVE/.test(normalized)) return 1
   if (/IN_PROGRESS|READY|REVIEW/.test(normalized)) return 2

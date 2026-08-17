@@ -55,8 +55,8 @@ function collectGates(readiness = {}, source = '') {
   return asArray(readiness.gates).map(gate => ({ ...gate, source }))
 }
 
-function buildLaunchReadinessTracks({ dataArchitecture = {}, productionHardening = {}, deployment = {} }) {
-  return [
+function buildLaunchReadinessTracks({ dataArchitecture = {}, productionHardening = {}, deployment = {}, operationsControlBoard = {} }) {
+  const tracks = [
     buildEvidenceItem({
       id: 'data-architecture-hardening',
       label: 'Data governance assurance',
@@ -85,6 +85,22 @@ function buildLaunchReadinessTracks({ dataArchitecture = {}, productionHardening
       action: asArray(deployment.deploymentSequence)[0] || asArray(deployment.launchSequence)[0] || 'Run the deployment readiness sequence.'
     })
   ]
+
+  const hasOperationalScore = operationsControlBoard.overallScore != null || operationsControlBoard.score != null
+  if (hasOperationalScore) {
+    const score = getReadinessScore(operationsControlBoard)
+    tracks.push(buildEvidenceItem({
+      id: 'turnaround-operations',
+      label: 'Turnaround operational readiness',
+      source: 'Operations Control Board',
+      score,
+      status: getLaunchStatus(score),
+      summary: operationsControlBoard.summary || 'Confirm live turnaround command, staffing, task, handoff, escalation, and signoff readiness.',
+      action: asArray(operationsControlBoard.nextActions)[0] || asArray(operationsControlBoard.actions)[0] || 'Resolve the highest-priority turnaround operations readiness gap.'
+    }))
+  }
+
+  return tracks
 }
 
 function buildCriticalLaunchItems(tracks = [], readinessPayloads = []) {
@@ -190,7 +206,7 @@ function buildPublicLaunchReadiness(input = {}) {
   const productionHardening = asObject(input.productionHardening)
   const deployment = asObject(input.deployment)
   const operationsControlBoard = asObject(input.operationsControlBoard)
-  const tracks = buildLaunchReadinessTracks({ dataArchitecture, productionHardening, deployment })
+  const tracks = buildLaunchReadinessTracks({ dataArchitecture, productionHardening, deployment, operationsControlBoard })
   const readinessPayloads = [
     { payload: dataArchitecture, source: 'Data Architecture' },
     { payload: productionHardening, source: 'Production Assurance' },

@@ -33,3 +33,40 @@ describe('AI evaluation quality summary', () => {
     expect(buildTrend([{ passRate: 100, averageScore: 95 }, { passRate: 75, averageScore: 80 }])).toEqual(expect.objectContaining({ direction: 'IMPROVING', passRateDelta: 25, averageScoreDelta: 15 }))
   })
 })
+
+describe('AI evaluation quality summary fail-closed evidence parsing', () => {
+  it('does not treat string false as a passing release decision', async () => {
+    const result = await buildAiEvaluationQualitySummary({
+      runLister: jest.fn().mockResolvedValue({ runs: [{
+        runId: 'malformed-pass-flag',
+        passed: 'false',
+        passRate: 0,
+        averageScore: 0,
+        results: [{ evaluationCaseId: 'case-1', evaluationCaseName: 'Malformed evidence', passed: 'false', score: 0 }]
+      }] })
+    })
+
+    expect(result.releaseReadiness).toBe('BLOCKED')
+    expect(result.latestRun.passed).toBe(false)
+    expect(result.latestRun.failedCaseIds).toEqual(['case-1'])
+  })
+
+  it('fails closed for any non-boolean case pass marker while preserving literal true', () => {
+    const run = summarizeRun({
+      passed: true,
+      results: [
+        { evaluationCaseId: 'literal-true', passed: true },
+        { evaluationCaseId: 'string-true', passed: 'true' },
+        { evaluationCaseId: 'missing' }
+      ]
+    })
+
+    expect(run.passed).toBe(true)
+    expect(run.failedCaseIds).toEqual(['string-true', 'missing'])
+  })
+
+  it('covers stable and regressing trend branches with malformed numeric inputs normalized to zero', () => {
+    expect(buildTrend([{ passRate: 'bad', averageScore: null }, { passRate: 0, averageScore: 0 }])).toEqual(expect.objectContaining({ direction: 'STABLE' }))
+    expect(buildTrend([{ passRate: 50, averageScore: 50 }, { passRate: 60, averageScore: 55 }])).toEqual(expect.objectContaining({ direction: 'REGRESSING' }))
+  })
+})

@@ -1,7 +1,11 @@
 const {
   buildTurnaroundOperationalAssurance,
   buildAssuranceReadiness,
-  buildAssuranceDataQuality
+  buildAssuranceHeader,
+  buildAssuranceProofPoints,
+  buildAssuranceNarrative,
+  buildAssuranceDataQuality,
+  buildAssuranceNextSteps
 } = require('../../services/turnaroundOperationalAssurance.service')
 
 describe('turnaroundOperationalAssurance service', () => {
@@ -170,4 +174,100 @@ describe('turnaroundOperationalAssurance service', () => {
     expect(notes.readinessStatus).toBe('ASSURANCE_READY_WITH_NOTES')
     expect(ready.readinessStatus).toBe('READY_FOR_OPERATIONAL_REVIEW')
   })
+
+  it('detects live turnaround staffing gaps from planned and checked-in counts', () => {
+    const quality = buildAssuranceDataQuality({
+      staffing: [
+        { plannedCount: 8, checkedInCount: 5 },
+        { plannedCount: 3, checkedInCount: 3 }
+      ]
+    })
+
+    expect(quality.staffingGaps).toBe(1)
+    expect(quality.status).toBe('WATCH')
+  })
+
+  it('preserves compatibility staffing fields while treating explicit zero values as authoritative', () => {
+    expect(buildAssuranceDataQuality({ staffing: [{ requiredCount: 4, assignedCount: 2 }] }).staffingGaps).toBe(1)
+    expect(buildAssuranceDataQuality({ staffing: [{ plannedCount: 0, checkedInCount: 0, requiredCount: 9, assignedCount: 1 }] }).staffingGaps).toBe(0)
+  })
+
+
+  it('clamps malformed and out-of-range readiness inputs without inflating assurance', () => {
+    const readiness = buildAssuranceReadiness({
+      executiveBrief: { summary: { decisionScore: 140, releaseConfidence: -10, incidentScore: 'bad', reviewScore: 101, rehearsalScore: -4 } }
+    })
+
+    expect(readiness).toMatchObject({
+      executiveScore: 100,
+      releaseScore: 0,
+      incidentScore: 0,
+      debriefScore: 100,
+      rehearsalScore: 0
+    })
+    expect(readiness.readinessStatus).toBe('ASSURANCE_WITH_WATCH_ITEMS')
+  })
+
+  it('builds header fallbacks from sparse operation metadata', () => {
+    expect(buildAssuranceHeader({ operation: { title: 'Pier turnaround', embarkationPort: 'Miami' }, readiness: { readinessStatus: 'WATCH', readinessScore: 72 } })).toMatchObject({
+      title: 'Pier turnaround operational assurance packet',
+      subtitle: 'Cruise line · scheduled turnaround',
+      portName: 'Miami',
+      status: 'WATCH',
+      score: 72
+    })
+    expect(buildAssuranceHeader({ operation: { departurePort: 'Seattle' } }).portName).toBe('Seattle')
+  })
+
+  it('uses proof-point fallbacks when specialized evidence packets are absent', () => {
+    const points = buildAssuranceProofPoints({
+      operation: { shipName: 'Explorer' },
+      operationalMetrics: { summary: { releaseStatus: 'READY_WITH_NOTES', releaseConfidence: 83 } },
+      executiveBrief: { summary: { timelineEvents: 7 } },
+      playbookTemplate: { recommendations: ['Standardize gangway setup.'] },
+      afterActionReview: { findings: [{ detail: 'Close staffing lesson.' }] }
+    })
+
+    expect(points.find(point => point.id === 'release-readiness')).toMatchObject({ status: 'READY WITH NOTES', detail: 'Release confidence 83%.' })
+    expect(points.find(point => point.id === 'timeline-depth').status).toBe('7 EVENTS')
+    expect(points.find(point => point.id === 'playbook-promotion').detail).toBe('Standardize gangway setup.')
+    expect(points.find(point => point.id === 'incident-command').detail).toContain('No critical release-day exception bridge')
+    expect(points.find(point => point.id === 'after-action-review').detail).toBe('Close staffing lesson.')
+  })
+
+  it('selects narrative actions by executive, incident, after-action, then default precedence', () => {
+    expect(buildAssuranceNarrative({ executiveBrief: { executiveActions: ['Executive action'] } }).topAction).toBe('Executive action')
+    expect(buildAssuranceNarrative({ incidentCommand: { commandActions: ['Incident action'] } }).topAction).toBe('Incident action')
+    expect(buildAssuranceNarrative({ afterActionReview: { followUpActions: ['Debrief action'] } }).topAction).toBe('Debrief action')
+    expect(buildAssuranceNarrative().topAction).toContain('Continue operational assurance validation')
+  })
+
+  it('counts blocker text and only treats resolved escalation states as closed', () => {
+    const quality = buildAssuranceDataQuality({
+      tasks: [{ status: 'IN_PROGRESS', blocker: 'Awaiting inspection' }],
+      staffing: [],
+      signoffs: [{ status: 'approved' }],
+      dependencies: [{ status: 'complete' }],
+      handoffs: [{ status: 'complete' }],
+      escalations: [{ status: 'closed' }, { status: 'MONITORING' }]
+    })
+
+    expect(quality).toMatchObject({ blockerCount: 1, openEscalations: 1, incompleteSignoffs: 0, openDependencies: 0, openHandoffs: 0, status: 'WATCH' })
+  })
+
+  it('deduplicates assurance next steps and caps the published action list', () => {
+    const duplicate = 'Resolve shared issue.'
+    const steps = buildAssuranceNextSteps({
+      readiness: { readinessStatus: 'READY_FOR_OPERATIONAL_REVIEW' },
+      executiveBrief: { executiveActions: [duplicate, duplicate, 'E2', 'E3'] },
+      incidentCommand: { commandActions: ['I1', 'I2'] },
+      afterActionReview: { followUpActions: ['A1', 'A2'] },
+      playbookVariance: { rehearsalActions: ['P1', 'P2'] }
+    })
+
+    expect(steps[0]).toContain('primary evidence set')
+    expect(steps.filter(step => step === `Executive: ${duplicate}`)).toHaveLength(1)
+    expect(steps).toHaveLength(8)
+  })
+
 })

@@ -166,10 +166,8 @@ exports.updateCustomer = async (req, res, next) => {
     }
 
     const customerUpdates = { firstName, lastName, email, phone, loyaltyNumber, ...buildEntityUpdateTimestamp() }
-    await db
-      .update(customerTable)
-      .set(customerUpdates)
-      .where(eq(customerTable.id, id))
+    const updatedRows = await db.update(customerTable).set(customerUpdates).where(eq(customerTable.id, id)).returning()
+    if (!updatedRows[0]) return res.status(404).json({ message: 'Customer not found' })
 
     await recordCruiseManagementAuditEvent(req, {
       eventType: 'CUSTOMER_UPDATED',

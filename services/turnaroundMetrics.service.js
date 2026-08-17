@@ -1,6 +1,12 @@
+function toNonNegativeNumber(value) {
+  const number = Number(value)
+  return Number.isFinite(number) && number >= 0 ? number : 0
+}
+
 function percent(numerator, denominator) {
-  if (!denominator) return 0
-  return Math.max(0, Math.min(100, Math.round((Number(numerator || 0) / Number(denominator || 0)) * 100)))
+  const safeDenominator = toNonNegativeNumber(denominator)
+  if (!safeDenominator) return 0
+  return Math.max(0, Math.min(100, Math.round((toNonNegativeNumber(numerator) / safeDenominator) * 100)))
 }
 
 function countByStatus(rows = [], statusField = 'status') {
@@ -42,7 +48,7 @@ function getDepartmentMetrics({ tasks = [], staffing = [], signoffs = [], escala
 
   for (const row of staffing || []) {
     const department = ensureDepartment(row.departmentRole)
-    department.staffingGap += Math.max(Number(row.plannedCount || 0) - Number(row.checkedInCount || 0), 0)
+    department.staffingGap += Math.max(toNonNegativeNumber(row.plannedCount) - toNonNegativeNumber(row.checkedInCount), 0)
   }
 
   for (const signoff of signoffs || []) {
@@ -90,12 +96,13 @@ function buildTurnaroundOperationalMetrics({ operation = {}, tasks = [], staffin
   const approvedSignoffs = signoffStatusCounts.APPROVED || 0
   const activeDependencies = (dependencies || []).filter(row => row.status !== 'CLEARED').length
   const openHandoffs = (handoffs || []).filter(row => row.status !== 'COMPLETE').length
-  const plannedStaff = (staffing || []).reduce((sum, row) => sum + Number(row.plannedCount || 0), 0)
-  const checkedInStaff = (staffing || []).reduce((sum, row) => sum + Number(row.checkedInCount || 0), 0)
+  const plannedStaff = (staffing || []).reduce((sum, row) => sum + toNonNegativeNumber(row.plannedCount), 0)
+  const checkedInStaff = (staffing || []).reduce((sum, row) => sum + toNonNegativeNumber(row.checkedInCount), 0)
   const staffingGap = Math.max(plannedStaff - checkedInStaff, 0)
   const departmentMetrics = getDepartmentMetrics({ tasks, staffing, signoffs, escalations, handoffs, dependencies })
 
-  const readinessScore = releasePacket?.readinessScore ?? Math.round((percent(completedTasks, totalTasks) + percent(approvedSignoffs, totalSignoffs) + percent(checkedInStaff, plannedStaff)) / 3)
+  const suppliedReadinessScore = toNonNegativeNumber(releasePacket?.readinessScore)
+  const readinessScore = releasePacket?.readinessScore == null ? Math.round((percent(completedTasks, totalTasks) + percent(approvedSignoffs, totalSignoffs) + percent(checkedInStaff, plannedStaff)) / 3) : Math.min(100, suppliedReadinessScore)
   const riskIndex = Math.min(100, blockedTasks * 12 + criticalEscalations * 20 + openEscalations * 8 + activeDependencies * 6 + openHandoffs * 5 + staffingGap * 4)
   const releaseConfidence = Math.max(0, Math.min(100, readinessScore - Math.round(riskIndex * 0.55)))
   const bottleneckDepartment = departmentMetrics[0]?.riskScore > 0 ? departmentMetrics[0] : null
@@ -111,8 +118,8 @@ function buildTurnaroundOperationalMetrics({ operation = {}, tasks = [], staffin
       taskCompletionPercent: percent(completedTasks, totalTasks),
       signoffApprovalPercent: percent(approvedSignoffs, totalSignoffs),
       staffingCoveragePercent: percent(checkedInStaff, plannedStaff),
-      passengerCount: Number(passengerCount || 0),
-      eventVelocity,
+      passengerCount: toNonNegativeNumber(passengerCount),
+      eventVelocity: toNonNegativeNumber(eventVelocity),
       bottleneckDepartment: bottleneckDepartment?.departmentRole || 'None'
     },
     counts: {
@@ -171,5 +178,6 @@ function buildTurnaroundOperationalMetrics({ operation = {}, tasks = [], staffin
 module.exports = {
   buildTurnaroundOperationalMetrics,
   getDepartmentMetrics,
-  percent
+  percent,
+  toNonNegativeNumber
 }

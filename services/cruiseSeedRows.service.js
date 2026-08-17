@@ -1,12 +1,14 @@
 const { randomUUID } = require('crypto')
 
 function normalizeRoleId(role) {
-  return String(role || '').toLowerCase().replace(/_/g, '-')
+  return String(role || '').trim().toLowerCase().replace(/[ _]+/g, '-')
 }
 
 function formatRoleDisplayName(role) {
   return String(role || '').replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, character => character.toUpperCase())
 }
+
+function normalizeNonNegativeCount(value) { const count = Number(value ?? 0); return Number.isFinite(count) && count >= 0 ? Math.floor(count) : 0 }
 
 function getNormalizedRoleType(role) {
   const normalizedRole = String(role || '').trim().toUpperCase().replace(/[ -]/g, '_')
@@ -18,7 +20,6 @@ function getNormalizedRoleType(role) {
   return 'OPERATIONS'
 }
 
-
 function buildAppUserLookup(appUserRows) {
   const exactNameLookup = new Map()
   const scopedPrefixNameLookup = new Map()
@@ -26,7 +27,7 @@ function buildAppUserLookup(appUserRows) {
 
   for (const appUser of appUserRows) {
     if (!exactNameLookup.has(appUser.displayName)) {
-      exactNameLookup.set(appUser.displayName, appUser.id)
+      exactNameLookup.set(appUser.displayName, appUser.normalizedUserId || appUser.id)
     }
 
     const [displayNamePrefix] = String(appUser.displayName || '').split(' — ')
@@ -37,12 +38,12 @@ function buildAppUserLookup(appUserRows) {
       if (normalizedAssignedShip) {
         const scopedKey = `${normalizedPrefix}|${normalizedAssignedShip}`
         if (!scopedPrefixNameLookup.has(scopedKey)) {
-          scopedPrefixNameLookup.set(scopedKey, appUser.id)
+          scopedPrefixNameLookup.set(scopedKey, appUser.normalizedUserId || appUser.id)
         }
       }
 
       if (!prefixNameLookup.has(normalizedPrefix)) {
-        prefixNameLookup.set(normalizedPrefix, appUser.id)
+        prefixNameLookup.set(normalizedPrefix, appUser.normalizedUserId || appUser.id)
       }
     }
   }
@@ -53,10 +54,9 @@ function buildAppUserLookup(appUserRows) {
     const normalizedAssignedShip = String(assignedShipName || '').toLowerCase()
     const scopedKey = `${normalizedName}|${normalizedAssignedShip}`
 
-    return exactNameLookup.get(displayName) || scopedPrefixNameLookup.get(scopedKey) || prefixNameLookup.get(normalizedName) || null
+    return scopedPrefixNameLookup.get(scopedKey) || exactNameLookup.get(displayName) || prefixNameLookup.get(normalizedName) || null
   }
 }
-
 
 function getOperationalAssignmentShipName(demoUser = {}) {
   const explicitShip = demoUser.shipName
@@ -108,7 +108,6 @@ function getNormalizedUserType(role) {
     ? 'PASSENGER'
     : 'EMPLOYEE'
 }
-
 
 function buildSeedRows(cruiseData) {
   const cruiseLineRows = []
@@ -297,7 +296,7 @@ function buildSeedRows(cruiseData) {
     })
   }
 
-  const resolveOperationalUserId = buildAppUserLookup(appUserRows)
+  const resolveOperationalUserId = buildAppUserLookup(demoUserRows)
 
   for (const turnaroundOperation of cruiseData.turnaroundOperations || []) {
     const operationId = randomUUID()
@@ -336,8 +335,8 @@ function buildSeedRows(cruiseData) {
         id: randomUUID(),
         operationId,
         departmentRole: staffing.departmentRole,
-        plannedCount: Number(staffing.plannedCount || 0),
-        checkedInCount: Number(staffing.checkedInCount || 0),
+        plannedCount: normalizeNonNegativeCount(staffing.plannedCount),
+        checkedInCount: normalizeNonNegativeCount(staffing.checkedInCount),
         leadName: staffing.leadName,
         musterLocation: staffing.musterLocation,
         notes: staffing.notes

@@ -101,6 +101,8 @@ describe('publicLaunchReadiness service', () => {
 
     const operationsTrack = readiness.projectStatus.tracks.find(track => track.area === 'Turnaround operations')
     expect(operationsTrack).toMatchObject({ percent: 0, status: 'operational' })
+    expect(readiness.tracks.find(track => track.id === 'turnaround-operations')).toMatchObject({ score: 0, status: 'blocked' })
+    expect(readiness.status).toBe('blocked')
     expect(readiness.projectStatus.featureCompleteEstimate).toBe(75)
   })
 
@@ -125,7 +127,7 @@ describe('publicLaunchReadiness service', () => {
       operationsControlBoard: { score: 140 }
     })
 
-    expect(readiness.tracks.map(track => track.score)).toEqual([0, 100, 0])
+    expect(readiness.tracks.map(track => track.score)).toEqual([0, 100, 0, 100])
     expect(readiness.status).toBe('blocked')
     expect(readiness.projectStatus.tracks.find(track => track.area === 'Turnaround operations').percent).toBe(100)
   })
@@ -165,6 +167,102 @@ describe('publicLaunchReadiness service', () => {
     expect(readiness.criticalItems.map(item => item.title)).toEqual(['Identity', 'Tenant boundaries'])
     expect(readiness.criticalItems[0].action).toBe('Resolve this item before production release.')
     expect(readiness.criticalItems[1].action).toBe('Tighten tenant scope.')
+  })
+
+  it('includes authoritative operational readiness in the public launch gate when supplied', () => {
+    const readiness = buildPublicLaunchReadiness({
+      dataArchitecture: { overallScore: 96, gates: [] },
+      productionHardening: { overallScore: 96, gates: [] },
+      deployment: { overallScore: 96, gates: [] },
+      operationsControlBoard: { overallScore: 82, summary: 'Two turnaround watch items remain.', nextActions: ['Clear staffing gap.'] }
+    })
+
+    expect(readiness.status).toBe('watch')
+    expect(readiness.tracks.find(track => track.id === 'turnaround-operations')).toMatchObject({
+      source: 'Operations Control Board',
+      score: 82,
+      status: 'watch',
+      action: 'Clear staffing gap.'
+    })
+  })
+
+  it('does not invent an operational launch track when no authoritative operations score exists', () => {
+    const readiness = buildPublicLaunchReadiness({
+      dataArchitecture: { overallScore: 95, gates: [] },
+      productionHardening: { overallScore: 95, gates: [] },
+      deployment: { overallScore: 95, gates: [] },
+      operationsControlBoard: { summary: 'No current score.' }
+    })
+
+    expect(readiness.status).toBe('ready')
+    expect(readiness.tracks.some(track => track.id === 'turnaround-operations')).toBe(false)
+  })
+
+
+  it('normalizes alternate score fields and status spellings across launch tracks', () => {
+    const tracks = buildLaunchReadinessTracks({
+      dataArchitecture: { score: 89, gates: [{ status: ' AT-RISK ' }], migrationBacklog: [{ action: 'Normalize tenant IDs.' }] },
+      productionHardening: { score: 91, gates: [{ status: 'warning' }], launchSequence: ['Verify logs.'] },
+      deployment: { score: 69, gates: [{ status: 'critical' }], launchSequence: ['Fallback deploy step.'] },
+      operationsControlBoard: { score: 88, actions: ['Clear command watch item.'] }
+    })
+
+    expect(tracks.map(track => [track.id, track.score, track.status])).toEqual([
+      ['data-architecture-hardening', 89, 'watch'],
+      ['production-hardening', 91, 'watch'],
+      ['deployment-readiness', 69, 'blocked'],
+      ['turnaround-operations', 88, 'ready']
+    ])
+    expect(tracks[0].action).toBe('Normalize tenant IDs.')
+    expect(tracks[1].action).toBe('Verify logs.')
+    expect(tracks[2].action).toBe('Fallback deploy step.')
+    expect(tracks[3].action).toBe('Clear command watch item.')
+  })
+
+  it('builds stable fallback critical evidence for sparse readiness gates', () => {
+    const items = buildCriticalLaunchItems([], [{
+      source: 'Deployment',
+      payload: { gates: [{ score: 'bad', status: 'warning' }] }
+    }])
+
+    expect(items).toEqual([expect.objectContaining({
+      id: 'deployment-0',
+      title: 'Release readiness control',
+      source: 'Deployment',
+      status: 'warning',
+      score: 0,
+      summary: 'Review this release-readiness control.',
+      action: 'Resolve this item before production release.'
+    })])
+  })
+
+  it('uses plural and singular launch summaries at blocker and watch boundaries', () => {
+    const oneBlocked = buildPublicLaunchReadiness({
+      dataArchitecture: { overallScore: 95, gates: [{ status: 'blocked' }] },
+      productionHardening: { overallScore: 95, gates: [] },
+      deployment: { overallScore: 95, gates: [] }
+    })
+    expect(oneBlocked.summary).toContain('1 release track require blocker-level attention')
+
+    const twoWatch = buildPublicLaunchReadiness({
+      dataArchitecture: { overallScore: 82, gates: [] },
+      productionHardening: { overallScore: 82, gates: [] },
+      deployment: { overallScore: 95, gates: [] }
+    })
+    expect(twoWatch.summary).toContain('2 release tracks remain on the operational watchlist')
+  })
+
+  it('degrades malformed top-level readiness payloads without throwing', () => {
+    const readiness = buildPublicLaunchReadiness({
+      dataArchitecture: [],
+      productionHardening: 'invalid',
+      deployment: null,
+      operationsControlBoard: 7
+    })
+
+    expect(readiness.tracks).toHaveLength(3)
+    expect(readiness.tracks.map(track => track.score)).toEqual([0, 0, 0])
+    expect(readiness.status).toBe('blocked')
   })
 
 })

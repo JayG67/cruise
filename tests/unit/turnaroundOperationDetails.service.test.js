@@ -212,3 +212,164 @@ describe('turnaround operation details branch coverage', () => {
     expect(result.signoffSummary.approvalPercent).toBe(0)
   })
 })
+
+describe('turnaround operation details resilience and coverage hardening', () => {
+  beforeEach(() => {
+    mockRows.clear()
+    mockBuildArtifacts.mockClear()
+  })
+
+  test('caps overstaffed operations at 100 percent so release scoring cannot be inflated', async () => {
+    setRows(mockTables.sailing, [{ id: 'SAIL-OVER', shipId: null }])
+    setRows(mockTables.task, [])
+    setRows(mockTables.signoff, [])
+    setRows(mockTables.escalation, [])
+    setRows(mockTables.staffing, [{ departmentRole: 'Hotel', plannedCount: 4, checkedInCount: 6 }])
+    setRows(mockTables.dependency, [])
+    setRows(mockTables.handoff, [])
+    setRows(mockTables.booking, [])
+
+    const result = await getTurnaroundOperationDetails({ id: 'OP-OVER', sailingId: 'SAIL-OVER' })
+
+    expect(result.staffingSummary).toEqual({
+      totalDepartments: 1,
+      plannedCount: 4,
+      checkedInCount: 6,
+      gapCount: 0,
+      checkInPercent: 100
+    })
+    expect(mockBuildArtifacts).toHaveBeenCalledWith(expect.objectContaining({
+      staffing: [expect.objectContaining({ plannedCount: 4, checkedInCount: 6 })]
+    }))
+  })
+
+  test('keeps hierarchy resolution fail-soft when a sailing points to a missing ship', async () => {
+    setRows(mockTables.sailing, [{ id: 'SAIL-NO-SHIP', shipId: 'SHIP-MISSING' }])
+    setRows(mockTables.ship, [])
+    setRows(mockTables.task, [])
+    setRows(mockTables.signoff, [])
+    setRows(mockTables.escalation, [])
+    setRows(mockTables.staffing, [])
+    setRows(mockTables.dependency, [])
+    setRows(mockTables.handoff, [])
+    setRows(mockTables.booking, [])
+
+    const result = await getTurnaroundOperationDetails({ id: 'OP-NO-SHIP', sailingId: 'SAIL-NO-SHIP' })
+
+    expect(result.sailing).toEqual(expect.objectContaining({ id: 'SAIL-NO-SHIP' }))
+    expect(result.ship).toBeNull()
+    expect(result.cruiseLine).toBeNull()
+  })
+
+  test('keeps hierarchy resolution fail-soft when a ship has no cruise-line relationship', async () => {
+    setRows(mockTables.sailing, [{ id: 'SAIL-NO-LINE', shipId: 'SHIP-NO-LINE' }])
+    setRows(mockTables.ship, [{ id: 'SHIP-NO-LINE', cruiseLineId: null }])
+    setRows(mockTables.task, [])
+    setRows(mockTables.signoff, [])
+    setRows(mockTables.escalation, [])
+    setRows(mockTables.staffing, [])
+    setRows(mockTables.dependency, [])
+    setRows(mockTables.handoff, [])
+    setRows(mockTables.booking, [])
+
+    const result = await getTurnaroundOperationDetails({ id: 'OP-NO-LINE', sailingId: 'SAIL-NO-LINE' })
+
+    expect(result.ship).toEqual(expect.objectContaining({ id: 'SHIP-NO-LINE' }))
+    expect(result.cruiseLine).toBeNull()
+  })
+
+  test('uses embedded person labels when no authoritative app-user ids are available', async () => {
+    setRows(mockTables.sailing, [{ id: 'SAIL-LABELS', shipId: null }])
+    setRows(mockTables.task, [{ id: 'T-L', taskName: 'Label task', status: 'COMPLETE', ownerDisplayName: 'Embedded owner' }])
+    setRows(mockTables.signoff, [{ departmentRole: 'Hotel', status: 'APPROVED', approverName: 'Embedded approver' }])
+    setRows(mockTables.escalation, [{ id: 'E-L', status: 'RESOLVED', severity: 'LOW', ownerName: 'Embedded escalation owner' }])
+    setRows(mockTables.staffing, [])
+    setRows(mockTables.dependency, [])
+    setRows(mockTables.handoff, [{ id: 'H-L', status: 'COMPLETE', leadName: 'Embedded handoff lead' }])
+    setRows(mockTables.update, [{ id: 'UP-L', authorName: 'Embedded author' }])
+    setRows(mockTables.booking, [])
+
+    const result = await getTurnaroundOperationDetails({ id: 'OP-LABELS', sailingId: 'SAIL-LABELS' })
+
+    expect(result.tasks[0].ownerDisplayName).toBe('Embedded owner')
+    expect(result.tasks[0].updates[0].authorDisplayName).toBe('Embedded author')
+    expect(result.signoffs[0].approverDisplayName).toBe('Embedded approver')
+    expect(result.escalations[0].ownerDisplayName).toBe('Embedded escalation owner')
+    expect(result.handoffs[0].ownerDisplayName).toBe('Embedded handoff lead')
+  })
+
+  test('derives in-progress readiness from completed work or approved signoffs even without active tasks', async () => {
+    setRows(mockTables.sailing, [{ id: 'SAIL-PROGRESS', shipId: null }])
+    setRows(mockTables.task, [{ id: 'T-P', taskName: 'Done', status: 'COMPLETE' }, { id: 'T-Q', taskName: 'Queued', status: 'PLANNED' }])
+    setRows(mockTables.signoff, [{ departmentRole: 'Bridge', status: 'APPROVED' }, { departmentRole: 'Hotel', status: 'PENDING' }])
+    setRows(mockTables.escalation, [])
+    setRows(mockTables.staffing, [])
+    setRows(mockTables.dependency, [])
+    setRows(mockTables.handoff, [])
+    setRows(mockTables.update, [], [])
+    setRows(mockTables.booking, [])
+
+    const result = await getTurnaroundOperationDetails({ id: 'OP-PROGRESS', sailingId: 'SAIL-PROGRESS' })
+
+    expect(result.status).toBe('IN_PROGRESS')
+    expect(result.readinessLevel).toBe('In progress')
+    expect(result.taskSummary).toEqual(expect.objectContaining({ totalTasks: 2, completeTasks: 1, completionPercent: 50 }))
+    expect(result.signoffSummary).toEqual(expect.objectContaining({ approvedSignoffs: 1, pendingSignoffs: 1, approvalPercent: 50 }))
+  })
+
+  test('counts monitoring and resolved escalations and excludes resolved critical items from release blockers', async () => {
+    setRows(mockTables.sailing, [{ id: 'SAIL-ESC', shipId: null }])
+    setRows(mockTables.task, [])
+    setRows(mockTables.signoff, [])
+    setRows(mockTables.escalation, [
+      { id: 'E1', status: 'OPEN', severity: 'MEDIUM', createdAt: '2026-08-17T10:00:00Z' },
+      { id: 'E2', status: 'MONITORING', severity: 'HIGH', createdAt: '2026-08-17T11:00:00Z' },
+      { id: 'E3', status: 'RESOLVED', severity: 'CRITICAL', createdAt: '2026-08-17T12:00:00Z' }
+    ])
+    setRows(mockTables.staffing, [])
+    setRows(mockTables.dependency, [])
+    setRows(mockTables.handoff, [])
+    setRows(mockTables.booking, [])
+
+    const result = await getTurnaroundOperationDetails({ id: 'OP-ESC', sailingId: 'SAIL-ESC' })
+
+    expect(result.escalationSummary).toEqual({
+      totalEscalations: 3,
+      openEscalations: 1,
+      monitoringEscalations: 1,
+      resolvedEscalations: 1,
+      criticalEscalations: 0
+    })
+    expect(result.status).toBe('PLANNED')
+    expect(result.readinessLevel).toBe('Planning')
+    expect(result.escalations.map(item => item.id)).toEqual(['E3', 'E2', 'E1'])
+  })
+
+  test('normalizes malformed staffing counts so readiness evidence remains finite', async () => {
+    setRows(mockTables.sailing, [{ id: 'SAIL-BAD-STAFF', shipId: null }])
+    setRows(mockTables.task, [])
+    setRows(mockTables.signoff, [])
+    setRows(mockTables.escalation, [])
+    setRows(mockTables.staffing, [
+      { departmentRole: 'Hotel', plannedCount: 'bad', checkedInCount: Infinity },
+      { departmentRole: 'Engineering', plannedCount: 5.9, checkedInCount: 2.2 },
+      { departmentRole: 'Security', plannedCount: -3, checkedInCount: -1 }
+    ])
+    setRows(mockTables.dependency, [])
+    setRows(mockTables.handoff, [])
+    setRows(mockTables.booking, [])
+
+    const result = await getTurnaroundOperationDetails({ id: 'OP-BAD-STAFF', sailingId: 'SAIL-BAD-STAFF' })
+
+    expect(result.staffingSummary).toEqual({
+      totalDepartments: 3,
+      plannedCount: 5,
+      checkedInCount: 2,
+      gapCount: 3,
+      checkInPercent: 40
+    })
+    expect(result.readinessLevel).toBe('Blocked')
+    expect(Object.values(result.staffingSummary).every(value => Number.isFinite(value))).toBe(true)
+  })
+
+})

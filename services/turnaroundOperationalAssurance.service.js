@@ -126,7 +126,7 @@ function buildAssuranceDataQuality({ tasks = [], staffing = [], signoffs = [], d
 
   const blockerCount = tasks.filter(task => String(task.status || '').toUpperCase() === 'BLOCKED' || String(task.blocker || '').trim()).length
   const openEscalations = escalations.filter(escalation => !['RESOLVED', 'CLOSED'].includes(String(escalation.status || '').toUpperCase())).length
-  const staffingGaps = staffing.filter(row => Number(row.assignedCount || row.assigned || 0) < Number(row.requiredCount || row.required || 0)).length
+  const staffingGaps = staffing.filter(row => Number(row.checkedInCount ?? row.assignedCount ?? row.assigned ?? 0) < Number(row.plannedCount ?? row.requiredCount ?? row.required ?? 0)).length
   const incompleteSignoffs = signoffs.filter(signoff => String(signoff.status || '').toUpperCase() !== 'APPROVED').length
   const openDependencies = dependencies.filter(dependency => String(dependency.status || '').toUpperCase() !== 'COMPLETE').length
   const openHandoffs = handoffs.filter(handoff => String(handoff.status || '').toUpperCase() !== 'COMPLETE').length

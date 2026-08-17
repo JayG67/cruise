@@ -31,9 +31,14 @@ function getAiPricingConfig(env = process.env) {
   })
 }
 
+function normalizeTokenCount(value) {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? Math.max(0, parsed) : 0
+}
+
 function estimateUsageCostUsd(usage = {}, pricing = DEFAULT_AI_PRICING) {
-  const inputTokens = Math.max(0, Number(usage.inputTokens || 0))
-  const outputTokens = Math.max(0, Number(usage.outputTokens || 0))
+  const inputTokens = normalizeTokenCount(usage.inputTokens)
+  const outputTokens = normalizeTokenCount(usage.outputTokens)
   const inputCost = inputTokens * Number(pricing.inputUsdPerMillionTokens || 0) / 1000000
   const outputCost = outputTokens * Number(pricing.outputUsdPerMillionTokens || 0) / 1000000
   return Number((inputCost + outputCost).toFixed(8))
@@ -52,5 +57,6 @@ module.exports = {
   describeAiPricingConfig,
   estimateUsageCostUsd,
   getAiPricingConfig,
+  normalizeTokenCount,
   parseNonNegativeDecimal
 }

@@ -62,7 +62,7 @@ function buildDemoActor(demoUser = {}) {
   if (!demoUser?.id) return null
 
   return buildActorIdentity({
-    actorUserId: demoUser.normalizedUserId || null,
+    actorUserId: demoUser.normalizedUserId || demoUser.id,
     actorDisplayName: normalizeActorDisplayName(demoUser),
     actorRole: demoUser.role || null,
     identitySource: ACTOR_IDENTITY_SOURCES.DEMO

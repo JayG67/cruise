@@ -16,6 +16,8 @@ const { listAuditEventsForOperation } = require('./auditEvent.service')
 const { buildTurnaroundOperationalArtifacts } = require('./turnaroundOperationalArtifacts.service')
 const { eq, inArray } = require('drizzle-orm')
 
+const normalizeCount = value => { const number = Number(value); return Number.isFinite(number) && number > 0 ? Math.floor(number) : 0 }
+
 async function buildAppUserDisplayLookup(userIds = []) {
   const uniqueUserIds = [...new Set((userIds || []).filter(Boolean))]
   if (!uniqueUserIds.length) return new Map()
@@ -59,7 +61,6 @@ async function getPassengerCountForSailing(sailingId) {
 
   return passengerCount
 }
-
 
 function getTurnaroundProgress(tasks = []) {
   const totalTasks = tasks.length
@@ -108,10 +109,9 @@ function getTurnaroundEscalationSummary(escalations = []) {
   }
 }
 
-
 function getTurnaroundStaffingSummary(staffing = []) {
-  const plannedCount = staffing.reduce((sum, row) => sum + Number(row.plannedCount || 0), 0)
-  const checkedInCount = staffing.reduce((sum, row) => sum + Number(row.checkedInCount || 0), 0)
+  const plannedCount = staffing.reduce((sum, row) => sum + normalizeCount(row.plannedCount), 0)
+  const checkedInCount = staffing.reduce((sum, row) => sum + normalizeCount(row.checkedInCount), 0)
   const gapCount = Math.max(plannedCount - checkedInCount, 0)
 
   return {
@@ -119,7 +119,7 @@ function getTurnaroundStaffingSummary(staffing = []) {
     plannedCount,
     checkedInCount,
     gapCount,
-    checkInPercent: plannedCount === 0 ? 0 : Math.round((checkedInCount / plannedCount) * 100)
+    checkInPercent: plannedCount === 0 ? 0 : Math.min(100, Math.round((checkedInCount / plannedCount) * 100))
   }
 }
 

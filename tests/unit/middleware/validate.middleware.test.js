@@ -140,6 +140,46 @@ describe('Validation middleware', () => {
     )
   })
 
+
+  it('normalizes legacy errors arrays, empty paths, missing messages, and fallback envelopes', () => {
+    const res = mockResponse()
+    const next = jest.fn()
+    const legacySchema = {
+      safeParse: jest.fn(() => ({
+        success: false,
+        error: { errors: [{ path: [], message: '' }] }
+      }))
+    }
+
+    validate(legacySchema, 'query')({ query: { bad: true } }, res, next)
+
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'Validation failed',
+      errors: [{ field: 'query', message: 'Invalid value' }]
+    })
+    expect(next).not.toHaveBeenCalled()
+
+    const fallbackRes = mockResponse()
+    validate({ safeParse: () => ({ success: false, error: {} }) }, 'params')({ params: {} }, fallbackRes, jest.fn())
+    expect(fallbackRes.json).toHaveBeenCalledWith({
+      message: 'Validation failed',
+      errors: [{ field: 'params', message: 'Request params did not match the expected schema' }]
+    })
+  })
+
+  it('assigns parsed values back to non-body request sources', () => {
+    const req = { query: { page: '1' } }
+    const res = mockResponse()
+    const next = jest.fn()
+    const schema = { safeParse: jest.fn(() => ({ success: true, data: { page: 1 } })) }
+
+    validate(schema, 'query')(req, res, next)
+
+    expect(req.query).toEqual({ page: 1 })
+    expect(next).toHaveBeenCalledTimes(1)
+    expect(res.status).not.toHaveBeenCalled()
+  })
+
 })
 
 

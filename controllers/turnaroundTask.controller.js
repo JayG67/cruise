@@ -69,10 +69,8 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
         return sendTurnaroundOperationForbidden(res)
       }
 
-      await db
-        .update(turnaroundTaskTable)
-        .set(nextTaskValues)
-        .where(eq(turnaroundTaskTable.id, id))
+      const updatedTasks = await db.update(turnaroundTaskTable).set(nextTaskValues).where(eq(turnaroundTaskTable.id, id)).returning()
+      if (!updatedTasks[0]) return res.status(404).json({ message: 'Turnaround task not found' })
 
       await recordTurnaroundAuditEvent(req, operation, {
           eventType: 'TURNAROUND_TASK_STATUS_UPDATED',
@@ -340,10 +338,8 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
         taskUpdates.ownerUserId = await resolveOperationalUserIdByName(req.body.ownerName, operation)
       }
 
-      await db
-        .update(turnaroundTaskTable)
-        .set(taskUpdates)
-        .where(eq(turnaroundTaskTable.id, id))
+      const updatedTasks = await db.update(turnaroundTaskTable).set(taskUpdates).where(eq(turnaroundTaskTable.id, id)).returning()
+      if (!updatedTasks[0]) return res.status(404).json({ message: 'Turnaround task not found' })
 
       await recordTurnaroundAuditEvent(req, operation, {
           eventType: 'TURNAROUND_TASK_DETAILS_UPDATED',

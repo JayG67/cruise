@@ -141,3 +141,29 @@ it('builds a safe executive brief from null operation context and empty evidence
   expect(brief.departmentBriefs).toEqual([])
   expect(brief.executiveActions[0]).toContain('Hold executive promotion')
 })
+
+it('normalizes malformed executive evidence counts instead of returning NaN', () => {
+  const decision = buildExecutiveDecision({
+    operationalMetrics: { summary: { releaseConfidence: 90 } },
+    incidentCommand: { incidentScore: 10 },
+    afterActionReview: { summary: { reviewScore: 90, actionCount: 'not-a-number' } },
+    playbookVariance: { summary: { rehearsalScore: 90 } }
+  })
+  const brief = buildTurnaroundExecutiveBrief({
+    operationalTimeline: { summary: { totalEvents: 'invalid' } },
+    afterActionReview: { summary: { actionCount: Infinity } }
+  })
+
+  expect(decision.openActionCount).toBe(0)
+  expect(Number.isFinite(decision.openActionCount)).toBe(true)
+  expect(brief.summary.timelineEvents).toBe(0)
+  expect(Number.isFinite(brief.summary.timelineEvents)).toBe(true)
+})
+
+it('floors positive fractional evidence counts and rejects negative counts', () => {
+  const fractional = buildExecutiveDecision({ afterActionReview: { summary: { actionCount: 2.9 } } })
+  const negative = buildExecutiveDecision({ afterActionReview: { summary: { actionCount: -4 } } })
+
+  expect(fractional.openActionCount).toBe(2)
+  expect(negative.openActionCount).toBe(0)
+})

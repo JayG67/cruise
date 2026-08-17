@@ -48,3 +48,28 @@ describe('Phase 2 operation-scoped briefing orchestration', () => {
   })
 
 })
+
+describe('Phase 2 operational briefing fail-closed behavior', () => {
+  it('does not invoke generation when trusted evidence no longer resolves an operation', async () => {
+    const evidenceLoader = jest.fn().mockResolvedValue({ operation: null, evidence: [], evidenceSummary: {} })
+    const briefingGenerator = jest.fn()
+
+    await expect(generateOperationalTurnaroundBriefing({ operationId: 'deleted-op', evidenceLoader, briefingGenerator }))
+      .rejects.toMatchObject({ code: 'TURNAROUND_OPERATION_NOT_FOUND' })
+    expect(briefingGenerator).not.toHaveBeenCalled()
+  })
+
+  it('preserves an explicit question and omits requestedAt when it is absent', async () => {
+    const evidenceLoader = jest.fn().mockResolvedValue({
+      operation: { id: 'op-3', title: 'Turnaround 3', status: 'ACTIVE', readinessLevel: 'WATCH', turnaroundDate: '2026-10-01', port: 'Miami' },
+      evidence: [], evidenceSummary: { included: 0 }
+    })
+    const briefingGenerator = jest.fn().mockResolvedValue({ briefing: {} })
+
+    await generateOperationalTurnaroundBriefing({ operationId: 'op-3', question: 'Only show active blockers.', evidenceLoader, briefingGenerator })
+
+    const call = briefingGenerator.mock.calls[0][0]
+    expect(call.input.question).toBe('Only show active blockers.')
+    expect(call.input).not.toHaveProperty('requestedAt')
+  })
+})

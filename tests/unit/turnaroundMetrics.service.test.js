@@ -1,7 +1,8 @@
 const {
   buildTurnaroundOperationalMetrics,
   getDepartmentMetrics,
-  percent
+  percent,
+  toNonNegativeNumber
 } = require('../../services/turnaroundMetrics.service')
 
 describe('turnaround operational metrics behavior', () => {
@@ -139,4 +140,37 @@ describe('turnaround operational metrics behavior', () => {
     }))
     expect(metrics.signals.every(signal => signal.status === 'PASS')).toBe(true)
   })
+
+  it('normalizes malformed operational numbers instead of emitting non-finite readiness evidence', () => {
+    expect(toNonNegativeNumber('bad')).toBe(0)
+    expect(toNonNegativeNumber(Infinity)).toBe(0)
+    expect(toNonNegativeNumber(-4)).toBe(0)
+    expect(toNonNegativeNumber('3.5')).toBe(3.5)
+
+    const metrics = buildTurnaroundOperationalMetrics({
+      staffing: [
+        { departmentRole: 'Engineering', plannedCount: 'bad', checkedInCount: Infinity },
+        { departmentRole: 'Guest Services', plannedCount: 4, checkedInCount: -2 }
+      ],
+      releasePacket: { readinessScore: 'not-a-number' },
+      passengerCount: Infinity,
+      operationalTimeline: { summary: { totalEvents: 'bad' } }
+    })
+
+    expect(metrics.summary).toEqual(expect.objectContaining({
+      readinessScore: 0,
+      releaseConfidence: 0,
+      passengerCount: 0,
+      eventVelocity: 0,
+      staffingCoveragePercent: 0
+    }))
+    expect(metrics.counts).toEqual(expect.objectContaining({ plannedStaff: 4, checkedInStaff: 0, staffingGap: 4 }))
+    expect(metrics.departmentMetrics.every(row => Number.isFinite(row.riskScore))).toBe(true)
+  })
+
+  it('clamps externally supplied readiness scores to the supported range', () => {
+    expect(buildTurnaroundOperationalMetrics({ releasePacket: { readinessScore: 140 } }).summary.readinessScore).toBe(100)
+    expect(buildTurnaroundOperationalMetrics({ releasePacket: { readinessScore: -10 } }).summary.readinessScore).toBe(0)
+  })
+
 })

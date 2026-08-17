@@ -6,6 +6,11 @@ function normalizeRole(role = '') {
   return String(role || 'Unassigned').trim() || 'Unassigned'
 }
 
+function finiteCount(value) {
+  const number = Number(value)
+  return Number.isFinite(number) && number > 0 ? Math.floor(number) : 0
+}
+
 function getOwner(row = {}) {
   return row.ownerDisplayName || row.ownerName || row.approverDisplayName || row.approverName || row.authorDisplayName || row.authorName || 'Owner pending'
 }
@@ -118,7 +123,7 @@ function buildDepartmentBriefs({ tasks = [], staffing = [], signoffs = [], escal
   }
 
   for (const staff of staffing || []) {
-    ensure(staff.departmentRole).staffingGap += Math.max(Number(staff.plannedCount || 0) - Number(staff.checkedInCount || 0), 0)
+    ensure(staff.departmentRole).staffingGap += Math.max(finiteCount(staff.plannedCount) - finiteCount(staff.checkedInCount), 0)
   }
 
   for (const escalation of escalations || []) {
@@ -149,10 +154,10 @@ function buildDepartmentBriefs({ tasks = [], staffing = [], signoffs = [], escal
 }
 
 function buildShiftChecklist({ releasePacket = null, operationalMetrics = null, commandCenter = null, continuityCenter = null, closeoutPacket = null } = {}) {
-  const releaseReady = Number(operationalMetrics?.summary?.releaseConfidence ?? 0) >= 80
-  const commandOpen = Number(commandCenter?.summary?.decisionQueueCount ?? commandCenter?.decisionQueue?.length ?? 0)
-  const continuityOpen = Number(continuityCenter?.summary?.watchlistCount ?? continuityCenter?.watchlist?.length ?? 0)
-  const closeoutScore = Number(closeoutPacket?.summary?.closeoutScore ?? 0)
+  const releaseReady = finiteCount(operationalMetrics?.summary?.releaseConfidence) >= 80
+  const commandOpen = finiteCount(commandCenter?.summary?.decisionQueueCount ?? commandCenter?.decisionQueue?.length)
+  const continuityOpen = finiteCount(continuityCenter?.summary?.watchlistCount ?? continuityCenter?.watchlist?.length)
+  const closeoutScore = finiteCount(closeoutPacket?.summary?.closeoutScore)
 
   return [
     {
@@ -191,7 +196,7 @@ function buildTurnaroundShiftBriefing({ operation = {}, tasks = [], staffing = [
   const watchCount = criticalItems.filter(item => item.priority < 80).length + checklist.filter(item => item.status === 'WATCH').length
   const handoffStatus = actionCount > 0 ? 'COMMAND_REVIEW' : watchCount > 1 ? 'WATCH_HANDOFF' : 'READY_HANDOFF'
   const releaseConfidenceSource = operationalMetrics?.summary?.releaseConfidence
-  const releaseConfidence = releaseConfidenceSource == null ? 75 : Number(releaseConfidenceSource) || 0
+  const releaseConfidence = releaseConfidenceSource == null ? 75 : finiteCount(releaseConfidenceSource)
   const briefingScore = Math.max(0, Math.min(100, Math.round(releaseConfidence) - actionCount * 7 - watchCount * 3))
 
   return {

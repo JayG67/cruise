@@ -113,3 +113,48 @@ describe('turnaroundShiftBriefing service', () => {
     expect(checklist.every(item => item.status === 'READY')).toBe(true)
   })
 })
+
+describe('turnaroundShiftBriefing numeric evidence hardening', () => {
+  it('normalizes malformed staffing counts without NaN department evidence', () => {
+    const briefs = buildDepartmentBriefs({
+      staffing: [
+        { departmentRole: 'HOTEL_LEAD', plannedCount: 'bad', checkedInCount: Infinity },
+        { departmentRole: 'ENGINEERING_LEAD', plannedCount: 4.9, checkedInCount: 2.2 }
+      ]
+    })
+
+    expect(briefs).toEqual(expect.arrayContaining([
+      expect.objectContaining({ departmentRole: 'HOTEL_LEAD', staffingGap: 0 }),
+      expect.objectContaining({ departmentRole: 'ENGINEERING_LEAD', staffingGap: 2 })
+    ]))
+    expect(briefs.every(row => Number.isFinite(row.staffingGap))).toBe(true)
+  })
+
+  it('normalizes malformed queue and readiness counts instead of rendering NaN checklist text', () => {
+    const checklist = buildShiftChecklist({
+      operationalMetrics: { summary: { releaseConfidence: 'bad' } },
+      commandCenter: { summary: { decisionQueueCount: 'bad' } },
+      continuityCenter: { summary: { watchlistCount: Infinity } },
+      closeoutPacket: { summary: { closeoutScore: 'bad' } }
+    })
+
+    expect(checklist).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'release-confidence', status: 'WATCH' }),
+      expect.objectContaining({ id: 'decision-queue', status: 'READY' }),
+      expect.objectContaining({ id: 'continuity-watchlist', status: 'READY' }),
+      expect.objectContaining({ id: 'closeout-readiness', status: 'WATCH' })
+    ]))
+    expect(checklist.map(item => item.detail).join(' ')).not.toContain('NaN')
+    expect(checklist.map(item => item.detail).join(' ')).not.toContain('Infinity')
+  })
+
+  it('keeps briefing scores finite when release-confidence evidence is malformed', () => {
+    const briefing = buildTurnaroundShiftBriefing({
+      operation: { id: 'malformed-release' },
+      operationalMetrics: { summary: { releaseConfidence: Infinity } }
+    })
+
+    expect(briefing.summary.briefingScore).toBe(0)
+    expect(Number.isFinite(briefing.summary.briefingScore)).toBe(true)
+  })
+})

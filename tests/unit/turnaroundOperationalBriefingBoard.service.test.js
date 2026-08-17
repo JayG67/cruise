@@ -226,3 +226,115 @@ describe('turnaroundOperationalBriefingBoard malformed evidence hardening', () =
     }).readinessStatus).toBe('READY_FOR_BRIEFING')
   })
 })
+
+
+describe('turnaroundOperationalBriefingBoard evidence-count and branch hardening', () => {
+  it('does not invent executive highlight counts when only fallback narrative exists', () => {
+    const board = buildTurnaroundOperationalBriefingBoard({
+      executiveBrief: { narrative: { summary: 'Leadership summary is available.' } }
+    })
+
+    expect(board.assets.find(asset => asset.id === 'executive-highlights')).toMatchObject({
+      status: '0 READY',
+      detail: 'Leadership summary is available.'
+    })
+  })
+
+  it('counts decision highlights only when they are actually present', () => {
+    const board = buildTurnaroundOperationalBriefingBoard({
+      executiveBrief: { decisionHighlights: ['First decision.', 'Second decision.'] }
+    })
+
+    expect(board.assets.find(asset => asset.id === 'executive-highlights')).toMatchObject({
+      status: '2 READY',
+      detail: 'First decision. Second decision.'
+    })
+  })
+
+  it('covers checklist watch and fix thresholds with singular data-quality wording', () => {
+    const watchChecklist = buildBriefingChecklist({
+      operationalAssurancePacket: { readiness: { readinessScore: 77, readinessStatus: 'NEEDS_REVIEW' }, dataQuality: { blockerCount: 1 } },
+      executiveBrief: { summary: { decisionScore: 77, decisionStatus: 'NEEDS_REVIEW' } },
+      afterActionReview: { summary: { reviewScore: 74, reviewStatus: 'FOLLOW_UP' } },
+      incidentCommand: { incidentScore: 40, incidentSeverity: 'WATCH' }
+    })
+    expect(watchChecklist.find(item => item.id === 'data-quality')).toMatchObject({ status: 'WATCH' })
+    expect(watchChecklist.find(item => item.id === 'data-quality').detail).toContain('1 open data-quality watch item across')
+    expect(watchChecklist.find(item => item.id === 'incident-risk')).toMatchObject({ status: 'WATCH' })
+    expect(watchChecklist.find(item => item.id === 'operational-assurance')).toMatchObject({ status: 'REVIEW' })
+    expect(watchChecklist.find(item => item.id === 'executive-brief')).toMatchObject({ status: 'REVIEW' })
+    expect(watchChecklist.find(item => item.id === 'learning-loop')).toMatchObject({ status: 'REVIEW' })
+
+    const fixChecklist = buildBriefingChecklist({
+      operationalAssurancePacket: { readiness: { readinessScore: 90 }, dataQuality: { blockerCount: 4 } },
+      executiveBrief: { summary: { decisionScore: 90 } },
+      afterActionReview: { summary: { reviewScore: 90 } },
+      incidentCommand: { incidentScore: 70 }
+    })
+    expect(fixChecklist.find(item => item.id === 'data-quality')).toMatchObject({ status: 'FIX' })
+    expect(fixChecklist.find(item => item.id === 'incident-risk')).toMatchObject({ status: 'FIX' })
+  })
+
+  it('covers ready-with-notes readiness and audience gating', () => {
+    const readiness = buildBriefingReadiness({
+      operationalAssurancePacket: { readiness: { readinessScore: 90 }, dataQuality: { blockerCount: 2 } },
+      executiveBrief: { summary: { decisionScore: 90 } },
+      afterActionReview: { summary: { reviewScore: 90 } },
+      incidentCommand: { incidentScore: 10 }
+    })
+    expect(readiness.readinessStatus).toBe('READY_WITH_NOTES')
+
+    const audiences = buildAudienceRecommendations({
+      operation: null,
+      readiness: { readinessScore: 77, readinessStatus: 'READY_WITH_NOTES', dataQualityRisk: 4 },
+      operationalAssurancePacket: null
+    })
+    expect(audiences[0]).toMatchObject({ label: 'Current cruise line leadership', status: 'READY_WITH_NOTES' })
+    expect(audiences[0].detail).toContain('role-scoped turnaround operations')
+    expect(audiences.find(item => item.id === 'ship-command')).toMatchObject({ status: 'WAIT' })
+    expect(audiences.find(item => item.id === 'department-leads')).toMatchObject({ status: 'WAIT' })
+  })
+
+  it('selects hold, review, and ready action-plan guidance from authoritative evidence', () => {
+    const holdBoard = buildTurnaroundOperationalBriefingBoard({
+      operationalAssurancePacket: { readiness: { readinessScore: 40 }, dataQuality: {}, nextSteps: [] },
+      executiveBrief: { summary: { decisionScore: 40 }, executiveActions: ['Executive fallback action.'] },
+      afterActionReview: { summary: { reviewScore: 40 }, followUpActions: [] },
+      incidentCommand: { incidentScore: 80 }
+    })
+    expect(holdBoard.actionPlan[0]).toContain('Resolve hold-level')
+    expect(holdBoard.actionPlan[1]).toBe('Executive fallback action.')
+    expect(holdBoard.actionPlan[2]).toBe('Use after-action lessons to improve repeated turnarounds.')
+
+    const reviewBoard = buildTurnaroundOperationalBriefingBoard({
+      operationalAssurancePacket: { readiness: { readinessScore: 72 }, dataQuality: {}, nextSteps: ['Packet action.'] },
+      executiveBrief: { summary: { decisionScore: 72 } },
+      afterActionReview: { summary: { reviewScore: 72 }, followUpActions: ['Review lesson.'] },
+      incidentCommand: { incidentScore: 10 }
+    })
+    expect(reviewBoard.actionPlan[0]).toContain('Review watch items')
+    expect(reviewBoard.actionPlan.slice(1, 3)).toEqual(['Packet action.', 'Review lesson.'])
+
+    const readyBoard = buildTurnaroundOperationalBriefingBoard({
+      operationalAssurancePacket: { readiness: { readinessScore: 98 }, dataQuality: {} },
+      executiveBrief: { summary: { decisionScore: 98 } },
+      afterActionReview: { summary: { reviewScore: 98 } },
+      incidentCommand: { incidentScore: 0 }
+    })
+    expect(readyBoard.actionPlan[0]).toContain('Prepare the operational assurance packet')
+  })
+
+  it('normalizes non-finite and fractional risk counts without reducing briefing safety', () => {
+    const readiness = buildBriefingReadiness({
+      operationalAssurancePacket: {
+        readiness: { readinessScore: 90 },
+        dataQuality: { blockerCount: Infinity, openEscalations: 2.9, staffingGaps: null, incompleteSignoffs: undefined, openDependencies: '1.8', openHandoffs: -2 }
+      },
+      executiveBrief: { summary: { decisionScore: 90 } },
+      afterActionReview: { summary: { reviewScore: 90 } },
+      incidentCommand: { incidentScore: 10 }
+    })
+    expect(readiness.dataQualityRisk).toBe(3)
+    expect(readiness.dataQualityScore).toBe(76)
+  })
+})

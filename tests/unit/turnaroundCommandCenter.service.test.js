@@ -263,3 +263,65 @@ describe('turnaroundCommandCenter service', () => {
   })
 
 })
+
+describe('turnaroundCommandCenter staffing evidence hardening', () => {
+  it('preserves authoritative zero staffing values instead of falling back to legacy nonzero counts', () => {
+    const inputs = buildTurnaroundCommandInputs({
+      staffing: [{
+        departmentRole: 'ENGINEERING_LEAD',
+        plannedCount: 0,
+        requiredCount: 10,
+        checkedInCount: 0,
+        assignedCount: 8
+      }]
+    })
+
+    expect(inputs.staffingGaps).toEqual([])
+
+    const board = buildDepartmentCommandBoard({
+      tasks: [],
+      staffing: [{ departmentRole: 'ENGINEERING_LEAD', plannedCount: 0, requiredCount: 10, checkedInCount: 0, assignedCount: 8 }],
+      signoffs: [],
+      escalations: [],
+      handoffs: []
+    })
+
+    expect(board[0].staffingCoverage).toBe(0)
+  })
+
+  it('normalizes malformed and negative staffing and passenger counts instead of emitting non-finite command evidence', () => {
+    const inputs = buildTurnaroundCommandInputs({
+      passengerCount: 'not-a-number',
+      staffing: [
+        { departmentRole: 'HOUSEKEEPING_LEAD', plannedCount: 'bad', checkedInCount: Infinity },
+        { departmentRole: 'ENGINEERING_LEAD', plannedCount: 4.8, checkedInCount: -1 }
+      ]
+    })
+
+    expect(inputs.passengerCount).toBe(0)
+    expect(inputs.staffingGaps).toEqual([
+      expect.objectContaining({ departmentRole: 'ENGINEERING_LEAD' })
+    ])
+
+    const queue = buildCommandDecisionQueue({
+      blockedTasks: [], criticalEscalations: [], activeDependencies: [], blockedSignoffs: [],
+      staffingGaps: inputs.staffingGaps
+    })
+    expect(queue[0].action).toContain('0/4 people')
+    expect(JSON.stringify({ inputs, queue })).not.toMatch(/NaN|Infinity/)
+  })
+
+  it('uses legacy staffing fields only when modern counts are absent', () => {
+    const inputs = buildTurnaroundCommandInputs({
+      staffing: [{ departmentRole: 'SECURITY_LEAD', requiredCount: 5, assignedCount: 3 }]
+    })
+    expect(inputs.staffingGaps).toHaveLength(1)
+
+    const board = buildDepartmentCommandBoard({
+      tasks: [],
+      staffing: [{ departmentRole: 'SECURITY_LEAD', requiredCount: 5, assignedCount: 3 }],
+      signoffs: [], escalations: [], handoffs: []
+    })
+    expect(board[0].staffingCoverage).toBe(60)
+  })
+})

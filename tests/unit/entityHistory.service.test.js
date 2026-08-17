@@ -55,3 +55,29 @@ describe('entity history service', () => {
     })
   })
 })
+
+describe('entity history branch coverage', () => {
+  it('keeps non-Date values unchanged and normalizes missing sides to null', () => {
+    expect(normalizeAuditValue(null)).toBeNull()
+    expect(normalizeAuditValue('value')).toBe('value')
+    expect(buildChangedFields({ field: 'value', removed: 'old' }, { field: 'value', added: 'new' })).toEqual({
+      removed: { previous: 'old', next: null },
+      added: { previous: null, next: 'new' }
+    })
+  })
+
+  it('returns no changedFields when either lifecycle side is absent', () => {
+    expect(buildEntityHistoryPayload({ previous: { name: 'Old' }, next: null }).changedFields).toEqual({})
+    expect(buildEntityHistoryPayload({ previous: null, next: { name: 'New' } }).changedFields).toEqual({})
+    expect(buildEntityHistoryPayload()).toEqual({ previous: null, next: null, changedFields: {}, entityRefs: {}, metadata: {} })
+  })
+
+  it('uses valid current timestamp defaults when lifecycle timestamp arguments are omitted', () => {
+    const lifecycle = buildEntityLifecycleTimestamps()
+    const update = buildEntityUpdateTimestamp()
+
+    expect(Number.isNaN(lifecycle.createdAtTimestamp.getTime())).toBe(false)
+    expect(lifecycle.createdAtTimestamp.toISOString()).toBe(lifecycle.createdAt)
+    expect(update.updatedAtTimestamp.toISOString()).toBe(update.updatedAt)
+  })
+})

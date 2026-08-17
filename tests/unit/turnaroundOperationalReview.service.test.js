@@ -28,3 +28,38 @@ describe('turnaroundOperationalReview service', () => {
     expect(buildOperationalReviewRisks({ productionReadiness: { blockers: [{ detail: 'Add support checklist.' }] } })).toEqual(expect.arrayContaining([expect.objectContaining({ id: 'production-readiness' })]))
   })
 })
+
+describe('turnaroundOperationalReview evidence hardening', () => {
+  it('keeps malformed staffing counts finite instead of emitting NaN evidence', () => {
+    const review = buildTurnaroundOperationalReview({
+      staffing: [
+        { plannedCount: 'not-a-number', checkedInCount: 2 },
+        { plannedCount: 5, checkedInCount: Infinity },
+        { plannedCount: -3, checkedInCount: 0 }
+      ]
+    })
+
+    expect(review.focus.reviewSignals).toContain('5 staffing gaps')
+    expect(review.focus.reviewSignals.join(' ')).not.toContain('NaN')
+  })
+
+  it('covers singular operational focus signals and fallback review sequence text', () => {
+    const review = buildTurnaroundOperationalReview({
+      operation: { ship: { name: 'Voyager' } },
+      dependencies: [{ status: 'OPEN' }],
+      handoffs: [{ status: 'PENDING' }],
+      signoffs: [{ status: 'PENDING' }],
+      staffing: [{ plannedCount: 1, checkedInCount: 0 }],
+      lifecycleState: { completionPercent: 0, finalBlockers: [] },
+      releasePacket: { readinessScore: 0, releaseStatus: 'HOLD' },
+      operationalAssurancePacket: { readiness: { readinessScore: 0 } },
+      managementStatus: { maturityScore: 0, remainingWork: [] }
+    })
+
+    expect(review.status).toBe('NEEDS_FOCUS')
+    expect(review.reviewSequence[0].detail).toContain('Voyager turnaround')
+    expect(review.focus.reviewSignals).toEqual(expect.arrayContaining([
+      '1 open dependency', '1 open handoff', '1 pending signoff', '1 staffing gap'
+    ]))
+  })
+})

@@ -14,7 +14,7 @@ const TURNAROUND_OPERATION_FORBIDDEN_MESSAGE = 'Selected person is not assigned 
 const TURNAROUND_AUDIT_SOURCE = 'TURNAROUND_OPERATIONS_API'
 
 function isOperationalDemoRole(role = '') {
-  const normalizedRole = String(role || '').toLowerCase().replace(/_/g, '-')
+  const normalizedRole = String(role || '').trim().toLowerCase().replace(/[\s_]+/g, '-')
   return [
     'turnaround-manager',
     'housekeeping-lead',
@@ -45,6 +45,8 @@ async function resolveRequestDemoUser(req) {
 
 async function getSailingIdsForOperationalAssignment(demoUser) {
   if (!demoUser || !isOperationalDemoRole(demoUser.role)) return null
+
+  if (demoUser.assignedSailingId) return [demoUser.assignedSailingId]
 
   if (demoUser.assignedShipId) {
     const sailingRows = await db

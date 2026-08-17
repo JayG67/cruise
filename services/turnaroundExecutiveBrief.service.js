@@ -2,6 +2,11 @@ function clampScore(value) {
   return Math.max(0, Math.min(100, Math.round(Number(value) || 0)))
 }
 
+function normalizeCount(value) {
+  const numericValue = Number(value)
+  return Number.isFinite(numericValue) && numericValue > 0 ? Math.floor(numericValue) : 0
+}
+
 function getBriefStatus(score, incidentScore = 0, openActionCount = 0) {
   if (score >= 86 && incidentScore < 25 && openActionCount <= 1) return 'EXECUTIVE_READY'
   if (score >= 72 && incidentScore < 50) return 'READY_WITH_WATCH_ITEMS'
@@ -25,7 +30,7 @@ function buildExecutiveDecision({ operationalMetrics = null, incidentCommand = n
   const incidentScore = clampScore(incidentCommand?.incidentScore ?? 0)
   const reviewScore = clampScore(afterActionReview?.summary?.reviewScore ?? 0)
   const rehearsalScore = clampScore(playbookVariance?.summary?.rehearsalScore ?? 0)
-  const openActionCount = Number(afterActionReview?.summary?.actionCount ?? 0)
+  const openActionCount = normalizeCount(afterActionReview?.summary?.actionCount)
   const decisionScore = clampScore((releaseConfidence * 0.36) + ((100 - incidentScore) * 0.24) + (reviewScore * 0.24) + (rehearsalScore * 0.16) - (openActionCount * 3))
   const status = getBriefStatus(decisionScore, incidentScore, openActionCount)
 
@@ -155,7 +160,7 @@ function buildTurnaroundExecutiveBrief({ operation = {}, releasePacket = null, o
       operationTitle: operationContext.title,
       shipName: operationContext.shipName,
       cruiseLineName: operationContext.cruiseLineName,
-      timelineEvents: Number(operationalTimeline?.summary?.totalEvents || 0),
+      timelineEvents: normalizeCount(operationalTimeline?.summary?.totalEvents),
       generatedFrom: ['releasePacket', 'operationalMetrics', 'incidentCommand', 'playbookVariance', 'afterActionReview']
     },
     highlights,

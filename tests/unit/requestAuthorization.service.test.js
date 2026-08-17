@@ -258,3 +258,16 @@ describe('requestAuthorization actor identity bridge', () => {
     expect(service.normalizeActorDisplayName({ email: 'leader@example.com', userId: 'user-1' })).toBe('leader@example.com')
   })
 })
+
+it('keeps demo audit actors attributable when no normalized application user id exists', () => {
+  expect(service.buildDemoActor({
+    id: 'demo-operator-9',
+    displayName: 'Demo Operator',
+    role: 'TURNAROUND_MANAGER'
+  })).toEqual({
+    actorUserId: 'demo-operator-9',
+    actorDisplayName: 'Demo Operator',
+    actorRole: 'TURNAROUND_MANAGER',
+    identitySource: service.ACTOR_IDENTITY_SOURCES.DEMO
+  })
+})
