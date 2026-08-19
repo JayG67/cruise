@@ -16,4 +16,58 @@ describe('AI evaluation run persistence', () => {
     expect(listed.runs[0]).toEqual(expect.objectContaining({ runId: 'run-1', auditEventId: 'event-1' }))
     await expect(getEvaluationRun('run-1', { suiteId: 'suite-1', auditEventLister })).resolves.toEqual(expect.objectContaining({ runId: 'run-1' }))
   })
+
+  test('rejects incomplete runs and records anonymous actors safely', async () => {
+    await expect(recordEvaluationRun({ run: { runId: 'run-only' }, auditRecorder: jest.fn() })).rejects.toThrow(TypeError)
+
+    const auditRecorder = jest.fn()
+    const run = { runId: 'run-2', suiteId: 'suite-2' }
+    await recordEvaluationRun({ run, auditRecorder })
+    expect(auditRecorder).toHaveBeenCalledWith(expect.objectContaining({ actorUserId: null, actorDisplayName: null }))
+  })
+
+  test('maps fallback timestamps and exercises default listing options', async () => {
+    const auditEventLister = jest.fn().mockResolvedValue([
+      { id: null, createdAt: null, eventPayload: { runId: 'run-3', suiteId: 'turnaround-briefing-phase3', completedAt: '2026-08-14T12:00:00Z' } }
+    ])
+    const listed = await listEvaluationRuns({ auditEventLister })
+    expect(auditEventLister).toHaveBeenCalledWith(expect.objectContaining({
+      entityId: 'turnaround-briefing-phase3', source: 'AI'
+    }), { limit: 20 })
+    expect(listed.runs[0]).toEqual(expect.objectContaining({ auditEventId: null, recordedAt: '2026-08-14T12:00:00Z' }))
+  })
+
+  test('returns null for missing or unknown run ids', async () => {
+    await expect(getEvaluationRun()).resolves.toBeNull()
+    const auditEventLister = jest.fn().mockResolvedValue([])
+    await expect(getEvaluationRun('missing', { auditEventLister })).resolves.toBeNull()
+    expect(auditEventLister).toHaveBeenCalledWith(expect.any(Object), { limit: 100 })
+  })
+
+})
+
+describe('AI evaluation run evidence hardening', () => {
+  test('fails closed on blank run identifiers', async () => {
+    await expect(recordEvaluationRun({
+      run: { runId: '   ', suiteId: 'suite-1' },
+      auditRecorder: jest.fn()
+    })).rejects.toThrow(TypeError)
+    await expect(recordEvaluationRun({
+      run: { runId: 'run-1', suiteId: '\t' },
+      auditRecorder: jest.fn()
+    })).rejects.toThrow(TypeError)
+  })
+
+  test('ignores malformed persisted payload shapes instead of spreading them into run evidence', () => {
+    const { mapEvaluationRunEvent } = require('../../services/aiEvaluationRun.service')
+    expect(mapEvaluationRunEvent({ id: 'event-1', eventPayload: 'not-an-object' })).toEqual({
+      auditEventId: 'event-1',
+      recordedAt: null
+    })
+    expect(mapEvaluationRunEvent({ id: 'event-2', eventPayload: ['bad'] })).toEqual({
+      auditEventId: 'event-2',
+      recordedAt: null
+    })
+    expect(mapEvaluationRunEvent(null)).toEqual({ auditEventId: null, recordedAt: null })
+  })
 })

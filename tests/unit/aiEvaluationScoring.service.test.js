@@ -13,3 +13,32 @@ describe('AI evaluation scoring', () => {
     expect(buildEvaluationVerdict(72)).toEqual({ score: 72, passThreshold: 80, passed: false, grade: 'NEEDS_REVIEW' })
   })
 })
+
+describe('AI evaluation scoring evidence hardening', () => {
+  it('ignores malformed and negative weights while preserving valid weights', () => {
+    expect(buildWeightedScore(
+      { schemaCompliance: 1, evidenceGrounding: 0.5 },
+      { schemaCompliance: 2, evidenceGrounding: '2', invalid: 'bad', negative: -4 }
+    )).toBe(75)
+  })
+
+  it('rejects weight sets without a positive finite total', () => {
+    expect(() => buildWeightedScore({}, { a: 'bad', b: -1, c: 0 })).toThrow(TypeError)
+    expect(() => buildWeightedScore({}, null)).toThrow(TypeError)
+  })
+
+  it('normalizes malformed verdict inputs instead of returning non-finite evidence', () => {
+    expect(buildEvaluationVerdict('not-a-score', 'not-a-threshold')).toEqual({
+      score: 0,
+      passThreshold: 80,
+      passed: false,
+      grade: 'FAIL'
+    })
+    expect(buildEvaluationVerdict('95', '90')).toEqual({
+      score: 95,
+      passThreshold: 90,
+      passed: true,
+      grade: 'EXCELLENT'
+    })
+  })
+})

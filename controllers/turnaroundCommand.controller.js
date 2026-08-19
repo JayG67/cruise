@@ -43,10 +43,15 @@ function createTurnaroundCommandController({ getTurnaroundOperationDetails }) {
         return res.status(400).json({ message: 'At least one turnaround command field is required' })
       }
 
-      await db
+      const updatedOperationRows = await db
         .update(turnaroundOperationTable)
         .set(operationUpdates)
         .where(eq(turnaroundOperationTable.id, id))
+        .returning()
+      const updatedOperation = updatedOperationRows[0]
+      if (!updatedOperation) {
+        return res.status(404).json({ message: 'Turnaround operation no longer exists' })
+      }
 
       await recordTurnaroundAuditEvent(req, operation, {
         eventType: 'TURNAROUND_COMMAND_UPDATED',
@@ -71,15 +76,9 @@ function createTurnaroundCommandController({ getTurnaroundOperationDetails }) {
         })
       })
 
-      const refreshedOperationRows = await db
-        .select()
-        .from(turnaroundOperationTable)
-        .where(eq(turnaroundOperationTable.id, id))
-        .limit(1)
-
       return res.status(200).json({
         message: 'Turnaround command plan updated successfully',
-        operation: await getTurnaroundOperationDetails(refreshedOperationRows[0] || operation)
+        operation: await getTurnaroundOperationDetails(updatedOperation)
       })
     } catch (err) {
       next(err)

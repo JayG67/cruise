@@ -4,10 +4,6 @@ const customerController = require('./customer.controller')
 const bookingController = require('./booking.controller')
 const platformAdministrationController = require('./platformAdministration.controller')
 const { createTurnaroundMutationController } = require('./turnaroundMutation.controller')
-const shipTable = require('../models/ship.model')
-const sailingTable = require('../models/sailing.model')
-const itineraryDayTable = require('../models/itineraryDay.model')
-const activityScheduleTable = require('../models/activitySchedule.model')
 const customerTable = require('../models/customer.model')
 const bookingTable = require('../models/booking.model')
 const bookingPassengerTable = require('../models/bookingPassenger.model')
@@ -25,77 +21,6 @@ const {
 const { getBookingDetails } = require('../services/bookingDomain.service')
 const { getTurnaroundOperationDetails } = require('../services/turnaroundOperationDetails.service')
 const { eq } = require('drizzle-orm')
-
-
-
-
-
-
-async function decorateCruiseLinesForPresentation(cruiseLines = []) {
-  const [ships, sailings, itineraryDays, activities] = await Promise.all([
-    db.select().from(shipTable),
-    db.select().from(sailingTable),
-    db.select().from(itineraryDayTable),
-    db.select().from(activityScheduleTable)
-  ])
-
-  const activitiesByDayId = new Map()
-  activities.forEach(activity => {
-    const rows = activitiesByDayId.get(activity.itineraryDayId) || []
-    rows.push(activity)
-    activitiesByDayId.set(activity.itineraryDayId, rows)
-  })
-
-  const itineraryBySailingId = new Map()
-  itineraryDays.forEach(day => {
-    const rows = itineraryBySailingId.get(day.sailingId) || []
-    rows.push({
-      ...day,
-      activitySchedule: activitiesByDayId.get(day.id) || []
-    })
-    itineraryBySailingId.set(day.sailingId, rows)
-  })
-
-  const sailingsByShipId = new Map()
-  sailings.forEach(sailing => {
-    const rows = sailingsByShipId.get(sailing.shipId) || []
-    rows.push({
-      ...sailing,
-      itinerary: (itineraryBySailingId.get(sailing.id) || []).sort((left, right) => Number(left.day || 0) - Number(right.day || 0))
-    })
-    sailingsByShipId.set(sailing.shipId, rows)
-  })
-
-  const shipsByLineId = new Map()
-  ships.forEach(ship => {
-    const rows = shipsByLineId.get(ship.cruiseLineId) || []
-    rows.push({
-      ...ship,
-      sailings: (sailingsByShipId.get(ship.id) || []).sort((left, right) => String(left.departureDate || '').localeCompare(String(right.departureDate || '')))
-    })
-    shipsByLineId.set(ship.cruiseLineId, rows)
-  })
-
-  return cruiseLines.map(line => {
-    const lineShips = shipsByLineId.get(line.id) || []
-    const lineSailings = lineShips.flatMap(ship => ship.sailings || [])
-
-    return {
-      ...line,
-      ships: lineShips,
-      shipCount: lineShips.length,
-      sailingCount: lineSailings.length
-    }
-  })
-}
-
-
-
-
-
-
-
-
 
 
 
@@ -242,8 +167,13 @@ exports.getDemoUserContext = async (req, res, next) => {
       .where(eq(bookingPassengerTable.customerId, customer.id))
 
     const bookings = []
+    const seenBookingIds = new Set()
 
-    for (const passengerRow of passengerRows) {
+    for (const passengerRow of passengerRows || []) {
+      if (!passengerRow?.bookingId || seenBookingIds.has(passengerRow.bookingId)) {
+        continue
+      }
+      seenBookingIds.add(passengerRow.bookingId)
       const bookingRows = await db
         .select()
         .from(bookingTable)
@@ -259,7 +189,10 @@ exports.getDemoUserContext = async (req, res, next) => {
 
     if (user.role === 'GROUP_LEADER') {
       bookings.forEach(booking => {
-        booking.passengers.forEach(passenger => accessibleCustomerIds.add(passenger.customerId))
+        const passengers = booking?.passengers || []
+        passengers.forEach(passenger => {
+          if (passenger?.customerId) accessibleCustomerIds.add(passenger.customerId)
+        })
       })
     }
 

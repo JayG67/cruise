@@ -71,7 +71,7 @@ exports.getPublicLaunchReadiness = async (req, res, next) => {
 
     const files = buildProjectFilePresenceMap()
     const packageJson = safeReadJsonProjectFile('package.json')
-    const readme = safeReadProjectFile('Readme.md')
+    const readme = safeReadProjectFile('README.md')
     const appSource = safeReadProjectFile('app.js')
     const controllerSource = safeReadProjectFile('controllers/cruise.controller.js')
 
@@ -170,7 +170,7 @@ exports.getDeploymentReadiness = async (req, res, next) => {
       files: buildProjectFilePresenceMap(),
       renderConfig: safeReadProjectFile('render.yaml'),
       dockerCompose: safeReadProjectFile('docker-compose.yml'),
-      readme: safeReadProjectFile('Readme.md'),
+      readme: safeReadProjectFile('README.md'),
       appSource: safeReadProjectFile('app.js')
     }))
   } catch (err) {

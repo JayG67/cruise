@@ -446,6 +446,101 @@ describe('turnaround admin setup service behavior', () => {
     })
   })
 
+
+  it('preserves existing ship and sailing assignments when an update omits assignment fields', async () => {
+    const { service } = loadServiceWithFakeDb()
+
+    const updated = await service.updateTurnaroundPerson('manager-1', {
+      displayName: 'Alex Turner Updated',
+      role: 'turnaround-manager',
+      cruiseLineId: 'cl-royal'
+    })
+
+    expect(updated).toMatchObject({
+      assignedShipId: 'ship-freedom',
+      assignedSailingId: 'sailing-freedom',
+      assignedShipName: 'Freedom of the Seas'
+    })
+  })
+
+  it('honors explicit null assignment fields so admins can intentionally return a person to the cruise-line pool', async () => {
+    const { service } = loadServiceWithFakeDb()
+
+    const updated = await service.updateTurnaroundPerson('manager-1', {
+      displayName: 'Alex Turner',
+      role: 'turnaround-manager',
+      cruiseLineId: 'cl-royal',
+      assignedShipId: null,
+      assignedSailingId: null
+    })
+
+    expect(updated).toMatchObject({
+      assignedShipId: null,
+      assignedSailingId: null,
+      assignedShipName: null
+    })
+  })
+
+  it('honors the sailingId alias when explicitly clearing a sailing assignment', async () => {
+    const { service } = loadServiceWithFakeDb()
+
+    const updated = await service.updateTurnaroundPerson('manager-1', {
+      displayName: 'Alex Turner',
+      role: 'turnaround-manager',
+      cruiseLineId: 'cl-royal',
+      assignedShipId: 'ship-freedom',
+      sailingId: null
+    })
+
+    expect(updated.assignedSailingId).toBeNull()
+  })
+
+  it('rejects missing ship and sailing ids with explicit not-found errors', async () => {
+    const { service } = loadServiceWithFakeDb()
+
+    await expect(service.createTurnaroundPerson({
+      displayName: 'Missing Ship', role: 'security-lead', cruiseLineId: 'cl-royal', assignedShipId: 'missing-ship'
+    })).rejects.toMatchObject({ message: 'Assigned ship was not found.', statusCode: 404 })
+
+    await expect(service.createTurnaroundPerson({
+      displayName: 'Missing Sailing', role: 'security-lead', cruiseLineId: 'cl-royal', assignedShipId: 'ship-freedom', sailingId: 'missing-sailing'
+    })).rejects.toMatchObject({ message: 'Assigned sailing was not found.', statusCode: 404 })
+  })
+
+  it('keeps all sailings in scope when active turnaround people have no dated sailing assignments', async () => {
+    const { service } = loadServiceWithFakeDb({
+      demoUsers: [{
+        id: 'pool-lead', displayName: 'Pool Lead', role: 'SECURITY_LEAD', cruiseLineId: 'cl-royal', assignedShipId: null, assignedSailingId: null
+      }]
+    })
+
+    const summary = await service.buildTurnaroundSetupSummary()
+    expect(summary.sailings).toHaveLength(3)
+  })
+
+  it('generates a collision-safe id and rejects deleting a non-turnaround user', async () => {
+    const { service } = loadServiceWithFakeDb({
+      demoUsers: [
+        { id: 'tu-jordanmi-sl-shipf', displayName: 'Existing Other', role: 'SECURITY_LEAD', cruiseLineId: 'cl-royal' },
+        { id: 'passenger-1', displayName: 'Passenger Person', role: 'PASSENGER', cruiseLineId: null }
+      ]
+    })
+
+    const created = await service.createTurnaroundPerson({
+      id: 'tu-jordanmi-sl-shipf',
+      displayName: 'Jordan Miles',
+      role: 'security-lead',
+      cruiseLineId: 'cl-royal',
+      assignedShipId: 'ship-freedom',
+      sailingId: 'sailing-freedom'
+    })
+    expect(created.id).not.toBe('tu-jordanmi-sl-shipf')
+    expect(created.id).toHaveLength(20)
+
+    await expect(service.deleteTurnaroundPerson('passenger-1'))
+      .rejects.toMatchObject({ message: 'Only turnaround personnel can be removed from setup.', statusCode: 400 })
+  })
+
   it('keeps a removed turnaround person in the cruise-line roster by clearing only the active assignment', async () => {
     const { service, state } = loadServiceWithFakeDb()
 
@@ -462,6 +557,71 @@ describe('turnaround admin setup service behavior', () => {
     })
     expect(state.demoUsers).toContainEqual(unassigned)
     expect(state.demoUsers.some(user => user.id === 'manager-1')).toBe(true)
+  })
+
+
+  it('fails soft when setup reference queries return malformed collection shapes', async () => {
+    const { service, fakeDb } = loadServiceWithFakeDb()
+    const malformed = [null, { bad: true }, 'not-an-array', 42]
+    fakeDb.select.mockImplementation(() => ({
+      from: jest.fn(() => Promise.resolve(malformed.shift()))
+    }))
+
+    await expect(service.buildTurnaroundSetupSummary()).resolves.toEqual({
+      turnaroundPeople: [],
+      cruiseLines: [],
+      ships: [],
+      sailings: [],
+      supportedRoles: service.TURNAROUND_OPERATIONAL_ROLES
+    })
+  })
+
+  it('treats malformed role-catalog and people queries as empty evidence instead of throwing', async () => {
+    const { service, fakeDb } = loadServiceWithFakeDb()
+    const originalSelect = fakeDb.select.getMockImplementation()
+    let selectCount = 0
+    fakeDb.select.mockImplementation(() => {
+      selectCount += 1
+      if (selectCount === 1) return { from: jest.fn(() => Promise.resolve({ malformed: true })) }
+      return originalSelect()
+    })
+
+    await expect(service.createTurnaroundPerson({
+      displayName: 'Malformed Catalog Lead',
+      role: 'security-lead',
+      cruiseLineId: 'cl-royal',
+      assignedShipId: 'ship-freedom',
+      sailingId: 'sailing-freedom'
+    })).rejects.toMatchObject({ message: 'A valid cruise line is required for turnaround personnel.', statusCode: 400 })
+  })
+
+  it('fails closed when an authorized turnaround person disappears before update returning', async () => {
+    const { service, fakeDb } = loadServiceWithFakeDb()
+    fakeDb.update.mockImplementation(() => ({
+      set: jest.fn(() => ({
+        where: jest.fn(() => ({ returning: jest.fn().mockResolvedValue([]) }))
+      }))
+    }))
+
+    await expect(service.updateTurnaroundPerson('manager-1', {
+      displayName: 'Alex Turner',
+      role: 'turnaround-manager',
+      cruiseLineId: 'cl-royal',
+      assignedShipId: 'ship-freedom',
+      sailingId: 'sailing-freedom'
+    })).rejects.toMatchObject({ message: 'Turnaround person was not found.', statusCode: 404 })
+  })
+
+  it('fails closed when a turnaround person disappears before assignment removal returning', async () => {
+    const { service, fakeDb } = loadServiceWithFakeDb()
+    fakeDb.update.mockImplementation(() => ({
+      set: jest.fn(() => ({
+        where: jest.fn(() => ({ returning: jest.fn().mockResolvedValue([]) }))
+      }))
+    }))
+
+    await expect(service.deleteTurnaroundPerson('manager-1'))
+      .rejects.toMatchObject({ message: 'Turnaround person was not found.', statusCode: 404 })
   })
 
 })

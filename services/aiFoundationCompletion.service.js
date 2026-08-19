@@ -21,7 +21,8 @@ const PHASE_ONE_COMPLETION_CRITERIA = Object.freeze([
   'completion-audit'
 ])
 
-function buildAiFoundationCompletion({ env = process.env, fetchImpl } = {}) {
+function buildAiFoundationCompletion(options = {}) {
+  const { env = process.env, fetchImpl } = options || {}
   const readiness = assessAiFoundationReadiness({ env, fetchImpl })
   const completed = readiness.foundationReady && readiness.deploymentSafe
 

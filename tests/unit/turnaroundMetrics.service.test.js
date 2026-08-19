@@ -1,0 +1,235 @@
+const {
+  buildTurnaroundOperationalMetrics,
+  getDepartmentMetrics,
+  percent,
+  toNonNegativeNumber
+} = require('../../services/turnaroundMetrics.service')
+
+describe('turnaround operational metrics behavior', () => {
+  it('clamps percentages and handles missing denominators safely', () => {
+    expect(percent(1, 2)).toBe(50)
+    expect(percent(8, 4)).toBe(100)
+    expect(percent(-1, 4)).toBe(0)
+    expect(percent(3, 0)).toBe(0)
+    expect(percent(undefined, 4)).toBe(0)
+  })
+
+  it('builds department risk from tasks, staffing, signoffs, escalations, handoffs, and dependencies', () => {
+    const rows = getDepartmentMetrics({
+      tasks: [
+        { departmentRole: 'Engineering', status: 'BLOCKED' },
+        { departmentRole: 'Engineering', status: 'COMPLETE' },
+        { departmentRole: '', status: 'OPEN' }
+      ],
+      staffing: [{ departmentRole: 'Engineering', plannedCount: 5, checkedInCount: 3 }],
+      signoffs: [
+        { departmentRole: 'Engineering', status: 'BLOCKED' },
+        { departmentRole: 'Guest Services', status: 'APPROVED' }
+      ],
+      escalations: [
+        { departmentRole: 'Engineering', status: 'OPEN', severity: 'CRITICAL' },
+        { departmentRole: 'Engineering', status: 'RESOLVED', severity: 'CRITICAL' }
+      ],
+      handoffs: [{ departmentRole: 'Engineering', status: 'OPEN' }],
+      dependencies: [{ departmentRole: 'Engineering', status: 'ACTIVE' }]
+    })
+
+    expect(rows[0]).toEqual(expect.objectContaining({
+      departmentRole: 'Engineering',
+      taskCount: 2,
+      completeTaskCount: 1,
+      blockedTaskCount: 1,
+      staffingGap: 2,
+      openEscalationCount: 1,
+      criticalEscalationCount: 1,
+      openHandoffCount: 1,
+      activeDependencyCount: 1,
+      signoffStatus: 'BLOCKED',
+      taskCompletionPercent: 50
+    }))
+    expect(rows.find(row => row.departmentRole === 'Guest Services')).toEqual(expect.objectContaining({ signoffStatus: 'APPROVED' }))
+    expect(rows.find(row => row.departmentRole === 'Unassigned')).toEqual(expect.objectContaining({ taskCount: 1 }))
+  })
+
+  it('uses an explicit zero timeline event count instead of replacing it with audit-event volume', () => {
+    const metrics = buildTurnaroundOperationalMetrics({
+      operation: { id: 'op-1' },
+      operationalTimeline: { summary: { totalEvents: 0 } },
+      auditEvents: [{ id: 'audit-1' }, { id: 'audit-2' }]
+    })
+
+    expect(metrics.summary.eventVelocity).toBe(0)
+  })
+
+  it('falls back to audit-event volume only when timeline event count is absent', () => {
+    const metrics = buildTurnaroundOperationalMetrics({
+      auditEvents: [{ id: 'audit-1' }, { id: 'audit-2' }, { id: 'audit-3' }],
+      operationalTimeline: { summary: {} }
+    })
+
+    expect(metrics.summary.eventVelocity).toBe(3)
+  })
+
+  it('honors release readiness while calculating risk, confidence, counts, and signal states', () => {
+    const metrics = buildTurnaroundOperationalMetrics({
+      operation: { id: 'op-risk' },
+      tasks: [
+        { departmentRole: 'Engineering', status: 'BLOCKED' },
+        { departmentRole: 'Engineering', status: 'COMPLETE' }
+      ],
+      staffing: [{ departmentRole: 'Engineering', plannedCount: 4, checkedInCount: 2 }],
+      signoffs: [{ departmentRole: 'Engineering', status: 'BLOCKED' }],
+      escalations: [{ departmentRole: 'Engineering', status: 'OPEN', severity: 'CRITICAL' }],
+      dependencies: [{ departmentRole: 'Engineering', status: 'ACTIVE' }],
+      handoffs: [{ departmentRole: 'Engineering', status: 'OPEN' }],
+      releasePacket: { readinessScore: 90 },
+      passengerCount: 2100
+    })
+
+    expect(metrics.summary).toEqual(expect.objectContaining({
+      readinessScore: 90,
+      riskIndex: 59,
+      releaseConfidence: 58,
+      taskCompletionPercent: 50,
+      signoffApprovalPercent: 0,
+      staffingCoveragePercent: 50,
+      passengerCount: 2100,
+      bottleneckDepartment: 'Engineering'
+    }))
+    // Risk weights: blocked task 12 + critical escalation 20 + open escalation 8
+    // + active dependency 6 + open handoff 5 + staffing gap (2 * 4) = 59.
+    // Release confidence: 90 - round(59 * 0.55) = 58.
+    expect(metrics.summary.riskIndex).toBe(12 + 20 + 8 + 6 + 5 + 8)
+    expect(metrics.summary.releaseConfidence).toBe(90 - Math.round(59 * 0.55))
+
+    expect(metrics.counts).toEqual(expect.objectContaining({
+      totalTasks: 2,
+      completedTasks: 1,
+      blockedTasks: 1,
+      openEscalations: 1,
+      criticalEscalations: 1,
+      activeDependencies: 1,
+      openHandoffs: 1,
+      plannedStaff: 4,
+      checkedInStaff: 2,
+      staffingGap: 2
+    }))
+    expect(metrics.signals).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'release-confidence', status: 'ACTION' }),
+      expect.objectContaining({ id: 'staffing-coverage', status: 'WATCH' }),
+      expect.objectContaining({ id: 'risk-index', status: 'ACTION' }),
+      expect.objectContaining({ id: 'department-bottleneck', status: 'WATCH' })
+    ]))
+  })
+
+  it('produces PASS signals and calculated readiness for a clean operation', () => {
+    const metrics = buildTurnaroundOperationalMetrics({
+      tasks: [{ departmentRole: 'Guest Services', status: 'COMPLETE' }],
+      staffing: [{ departmentRole: 'Guest Services', plannedCount: 2, checkedInCount: 2 }],
+      signoffs: [{ departmentRole: 'Guest Services', status: 'APPROVED' }],
+      escalations: [{ departmentRole: 'Guest Services', status: 'RESOLVED', severity: 'CRITICAL' }],
+      dependencies: [{ departmentRole: 'Guest Services', status: 'CLEARED' }],
+      handoffs: [{ departmentRole: 'Guest Services', status: 'COMPLETE' }]
+    })
+
+    expect(metrics.summary).toEqual(expect.objectContaining({
+      readinessScore: 100,
+      riskIndex: 0,
+      releaseConfidence: 100,
+      bottleneckDepartment: 'None'
+    }))
+    expect(metrics.signals.every(signal => signal.status === 'PASS')).toBe(true)
+  })
+
+  it('normalizes malformed operational numbers instead of emitting non-finite readiness evidence', () => {
+    expect(toNonNegativeNumber('bad')).toBe(0)
+    expect(toNonNegativeNumber(Infinity)).toBe(0)
+    expect(toNonNegativeNumber(-4)).toBe(0)
+    expect(toNonNegativeNumber('3.5')).toBe(3.5)
+
+    const metrics = buildTurnaroundOperationalMetrics({
+      staffing: [
+        { departmentRole: 'Engineering', plannedCount: 'bad', checkedInCount: Infinity },
+        { departmentRole: 'Guest Services', plannedCount: 4, checkedInCount: -2 }
+      ],
+      releasePacket: { readinessScore: 'not-a-number' },
+      passengerCount: Infinity,
+      operationalTimeline: { summary: { totalEvents: 'bad' } }
+    })
+
+    expect(metrics.summary).toEqual(expect.objectContaining({
+      readinessScore: 0,
+      releaseConfidence: 0,
+      passengerCount: 0,
+      eventVelocity: 0,
+      staffingCoveragePercent: 0
+    }))
+    expect(metrics.counts).toEqual(expect.objectContaining({ plannedStaff: 4, checkedInStaff: 0, staffingGap: 4 }))
+    expect(metrics.departmentMetrics.every(row => Number.isFinite(row.riskScore))).toBe(true)
+  })
+
+  it('clamps externally supplied readiness scores to the supported range', () => {
+    expect(buildTurnaroundOperationalMetrics({ releasePacket: { readinessScore: 140 } }).summary.readinessScore).toBe(100)
+    expect(buildTurnaroundOperationalMetrics({ releasePacket: { readinessScore: -10 } }).summary.readinessScore).toBe(0)
+  })
+
+  it('treats semantically closed operational statuses case-insensitively', () => {
+    const metrics = buildTurnaroundOperationalMetrics({
+      tasks: [{ departmentRole: 'Engineering', status: 'complete' }],
+      signoffs: [{ departmentRole: 'Engineering', status: 'approved' }],
+      escalations: [{ departmentRole: 'Engineering', status: ' resolved ', severity: 'critical' }],
+      dependencies: [{ departmentRole: 'Engineering', status: 'cleared' }],
+      handoffs: [{ departmentRole: 'Engineering', status: 'complete' }],
+      staffing: [{ departmentRole: 'Engineering', plannedCount: 1, checkedInCount: 1 }]
+    })
+
+    expect(metrics.counts).toEqual(expect.objectContaining({
+      completedTasks: 1,
+      approvedSignoffs: 1,
+      openEscalations: 0,
+      criticalEscalations: 0,
+      activeDependencies: 0,
+      openHandoffs: 0
+    }))
+    expect(metrics.summary).toEqual(expect.objectContaining({ riskIndex: 0, releaseConfidence: 100 }))
+    expect(metrics.departmentMetrics[0]).toEqual(expect.objectContaining({
+      completeTaskCount: 1,
+      signoffStatus: 'APPROVED',
+      openEscalationCount: 0,
+      criticalEscalationCount: 0,
+      activeDependencyCount: 0,
+      openHandoffCount: 0
+    }))
+  })
+
+  it('degrades malformed collection shapes to empty evidence instead of throwing', () => {
+    const metrics = buildTurnaroundOperationalMetrics({
+      tasks: { bad: true },
+      staffing: 'bad',
+      signoffs: 7,
+      escalations: {},
+      dependencies: null,
+      handoffs: 'bad',
+      auditEvents: { length: 999 }
+    })
+
+    expect(metrics.counts).toEqual(expect.objectContaining({
+      totalTasks: 0,
+      totalSignoffs: 0,
+      openEscalations: 0,
+      activeDependencies: 0,
+      openHandoffs: 0,
+      plannedStaff: 0,
+      checkedInStaff: 0
+    }))
+    expect(metrics.summary.eventVelocity).toBe(0)
+    expect(metrics.departmentMetrics).toEqual([])
+  })
+
+  it('normalizes blank statuses to UNKNOWN without creating false completed evidence', () => {
+    const metrics = buildTurnaroundOperationalMetrics({ tasks: [{ status: '   ' }] })
+    expect(metrics.counts.taskStatusCounts.UNKNOWN).toBe(1)
+    expect(metrics.counts.completedTasks).toBe(0)
+  })
+
+})

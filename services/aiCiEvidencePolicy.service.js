@@ -24,6 +24,7 @@ function validateAiCiEvidence(evidence) {
 
   const checks = Array.isArray(evidence.checks) ? evidence.checks : []
   const checkIds = new Set(checks.map(check => check && check.id))
+  if (checkIds.size !== checks.length) issues.push('Check ids must be unique.')
   for (const requiredId of REQUIRED_CHECK_IDS) {
     if (!checkIds.has(requiredId)) issues.push(`Required check is missing: ${requiredId}.`)
   }

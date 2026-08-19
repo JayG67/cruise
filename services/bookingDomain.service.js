@@ -35,46 +35,46 @@ function rangesOverlap(startA, endA, startB, endB) {
 async function findBookingOverlapForPassengers({ bookingIdToExclude, sailing, passengers }) {
   const requestedStart = new Date(`${sailing.departureDate}T00:00:00.000Z`)
   const requestedEnd = sailingEndDate(sailing)
-  const passengerIds = passengers.map(passenger => passenger.customerId)
+  const passengerIds = [...new Set((passengers || []).map(passenger => passenger?.customerId).filter(Boolean))]
 
-  for (const customerId of passengerIds) {
-    const passengerRows = await db
-      .select()
-      .from(bookingPassengerTable)
-      .where(eq(bookingPassengerTable.customerId, customerId))
+  if (passengerIds.length === 0) return null
 
-    for (const passengerRow of passengerRows) {
-      if (bookingIdToExclude && passengerRow.bookingId === bookingIdToExclude) {
-        continue
-      }
+  const passengerRows = await db
+    .select()
+    .from(bookingPassengerTable)
+    .where(inArray(bookingPassengerTable.customerId, passengerIds))
 
-      const existingBookings = await db
-        .select()
-        .from(bookingTable)
-        .where(eq(bookingTable.id, passengerRow.bookingId))
-        .limit(1)
+  const candidatePassengerRows = passengerRows.filter(passengerRow => !bookingIdToExclude || passengerRow.bookingId !== bookingIdToExclude)
 
-      const existingBooking = existingBookings[0]
-      if (!existingBooking) continue
+  const existingBookings = await selectByIds(
+    bookingTable,
+    bookingTable.id,
+    candidatePassengerRows.map(passengerRow => passengerRow.bookingId)
+  )
+  const bookingsById = indexRowsBy(existingBookings, 'id')
 
-      const existingSailings = await db
-        .select()
-        .from(sailingTable)
-        .where(eq(sailingTable.id, existingBooking.sailingId))
-        .limit(1)
+  const existingSailings = await selectByIds(
+    sailingTable,
+    sailingTable.id,
+    existingBookings.map(booking => booking.sailingId)
+  )
+  const sailingsById = indexRowsBy(existingSailings, 'id')
 
-      const existingSailing = existingSailings[0]
-      if (!existingSailing) continue
+  for (const passengerRow of candidatePassengerRows) {
+    const existingBooking = bookingsById.get(passengerRow.bookingId)
+    if (!existingBooking) continue
 
-      const existingStart = new Date(`${existingSailing.departureDate}T00:00:00.000Z`)
-      const existingEnd = sailingEndDate(existingSailing)
+    const existingSailing = sailingsById.get(existingBooking.sailingId)
+    if (!existingSailing) continue
 
-      if (rangesOverlap(requestedStart, requestedEnd, existingStart, existingEnd)) {
-        return {
-          customerId,
-          bookingId: existingBooking.id,
-          departureDate: existingSailing.departureDate
-        }
+    const existingStart = new Date(`${existingSailing.departureDate}T00:00:00.000Z`)
+    const existingEnd = sailingEndDate(existingSailing)
+
+    if (rangesOverlap(requestedStart, requestedEnd, existingStart, existingEnd)) {
+      return {
+        customerId: passengerRow.customerId,
+        bookingId: existingBooking.id,
+        departureDate: existingSailing.departureDate
       }
     }
   }

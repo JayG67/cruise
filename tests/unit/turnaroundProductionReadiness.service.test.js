@@ -3,6 +3,7 @@ const {
   buildReadinessInputs,
   buildProductionGates,
   buildProductionBlockers,
+  buildProductionRunbook,
   buildProductionTestingContract
 } = require('../../services/turnaroundProductionReadiness.service')
 
@@ -103,4 +104,147 @@ describe('turnaroundProductionReadiness service', () => {
       'RESPONSIVE_GUARD'
     ]))
   })
+
+  it('preserves authoritative zero readiness evidence instead of replacing it with healthier fallbacks', () => {
+    const inputs = buildReadinessInputs({
+      operation,
+      releasePacket: { releaseScore: 0 },
+      operationalMetrics: { summary: { releaseConfidence: 94 } },
+      executiveBrief: { summary: { releaseConfidence: 91, incidentScore: 65 } },
+      incidentCommand: { incidentScore: 0 },
+      launchPlan: { launchScore: 0 },
+      scenarioPlan: { resilienceScore: 0 },
+      managementStatus: { maturityScore: 0 },
+      reviewerPacket: { readiness: { readinessScore: 0 } },
+      outreachBoard: { readiness: { readinessScore: 0 } },
+      afterActionReview: { summary: { reviewScore: 0 } },
+      playbookVariance: { varianceScore: 100 }
+    })
+
+    expect(inputs).toMatchObject({
+      releaseScore: 0,
+      incidentScore: 0,
+      launchScore: 0,
+      scenarioScore: 0,
+      managementScore: 0,
+      reviewerScore: 0,
+      outreachScore: 0,
+      afterActionScore: 0,
+      varianceScore: 0
+    })
+    expect(buildTurnaroundProductionReadiness({
+      operation,
+      releasePacket: { releaseScore: 0 },
+      operationalMetrics: { summary: { releaseConfidence: 94 } },
+      incidentCommand: { incidentScore: 0 },
+      launchPlan: { launchScore: 0 },
+      scenarioPlan: { resilienceScore: 0 }
+    }).productionStatus).toBe('ACTION_REQUIRED')
+  })
+
+  it('falls back only when readiness evidence is absent and tolerates null operation context', () => {
+    const inputs = buildReadinessInputs({
+      operation: null,
+      operationalMetrics: { summary: { releaseConfidence: 83 } },
+      executiveBrief: { summary: { releaseConfidence: 91, incidentScore: 23 } },
+      incidentCommand: {},
+      tasks: null,
+      staffing: null,
+      signoffs: null,
+      escalations: null,
+      dependencies: null,
+      handoffs: null
+    })
+
+    expect(inputs).toMatchObject({
+      operationId: undefined,
+      shipName: 'Selected ship',
+      cruiseLineName: 'Selected cruise line',
+      turnaroundDate: 'Selected turnaround',
+      releaseScore: 83,
+      incidentScore: 23,
+      taskCompletion: 0,
+      signoffCompletion: 0
+    })
+    expect(() => buildTurnaroundProductionReadiness({ operation: null })).not.toThrow()
+  })
+
+  it('covers production gate boundaries and the no-blocker operationally-ready path', () => {
+    const watchGates = buildProductionGates({
+      releaseScore: 78,
+      releaseStatus: 'WATCH',
+      blockedTasks: 0,
+      taskCompletion: 90,
+      completedTasks: 9,
+      totalTasks: 10,
+      signoffCompletion: 77,
+      incidentScore: 10,
+      incidentSeverity: 'LOW',
+      launchScore: 100,
+      launchStatus: 'READY',
+      scenarioScore: 100,
+      scenarioStatus: 'READY',
+      managementScore: 100,
+      managementStatus: 'READY',
+      reviewerScore: 100,
+      outreachScore: 100
+    })
+
+    expect(watchGates.find(gate => gate.id === 'release-certification').status).toBe('WATCH')
+    expect(watchGates.find(gate => gate.id === 'workflow-completion').status).toBe('READY')
+    expect(watchGates.find(gate => gate.id === 'department-signoff').status).toBe('BLOCKED')
+
+    const cockpit = buildTurnaroundProductionReadiness({
+      operation,
+      tasks: [{ status: 'COMPLETED' }],
+      signoffs: [{ status: 'APPROVED' }],
+      releasePacket: { releaseScore: 100, releaseStatus: 'READY' },
+      incidentCommand: { incidentScore: 0, incidentSeverity: 'STABLE' },
+      reviewerPacket: { readiness: { readinessScore: 100 } },
+      outreachBoard: { readiness: { readinessScore: 100 } },
+      managementStatus: { maturityScore: 100, maturityStatus: 'READY' },
+      launchPlan: { launchScore: 100, launchStatus: 'READY' },
+      scenarioPlan: { resilienceScore: 100, scenarioStatus: 'READY' }
+    })
+
+    expect(cockpit.productionStatus).toBe('OPERATIONALLY_READY')
+    expect(cockpit.blockers).toEqual([expect.objectContaining({ id: 'no-critical-blockers', severity: 'INFO' })])
+    expect(cockpit.nextAction).toContain('operational governance review')
+  })
+
+  it('keeps a high-scoring cockpit in watch state when a high-severity blocker remains', () => {
+    const tasks = Array.from({ length: 20 }, (_, index) => ({
+      status: index === 0 ? 'AT_RISK' : 'COMPLETED'
+    }))
+    const cockpit = buildTurnaroundProductionReadiness({
+      operation,
+      tasks,
+      signoffs: [{ status: 'APPROVED' }],
+      releasePacket: { releaseScore: 100, releaseStatus: 'READY' },
+      incidentCommand: { incidentScore: 0 },
+      reviewerPacket: { readiness: { readinessScore: 100 } },
+      outreachBoard: { readiness: { readinessScore: 100 } },
+      managementStatus: { maturityScore: 100 },
+      launchPlan: { launchScore: 100 },
+      scenarioPlan: { resilienceScore: 100 }
+    })
+
+    expect(cockpit.productionScore).toBeGreaterThanOrEqual(90)
+    expect(cockpit.blockers).toEqual(expect.arrayContaining([expect.objectContaining({ id: 'blocked-tasks', severity: 'HIGH' })]))
+    expect(cockpit.productionStatus).toBe('READY_WITH_WATCH_ITEMS')
+  })
+
+  it('keeps runbook fallbacks deterministic when gate and blocker evidence is empty', () => {
+    const runbook = buildProductionRunbook({ shipName: 'Selected ship' }, [], [])
+
+    expect(runbook.find(step => step.id === 'handle-weakest-gate')).toMatchObject({
+      owner: 'Turnaround Manager',
+      detail: 'Confirm no weak gate is hidden.'
+    })
+    expect(runbook.find(step => step.id === 'handle-first-blocker')).toMatchObject({
+      owner: 'Turnaround Manager',
+      detail: 'Confirm no critical blocker is omitted from the release decision.'
+    })
+  })
+
 })

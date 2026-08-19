@@ -63,7 +63,10 @@ function normalizeIndexPhase(phase) {
 
 function normalizeIndexDefinition(indexDefinition = {}) {
   const columns = Array.isArray(indexDefinition.columns)
-    ? indexDefinition.columns.map((column) => String(column).trim()).filter(Boolean)
+    ? indexDefinition.columns
+      .filter((column) => column !== null && column !== undefined)
+      .map((column) => String(column).trim())
+      .filter(Boolean)
     : []
 
   return {

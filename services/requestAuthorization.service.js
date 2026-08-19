@@ -13,12 +13,6 @@ const ACTOR_IDENTITY_SOURCES = Object.freeze({
   JWT: 'jwt'
 })
 
-function compactObject(value = {}) {
-  return Object.fromEntries(
-    Object.entries(value).filter(([, entryValue]) => entryValue !== undefined && entryValue !== null && entryValue !== '')
-  )
-}
-
 function normalizeRole(role = '') {
   return String(role || '').trim().toUpperCase().replace(/[\s-]+/g, '_')
 }
@@ -62,7 +56,7 @@ function buildDemoActor(demoUser = {}) {
   if (!demoUser?.id) return null
 
   return buildActorIdentity({
-    actorUserId: demoUser.normalizedUserId || null,
+    actorUserId: demoUser.normalizedUserId || demoUser.id,
     actorDisplayName: normalizeActorDisplayName(demoUser),
     actorRole: demoUser.role || null,
     identitySource: ACTOR_IDENTITY_SOURCES.DEMO

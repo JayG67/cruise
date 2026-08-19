@@ -3,17 +3,25 @@ function normalizeStatus(status = '') {
 }
 
 function normalizeRole(role = '') {
-  return String(role || 'Unassigned').trim() || 'Unassigned'
+  return typeof role === 'string' && role.trim() ? role.trim() : 'Unassigned'
+}
+
+const asArray = value => Array.isArray(value) ? value : []
+const textValue = (value, fallback = '') => typeof value === 'string' && value.trim() ? value.trim() : fallback
+
+function finiteCount(value) {
+  const number = Number(value)
+  return Number.isFinite(number) && number > 0 ? Math.floor(number) : 0
 }
 
 function getOwner(row = {}) {
-  return row.ownerDisplayName || row.ownerName || row.approverDisplayName || row.approverName || row.authorDisplayName || row.authorName || 'Owner pending'
+  return textValue(row.ownerDisplayName) || textValue(row.ownerName) || textValue(row.approverDisplayName) || textValue(row.approverName) || textValue(row.authorDisplayName) || textValue(row.authorName) || 'Owner pending'
 }
 
 function buildBriefingCriticalItems({ tasks = [], dependencies = [], handoffs = [], escalations = [], signoffs = [] } = {}) {
   const items = []
 
-  for (const task of tasks || []) {
+  for (const task of asArray(tasks)) {
     const status = normalizeStatus(task.status)
     if (status === 'BLOCKED' || status === 'NOT_STARTED') {
       items.push({
@@ -21,14 +29,14 @@ function buildBriefingCriticalItems({ tasks = [], dependencies = [], handoffs = 
         type: status === 'BLOCKED' ? 'BLOCKER' : 'START_READY',
         departmentRole: normalizeRole(task.departmentRole),
         owner: getOwner(task),
-        label: task.taskName || 'Turnaround task',
-        detail: task.blockerNotes || task.location || task.plannedTime || 'Task needs command attention.',
+        label: textValue(task.taskName, 'Turnaround task'),
+        detail: textValue(task.blockerNotes) || textValue(task.location) || textValue(task.plannedTime) || 'Task needs command attention.',
         priority: status === 'BLOCKED' ? 90 : 45
       })
     }
   }
 
-  for (const escalation of escalations || []) {
+  for (const escalation of asArray(escalations)) {
     if (normalizeStatus(escalation.status) !== 'RESOLVED') {
       const severity = normalizeStatus(escalation.severity)
       items.push({
@@ -36,42 +44,42 @@ function buildBriefingCriticalItems({ tasks = [], dependencies = [], handoffs = 
         type: severity === 'CRITICAL' ? 'CRITICAL_ESCALATION' : 'ESCALATION',
         departmentRole: normalizeRole(escalation.departmentRole),
         owner: getOwner(escalation),
-        label: escalation.summary || 'Open escalation',
-        detail: escalation.resolutionPlan || escalation.status || 'Escalation needs an owner update.',
+        label: textValue(escalation.summary, 'Open escalation'),
+        detail: textValue(escalation.resolutionPlan) || textValue(escalation.status) || 'Escalation needs an owner update.',
         priority: severity === 'CRITICAL' ? 100 : 80
       })
     }
   }
 
-  for (const dependency of dependencies || []) {
+  for (const dependency of asArray(dependencies)) {
     if (normalizeStatus(dependency.status) !== 'CLEARED') {
       items.push({
         id: `dependency-${dependency.id || dependency.taskId || dependency.taskName}`,
         type: 'DEPENDENCY',
         departmentRole: normalizeRole(dependency.departmentRole),
-        owner: dependency.ownerDisplayName || 'Gate owner pending',
-        label: dependency.taskName || 'Dependency gate',
-        detail: dependency.dependsOnTaskName ? `Waiting on ${dependency.dependsOnTaskName}` : 'Dependency still active.',
+        owner: textValue(dependency.ownerDisplayName, 'Gate owner pending'),
+        label: textValue(dependency.taskName, 'Dependency gate'),
+        detail: textValue(dependency.dependsOnTaskName) ? `Waiting on ${textValue(dependency.dependsOnTaskName)}` : 'Dependency still active.',
         priority: 70
       })
     }
   }
 
-  for (const handoff of handoffs || []) {
+  for (const handoff of asArray(handoffs)) {
     if (normalizeStatus(handoff.status) !== 'COMPLETE') {
       items.push({
         id: `handoff-${handoff.id || handoff.handoffName}`,
         type: 'HANDOFF',
         departmentRole: normalizeRole(handoff.departmentRole),
         owner: getOwner(handoff),
-        label: handoff.handoffName || 'Operational handoff',
-        detail: handoff.acceptanceCriteria || handoff.dueTime || 'Handoff needs acceptance criteria.',
+        label: textValue(handoff.handoffName, 'Operational handoff'),
+        detail: textValue(handoff.acceptanceCriteria) || textValue(handoff.dueTime) || 'Handoff needs acceptance criteria.',
         priority: normalizeStatus(handoff.status) === 'BLOCKED' ? 85 : 55
       })
     }
   }
 
-  for (const signoff of signoffs || []) {
+  for (const signoff of asArray(signoffs)) {
     if (normalizeStatus(signoff.status) !== 'APPROVED') {
       items.push({
         id: `signoff-${signoff.id || signoff.departmentRole}`,
@@ -79,7 +87,7 @@ function buildBriefingCriticalItems({ tasks = [], dependencies = [], handoffs = 
         departmentRole: normalizeRole(signoff.departmentRole),
         owner: getOwner(signoff),
         label: `${normalizeRole(signoff.departmentRole)} readiness signoff`,
-        detail: signoff.notes || 'Readiness signoff is not approved yet.',
+        detail: textValue(signoff.notes, 'Readiness signoff is not approved yet.'),
         priority: normalizeStatus(signoff.status) === 'BLOCKED' ? 88 : 50
       })
     }
@@ -110,22 +118,22 @@ function buildDepartmentBriefs({ tasks = [], staffing = [], signoffs = [], escal
     return departments.get(key)
   }
 
-  for (const task of tasks || []) {
+  for (const task of asArray(tasks)) {
     const row = ensure(task.departmentRole)
     row.totalTasks += 1
     if (normalizeStatus(task.status) === 'COMPLETE') row.completedTasks += 1
     if (normalizeStatus(task.status) === 'BLOCKED') row.blockedTasks += 1
   }
 
-  for (const staff of staffing || []) {
-    ensure(staff.departmentRole).staffingGap += Math.max(Number(staff.plannedCount || 0) - Number(staff.checkedInCount || 0), 0)
+  for (const staff of asArray(staffing)) {
+    ensure(staff.departmentRole).staffingGap += Math.max(finiteCount(staff.plannedCount) - finiteCount(staff.checkedInCount), 0)
   }
 
-  for (const escalation of escalations || []) {
+  for (const escalation of asArray(escalations)) {
     if (normalizeStatus(escalation.status) !== 'RESOLVED') ensure(escalation.departmentRole).openEscalations += 1
   }
 
-  for (const signoff of signoffs || []) {
+  for (const signoff of asArray(signoffs)) {
     ensure(signoff.departmentRole).signoffStatus = signoff.status || 'PENDING'
   }
 
@@ -149,10 +157,10 @@ function buildDepartmentBriefs({ tasks = [], staffing = [], signoffs = [], escal
 }
 
 function buildShiftChecklist({ releasePacket = null, operationalMetrics = null, commandCenter = null, continuityCenter = null, closeoutPacket = null } = {}) {
-  const releaseReady = Number(operationalMetrics?.summary?.releaseConfidence || 0) >= 80
-  const commandOpen = Number(commandCenter?.summary?.decisionQueueCount || commandCenter?.decisionQueue?.length || 0)
-  const continuityOpen = Number(continuityCenter?.summary?.watchlistCount || continuityCenter?.watchlist?.length || 0)
-  const closeoutScore = Number(closeoutPacket?.summary?.closeoutScore || 0)
+  const releaseReady = finiteCount(operationalMetrics?.summary?.releaseConfidence) >= 80
+  const commandOpen = finiteCount(commandCenter?.summary?.decisionQueueCount ?? commandCenter?.decisionQueue?.length)
+  const continuityOpen = finiteCount(continuityCenter?.summary?.watchlistCount ?? continuityCenter?.watchlist?.length)
+  const closeoutScore = finiteCount(closeoutPacket?.summary?.closeoutScore)
 
   return [
     {
@@ -183,14 +191,16 @@ function buildShiftChecklist({ releasePacket = null, operationalMetrics = null, 
 }
 
 function buildTurnaroundShiftBriefing({ operation = {}, tasks = [], staffing = [], signoffs = [], escalations = [], dependencies = [], handoffs = [], releasePacket = null, operationalMetrics = null, commandCenter = null, continuityCenter = null, closeoutPacket = null } = {}) {
+  operation = operation || {}
   const criticalItems = buildBriefingCriticalItems({ tasks, dependencies, handoffs, escalations, signoffs })
   const departmentBriefs = buildDepartmentBriefs({ tasks, staffing, signoffs, escalations })
   const checklist = buildShiftChecklist({ releasePacket, operationalMetrics, commandCenter, continuityCenter, closeoutPacket })
   const actionCount = criticalItems.filter(item => item.priority >= 80).length + checklist.filter(item => item.status === 'ACTION').length
   const watchCount = criticalItems.filter(item => item.priority < 80).length + checklist.filter(item => item.status === 'WATCH').length
   const handoffStatus = actionCount > 0 ? 'COMMAND_REVIEW' : watchCount > 1 ? 'WATCH_HANDOFF' : 'READY_HANDOFF'
-  const releaseConfidence = Number(operationalMetrics?.summary?.releaseConfidence || 0)
-  const briefingScore = Math.max(0, Math.min(100, Math.round(releaseConfidence || 75) - actionCount * 7 - watchCount * 3))
+  const releaseConfidenceSource = operationalMetrics?.summary?.releaseConfidence
+  const releaseConfidence = releaseConfidenceSource == null ? 75 : finiteCount(releaseConfidenceSource)
+  const briefingScore = Math.max(0, Math.min(100, Math.round(releaseConfidence) - actionCount * 7 - watchCount * 3))
 
   return {
     operationId: operation.id || null,

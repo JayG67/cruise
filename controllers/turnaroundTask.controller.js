@@ -64,17 +64,15 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
 
       const operation = operationRows[0]
 
-      if (operation && !(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      if (!operation) return res.status(404).json({ message: 'Turnaround operation not found' })
+      if (!(await canAccessTurnaroundOperationForRequest(req, operation))) {
         return sendTurnaroundOperationForbidden(res)
       }
 
-      await db
-        .update(turnaroundTaskTable)
-        .set(nextTaskValues)
-        .where(eq(turnaroundTaskTable.id, id))
+      const updatedTasks = await db.update(turnaroundTaskTable).set(nextTaskValues).where(eq(turnaroundTaskTable.id, id)).returning()
+      if (!updatedTasks[0]) return res.status(404).json({ message: 'Turnaround task not found' })
 
-      if (operation) {
-        await recordTurnaroundAuditEvent(req, operation, {
+      await recordTurnaroundAuditEvent(req, operation, {
           eventType: 'TURNAROUND_TASK_STATUS_UPDATED',
           entityType: 'TURNAROUND_TASK',
           entityId: id,
@@ -86,11 +84,6 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
             metadata: { action: 'update-task-status' }
           })
         })
-      }
-
-      if (!operation) {
-        return res.status(200).json({ message: 'Turnaround task status updated successfully' })
-      }
 
       return res.status(200).json({
         message: 'Turnaround task status updated successfully',
@@ -127,7 +120,10 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
         .from(turnaroundTaskTable)
         .where(eq(turnaroundTaskTable.operationId, id))
 
-      const nextSortOrder = existingTasks.reduce((maxSortOrder, task) => Math.max(maxSortOrder, Number(task.sortOrder || 0)), 0) + 1
+      const nextSortOrder = existingTasks.reduce((maxSortOrder, task) => {
+        const sortOrder = Number(task.sortOrder)
+        return Number.isFinite(sortOrder) && sortOrder > maxSortOrder ? Math.floor(sortOrder) : maxSortOrder
+      }, 0) + 1
 
       const taskValues = {
         operationId: id,
@@ -193,7 +189,8 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
 
       const operation = operationRows[0]
 
-      if (operation && !(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      if (!operation) return res.status(404).json({ message: 'Turnaround operation not found' })
+      if (!(await canAccessTurnaroundOperationForRequest(req, operation))) {
         return sendTurnaroundOperationForbidden(res)
       }
 
@@ -210,8 +207,7 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
         .insert(turnaroundTaskUpdateTable)
         .values(taskUpdateValues)
 
-      if (operation) {
-        await recordTurnaroundAuditEvent(req, operation, {
+      await recordTurnaroundAuditEvent(req, operation, {
           eventType: 'TURNAROUND_TASK_UPDATE_CREATED',
           entityType: 'TURNAROUND_TASK',
           entityId: id,
@@ -223,11 +219,10 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
             metadata: { action: 'create-task-update' }
           })
         })
-      }
 
       return res.status(201).json({
         message: 'Turnaround task update added successfully',
-        operation: operation ? await getTurnaroundOperationDetails(operation) : undefined
+        operation: await getTurnaroundOperationDetails(operation)
       })
     } catch (err) {
       next(err)
@@ -258,7 +253,8 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
 
       const operation = operationRows[0]
 
-      if (operation && !(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      if (!operation) return res.status(404).json({ message: 'Turnaround operation not found' })
+      if (!(await canAccessTurnaroundOperationForRequest(req, operation))) {
         return sendTurnaroundOperationForbidden(res)
       }
 
@@ -274,12 +270,13 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
         .delete(turnaroundTaskUpdateTable)
         .where(eq(turnaroundTaskUpdateTable.taskId, id))
 
-      await db
+      const deletedTasks = await db
         .delete(turnaroundTaskTable)
         .where(eq(turnaroundTaskTable.id, id))
+        .returning()
+      if (!deletedTasks[0]) return res.status(404).json({ message: 'Turnaround task not found' })
 
-      if (operation) {
-        await recordTurnaroundAuditEvent(req, operation, {
+      await recordTurnaroundAuditEvent(req, operation, {
           eventType: 'TURNAROUND_TASK_DELETED',
           entityType: 'TURNAROUND_TASK',
           entityId: id,
@@ -291,11 +288,10 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
             metadata: { action: 'delete-task' }
           })
         })
-      }
 
       return res.status(200).json({
         message: 'Turnaround task removed successfully',
-        operation: operation ? await getTurnaroundOperationDetails(operation) : undefined
+        operation: await getTurnaroundOperationDetails(operation)
       })
     } catch (err) {
       next(err)
@@ -338,7 +334,8 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
 
       const operation = operationRows[0]
 
-      if (operation && !(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      if (!operation) return res.status(404).json({ message: 'Turnaround operation not found' })
+      if (!(await canAccessTurnaroundOperationForRequest(req, operation))) {
         return sendTurnaroundOperationForbidden(res)
       }
 
@@ -346,13 +343,10 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
         taskUpdates.ownerUserId = await resolveOperationalUserIdByName(req.body.ownerName, operation)
       }
 
-      await db
-        .update(turnaroundTaskTable)
-        .set(taskUpdates)
-        .where(eq(turnaroundTaskTable.id, id))
+      const updatedTasks = await db.update(turnaroundTaskTable).set(taskUpdates).where(eq(turnaroundTaskTable.id, id)).returning()
+      if (!updatedTasks[0]) return res.status(404).json({ message: 'Turnaround task not found' })
 
-      if (operation) {
-        await recordTurnaroundAuditEvent(req, operation, {
+      await recordTurnaroundAuditEvent(req, operation, {
           eventType: 'TURNAROUND_TASK_DETAILS_UPDATED',
           entityType: 'TURNAROUND_TASK',
           entityId: id,
@@ -364,11 +358,10 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
             metadata: { action: 'update-task-details' }
           })
         })
-      }
 
       return res.status(200).json({
         message: 'Turnaround task details updated successfully',
-        operation: operation ? await getTurnaroundOperationDetails(operation) : undefined
+        operation: await getTurnaroundOperationDetails(operation)
       })
     } catch (err) {
       next(err)

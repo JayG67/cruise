@@ -5,7 +5,12 @@ const DEFAULT_REGRESSION_POLICY = Object.freeze({
 })
 
 function failedCaseIds(run = {}) {
-  return new Set((run.results || []).filter(result => !result.passed).map(result => result.evaluationCaseId))
+  return new Set((run.results || []).filter(result => result?.passed !== true).map(result => result.evaluationCaseId).filter(Boolean))
+}
+
+function finiteMetric(value) {
+  const number = Number(value)
+  return Number.isFinite(number) ? number : 0
 }
 
 function compareEvaluationRuns({ currentRun, baselineRun, policy = DEFAULT_REGRESSION_POLICY } = {}) {
@@ -16,8 +21,8 @@ function compareEvaluationRuns({ currentRun, baselineRun, policy = DEFAULT_REGRE
   const currentFailures = failedCaseIds(currentRun)
   const newFailedCases = [...currentFailures].filter(caseId => !baselineFailures.has(caseId))
   const recoveredCases = [...baselineFailures].filter(caseId => !currentFailures.has(caseId))
-  const passRateDelta = Math.round((currentRun.passRate - baselineRun.passRate) * 100) / 100
-  const averageScoreDelta = Math.round((currentRun.averageScore - baselineRun.averageScore) * 100) / 100
+  const passRateDelta = Math.round((finiteMetric(currentRun.passRate) - finiteMetric(baselineRun.passRate)) * 100) / 100
+  const averageScoreDelta = Math.round((finiteMetric(currentRun.averageScore) - finiteMetric(baselineRun.averageScore)) * 100) / 100
   const reasons = []
 
   if (passRateDelta < policy.minimumPassRateDelta) reasons.push('pass-rate-regression')

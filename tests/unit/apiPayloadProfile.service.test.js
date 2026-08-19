@@ -5,6 +5,7 @@ const {
   applyCustomerPayloadProfile,
   compactBooking,
   compactCustomer,
+  getRequestedPayloadProfile,
   normalizePayloadProfile
 } = require('../../services/apiPayloadProfile.service')
 
@@ -146,4 +147,25 @@ describe('apiPayloadProfile.service', () => {
     expect(applyCustomerPayloadProfile([customer], 'compact')[0]).not.toBe(customer)
     expect(applyCustomerPayloadProfile([customer], 'compact')[0].phone).toBeUndefined()
   })
+
+  it('ignores blank higher-priority payload profile values and honors the next meaningful request source', () => {
+    const req = {
+      query: { payloadProfile: '   ', payload: '	', view: '' },
+      get: header => header === 'X-Cruise-Payload-Profile' ? ' compact ' : undefined
+    }
+
+    expect(getRequestedPayloadProfile(req)).toBe(COMPACT_PROFILE)
+    expect(getRequestedPayloadProfile({ query: { payloadProfile: ' compact ', payload: 'full' } })).toBe(COMPACT_PROFILE)
+    expect(getRequestedPayloadProfile({ query: { payloadProfile: {}, payload: 'compact' } })).toBe(COMPACT_PROFILE)
+    expect(getRequestedPayloadProfile()).toBe(FULL_PROFILE)
+  })
+
+  it('keeps compact payload helpers fail-soft for null and malformed nested collections', () => {
+    expect(compactBooking(null)).toBeNull()
+    expect(compactCustomer(null)).toBeNull()
+    expect(applyBookingPayloadProfile(null, 'compact')).toBeNull()
+    expect(applyCustomerPayloadProfile(null, 'compact')).toBeNull()
+    expect(compactBooking({ id: 'B1', passengers: 'not-an-array' })).toEqual(expect.objectContaining({ passengerCount: 0, primaryPassenger: null, passengers: [] }))
+  })
+
 })

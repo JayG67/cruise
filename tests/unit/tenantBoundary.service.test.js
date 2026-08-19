@@ -57,6 +57,20 @@ describe('tenantBoundary.service', () => {
     })
   })
 
+  it('does not misclassify a generic route id as a customer tenant boundary', () => {
+    expect(tenantBoundaryFromRequest({
+      params: { id: 'ship-or-booking-id' },
+      query: {},
+      headers: {}
+    })).toEqual({})
+
+    expect(tenantBoundaryFromRequest({
+      params: { customerId: 'customer-1' },
+      query: {},
+      headers: { 'X-Cruise-Tenant-Id': 'line-1' }
+    })).toEqual({ cruiseLineId: 'line-1', customerId: 'customer-1' })
+  })
+
   it('fails closed when candidate tenant scope is missing or conflicting', () => {
     expect(isTenantBoundaryCompatible({ cruiseLineId: 'line-1' }, { cruiseLineId: 'line-1' })).toBe(true)
     expect(isTenantBoundaryCompatible({}, { cruiseLineId: 'line-1' })).toBe(false)
@@ -84,4 +98,68 @@ describe('tenantBoundary.service', () => {
     expect(() => assertTenantBoundary({ cruiseLineId: 'line-2' }, { cruiseLineId: 'line-1' })).toThrow('Tenant boundary mismatch')
     expect(assertTenantBoundary({ cruiseLineId: 'line-1' }, { cruiseLineId: 'line-1' })).toEqual(expect.objectContaining({ compatible: true }))
   })
+})
+
+describe('tenant boundary precedence hardening', () => {
+  it('skips blank higher-priority entity ids instead of suppressing authoritative relationship scope', () => {
+    expect(tenantBoundaryFromEntity({
+      cruiseLineId: '   ',
+      shipId: '\t',
+      sailingId: '',
+      operationId: ' ',
+      customerId: '\n',
+      bookingId: ' ',
+      apiIdentity: {
+        tenantScope: { cruiseLineId: 'line-scope', shipId: 'ship-scope', bookingId: 'booking-scope' },
+        relationships: { sailingId: 'sailing-rel', operationId: 'operation-rel', customerId: 'customer-rel' }
+      }
+    })).toEqual({
+      cruiseLineId: 'line-scope',
+      shipId: 'ship-scope',
+      sailingId: 'sailing-rel',
+      operationId: 'operation-rel',
+      customerId: 'customer-rel',
+      bookingId: 'booking-scope'
+    })
+  })
+
+  it('skips blank params and falls back to query or tenant headers', () => {
+    expect(tenantBoundaryFromRequest({
+      params: { cruiseLineId: ' ', shipId: '\t', sailingId: '', operationId: ' ', customerId: '', bookingId: '\n' },
+      query: { cruiseLineId: 'query-line', shipId: 'query-ship', sailingId: 'query-sailing', operationId: 'query-operation', customerId: 'query-customer', bookingId: 'query-booking' },
+      headers: { 'x-cruise-tenant-id': 'header-line' }
+    })).toEqual({
+      cruiseLineId: 'query-line',
+      shipId: 'query-ship',
+      sailingId: 'query-sailing',
+      operationId: 'query-operation',
+      customerId: 'query-customer',
+      bookingId: 'query-booking'
+    })
+  })
+
+  it('covers empty/default boundary inputs without manufacturing scope', () => {
+    expect(buildTenantBoundary()).toEqual({})
+    expect(tenantBoundaryFromEntity()).toEqual({})
+    expect(tenantBoundaryFromEntity(null)).toEqual({})
+    expect(tenantBoundaryFromRequest()).toEqual({})
+    expect(filterRowsByTenantBoundary('not-an-array', { cruiseLineId: 'line-1' })).toEqual([])
+    expect(buildTenantBoundaryReport()).toEqual(expect.objectContaining({ compatible: true, checkedKeys: [] }))
+  })
+
+  it('rejects malformed object and array tenant identifiers instead of manufacturing string scope', () => {
+    expect(normalizeTenantId({ id: 'line-1' })).toBeNull()
+    expect(normalizeTenantId(['line-1'])).toBeNull()
+    expect(normalizeTenantId(Infinity)).toBeNull()
+    expect(normalizeTenantId(42)).toBe('42')
+
+    expect(tenantBoundaryFromRequest({
+      params: { cruiseLineId: { id: 'bad' } },
+      query: { cruiseLineId: 'line-1' },
+      headers: {}
+    })).toEqual({ cruiseLineId: 'line-1' })
+
+    expect(hasTenantBoundary(['line-1'])).toBe(false)
+  })
+
 })

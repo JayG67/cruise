@@ -1,5 +1,7 @@
 function clampScore(value) {
-  return Math.max(0, Math.min(100, Math.round(Number(value) || 0)))
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) return 0
+  return Math.max(0, Math.min(100, Math.round(numericValue)))
 }
 
 function normalizeStatus(value, fallback = 'REVIEW') {
@@ -7,23 +9,34 @@ function normalizeStatus(value, fallback = 'REVIEW') {
 }
 
 function firstNonEmpty(...values) {
-  return values.find(value => String(value || '').trim().length > 0) || ''
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) return value.trim()
+    if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+  }
+  return ''
+}
+
+function normalizeRiskCount(value) {
+  const count = Number(value)
+  if (!Number.isFinite(count)) return 0
+  return Math.max(0, Math.trunc(count))
 }
 
 function getDataQualityRisk(dataQuality = {}) {
-  return Number(dataQuality.blockerCount || 0) +
-    Number(dataQuality.openEscalations || 0) +
-    Number(dataQuality.staffingGaps || 0) +
-    Number(dataQuality.incompleteSignoffs || 0) +
-    Number(dataQuality.openDependencies || 0) +
-    Number(dataQuality.openHandoffs || 0)
+  dataQuality = dataQuality || {}
+  return normalizeRiskCount(dataQuality.blockerCount) +
+    normalizeRiskCount(dataQuality.openEscalations) +
+    normalizeRiskCount(dataQuality.staffingGaps) +
+    normalizeRiskCount(dataQuality.incompleteSignoffs) +
+    normalizeRiskCount(dataQuality.openDependencies) +
+    normalizeRiskCount(dataQuality.openHandoffs)
 }
 
 function buildBriefingReadiness({ operationalAssurancePacket = null, executiveBrief = null, afterActionReview = null, incidentCommand = null } = {}) {
-  const assuranceScore = clampScore(operationalAssurancePacket?.readiness?.readinessScore || 0)
-  const executiveScore = clampScore(executiveBrief?.summary?.decisionScore || assuranceScore)
-  const reviewScore = clampScore(afterActionReview?.summary?.reviewScore || executiveBrief?.summary?.reviewScore || assuranceScore)
-  const incidentScore = clampScore(incidentCommand?.incidentScore || executiveBrief?.summary?.incidentScore || 0)
+  const assuranceScore = clampScore(operationalAssurancePacket?.readiness?.readinessScore ?? 0)
+  const executiveScore = clampScore(executiveBrief?.summary?.decisionScore ?? assuranceScore)
+  const reviewScore = clampScore(afterActionReview?.summary?.reviewScore ?? executiveBrief?.summary?.reviewScore ?? assuranceScore)
+  const incidentScore = clampScore(incidentCommand?.incidentScore ?? executiveBrief?.summary?.incidentScore ?? 0)
   const dataQualityRisk = getDataQualityRisk(operationalAssurancePacket?.dataQuality || {})
   const dataQualityScore = clampScore(100 - (dataQualityRisk * 8))
   const readinessScore = clampScore((assuranceScore * 0.34) + (executiveScore * 0.28) + (reviewScore * 0.14) + ((100 - incidentScore) * 0.14) + (dataQualityScore * 0.1))
@@ -46,6 +59,7 @@ function buildBriefingReadiness({ operationalAssurancePacket = null, executiveBr
 }
 
 function buildBriefingNarrative({ operation = {}, readiness = {}, operationalAssurancePacket = null, executiveBrief = null } = {}) {
+  operation = operation || {}
   const shipName = operation.shipName || 'Selected ship'
   const cruiseLineName = operation.cruiseLineName || 'selected cruise line'
   const status = normalizeStatus(readiness.readinessStatus)
@@ -65,18 +79,21 @@ function buildBriefingNarrative({ operation = {}, readiness = {}, operationalAss
 
 function buildBriefingChecklist({ operationalAssurancePacket = null, executiveBrief = null, afterActionReview = null, incidentCommand = null } = {}) {
   const dataQuality = operationalAssurancePacket?.dataQuality || {}
+  const assuranceScore = clampScore(operationalAssurancePacket?.readiness?.readinessScore ?? 0)
+  const executiveScore = clampScore(executiveBrief?.summary?.decisionScore ?? 0)
+  const reviewScore = clampScore(afterActionReview?.summary?.reviewScore ?? 0)
   return [
     {
       id: 'operational-assurance',
       label: 'Operational assurance',
-      status: operationalAssurancePacket?.readiness?.readinessScore >= 78 ? 'READY' : 'REVIEW',
-      detail: `${operationalAssurancePacket?.readiness?.readinessScore || 0}% assurance readiness with ${normalizeStatus(operationalAssurancePacket?.readiness?.readinessStatus, 'assurance status')}.`
+      status: assuranceScore >= 78 ? 'READY' : 'REVIEW',
+      detail: `${assuranceScore}% assurance readiness with ${normalizeStatus(operationalAssurancePacket?.readiness?.readinessStatus, 'assurance status')}.`
     },
     {
       id: 'executive-brief',
       label: 'Executive brief',
-      status: executiveBrief?.summary?.decisionScore >= 78 ? 'READY' : 'REVIEW',
-      detail: `${executiveBrief?.summary?.decisionScore || 0}% executive decision score with ${normalizeStatus(executiveBrief?.summary?.decisionStatus, 'decision status')}.`
+      status: executiveScore >= 78 ? 'READY' : 'REVIEW',
+      detail: `${executiveScore}% executive decision score with ${normalizeStatus(executiveBrief?.summary?.decisionStatus, 'decision status')}.`
     },
     {
       id: 'data-quality',
@@ -87,22 +104,22 @@ function buildBriefingChecklist({ operationalAssurancePacket = null, executiveBr
     {
       id: 'incident-risk',
       label: 'Incident risk',
-      status: Number(incidentCommand?.incidentScore || 0) < 35 ? 'READY' : Number(incidentCommand?.incidentScore || 0) < 65 ? 'WATCH' : 'FIX',
-      detail: `Incident command score ${incidentCommand?.incidentScore || 0}; severity ${normalizeStatus(incidentCommand?.incidentSeverity, 'stable')}.`
+      status: clampScore(incidentCommand?.incidentScore ?? 0) < 35 ? 'READY' : clampScore(incidentCommand?.incidentScore ?? 0) < 65 ? 'WATCH' : 'FIX',
+      detail: `Incident command score ${clampScore(incidentCommand?.incidentScore ?? 0)}; severity ${normalizeStatus(incidentCommand?.incidentSeverity, 'stable')}.`
     },
     {
       id: 'learning-loop',
       label: 'After-action learning loop',
-      status: afterActionReview?.summary?.reviewScore >= 75 ? 'READY' : 'REVIEW',
-      detail: `${afterActionReview?.summary?.reviewScore || 0}% after-action review score with ${normalizeStatus(afterActionReview?.summary?.reviewStatus, 'follow up')}.`
+      status: reviewScore >= 75 ? 'READY' : 'REVIEW',
+      detail: `${reviewScore}% after-action review score with ${normalizeStatus(afterActionReview?.summary?.reviewStatus, 'follow up')}.`
     }
   ]
 }
 
 function buildBriefingAssets({ operationalAssurancePacket = null, executiveBrief = null, afterActionReview = null } = {}) {
-  const proofPoints = operationalAssurancePacket?.proofPoints || []
-  const executiveHighlights = executiveBrief?.highlights || executiveBrief?.decisionHighlights || []
-  const lessons = afterActionReview?.departmentLessons || []
+  const proofPoints = Array.isArray(operationalAssurancePacket?.proofPoints) ? operationalAssurancePacket.proofPoints : []
+  const executiveHighlights = Array.isArray(executiveBrief?.highlights) ? executiveBrief.highlights : (Array.isArray(executiveBrief?.decisionHighlights) ? executiveBrief.decisionHighlights : [])
+  const lessons = Array.isArray(afterActionReview?.departmentLessons) ? afterActionReview.departmentLessons : []
 
   return [
     {
@@ -115,28 +132,33 @@ function buildBriefingAssets({ operationalAssurancePacket = null, executiveBrief
       id: 'proof-points',
       label: 'Operational proof points',
       status: `${proofPoints.length} READY`,
-      detail: proofPoints.slice(0, 3).map(point => point.label).join(', ') || 'Role-scoped operations, release readiness, and audit evidence are ready.'
+      detail: proofPoints.slice(0, 3).map(point => firstNonEmpty(point?.label)).filter(Boolean).join(', ') || 'Role-scoped operations, release readiness, and audit evidence are ready.'
     },
     {
       id: 'executive-highlights',
       label: 'Executive highlights',
-      status: `${executiveHighlights.length || 3} READY`,
-      detail: executiveHighlights.slice(0, 2).join(' ') || firstNonEmpty(executiveBrief?.narrative?.summary, 'Executive brief is ready for leadership discussion.')
+      status: `${executiveHighlights.length} READY`,
+      detail: executiveHighlights.slice(0, 2).map(highlight => firstNonEmpty(highlight)).filter(Boolean).join(' ') || firstNonEmpty(executiveBrief?.narrative?.summary, 'Executive brief is ready for leadership discussion.')
     },
     {
       id: 'lessons',
       label: 'Lessons and follow-ups',
       status: `${lessons.length} TRACKED`,
-      detail: lessons.slice(0, 2).map(lesson => `${lesson.departmentRole}: ${lesson.lesson}`).join(' ') || firstNonEmpty(afterActionReview?.followUpActions?.[0], 'After-action follow-ups are tracked for the selected operation.')
+      detail: lessons.slice(0, 2).map(lesson => {
+        const role = firstNonEmpty(lesson?.departmentRole)
+        const text = firstNonEmpty(lesson?.lesson)
+        return role && text ? `${role}: ${text}` : text
+      }).filter(Boolean).join(' ') || firstNonEmpty(afterActionReview?.followUpActions?.[0], 'After-action follow-ups are tracked for the selected operation.')
     }
   ]
 }
 
 function buildAudienceRecommendations({ operation = {}, readiness = {}, operationalAssurancePacket = null } = {}) {
+  operation = operation || {}
   const cruiseLineName = operation.cruiseLineName || 'Current cruise line'
   const shipName = operation.shipName || 'selected ship'
   const readinessStatus = readiness.readinessStatus || 'REVIEW_BEFORE_BRIEFING'
-  const proofPoint = operationalAssurancePacket?.proofPoints?.[0]?.label || 'role-scoped turnaround operations'
+  const proofPoint = firstNonEmpty(operationalAssurancePacket?.proofPoints?.[0]?.label, 'role-scoped turnaround operations')
   const briefingStatus = readinessStatus === 'READY_FOR_BRIEFING' ? 'READY' : readinessStatus === 'READY_WITH_NOTES' ? 'READY_WITH_NOTES' : 'HOLD'
 
   return [
@@ -144,7 +166,7 @@ function buildAudienceRecommendations({ operation = {}, readiness = {}, operatio
       id: 'line-leadership',
       label: `${cruiseLineName} leadership`,
       status: briefingStatus,
-      detail: `${shipName} briefing should lead with ${proofPoint.toLowerCase()} and assurance readiness ${readiness.readinessScore || 0}%.`
+      detail: `${shipName} briefing should lead with ${String(proofPoint).toLowerCase()} and assurance readiness ${readiness.readinessScore ?? 0}%.`
     },
     {
       id: 'ship-command',

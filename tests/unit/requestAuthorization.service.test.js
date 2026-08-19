@@ -150,6 +150,62 @@ describe('requestAuthorization service', () => {
     expect(status).toHaveBeenCalledWith(403)
     expect(json).toHaveBeenCalledWith({ message: service.ADMIN_FORBIDDEN_MESSAGE })
   })
+
+  it('fails closed for incomplete non-anonymous actor identities and tolerates empty actor builders', () => {
+    expect(service.buildProductionActor({})).toBeNull()
+    expect(service.buildDemoActor({})).toBeNull()
+    expect(service.normalizeActorRole()).toBeNull()
+    expect(service.normalizeActorDisplayName()).toBeNull()
+
+    expect(() => service.assertResolvedActor({
+      actorUserId: 'user-1',
+      actorDisplayName: 'User One'
+    })).toThrow('Resolved actor identity source is required')
+  })
+
+  it('uses user id as the production display fallback and preserves explicit identity source', () => {
+    expect(service.buildProductionActor({
+      userId: 'prod-user-2',
+      role: 'ADMIN',
+      identitySource: service.ACTOR_IDENTITY_SOURCES.JWT
+    })).toEqual({
+      actorUserId: 'prod-user-2',
+      actorDisplayName: 'prod-user-2',
+      actorRole: 'ADMIN',
+      identitySource: service.ACTOR_IDENTITY_SOURCES.JWT
+    })
+  })
+
+  it('allows verified admin requests without writing a forbidden response', async () => {
+    const json = jest.fn()
+    const status = jest.fn(() => ({ json }))
+    const res = { status }
+    const req = {
+      requestIdentity: {
+        principal: { userId: 'admin-1', displayName: 'Admin One', role: 'ADMIN', identitySource: 'jwt' }
+      }
+    }
+
+    await expect(service.requireAdminRequest(req, res)).resolves.toBe(true)
+    expect(status).not.toHaveBeenCalled()
+    expect(json).not.toHaveBeenCalled()
+  })
+
+  it('covers default actor builders and request shapes without weakening fail-closed identity behavior', async () => {
+    expect(service.buildActorIdentity()).toEqual({
+      actorUserId: null,
+      actorDisplayName: null,
+      actorRole: null,
+      identitySource: service.ACTOR_IDENTITY_SOURCES.ANONYMOUS
+    })
+    expect(service.getProductionPrincipal()).toBeNull()
+    await expect(service.resolveDemoUserForRequest()).resolves.toBeNull()
+    await expect(service.resolveRequestActor()).resolves.toEqual(expect.objectContaining({
+      identitySource: service.ACTOR_IDENTITY_SOURCES.ANONYMOUS
+    }))
+  })
+
+
 })
 
 describe('requestAuthorization actor identity bridge', () => {
@@ -215,5 +271,18 @@ describe('requestAuthorization actor identity bridge', () => {
   it('keeps role normalization explicit for future user and role completion work', () => {
     expect(service.normalizeActorRole('food beverage lead')).toBe('FOOD_BEVERAGE_LEAD')
     expect(service.normalizeActorDisplayName({ email: 'leader@example.com', userId: 'user-1' })).toBe('leader@example.com')
+  })
+})
+
+it('keeps demo audit actors attributable when no normalized application user id exists', () => {
+  expect(service.buildDemoActor({
+    id: 'demo-operator-9',
+    displayName: 'Demo Operator',
+    role: 'TURNAROUND_MANAGER'
+  })).toEqual({
+    actorUserId: 'demo-operator-9',
+    actorDisplayName: 'Demo Operator',
+    actorRole: 'TURNAROUND_MANAGER',
+    identitySource: service.ACTOR_IDENTITY_SOURCES.DEMO
   })
 })

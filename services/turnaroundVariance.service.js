@@ -79,7 +79,7 @@ function getVarianceStatus(score) {
 
 function buildDepartmentVariances({ playbookTemplate = {}, tasks = [], staffing = [], signoffs = [], escalations = [], handoffs = [], dependencies = [] } = {}) {
   const actualsByDepartment = buildDepartmentActuals({ tasks, staffing, signoffs, escalations, handoffs, dependencies })
-  const baselineRows = playbookTemplate.departmentPlaybooks || []
+  const baselineRows = Array.isArray(playbookTemplate.departmentPlaybooks) ? playbookTemplate.departmentPlaybooks : []
 
   return baselineRows.map(baseline => {
     const departmentRole = normalizeDepartmentRole(baseline.departmentRole)
@@ -103,10 +103,11 @@ function buildDepartmentVariances({ playbookTemplate = {}, tasks = [], staffing 
 }
 
 function buildVarianceScenario({ releasePacket = null, operationalMetrics = null, departmentVariances = [] } = {}) {
-  const readinessScore = Number(releasePacket?.readinessScore || operationalMetrics?.summary?.readinessScore || 0)
-  const riskIndex = Number(operationalMetrics?.summary?.riskIndex || 0)
-  const highVarianceCount = departmentVariances.filter(row => row.status === 'ACTION').length
-  const watchVarianceCount = departmentVariances.filter(row => row.status === 'WATCH').length
+  const readinessScore = Number(releasePacket?.readinessScore ?? operationalMetrics?.summary?.readinessScore ?? 0)
+  const riskIndex = Number(operationalMetrics?.summary?.riskIndex ?? 0)
+  const varianceRows = Array.isArray(departmentVariances) ? departmentVariances : []
+  const highVarianceCount = varianceRows.filter(row => row.status === 'ACTION').length
+  const watchVarianceCount = varianceRows.filter(row => row.status === 'WATCH').length
   const rehearsalScore = clampPercent(readinessScore - Math.round(riskIndex * 0.35) - highVarianceCount * 8 - watchVarianceCount * 3)
 
   return {
@@ -121,7 +122,7 @@ function buildVarianceScenario({ releasePacket = null, operationalMetrics = null
 function buildTurnaroundPlaybookVariance({ operation = {}, tasks = [], staffing = [], signoffs = [], escalations = [], dependencies = [], handoffs = [], releasePacket = null, operationalMetrics = null, playbookTemplate = null } = {}) {
   if (!playbookTemplate) {
     return {
-      operationId: operation.id || null,
+      operationId: operation?.id || null,
       generatedAt: new Date().toISOString(),
       status: 'UNAVAILABLE',
       summary: {
@@ -142,7 +143,7 @@ function buildTurnaroundPlaybookVariance({ operation = {}, tasks = [], staffing 
   const templateReadinessScore = Number(playbookTemplate.summary?.templateReadinessScore || 0)
 
   return {
-    operationId: operation.id || null,
+    operationId: operation?.id || null,
     generatedAt: new Date().toISOString(),
     status: scenario.rehearsalStatus,
     summary: {

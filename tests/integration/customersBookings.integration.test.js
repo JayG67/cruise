@@ -2,7 +2,7 @@ const request = require('supertest')
 
 const app = require('../../app')
 const db = require('../../db')
-const { sailingTable } = require('../../models')
+const { sailingTable, bookingTable, bookingPassengerTable } = require('../../models')
 const initializeDatabase = require('../../services/initializeDatabase.service')
 const loadCruiseData = require('../../services/loadCruiseData.service')
 
@@ -1041,13 +1041,14 @@ describe('Customer and booking API integration tests', () => {
   })
 
   it('POST and DELETE /cruise/itinerary-favorites persists passenger itinerary interests', async () => {
-    const contextRes = await request(app).get('/cruise/demo-users/UPASS00001/context')
-    expect(contextRes.statusCode).toBe(200)
-    expect(contextRes.body.customer.id).toEqual(expect.any(String))
-    expect(contextRes.body.bookings.length).toBeGreaterThan(0)
+    const seededBooking = await getSeededBookingWithPassengers(request, app)
+    const primaryPassenger = seededBooking.passengers.find(passenger => passenger.isPrimaryGuest) || seededBooking.passengers[0]
 
-    const customerId = contextRes.body.customer.id
-    const sailingId = contextRes.body.bookings[0].sailing.id
+    expect(primaryPassenger.customerId).toEqual(expect.any(String))
+
+    const customerId = primaryPassenger.customerId
+    const sailingId = seededBooking.sailing?.id || seededBooking.sailingId
+    expect(sailingId).toEqual(expect.any(String))
     const itineraryRes = await request(app).get(`/cruise/sailings/${sailingId}/itinerary?customerId=${customerId}`)
     expect(itineraryRes.statusCode).toBe(200)
     expect(itineraryRes.body[0].activitySchedule.length).toBeGreaterThan(0)
@@ -1115,14 +1116,28 @@ describe('Customer and booking API integration tests', () => {
       sailing: firstSailing
     })
 
-    const secondBooking = await createBooking({
-      primaryCustomer: customer,
-      sailing: laterSailing,
-      payload: {
+    const secondBooking = { id: uniqueBookingId() }
+    await db.transaction(async tx => {
+      await tx.insert(bookingTable).values({
+        id: secondBooking.id,
+        sailingId: laterSailing.id,
+        bookingStatus: 'CONFIRMED',
+        cabinNumber: '13333',
+        fareCode: 'BALCONY',
         embarkationPort: laterSailing.departurePort,
-        debarkationPort: laterSailing.arrivalPort
-      }
+        debarkationPort: laterSailing.arrivalPort,
+        createdByCustomerId: customer.id
+      })
+      await tx.insert(bookingPassengerTable).values({
+        id: `${secondBooking.id}-${customer.id}`,
+        bookingId: secondBooking.id,
+        customerId: customer.id,
+        passengerRole: 'PRIMARY',
+        isPrimaryGuest: true,
+        diningPreference: 'Early seating'
+      })
     })
+    trackBooking(secondBooking.id)
 
     const updateRes = await request(app)
       .patch(`/cruise/bookings/${secondBooking.id}`)

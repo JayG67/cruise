@@ -6,15 +6,31 @@ function normalizeTimelineDate(value, fallback = null) {
 }
 
 function normalizeTimelineStatus(value, fallback = 'INFO') {
-  return String(value || fallback).trim().toUpperCase()
+  const candidate = typeof value === 'string' || typeof value === 'number' ? String(value).trim() : ''
+  return (candidate || fallback).toUpperCase()
+}
+
+function asArray(value) {
+  return Array.isArray(value) ? value : []
+}
+
+function normalizeTimelineCount(value) {
+  const number = Number(value)
+  return Number.isFinite(number) && number >= 0 ? Math.floor(number) : 0
+}
+
+function timelineText(value) {
+  if (typeof value === 'string' && value.trim()) return value.trim()
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+  return null
 }
 
 function timelineActor(...values) {
-  return values.find(value => String(value || '').trim().length > 0) || 'System actor'
+  return values.map(timelineText).find(Boolean) || 'System actor'
 }
 
 function timelineDetail(...values) {
-  return values.find(value => String(value || '').trim().length > 0) || null
+  return values.map(timelineText).find(Boolean) || null
 }
 
 function addTimelineItem(items, item) {
@@ -37,6 +53,7 @@ function addTimelineItem(items, item) {
 
 function buildTurnaroundOperationalTimeline({ operation = {}, tasks = [], staffing = [], signoffs = [], escalations = [], dependencies = [], handoffs = [], auditEvents = [] } = {}) {
   const items = []
+  operation = operation || {}
   const operationDate = operation.turnaroundDate ? `${operation.turnaroundDate}T00:00:00.000Z` : null
 
   addTimelineItem(items, {
@@ -52,42 +69,44 @@ function buildTurnaroundOperationalTimeline({ operation = {}, tasks = [], staffi
     sortWeight: 10
   })
 
-  for (const task of tasks || []) {
+  for (const task of asArray(tasks)) {
+    const taskStatus = normalizeTimelineStatus(task.status, 'READY')
     addTimelineItem(items, {
       id: `task:${task.id}`,
       source: 'TASK',
       sourceId: task.id,
-      severity: task.status === 'BLOCKED' ? 'CRITICAL' : task.status === 'COMPLETE' ? 'SUCCESS' : 'ACTION',
-      status: task.status || 'READY',
+      severity: taskStatus === 'BLOCKED' ? 'CRITICAL' : ['COMPLETE', 'COMPLETED', 'RESOLVED', 'CLOSED'].includes(taskStatus) ? 'SUCCESS' : 'ACTION',
+      status: taskStatus,
       title: task.taskName || 'Turnaround task',
       actorDisplayName: timelineActor(task.ownerDisplayName, task.ownerName),
       detail: timelineDetail(task.blockerReason, task.location, task.dueTime ? `Due ${task.dueTime}` : null),
       occurredAt: task.updatedAt || task.createdAt || operationDate,
       dueTime: task.dueTime || null,
       departmentRole: task.departmentRole || null,
-      sortWeight: task.status === 'BLOCKED' ? 90 : 40
+      sortWeight: taskStatus === 'BLOCKED' ? 90 : 40
     })
 
-    for (const update of task.updates || []) {
+    for (const update of asArray(task.updates)) {
+      const updateType = normalizeTimelineStatus(update.updateType, 'NOTE')
       addTimelineItem(items, {
         id: `task-update:${update.id || `${task.id}:${update.createdAt}`}`,
         source: 'TASK_UPDATE',
         sourceId: task.id,
-        severity: update.updateType === 'BLOCKER' ? 'CRITICAL' : 'INFO',
-        status: update.updateType || 'NOTE',
+        severity: updateType === 'BLOCKER' ? 'CRITICAL' : 'INFO',
+        status: updateType,
         title: `${task.taskName || 'Task'} update`,
         actorDisplayName: timelineActor(update.authorDisplayName, update.authorName),
         detail: update.message || null,
         occurredAt: update.createdAt || operationDate,
         departmentRole: task.departmentRole || null,
-        sortWeight: update.updateType === 'BLOCKER' ? 95 : 55
+        sortWeight: updateType === 'BLOCKER' ? 95 : 55
       })
     }
   }
 
-  for (const row of staffing || []) {
-    const plannedCount = Number(row.plannedCount || 0)
-    const checkedInCount = Number(row.checkedInCount || 0)
+  for (const row of asArray(staffing)) {
+    const plannedCount = normalizeTimelineCount(row.plannedCount)
+    const checkedInCount = normalizeTimelineCount(row.checkedInCount)
     addTimelineItem(items, {
       id: `staffing:${row.id || row.departmentRole}`,
       source: 'STAFFING',
@@ -103,72 +122,79 @@ function buildTurnaroundOperationalTimeline({ operation = {}, tasks = [], staffi
     })
   }
 
-  for (const signoff of signoffs || []) {
+  for (const signoff of asArray(signoffs)) {
+    const signoffStatus = normalizeTimelineStatus(signoff.status, 'PENDING')
     addTimelineItem(items, {
       id: `signoff:${signoff.id || signoff.departmentRole}`,
       source: 'SIGNOFF',
       sourceId: signoff.id || null,
-      severity: signoff.status === 'APPROVED' ? 'SUCCESS' : signoff.status === 'BLOCKED' ? 'CRITICAL' : 'ACTION',
-      status: signoff.status || 'PENDING',
+      severity: signoffStatus === 'APPROVED' ? 'SUCCESS' : signoffStatus === 'BLOCKED' ? 'CRITICAL' : 'ACTION',
+      status: signoffStatus,
       title: `${signoff.departmentRole || 'Department'} readiness signoff`,
       actorDisplayName: timelineActor(signoff.approverDisplayName, signoff.approverName),
       detail: signoff.notes || null,
       occurredAt: signoff.signedAt || operationDate,
       departmentRole: signoff.departmentRole || null,
-      sortWeight: signoff.status === 'APPROVED' ? 20 : 75
+      sortWeight: signoffStatus === 'APPROVED' ? 20 : 75
     })
   }
 
-  for (const dependency of dependencies || []) {
+  for (const dependency of asArray(dependencies)) {
+    const dependencyStatus = normalizeTimelineStatus(dependency.status, 'ACTIVE')
+    const dependencyComplete = ['CLEARED', 'COMPLETE', 'COMPLETED', 'RESOLVED', 'CLOSED'].includes(dependencyStatus)
     addTimelineItem(items, {
       id: `dependency:${dependency.id || `${dependency.taskId}:${dependency.dependsOnTaskId}`}`,
       source: 'DEPENDENCY',
       sourceId: dependency.id || null,
-      severity: dependency.status === 'CLEARED' ? 'SUCCESS' : 'ACTION',
-      status: dependency.status || 'ACTIVE',
+      severity: dependencyComplete ? 'SUCCESS' : 'ACTION',
+      status: dependencyStatus,
       title: `${dependency.taskName || 'Task'} dependency`,
       actorDisplayName: 'Operations coordination',
       detail: `Waiting on ${dependency.dependsOnTaskName || dependency.dependsOnTaskId || 'prerequisite task'}`,
       occurredAt: dependency.updatedAt || operationDate,
       departmentRole: dependency.departmentRole || null,
-      sortWeight: dependency.status === 'CLEARED' ? 15 : 70
+      sortWeight: dependencyComplete ? 15 : 70
     })
   }
 
-  for (const escalation of escalations || []) {
+  for (const escalation of asArray(escalations)) {
+    const escalationStatus = normalizeTimelineStatus(escalation.status, 'OPEN')
+    const escalationSeverity = normalizeTimelineStatus(escalation.severity, 'WATCH')
     addTimelineItem(items, {
       id: `escalation:${escalation.id}`,
       source: 'ESCALATION',
       sourceId: escalation.id,
-      severity: escalation.severity || 'WATCH',
-      status: escalation.status || 'OPEN',
+      severity: ['RESOLVED', 'CLOSED', 'COMPLETE', 'COMPLETED'].includes(escalationStatus) ? 'SUCCESS' : escalationSeverity,
+      status: escalationStatus,
       title: escalation.title || 'Turnaround escalation',
       actorDisplayName: timelineActor(escalation.ownerDisplayName, escalation.ownerName),
-      detail: escalation.resolutionNotes || `${escalation.severity || 'WATCH'} escalation is ${escalation.status || 'open'}.`,
+      detail: timelineDetail(escalation.resolutionNotes, `${escalationSeverity} escalation is ${escalationStatus.toLowerCase()}.`),
       occurredAt: escalation.createdAt || operationDate,
       departmentRole: escalation.departmentRole || null,
-      sortWeight: escalation.status === 'RESOLVED' ? 25 : 100
+      sortWeight: ['RESOLVED', 'CLOSED', 'COMPLETE', 'COMPLETED'].includes(escalationStatus) ? 25 : 100
     })
   }
 
-  for (const handoff of handoffs || []) {
+  for (const handoff of asArray(handoffs)) {
+    const handoffStatus = normalizeTimelineStatus(handoff.status, 'PENDING')
+    const handoffComplete = ['COMPLETE', 'COMPLETED', 'RESOLVED', 'CLEARED', 'CLOSED'].includes(handoffStatus)
     addTimelineItem(items, {
       id: `handoff:${handoff.id}`,
       source: 'HANDOFF',
       sourceId: handoff.id,
-      severity: handoff.status === 'COMPLETE' ? 'SUCCESS' : handoff.status === 'BLOCKED' ? 'CRITICAL' : 'ACTION',
-      status: handoff.status || 'PENDING',
+      severity: handoffComplete ? 'SUCCESS' : handoffStatus === 'BLOCKED' ? 'CRITICAL' : 'ACTION',
+      status: handoffStatus,
       title: handoff.title || 'Department handoff',
       actorDisplayName: timelineActor(handoff.ownerDisplayName, handoff.ownerName),
       detail: handoff.notes || (handoff.dueTime ? `Due ${handoff.dueTime}` : null),
       occurredAt: handoff.completedAt || operationDate,
       dueTime: handoff.dueTime || null,
       departmentRole: handoff.departmentRole || null,
-      sortWeight: handoff.status === 'COMPLETE' ? 20 : 65
+      sortWeight: handoffComplete ? 20 : 65
     })
   }
 
-  for (const event of auditEvents || []) {
+  for (const event of asArray(auditEvents)) {
     addTimelineItem(items, {
       id: `audit:${event.id || `${event.eventType}:${event.createdAt}`}`,
       source: 'AUDIT',

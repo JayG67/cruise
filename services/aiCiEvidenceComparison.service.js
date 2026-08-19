@@ -94,7 +94,6 @@ function compareAiCiEvidence(currentEvidence, baselineEvidence) {
   let outcome = 'STABLE'
   if (newFailures.length > 0) outcome = 'REGRESSION'
   else if (resolvedFailures.length > 0) outcome = 'IMPROVEMENT'
-  else if (currentEvidence.releaseDecision !== baselineEvidence.releaseDecision) outcome = 'DECISION_CHANGED'
 
   return {
     valid: true,

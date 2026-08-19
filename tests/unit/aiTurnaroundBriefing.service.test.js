@@ -227,4 +227,49 @@ describe('AI turnaround briefing orchestration', () => {
     expect(JSON.stringify(telemetryRecorder.mock.calls[0][0])).not.toContain('Deck 9 inspection')
   })
 
+  it('builds audit defaults when request, actor, usage, and provider metadata are absent', () => {
+    const record = buildAiAuditRecord({
+      input: { operationId: 'operation-defaults', question: 'Status?', evidence: [] },
+      response: {
+        model: 'model-default', promptVersion: 'prompt-default', findings: [], riskLevel: 'low', generatedAt: '2026-08-17T00:00:00.000Z'
+      },
+      provider: { name: 'provider-default' },
+      durationMs: 0
+    })
+
+    expect(record.briefingId).toEqual(expect.any(String))
+    expect(record.requestId).toBe(record.briefingId)
+    expect(record).toEqual(expect.objectContaining({
+      actorUserId: null,
+      actorRole: null,
+      usage: null,
+      execution: null,
+      providerMetadata: null
+    }))
+  })
+
+  it('accepts fully grounded evidence references without raising the grounding guard', () => {
+    expect(() => assertEvidenceGrounding({
+      findings: [{ evidenceIds: ['known-a'] }, { evidenceIds: ['known-b'] }]
+    }, [{ id: 'known-a' }, { id: 'known-b' }])).not.toThrow()
+  })
+
+  it('fills provider response metadata defaults when the structured output omits them', async () => {
+    const provider = {
+      name: 'fallback-provider',
+      model: 'fallback-model',
+      generateStructured: jest.fn().mockResolvedValue({
+        output: { summary: 'All clear.', riskLevel: 'low', findings: [], unknowns: [] }
+      })
+    }
+    const now = () => new Date('2026-08-17T17:00:00.000Z')
+    const result = await generateTurnaroundBriefing({ input, provider, now, runtimeConfig })
+
+    expect(result.briefing).toEqual(expect.objectContaining({
+      generatedAt: '2026-08-17T17:00:00.000Z',
+      model: 'fallback-model',
+      promptVersion: 'turnaround-briefing-v1.0.0'
+    }))
+    expect(result.audit.actorUserId).toBeNull()
+  })
 })

@@ -28,3 +28,93 @@ describe('turnaroundOperationalReview service', () => {
     expect(buildOperationalReviewRisks({ productionReadiness: { blockers: [{ detail: 'Add support checklist.' }] } })).toEqual(expect.arrayContaining([expect.objectContaining({ id: 'production-readiness' })]))
   })
 })
+
+describe('turnaroundOperationalReview evidence hardening', () => {
+  it('keeps malformed staffing counts finite instead of emitting NaN evidence', () => {
+    const review = buildTurnaroundOperationalReview({
+      staffing: [
+        { plannedCount: 'not-a-number', checkedInCount: 2 },
+        { plannedCount: 5, checkedInCount: Infinity },
+        { plannedCount: -3, checkedInCount: 0 }
+      ]
+    })
+
+    expect(review.focus.reviewSignals).toContain('5 staffing gaps')
+    expect(review.focus.reviewSignals.join(' ')).not.toContain('NaN')
+  })
+
+  it('covers singular operational focus signals and fallback review sequence text', () => {
+    const review = buildTurnaroundOperationalReview({
+      operation: { ship: { name: 'Voyager' } },
+      dependencies: [{ status: 'OPEN' }],
+      handoffs: [{ status: 'PENDING' }],
+      signoffs: [{ status: 'PENDING' }],
+      staffing: [{ plannedCount: 1, checkedInCount: 0 }],
+      lifecycleState: { completionPercent: 0, finalBlockers: [] },
+      releasePacket: { readinessScore: 0, releaseStatus: 'HOLD' },
+      operationalAssurancePacket: { readiness: { readinessScore: 0 } },
+      managementStatus: { maturityScore: 0, remainingWork: [] }
+    })
+
+    expect(review.status).toBe('NEEDS_FOCUS')
+    expect(review.reviewSequence[0].detail).toContain('Voyager turnaround')
+    expect(review.focus.reviewSignals).toEqual(expect.arrayContaining([
+      '1 open dependency', '1 open handoff', '1 pending signoff', '1 staffing gap'
+    ]))
+  })
+})
+
+describe('turnaroundOperationalReview malformed evidence boundaries', () => {
+  it('fails soft for explicit null and malformed collection inputs', () => {
+    expect(() => buildTurnaroundOperationalReview(null)).not.toThrow()
+
+    const review = buildTurnaroundOperationalReview({
+      operation: null,
+      tasks: { bad: true },
+      escalations: 'OPEN',
+      dependencies: null,
+      handoffs: {},
+      signoffs: 'PENDING',
+      staffing: { plannedCount: 10 },
+      lifecycleState: { finalBlockers: 'not-an-array' },
+      productionReadiness: { blockers: 'not-an-array' },
+      managementStatus: { remainingWork: { priority: 'HIGH' }, nextSlices: 'not-an-array' }
+    })
+
+    expect(review.status).toBe('NEEDS_FOCUS')
+    expect(review.focus.reviewSignals).toEqual(expect.arrayContaining([
+      '0 blocked tasks', '0 open escalations', '0 open dependencies', '0 open handoffs', '0 pending signoffs', '0 staffing gaps'
+    ]))
+    expect(review.reviewSequence[0].detail).toContain('Selected ship turnaround')
+  })
+
+  it('does not promote non-finite readiness evidence to READY checklist states', () => {
+    const review = buildTurnaroundOperationalReview({
+      operationalAssurancePacket: { readiness: { readinessScore: Infinity }, narrative: { summary: { malformed: true } } },
+      managementStatus: { maturityScore: Infinity, continuationSummary: { recommendedNext: { malformed: true } } }
+    })
+
+    expect(review.reviewSequence[3]).toEqual(expect.objectContaining({ status: 'WATCH' }))
+    expect(review.reviewSequence[3].detail).toBe('Operational assurance converts current state into auditable evidence.')
+    expect(review.reviewSequence[4]).toEqual(expect.objectContaining({ status: 'WATCH' }))
+    expect(review.reviewSequence[4].detail).toBe('Confirm automated workflow coverage and record remaining watch items.')
+    expect(JSON.stringify(review)).not.toContain('[object Object]')
+  })
+
+  it('normalizes padded statuses and malformed narrative values without reopening terminal evidence', () => {
+    const review = buildTurnaroundOperationalReview({
+      tasks: [{ status: ' blocked ', taskName: { malformed: true } }],
+      escalations: [{ status: ' resolved ', title: { malformed: true } }],
+      dependencies: [{ status: ' cleared ' }],
+      handoffs: [{ status: ' completed ' }],
+      signoffs: [{ status: ' approved ' }],
+      staffing: [{ plannedCount: 1, checkedInCount: 1 }],
+      lifecycleState: { nextBestAction: { malformed: true } }
+    })
+
+    expect(review.focus.priority).toBe('Resolve blocked task: Blocked task.')
+    expect(review.focus.reviewSignals).toEqual(expect.arrayContaining([
+      '1 blocked task', '0 open escalations', '0 open dependencies', '0 open handoffs', '0 pending signoffs', '0 staffing gaps'
+    ]))
+  })
+})

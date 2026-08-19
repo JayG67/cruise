@@ -7,13 +7,17 @@ function normalizePayloadProfile(value) {
   return normalized === COMPACT_PROFILE ? COMPACT_PROFILE : FULL_PROFILE
 }
 
+function firstMeaningfulProfile(...values) {
+  return values.find(value => typeof value === 'string' && value.trim().length > 0)
+}
+
 function getRequestedPayloadProfile(req = {}) {
-  return normalizePayloadProfile(
-    req.query?.payloadProfile ||
-    req.query?.payload ||
-    req.query?.view ||
+  return normalizePayloadProfile(firstMeaningfulProfile(
+    req.query?.payloadProfile,
+    req.query?.payload,
+    req.query?.view,
     req.get?.(API_PAYLOAD_PROFILE_HEADER)
-  )
+  ))
 }
 
 function isCompactPayloadProfile(profile) {

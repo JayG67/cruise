@@ -15,6 +15,12 @@ function normalizeStatus(value = '') {
   return String(value || '').trim().toLowerCase()
 }
 
+function normalizeText(value, fallback = '') {
+  if (typeof value === 'string' && value.trim()) return value.trim()
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+  return fallback
+}
+
 function getGateScore(gate = {}) {
   const score = Number(gate.score)
   return Number.isFinite(score) ? Math.max(0, Math.min(100, score)) : 0
@@ -23,6 +29,13 @@ function getGateScore(gate = {}) {
 function getReadinessScore(readiness = {}) {
   const score = Number(readiness.overallScore ?? readiness.score)
   return Number.isFinite(score) ? Math.max(0, Math.min(100, score)) : 0
+}
+
+function hasReadinessScore(readiness = {}) {
+  const rawScore = readiness.overallScore ?? readiness.score
+  if (rawScore === null || rawScore === undefined) return false
+  if (typeof rawScore === 'string' && !rawScore.trim()) return false
+  return Number.isFinite(Number(rawScore))
 }
 
 function isBlockingStatus(status = '') {
@@ -46,8 +59,8 @@ function buildEvidenceItem({ id, label, source, score, status, summary, action }
     source,
     score: getGateScore({ score }),
     status: status || getLaunchStatus(score),
-    summary,
-    action
+    summary: normalizeText(summary),
+    action: normalizeText(action)
   }
 }
 
@@ -55,8 +68,9 @@ function collectGates(readiness = {}, source = '') {
   return asArray(readiness.gates).map(gate => ({ ...gate, source }))
 }
 
-function buildLaunchReadinessTracks({ dataArchitecture = {}, productionHardening = {}, deployment = {} }) {
-  return [
+function buildLaunchReadinessTracks(input = {}) {
+  const { dataArchitecture = {}, productionHardening = {}, deployment = {}, operationsControlBoard = {} } = asObject(input)
+  const tracks = [
     buildEvidenceItem({
       id: 'data-architecture-hardening',
       label: 'Data governance assurance',
@@ -85,9 +99,27 @@ function buildLaunchReadinessTracks({ dataArchitecture = {}, productionHardening
       action: asArray(deployment.deploymentSequence)[0] || asArray(deployment.launchSequence)[0] || 'Run the deployment readiness sequence.'
     })
   ]
+
+  const hasOperationalScore = hasReadinessScore(operationsControlBoard)
+  if (hasOperationalScore) {
+    const score = getReadinessScore(operationsControlBoard)
+    tracks.push(buildEvidenceItem({
+      id: 'turnaround-operations',
+      label: 'Turnaround operational readiness',
+      source: 'Operations Control Board',
+      score,
+      status: getLaunchStatus(score),
+      summary: operationsControlBoard.summary || 'Confirm live turnaround command, staffing, task, handoff, escalation, and signoff readiness.',
+      action: asArray(operationsControlBoard.nextActions)[0] || asArray(operationsControlBoard.actions)[0] || 'Resolve the highest-priority turnaround operations readiness gap.'
+    }))
+  }
+
+  return tracks
 }
 
 function buildCriticalLaunchItems(tracks = [], readinessPayloads = []) {
+  tracks = asArray(tracks)
+  readinessPayloads = asArray(readinessPayloads)
   const gateItems = readinessPayloads
     .flatMap(({ payload, source }) => collectGates(payload, source))
     .filter(gate => isBlockingStatus(gate.status) || isWatchStatus(gate.status))
@@ -96,17 +128,17 @@ function buildCriticalLaunchItems(tracks = [], readinessPayloads = []) {
     .map((gate, index) => ({
       id: `${gate.source}-${gate.id || index}`.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       sequence: index + 1,
-      title: gate.label || 'Release readiness control',
-      source: gate.source,
+      title: normalizeText(gate.label, 'Release readiness control'),
+      source: normalizeText(gate.source, 'Release readiness'),
       status: normalizeStatus(gate.status) || 'watch',
       score: getGateScore(gate),
-      summary: gate.summary || 'Review this release-readiness control.',
-      action: asArray(gate.recommendations)[0] || 'Resolve this item before production release.'
+      summary: normalizeText(gate.summary, 'Review this release-readiness control.'),
+      action: normalizeText(asArray(gate.recommendations)[0], 'Resolve this item before production release.')
     }))
 
   if (gateItems.length) return gateItems
 
-  return tracks
+  return [...tracks]
     .sort((a, b) => a.score - b.score)
     .slice(0, 4)
     .map((track, index) => ({
@@ -165,31 +197,36 @@ function buildLaunchRunbook({ tracks = [], criticalItems = [] }) {
 }
 
 function buildProjectStatus({ dataArchitecture = {}, productionHardening = {}, deployment = {}, operationsControlBoard = {} }) {
-  const operationalScore = getReadinessScore(operationsControlBoard) || 95
+  const hasOperationalScore = hasReadinessScore(operationsControlBoard)
   const architectureScore = getReadinessScore(dataArchitecture)
   const hardeningScore = getReadinessScore(productionHardening)
   const deploymentScore = getReadinessScore(deployment)
+  const measuredScores = [architectureScore, hardeningScore, deploymentScore]
+  const tracks = [
+    { area: 'Data governance assurance', status: architectureScore >= 85 ? 'strong' : 'action-required', percent: architectureScore, note: 'Identity normalization, status vocabulary, audit streams, and tenant-boundary controls are tracked.' },
+    { area: 'Production assurance', status: hardeningScore >= 85 ? 'strong' : 'action-required', percent: hardeningScore, note: 'Environment, validation, logging, observability, deployment, and security controls are visible.' },
+    { area: 'Production deployment', status: deploymentScore >= 85 ? 'ready' : 'action-required', percent: deploymentScore, note: 'Production target, runtime configuration, health checks, and release evidence are tracked.' }
+  ]
+
+  if (hasOperationalScore) {
+    const operationalScore = getReadinessScore(operationsControlBoard)
+    measuredScores.unshift(operationalScore)
+    tracks.unshift({ area: 'Turnaround operations', status: 'operational', percent: operationalScore, note: 'Control board, team workspace, continuity, shift briefing, executive decision records, closeout packets, and release orchestration are represented.' })
+  }
 
   return {
-    featureCompleteEstimate: asPercent(
-      operationalScore + architectureScore + hardeningScore + deploymentScore,
-      400
-    ),
-    tracks: [
-      { area: 'Turnaround operations', status: 'operational', percent: operationalScore, note: 'Control board, team workspace, continuity, shift briefing, executive decision records, closeout packets, and release orchestration are represented.' },
-      { area: 'Data governance assurance', status: architectureScore >= 85 ? 'strong' : 'action-required', percent: architectureScore, note: 'Identity normalization, status vocabulary, audit streams, and tenant-boundary controls are tracked.' },
-      { area: 'Production assurance', status: hardeningScore >= 85 ? 'strong' : 'action-required', percent: hardeningScore, note: 'Environment, validation, logging, observability, deployment, and security controls are visible.' },
-      { area: 'Production deployment', status: deploymentScore >= 85 ? 'ready' : 'action-required', percent: deploymentScore, note: 'Production target, runtime configuration, health checks, and release evidence are tracked.' }
-    ]
+    featureCompleteEstimate: asPercent(measuredScores.reduce((sum, score) => sum + score, 0), measuredScores.length * 100),
+    tracks
   }
 }
 
 function buildPublicLaunchReadiness(input = {}) {
+  input = asObject(input)
   const dataArchitecture = asObject(input.dataArchitecture)
   const productionHardening = asObject(input.productionHardening)
   const deployment = asObject(input.deployment)
   const operationsControlBoard = asObject(input.operationsControlBoard)
-  const tracks = buildLaunchReadinessTracks({ dataArchitecture, productionHardening, deployment })
+  const tracks = buildLaunchReadinessTracks({ dataArchitecture, productionHardening, deployment, operationsControlBoard })
   const readinessPayloads = [
     { payload: dataArchitecture, source: 'Data Architecture' },
     { payload: productionHardening, source: 'Production Assurance' },

@@ -84,7 +84,8 @@ function buildServiceError(message, statusCode) {
 }
 
 async function selectAllRows(table) {
-  return db.select().from(table)
+  const rows = await db.select().from(table)
+  return Array.isArray(rows) ? rows : []
 }
 
 async function getCruiseLineById(cruiseLineId) {
@@ -238,10 +239,10 @@ async function assertNoSameDayTurnaroundConflict({ displayName, userIdToExclude 
 
 async function buildTurnaroundSetupSummary() {
   const [demoUsers, cruiseLines, ships, sailings] = await Promise.all([
-    db.select().from(demoUserTable),
-    db.select().from(cruiseLineTable),
-    db.select().from(shipTable),
-    db.select().from(sailingTable)
+    selectAllRows(demoUserTable),
+    selectAllRows(cruiseLineTable),
+    selectAllRows(shipTable),
+    selectAllRows(sailingTable)
   ])
 
   const turnaroundPeople = demoUsers
@@ -340,8 +341,14 @@ async function updateTurnaroundPerson(id, payload = {}) {
   const displayName = String(payload.displayName ?? existing.displayName).trim()
   const role = normalizeOperationalRole(payload.role ?? existing.role)
   const cruiseLineId = payload.cruiseLineId ?? existing.cruiseLineId
-  const assignedShipId = payload.assignedShipId ?? existing.assignedShipId
-  const assignedSailingId = payload.assignedSailingId || payload.sailingId || null
+  const assignedShipId = Object.prototype.hasOwnProperty.call(payload, 'assignedShipId')
+    ? payload.assignedShipId
+    : existing.assignedShipId
+  const assignedSailingId = Object.prototype.hasOwnProperty.call(payload, 'assignedSailingId')
+    ? payload.assignedSailingId
+    : Object.prototype.hasOwnProperty.call(payload, 'sailingId')
+      ? payload.sailingId
+      : existing.assignedSailingId
 
   if (!displayName) {
     throw buildServiceError('Turnaround person display name is required.', 400)
@@ -377,6 +384,7 @@ async function updateTurnaroundPerson(id, payload = {}) {
     .where(eq(demoUserTable.id, id))
     .returning()
 
+  if (!updated) throw buildServiceError('Turnaround person was not found.', 404)
   return updated
 }
 
@@ -402,6 +410,7 @@ async function deleteTurnaroundPerson(id) {
     .where(eq(demoUserTable.id, id))
     .returning()
 
+  if (!unassigned) throw buildServiceError('Turnaround person was not found.', 404)
   return unassigned
 }
 

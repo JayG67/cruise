@@ -43,26 +43,32 @@ function getStatusForScore(score, readyThreshold = 85, watchThreshold = 60) {
 
 function hasScript(packageJson = {}, scriptName) {
   const normalizedPackageJson = asObject(packageJson)
-  return Boolean(asObject(normalizedPackageJson.scripts)[scriptName])
+  const script = asObject(normalizedPackageJson.scripts)[scriptName]
+  return typeof script === 'string' && script.trim().length > 0
 }
 
 function hasDependency(packageJson = {}, dependencyName) {
   const normalizedPackageJson = asObject(packageJson)
-  return Boolean(
-    asObject(normalizedPackageJson.dependencies)[dependencyName] ||
+  const values = [
+    asObject(normalizedPackageJson.dependencies)[dependencyName],
     asObject(normalizedPackageJson.devDependencies)[dependencyName]
-  )
+  ]
+  return values.some(value => typeof value === 'string' && value.trim().length > 0)
 }
 
 function hasFile(files = {}, filePath) {
   return Boolean(asObject(files)[filePath])
 }
 
-function buildEnvironmentGate({ env = {}, requiredEnv = DEFAULT_REQUIRED_ENV, recommendedEnv = DEFAULT_RECOMMENDED_ENV, files = {} }) {
-  const presentRequired = requiredEnv.filter(name => Boolean(env[name]))
-  const presentRecommended = recommendedEnv.filter(name => Boolean(env[name]))
+function buildEnvironmentGate(input = {}) {
+  const { env = {}, requiredEnv = DEFAULT_REQUIRED_ENV, recommendedEnv = DEFAULT_RECOMMENDED_ENV, files = {} } = asObject(input)
+  const requiredNames = asArray(requiredEnv)
+  const recommendedNames = asArray(recommendedEnv)
+  const hasEnvValue = name => String(env?.[name] ?? '').trim().length > 0
+  const presentRequired = requiredNames.filter(hasEnvValue)
+  const presentRecommended = recommendedNames.filter(hasEnvValue)
   const envExampleCoverage = hasFile(files, '.env.example')
-  const totalChecks = requiredEnv.length + recommendedEnv.length + 1
+  const totalChecks = requiredNames.length + recommendedNames.length + 1
   const passedChecks = presentRequired.length + presentRecommended.length + (envExampleCoverage ? 1 : 0)
   const score = asPercent(passedChecks, totalChecks)
 
@@ -71,7 +77,7 @@ function buildEnvironmentGate({ env = {}, requiredEnv = DEFAULT_REQUIRED_ENV, re
     label: 'Environment configuration',
     score,
     status: getStatusForScore(score, 85, 55),
-    summary: `${presentRequired.length} of ${requiredEnv.length} required environment values are present in this runtime snapshot.`,
+    summary: `${presentRequired.length} of ${requiredNames.length} required environment values are present in this runtime snapshot.`,
     evidence: [
       `${presentRequired.length} required variables present: ${presentRequired.join(', ') || 'none'}`,
       `${presentRecommended.length} recommended variables present: ${presentRecommended.join(', ') || 'none'}`,
@@ -83,7 +89,8 @@ function buildEnvironmentGate({ env = {}, requiredEnv = DEFAULT_REQUIRED_ENV, re
   })
 }
 
-function buildErrorHandlingGate({ packageJson = {}, files = {}, appSource = '', controllerSource = '' }) {
+function buildErrorHandlingGate(input = {}) {
+  const { packageJson = {}, files = {}, appSource = '', controllerSource = '' } = asObject(input)
   const hasExpress = hasDependency(packageJson, 'express')
   const hasErrorMiddleware = /err\s*,\s*req\s*,\s*res\s*,\s*next/.test(appSource) || /errorHandler/.test(appSource)
   const hasAsyncNext = /catch\s*\([^)]*\)\s*{\s*next\(/.test(controllerSource) || /next\(err\)/.test(controllerSource)
@@ -110,7 +117,8 @@ function buildErrorHandlingGate({ packageJson = {}, files = {}, appSource = '', 
   })
 }
 
-function buildLoggingGate({ packageJson = {}, files = {}, appSource = '', loggerSource = '' }) {
+function buildLoggingGate(input = {}) {
+  const { packageJson = {}, files = {}, appSource = '', loggerSource = '' } = asObject(input)
   const hasLoggerMiddleware = hasFile(files, 'middleware/loggers.js')
   const appUsesLogger = /loggers|requestLogger|errorLogger/.test(appSource)
   const suppressDbLogs = /SUPPRESS_DB_LOGS/.test(appSource + loggerSource)
@@ -135,7 +143,8 @@ function buildLoggingGate({ packageJson = {}, files = {}, appSource = '', logger
   })
 }
 
-function buildObservabilityGate({ packageJson = {}, files = {} }) {
+function buildObservabilityGate(input = {}) {
+  const { packageJson = {}, files = {} } = asObject(input)
   const checks = [
     hasFile(files, 'performance/cruise-api-smoke.js'),
     hasScript(packageJson, 'perf:smoke:local') || hasScript(packageJson, 'perf:smoke:ci'),
@@ -164,7 +173,8 @@ function buildObservabilityGate({ packageJson = {}, files = {} }) {
   })
 }
 
-function buildDeploymentGate({ packageJson = {}, files = {} }) {
+function buildDeploymentGate(input = {}) {
+  const { packageJson = {}, files = {} } = asObject(input)
   const checks = [
     hasScript(packageJson, 'start:prod'),
     hasScript(packageJson, 'react:build'),
@@ -192,7 +202,8 @@ function buildDeploymentGate({ packageJson = {}, files = {} }) {
   })
 }
 
-function buildSecurityGate({ packageJson = {}, files = {}, appSource = '' }) {
+function buildSecurityGate(input = {}) {
+  const { packageJson = {}, files = {}, appSource = '' } = asObject(input)
   const checks = [
     hasFile(files, 'tests/unit/app.security.test.js'),
     /trust proxy|helmet|cors|express\.json\(/.test(appSource),

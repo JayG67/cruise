@@ -3,24 +3,35 @@ function asArray(value) {
 }
 
 function clampScore(value) {
-  return Math.max(0, Math.min(100, Math.round(Number(value) || 0)))
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) return 0
+  return Math.max(0, Math.min(100, Math.round(numericValue)))
+}
+
+function normalizeCount(value) {
+  const count = Number(value ?? 0)
+  return Number.isFinite(count) && count >= 0 ? Math.floor(count) : 0
 }
 
 function normalizeStatus(value, fallback = 'REVIEW') {
   return String(value || fallback).replace(/_/g, ' ').trim()
 }
 
+function normalizeStatusToken(value) {
+  return String(value || '').trim().toUpperCase()
+}
+
 function isCompleteStatus(value) {
-  return ['COMPLETE', 'COMPLETED', 'DONE', 'APPROVED', 'RESOLVED', 'CLEARED', 'CLOSED'].includes(String(value || '').toUpperCase())
+  return ['COMPLETE', 'COMPLETED', 'DONE', 'APPROVED', 'RESOLVED', 'CLEARED', 'CLOSED'].includes(normalizeStatusToken(value))
 }
 
 function isBlockedTask(task = {}) {
-  const status = String(task.status || '').toUpperCase()
+  const status = normalizeStatusToken(task.status)
   return status === 'BLOCKED' || status === 'AT_RISK' || Boolean(task.blockerReason)
 }
 
 function isOpenEscalation(escalation = {}) {
-  return !['RESOLVED', 'CLOSED'].includes(String(escalation.status || '').toUpperCase())
+  return !['RESOLVED', 'CLOSED'].includes(normalizeStatusToken(escalation.status))
 }
 
 function getDepartmentRole(row = {}) {
@@ -28,8 +39,10 @@ function getDepartmentRole(row = {}) {
 }
 
 function getPercent(part, total) {
-  if (!Number(total || 0)) return 0
-  return clampScore((Number(part || 0) / Number(total || 1)) * 100)
+  const normalizedTotal = Number(total)
+  const normalizedPart = Number(part)
+  if (!Number.isFinite(normalizedTotal) || normalizedTotal <= 0 || !Number.isFinite(normalizedPart)) return 0
+  return clampScore((normalizedPart / normalizedTotal) * 100)
 }
 
 function buildTurnaroundCommandInputs({
@@ -47,7 +60,7 @@ function buildTurnaroundCommandInputs({
   incidentCommand = null,
   managementStatus = null,
   closeoutPacket = null,
-  passengerCount = 0
+  passengerCount
 } = {}) {
   const taskRows = asArray(tasks)
   const staffingRows = asArray(staffing)
@@ -61,11 +74,11 @@ function buildTurnaroundCommandInputs({
   const blockedTasks = taskRows.filter(isBlockedTask)
   const activeDependencies = dependencyRows.filter(dependency => !isCompleteStatus(dependency.status))
   const openEscalations = escalationRows.filter(isOpenEscalation)
-  const criticalEscalations = openEscalations.filter(escalation => String(escalation.severity || '').toUpperCase() === 'CRITICAL')
+  const criticalEscalations = openEscalations.filter(escalation => normalizeStatusToken(escalation.severity) === 'CRITICAL')
   const completedHandoffs = handoffRows.filter(handoff => isCompleteStatus(handoff.status)).length
-  const approvedSignoffs = signoffRows.filter(signoff => String(signoff.status || '').toUpperCase() === 'APPROVED').length
-  const blockedSignoffs = signoffRows.filter(signoff => String(signoff.status || '').toUpperCase() === 'BLOCKED')
-  const staffingGaps = staffingRows.filter(row => Number(row.plannedCount || row.requiredCount || row.required || 0) > Number(row.checkedInCount || row.assignedCount || row.assigned || 0))
+  const approvedSignoffs = signoffRows.filter(signoff => normalizeStatusToken(signoff.status) === 'APPROVED').length
+  const blockedSignoffs = signoffRows.filter(signoff => normalizeStatusToken(signoff.status) === 'BLOCKED')
+  const staffingGaps = staffingRows.filter(row => normalizeCount(row.plannedCount ?? row.requiredCount ?? row.required) > normalizeCount(row.checkedInCount ?? row.assignedCount ?? row.assigned))
 
   return {
     operationId: operation.id || null,
@@ -73,7 +86,7 @@ function buildTurnaroundCommandInputs({
     shipName: operation.shipName || operation.ship?.name || 'Selected ship',
     cruiseLineName: operation.cruiseLineName || operation.cruiseLine?.name || 'Selected cruise line',
     turnaroundDate: operation.turnaroundDate || operation.date || 'Selected date',
-    passengerCount: Number(passengerCount || operation.passengerCount || 0),
+    passengerCount: normalizeCount(passengerCount ?? operation.passengerCount),
     tasks: taskRows,
     staffing: staffingRows,
     signoffs: signoffRows,
@@ -94,12 +107,12 @@ function buildTurnaroundCommandInputs({
     blockedSignoffs,
     signoffCompletion: getPercent(approvedSignoffs, signoffRows.length),
     staffingGaps,
-    staffingCoverage: clampScore(operationalMetrics?.summary?.staffingCoverage || operation.staffingSummary?.checkInPercent || 0),
-    lifecycleScore: clampScore(lifecycleState?.completionPercent || 0),
-    releaseScore: clampScore(releasePacket?.releaseScore || releasePacket?.readinessScore || operationalMetrics?.summary?.releaseConfidence || 0),
-    riskScore: clampScore(incidentCommand?.incidentScore || operationalMetrics?.summary?.riskIndex || 0),
-    maturityScore: clampScore(managementStatus?.maturityScore || 0),
-    closeoutScore: clampScore(closeoutPacket?.closeoutScore || 0)
+    staffingCoverage: clampScore(operationalMetrics?.summary?.staffingCoverage ?? operation.staffingSummary?.checkInPercent ?? 0),
+    lifecycleScore: clampScore(lifecycleState?.completionPercent ?? 0),
+    releaseScore: clampScore(releasePacket?.releaseScore ?? releasePacket?.readinessScore ?? operationalMetrics?.summary?.releaseConfidence ?? 0),
+    riskScore: clampScore(incidentCommand?.incidentScore ?? operationalMetrics?.summary?.riskIndex ?? 0),
+    maturityScore: clampScore(managementStatus?.maturityScore ?? 0),
+    closeoutScore: clampScore(closeoutPacket?.closeoutScore ?? 0)
   }
 }
 
@@ -143,8 +156,8 @@ function buildCommandCenterKpis(inputs = {}) {
     {
       id: 'closeout-readiness',
       label: 'Closeout readiness',
-      value: `${inputs.closeoutScore || inputs.maturityScore || 0}%`,
-      score: inputs.closeoutScore || inputs.maturityScore || 0,
+      value: `${inputs.closeoutScore ?? inputs.maturityScore ?? 0}%`,
+      score: inputs.closeoutScore ?? inputs.maturityScore ?? 0,
       detail: 'Closeout score summarizes workflow completion, release evidence, governance decisions, and after-action learning.'
     }
   ]
@@ -155,7 +168,7 @@ function buildCommandDecisionQueue(inputs = {}) {
 
   inputs.blockedTasks.slice(0, 4).forEach(task => decisions.push({
     id: `task-${task.id || task.taskName}`,
-    severity: String(task.status || '').toUpperCase() === 'BLOCKED' ? 'HIGH' : 'MEDIUM',
+    severity: normalizeStatusToken(task.status) === 'BLOCKED' ? 'HIGH' : 'MEDIUM',
     owner: task.ownerDisplayName || task.ownerUserId || getDepartmentRole(task),
     decision: `Resolve task blocker: ${task.taskName || 'Unnamed turnaround task'}`,
     action: task.blockerReason || task.notes || 'Confirm owner, next update, and unblock path.'
@@ -171,7 +184,7 @@ function buildCommandDecisionQueue(inputs = {}) {
 
   inputs.activeDependencies.slice(0, 4).forEach(dependency => decisions.push({
     id: `dependency-${dependency.id || dependency.taskId}`,
-    severity: String(dependency.status || '').toUpperCase() === 'BLOCKED' ? 'HIGH' : 'MEDIUM',
+    severity: normalizeStatusToken(dependency.status) === 'BLOCKED' ? 'HIGH' : 'MEDIUM',
     owner: getDepartmentRole(dependency),
     decision: `Clear dependency gate for ${dependency.taskName || 'turnaround task'}`,
     action: dependency.dependsOnTaskName ? `Confirm prerequisite: ${dependency.dependsOnTaskName}.` : 'Confirm prerequisite owner and completion evidence.'
@@ -182,7 +195,7 @@ function buildCommandDecisionQueue(inputs = {}) {
     severity: 'MEDIUM',
     owner: getDepartmentRole(row),
     decision: `Close staffing gap for ${getDepartmentRole(row)}`,
-    action: `${Number(row.checkedInCount || row.assignedCount || 0)}/${Number(row.plannedCount || row.requiredCount || 0)} people checked in or assigned.`
+    action: `${normalizeCount(row.checkedInCount ?? row.assignedCount ?? row.assigned)}/${normalizeCount(row.plannedCount ?? row.requiredCount ?? row.required)} people checked in or assigned.`
   }))
 
   inputs.blockedSignoffs.slice(0, 3).forEach(signoff => decisions.push({
@@ -213,7 +226,7 @@ function buildCommandCriticalPath(inputs = {}) {
   const dependencyCompletion = (inputs.dependencies?.length || 0) ? getPercent(Math.max((inputs.dependencies?.length || 0) - (inputs.activeDependencies?.length || 0), 0), inputs.dependencies?.length || 0) : 100
   const handoffCompletion = inputs.handoffCompletion || 0
   const signoffCompletion = inputs.signoffCompletion || 0
-  const closeoutScore = inputs.closeoutScore || inputs.maturityScore || 0
+  const closeoutScore = inputs.closeoutScore ?? inputs.maturityScore ?? 0
 
   return [
     {
@@ -289,11 +302,11 @@ function buildDepartmentCommandBoard(inputs = {}) {
     const taskCompletion = getPercent(department.tasks.filter(task => isCompleteStatus(task.status)).length, department.tasks.length)
     const staffingCoverage = department.staffing.length
       ? getPercent(
-        department.staffing.reduce((sum, row) => sum + Number(row.checkedInCount || row.assignedCount || 0), 0),
-        department.staffing.reduce((sum, row) => sum + Number(row.plannedCount || row.requiredCount || 0), 0)
+        department.staffing.reduce((sum, row) => sum + normalizeCount(row.checkedInCount ?? row.assignedCount ?? row.assigned), 0),
+        department.staffing.reduce((sum, row) => sum + normalizeCount(row.plannedCount ?? row.requiredCount ?? row.required), 0)
       )
       : 100
-    const signoffCompletion = getPercent(department.signoffs.filter(signoff => String(signoff.status || '').toUpperCase() === 'APPROVED').length, department.signoffs.length)
+    const signoffCompletion = getPercent(department.signoffs.filter(signoff => normalizeStatusToken(signoff.status) === 'APPROVED').length, department.signoffs.length)
     const openEscalations = department.escalations.filter(isOpenEscalation).length
     const blockedTasks = department.tasks.filter(isBlockedTask).length
     const readinessScore = clampScore((taskCompletion * 0.35) + (staffingCoverage * 0.25) + (signoffCompletion * 0.25) + (clampScore(100 - (openEscalations * 18) - (blockedTasks * 14)) * 0.15))
@@ -342,7 +355,7 @@ function buildCommanderBrief(inputs = {}, kpis = [], decisions = [], criticalPat
   const activePhase = criticalPath.find(phase => phase.status !== 'READY') || criticalPath[criticalPath.length - 1]
 
   return {
-    headline: `${inputs.shipName} command center is ${inputs.releaseScore || inputs.lifecycleScore || 0}% release-oriented with ${decisions.length} decision item${decisions.length === 1 ? '' : 's'}.`,
+    headline: `${inputs.shipName} command center is ${inputs.releaseScore ?? inputs.lifecycleScore ?? 0}% release-oriented with ${decisions.length} decision item${decisions.length === 1 ? '' : 's'}.`,
     summary: `${inputs.operationTitle} now has a single manager view for KPIs, decisions, critical path, department readiness, handoffs, and closeout proof.`,
     weakestSignal: weakestKpi ? `${weakestKpi.label}: ${weakestKpi.detail}` : 'No weak KPI signal is visible.',
     nextDecision: nextDecision ? `${nextDecision.owner}: ${nextDecision.decision}` : 'Maintain command cadence.',
@@ -366,7 +379,7 @@ function buildTurnaroundCommandCenter(input = {}) {
     (inputs.staffingCoverage * 0.12) +
     (inputs.signoffCompletion * 0.12) +
     (clampScore(100 - inputs.riskScore) * 0.1) +
-    ((inputs.closeoutScore || inputs.maturityScore) * 0.08)
+    ((inputs.closeoutScore ?? inputs.maturityScore ?? 0) * 0.08)
   ))
 
   return {

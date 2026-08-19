@@ -19,11 +19,14 @@ const PHASE_THREE_COMPLETED_CAPABILITIES = Object.freeze([
 
 function buildAiPhaseThreeReadiness() {
   const status = getAiProgramStatus()
+  const phaseStatus = status.phases.find(item => item.phase === 3)?.status || 'NOT_STARTED'
+  const phaseComplete = phaseStatus === 'COMPLETE'
+  const percentComplete = phaseComplete ? 100 : (status.currentPhase === 3 ? Number(status.currentPhasePercentComplete || 0) : 0)
   return {
     phase: 3,
     name: 'Evaluation harness',
-    status: status.phases.find(item => item.phase === 3)?.status || 'NOT_STARTED',
-    percentComplete: 100,
+    status: phaseStatus,
+    percentComplete: Math.max(0, Math.min(100, Number.isFinite(percentComplete) ? percentComplete : 0)),
     completedCapabilities: [...PHASE_THREE_COMPLETED_CAPABILITIES],
     nextCapabilities: [
       'Phase 4 trend visualization and filtering',

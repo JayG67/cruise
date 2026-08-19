@@ -1,5 +1,16 @@
+function asArray(value) {
+  return Array.isArray(value) ? value : []
+}
+
 function clampScore(value) {
-  return Math.max(0, Math.min(100, Math.round(Number(value) || 0)))
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) return 0
+  return Math.max(0, Math.min(100, Math.round(numericValue)))
+}
+
+function normalizeCount(value) {
+  const numericValue = Number(value)
+  return Number.isFinite(numericValue) && numericValue > 0 ? Math.floor(numericValue) : 0
 }
 
 function normalizeStatus(value, fallback = 'REVIEW') {
@@ -7,15 +18,23 @@ function normalizeStatus(value, fallback = 'REVIEW') {
 }
 
 function firstNonEmpty(...values) {
-  return values.find(value => String(value || '').trim().length > 0) || ''
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) return value.trim()
+    if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+  }
+  return ''
+}
+
+function normalizedStatusToken(value) {
+  return String(value || '').trim().toUpperCase()
 }
 
 function buildAssuranceReadiness({ executiveBrief = null, releasePacket = null, incidentCommand = null, afterActionReview = null, playbookVariance = null } = {}) {
-  const executiveScore = clampScore(executiveBrief?.summary?.decisionScore || 0)
-  const releaseScore = clampScore(releasePacket?.releaseScore || executiveBrief?.summary?.releaseConfidence || 0)
-  const incidentScore = clampScore(incidentCommand?.incidentScore || executiveBrief?.summary?.incidentScore || 0)
-  const debriefScore = clampScore(afterActionReview?.summary?.reviewScore || executiveBrief?.summary?.reviewScore || 0)
-  const rehearsalScore = clampScore(playbookVariance?.summary?.rehearsalScore || executiveBrief?.summary?.rehearsalScore || 0)
+  const executiveScore = clampScore(executiveBrief?.summary?.decisionScore ?? 0)
+  const releaseScore = clampScore(releasePacket?.releaseScore ?? executiveBrief?.summary?.releaseConfidence ?? 0)
+  const incidentScore = clampScore(incidentCommand?.incidentScore ?? executiveBrief?.summary?.incidentScore ?? 0)
+  const debriefScore = clampScore(afterActionReview?.summary?.reviewScore ?? executiveBrief?.summary?.reviewScore ?? 0)
+  const rehearsalScore = clampScore(playbookVariance?.summary?.rehearsalScore ?? executiveBrief?.summary?.rehearsalScore ?? 0)
   const readinessScore = clampScore((executiveScore * 0.34) + (releaseScore * 0.24) + ((100 - incidentScore) * 0.18) + (debriefScore * 0.14) + (rehearsalScore * 0.1))
   let status = 'READY_FOR_OPERATIONAL_REVIEW'
   if (readinessScore < 62 || incidentScore >= 70) status = 'HOLD_FOR_COMMAND_ASSURANCE'
@@ -34,6 +53,8 @@ function buildAssuranceReadiness({ executiveBrief = null, releasePacket = null, 
 }
 
 function buildAssuranceHeader({ operation = {}, readiness = {} } = {}) {
+  operation = operation || {}
+  readiness = readiness || {}
   return {
     title: `${operation.shipName || operation.title || 'Turnaround operation'} operational assurance packet`,
     subtitle: `${operation.cruiseLineName || 'Cruise line'} · ${operation.turnaroundDate || 'scheduled turnaround'}`,
@@ -48,6 +69,7 @@ function buildAssuranceHeader({ operation = {}, readiness = {} } = {}) {
 }
 
 function buildAssuranceProofPoints({ operation = {}, executiveBrief = null, releasePacket = null, operationalTimeline = null, operationalMetrics = null, playbookTemplate = null, playbookVariance = null, incidentCommand = null, afterActionReview = null } = {}) {
+  operation = operation || {}
   const proofPoints = []
 
   proofPoints.push({
@@ -61,13 +83,13 @@ function buildAssuranceProofPoints({ operation = {}, executiveBrief = null, rele
     id: 'release-readiness',
     label: 'Release readiness',
     status: normalizeStatus(releasePacket?.status || operationalMetrics?.summary?.releaseStatus, 'IN REVIEW'),
-    detail: firstNonEmpty(releasePacket?.summary, `Release confidence ${operationalMetrics?.summary?.releaseConfidence || executiveBrief?.summary?.releaseConfidence || 0}%.`)
+    detail: firstNonEmpty(releasePacket?.summary, `Release confidence ${operationalMetrics?.summary?.releaseConfidence ?? executiveBrief?.summary?.releaseConfidence ?? 0}%.`)
   })
 
   proofPoints.push({
     id: 'timeline-depth',
     label: 'Operational evidence trail',
-    status: `${operationalTimeline?.summary?.totalEvents || executiveBrief?.summary?.timelineEvents || 0} EVENTS`,
+    status: `${operationalTimeline?.summary?.totalEvents ?? executiveBrief?.summary?.timelineEvents ?? 0} EVENTS`,
     detail: 'Timeline combines command status, task activity, staffing, dependencies, handoffs, signoffs, escalations, and audit evidence into one operating record.'
   })
 
@@ -75,27 +97,29 @@ function buildAssuranceProofPoints({ operation = {}, executiveBrief = null, rele
     id: 'playbook-promotion',
     label: 'Reusable playbook path',
     status: normalizeStatus(playbookVariance?.summary?.status || playbookTemplate?.status, 'WATCH'),
-    detail: firstNonEmpty(playbookVariance?.rehearsalActions?.[0], playbookTemplate?.nextBestActions?.[0], playbookTemplate?.recommendations?.[0], 'Review variance before promotion to a repeatable ship or port playbook.')
+    detail: firstNonEmpty(asArray(playbookVariance?.rehearsalActions)[0], asArray(playbookTemplate?.nextBestActions)[0], asArray(playbookTemplate?.recommendations)[0], 'Review variance before promotion to a repeatable ship or port playbook.')
   })
 
   proofPoints.push({
     id: 'incident-command',
     label: 'Incident command bridge',
     status: normalizeStatus(incidentCommand?.incidentSeverity, 'LOW'),
-    detail: firstNonEmpty(incidentCommand?.commandActions?.[0], 'No critical release-day exception bridge is required for the current operation.')
+    detail: firstNonEmpty(asArray(incidentCommand?.commandActions)[0], 'No critical release-day exception bridge is required for the current operation.')
   })
 
   proofPoints.push({
     id: 'after-action-review',
     label: 'After-action learning loop',
     status: normalizeStatus(afterActionReview?.summary?.reviewStatus, 'FOLLOW UP'),
-    detail: firstNonEmpty(afterActionReview?.followUpActions?.[0], afterActionReview?.findings?.[0]?.detail, 'Capture final lessons and close remaining debrief follow-ups after operation completion.')
+    detail: firstNonEmpty(asArray(afterActionReview?.followUpActions)[0], asArray(afterActionReview?.findings)[0]?.detail, 'Capture final lessons and close remaining debrief follow-ups after operation completion.')
   })
 
   return proofPoints
 }
 
 function buildAssuranceNarrative({ operation = {}, readiness = {}, executiveBrief = null, incidentCommand = null, afterActionReview = null } = {}) {
+  operation = operation || {}
+  readiness = readiness || {}
   const status = normalizeStatus(readiness.readinessStatus)
   const topAction = firstNonEmpty(executiveBrief?.executiveActions?.[0], incidentCommand?.commandActions?.[0], afterActionReview?.followUpActions?.[0], 'Continue operational assurance validation with role-specific dashboards and operational audit evidence.')
 
@@ -107,12 +131,20 @@ function buildAssuranceNarrative({ operation = {}, readiness = {}, executiveBrie
 }
 
 function buildAssuranceDataQuality({ tasks = [], staffing = [], signoffs = [], dependencies = [], handoffs = [], escalations = [], auditEvents = [] } = {}) {
-  const blockerCount = tasks.filter(task => String(task.status || '').toUpperCase() === 'BLOCKED' || String(task.blocker || '').trim()).length
-  const openEscalations = escalations.filter(escalation => !['RESOLVED', 'CLOSED'].includes(String(escalation.status || '').toUpperCase())).length
-  const staffingGaps = staffing.filter(row => Number(row.assignedCount || row.assigned || 0) < Number(row.requiredCount || row.required || 0)).length
-  const incompleteSignoffs = signoffs.filter(signoff => String(signoff.status || '').toUpperCase() !== 'APPROVED').length
-  const openDependencies = dependencies.filter(dependency => String(dependency.status || '').toUpperCase() !== 'COMPLETE').length
-  const openHandoffs = handoffs.filter(handoff => String(handoff.status || '').toUpperCase() !== 'COMPLETE').length
+  tasks = asArray(tasks)
+  staffing = asArray(staffing)
+  signoffs = asArray(signoffs)
+  dependencies = asArray(dependencies)
+  handoffs = asArray(handoffs)
+  escalations = asArray(escalations)
+  auditEvents = asArray(auditEvents)
+
+  const blockerCount = tasks.filter(task => normalizedStatusToken(task.status) === 'BLOCKED' || String(task.blocker || '').trim()).length
+  const openEscalations = escalations.filter(escalation => !['RESOLVED', 'CLOSED'].includes(normalizedStatusToken(escalation.status))).length
+  const staffingGaps = staffing.filter(row => normalizeCount(row.checkedInCount ?? row.assignedCount ?? row.assigned ?? 0) < normalizeCount(row.plannedCount ?? row.requiredCount ?? row.required ?? 0)).length
+  const incompleteSignoffs = signoffs.filter(signoff => normalizedStatusToken(signoff.status) !== 'APPROVED').length
+  const openDependencies = dependencies.filter(dependency => !['COMPLETE', 'COMPLETED'].includes(normalizedStatusToken(dependency.status))).length
+  const openHandoffs = handoffs.filter(handoff => !['COMPLETE', 'COMPLETED'].includes(normalizedStatusToken(handoff.status))).length
 
   return {
     taskCount: tasks.length,
@@ -136,15 +168,28 @@ function buildAssuranceNextSteps({ readiness = {}, executiveBrief = null, afterA
     steps.push('Resolve the top watch items before advancing this operation to executive operational review.')
   }
 
-  for (const action of executiveBrief?.executiveActions || []) steps.push(`Executive: ${action}`)
-  for (const action of incidentCommand?.commandActions || []) steps.push(`Incident command: ${action}`)
-  for (const action of afterActionReview?.followUpActions || []) steps.push(`After action: ${action}`)
-  for (const action of playbookVariance?.rehearsalActions || []) steps.push(`Playbook variance: ${action}`)
+  for (const action of asArray(executiveBrief?.executiveActions)) {
+    const text = firstNonEmpty(action)
+    if (text) steps.push(`Executive: ${text}`)
+  }
+  for (const action of asArray(incidentCommand?.commandActions)) {
+    const text = firstNonEmpty(action)
+    if (text) steps.push(`Incident command: ${text}`)
+  }
+  for (const action of asArray(afterActionReview?.followUpActions)) {
+    const text = firstNonEmpty(action)
+    if (text) steps.push(`After action: ${text}`)
+  }
+  for (const action of asArray(playbookVariance?.rehearsalActions)) {
+    const text = firstNonEmpty(action)
+    if (text) steps.push(`Playbook variance: ${text}`)
+  }
 
   return [...new Set(steps)].slice(0, 8)
 }
 
 function buildTurnaroundOperationalAssurance({ operation = {}, tasks = [], staffing = [], signoffs = [], escalations = [], dependencies = [], handoffs = [], auditEvents = [], releasePacket = null, operationalTimeline = null, operationalMetrics = null, playbookTemplate = null, playbookVariance = null, incidentCommand = null, afterActionReview = null, executiveBrief = null } = {}) {
+  operation = operation || {}
   const readiness = buildAssuranceReadiness({ executiveBrief, releasePacket, incidentCommand, afterActionReview, playbookVariance })
 
   return {

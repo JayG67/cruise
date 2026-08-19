@@ -97,4 +97,60 @@ describe('deployment readiness service', () => {
       expect.objectContaining({ label: 'Deployment config', value: 'Present' })
     ]))
   })
+
+  it('does not count whitespace-only environment values as configured', () => {
+    const gate = buildEnvironmentGate({
+      env: { DATABASE_URL: '   ', PORT: '\t', NODE_ENV: '\n' },
+      files: {},
+      renderConfig: '',
+      readme: ''
+    })
+
+    expect(gate.score).toBe(0)
+    expect(gate.status).toBe('needs-work')
+    expect(gate.evidence).toEqual(expect.arrayContaining([
+      'DATABASE_URL needs to be documented for deployment.',
+      'PORT handling should be documented for the host runtime.',
+      'NODE_ENV production behavior should be explicit.'
+    ]))
+  })
+
+  it('accepts nonblank configured environment values without requiring README duplication', () => {
+    const gate = buildEnvironmentGate({
+      env: { DATABASE_URL: 'postgres://db', PORT: 8000, NODE_ENV: ' production ' },
+      files: { '.env.example': true },
+      renderConfig: '',
+      readme: ''
+    })
+
+    expect(gate.score).toBe(100)
+    expect(gate.status).toBe('ready')
+  })
+
+})
+
+describe('deployment readiness malformed-input hardening', () => {
+  it('fails soft on an explicitly null readiness payload', () => {
+    const readiness = buildDeploymentReadiness(null)
+
+    expect(readiness.overallScore).toBe(0)
+    expect(readiness.status).toBe('needs-work')
+    expect(readiness.gates).toHaveLength(5)
+    expect(readiness.releaseEvidence.every(item => item.value === 'Missing')).toBe(true)
+  })
+
+  it('covers default helper inputs and candidate deployment evidence', () => {
+    expect(buildPlatformTargetGate({}).status).toBe('needs-work')
+    expect(buildEnvironmentGate({}).status).toBe('needs-work')
+    expect(buildQualityReleaseGate({}).status).toBe('needs-work')
+    expect(buildDeploymentTargets({})).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'render', status: 'candidate' }),
+      expect.objectContaining({ id: 'railway', status: 'candidate' }),
+      expect.objectContaining({ id: 'fly', status: 'candidate' })
+    ]))
+    expect(buildReleaseEvidence({})).toEqual(expect.arrayContaining([
+      expect.objectContaining({ label: 'Full regression gate', value: 'Missing' }),
+      expect.objectContaining({ label: 'Deployment config', value: 'Missing' })
+    ]))
+  })
 })

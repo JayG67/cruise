@@ -1,5 +1,7 @@
 function clampScore(value) {
-  return Math.max(0, Math.min(100, Math.round(Number(value) || 0)))
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) return 0
+  return Math.max(0, Math.min(100, Math.round(numericValue)))
 }
 
 function asArray(value) {
@@ -11,7 +13,9 @@ function normalizeStatus(value, fallback = 'REVIEW') {
 }
 
 function getCount(value) {
-  return Math.max(0, Number(value) || 0)
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue) || numericValue <= 0) return 0
+  return Math.floor(numericValue)
 }
 
 function buildStressCase({ id, label, severity = 'MEDIUM', score = 75, trigger = '', impact = '', response = '', owner = 'Turnaround Manager', evidence = [] }) {
@@ -39,15 +43,16 @@ function buildStressCases({
   afterActionReview = null,
   launchPlan = null
 } = {}) {
-  const releaseScore = clampScore(releasePacket?.releaseScore || operationalMetrics?.summary?.releaseConfidence || 0)
+  operation = operation || {}
+  const releaseScore = clampScore(releasePacket?.releaseScore ?? operationalMetrics?.summary?.releaseConfidence ?? 0)
   const incidentScore = getCount(incidentCommand?.incidentScore)
-  const staffingCoverage = clampScore(operationalMetrics?.summary?.staffingCoverage || 0)
-  const taskCompletion = clampScore(operationalMetrics?.summary?.taskCompletion || 0)
-  const varianceScore = clampScore(playbookVariance?.summary?.rehearsalScore || 0)
-  const reviewScore = clampScore(afterActionReview?.summary?.reviewScore || 0)
-  const launchScore = clampScore(launchPlan?.launchScore || 0)
+  const staffingCoverage = clampScore(operationalMetrics?.summary?.staffingCoverage ?? 0)
+  const taskCompletion = clampScore(operationalMetrics?.summary?.taskCompletion ?? 0)
+  const varianceScore = clampScore(playbookVariance?.summary?.rehearsalScore ?? 0)
+  const reviewScore = clampScore(afterActionReview?.summary?.reviewScore ?? 0)
+  const launchScore = clampScore(launchPlan?.launchScore ?? 0)
 
-  const blockerCount = getCount(releasePacket?.blockers?.length || operationalMetrics?.summary?.blockerCount)
+  const blockerCount = getCount(releasePacket?.blockers?.length ?? operationalMetrics?.summary?.blockerCount ?? 0)
   const ship = operation.shipName || 'selected ship'
   const port = operation.portName || operation.turnaroundPort || 'turnaround port'
 
@@ -100,7 +105,7 @@ function buildStressCases({
       id: 'unplanned-evidence-request',
       label: 'Unplanned evidence request',
       severity: launchScore < 82 ? 'MEDIUM' : 'LOW',
-      score: Math.min(launchScore || 75, reviewScore || 75),
+      score: Math.min(launchPlan?.launchScore == null ? 75 : launchScore, afterActionReview?.summary?.reviewScore == null ? 75 : reviewScore),
       trigger: 'An operational leader requests evidence outside the planned resilience-drill sequence.',
       impact: 'The review can drift into disconnected evidence browsing instead of role-based operational decision support.',
       response: 'Use release gates, governance evidence, and the role-by-role runbook to restore a decision-focused review.',
@@ -133,22 +138,24 @@ function buildContingencyActions({ stressCases = [], launchPlan = null, manageme
       owner: stressCase.owner
     }))
 
-  if (launchPlan?.launchRisks?.length) {
+  const launchRisks = asArray(launchPlan?.launchRisks)
+  const remainingWork = asArray(managementStatus?.remainingWork)
+  if (launchRisks.length) {
     actions.push({
       id: 'action-launch-risk-briefing',
       priority: 'P2',
       label: 'Operational risk briefing',
-      detail: launchPlan.launchRisks[0].mitigation,
+      detail: launchRisks[0]?.mitigation || launchRisks[0]?.label || 'Review the highest-priority launch risk.',
       owner: 'Operational Governance Lead'
     })
   }
 
-  if (managementStatus?.remainingWork?.length) {
+  if (remainingWork.length) {
     actions.push({
       id: 'action-management-follow-through',
       priority: 'P3',
       label: 'Management assurance follow-through',
-      detail: managementStatus.remainingWork[0].detail || managementStatus.remainingWork[0].label,
+      detail: remainingWork[0]?.detail || remainingWork[0]?.label || 'Complete the highest-priority management assurance item.',
       owner: 'Engineering Lead'
     })
   }
@@ -167,6 +174,7 @@ function buildContingencyActions({ stressCases = [], launchPlan = null, manageme
 }
 
 function buildDrillRunbook({ operation = {}, stressCases = [], launchPlan = null } = {}) {
+  operation = operation || {}
   const topStressCase = stressCases.find(stressCase => stressCase.status !== 'READY') || stressCases[0]
   const ship = operation.shipName || 'selected ship'
 
@@ -193,11 +201,12 @@ function buildDrillRunbook({ operation = {}, stressCases = [], launchPlan = null
     }
   ]
 
-  if (launchPlan?.demoRunbook?.length) {
+  const demoRunbook = asArray(launchPlan?.demoRunbook)
+  if (demoRunbook.length) {
     steps.push({
       id: 'drill-return-to-release-runbook',
       label: 'Return to release runbook',
-      detail: `Resume the operational release runbook at: ${launchPlan.demoRunbook[0].label}.`
+      detail: `Resume the operational release runbook at: ${demoRunbook[0]?.label || 'the next release step'}.`
     })
   }
 
@@ -205,6 +214,7 @@ function buildDrillRunbook({ operation = {}, stressCases = [], launchPlan = null
 }
 
 function buildTurnaroundScenarioPlan(input = {}) {
+  input = input || {}
   const stressCases = buildStressCases(input)
   const readyCount = stressCases.filter(stressCase => stressCase.status === 'READY').length
   const actionCount = stressCases.filter(stressCase => stressCase.status === 'ACTION_REQUIRED').length

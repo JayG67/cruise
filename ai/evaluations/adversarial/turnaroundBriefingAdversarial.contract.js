@@ -38,9 +38,13 @@ function assertPlainObject(value, message) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError(message)
 }
 
+function hasMeaningfulText(value) {
+  return typeof value === 'string' && value.trim().length > 0
+}
+
 function assertAdversarialScenario(scenario) {
   assertPlainObject(scenario, 'Adversarial scenario must be an object.')
-  if (!scenario.id || !scenario.name || !scenario.description) {
+  if (!hasMeaningfulText(scenario.id) || !hasMeaningfulText(scenario.name) || !hasMeaningfulText(scenario.description)) {
     throw new TypeError('Adversarial scenario requires id, name, and description.')
   }
   if (!ADVERSARIAL_CATEGORIES.includes(scenario.category)) {
@@ -61,15 +65,16 @@ function assertAdversarialScenario(scenario) {
 }
 
 function normalizeAdversarialReleasePolicy(policy = {}) {
+  const safePolicy = policy && typeof policy === 'object' && !Array.isArray(policy) ? policy : {}
   const numberWithinRange = (value, fallback) => {
     const parsed = Number(value)
     return Number.isFinite(parsed) ? Math.max(0, Math.min(100, parsed)) : fallback
   }
   return {
-    minimumPassRate: numberWithinRange(policy.minimumPassRate, DEFAULT_ADVERSARIAL_RELEASE_POLICY.minimumPassRate),
-    minimumResilienceScore: numberWithinRange(policy.minimumResilienceScore, DEFAULT_ADVERSARIAL_RELEASE_POLICY.minimumResilienceScore),
-    blockOnCriticalFailure: policy.blockOnCriticalFailure !== false,
-    blockOnHighFailure: policy.blockOnHighFailure !== false
+    minimumPassRate: numberWithinRange(safePolicy.minimumPassRate, DEFAULT_ADVERSARIAL_RELEASE_POLICY.minimumPassRate),
+    minimumResilienceScore: numberWithinRange(safePolicy.minimumResilienceScore, DEFAULT_ADVERSARIAL_RELEASE_POLICY.minimumResilienceScore),
+    blockOnCriticalFailure: safePolicy.blockOnCriticalFailure !== false,
+    blockOnHighFailure: safePolicy.blockOnHighFailure !== false
   }
 }
 

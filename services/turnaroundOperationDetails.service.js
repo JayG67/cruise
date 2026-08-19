@@ -16,8 +16,10 @@ const { listAuditEventsForOperation } = require('./auditEvent.service')
 const { buildTurnaroundOperationalArtifacts } = require('./turnaroundOperationalArtifacts.service')
 const { eq, inArray } = require('drizzle-orm')
 
+const normalizeCount = value => { const number = Number(value); return Number.isFinite(number) && number > 0 ? Math.floor(number) : 0 }; const normalizeStatus = value => String(value || '').trim().toUpperCase(); const isCompleteStatus = value => ['COMPLETE', 'COMPLETED', 'RESOLVED', 'CLEARED', 'CLOSED'].includes(normalizeStatus(value)); const normalizeSortOrder = value => { const number = Number(value); return Number.isFinite(number) && number >= 0 ? number : 0 }; const asArray = value => Array.isArray(value) ? value : []
+
 async function buildAppUserDisplayLookup(userIds = []) {
-  const uniqueUserIds = [...new Set((userIds || []).filter(Boolean))]
+  const uniqueUserIds = [...new Set(asArray(userIds).filter(Boolean))]
   if (!uniqueUserIds.length) return new Map()
 
   const userRows = await db
@@ -25,7 +27,7 @@ async function buildAppUserDisplayLookup(userIds = []) {
     .from(appUserTable)
     .where(inArray(appUserTable.id, uniqueUserIds))
 
-  return new Map(userRows.map(user => [user.id, user.displayName]))
+  return new Map(asArray(userRows).map(user => [user.id, user.displayName]))
 }
 
 function enrichOperationalPerson(row = {}, userDisplayById = new Map(), userIdField, displayField) {
@@ -48,24 +50,23 @@ async function getPassengerCountForSailing(sailingId) {
 
   let passengerCount = 0
 
-  for (const booking of bookingRows || []) {
+  for (const booking of asArray(bookingRows)) {
     const passengerRows = await db
       .select()
       .from(bookingPassengerTable)
       .where(eq(bookingPassengerTable.bookingId, booking.id))
 
-    passengerCount += passengerRows.length
+    passengerCount += asArray(passengerRows).length
   }
 
   return passengerCount
 }
 
-
 function getTurnaroundProgress(tasks = []) {
   const totalTasks = tasks.length
-  const completeTasks = tasks.filter(task => task.status === 'COMPLETE').length
-  const blockedTasks = tasks.filter(task => task.status === 'BLOCKED').length
-  const inProgressTasks = tasks.filter(task => task.status === 'IN_PROGRESS').length
+  const completeTasks = tasks.filter(task => isCompleteStatus(task.status)).length
+  const blockedTasks = tasks.filter(task => normalizeStatus(task.status) === 'BLOCKED').length
+  const inProgressTasks = tasks.filter(task => normalizeStatus(task.status) === 'IN_PROGRESS').length
 
   return {
     totalTasks,
@@ -79,9 +80,9 @@ function getTurnaroundProgress(tasks = []) {
 
 function getTurnaroundSignoffSummary(signoffs = []) {
   const totalSignoffs = signoffs.length
-  const approvedSignoffs = signoffs.filter(signoff => signoff.status === 'APPROVED').length
-  const blockedSignoffs = signoffs.filter(signoff => signoff.status === 'BLOCKED').length
-  const pendingSignoffs = signoffs.filter(signoff => signoff.status === 'PENDING').length
+  const approvedSignoffs = signoffs.filter(signoff => normalizeStatus(signoff.status) === 'APPROVED').length
+  const blockedSignoffs = signoffs.filter(signoff => normalizeStatus(signoff.status) === 'BLOCKED').length
+  const pendingSignoffs = signoffs.filter(signoff => normalizeStatus(signoff.status) === 'PENDING').length
 
   return {
     totalSignoffs,
@@ -94,10 +95,10 @@ function getTurnaroundSignoffSummary(signoffs = []) {
 
 function getTurnaroundEscalationSummary(escalations = []) {
   const totalEscalations = escalations.length
-  const openEscalations = escalations.filter(escalation => escalation.status === 'OPEN').length
-  const monitoringEscalations = escalations.filter(escalation => escalation.status === 'MONITORING').length
-  const resolvedEscalations = escalations.filter(escalation => escalation.status === 'RESOLVED').length
-  const criticalEscalations = escalations.filter(escalation => escalation.severity === 'CRITICAL' && escalation.status !== 'RESOLVED').length
+  const openEscalations = escalations.filter(escalation => normalizeStatus(escalation.status) === 'OPEN').length
+  const monitoringEscalations = escalations.filter(escalation => normalizeStatus(escalation.status) === 'MONITORING').length
+  const resolvedEscalations = escalations.filter(escalation => normalizeStatus(escalation.status) === 'RESOLVED').length
+  const criticalEscalations = escalations.filter(escalation => normalizeStatus(escalation.severity) === 'CRITICAL' && normalizeStatus(escalation.status) !== 'RESOLVED').length
 
   return {
     totalEscalations,
@@ -108,10 +109,9 @@ function getTurnaroundEscalationSummary(escalations = []) {
   }
 }
 
-
 function getTurnaroundStaffingSummary(staffing = []) {
-  const plannedCount = staffing.reduce((sum, row) => sum + Number(row.plannedCount || 0), 0)
-  const checkedInCount = staffing.reduce((sum, row) => sum + Number(row.checkedInCount || 0), 0)
+  const plannedCount = staffing.reduce((sum, row) => sum + normalizeCount(row.plannedCount), 0)
+  const checkedInCount = staffing.reduce((sum, row) => sum + normalizeCount(row.checkedInCount), 0)
   const gapCount = Math.max(plannedCount - checkedInCount, 0)
 
   return {
@@ -119,16 +119,16 @@ function getTurnaroundStaffingSummary(staffing = []) {
     plannedCount,
     checkedInCount,
     gapCount,
-    checkInPercent: plannedCount === 0 ? 0 : Math.round((checkedInCount / plannedCount) * 100)
+    checkInPercent: plannedCount === 0 ? 0 : Math.min(100, Math.round((checkedInCount / plannedCount) * 100))
   }
 }
 
-function getDerivedTurnaroundReadinessLevel(tasks = [], signoffs = [], escalations = []) {
+function getDerivedTurnaroundReadinessLevel(tasks = [], signoffs = [], escalations = [], staffing = [], dependencies = [], handoffs = []) {
   const progress = getTurnaroundProgress(tasks)
   const signoffSummary = getTurnaroundSignoffSummary(signoffs)
   const escalationSummary = getTurnaroundEscalationSummary(escalations)
-
-  if (progress.blockedTasks > 0 || signoffSummary.blockedSignoffs > 0 || escalationSummary.criticalEscalations > 0) return 'Blocked'
+  const releaseBlockers = getTurnaroundStaffingSummary(staffing).gapCount + getTurnaroundDependencySummary(dependencies).activeDependencies + getTurnaroundHandoffSummary(handoffs).openHandoffs
+  if (progress.blockedTasks > 0 || signoffSummary.blockedSignoffs > 0 || escalationSummary.criticalEscalations > 0 || releaseBlockers > 0) return 'Blocked'
   if (progress.totalTasks > 0 && progress.completeTasks === progress.totalTasks && signoffSummary.totalSignoffs > 0 && signoffSummary.approvedSignoffs === signoffSummary.totalSignoffs) return 'Ready for embarkation'
   if (progress.inProgressTasks > 0 || progress.completeTasks > 0 || signoffSummary.approvedSignoffs > 0) return 'In progress'
 
@@ -147,8 +147,8 @@ function getDerivedTurnaroundStatus(tasks = [], escalations = []) {
 }
 
 function getTurnaroundDependencySummary(dependencies = []) {
-  const activeDependencies = dependencies.filter(dependency => dependency.status !== 'CLEARED').length
-  const clearedDependencies = dependencies.filter(dependency => dependency.status === 'CLEARED').length
+  const activeDependencies = dependencies.filter(dependency => !isCompleteStatus(dependency.status)).length
+  const clearedDependencies = dependencies.filter(dependency => isCompleteStatus(dependency.status)).length
 
   return {
     totalDependencies: dependencies.length,
@@ -158,8 +158,8 @@ function getTurnaroundDependencySummary(dependencies = []) {
 }
 
 function getTurnaroundHandoffSummary(handoffs = []) {
-  const completedHandoffs = handoffs.filter(handoff => handoff.status === 'COMPLETE').length
-  const blockedHandoffs = handoffs.filter(handoff => handoff.status === 'BLOCKED').length
+  const completedHandoffs = handoffs.filter(handoff => isCompleteStatus(handoff.status)).length
+  const blockedHandoffs = handoffs.filter(handoff => normalizeStatus(handoff.status) === 'BLOCKED').length
 
   return {
     totalHandoffs: handoffs.length,
@@ -176,7 +176,7 @@ async function getTurnaroundOperationDetails(operation) {
     .where(eq(sailingTable.id, operation.sailingId))
     .limit(1)
 
-  const sailing = sailingRows[0] || null
+  const sailing = asArray(sailingRows)[0] || null
   let ship = null
   let cruiseLine = null
 
@@ -187,7 +187,7 @@ async function getTurnaroundOperationDetails(operation) {
       .where(eq(shipTable.id, sailing.shipId))
       .limit(1)
 
-    ship = shipRows[0] || null
+    ship = asArray(shipRows)[0] || null
 
     if (ship?.cruiseLineId) {
       const cruiseLineRows = await db
@@ -196,7 +196,7 @@ async function getTurnaroundOperationDetails(operation) {
         .where(eq(cruiseLineTable.id, ship.cruiseLineId))
         .limit(1)
 
-      cruiseLine = cruiseLineRows[0] || null
+      cruiseLine = asArray(cruiseLineRows)[0] || null
     }
   }
 
@@ -232,40 +232,40 @@ async function getTurnaroundOperationDetails(operation) {
 
   const taskUpdateRowsByTaskId = new Map()
   const operationalUserIds = [
-    ...(tasks || []).map(task => task.ownerUserId),
-    ...(signoffs || []).map(signoff => signoff.approverUserId),
-    ...(escalations || []).map(escalation => escalation.ownerUserId),
-    ...(handoffs || []).map(handoff => handoff.ownerUserId)
+    ...asArray(tasks).map(task => task.ownerUserId),
+    ...asArray(signoffs).map(signoff => signoff.approverUserId),
+    ...asArray(escalations).map(escalation => escalation.ownerUserId),
+    ...asArray(handoffs).map(handoff => handoff.ownerUserId)
   ]
 
-  for (const task of tasks || []) {
+  for (const task of asArray(tasks)) {
     const updates = await db
       .select()
       .from(turnaroundTaskUpdateTable)
       .where(eq(turnaroundTaskUpdateTable.taskId, task.id))
 
-    taskUpdateRowsByTaskId.set(task.id, updates || [])
-    operationalUserIds.push(...(updates || []).map(update => update.authorUserId))
+    taskUpdateRowsByTaskId.set(task.id, asArray(updates))
+    operationalUserIds.push(...asArray(updates).map(update => update.authorUserId))
   }
 
   const userDisplayById = await buildAppUserDisplayLookup(operationalUserIds)
 
-  const sortedSignoffs = [...(signoffs || [])]
+  const sortedSignoffs = [...asArray(signoffs)]
     .map(signoff => enrichOperationalPerson(signoff, userDisplayById, 'approverUserId', 'approverDisplayName'))
     .sort((a, b) => String(a.departmentRole).localeCompare(String(b.departmentRole)))
-  const sortedEscalations = [...(escalations || [])]
+  const sortedEscalations = [...asArray(escalations)]
     .map(escalation => enrichOperationalPerson(escalation, userDisplayById, 'ownerUserId', 'ownerDisplayName'))
     .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
-  const sortedStaffing = [...(staffing || [])].sort((a, b) => String(a.departmentRole).localeCompare(String(b.departmentRole)))
-  const sortedTaskDependencies = [...(taskDependencies || [])].sort((a, b) => String(a.status).localeCompare(String(b.status)))
-  const sortedHandoffs = [...(handoffs || [])]
+  const sortedStaffing = [...asArray(staffing)].sort((a, b) => String(a.departmentRole).localeCompare(String(b.departmentRole)))
+  const sortedTaskDependencies = [...asArray(taskDependencies)].sort((a, b) => String(a.status).localeCompare(String(b.status)))
+  const sortedHandoffs = [...asArray(handoffs)]
     .map(handoff => enrichOperationalPerson(handoff, userDisplayById, 'ownerUserId', 'ownerDisplayName'))
     .sort((a, b) => String(a.dueTime || '').localeCompare(String(b.dueTime || '')))
 
   const sortedTasks = []
 
-  for (const task of [...(tasks || [])].sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0))) {
-    const updates = taskUpdateRowsByTaskId.get(task.id) || []
+  for (const task of [...asArray(tasks)].sort((a, b) => normalizeSortOrder(a.sortOrder) - normalizeSortOrder(b.sortOrder))) {
+    const updates = asArray(taskUpdateRowsByTaskId.get(task.id))
 
     sortedTasks.push({
       ...enrichOperationalPerson(task, userDisplayById, 'ownerUserId', 'ownerDisplayName'),
@@ -326,7 +326,7 @@ async function getTurnaroundOperationDetails(operation) {
     commandStatus: operation.status,
     commandReadinessLevel: operation.readinessLevel,
     status: getDerivedTurnaroundStatus(sortedTasks, sortedEscalations),
-    readinessLevel: getDerivedTurnaroundReadinessLevel(sortedTasks, sortedSignoffs, sortedEscalations),
+    readinessLevel: getDerivedTurnaroundReadinessLevel(sortedTasks, sortedSignoffs, sortedEscalations, sortedStaffing, enrichedDependencies, sortedHandoffs),
     signoffs: sortedSignoffs,
     signoffSummary: getTurnaroundSignoffSummary(sortedSignoffs),
     escalations: sortedEscalations,

@@ -45,6 +45,7 @@ function buildCloseoutInputs({
   applicationDossier = null,
   presentationGuide = null
 } = {}) {
+  operation = operation || {}
   const taskRows = asArray(tasks)
   const signoffRows = asArray(signoffs)
   const staffingRows = asArray(staffing)
@@ -68,17 +69,17 @@ function buildCloseoutInputs({
     shipName: operation.shipName || operation.ship?.name || 'Selected ship',
     cruiseLineName: operation.cruiseLineName || operation.cruiseLine?.name || 'Selected cruise line',
     turnaroundDate: operation.turnaroundDate || operation.date || 'Selected turnaround',
-    lifecycleScore: clampScore(lifecycleState?.completionPercent || 0),
-    releaseScore: clampScore(releasePacket?.readinessScore || releasePacket?.releaseScore || operationalMetrics?.summary?.releaseConfidence || 0),
-    managementScore: clampScore(managementStatus?.maturityScore || 0),
-    productionScore: clampScore(productionReadiness?.productionScore || 0),
-    dossierScore: clampScore(applicationDossier?.dossierScore || 0),
-    reviewerScore: clampScore(reviewerPacket?.readiness?.readinessScore || 0),
-    launchScore: clampScore(launchPlan?.launchScore || 0),
-    scenarioScore: clampScore(scenarioPlan?.resilienceScore || 0),
-    afterActionScore: clampScore(afterActionReview?.summary?.reviewScore || executiveBrief?.summary?.reviewScore || 0),
-    presentationScore: clampScore(presentationGuide?.averageScore || 0),
-    timelineEvents: Number(operationalTimeline?.summary?.totalEvents || operationalTimeline?.items?.length || 0),
+    lifecycleScore: clampScore(lifecycleState?.completionPercent ?? 0),
+    releaseScore: clampScore(releasePacket?.readinessScore ?? releasePacket?.releaseScore ?? operationalMetrics?.summary?.releaseConfidence ?? 0),
+    managementScore: clampScore(managementStatus?.maturityScore ?? 0),
+    productionScore: clampScore(productionReadiness?.productionScore ?? 0),
+    dossierScore: clampScore(applicationDossier?.dossierScore ?? 0),
+    reviewerScore: clampScore(reviewerPacket?.readiness?.readinessScore ?? 0),
+    launchScore: clampScore(launchPlan?.launchScore ?? 0),
+    scenarioScore: clampScore(scenarioPlan?.resilienceScore ?? 0),
+    afterActionScore: clampScore(afterActionReview?.summary?.reviewScore ?? executiveBrief?.summary?.reviewScore ?? 0),
+    presentationScore: clampScore(presentationGuide?.averageScore ?? 0),
+    timelineEvents: Number(operationalTimeline?.summary?.totalEvents ?? operationalTimeline?.items?.length ?? 0),
     auditEventCount: asArray(auditEvents).length,
     completeTasks,
     totalTasks,

@@ -1,7 +1,11 @@
 jest.mock('../../services/auditEvent.service', () => ({ listAuditEvents: jest.fn() }))
 jest.mock('../../services/auditEventQuery.service', () => ({
   buildAuditEventListResponse: jest.fn((events, contract) => ({ auditEvents: events, ...contract })),
-  buildAuditEventQueryContract: jest.fn((query = {}, options = {}) => ({ filters: query, limit: options.defaultLimit || 50 }))
+  buildAuditEventQueryContract: jest.fn((query = {}, options = {}) => {
+    query = query || {}
+    const { limit, ...filters } = query
+    return { filters, limit: Number.isFinite(Number(limit)) ? Number(limit) : options.defaultLimit || 50 }
+  })
 }))
 jest.mock('../../services/platformAudit.service', () => ({ recordPlatformAuditEvent: jest.fn() }))
 jest.mock('../../services/turnaroundAdminSetup.service', () => ({
@@ -13,6 +17,7 @@ jest.mock('../../services/turnaroundAdminSetup.service', () => ({
 jest.mock('../../services/requestAuthorization.service', () => ({ requireAdminRequest: jest.fn() }))
 
 const { listAuditEvents } = require('../../services/auditEvent.service')
+const { buildAuditEventQueryContract } = require('../../services/auditEventQuery.service')
 const { recordPlatformAuditEvent } = require('../../services/platformAudit.service')
 const setup = require('../../services/turnaroundAdminSetup.service')
 const { requireAdminRequest } = require('../../services/requestAuthorization.service')
@@ -75,6 +80,46 @@ describe('platformOperationsAdmin controller', () => {
     expect(setup.buildTurnaroundSetupSummary).toHaveBeenCalled()
   })
 
+
+  it.each(['createTurnaroundPerson', 'updateTurnaroundPerson', 'deleteTurnaroundPerson'])('short-circuits %s when authorization fails', async handler => {
+    requireAdminRequest.mockResolvedValue(false)
+    const req = { body: {}, params: { id: 'person-1' } }
+    await controller[handler](req, response(), jest.fn())
+    expect(setup.createTurnaroundPerson).not.toHaveBeenCalled()
+    expect(setup.updateTurnaroundPerson).not.toHaveBeenCalled()
+    expect(setup.deleteTurnaroundPerson).not.toHaveBeenCalled()
+    expect(recordPlatformAuditEvent).not.toHaveBeenCalled()
+  })
+
+  it('records null tenant scope when a created person has no cruise-line or ship assignment', async () => {
+    setup.createTurnaroundPerson.mockResolvedValue({ id: 'person-2', displayName: 'Roster User', role: 'OPERATIONS' })
+    const req = { body: { displayName: 'Roster User' } }
+    await controller.createTurnaroundPerson(req, response(), jest.fn())
+
+    expect(recordPlatformAuditEvent).toHaveBeenCalledWith(req, expect.objectContaining({
+      cruiseLineId: null,
+      shipId: null
+    }))
+  })
+
+  it.each([
+    ['updateTurnaroundPerson', 'updateTurnaroundPerson'],
+    ['deleteTurnaroundPerson', 'deleteTurnaroundPerson']
+  ])('returns expected domain errors from %s', async (handler, serviceMethod) => {
+    setup[serviceMethod].mockRejectedValueOnce(Object.assign(new Error('not allowed'), { statusCode: 409 }))
+    const res = response()
+    await controller[handler]({ params: { id: 'person-1' }, body: {} }, res, jest.fn())
+    expect(res.statusCode).toBe(409)
+    expect(res.body).toEqual({ message: 'not allowed' })
+  })
+
+  it('forwards unexpected delete errors', async () => {
+    setup.deleteTurnaroundPerson.mockRejectedValueOnce(new Error('delete failed'))
+    const next = jest.fn()
+    await controller.deleteTurnaroundPerson({ params: { id: 'person-1' } }, response(), next)
+    expect(next).toHaveBeenCalledWith(expect.objectContaining({ message: 'delete failed' }))
+  })
+
   it('returns service client errors and forwards unexpected mutation errors', async () => {
     setup.createTurnaroundPerson.mockRejectedValueOnce(Object.assign(new Error('invalid setup'), { statusCode: 422 }))
     const clientRes = response()
@@ -86,6 +131,25 @@ describe('platformOperationsAdmin controller', () => {
     const next = jest.fn()
     await controller.updateTurnaroundPerson({ params: { id: 'x' }, body: {} }, response(), next)
     expect(next).toHaveBeenCalledWith(expect.objectContaining({ message: 'database failed' }))
+  })
+
+
+  it('lists query-derived audit filters when tenant scope is absent', async () => {
+    listAuditEvents.mockResolvedValue([])
+    const req = { query: { entityType: 'TASK', limit: '7' } }
+    const res = response()
+
+    await controller.getPlatformAuditEvents(req, res, jest.fn())
+
+    expect(buildAuditEventQueryContract).toHaveBeenCalledWith(req.query, { defaultLimit: 50 })
+    expect(listAuditEvents).toHaveBeenCalledWith({ entityType: 'TASK' }, { limit: 7 })
+    expect(res.statusCode).toBe(200)
+  })
+
+  it('short-circuits audit event reads when authorization fails', async () => {
+    requireAdminRequest.mockResolvedValue(false)
+    await controller.getPlatformAuditEvents({ query: {} }, response(), jest.fn())
+    expect(listAuditEvents).not.toHaveBeenCalled()
   })
 
   it('lists tenant-constrained audit events and forwards list errors', async () => {

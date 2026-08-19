@@ -6,6 +6,7 @@ const db = require('../db')
 const { canAccessTurnaroundOperationForRequest, sendTurnaroundOperationForbidden } = require('../services/turnaroundScope.service')
 const { buildTurnaroundHistoryPayload, mergeTurnaroundEntity, recordTurnaroundAuditEvent, resolveOperationalUserIdByName } = require('../services/turnaroundMutationSupport.service')
 const { and, eq } = require('drizzle-orm')
+const normalizeCount = value => { const number = Number(value); return Number.isFinite(number) && number > 0 ? Math.floor(number) : 0 }
 
 function createTurnaroundWorkforceController({ getTurnaroundOperationDetails }) {
   if (typeof getTurnaroundOperationDetails !== 'function') {
@@ -36,8 +37,8 @@ function createTurnaroundWorkforceController({ getTurnaroundOperationDetails }) 
       }
 
       const staffingValues = {
-        plannedCount: Number(plannedCount || 0),
-        checkedInCount: Number(checkedInCount || 0),
+        plannedCount: normalizeCount(plannedCount),
+        checkedInCount: normalizeCount(checkedInCount),
         leadName: leadName || null,
         musterLocation: musterLocation || null,
         notes: notes || null
@@ -52,30 +53,25 @@ function createTurnaroundWorkforceController({ getTurnaroundOperationDetails }) 
         ))
         .limit(1)
 
+      let staffingId = existingStaffing[0]?.id || null
       if (existingStaffing[0]) {
-        await db
-          .update(turnaroundStaffingTable)
-          .set(staffingValues)
-          .where(eq(turnaroundStaffingTable.id, existingStaffing[0].id))
+        const updatedStaffing = await db.update(turnaroundStaffingTable).set(staffingValues).where(eq(turnaroundStaffingTable.id, staffingId)).returning({ id: turnaroundStaffingTable.id })
+        if (!updatedStaffing[0]) return res.status(404).json({ message: 'Turnaround staffing plan not found' })
       } else {
-        await db
-          .insert(turnaroundStaffingTable)
-          .values({
-            operationId: id,
-            departmentRole,
-            ...staffingValues
-          })
+        const createdStaffing = await db.insert(turnaroundStaffingTable).values({ operationId: id, departmentRole, ...staffingValues }).returning({ id: turnaroundStaffingTable.id })
+        if (!createdStaffing[0]) return res.status(500).json({ message: 'Turnaround staffing plan could not be created' })
+        staffingId = createdStaffing[0].id
       }
 
       await recordTurnaroundAuditEvent(req, operation, {
         eventType: 'TURNAROUND_STAFFING_UPDATED',
         entityType: 'TURNAROUND_STAFFING',
-        entityId: existingStaffing[0]?.id || `${id}:${departmentRole}`,
+        entityId: staffingId,
         eventPayload: buildTurnaroundHistoryPayload({
           operation,
           previous: existingStaffing[0] || null,
           next: mergeTurnaroundEntity(existingStaffing[0] || { operationId: id, departmentRole }, staffingValues),
-          entityRefs: { staffingId: existingStaffing[0]?.id || null, departmentRole },
+          entityRefs: { staffingId, departmentRole },
           metadata: { action: existingStaffing[0] ? 'update-staffing' : 'create-staffing' }
         })
       })
@@ -127,30 +123,25 @@ function createTurnaroundWorkforceController({ getTurnaroundOperationDetails }) 
         signedAt: status === 'PENDING' ? null : new Date().toISOString()
       }
 
+      let signoffId = existingSignoffs[0]?.id || null
       if (existingSignoffs[0]) {
-        await db
-          .update(turnaroundSignoffTable)
-          .set(signoffValues)
-          .where(eq(turnaroundSignoffTable.id, existingSignoffs[0].id))
+        const updatedSignoffs = await db.update(turnaroundSignoffTable).set(signoffValues).where(eq(turnaroundSignoffTable.id, signoffId)).returning({ id: turnaroundSignoffTable.id })
+        if (!updatedSignoffs[0]) return res.status(404).json({ message: 'Turnaround signoff not found' })
       } else {
-        await db
-          .insert(turnaroundSignoffTable)
-          .values({
-            operationId: id,
-            departmentRole,
-            ...signoffValues
-          })
+        const createdSignoffs = await db.insert(turnaroundSignoffTable).values({ operationId: id, departmentRole, ...signoffValues }).returning({ id: turnaroundSignoffTable.id })
+        if (!createdSignoffs[0]) return res.status(500).json({ message: 'Turnaround signoff could not be created' })
+        signoffId = createdSignoffs[0].id
       }
 
       await recordTurnaroundAuditEvent(req, operation, {
         eventType: 'TURNAROUND_SIGNOFF_UPDATED',
         entityType: 'TURNAROUND_SIGNOFF',
-        entityId: existingSignoffs[0]?.id || `${id}:${departmentRole}`,
+        entityId: signoffId,
         eventPayload: buildTurnaroundHistoryPayload({
           operation,
           previous: existingSignoffs[0] || null,
           next: mergeTurnaroundEntity(existingSignoffs[0] || { operationId: id, departmentRole }, signoffValues),
-          entityRefs: { signoffId: existingSignoffs[0]?.id || null, departmentRole },
+          entityRefs: { signoffId, departmentRole },
           metadata: { action: existingSignoffs[0] ? 'update-signoff' : 'create-signoff' }
         })
       })
@@ -206,7 +197,8 @@ function createTurnaroundWorkforceController({ getTurnaroundOperationDetails }) 
 
       const operation = operationRows[0]
 
-      if (operation && !(await canAccessTurnaroundOperationForRequest(req, operation))) {
+      if (!operation) return res.status(404).json({ message: 'Turnaround operation not found' })
+      if (!(await canAccessTurnaroundOperationForRequest(req, operation))) {
         return sendTurnaroundOperationForbidden(res)
       }
 
@@ -214,13 +206,10 @@ function createTurnaroundWorkforceController({ getTurnaroundOperationDetails }) 
         handoffUpdates.ownerUserId = await resolveOperationalUserIdByName(req.body.ownerName, operation)
       }
 
-      await db
-        .update(turnaroundHandoffTable)
-        .set(handoffUpdates)
-        .where(eq(turnaroundHandoffTable.id, id))
+      const updatedHandoffs = await db.update(turnaroundHandoffTable).set(handoffUpdates).where(eq(turnaroundHandoffTable.id, id)).returning({ id: turnaroundHandoffTable.id })
+      if (!updatedHandoffs[0]) return res.status(404).json({ message: 'Turnaround handoff not found' })
 
-      if (operation) {
-        await recordTurnaroundAuditEvent(req, operation, {
+      await recordTurnaroundAuditEvent(req, operation, {
           eventType: 'TURNAROUND_HANDOFF_UPDATED',
           entityType: 'TURNAROUND_HANDOFF',
           entityId: id,
@@ -232,11 +221,10 @@ function createTurnaroundWorkforceController({ getTurnaroundOperationDetails }) 
             metadata: { action: 'update-handoff' }
           })
         })
-      }
 
       return res.status(200).json({
         message: 'Turnaround handoff updated successfully',
-        operation: operation ? await getTurnaroundOperationDetails(operation) : undefined
+        operation: await getTurnaroundOperationDetails(operation)
       })
     } catch (err) {
       next(err)

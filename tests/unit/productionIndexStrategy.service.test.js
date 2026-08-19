@@ -40,7 +40,7 @@ describe('productionIndexStrategy service', () => {
     })).toEqual({
       name: 'idx_customers_email',
       table: 'customers',
-      columns: ['email', 'null'],
+      columns: ['email'],
       queryPath: 'customer lookup',
       phase: 'implemented'
     })
@@ -74,6 +74,42 @@ describe('productionIndexStrategy service', () => {
     expect(() => assertProductionIndexStrategy([
       { name: 'idx_missing_columns', table: 'bookings', columns: [], queryPath: 'booking lookup' }
     ])).toThrow('Production index columns are required')
+  })
+
+
+  it('drops nullish column metadata instead of manufacturing invalid column names', () => {
+    expect(normalizeIndexDefinition({
+      name: 'idx_safe_columns',
+      table: 'bookings',
+      columns: [null, undefined, '', ' sailingId '],
+      queryPath: 'booking lookup'
+    }).columns).toEqual(['sailingId'])
+  })
+
+  it('rejects every incomplete strategy shape used by release readiness', () => {
+    expect(() => assertProductionIndexStrategy([
+      { name: '', table: 'bookings', columns: ['id'], queryPath: 'lookup' }
+    ])).toThrow('Production index name is required')
+    expect(() => assertProductionIndexStrategy([
+      { name: 'idx_missing_table', table: '', columns: ['id'], queryPath: 'lookup' }
+    ])).toThrow('Production index table is required')
+    expect(() => assertProductionIndexStrategy([
+      { name: 'idx_missing_query', table: 'bookings', columns: ['id'], queryPath: '' }
+    ])).toThrow('Production index query path is required')
+  })
+
+  it('handles custom phases, non-array columns, and missing table matches conservatively', () => {
+    expect(normalizeIndexPhase()).toBe('planned')
+    expect(normalizeIndexDefinition({ name: 'idx_x', table: 'x', columns: 'id', queryPath: 'x' }).columns).toEqual([])
+    expect(groupIndexesByPhase([{ name: 'idx_x', table: 'x', columns: ['id'], queryPath: 'x', phase: ' Final Review ' }]))
+      .toEqual({ 'final-review': [expect.objectContaining({ name: 'idx_x' })] })
+    expect(findIndexesForTable()).toEqual([])
+    expect(describeProductionIndexStrategy([])).toEqual({
+      totalIndexes: 0,
+      implementedIndexes: [],
+      plannedIndexes: [],
+      guardrail: 'production-index-strategy-finalization'
+    })
   })
 
   it('summarizes implemented and planned production index work for release readiness', () => {

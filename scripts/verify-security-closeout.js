@@ -61,7 +61,7 @@ function main() {
   }
   assert(index.includes('validateJwtConfiguration(process.env)'), 'Startup must validate JWT configuration before database initialization.')
   assert(workflow.includes('jest-coverage-report'), 'CI must publish the Jest coverage artifact.')
-  for (const artifact of ['coverage-summary.json', 'coverage-final.json', 'cobertura-coverage.xml', 'clover.xml', 'coverage-evidence.json']) {
+  for (const artifact of ['coverage-summary.json', 'coverage-final.json', 'cobertura-coverage.xml', 'clover.xml', 'coverage-evidence.json', 'coverage-evidence.md', 'coverage-evidence.csv']) {
     assert(coverageVerifier.includes(artifact), `Coverage verifier must require ${artifact}.`)
   }
 

@@ -115,10 +115,8 @@ exports.updatePassengerSelfServiceProfile = async (req, res, next) => {
 
     const customerUpdates = { firstName, lastName, email, phone, ...buildEntityUpdateTimestamp(updatedAt) }
 
-    await db
-      .update(customerTable)
-      .set(customerUpdates)
-      .where(eq(customerTable.id, id))
+    const updatedCustomers = await db.update(customerTable).set(customerUpdates).where(eq(customerTable.id, id)).returning()
+    if (!updatedCustomers[0]) return res.status(404).json({ message: 'Customer not found' })
 
     await db
       .update(bookingPassengerTable)
@@ -219,10 +217,8 @@ exports.updatePassengerBookingPreferences = async (req, res, next) => {
     const preferenceUpdates = { diningPreference, accessibilityNotes, updatedAt }
     const nextPassengerPreferences = { ...existingRows[0], ...preferenceUpdates }
 
-    await db
-      .update(bookingPassengerTable)
-      .set(preferenceUpdates)
-      .where(eq(bookingPassengerTable.id, `${bookingId}-${customerId}`))
+    const updatedPassengers = await db.update(bookingPassengerTable).set(preferenceUpdates).where(eq(bookingPassengerTable.id, `${bookingId}-${customerId}`)).returning()
+    if (!updatedPassengers[0]) return res.status(404).json({ message: 'Booking passenger not found' })
 
     const bookingRows = await db
       .select()

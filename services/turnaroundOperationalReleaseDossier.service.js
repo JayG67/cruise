@@ -11,7 +11,7 @@ function normalizeStatus(value, fallback = 'REVIEW') {
 }
 
 function averageScores(scores = []) {
-  const safeScores = asArray(scores).map(clampScore).filter(score => score > 0)
+  const safeScores = asArray(scores).map(clampScore)
   if (!safeScores.length) return 0
   return clampScore(safeScores.reduce((total, score) => total + score, 0) / safeScores.length)
 }
@@ -42,6 +42,7 @@ function buildReleaseDossierInputs({
   scenarioPlan = null,
   productionReadiness = null
 } = {}) {
+  const safeOperation = operation && typeof operation === 'object' ? operation : {}
   const completedTasks = countItems(tasks, task => String(task.status || '').toUpperCase() === 'COMPLETED')
   const totalTasks = asArray(tasks).length
   const approvedSignoffs = countItems(signoffs, signoff => String(signoff.status || '').toUpperCase() === 'APPROVED')
@@ -51,12 +52,12 @@ function buildReleaseDossierInputs({
   const staffingGaps = countItems(staffing, row => Number(row.requiredCount || row.required || 0) > Number(row.assignedCount || row.assigned || 0))
 
   return {
-    operationId: operation.id,
-    shipName: operation.shipName || operation.ship?.name || 'Selected ship',
-    cruiseLineName: operation.cruiseLineName || operation.cruiseLine?.name || 'Selected cruise line',
-    turnaroundDate: operation.turnaroundDate || operation.date || 'Selected turnaround',
+    operationId: safeOperation.id,
+    shipName: safeOperation.shipName || safeOperation.ship?.name || 'Selected ship',
+    cruiseLineName: safeOperation.cruiseLineName || safeOperation.cruiseLine?.name || 'Selected cruise line',
+    turnaroundDate: safeOperation.turnaroundDate || safeOperation.date || 'Selected turnaround',
     productionScore: clampScore(productionReadiness?.productionScore || 0),
-    releaseScore: clampScore(releasePacket?.releaseScore || operationalMetrics?.summary?.releaseConfidence || 0),
+    releaseScore: clampScore(releasePacket?.releaseScore ?? operationalMetrics?.summary?.releaseConfidence ?? 0),
     executiveScore: clampScore(executiveBrief?.summary?.decisionScore || 0),
     assuranceScore: clampScore(operationalAssurancePacket?.readiness?.readinessScore || 0),
     briefingScore: clampScore(operationalBriefingBoard?.readiness?.readinessScore || 0),

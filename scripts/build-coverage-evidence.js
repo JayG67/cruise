@@ -7,6 +7,7 @@ const summaryPath = path.join(coverageDir, 'coverage-summary.json')
 const finalPath = path.join(coverageDir, 'coverage-final.json')
 const outputJson = path.join(coverageDir, 'coverage-evidence.json')
 const outputMarkdown = path.join(coverageDir, 'coverage-evidence.md')
+const outputCsv = path.join(coverageDir, 'coverage-evidence.csv')
 
 function percentage(covered, total) {
   return total === 0 ? 100 : Math.floor((covered / total) * 10000) / 100
@@ -55,8 +56,18 @@ function loadSummary() {
 
 const summary = loadSummary()
 const normalizePath = filePath => {
-  const relative = path.relative(projectRoot, filePath)
-  return (!relative.startsWith('..') ? relative : filePath).replaceAll(path.sep, '/')
+  const absolutePath = path.resolve(filePath)
+  const relativePath = path.relative(projectRoot, absolutePath)
+  if (!relativePath.startsWith('..') && !path.isAbsolute(relativePath)) {
+    return relativePath.replaceAll(path.sep, '/')
+  }
+
+  const normalized = absolutePath.replaceAll('\\', '/')
+  const projectMarker = `/${path.basename(projectRoot)}/`
+  const markerIndex = normalized.lastIndexOf(projectMarker)
+  return markerIndex >= 0
+    ? normalized.slice(markerIndex + projectMarker.length)
+    : path.basename(normalized)
 }
 
 const files = Object.entries(summary)
@@ -106,6 +117,22 @@ const lines = [
   ''
 ]
 fs.writeFileSync(outputMarkdown, `${lines.join('\n')}\n`)
+
+const csvEscape = value => {
+  const text = String(value ?? '')
+  return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text
+}
+const csvLines = [
+  ['file', 'statements_pct', 'statements_covered', 'statements_total', 'branches_pct', 'branches_covered', 'branches_total', 'functions_pct', 'functions_covered', 'functions_total', 'lines_pct', 'lines_covered', 'lines_total'].join(','),
+  ...files.map(file => [
+    file.file,
+    file.statements.pct, file.statements.covered, file.statements.total,
+    file.branches.pct, file.branches.covered, file.branches.total,
+    file.functions.pct, file.functions.covered, file.functions.total,
+    file.lines.pct, file.lines.covered, file.lines.total
+  ].map(csvEscape).join(','))
+]
+fs.writeFileSync(outputCsv, `${csvLines.join('\n')}\n`)
 
 console.log(`Coverage evidence generated for ${files.length} source files.`)
 console.log(`Files below at least one global threshold: ${belowGlobalThresholdFiles.length}`)

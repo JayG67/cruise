@@ -1,6 +1,7 @@
 function compactObject(value = {}) {
+  const source = value && typeof value === 'object' && !Array.isArray(value) ? value : {}
   return Object.fromEntries(
-    Object.entries(value).filter(([, entryValue]) => entryValue !== undefined && entryValue !== null && entryValue !== '')
+    Object.entries(source).filter(([, entryValue]) => entryValue !== undefined && entryValue !== null && entryValue !== '')
   )
 }
 

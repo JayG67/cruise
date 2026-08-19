@@ -7,7 +7,7 @@ const { eq } = require('drizzle-orm')
 
 async function getSailingAuditScope(sailingOrId) {
   const sailingId = typeof sailingOrId === 'string' ? sailingOrId : sailingOrId?.id
-  const providedSailing = typeof sailingOrId === 'object' ? sailingOrId : null
+  const providedSailing = typeof sailingOrId === 'object' && sailingOrId?.shipId ? sailingOrId : null
   if (!sailingId) return {}
 
   const sailing = providedSailing || (await db.select().from(sailingTable).where(eq(sailingTable.id, sailingId)).limit(1))[0]
@@ -28,7 +28,7 @@ async function getItineraryDayAuditScope(itineraryDayOrId) {
 
   const itineraryDay = providedDay || (await db.select().from(itineraryDayTable).where(eq(itineraryDayTable.id, itineraryDayId)).limit(1))[0]
   if (!itineraryDay?.sailingId) return {}
-  return getSailingAuditScope({ id: itineraryDay.sailingId })
+  return getSailingAuditScope(itineraryDay.sailingId)
 }
 
 async function getActivityAuditScope(activityScheduleId) {

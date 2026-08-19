@@ -57,3 +57,32 @@ describe('audit event query contract bridge', () => {
     })
   })
 })
+
+describe('audit event query malformed input hardening', () => {
+  it('treats explicit null query input as an empty bounded query contract', () => {
+    expect(normalizeAuditEventFilters(null)).toEqual({})
+    expect(buildAuditEventQueryContract(null)).toEqual({ filters: {}, limit: 50 })
+  })
+
+  it('bounds custom defaults and falls back safely when the custom default is malformed', () => {
+    expect(normalizeAuditEventLimit(undefined, 0)).toBe(1)
+    expect(normalizeAuditEventLimit(undefined, 500)).toBe(100)
+    expect(normalizeAuditEventLimit(undefined, 'invalid')).toBe(50)
+  })
+
+  it('builds a safe empty response for null audit collections and preserves explicit query metadata', () => {
+    expect(buildAuditEventListResponse(null, { filters: { entityType: 'BOOKING' }, limit: 0 })).toEqual({
+      auditEvents: [],
+      filters: { entityType: 'BOOKING' },
+      limit: 0,
+      queryLimit: 0
+    })
+
+    expect(buildAuditEventListResponse(undefined, null)).toEqual({
+      auditEvents: [],
+      filters: {},
+      limit: 0,
+      queryLimit: 0
+    })
+  })
+})

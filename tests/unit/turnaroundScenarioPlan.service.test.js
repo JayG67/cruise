@@ -81,6 +81,56 @@ describe('turnaroundScenarioPlan service', () => {
     ]))
   })
 
+
+  it('preserves authoritative zero evidence instead of substituting healthier fallbacks', () => {
+    const stressCases = buildStressCases({
+      operation,
+      releasePacket: { releaseScore: 0, blockers: [] },
+      operationalMetrics: { summary: { releaseConfidence: 92, staffingCoverage: 90, taskCompletion: 88, blockerCount: 4 } },
+      launchPlan: { launchScore: 0 },
+      afterActionReview: { summary: { reviewScore: 0 } },
+      playbookVariance: { summary: { rehearsalScore: 90 } }
+    })
+
+    expect(stressCases.find(item => item.id === 'late-cabin-release')).toEqual(expect.objectContaining({
+      resilienceScore: 0,
+      severity: 'MEDIUM',
+      status: 'ACTION_REQUIRED'
+    }))
+    expect(stressCases.find(item => item.id === 'unplanned-evidence-request')).toEqual(expect.objectContaining({
+      resilienceScore: 0,
+      status: 'ACTION_REQUIRED'
+    }))
+  })
+
+  it('uses fallback evidence only when authoritative scenario values are absent', () => {
+    const stressCases = buildStressCases({
+      operation,
+      releasePacket: {},
+      operationalMetrics: { summary: { releaseConfidence: 91, staffingCoverage: 88, taskCompletion: 90, blockerCount: 2 } },
+      launchPlan: {},
+      afterActionReview: { summary: {} },
+      playbookVariance: { summary: { rehearsalScore: 86 } }
+    })
+
+    expect(stressCases.find(item => item.id === 'late-cabin-release')).toEqual(expect.objectContaining({
+      severity: 'HIGH',
+      resilienceScore: 82
+    }))
+    expect(stressCases.find(item => item.id === 'unplanned-evidence-request')).toEqual(expect.objectContaining({
+      resilienceScore: 75
+    }))
+  })
+
+  it('degrades safely when scenario operation input is explicitly null', () => {
+    const plan = buildTurnaroundScenarioPlan({ operation: null })
+    const runbook = buildDrillRunbook({ operation: null, stressCases: [] })
+
+    expect(plan.summary).toContain('the selected ship')
+    expect(plan.stressCases).toHaveLength(5)
+    expect(runbook[0].detail).toContain('selected ship')
+  })
+
   it('keeps the drill runbook focused even when launch-plan data is unavailable', () => {
     const runbook = buildDrillRunbook({
       operation,
@@ -94,5 +144,73 @@ describe('turnaroundScenarioPlan service', () => {
       'drill-close-loop'
     ]))
     expect(runbook).toHaveLength(4)
+  })
+})
+
+describe('turnaroundScenarioPlan numeric evidence hardening', () => {
+  it('fails non-finite scores and counts safe instead of promoting them to perfect resilience', () => {
+    const stressCases = buildStressCases({
+      operation: { shipName: 'Test ship' },
+      releasePacket: { releaseScore: Infinity, blockers: { length: Infinity } },
+      operationalMetrics: { summary: { staffingCoverage: Infinity, taskCompletion: 'bad', blockerCount: Infinity } },
+      incidentCommand: { incidentScore: Infinity },
+      playbookVariance: { summary: { rehearsalScore: Infinity } },
+      afterActionReview: { summary: { reviewScore: Infinity } },
+      launchPlan: { launchScore: Infinity }
+    })
+
+    expect(stressCases.map(item => item.resilienceScore).every(Number.isFinite)).toBe(true)
+    expect(stressCases.find(item => item.id === 'technical-blocker')).toEqual(expect.objectContaining({ resilienceScore: 100 }))
+    expect(stressCases.find(item => item.id === 'staffing-shortfall')).toEqual(expect.objectContaining({ resilienceScore: 0, status: 'ACTION_REQUIRED' }))
+    expect(stressCases.find(item => item.id === 'playbook-drift')).toEqual(expect.objectContaining({ resilienceScore: 0, status: 'ACTION_REQUIRED' }))
+  })
+
+  it('uses the governance fallback contingency when every stress case is ready and no external actions exist', () => {
+    const actions = buildContingencyActions({ stressCases: [
+      { id: 'ready-1', status: 'READY', severity: 'LOW', label: 'Ready one', response: 'None', owner: 'Lead' },
+      { id: 'ready-2', status: 'READY', severity: 'LOW', label: 'Ready two', response: 'None', owner: 'Lead' }
+    ] })
+
+    expect(actions).toEqual([
+      expect.objectContaining({ id: 'action-keep-governance-evidence-current', priority: 'P3' })
+    ])
+  })
+})
+
+describe('turnaroundScenarioPlan malformed collection evidence', () => {
+  it('ignores non-array launch risks, remaining work, and demo runbook collections', () => {
+    const actions = buildContingencyActions({
+      stressCases: [{ id: 'ready', status: 'READY', severity: 'LOW', label: 'Ready', response: 'None', owner: 'Lead' }],
+      launchPlan: { launchRisks: 'not-an-array' },
+      managementStatus: { remainingWork: { detail: 'not-an-array' } }
+    })
+    const runbook = buildDrillRunbook({
+      operation: { shipName: 'Explorer' },
+      stressCases: [{ id: 'ready', label: 'Ready', status: 'READY' }],
+      launchPlan: { demoRunbook: 'not-an-array' }
+    })
+
+    expect(actions).toEqual([expect.objectContaining({ id: 'action-keep-governance-evidence-current' })])
+    expect(runbook.some(step => step.id === 'drill-return-to-release-runbook')).toBe(false)
+    expect(JSON.stringify({ actions, runbook })).not.toContain('undefined')
+  })
+
+  it('uses deterministic fallback copy for malformed first collection entries', () => {
+    const actions = buildContingencyActions({
+      stressCases: [{ id: 'ready', status: 'READY', severity: 'LOW', label: 'Ready', response: 'None', owner: 'Lead' }],
+      launchPlan: { launchRisks: [null] },
+      managementStatus: { remainingWork: [null] }
+    })
+    const runbook = buildDrillRunbook({
+      operation: { shipName: 'Explorer' },
+      stressCases: [{ id: 'ready', label: 'Ready', status: 'READY' }],
+      launchPlan: { demoRunbook: [null] }
+    })
+
+    expect(actions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'action-launch-risk-briefing', detail: 'Review the highest-priority launch risk.' }),
+      expect.objectContaining({ id: 'action-management-follow-through', detail: 'Complete the highest-priority management assurance item.' })
+    ]))
+    expect(runbook.find(step => step.id === 'drill-return-to-release-runbook').detail).toContain('the next release step')
   })
 })

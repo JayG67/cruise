@@ -13,10 +13,10 @@ async function selectFirst(table, predicate) {
 }
 
 async function resolveBookingTenant(bookingOrId) {
-  const booking = typeof bookingOrId === 'object' && bookingOrId
-    ? bookingOrId
-    : await selectFirst(bookingTable, eq(bookingTable.id, bookingOrId))
+  const bookingId = typeof bookingOrId === 'object' && bookingOrId ? bookingOrId.id : bookingOrId
+  if (!bookingId) return null
 
+  const booking = await selectFirst(bookingTable, eq(bookingTable.id, bookingId))
   if (!booking?.sailingId) return null
 
   const sailing = await selectFirst(sailingTable, eq(sailingTable.id, booking.sailingId))

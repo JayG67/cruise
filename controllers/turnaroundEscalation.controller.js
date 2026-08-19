@@ -11,7 +11,6 @@ function createTurnaroundEscalationController({ getTurnaroundOperationDetails })
   }
 
   const controller = {}
-
   controller.createTurnaroundEscalation = async (req, res, next) => {
     try {
       const { id } = req.params
@@ -33,6 +32,7 @@ function createTurnaroundEscalationController({ getTurnaroundOperationDetails })
         return sendTurnaroundOperationForbidden(res)
       }
 
+      const ownerUserId = await resolveOperationalUserIdByName(ownerName, operation)
       await db
         .insert(turnaroundEscalationTable)
         .values({
@@ -41,7 +41,7 @@ function createTurnaroundEscalationController({ getTurnaroundOperationDetails })
           severity,
           title,
           ownerName: ownerName || null,
-          ownerUserId: await resolveOperationalUserIdByName(ownerName, operation),
+          ownerUserId,
           status,
           resolutionNotes: resolutionNotes || null,
           createdAt: new Date().toISOString()
@@ -60,7 +60,7 @@ function createTurnaroundEscalationController({ getTurnaroundOperationDetails })
             severity,
             title,
             ownerName: ownerName || null,
-            ownerUserId: await resolveOperationalUserIdByName(ownerName, operation),
+            ownerUserId,
             status,
             resolutionNotes: resolutionNotes || null
           },

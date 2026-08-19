@@ -12,9 +12,16 @@ const { isAdminRole, normalizeRole } = require('./requestAuthorization.service')
 const TENANT_ACCESS_FORBIDDEN_MESSAGE = 'You do not have access to this cruise-line tenant.'
 const GLOBAL_ADMIN_REQUIRED_MESSAGE = 'This operation requires a global administrator.'
 
+function normalizeIdentifier(value) {
+  if (value === null || value === undefined) return null
+  if (typeof value === 'string') return value.trim() || null
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+  return null
+}
+
 async function selectFirst(table, predicate) {
   const rows = await db.select().from(table).where(predicate).limit(1)
-  return rows[0] || null
+  return Array.isArray(rows) ? rows[0] || null : null
 }
 
 async function resolvePrincipalTenantScope(req = {}) {
@@ -22,23 +29,24 @@ async function resolvePrincipalTenantScope(req = {}) {
   if (!principal?.userId || !isAdminRole(principal.role)) return null
 
   const appUser = await selectFirst(appUserTable, eq(appUserTable.id, principal.userId))
-  if (!appUser || String(appUser.status || '').toUpperCase() !== 'ACTIVE') return null
+  if (!appUser || String(appUser.status || '').trim().toUpperCase() !== 'ACTIVE') return null
 
-  const activeRoles = await db
+  const roleRows = await db
     .select()
     .from(appUserRoleTable)
     .where(and(eq(appUserRoleTable.userId, principal.userId), eq(appUserRoleTable.status, 'ACTIVE')))
+  const activeRoles = Array.isArray(roleRows) ? roleRows : []
 
   const normalizedRole = normalizeRole(principal.role)
-  const assignment = activeRoles.find(row => normalizeRole(row.roleId) === normalizedRole)
+  const assignment = activeRoles.find(row => normalizeRole(row?.roleId) === normalizedRole)
   if (!assignment) return null
 
   const assignmentScope = String(assignment.assignmentScope || '').trim().toUpperCase()
-  const cruiseLineId = assignment.cruiseLineId || appUser.cruiseLineId || null
-  const assignedShipId = assignment.assignedShipId || appUser.assignedShipId || null
+  const cruiseLineId = normalizeIdentifier(assignment.cruiseLineId) || normalizeIdentifier(appUser.cruiseLineId)
+  const assignedShipId = normalizeIdentifier(assignment.assignedShipId) || normalizeIdentifier(appUser.assignedShipId)
   const isGlobalAdmin = assignmentScope === 'GLOBAL' && !cruiseLineId && !assignedShipId
 
-  const claimedTenantId = String(principal.tenantId || '').trim() || null
+  const claimedTenantId = normalizeIdentifier(principal.tenantId)
   if (!isGlobalAdmin && claimedTenantId && claimedTenantId !== cruiseLineId) return null
 
   return {
@@ -55,7 +63,7 @@ async function canAccessCruiseLineTenant(req, cruiseLineId) {
   const scope = await resolvePrincipalTenantScope(req)
   if (!scope || !cruiseLineId) return false
   if (scope.isGlobalAdmin) return true
-  return Boolean(scope.cruiseLineId && scope.cruiseLineId === String(cruiseLineId))
+  return Boolean(scope.cruiseLineId && scope.cruiseLineId === normalizeIdentifier(cruiseLineId))
 }
 
 async function canCreateCruiseLineTenant(req) {
@@ -115,11 +123,13 @@ async function canAccessActivityTenant(req, activityId) {
 }
 
 function constrainAuditFiltersToTenant(filters = {}, scope = {}) {
-  const normalized = { ...filters }
+  const normalized = filters && typeof filters === 'object' && !Array.isArray(filters) ? { ...filters } : {}
   if (!scope || scope.isGlobalAdmin) return normalized
-  if (!scope.cruiseLineId) return null
-  if (normalized.cruiseLineId && normalized.cruiseLineId !== scope.cruiseLineId) return null
-  normalized.cruiseLineId = scope.cruiseLineId
+  const scopedCruiseLineId = normalizeIdentifier(scope.cruiseLineId)
+  if (!scopedCruiseLineId) return null
+  const requestedCruiseLineId = normalizeIdentifier(normalized.cruiseLineId)
+  if (requestedCruiseLineId && requestedCruiseLineId !== scopedCruiseLineId) return null
+  normalized.cruiseLineId = scopedCruiseLineId
   return normalized
 }
 

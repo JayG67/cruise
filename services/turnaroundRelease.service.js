@@ -5,7 +5,8 @@ function normalizeStatus(value) {
 function percent(numerator, denominator, fallback = 0) {
   const total = Number(denominator || 0)
   if (total <= 0) return fallback
-  return Math.round((Number(numerator || 0) / total) * 100)
+  const calculated = Math.round((Number(numerator || 0) / total) * 100)
+  return Math.max(0, Math.min(100, calculated))
 }
 
 function getOpenEscalations(escalations = []) {
@@ -29,6 +30,15 @@ function getActiveDependencies(dependencies = []) {
 }
 
 function buildTurnaroundReleasePacket({ operation = {}, tasks = [], staffing = [], signoffs = [], escalations = [], dependencies = [], handoffs = [], auditEvents = [] } = {}) {
+  operation = operation || {}
+  tasks = Array.isArray(tasks) ? tasks : []
+  staffing = Array.isArray(staffing) ? staffing : []
+  signoffs = Array.isArray(signoffs) ? signoffs : []
+  escalations = Array.isArray(escalations) ? escalations : []
+  dependencies = Array.isArray(dependencies) ? dependencies : []
+  handoffs = Array.isArray(handoffs) ? handoffs : []
+  auditEvents = Array.isArray(auditEvents) ? auditEvents : []
+
   const blockedTasks = getBlockedTasks(tasks)
   const pendingSignoffs = getPendingSignoffs(signoffs)
   const activeDependencies = getActiveDependencies(dependencies)
@@ -95,7 +105,7 @@ function buildTurnaroundReleasePacket({ operation = {}, tasks = [], staffing = [
     },
     blockers: blockers.slice(0, 12),
     checklist: [
-      { id: 'tasks', label: 'All critical turnaround tasks complete', status: blockedTasks.length === 0 && completeTasks === totalTasks ? 'PASS' : 'ACTION_REQUIRED', percent: taskPercent },
+      { id: 'tasks', label: 'All critical turnaround tasks complete', status: totalTasks > 0 && blockedTasks.length === 0 && completeTasks === totalTasks ? 'PASS' : 'ACTION_REQUIRED', percent: taskPercent },
       { id: 'staffing', label: 'Staffing check-in meets plan', status: plannedStaff > 0 && checkedInStaff >= plannedStaff ? 'PASS' : 'ACTION_REQUIRED', percent: staffingPercent },
       { id: 'signoffs', label: 'Department readiness signoffs approved', status: pendingSignoffs.length === 0 && signoffs.length > 0 ? 'PASS' : 'ACTION_REQUIRED', percent: signoffPercent },
       { id: 'dependencies', label: 'Operational dependencies cleared', status: activeDependencies.length === 0 ? 'PASS' : 'ACTION_REQUIRED', percent: dependencyPercent },

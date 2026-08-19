@@ -123,10 +123,16 @@ function assertPhaseOneCloseoutReadiness(readiness = buildPhaseOneCloseoutReadin
     throw new Error('Phase 1 closeout areas are required.')
   }
 
+  const areaKeys = new Set()
+
   readiness.areas.forEach((area) => {
     if (!area.key) {
       throw new Error('Phase 1 closeout area key is required.')
     }
+    if (areaKeys.has(area.key)) {
+      throw new Error(`Duplicate Phase 1 closeout area key: ${area.key}`)
+    }
+    areaKeys.add(area.key)
     if (!area.label) {
       throw new Error('Phase 1 closeout area label is required.')
     }
@@ -137,6 +143,14 @@ function assertPhaseOneCloseoutReadiness(readiness = buildPhaseOneCloseoutReadin
       throw new Error(`Phase 1 closeout evidence is required for ${area.key}.`)
     }
   })
+
+  const expected = buildPhaseOneCloseoutReadiness(readiness.areas)
+  if (readiness.status && readiness.status !== expected.status) {
+    throw new Error('Phase 1 closeout status does not match the area evidence.')
+  }
+  if (Number.isFinite(readiness.completionPercentage) && readiness.completionPercentage !== expected.completionPercentage) {
+    throw new Error('Phase 1 closeout completion percentage does not match the area evidence.')
+  }
 
   return readiness
 }

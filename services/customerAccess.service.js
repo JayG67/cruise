@@ -1,13 +1,16 @@
-const { and, eq } = require('drizzle-orm')
+const { and, eq, inArray } = require('drizzle-orm')
 
 const db = require('../db')
 const appUserTable = require('../models/appUser.model')
 const bookingTable = require('../models/booking.model')
 const bookingPassengerTable = require('../models/bookingPassenger.model')
+const itineraryDayTable = require('../models/itineraryDay.model')
+const activityScheduleTable = require('../models/activitySchedule.model')
 const demoUserTable = require('../models/demoUser.model')
 const { getAuthenticationMode, AUTH_MODES } = require('./authentication.service')
 const { isAdminRole } = require('./requestAuthorization.service')
 const { canAdminAccessBookingTenant, canAdminAccessCustomerTenant } = require('./customerTenantAccess.service')
+const { canAccessActivityTenant } = require('./tenantAccess.service')
 
 const CUSTOMER_ACCESS_FORBIDDEN_MESSAGE = 'You do not have access to this customer record.'
 const BOOKING_ACCESS_FORBIDDEN_MESSAGE = 'You do not have access to this booking record.'
@@ -85,6 +88,33 @@ async function canAccessBooking(req, bookingId) {
   return Boolean(passenger)
 }
 
+async function canAccessCustomerActivity(req, customerId, activityId) {
+  const scope = await resolveRequestCustomerScope(req)
+  const normalizedCustomerId = String(customerId || '').trim()
+  if (!normalizedCustomerId || !activityId) return false
+  if (scope.isAdmin) {
+    return Boolean(
+      await canAdminAccessCustomerTenant(req, normalizedCustomerId) &&
+      await canAccessActivityTenant(req, activityId)
+    )
+  }
+  if (!scope.customerId || scope.customerId !== normalizedCustomerId) return false
+
+  const activity = await selectFirst(activityScheduleTable, eq(activityScheduleTable.id, activityId))
+  if (!activity) return false
+  const day = await selectFirst(itineraryDayTable, eq(itineraryDayTable.id, activity.itineraryDayId))
+  if (!day?.sailingId) return false
+
+  const passengerRows = await db.select().from(bookingPassengerTable)
+    .where(eq(bookingPassengerTable.customerId, normalizedCustomerId))
+  const bookingIds = passengerRows.map(row => row.bookingId).filter(Boolean)
+  if (bookingIds.length === 0) return false
+
+  const bookingRows = await db.select().from(bookingTable)
+    .where(and(inArray(bookingTable.id, bookingIds), eq(bookingTable.sailingId, day.sailingId))).limit(1)
+  return Boolean(bookingRows[0])
+}
+
 async function canCreateBooking(req, payload = {}) {
   const scope = await resolveRequestCustomerScope(req)
   if (scope.isAdmin) return true
@@ -103,6 +133,7 @@ module.exports = {
   CUSTOMER_ACCESS_FORBIDDEN_MESSAGE,
   canAccessBooking,
   canAccessCustomer,
+  canAccessCustomerActivity,
   canCreateBooking,
   resolveRequestCustomerScope
 }

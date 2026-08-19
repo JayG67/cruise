@@ -4,16 +4,20 @@ const EVALUATION_RUN_EVENT = 'AI_EVALUATION_RUN_RECORDED'
 const EVALUATION_ENTITY_TYPE = 'AI_EVALUATION_SUITE'
 
 function mapEvaluationRunEvent(event = {}) {
-  const payload = event.eventPayload || {}
+  const payload = event?.eventPayload && typeof event.eventPayload === 'object' && !Array.isArray(event.eventPayload)
+    ? event.eventPayload
+    : {}
   return {
     ...payload,
-    auditEventId: event.id || null,
-    recordedAt: event.createdAt || payload.completedAt || null
+    auditEventId: event?.id || null,
+    recordedAt: event?.createdAt || payload.completedAt || null
   }
 }
 
 async function recordEvaluationRun({ run, actor, auditRecorder = recordAuditEvent } = {}) {
-  if (!run?.runId || !run?.suiteId) throw new TypeError('A completed evaluation run is required.')
+  if (!String(run?.runId || '').trim() || !String(run?.suiteId || '').trim()) {
+    throw new TypeError('A completed evaluation run is required.')
+  }
   await auditRecorder({
     eventType: EVALUATION_RUN_EVENT,
     entityType: EVALUATION_ENTITY_TYPE,

@@ -19,7 +19,8 @@ describe('cruise-line tenant isolation contracts', () => {
   it('derives admin tenant scope from active app-user role assignments rather than request headers alone', () => {
     expect(tenantAccess).toContain("require('../models/appUserRole.model')")
     expect(tenantAccess).toContain("eq(appUserRoleTable.status, 'ACTIVE')")
-    expect(tenantAccess).toContain('assignment.cruiseLineId || appUser.cruiseLineId')
+    expect(tenantAccess).toContain('normalizeIdentifier(assignment.cruiseLineId) || normalizeIdentifier(appUser.cruiseLineId)')
+    expect(tenantAccess).toContain('normalizeIdentifier(assignment.assignedShipId) || normalizeIdentifier(appUser.assignedShipId)')
     expect(tenantAccess).toContain('claimedTenantId !== cruiseLineId')
   })
 

@@ -18,6 +18,10 @@ function hasFile(files = {}, filePath) {
   return Boolean(files[filePath])
 }
 
+function hasConfiguredValue(value) {
+  return typeof value === 'string' ? value.trim().length > 0 : value != null && value !== false
+}
+
 function containsAny(source = '', terms = []) {
   const normalizedSource = asText(source).toLowerCase()
   return terms.some(term => normalizedSource.includes(String(term).toLowerCase()))
@@ -77,12 +81,12 @@ function buildPlatformTargetGate({ files = {}, renderConfig = '', packageJson = 
 
 function buildEnvironmentGate({ files = {}, env = {}, renderConfig = '', readme = '' }) {
   const requiredNames = ['DATABASE_URL', 'PORT', 'NODE_ENV']
-  const visibleRequiredNames = requiredNames.filter(name => Boolean(env[name]) || containsAny(renderConfig, [name]) || containsAny(readme, [name]))
+  const visibleRequiredNames = requiredNames.filter(name => hasConfiguredValue(env[name]) || containsAny(renderConfig, [name]) || containsAny(readme, [name]))
   const checks = [
     hasFile(files, '.env.example') || containsAny(readme, requiredNames),
     visibleRequiredNames.includes('DATABASE_URL'),
     visibleRequiredNames.includes('PORT') || containsAny(renderConfig, ['PORT']),
-    containsAny(renderConfig, ['NODE_ENV']) || Boolean(env.NODE_ENV),
+    containsAny(renderConfig, ['NODE_ENV']) || hasConfiguredValue(env.NODE_ENV),
     containsAny(readme, ['environment', 'env', 'DATABASE_URL']) || hasFile(files, '.env.example')
   ]
   const score = asPercent(checks.filter(Boolean).length, checks.length)
@@ -194,6 +198,7 @@ function buildOperationalReleaseDocumentationGate({ files = {}, readme = '' }) {
 }
 
 function buildDeploymentReadiness(input = {}) {
+  input = asObject(input)
   const packageJson = asObject(input.packageJson)
   const files = asObject(input.files)
   const env = asObject(input.env)
