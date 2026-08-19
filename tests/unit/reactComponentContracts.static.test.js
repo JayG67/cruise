@@ -682,14 +682,12 @@ ${bookingGuests}`
     expect(cypress).not.toContain('react-group-dashboard')
   })
 
-
   it('keeps itinerary favorite integration test isolated on seeded booking evidence', () => {
     const integration = read('tests/integration/customersBookings.integration.test.js')
     const itineraryFavoriteTest = integration.slice(
       integration.indexOf("POST and DELETE /cruise/itinerary-favorites persists passenger itinerary interests"),
       integration.indexOf("POST /cruise/bookings should reject a booking that overlaps an existing passenger booking")
     )
-
     expect(itineraryFavoriteTest).toContain('const seededBooking = await getSeededBookingWithPassengers(request, app)')
     expect(itineraryFavoriteTest).toContain('const customerId = primaryPassenger.customerId')
     expect(itineraryFavoriteTest).toContain('const sailingId = seededBooking.sailing?.id || seededBooking.sailingId')
@@ -699,7 +697,6 @@ ${bookingGuests}`
     expect(itineraryFavoriteTest).not.toContain('customerId=C000000001')
     expect(itineraryFavoriteTest).not.toContain("customerId: 'C000000001'")
   })
-
 
   it('keeps React itinerary detail coverage wired through browser coverage', () => {
     const fleet = readFleetDirectorySurface()
