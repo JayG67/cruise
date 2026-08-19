@@ -210,9 +210,8 @@ exports.deleteCustomer = async (req, res, next) => {
       .delete(bookingPassengerTable)
       .where(eq(bookingPassengerTable.customerId, id))
 
-    await db
-      .delete(customerTable)
-      .where(eq(customerTable.id, id))
+    const deletedRows = await db.delete(customerTable).where(eq(customerTable.id, id)).returning()
+    if (!deletedRows[0]) return res.status(404).json({ message: 'Customer not found' })
 
     await recordCruiseManagementAuditEvent(req, {
       eventType: 'CUSTOMER_DELETED',

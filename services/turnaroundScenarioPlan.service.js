@@ -1,5 +1,7 @@
 function clampScore(value) {
-  return Math.max(0, Math.min(100, Math.round(Number(value) || 0)))
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) return 0
+  return Math.max(0, Math.min(100, Math.round(numericValue)))
 }
 
 function asArray(value) {
@@ -11,7 +13,9 @@ function normalizeStatus(value, fallback = 'REVIEW') {
 }
 
 function getCount(value) {
-  return Math.max(0, Number(value) || 0)
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue) || numericValue <= 0) return 0
+  return Math.floor(numericValue)
 }
 
 function buildStressCase({ id, label, severity = 'MEDIUM', score = 75, trigger = '', impact = '', response = '', owner = 'Turnaround Manager', evidence = [] }) {
@@ -134,22 +138,24 @@ function buildContingencyActions({ stressCases = [], launchPlan = null, manageme
       owner: stressCase.owner
     }))
 
-  if (launchPlan?.launchRisks?.length) {
+  const launchRisks = asArray(launchPlan?.launchRisks)
+  const remainingWork = asArray(managementStatus?.remainingWork)
+  if (launchRisks.length) {
     actions.push({
       id: 'action-launch-risk-briefing',
       priority: 'P2',
       label: 'Operational risk briefing',
-      detail: launchPlan.launchRisks[0].mitigation,
+      detail: launchRisks[0]?.mitigation || launchRisks[0]?.label || 'Review the highest-priority launch risk.',
       owner: 'Operational Governance Lead'
     })
   }
 
-  if (managementStatus?.remainingWork?.length) {
+  if (remainingWork.length) {
     actions.push({
       id: 'action-management-follow-through',
       priority: 'P3',
       label: 'Management assurance follow-through',
-      detail: managementStatus.remainingWork[0].detail || managementStatus.remainingWork[0].label,
+      detail: remainingWork[0]?.detail || remainingWork[0]?.label || 'Complete the highest-priority management assurance item.',
       owner: 'Engineering Lead'
     })
   }
@@ -195,11 +201,12 @@ function buildDrillRunbook({ operation = {}, stressCases = [], launchPlan = null
     }
   ]
 
-  if (launchPlan?.demoRunbook?.length) {
+  const demoRunbook = asArray(launchPlan?.demoRunbook)
+  if (demoRunbook.length) {
     steps.push({
       id: 'drill-return-to-release-runbook',
       label: 'Return to release runbook',
-      detail: `Resume the operational release runbook at: ${launchPlan.demoRunbook[0].label}.`
+      detail: `Resume the operational release runbook at: ${demoRunbook[0]?.label || 'the next release step'}.`
     })
   }
 

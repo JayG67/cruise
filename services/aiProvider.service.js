@@ -14,10 +14,19 @@ class AiProviderError extends Error {
 }
 
 function severityForEvidence(record = {}) {
-  const text = `${record.status || ''} ${record.title || ''} ${record.details || ''}`.toUpperCase()
-  if (/CRITICAL|EMERGENCY/.test(text)) return 'critical'
-  if (/BLOCKED|FAILED|OVERDUE|MISSING/.test(text)) return 'high'
-  if (/PENDING|AT_RISK|NOT_STARTED|SHORTFALL/.test(text)) return 'medium'
+  const status = String(record.status || '').toUpperCase()
+  const descriptiveText = `${record.title || ''} ${record.details || ''}`.toUpperCase()
+  const terminalPattern = /\b(?:RESOLVED|CLOSED|COMPLETE|COMPLETED|APPROVED)\b/
+  const statusHasActiveRisk = /CRITICAL|EMERGENCY|BLOCKED|FAILED|OVERDUE|MISSING|PENDING|AT_RISK|NOT_STARTED|SHORTFALL/.test(status)
+
+  if (terminalPattern.test(status)) return 'low'
+  if (/CRITICAL|EMERGENCY/.test(status)) return 'critical'
+  if (/BLOCKED|FAILED|OVERDUE|MISSING/.test(status)) return 'high'
+  if (/PENDING|AT_RISK|NOT_STARTED|SHORTFALL/.test(status)) return 'medium'
+  if (!statusHasActiveRisk && terminalPattern.test(descriptiveText)) return 'low'
+  if (/CRITICAL|EMERGENCY/.test(descriptiveText)) return 'critical'
+  if (/BLOCKED|FAILED|OVERDUE|MISSING/.test(descriptiveText)) return 'high'
+  if (/PENDING|AT_RISK|NOT_STARTED|SHORTFALL/.test(descriptiveText)) return 'medium'
   return 'low'
 }
 

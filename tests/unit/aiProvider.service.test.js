@@ -85,3 +85,50 @@ describe('AI provider foundation', () => {
     expect(result.output.riskLevel).toBe('low')
   })
 })
+
+describe('AI provider evidence hardening', () => {
+  it('does not re-promote terminal critical evidence as an active blocker', () => {
+    expect(severityForEvidence({ status: 'CRITICAL RESOLVED' })).toBe('low')
+    expect(severityForEvidence({ title: 'Emergency closed' })).toBe('low')
+    expect(severityForEvidence({ details: 'Critical issue completed and approved' })).toBe('low')
+    expect(severityForEvidence({ status: 'BLOCKED', details: 'Inspection remains incomplete.' })).toBe('high')
+  })
+
+  it('covers deterministic category, owner, fallback explanation, and singular summary branches', async () => {
+    const { categoryForEvidence, riskRank } = require('../../services/aiProvider.service')
+    expect(categoryForEvidence({ type: 'handoff' })).toBe('handoff')
+    expect(categoryForEvidence({ type: 'unexpected' })).toBe('data-quality')
+    expect(riskRank('critical')).toBe(3)
+    expect(riskRank('unknown')).toBe(0)
+
+    const provider = createDeterministicAiProvider({ now: () => new Date('2026-08-17T18:00:00.000Z') })
+    const result = await provider.generateStructured({
+      prompt: {
+        user: {
+          evidence: [{ id: 'dependency-1', type: 'dependency', title: 'Gate', status: 'PENDING', departmentRole: 'ENGINEERING_LEAD' }]
+        }
+      }
+    })
+
+    expect(result.output.summary).toBe('1 evidence-backed operational item require review.')
+    expect(result.output.findings[0]).toEqual(expect.objectContaining({
+      category: 'dependency',
+      severity: 'medium',
+      explanation: 'Gate is currently PENDING.',
+      recommendedAction: expect.stringContaining('ENGINEERING_LEAD')
+    }))
+  })
+})
+
+describe('AI provider authoritative status precedence', () => {
+  it('does not let terminal words in descriptive text downgrade an explicit active blocker', () => {
+    expect(severityForEvidence({ status: 'BLOCKED', details: 'Awaiting an approved recovery plan.' })).toBe('high')
+    expect(severityForEvidence({ status: 'CRITICAL', title: 'Closed-loop readiness review' })).toBe('critical')
+    expect(severityForEvidence({ status: 'PENDING', details: 'Complete the remaining inspection.' })).toBe('medium')
+  })
+
+  it('still recognizes terminal evidence when no explicit active status is present', () => {
+    expect(severityForEvidence({ title: 'Emergency closed' })).toBe('low')
+    expect(severityForEvidence({ details: 'Critical issue completed and approved' })).toBe('low')
+  })
+})

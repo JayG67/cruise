@@ -325,3 +325,80 @@ describe('turnaroundCommandCenter staffing evidence hardening', () => {
     expect(board[0].staffingCoverage).toBe(60)
   })
 })
+
+describe('turnaroundCommandCenter normalized command evidence', () => {
+  it('fails non-finite command scores safe and normalizes padded operational statuses', () => {
+    const inputs = buildTurnaroundCommandInputs({
+      operation: { id: 'op-830' },
+      tasks: [
+        { status: ' complete ' },
+        { status: ' at_risk ', blockerReason: '' }
+      ],
+      signoffs: [{ status: ' approved ' }, { status: ' blocked ' }],
+      escalations: [
+        { status: ' resolved ', severity: ' critical ' },
+        { status: ' open ', severity: ' critical ' }
+      ],
+      dependencies: [{ status: ' cleared ' }, { status: ' blocked ' }],
+      handoffs: [{ status: ' completed ' }],
+      operationalMetrics: { summary: { staffingCoverage: Infinity, releaseConfidence: NaN } },
+      lifecycleState: { completionPercent: Infinity },
+      incidentCommand: { incidentScore: Infinity },
+      managementStatus: { maturityScore: Infinity },
+      closeoutPacket: { closeoutScore: Infinity }
+    })
+
+    expect(inputs).toMatchObject({
+      completeTasks: 1,
+      approvedSignoffs: 1,
+      completedHandoffs: 1,
+      staffingCoverage: 0,
+      lifecycleScore: 0,
+      releaseScore: 0,
+      riskScore: 0,
+      maturityScore: 0,
+      closeoutScore: 0
+    })
+    expect(inputs.blockedTasks).toHaveLength(1)
+    expect(inputs.activeDependencies).toHaveLength(1)
+    expect(inputs.openEscalations).toHaveLength(1)
+    expect(inputs.criticalEscalations).toHaveLength(1)
+  })
+
+  it('fails malformed percentage inputs safe instead of manufacturing perfect readiness', () => {
+    const inputs = buildTurnaroundCommandInputs({
+      tasks: 'bad',
+      staffing: {},
+      signoffs: null,
+      dependencies: 'bad',
+      handoffs: {},
+      auditEvents: 'bad',
+      passengerCount: Infinity
+    })
+
+    expect(inputs).toMatchObject({
+      totalTasks: 0,
+      taskCompletion: 0,
+      handoffCompletion: 0,
+      signoffCompletion: 0,
+      passengerCount: 0
+    })
+    expect(buildCommandCenterKpis(inputs).find(kpi => kpi.id === 'dependency-gates')).toMatchObject({ score: 100, value: '0/0' })
+  })
+
+  it('covers command-center defaults and active critical-path states', () => {
+    const center = buildTurnaroundCommandCenter({
+      operation: {},
+      tasks: [{ taskName: 'Unowned task', status: 'BLOCKED' }],
+      dependencies: [{ taskName: 'Dependent task', status: 'BLOCKED' }],
+      staffing: [{ role: 'Guest Services', plannedCount: 2, checkedInCount: 1 }],
+      signoffs: [{ role: 'Guest Services', status: 'BLOCKED' }],
+      escalations: [{ severity: 'CRITICAL', status: 'OPEN', title: 'Critical issue' }]
+    })
+
+    expect(center.commandStatus).toBe('ACTIVE_COMMAND')
+    expect(center.decisionQueue.map(item => item.severity)).toEqual(expect.arrayContaining(['HIGH', 'CRITICAL', 'MEDIUM']))
+    expect(center.criticalPath[0]).toMatchObject({ status: 'BLOCKED', score: 0 })
+    expect(center.escalationProtocol.status).toBe('EXECUTIVE_ATTENTION')
+  })
+})

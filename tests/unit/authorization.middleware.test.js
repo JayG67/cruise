@@ -70,6 +70,8 @@ const {
   canManageOperation,
   canManageOperationDepartment,
   canManageTask,
+  canManageEscalation,
+  canManageHandoff,
   canReadTurnaroundOperations
 } = require('../../services/turnaroundAccess.service')
 const {
@@ -94,6 +96,8 @@ const {
   requireFavoriteCustomerAccess,
   requireTurnaroundCommandAccess,
   requireTurnaroundDepartmentAccess,
+  requireTurnaroundEscalationAccess,
+  requireTurnaroundHandoffAccess,
   requireTurnaroundOperationReadAccess,
   requireTurnaroundReadAccess,
   requireTurnaroundTaskAccess
@@ -442,6 +446,74 @@ describe('authorization middleware', () => {
     expect(allowedReq.tenantAuditFilters).toEqual({ source: 'TEST', cruiseLineId: 'CL-1' })
     expect(next).toHaveBeenCalledTimes(1)
     expect(deniedRes.status).toHaveBeenCalledWith(403)
+  })
+
+
+  it('covers successful JWT resource authorization branches without emitting responses', async () => {
+    getAuthenticationMode.mockReturnValue('jwt')
+    canAccessBooking.mockResolvedValue(true)
+    canAccessCustomer.mockResolvedValue(true)
+    canAccessCustomerActivity.mockResolvedValue(true)
+    canCreateBooking.mockResolvedValue(true)
+    canReadTurnaroundOperations.mockResolvedValue(true)
+    canAccessOperationScope.mockResolvedValue(true)
+    canManageOperation.mockResolvedValue(true)
+    canManageOperationDepartment.mockResolvedValue(true)
+    canManageTask.mockResolvedValue(true)
+    canManageEscalation.mockResolvedValue(true)
+    canManageHandoff.mockResolvedValue(true)
+    const next = jest.fn()
+
+    await requireBookingAccess('bookingId')({ params: { bookingId: 'B1' } }, responseDouble(), next)
+    await requireBookingPassengerAccess({ params: { customerId: 'C1', bookingId: 'B1' } }, responseDouble(), next)
+    await requireFavoriteCustomerAccess({ params: { customerId: 'C1', activityScheduleId: 'A1' }, body: {} }, responseDouble(), next)
+    await requireBookingCreationAccess({ body: { createdByCustomerId: 'C1' } }, responseDouble(), next)
+    await requireTurnaroundReadAccess({}, responseDouble(), next)
+    await requireTurnaroundOperationReadAccess('operationId')({ params: { operationId: 'OP1' } }, responseDouble(), next)
+    await requireTurnaroundCommandAccess({ params: { id: 'OP1' } }, responseDouble(), next)
+    await requireTurnaroundDepartmentAccess('id', 'departmentRole')({ params: { id: 'OP1' }, body: { departmentRole: 'ENGINEERING_LEAD' } }, responseDouble(), next)
+    await requireTurnaroundTaskAccess({ params: { id: 'TASK1' } }, responseDouble(), next)
+    await requireTurnaroundEscalationAccess({ params: { id: 'ESC1' } }, responseDouble(), next)
+    await requireTurnaroundHandoffAccess({ params: { id: 'HAND1' } }, responseDouble(), next)
+
+    expect(next).toHaveBeenCalledTimes(11)
+  })
+
+  it('covers non-admin and missing-sailing booking tenant bypasses', async () => {
+    getAuthenticationMode.mockReturnValue('jwt')
+    const next = jest.fn()
+
+    await requireBookingCreationTenantAccess({ requestIdentity: { principal: { role: 'PASSENGER' } }, body: { sailingId: 'SAIL-1' } }, responseDouble(), next)
+    await requireBookingCreationTenantAccess({ requestIdentity: { principal: { role: 'ADMIN' } }, body: {} }, responseDouble(), next)
+
+    expect(canAccessSailingTenant).not.toHaveBeenCalled()
+    expect(next).toHaveBeenCalledTimes(2)
+  })
+
+  it('short-circuits booking membership when customer ownership fails', async () => {
+    getAuthenticationMode.mockReturnValue('jwt')
+    canAccessCustomer.mockResolvedValue(false)
+    const res = responseDouble()
+
+    await requireBookingPassengerAccess({ params: { customerId: 'C9', bookingId: 'B9' } }, res, jest.fn())
+
+    expect(canAccessBooking).not.toHaveBeenCalled()
+    expect(res.status).toHaveBeenCalledWith(403)
+  })
+
+  it.each([
+    [requireShipTenantAccess('id'), canAccessShipTenant],
+    [requireSailingTenantAccess('id'), canAccessSailingTenant],
+    [requireItineraryDayTenantAccess('id'), canAccessItineraryDayTenant],
+    [requireActivityTenantAccess('id'), canAccessActivityTenant]
+  ])('allows an in-tenant resource through the scoped middleware', async (middleware, accessCheck) => {
+    getAuthenticationMode.mockReturnValue('jwt')
+    accessCheck.mockResolvedValue(true)
+    const next = jest.fn()
+
+    await middleware({ params: { id: 'RESOURCE-OK' } }, responseDouble(), next)
+
+    expect(next).toHaveBeenCalledTimes(1)
   })
 
 })

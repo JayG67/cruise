@@ -128,4 +128,61 @@ describe('turnaround operational timeline behavior', () => {
     expect(timeline.items).toHaveLength(24)
     expect(timeline.items[0].id).toBe('task:t0')
   })
+
+  test('fails soft for malformed collections and normalizes non-finite staffing evidence', () => {
+    const timeline = buildTurnaroundOperationalTimeline({
+      operation: { id: 'op-malformed' },
+      tasks: { id: 'not-iterable' },
+      staffing: [
+        { id: 's1', departmentRole: 'HOUSEKEEPING', plannedCount: Infinity, checkedInCount: 'bad' },
+        { id: 's2', departmentRole: 'ENGINEERING', plannedCount: 2.9, checkedInCount: -4 }
+      ],
+      signoffs: 'bad',
+      escalations: {},
+      dependencies: null,
+      handoffs: 7,
+      auditEvents: { id: 'bad' }
+    })
+
+    expect(timeline.items.find(item => item.id === 'staffing:s1')).toEqual(expect.objectContaining({ detail: '0/0 checked in', status: 'COVERED' }))
+    expect(timeline.items.find(item => item.id === 'staffing:s2')).toEqual(expect.objectContaining({ detail: '0/2 checked in', status: 'GAP' }))
+    expect(timeline.summary.totalEvents).toBe(3)
+  })
+
+  test('normalizes equivalent terminal statuses and padded blocker evidence consistently', () => {
+    const timeline = buildTurnaroundOperationalTimeline({
+      operation: { id: 'op-status' },
+      tasks: [{ id: 't1', status: ' completed ', taskName: 'Done task' }],
+      signoffs: [{ id: 's1', status: ' approved ', departmentRole: 'ENGINEERING' }],
+      dependencies: [{ id: 'd1', status: ' resolved ', taskName: 'Boarding' }],
+      escalations: [{ id: 'e1', status: ' closed ', severity: ' critical ', title: 'Closed risk' }],
+      handoffs: [{ id: 'h1', status: ' cleared ', title: 'Released handoff' }]
+    })
+
+    expect(timeline.items.find(item => item.id === 'task:t1')).toEqual(expect.objectContaining({ status: 'COMPLETED', severity: 'SUCCESS' }))
+    expect(timeline.items.find(item => item.id === 'signoff:s1')).toEqual(expect.objectContaining({ status: 'APPROVED', severity: 'SUCCESS' }))
+    expect(timeline.items.find(item => item.id === 'dependency:d1')).toEqual(expect.objectContaining({ status: 'RESOLVED', severity: 'SUCCESS' }))
+    expect(timeline.items.find(item => item.id === 'escalation:e1')).toEqual(expect.objectContaining({ status: 'CLOSED', severity: 'SUCCESS' }))
+    expect(timeline.items.find(item => item.id === 'handoff:h1')).toEqual(expect.objectContaining({ status: 'CLEARED', severity: 'SUCCESS' }))
+  })
+
+  test('filters malformed actor and narrative objects instead of leaking structural values', () => {
+    const timeline = buildTurnaroundOperationalTimeline({
+      operation: { id: 'op-text' },
+      tasks: [{
+        id: 't1',
+        taskName: 'Cabin prep',
+        ownerDisplayName: { name: 'bad' },
+        ownerName: 'Valid owner',
+        blockerReason: { text: 'bad' },
+        location: 12,
+        updates: [{ id: 'u1', authorDisplayName: {}, authorName: 'Valid author', message: 'Ready' }]
+      }]
+    })
+
+    expect(timeline.items.find(item => item.id === 'task:t1')).toEqual(expect.objectContaining({ actorDisplayName: 'Valid owner', detail: '12' }))
+    expect(timeline.items.find(item => item.id === 'task-update:u1')).toEqual(expect.objectContaining({ actorDisplayName: 'Valid author' }))
+    expect(JSON.stringify(timeline)).not.toContain('[object Object]')
+  })
+
 })

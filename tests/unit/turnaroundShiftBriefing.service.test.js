@@ -158,3 +158,55 @@ describe('turnaroundShiftBriefing numeric evidence hardening', () => {
     expect(Number.isFinite(briefing.summary.briefingScore)).toBe(true)
   })
 })
+
+describe('turnaroundShiftBriefing malformed evidence hardening', () => {
+  it('fails soft when persisted operational collections are object-shaped instead of arrays', () => {
+    expect(() => buildTurnaroundShiftBriefing({
+      operation: { id: 'malformed-collections' },
+      tasks: { id: 'not-an-array' },
+      staffing: { departmentRole: 'HOTEL' },
+      signoffs: 'APPROVED',
+      escalations: { severity: 'CRITICAL' },
+      dependencies: { status: 'BLOCKED' },
+      handoffs: 42
+    })).not.toThrow()
+
+    const briefing = buildTurnaroundShiftBriefing({
+      operation: { id: 'malformed-collections' },
+      tasks: { id: 'not-an-array' }, staffing: {}, signoffs: {}, escalations: {}, dependencies: {}, handoffs: {}
+    })
+    expect(briefing.criticalItems).toEqual([])
+    expect(briefing.departmentBriefs).toEqual([])
+    expect(briefing.summary).toEqual(expect.objectContaining({ criticalItemCount: 0, departmentCount: 0 }))
+  })
+
+  it('does not leak object-valued people or narrative fields into shift actions', () => {
+    const items = buildBriefingCriticalItems({
+      tasks: [{ id: 'task-bad-text', status: 'BLOCKED', departmentRole: {}, ownerDisplayName: {}, taskName: {}, blockerNotes: {} }],
+      dependencies: [{ id: 'dep-bad-text', status: 'ACTIVE', departmentRole: {}, ownerDisplayName: {}, taskName: {}, dependsOnTaskName: {} }],
+      handoffs: [{ id: 'handoff-bad-text', status: 'BLOCKED', handoffName: {}, acceptanceCriteria: {}, ownerName: {} }],
+      escalations: [{ id: 'esc-bad-text', status: 'OPEN', severity: 'HIGH', summary: {}, resolutionPlan: {}, ownerName: {} }],
+      signoffs: [{ id: 'signoff-bad-text', status: 'BLOCKED', departmentRole: {}, notes: {}, approverName: {} }]
+    })
+
+    expect(items.every(item => typeof item.owner === 'string' && typeof item.label === 'string' && typeof item.detail === 'string')).toBe(true)
+    expect(items.map(item => item.departmentRole)).not.toContain('[object Object]')
+    expect(items.map(item => item.label)).toEqual(expect.arrayContaining(['Turnaround task', 'Dependency gate', 'Operational handoff', 'Open escalation']))
+  })
+
+  it('covers escalation, staffing, signoff, and watch-handoff department focus branches', () => {
+    const escalation = buildDepartmentBriefs({ escalations: [{ departmentRole: 'SECURITY', status: 'OPEN' }] })[0]
+    const staffing = buildDepartmentBriefs({ staffing: [{ departmentRole: 'HOTEL', plannedCount: 4, checkedInCount: 1 }] })[0]
+    const signoff = buildDepartmentBriefs({ signoffs: [{ departmentRole: 'BRIDGE', status: 'PENDING' }] })[0]
+    expect(escalation.briefingFocus).toContain('escalation ownership')
+    expect(staffing.briefingFocus).toContain('staffing gap')
+    expect(signoff.briefingFocus).toContain('signoff approval')
+
+    const briefing = buildTurnaroundShiftBriefing({
+      tasks: [{ id: 'watch-1', status: 'NOT_STARTED' }, { id: 'watch-2', status: 'NOT_STARTED' }],
+      operationalMetrics: { summary: { releaseConfidence: 90 } },
+      closeoutPacket: { summary: { closeoutScore: 90 } }
+    })
+    expect(briefing.summary.handoffStatus).toBe('WATCH_HANDOFF')
+  })
+})

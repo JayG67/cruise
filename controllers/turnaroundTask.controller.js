@@ -120,7 +120,10 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
         .from(turnaroundTaskTable)
         .where(eq(turnaroundTaskTable.operationId, id))
 
-      const nextSortOrder = existingTasks.reduce((maxSortOrder, task) => Math.max(maxSortOrder, Number(task.sortOrder || 0)), 0) + 1
+      const nextSortOrder = existingTasks.reduce((maxSortOrder, task) => {
+        const sortOrder = Number(task.sortOrder)
+        return Number.isFinite(sortOrder) && sortOrder > maxSortOrder ? Math.floor(sortOrder) : maxSortOrder
+      }, 0) + 1
 
       const taskValues = {
         operationId: id,
@@ -267,9 +270,11 @@ function createTurnaroundTaskController({ getTurnaroundOperationDetails }) {
         .delete(turnaroundTaskUpdateTable)
         .where(eq(turnaroundTaskUpdateTable.taskId, id))
 
-      await db
+      const deletedTasks = await db
         .delete(turnaroundTaskTable)
         .where(eq(turnaroundTaskTable.id, id))
+        .returning()
+      if (!deletedTasks[0]) return res.status(404).json({ message: 'Turnaround task not found' })
 
       await recordTurnaroundAuditEvent(req, operation, {
           eventType: 'TURNAROUND_TASK_DELETED',

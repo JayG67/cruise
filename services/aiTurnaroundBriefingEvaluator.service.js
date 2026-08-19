@@ -16,7 +16,10 @@ function evaluateTurnaroundBriefing(evaluationCase, candidate, options = {}) {
   const requiredCategories = normalizeList(expected.requiredFindingCategories)
   const unknownText = normalizeList(briefing.unknowns).join(' ').toLowerCase()
 
-  const schemaCompliance = briefing.summary && briefing.riskLevel && Array.isArray(briefing.findings) && Array.isArray(briefing.unknowns) ? 1 : 0
+  const schemaCompliance = typeof briefing.summary === 'string' && briefing.summary.trim().length > 0
+    && typeof briefing.riskLevel === 'string' && briefing.riskLevel.trim().length > 0
+    && Array.isArray(briefing.findings) && findings.every(item => item && typeof item === 'object' && !Array.isArray(item))
+    && Array.isArray(briefing.unknowns) && briefing.unknowns.every(item => typeof item === 'string') ? 1 : 0
   const requiredEvidenceHits = requiredEvidence.filter(id => citedEvidence.has(id)).length
   const unsupportedEvidence = [...citedEvidence].filter(id => !availableEvidence.has(id))
   const evidenceGrounding = requiredEvidence.length === 0

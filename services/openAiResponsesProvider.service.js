@@ -9,13 +9,20 @@ function trimTrailingSlash(value) {
   return String(value || '').replace(/\/+$/, '')
 }
 
+function normalizeProviderTokenCount(value) {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 0
+}
+
 function normalizeOpenAiUsage(usage = {}, pricing = {}) {
-  const inputTokens = Number(usage.input_tokens || 0)
-  const outputTokens = Number(usage.output_tokens || 0)
+  const inputTokens = normalizeProviderTokenCount(usage?.input_tokens)
+  const outputTokens = normalizeProviderTokenCount(usage?.output_tokens)
+  const suppliedTotal = normalizeProviderTokenCount(usage?.total_tokens)
+  const totalTokens = suppliedTotal > 0 ? suppliedTotal : inputTokens + outputTokens
   return {
     inputTokens,
     outputTokens,
-    totalTokens: Number(usage.total_tokens || inputTokens + outputTokens),
+    totalTokens,
     estimatedCostUsd: estimateUsageCostUsd({ inputTokens, outputTokens }, pricing)
   }
 }

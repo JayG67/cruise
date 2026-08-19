@@ -70,3 +70,30 @@ describe('AI evaluation quality summary fail-closed evidence parsing', () => {
     expect(buildTrend([{ passRate: 50, averageScore: 50 }, { passRate: 60, averageScore: 55 }])).toEqual(expect.objectContaining({ direction: 'REGRESSING' }))
   })
 })
+
+describe('AI evaluation quality summary malformed-history hardening', () => {
+  it('treats null and object-shaped history as no data instead of throwing', async () => {
+    const nullHistory = await buildAiEvaluationQualitySummary({ runLister: jest.fn().mockResolvedValue(null) })
+    const objectRuns = await buildAiEvaluationQualitySummary({ runLister: jest.fn().mockResolvedValue({ runs: { runId: 'bad' } }) })
+    expect(nullHistory).toEqual(expect.objectContaining({ runCount: 0, releaseReadiness: 'NO_DATA' }))
+    expect(objectRuns).toEqual(expect.objectContaining({ runCount: 0, releaseReadiness: 'NO_DATA' }))
+  })
+
+  it('normalizes malformed run identity and provider metadata to safe scalar values', () => {
+    const run = summarizeRun({
+      runId: {}, suiteId: [], provider: {}, model: {}, promptVersion: {}, variantId: {},
+      metadata: { provider: {}, model: [], promptVersion: {}, variantId: [] },
+      results: [{ evaluationCaseId: {}, evaluationCaseName: {}, passed: false, dimensions: [] }]
+    })
+    expect(run).toEqual(expect.objectContaining({
+      runId: null, suiteId: null, provider: 'unknown', model: 'unknown', promptVersion: 'unknown', variantId: null
+    }))
+    expect(run.failedCases[0]).toEqual(expect.objectContaining({ evaluationCaseId: null, evaluationCaseName: 'Unnamed evaluation case' }))
+  })
+
+  it('fails soft for malformed failure-summary collections', () => {
+    expect(buildFailureSummary({ failedCases: [] })).toEqual([])
+    expect(buildFailureSummary([{ failedCases: { evaluationCaseId: 'bad' } }, null])).toEqual([])
+    expect(buildTrend({ passRate: 100 })).toEqual(expect.objectContaining({ direction: 'NO_DATA' }))
+  })
+})

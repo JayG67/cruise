@@ -303,23 +303,19 @@ exports.updateBooking = async (req, res, next) => {
       .where(eq(bookingPassengerTable.bookingId, id))
     const existingPassengersById = indexRowsBy(existingPassengerRows, 'id')
 
-    await db.transaction(async tx => {
-      await tx
-        .update(bookingTable)
-        .set(bookingUpdates)
-        .where(eq(bookingTable.id, id))
-
-      await tx
-        .delete(bookingPassengerTable)
-        .where(eq(bookingPassengerTable.bookingId, id))
-
+    const updatedRows = await db.transaction(async tx => {
+      const rows = await tx.update(bookingTable).set(bookingUpdates).where(eq(bookingTable.id, id)).returning()
+      if (!rows[0]) return rows
+      await tx.delete(bookingPassengerTable).where(eq(bookingPassengerTable.bookingId, id))
       for (const passenger of passengers) {
         const passengerId = `${id}-${passenger.customerId}`
         await tx.insert(bookingPassengerTable).values(
           buildBookingPassengerStorageValues(id, passenger, existingPassengersById.get(passengerId))
         )
       }
+      return rows
     })
+    if (!updatedRows[0]) return res.status(404).json({ message: 'Booking not found' })
 
     const bookingScope = await getSailingAuditScope(sailingRows[0])
     await recordCruiseManagementAuditEvent(req, {
@@ -354,13 +350,11 @@ exports.deleteBooking = async (req, res, next) => {
       return res.status(404).json({ message: 'Booking not found' })
     }
 
-    await db
-      .delete(bookingPassengerTable)
-      .where(eq(bookingPassengerTable.bookingId, id))
-
-    await db
-      .delete(bookingTable)
-      .where(eq(bookingTable.id, id))
+    const deletedRows = await db.transaction(async tx => {
+      await tx.delete(bookingPassengerTable).where(eq(bookingPassengerTable.bookingId, id))
+      return tx.delete(bookingTable).where(eq(bookingTable.id, id)).returning()
+    })
+    if (!deletedRows[0]) return res.status(404).json({ message: 'Booking not found' })
 
     const bookingScope = await getBookingAuditScope(existingRows[0])
     await recordCruiseManagementAuditEvent(req, {

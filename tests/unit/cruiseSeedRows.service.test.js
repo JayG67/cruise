@@ -124,4 +124,15 @@ describe('cruiseSeedRows service', () => {
     expect(rows.bookingPassengerRows[0]).toEqual(expect.objectContaining({ bookingId: 'B1', customerId: 'C1', isPrimaryGuest: true }))
     expect(rows.turnaroundTaskUpdateRows[0]).toEqual(expect.objectContaining({ authorUserId: null, updateType: 'NOTE', message: 'Ready' }))
   })
+
+  it('fails closed when a turnaround operation cannot resolve its sailing relationship', () => {
+    expect(() => buildSeedRows(buildMinimalData({
+      turnaroundOperations: [{
+        id: 'operation-missing-sailing',
+        shipName: 'Unknown ship',
+        departureDate: '2026-10-01'
+      }]
+    }))).toThrow('Unable to resolve sailing for turnaround operation operation-missing-sailing')
+  })
+
 })

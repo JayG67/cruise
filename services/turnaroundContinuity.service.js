@@ -2,12 +2,23 @@ function asArray(value) {
   return Array.isArray(value) ? value : []
 }
 
+function toNonNegativeNumber(value) {
+  const numericValue = Number(value)
+  return Number.isFinite(numericValue) && numericValue >= 0 ? numericValue : 0
+}
+
 function clampScore(value) {
-  return Math.max(0, Math.min(100, Math.round(Number(value) || 0)))
+  return Math.max(0, Math.min(100, Math.round(toNonNegativeNumber(value))))
+}
+
+function normalizeCount(value) {
+  return Math.floor(toNonNegativeNumber(value))
 }
 
 function normalizeText(value, fallback = '') {
-  return String(value || fallback).trim()
+  if (typeof value === 'string' && value.trim()) return value.trim()
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+  return fallback
 }
 
 function normalizeStatus(value, fallback = 'OPEN') {
@@ -15,45 +26,50 @@ function normalizeStatus(value, fallback = 'OPEN') {
 }
 
 function isCompleteStatus(value) {
-  return ['COMPLETE', 'COMPLETED', 'DONE', 'APPROVED', 'RESOLVED', 'CLEARED', 'CLOSED'].includes(String(value || '').toUpperCase())
+  return ['COMPLETE', 'COMPLETED', 'DONE', 'APPROVED', 'RESOLVED', 'CLEARED', 'CLOSED'].includes(String(value || '').trim().toUpperCase())
 }
 
 function isBlockedStatus(value) {
-  return ['BLOCKED', 'AT_RISK', 'CRITICAL', 'WATCH'].includes(String(value || '').toUpperCase())
+  return ['BLOCKED', 'AT_RISK', 'AT RISK', 'CRITICAL', 'WATCH'].includes(String(value || '').trim().toUpperCase())
 }
 
 function getDepartmentRole(row = {}) {
-  return row.departmentRole || row.role || row.ownerRole || row.team || 'Command'
+  row = row && typeof row === 'object' && !Array.isArray(row) ? row : {}
+  return normalizeText(row.departmentRole) || normalizeText(row.role) || normalizeText(row.ownerRole) || normalizeText(row.team) || 'Command'
 }
 
 function getOwner(row = {}, fallback = 'Turnaround Manager') {
-  return row.ownerDisplayName || row.ownerName || row.ownerUserId || row.approverDisplayName || row.approverUserId || getDepartmentRole(row) || fallback
+  row = row && typeof row === 'object' && !Array.isArray(row) ? row : {}
+  return normalizeText(row.ownerDisplayName) || normalizeText(row.ownerName) || normalizeText(row.ownerUserId) || normalizeText(row.approverDisplayName) || normalizeText(row.approverUserId) || getDepartmentRole(row) || fallback
 }
 
 function getPercent(part, total) {
-  if (!Number(total || 0)) return 0
-  return clampScore((Number(part || 0) / Number(total || 1)) * 100)
+  const safeTotal = toNonNegativeNumber(total)
+  if (!safeTotal) return 0
+  return clampScore((toNonNegativeNumber(part) / safeTotal) * 100)
 }
 
 function uniq(values) {
   return [...new Set(values.filter(Boolean))]
 }
 
-function buildContinuityInputs({
-  operation = {},
-  tasks = [],
-  staffing = [],
-  signoffs = [],
-  escalations = [],
-  dependencies = [],
-  handoffs = [],
-  lifecycleState = null,
-  releasePacket = null,
-  commandCenter = null,
-  closeoutPacket = null,
-  productionReadiness = null,
-  passengerCount = 0
-} = {}) {
+function buildContinuityInputs(input = {}) {
+  input = input && typeof input === 'object' && !Array.isArray(input) ? input : {}
+  const {
+    operation = {},
+    tasks = [],
+    staffing = [],
+    signoffs = [],
+    escalations = [],
+    dependencies = [],
+    handoffs = [],
+    lifecycleState = null,
+    releasePacket = null,
+    commandCenter = null,
+    closeoutPacket = null,
+    productionReadiness = null,
+    passengerCount = 0
+  } = input
   const operationDetails = operation || {}
   const taskRows = asArray(tasks)
   const staffingRows = asArray(staffing)
@@ -67,9 +83,13 @@ function buildContinuityInputs({
   const openDependencies = dependencyRows.filter(dependency => !isCompleteStatus(dependency.status))
   const openHandoffs = handoffRows.filter(handoff => !isCompleteStatus(handoff.status))
   const openEscalations = escalationRows.filter(escalation => !isCompleteStatus(escalation.status))
-  const criticalEscalations = openEscalations.filter(escalation => String(escalation.severity || '').toUpperCase() === 'CRITICAL')
-  const pendingSignoffs = signoffRows.filter(signoff => String(signoff.status || '').toUpperCase() !== 'APPROVED')
-  const staffingGaps = staffingRows.filter(row => Number(row.plannedCount || row.requiredCount || row.required || 0) > Number(row.checkedInCount || row.assignedCount || row.assigned || 0))
+  const criticalEscalations = openEscalations.filter(escalation => String(escalation.severity || '').trim().toUpperCase() === 'CRITICAL')
+  const pendingSignoffs = signoffRows.filter(signoff => String(signoff.status || '').trim().toUpperCase() !== 'APPROVED')
+  const staffingGaps = staffingRows.filter(row => {
+    const planned = normalizeCount(row.plannedCount ?? row.requiredCount ?? row.required)
+    const checkedIn = normalizeCount(row.checkedInCount ?? row.assignedCount ?? row.assigned)
+    return planned > checkedIn
+  })
   const completedTasks = taskRows.length - incompleteTasks.length
 
   return {
@@ -77,7 +97,7 @@ function buildContinuityInputs({
     operationTitle: operationDetails.title || operationDetails.operationName || 'Selected turnaround',
     shipName: operationDetails.shipName || operationDetails.ship?.name || 'Selected ship',
     port: operationDetails.port || operationDetails.arrivalPort || operationDetails.sailing?.arrivalPort || 'Selected port',
-    passengerCount: Number(passengerCount ?? operationDetails.passengerCount ?? 0),
+    passengerCount: normalizeCount(passengerCount ?? operationDetails.passengerCount),
     tasks: taskRows,
     staffing: staffingRows,
     signoffs: signoffRows,
@@ -164,8 +184,8 @@ function buildContinuityScenarios(inputs = {}) {
 
   if (inputs.staffingGaps.length) {
     const gap = inputs.staffingGaps[0]
-    const planned = Number(gap.plannedCount || gap.requiredCount || gap.required || 0)
-    const checkedIn = Number(gap.checkedInCount || gap.assignedCount || gap.assigned || 0)
+    const planned = normalizeCount(gap.plannedCount ?? gap.requiredCount ?? gap.required)
+    const checkedIn = normalizeCount(gap.checkedInCount ?? gap.assignedCount ?? gap.assigned)
     scenarios.push({
       id: 'staffing-shortfall',
       label: 'Staffing shortfall',
@@ -183,7 +203,7 @@ function buildContinuityScenarios(inputs = {}) {
     scenarios.push({
       id: 'active-escalation',
       label: 'Active escalation',
-      severity: String(escalation.severity || 'MEDIUM').toUpperCase(),
+      severity: String(escalation.severity || 'MEDIUM').trim().toUpperCase(),
       trigger: escalation.title || escalation.issue || 'Escalation remains unresolved',
       impact: escalation.description || 'Unresolved operational risk can block final readiness confidence.',
       owner: getOwner(escalation, 'Incident Commander'),
@@ -197,7 +217,7 @@ function buildContinuityScenarios(inputs = {}) {
     scenarios.push({
       id: 'handoff-miss',
       label: 'Handoff acceptance miss',
-      severity: String(handoff.status || '').toUpperCase() === 'BLOCKED' ? 'HIGH' : 'MEDIUM',
+      severity: String(handoff.status || '').trim().toUpperCase() === 'BLOCKED' ? 'HIGH' : 'MEDIUM',
       trigger: handoff.title || handoff.notes || 'Department handoff remains open',
       impact: 'The next department may start with stale assumptions or missing release evidence.',
       owner: getOwner(handoff),
@@ -211,7 +231,7 @@ function buildContinuityScenarios(inputs = {}) {
     scenarios.push({
       id: 'readiness-signoff-gap',
       label: 'Readiness signoff gap',
-      severity: String(signoff.status || '').toUpperCase() === 'BLOCKED' ? 'HIGH' : 'MEDIUM',
+      severity: String(signoff.status || '').trim().toUpperCase() === 'BLOCKED' ? 'HIGH' : 'MEDIUM',
       trigger: `${getDepartmentRole(signoff)} signoff is ${normalizeStatus(signoff.status, 'PENDING')}.`,
       impact: 'Final readiness cannot be presented as complete until the approving role confirms evidence.',
       owner: getOwner(signoff),
@@ -253,7 +273,7 @@ function buildContinuityDepartments(inputs = {}) {
     const departmentEscalations = inputs.openEscalations.filter(escalation => getDepartmentRole(escalation) === departmentRole)
     const departmentDependencies = inputs.openDependencies.filter(dependency => getDepartmentRole(dependency) === departmentRole)
     const departmentSignoffs = inputs.signoffs.filter(signoff => getDepartmentRole(signoff) === departmentRole)
-    const approvedSignoffs = departmentSignoffs.filter(signoff => String(signoff.status || '').toUpperCase() === 'APPROVED').length
+    const approvedSignoffs = departmentSignoffs.filter(signoff => String(signoff.status || '').trim().toUpperCase() === 'APPROVED').length
     const staffingGap = inputs.staffingGaps.find(row => getDepartmentRole(row) === departmentRole)
     const score = clampScore(((departmentTasks.length ? getPercent(completeTasks, departmentTasks.length) : 75) * 0.4) + ((departmentSignoffs.length ? getPercent(approvedSignoffs, departmentSignoffs.length) : 75) * 0.3) + (staffingGap ? 45 : 85) * 0.3)
 

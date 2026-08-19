@@ -205,3 +205,102 @@ it('covers singular data-quality wording and medium incident-risk prioritization
     expect.objectContaining({ id: 'clean-data-quality-watch-items', priority: 'MEDIUM', detail: expect.stringContaining('1 data-quality watch item remain') })
   ]))
 })
+
+it('fails malformed incident and data-quality evidence safe without NaN or false remediation', () => {
+  const capabilities = buildTurnaroundCapabilityMap({
+    operation: { id: 'turnaround-malformed' },
+    incidentCommand: { incidentScore: 'not-a-number' },
+    operationalTimeline: { summary: { totalEvents: Infinity } }
+  })
+  const work = buildTurnaroundRemainingWork({
+    capabilities: [],
+    incidentCommand: { incidentScore: 'not-a-number' },
+    outreachBoard: { readiness: { dataQualityRisk: 'bad-count' } },
+    reviewerPacket: { dataQuality: { blockerCount: 6 } }
+  })
+
+  expect(capabilities.find(item => item.id === 'audit-timeline').evidence[0]).toBe('0 timeline events')
+  expect(capabilities.find(item => item.id === 'incident-after-action').score).toBeGreaterThanOrEqual(0)
+  expect(JSON.stringify(capabilities)).not.toContain('NaN')
+  expect(work).toEqual([expect.objectContaining({ id: 'prepare-operational-review-route' })])
+})
+
+it('preserves authoritative zero data-quality risk instead of substituting fallback blockers', () => {
+  const work = buildTurnaroundRemainingWork({
+    capabilities: [],
+    outreachBoard: { readiness: { dataQualityRisk: 0 } },
+    reviewerPacket: { dataQuality: { blockerCount: 7 } }
+  })
+
+  expect(work).not.toEqual(expect.arrayContaining([expect.objectContaining({ id: 'clean-data-quality-watch-items' })]))
+})
+
+it('fails non-finite completion scores safe instead of treating Infinity as complete', () => {
+  const capabilities = buildTurnaroundCapabilityMap({
+    operation: { id: 'turnaround-nonfinite' },
+    releasePacket: { releaseScore: Infinity },
+    incidentCommand: { incidentScore: Infinity },
+    playbookVariance: { summary: { rehearsalScore: Infinity } },
+    afterActionReview: { summary: { reviewScore: Infinity } }
+  })
+  const byId = Object.fromEntries(capabilities.map(item => [item.id, item]))
+
+  expect(byId['release-readiness'].score).toBe(0)
+  expect(byId['playbook-rehearsal'].score).toBe(0)
+  expect(byId['incident-after-action'].score).toBe(55)
+})
+
+describe('turnaroundCompletion normalized workflow evidence', () => {
+  it('treats equivalent padded terminal statuses as complete across workflow types', () => {
+    const capabilities = buildTurnaroundCapabilityMap({
+      operation: { id: 'op-830' },
+      tasks: [{ status: ' completed ' }, { status: ' approved ' }],
+      signoffs: [{ status: ' approved ' }],
+      dependencies: [{ status: ' cleared ' }, { status: ' resolved ' }],
+      handoffs: [{ status: ' closed ' }],
+      operationalMetrics: { summary: { staffingCoverage: 100, releaseConfidence: 100 } },
+      releasePacket: { releaseScore: 100 },
+      playbookTemplate: { readinessScore: 100 },
+      afterActionReview: { summary: { reviewScore: 100 } },
+      reviewerPacket: { readiness: { readinessScore: 100 } },
+      outreachBoard: { readiness: { readinessScore: 100 } }
+    })
+
+    const workflow = capabilities.find(capability => capability.id === 'workflow-crud')
+    expect(workflow.score).toBe(100)
+    expect(workflow.status).toBe('COMPLETE')
+  })
+
+  it('degrades malformed collections and non-finite evidence to conservative capability scores', () => {
+    const capabilities = buildTurnaroundCapabilityMap({
+      tasks: 'bad',
+      staffing: {},
+      signoffs: null,
+      dependencies: 'bad',
+      handoffs: {},
+      auditEvents: 'bad',
+      releasePacket: { releaseScore: Infinity },
+      operationalTimeline: { summary: { totalEvents: Infinity } },
+      operationalMetrics: { summary: { staffingCoverage: Infinity } },
+      incidentCommand: { incidentScore: Infinity },
+      afterActionReview: { summary: { reviewScore: Infinity } }
+    })
+
+    expect(capabilities.find(capability => capability.id === 'workflow-crud').score).toBe(0)
+    expect(capabilities.find(capability => capability.id === 'release-readiness').score).toBe(0)
+    expect(capabilities.find(capability => capability.id === 'audit-timeline').score).toBe(0)
+  })
+
+  it('covers remaining-work and next-slice priority branches', () => {
+    const work = buildTurnaroundRemainingWork({
+      capabilities: [{ id: 'weak', label: 'Weak area', score: 40, detail: 'Needs work' }],
+      incidentCommand: { incidentScore: 80 },
+      reviewerPacket: { dataQuality: { blockerCount: 5 } }
+    })
+    const slices = buildTurnaroundNextSlices({ maturityScore: 95, remainingWork: work })
+
+    expect(work.map(item => item.priority)).toContain('HIGH')
+    expect(slices[0]).toContain('high-priority')
+    expect(slices).toEqual(expect.arrayContaining([expect.stringContaining('Approve the core turnaround release baseline')]))
+  })
+})

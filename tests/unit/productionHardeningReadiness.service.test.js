@@ -72,6 +72,30 @@ describe('productionHardeningReadiness service', () => {
     expect(gate.evidence).toContain('0 required variables present: none')
   })
 
+  it('treats whitespace-only environment values as missing instead of release-ready', () => {
+    const gate = buildEnvironmentGate({
+      env: { DATABASE_URL: '   ', NODE_ENV: '\t', PORT: '8000' },
+      files: { '.env.example': true }
+    })
+
+    expect(gate.summary).toContain('1 of 3 required environment values')
+    expect(gate.evidence[0]).toContain('PORT')
+    expect(gate.evidence[0]).not.toContain('DATABASE_URL')
+    expect(gate.status).toBe('needs-hardening')
+  })
+
+  it('fails soft when custom environment requirement lists are malformed', () => {
+    const gate = buildEnvironmentGate({
+      env: { DATABASE_URL: 'postgres://example' },
+      files: {},
+      requiredEnv: 'DATABASE_URL',
+      recommendedEnv: { value: 'PORT' }
+    })
+
+    expect(gate.score).toBe(0)
+    expect(gate.summary).toContain('0 of 0 required environment values')
+  })
+
   it.each([
     [{ dependencies: { express: '5' } }, { 'middleware/validate.middleware.js': true, 'tests/unit/app.security.test.js': true }, 'errorHandler(err, req, res, next)', 'catch (err) { next(err) }', 'ready'],
     [{ devDependencies: { express: '5' } }, { 'middleware/validate.middleware.js': true }, '', 'catch (error) { next(error) }', 'watch'],
@@ -149,5 +173,58 @@ describe('productionHardeningReadiness service', () => {
     expect(watch.summary).toContain('watchlist')
     expect(blocked.status).toBe('needs-hardening')
     expect(blocked.summary).toContain('need attention')
+  })
+
+  it('does not count blank scripts or dependency versions as production-readiness evidence', () => {
+    const deployment = buildDeploymentGate({
+      packageJson: { scripts: { 'start:prod': '   ', 'react:build': '	' } },
+      files: { 'render.yaml': true }
+    })
+    const errorHandling = buildErrorHandlingGate({
+      packageJson: { dependencies: { express: ' ' } },
+      files: { 'middleware/validate.middleware.js': true, 'tests/unit/app.security.test.js': true },
+      appSource: 'errorHandler(err, req, res, next)',
+      controllerSource: 'catch (err) { next(err) }'
+    })
+    const security = buildSecurityGate({
+      packageJson: { dependencies: { zod: '   ' } },
+      files: {
+        'tests/unit/app.security.test.js': true,
+        'services/requestAuthorization.service.js': true,
+        'middleware/requestIdentity.middleware.js': true
+      },
+      appSource: 'cors()'
+    })
+
+    expect(deployment.score).toBe(20)
+    expect(errorHandling.score).toBe(80)
+    expect(errorHandling.status).toBe('watch')
+    expect(security.score).toBe(80)
+    expect(security.status).toBe('watch')
+  })
+
+})
+
+describe('production hardening exported gate null-input hardening', () => {
+  it('fails soft when every exported gate builder receives explicit null', () => {
+    const gates = [
+      buildEnvironmentGate(null),
+      buildErrorHandlingGate(null),
+      buildLoggingGate(null),
+      buildObservabilityGate(null),
+      buildDeploymentGate(null),
+      buildSecurityGate(null)
+    ]
+
+    expect(gates.map(gate => gate.id)).toEqual([
+      'environment',
+      'error-handling',
+      'logging',
+      'observability',
+      'deployment',
+      'security'
+    ])
+    expect(gates.every(gate => Number.isFinite(gate.score))).toBe(true)
+    expect(gates.every(gate => gate.status === 'needs-hardening')).toBe(true)
   })
 })

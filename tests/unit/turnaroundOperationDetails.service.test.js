@@ -372,4 +372,260 @@ describe('turnaround operation details resilience and coverage hardening', () =>
     expect(Object.values(result.staffingSummary).every(value => Number.isFinite(value))).toBe(true)
   })
 
+  test('evaluates signoff-only and escalation-only blocker branches independently', async () => {
+    async function run({ signoffs = [], escalations = [] }) {
+      mockRows.clear()
+      setRows(mockTables.sailing, [{ id: 'SAIL-BRANCH', shipId: null }])
+      setRows(mockTables.task, [])
+      setRows(mockTables.signoff, signoffs)
+      setRows(mockTables.escalation, escalations)
+      setRows(mockTables.staffing, [])
+      setRows(mockTables.dependency, [])
+      setRows(mockTables.handoff, [])
+      setRows(mockTables.booking, [])
+      return getTurnaroundOperationDetails({ id: 'OP-BRANCH', sailingId: 'SAIL-BRANCH' })
+    }
+
+    const signoffBlocked = await run({ signoffs: [{ departmentRole: 'Bridge', status: 'BLOCKED' }] })
+    expect(signoffBlocked.status).toBe('PLANNED')
+    expect(signoffBlocked.readinessLevel).toBe('Blocked')
+
+    const escalationBlocked = await run({ escalations: [{ id: 'E-C', status: 'OPEN', severity: 'CRITICAL' }] })
+    expect(escalationBlocked.status).toBe('BLOCKED')
+    expect(escalationBlocked.readinessLevel).toBe('Blocked')
+  })
+
+  test('derives in-progress readiness from an approved signoff when no task progress exists', async () => {
+    setRows(mockTables.sailing, [{ id: 'SAIL-SIGNOFF', shipId: null }])
+    setRows(mockTables.task, [])
+    setRows(mockTables.signoff, [{ departmentRole: 'Bridge', status: 'APPROVED' }, { departmentRole: 'Hotel', status: 'PENDING' }])
+    setRows(mockTables.escalation, [])
+    setRows(mockTables.staffing, [])
+    setRows(mockTables.dependency, [])
+    setRows(mockTables.handoff, [])
+    setRows(mockTables.booking, [])
+
+    const result = await getTurnaroundOperationDetails({ id: 'OP-SIGNOFF', sailingId: 'SAIL-SIGNOFF' })
+
+    expect(result.status).toBe('PLANNED')
+    expect(result.readinessLevel).toBe('In progress')
+    expect(result.signoffSummary.approvalPercent).toBe(50)
+  })
+
+  test('uses authoritative user display names and sorts task updates newest first', async () => {
+    setRows(mockTables.sailing, [{ id: 'SAIL-USERS', shipId: null }])
+    setRows(mockTables.task, [{ id: 'T-USERS', taskName: 'User task', status: 'IN_PROGRESS', sortOrder: 'bad', ownerUserId: 'U-OWNER', ownerName: 'Stale owner' }])
+    setRows(mockTables.signoff, [{ departmentRole: 'Bridge', status: 'PENDING', approverUserId: 'U-APPROVER', approverName: 'Stale approver' }])
+    setRows(mockTables.escalation, [{ id: 'E-USERS', status: 'MONITORING', severity: 'LOW', ownerUserId: 'U-ESC', ownerName: 'Stale escalation' }])
+    setRows(mockTables.staffing, [])
+    setRows(mockTables.dependency, [])
+    setRows(mockTables.handoff, [{ id: 'H-USERS', status: 'COMPLETE', ownerUserId: 'U-HANDOFF', ownerName: 'Stale handoff' }])
+    setRows(mockTables.update, [
+      { id: 'UP-OLD', createdAt: '2026-08-17T10:00:00Z', authorUserId: 'U-AUTHOR' },
+      { id: 'UP-NEW', createdAt: '2026-08-17T12:00:00Z', authorUserId: 'U-AUTHOR' }
+    ])
+    setRows(mockTables.user, [
+      { id: 'U-OWNER', displayName: 'Authoritative owner' },
+      { id: 'U-APPROVER', displayName: 'Authoritative approver' },
+      { id: 'U-ESC', displayName: 'Authoritative escalation' },
+      { id: 'U-HANDOFF', displayName: 'Authoritative handoff' },
+      { id: 'U-AUTHOR', displayName: 'Authoritative author' }
+    ])
+    setRows(mockTables.booking, [{ id: 'B-EMPTY' }])
+    setRows(mockTables.passenger, [])
+
+    const result = await getTurnaroundOperationDetails({ id: 'OP-USERS', sailingId: 'SAIL-USERS' })
+
+    expect(result.tasks[0].ownerDisplayName).toBe('Authoritative owner')
+    expect(result.tasks[0].updates.map(update => update.id)).toEqual(['UP-NEW', 'UP-OLD'])
+    expect(result.tasks[0].updates[0].authorDisplayName).toBe('Authoritative author')
+    expect(result.signoffs[0].approverDisplayName).toBe('Authoritative approver')
+    expect(result.escalations[0].ownerDisplayName).toBe('Authoritative escalation')
+    expect(result.handoffs[0].ownerDisplayName).toBe('Authoritative handoff')
+    expect(result.passengerCount).toBe(0)
+  })
+
+  test('normalizes persisted operational status casing before deriving release readiness', async () => {
+    setRows(mockTables.sailing, [{ id: 'SAIL-CASE', shipId: null }])
+    setRows(mockTables.task, [{ id: 'T-CASE', taskName: 'Complete task', status: ' complete ', sortOrder: 1 }])
+    setRows(mockTables.signoff, [{ departmentRole: 'Bridge', status: 'approved' }])
+    setRows(mockTables.escalation, [{ id: 'E-CASE', status: ' resolved ', severity: 'critical' }])
+    setRows(mockTables.staffing, [{ departmentRole: 'Hotel', plannedCount: 2, checkedInCount: 2 }])
+    setRows(mockTables.dependency, [{ id: 'D-CASE', status: 'cleared', taskId: 'T-CASE', dependsOnTaskId: 'T-CASE' }])
+    setRows(mockTables.handoff, [{ id: 'H-CASE', status: 'complete', dueTime: '12:00' }])
+    setRows(mockTables.update, [])
+    setRows(mockTables.booking, [])
+
+    const result = await getTurnaroundOperationDetails({ id: 'OP-CASE', sailingId: 'SAIL-CASE' })
+
+    expect(result.status).toBe('COMPLETE')
+    expect(result.readinessLevel).toBe('Ready for embarkation')
+    expect(result.escalationSummary).toEqual(expect.objectContaining({ resolvedEscalations: 1, criticalEscalations: 0 }))
+    expect(result.dependencySummary).toEqual(expect.objectContaining({ activeDependencies: 0, clearedDependencies: 1 }))
+    expect(result.handoffSummary).toEqual(expect.objectContaining({ completedHandoffs: 1, openHandoffs: 0 }))
+  })
+
+  test('still recognizes lowercase active blocker evidence after status normalization', async () => {
+    setRows(mockTables.sailing, [{ id: 'SAIL-LOW-BLOCK', shipId: null }])
+    setRows(mockTables.task, [{ id: 'T-LOW-BLOCK', taskName: 'Blocked task', status: 'blocked' }])
+    setRows(mockTables.signoff, [])
+    setRows(mockTables.escalation, [{ id: 'E-LOW-BLOCK', status: 'open', severity: 'critical' }])
+    setRows(mockTables.staffing, [])
+    setRows(mockTables.dependency, [])
+    setRows(mockTables.handoff, [])
+    setRows(mockTables.update, [])
+    setRows(mockTables.booking, [])
+
+    const result = await getTurnaroundOperationDetails({ id: 'OP-LOW-BLOCK', sailingId: 'SAIL-LOW-BLOCK' })
+
+    expect(result.status).toBe('BLOCKED')
+    expect(result.readinessLevel).toBe('Blocked')
+    expect(result.taskSummary.blockedTasks).toBe(1)
+    expect(result.escalationSummary.criticalEscalations).toBe(1)
+  })
+
+
+  test('sorts malformed and non-finite task order values deterministically instead of leaking NaN ordering', async () => {
+    setRows(mockTables.sailing, [{ id: 'SAIL-SORT', shipId: null }])
+    setRows(mockTables.task, [
+      { id: 'T-INF', taskName: 'Infinite order', status: 'PLANNED', sortOrder: Infinity },
+      { id: 'T-BAD', taskName: 'Malformed order', status: 'PLANNED', sortOrder: 'bad' },
+      { id: 'T-TWO', taskName: 'Second', status: 'PLANNED', sortOrder: 2 },
+      { id: 'T-ONE', taskName: 'First', status: 'PLANNED', sortOrder: 1 }
+    ])
+    setRows(mockTables.signoff, [])
+    setRows(mockTables.escalation, [])
+    setRows(mockTables.staffing, [])
+    setRows(mockTables.dependency, [])
+    setRows(mockTables.handoff, [])
+    setRows(mockTables.update, [], [], [], [])
+    setRows(mockTables.booking, [])
+
+    const result = await getTurnaroundOperationDetails({ id: 'OP-SORT', sailingId: 'SAIL-SORT' })
+
+    expect(result.tasks.map(task => task.id)).toEqual(['T-INF', 'T-BAD', 'T-ONE', 'T-TWO'])
+    expect(result.taskSummary.totalTasks).toBe(4)
+  })
+
+
+  test('keeps hierarchy and person enrichment fail-soft across missing cruise line and fallback display fields', async () => {
+    setRows(mockTables.sailing, [{ id: 'SAIL-FALLBACKS', shipId: 'SHIP-FALLBACKS' }])
+    setRows(mockTables.ship, [{ id: 'SHIP-FALLBACKS', cruiseLineId: 'CL-MISSING' }])
+    setRows(mockTables.cruiseLine, [])
+    setRows(mockTables.task, [{ id: 'T-FALLBACKS', taskName: 'Fallback task', status: 'IN_PROGRESS', sortOrder: 1, ownerUserId: 'U-MISSING', ownerDisplayName: 'Embedded task owner' }])
+    setRows(mockTables.signoff, [{ id: 'S-FALLBACKS', departmentRole: 'Bridge', status: 'PENDING', approverName: 'Embedded approver' }])
+    setRows(mockTables.escalation, [{ id: 'E-FALLBACKS', status: 'MONITORING', severity: 'LOW', ownerName: 'Embedded escalation owner', createdAt: null }])
+    setRows(mockTables.staffing, [])
+    setRows(mockTables.dependency, [])
+    setRows(mockTables.handoff, [{ id: 'H-FALLBACKS', status: 'PENDING', leadName: 'Embedded handoff lead', dueTime: null }])
+    setRows(mockTables.update, [{ id: 'UP-FALLBACKS', authorName: 'Embedded update author', createdAt: null }])
+    setRows(mockTables.user, [])
+    setRows(mockTables.booking, [])
+
+    const result = await getTurnaroundOperationDetails({ id: 'OP-FALLBACKS', sailingId: 'SAIL-FALLBACKS' })
+
+    expect(result.ship).toEqual(expect.objectContaining({ id: 'SHIP-FALLBACKS' }))
+    expect(result.cruiseLine).toBeNull()
+    expect(result.tasks[0].ownerDisplayName).toBe('Embedded task owner')
+    expect(result.tasks[0].updates[0].authorDisplayName).toBe('Embedded update author')
+    expect(result.signoffs[0].approverDisplayName).toBe('Embedded approver')
+    expect(result.escalations[0].ownerDisplayName).toBe('Embedded escalation owner')
+    expect(result.handoffs[0].ownerDisplayName).toBe('Embedded handoff lead')
+    expect(result.readinessLevel).toBe('Blocked')
+  })
+
+})
+
+describe('turnaround operation details malformed collection hardening', () => {
+  beforeEach(() => {
+    mockRows.clear()
+    mockBuildArtifacts.mockClear()
+  })
+
+  test('treats malformed operational row collections as empty instead of throwing', async () => {
+    setRows(mockTables.sailing, [{ id: 'SAIL-MALFORMED', shipId: null }])
+    setRows(mockTables.task, { not: 'an array' })
+    setRows(mockTables.signoff, { not: 'an array' })
+    setRows(mockTables.escalation, 'bad')
+    setRows(mockTables.staffing, 7)
+    setRows(mockTables.dependency, null)
+    setRows(mockTables.handoff, { bad: true })
+    setRows(mockTables.booking, { bad: true })
+
+    const result = await getTurnaroundOperationDetails({ id: 'OP-MALFORMED', sailingId: 'SAIL-MALFORMED' })
+
+    expect(result.tasks).toEqual([])
+    expect(result.signoffs).toEqual([])
+    expect(result.escalations).toEqual([])
+    expect(result.staffing).toEqual([])
+    expect(result.taskDependencies).toEqual([])
+    expect(result.handoffs).toEqual([])
+    expect(result.passengerCount).toBe(0)
+    expect(result.status).toBe('PLANNED')
+    expect(result.readinessLevel).toBe('Planning')
+  })
+
+  test('ignores malformed passenger query results instead of corrupting passenger evidence', async () => {
+    setRows(mockTables.sailing, [{ id: 'SAIL-PAX', shipId: null }])
+    setRows(mockTables.task, [])
+    setRows(mockTables.signoff, [])
+    setRows(mockTables.escalation, [])
+    setRows(mockTables.staffing, [])
+    setRows(mockTables.dependency, [])
+    setRows(mockTables.handoff, [])
+    setRows(mockTables.booking, [{ id: 'B-PAX' }])
+    setRows(mockTables.passenger, { malformed: true })
+
+    const result = await getTurnaroundOperationDetails({ id: 'OP-PAX', sailingId: 'SAIL-PAX' })
+
+    expect(result.passengerCount).toBe(0)
+    expect(mockBuildArtifacts).toHaveBeenCalledWith(expect.objectContaining({ passengerCount: 0 }))
+  })
+})
+
+describe('turnaround operation equivalent terminal and malformed hierarchy hardening', () => {
+  beforeEach(() => {
+    mockRows.clear()
+    mockBuildArtifacts.mockClear()
+  })
+
+  test('treats equivalent terminal task, dependency, and handoff states as completed readiness evidence', async () => {
+    setRows(mockTables.sailing, [{ id: 'SAIL-EQ', shipId: null }])
+    setRows(mockTables.task, [{ id: 'T-EQ', taskName: 'Equivalent complete', status: ' completed ', sortOrder: 1 }])
+    setRows(mockTables.signoff, [{ id: 'S-EQ', departmentRole: 'Bridge', status: ' approved ' }])
+    setRows(mockTables.escalation, [])
+    setRows(mockTables.staffing, [])
+    setRows(mockTables.dependency, [{ id: 'D-EQ', status: 'resolved', taskId: 'T-EQ', dependsOnTaskId: 'T-EQ' }])
+    setRows(mockTables.handoff, [{ id: 'H-EQ', status: 'closed', dueTime: '11:00' }])
+    setRows(mockTables.update, [])
+    setRows(mockTables.booking, [])
+
+    const result = await getTurnaroundOperationDetails({ id: 'OP-EQ', sailingId: 'SAIL-EQ' })
+
+    expect(result).toEqual(expect.objectContaining({ status: 'COMPLETE', readinessLevel: 'Ready for embarkation' }))
+    expect(result.taskSummary).toEqual(expect.objectContaining({ completeTasks: 1, completionPercent: 100 }))
+    expect(result.dependencySummary).toEqual({ totalDependencies: 1, activeDependencies: 0, clearedDependencies: 1 })
+    expect(result.handoffSummary).toEqual(expect.objectContaining({ completedHandoffs: 1, openHandoffs: 0 }))
+  })
+
+  test('fails soft when hierarchy and user lookup queries return malformed collection shapes', async () => {
+    setRows(mockTables.sailing, null)
+    setRows(mockTables.task, [{ id: 'T-M', taskName: 'Owner lookup', status: 'IN_PROGRESS', sortOrder: 1, ownerUserId: 'U-M' }])
+    setRows(mockTables.signoff, [])
+    setRows(mockTables.escalation, [])
+    setRows(mockTables.staffing, [])
+    setRows(mockTables.dependency, [])
+    setRows(mockTables.handoff, [])
+    setRows(mockTables.update, [])
+    setRows(mockTables.user, null)
+    setRows(mockTables.booking, null)
+
+    const result = await getTurnaroundOperationDetails({ id: 'OP-M', sailingId: 'SAIL-M' })
+
+    expect(result.sailing).toBeNull()
+    expect(result.ship).toBeNull()
+    expect(result.cruiseLine).toBeNull()
+    expect(result.passengerCount).toBe(0)
+    expect(result.tasks[0]).toEqual(expect.objectContaining({ ownerDisplayName: null }))
+  })
 })

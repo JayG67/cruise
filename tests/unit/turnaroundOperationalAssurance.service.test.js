@@ -270,4 +270,100 @@ describe('turnaroundOperationalAssurance service', () => {
     expect(steps).toHaveLength(8)
   })
 
+
+  it('fails non-finite assurance scores safe instead of promoting them to 100 percent', () => {
+    const readiness = buildAssuranceReadiness({
+      executiveBrief: { summary: { decisionScore: Infinity, releaseConfidence: Infinity, incidentScore: Infinity, reviewScore: Infinity, rehearsalScore: Infinity } }
+    })
+
+    expect(readiness).toMatchObject({
+      executiveScore: 0,
+      releaseScore: 0,
+      incidentScore: 0,
+      debriefScore: 0,
+      rehearsalScore: 0,
+      readinessScore: 18,
+      readinessStatus: 'HOLD_FOR_COMMAND_ASSURANCE'
+    })
+  })
+
+  it('normalizes malformed staffing counts before detecting assurance gaps', () => {
+    const quality = buildAssuranceDataQuality({
+      staffing: [
+        { plannedCount: 5, checkedInCount: 'bad' },
+        { plannedCount: Infinity, checkedInCount: 0 },
+        { plannedCount: 3.9, checkedInCount: 2.1 },
+        { plannedCount: -4, checkedInCount: 0 }
+      ]
+    })
+
+    expect(quality.staffingGaps).toBe(2)
+    expect(quality.status).toBe('WATCH')
+  })
+
+  it('does not iterate malformed action collections character by character', () => {
+    const packet = buildTurnaroundOperationalAssurance({
+      executiveBrief: { executiveActions: 'BAD' },
+      incidentCommand: { commandActions: 'BAD' },
+      afterActionReview: { followUpActions: 'BAD', findings: 'BAD' },
+      playbookVariance: { rehearsalActions: 'BAD' },
+      playbookTemplate: { nextBestActions: 'BAD', recommendations: 'BAD' }
+    })
+
+    expect(packet.nextSteps).toEqual(['Resolve the top watch items before advancing this operation to executive operational review.'])
+    expect(packet.proofPoints.find(point => point.id === 'playbook-promotion').detail).toContain('Review variance before promotion')
+    expect(packet.proofPoints.find(point => point.id === 'incident-command').detail).toContain('No critical release-day exception bridge')
+    expect(packet.proofPoints.find(point => point.id === 'after-action-review').detail).toContain('Capture final lessons')
+  })
+
+})
+
+describe('turnaroundOperationalAssurance normalized operational evidence', () => {
+  it('trims status tokens before deciding whether operational evidence is closed', () => {
+    const quality = buildAssuranceDataQuality({
+      signoffs: [{ status: ' approved ' }],
+      dependencies: [{ status: ' completed ' }],
+      handoffs: [{ status: ' complete ' }],
+      escalations: [{ status: ' resolved ' }, { status: ' closed ' }]
+    })
+
+    expect(quality).toMatchObject({
+      openEscalations: 0,
+      incompleteSignoffs: 0,
+      openDependencies: 0,
+      openHandoffs: 0,
+      status: 'CLEAN'
+    })
+  })
+
+  it('does not publish object-valued narrative evidence as assurance actions or proof text', () => {
+    const narrative = buildAssuranceNarrative({
+      executiveBrief: { executiveActions: [{ bad: true }] },
+      incidentCommand: { commandActions: ['  Valid incident action  '] }
+    })
+    const points = buildAssuranceProofPoints({
+      releasePacket: { summary: { bad: true } },
+      operationalMetrics: { summary: { releaseConfidence: 82 } },
+      incidentCommand: { commandActions: [{ bad: true }] }
+    })
+
+    expect(narrative.topAction).toBe('Valid incident action')
+    expect(points.find(point => point.id === 'release-readiness').detail).toBe('Release confidence 82%.')
+    expect(points.find(point => point.id === 'incident-command').detail).toContain('No critical release-day exception bridge')
+  })
+})
+
+describe('turnaroundOperationalAssurance action text hardening', () => {
+  it('skips malformed action objects when building assurance next steps', () => {
+    const steps = buildAssuranceNextSteps({
+      readiness: { readinessStatus: 'READY_FOR_OPERATIONAL_REVIEW' },
+      executiveBrief: { executiveActions: [{ bad: true }, '  Publish brief  '] },
+      incidentCommand: { commandActions: [{ bad: true }] },
+      afterActionReview: { followUpActions: [null, 'Close lesson'] },
+      playbookVariance: { rehearsalActions: [{ bad: true }] }
+    })
+
+    expect(steps).toEqual(expect.arrayContaining(['Executive: Publish brief', 'After action: Close lesson']))
+    expect(JSON.stringify(steps)).not.toContain('[object Object]')
+  })
 })

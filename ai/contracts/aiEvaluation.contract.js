@@ -6,6 +6,17 @@ const evaluationCandidateSchema = z.object({
   briefing: turnaroundBriefingResponseSchema
 }).strict()
 
+
+function hasUniqueCaseIds(candidates) {
+  const caseIds = candidates.map(candidate => candidate.caseId)
+  return new Set(caseIds).size === caseIds.length
+}
+
+function hasUniqueVariantIds(variants) {
+  const variantIds = variants.map(variant => variant.variantId)
+  return new Set(variantIds).size === variantIds.length
+}
+
 const regressionPolicySchema = z.object({
   minimumPassRate: z.coerce.number().min(0).max(100).optional(),
   minimumAverageScore: z.coerce.number().min(0).max(100).optional(),
@@ -17,7 +28,10 @@ const regressionPolicySchema = z.object({
 const runEvaluationRequestSchema = z.object({
   suiteId: z.string().trim().min(1).max(160).default('turnaround-briefing-phase3'),
   candidates: z.array(evaluationCandidateSchema).min(1).max(100)
-}).strict()
+}).strict().refine(value => hasUniqueCaseIds(value.candidates), {
+  message: 'Evaluation candidate case identifiers must be unique.',
+  path: ['candidates']
+})
 
 const evaluationMatrixVariantSchema = z.object({
   variantId: z.string().trim().min(1).max(160),
@@ -33,6 +47,14 @@ const runEvaluationMatrixRequestSchema = z.object({
   policy: regressionPolicySchema,
   variants: z.array(evaluationMatrixVariantSchema).min(2).max(12)
 }).strict()
+  .refine(value => hasUniqueVariantIds(value.variants), {
+    message: 'Evaluation matrix variant identifiers must be unique.',
+    path: ['variants']
+  })
+  .refine(value => value.variants.every(variant => hasUniqueCaseIds(variant.candidates)), {
+    message: 'Evaluation matrix candidate case identifiers must be unique within each variant.',
+    path: ['variants']
+  })
 
 
 const qualityConsoleReleasePolicyRequestSchema = z.object({

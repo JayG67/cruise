@@ -337,4 +337,106 @@ describe('turnaroundOperationalBriefingBoard evidence-count and branch hardening
     expect(readiness.dataQualityRisk).toBe(3)
     expect(readiness.dataQualityScore).toBe(76)
   })
+
+  it('fails non-finite briefing scores safe instead of promoting them to perfect readiness', () => {
+    const readiness = buildBriefingReadiness({
+      operationalAssurancePacket: { readiness: { readinessScore: Infinity }, dataQuality: {} },
+      executiveBrief: { summary: { decisionScore: Infinity, reviewScore: Infinity, incidentScore: Infinity } },
+      incidentCommand: { incidentScore: Infinity },
+      afterActionReview: { summary: { reviewScore: Infinity } }
+    })
+
+    expect(readiness).toMatchObject({
+      assuranceScore: 0,
+      executiveScore: 0,
+      reviewScore: 0,
+      incidentScore: 0,
+      readinessScore: 24,
+      readinessStatus: 'HOLD_FOR_FIXES'
+    })
+  })
+
+  it('normalizes malformed incident scores in checklist evidence instead of rendering Infinity', () => {
+    const checklist = buildBriefingChecklist({ incidentCommand: { incidentScore: Infinity, incidentSeverity: 'critical' } })
+    const incident = checklist.find(item => item.id === 'incident-risk')
+
+    expect(incident).toMatchObject({ status: 'READY' })
+    expect(incident.detail).toBe('Incident command score 0; severity critical.')
+  })
+
+  it('degrades malformed briefing asset collections to fallback evidence', () => {
+    const board = buildTurnaroundOperationalBriefingBoard({
+      operationalAssurancePacket: { proofPoints: 'not-an-array', readiness: { readinessScore: 90 }, dataQuality: {} },
+      executiveBrief: { highlights: 'bad', decisionHighlights: {}, narrative: { summary: 'Executive fallback.' } },
+      afterActionReview: { departmentLessons: 'bad', followUpActions: ['Follow up safely.'], summary: { reviewScore: 90 } }
+    })
+
+    expect(board.assets.find(asset => asset.id === 'proof-points')).toMatchObject({ status: '0 READY' })
+    expect(board.assets.find(asset => asset.id === 'executive-highlights')).toMatchObject({ status: '0 READY', detail: 'Executive fallback.' })
+    expect(board.assets.find(asset => asset.id === 'lessons')).toMatchObject({ status: '0 TRACKED', detail: 'Follow up safely.' })
+  })
+
+})
+
+describe('turnaroundOperationalBriefingBoard normalized checklist evidence', () => {
+  it('does not mark non-finite readiness scores ready in checklist evidence', () => {
+    const checklist = buildBriefingChecklist({
+      operationalAssurancePacket: { readiness: { readinessScore: Infinity }, dataQuality: {} },
+      executiveBrief: { summary: { decisionScore: Infinity } },
+      afterActionReview: { summary: { reviewScore: Infinity } },
+      incidentCommand: { incidentScore: 0 }
+    })
+
+    expect(checklist.find(item => item.id === 'operational-assurance')).toMatchObject({ status: 'REVIEW', detail: expect.stringContaining('0%') })
+    expect(checklist.find(item => item.id === 'executive-brief')).toMatchObject({ status: 'REVIEW', detail: expect.stringContaining('0%') })
+    expect(checklist.find(item => item.id === 'learning-loop')).toMatchObject({ status: 'REVIEW', detail: expect.stringContaining('0%') })
+  })
+
+  it('skips malformed object-valued briefing actions instead of publishing them', () => {
+    const board = buildTurnaroundOperationalBriefingBoard({
+      operationalAssurancePacket: { narrative: { topAction: { bad: true } }, nextSteps: [{ bad: true }] },
+      executiveBrief: { executiveActions: ['  Valid executive action  '] },
+      afterActionReview: { followUpActions: [{ bad: true }] }
+    })
+
+    expect(board.narrative.recommendedAction).toBe('Valid executive action')
+    expect(JSON.stringify(board)).not.toContain('[object Object]')
+  })
+})
+
+describe('turnaroundOperationalBriefingBoard narrative-shape hardening', () => {
+  it('filters malformed asset labels, highlights, lessons, and proof-point narrative', () => {
+    const board = buildTurnaroundOperationalBriefingBoard({
+      operation: { shipName: 'Test Ship', cruiseLineName: 'Test Line' },
+      operationalAssurancePacket: {
+        readiness: { readinessScore: 90 },
+        dataQuality: {},
+        proofPoints: [{ label: { bad: true } }, { label: ' Valid proof ' }]
+      },
+      executiveBrief: {
+        summary: { decisionScore: 90 },
+        highlights: [{ bad: true }, ' Valid highlight ']
+      },
+      afterActionReview: {
+        summary: { reviewScore: 90 },
+        departmentLessons: [
+          { departmentRole: { bad: true }, lesson: { bad: true } },
+          { departmentRole: ' Guest Services ', lesson: ' Stage arrivals ' }
+        ]
+      }
+    })
+
+    expect(board.assets.find(asset => asset.id === 'proof-points').detail).toBe('Valid proof')
+    expect(board.assets.find(asset => asset.id === 'executive-highlights').detail).toBe('Valid highlight')
+    expect(board.assets.find(asset => asset.id === 'lessons').detail).toBe('Guest Services: Stage arrivals')
+    expect(board.audienceRecommendations[0].detail).toContain('role-scoped turnaround operations')
+    expect(JSON.stringify(board)).not.toContain('[object Object]')
+  })
+
+  it('covers briefing defaults without inventing readiness evidence', () => {
+    const board = buildTurnaroundOperationalBriefingBoard()
+    expect(board.readiness).toMatchObject({ readinessScore: 24, readinessStatus: 'HOLD_FOR_FIXES' })
+    expect(board.narrative.headline).toContain('Selected ship')
+    expect(board.audienceRecommendations[0]).toMatchObject({ status: 'HOLD' })
+  })
 })

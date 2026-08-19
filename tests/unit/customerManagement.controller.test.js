@@ -65,8 +65,11 @@ function updateWhere() {
   db.update.mockReturnValueOnce({ set })
 }
 
-function deleteWhere() {
-  db.delete.mockReturnValueOnce({ where: jest.fn().mockResolvedValue() })
+function deleteWhere(result = [{ id: 'deleted' }]) {
+  const returning = jest.fn().mockResolvedValue(result)
+  const where = jest.fn().mockReturnValue({ returning })
+  db.delete.mockReturnValueOnce({ where })
+  return { where, returning }
 }
 
 beforeEach(() => {
@@ -138,11 +141,29 @@ describe('customer management controller defect-discovery coverage', () => {
   })
 
   it('deletes related customer records before recording deletion audit evidence', async () => {
-    selectLimit([{ id: 'C1', email: 'a@example.com' }]); updateWhere(); deleteWhere(); deleteWhere(); const res = mockResponse()
+    selectLimit([{ id: 'C1', email: 'a@example.com' }]); updateWhere(); deleteWhere(); deleteWhere([{ id: 'C1' }]); const res = mockResponse()
     await controller.deleteCustomer({ params: { id: 'C1' } }, res, jest.fn())
     expect(db.delete).toHaveBeenCalledTimes(2)
     expect(audit.recordPlatformAuditEvent).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ eventType: 'CUSTOMER_DELETED' }))
     expect(res.status).toHaveBeenCalledWith(200)
+  })
+
+  it('fails closed when a customer disappears during the final delete', async () => {
+    selectLimit([{ id: 'C1' }]); updateWhere(); deleteWhere(); deleteWhere([]); const res = mockResponse()
+    await controller.deleteCustomer({ params: { id: 'C1' } }, res, jest.fn())
+    expect(res.status).toHaveBeenCalledWith(404)
+    expect(audit.recordPlatformAuditEvent).not.toHaveBeenCalled()
+  })
+
+  it('covers missing read/delete targets without mutation', async () => {
+    const readRes = mockResponse(); selectLimit([])
+    await controller.getCustomerById({ params: { id: 'missing' } }, readRes, jest.fn())
+    expect(readRes.status).toHaveBeenCalledWith(404)
+
+    const deleteRes = mockResponse(); selectLimit([])
+    await controller.deleteCustomer({ params: { id: 'missing' } }, deleteRes, jest.fn())
+    expect(deleteRes.status).toHaveBeenCalledWith(404)
+    expect(db.delete).not.toHaveBeenCalled()
   })
 
   it('forwards persistence errors to error middleware', async () => {
@@ -150,5 +171,21 @@ describe('customer management controller defect-discovery coverage', () => {
     db.select.mockImplementationOnce(() => { throw error })
     await controller.getCustomerById({ params: { id: 'C1' } }, mockResponse(), next)
     expect(next).toHaveBeenCalledWith(error)
+  })
+
+
+  it('forwards insert, update, delete, and list persistence failures', async () => {
+    for (const invoke of [
+      (res, next) => controller.getCustomers({}, res, next),
+      (res, next) => controller.insertCustomer({ body: { id: 'C1', email: 'a@example.com' } }, res, next),
+      (res, next) => controller.updateCustomer({ params: { id: 'C1' }, body: {} }, res, next),
+      (res, next) => controller.deleteCustomer({ params: { id: 'C1' } }, res, next)
+    ]) {
+      jest.clearAllMocks()
+      const error = new Error('forced failure'); const next = jest.fn()
+      db.select.mockImplementationOnce(() => { throw error })
+      await invoke(mockResponse(), next)
+      expect(next).toHaveBeenCalledWith(error)
+    }
   })
 })

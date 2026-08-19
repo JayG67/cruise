@@ -35,8 +35,10 @@ function selectRows(...rowSets) {
   }))
 }
 
-function updateOk() {
-  db.update.mockImplementation(() => ({ set: () => ({ where: jest.fn().mockResolvedValue(undefined) }) }))
+function updateOk(returnedRows = [{ id: 'updated' }]) {
+  db.update.mockImplementation(() => ({
+    set: () => ({ where: jest.fn(() => ({ returning: jest.fn().mockResolvedValue(returnedRows) })) })
+  }))
 }
 
 function insertOk() {
@@ -95,6 +97,17 @@ describe('passenger experience controller defect-discovery coverage', () => {
     expect(res.status).toHaveBeenCalledWith(200)
   })
 
+
+  it('fails closed when the customer disappears during passenger profile mutation', async () => {
+    selectRows([{ id: 'C1' }])
+    updateOk([])
+    const res = mockResponse()
+    await controller.updatePassengerSelfServiceProfile({ params: { id: 'C1' }, body: {} }, res, jest.fn())
+    expect(res.status).toHaveBeenCalledWith(404)
+    expect(db.execute).not.toHaveBeenCalled()
+    expect(audit.recordPlatformAuditEvent).not.toHaveBeenCalled()
+  })
+
   it('creates a new pre-cruise checklist and reports create audit metadata', async () => {
     selectRows([{ id: 'C1' }], [])
     const res = mockResponse()
@@ -145,6 +158,17 @@ describe('passenger experience controller defect-discovery coverage', () => {
       cruiseLineId: 'CL-1', shipId: 'SHIP-1', sailingId: 'SAIL-1', eventType: 'PASSENGER_BOOKING_PREFERENCES_UPDATED'
     }))
     expect(res.status).toHaveBeenCalledWith(200)
+  })
+
+
+  it('fails closed when booking passenger preferences disappear during mutation', async () => {
+    selectRows([{ id: 'B1-C1' }])
+    updateOk([])
+    const res = mockResponse()
+    await controller.updatePassengerBookingPreferences({ params: { bookingId: 'B1', customerId: 'C1' }, body: {} }, res, jest.fn())
+    expect(res.status).toHaveBeenCalledWith(404)
+    expect(db.execute).not.toHaveBeenCalled()
+    expect(audit.recordPlatformAuditEvent).not.toHaveBeenCalled()
   })
 
   it('still audits booking preference history without fabricated tenant scope when the parent booking is missing', async () => {
@@ -207,16 +231,37 @@ describe('passenger experience controller defect-discovery coverage', () => {
     expect(missingRes.status).toHaveBeenCalledWith(200)
   })
 
+  it('returns 404 when checklist customer is missing', async () => {
+    selectRows([])
+    const res = mockResponse()
+    await controller.updatePassengerPreCruiseChecklist({ params: { id: 'C1' }, body: {} }, res, jest.fn())
+    expect(res.status).toHaveBeenCalledWith(404)
+    expect(db.insert).not.toHaveBeenCalled()
+  })
+
   it('forwards persistence failures without reporting passenger success', async () => {
     const error = new Error('database unavailable')
     const next = jest.fn()
     selectRows([{ id: 'C1' }])
-    db.update.mockImplementationOnce(() => ({ set: () => ({ where: jest.fn().mockRejectedValue(error) }) }))
+    db.update.mockImplementationOnce(() => ({ set: () => ({ where: () => ({ returning: jest.fn().mockRejectedValue(error) }) }) }))
     const res = mockResponse()
 
     await controller.updatePassengerSelfServiceProfile({ params: { id: 'C1' }, body: {} }, res, next)
 
     expect(next).toHaveBeenCalledWith(error)
     expect(res.status).not.toHaveBeenCalledWith(200)
+  })
+
+  it('forwards checklist, preference, favorite create, and favorite delete errors', async () => {
+    const cases = [
+      async (next) => { selectRows([{ id: 'C1' }], []); db.insert.mockImplementationOnce(() => { throw new Error('checklist') }); await controller.updatePassengerPreCruiseChecklist({ params: { id: 'C1' }, body: {} }, mockResponse(), next) },
+      async (next) => { selectRows([{ id: 'B1-C1' }]); db.update.mockImplementationOnce(() => { throw new Error('preferences') }); await controller.updatePassengerBookingPreferences({ params: { bookingId: 'B1', customerId: 'C1' }, body: {} }, mockResponse(), next) },
+      async (next) => { selectRows([]); db.insert.mockImplementationOnce(() => { throw new Error('favorite-create') }); await controller.addItineraryFavorite({ body: { customerId: 'C1', activityScheduleId: 'A1' } }, mockResponse(), next) },
+      async (next) => { selectRows([]); db.delete.mockImplementationOnce(() => { throw new Error('favorite-delete') }); await controller.deleteItineraryFavorite({ params: { customerId: 'C1', activityScheduleId: 'A1' } }, mockResponse(), next) }
+    ]
+    for (const invoke of cases) {
+      jest.clearAllMocks(); updateOk(); insertOk(); deleteOk(); db.execute.mockResolvedValue(undefined)
+      const next = jest.fn(); await invoke(next); expect(next).toHaveBeenCalledTimes(1)
+    }
   })
 })

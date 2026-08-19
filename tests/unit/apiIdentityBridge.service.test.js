@@ -110,3 +110,25 @@ describe('API identity bridge behavior', () => {
     }))
   })
 })
+
+describe('API identity malformed metadata hardening', () => {
+  test('treats null, scalar, and array scope metadata as empty objects', () => {
+    expect(buildApiIdentity({ entityType: 'TEST', durableId: 'id-1', tenantScope: null, relationships: 'bad' })).toEqual({
+      entityType: 'TEST', durableId: 'id-1', displayId: 'id-1', tenantScope: {}, relationships: {}
+    })
+    expect(buildApiIdentity({ entityType: 'TEST', displayId: 'id-2', tenantScope: [], relationships: 7 })).toEqual({
+      entityType: 'TEST', durableId: 'id-2', displayId: 'id-2', tenantScope: {}, relationships: {}
+    })
+  })
+
+  test('keeps falsy-but-valid scalar metadata while dropping empty optional values', () => {
+    expect(buildApiIdentity({
+      entityType: 'TEST', durableId: 'id-3',
+      tenantScope: { zero: 0, disabled: false, blank: '', missing: null },
+      relationships: { zero: 0, disabled: false, missing: undefined }
+    })).toEqual(expect.objectContaining({
+      tenantScope: { zero: 0, disabled: false },
+      relationships: { zero: 0, disabled: false }
+    }))
+  })
+})

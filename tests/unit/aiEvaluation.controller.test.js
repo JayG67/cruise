@@ -194,3 +194,39 @@ describe('AI evaluation controller coverage', () => {
     expect(next).toHaveBeenCalledWith(error)
   })
 })
+
+describe('AI evaluation controller remaining authorization and not-found branches', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    resolveRequestActor.mockResolvedValue(adminActor())
+    canManageAiEvaluations.mockReturnValue(false)
+  })
+
+  it.each([
+    ['runTurnaroundBriefingEvaluationMatrix', { body: { variants: [] } }, 'AI evaluation matrices require an administrator.'],
+    ['getAdversarialQualitySummary', {}, 'AI adversarial quality summaries require an administrator.'],
+    ['getTurnaroundBriefingEvaluationQualitySummary', { query: {} }, 'AI evaluation quality summaries require an administrator.'],
+    ['previewTurnaroundBriefingReleasePolicy', { body: {} }, 'AI release-policy previews require an administrator.'],
+    ['listTurnaroundBriefingEvaluationRuns', { query: {} }, 'AI evaluation history requires an administrator.'],
+    ['compareTurnaroundBriefingEvaluationRun', { params: {}, query: {} }, 'AI evaluation comparison requires an administrator.']
+  ])('denies %s before service orchestration', async (method, req, message) => {
+    const { res, status, json } = responseHarness()
+    await controller[method](req, res, jest.fn())
+    expect(status).toHaveBeenCalledWith(403)
+    expect(json).toHaveBeenCalledWith({ message })
+  })
+
+  it('returns 404 when either evaluation comparison run is missing', async () => {
+    canManageAiEvaluations.mockReturnValue(true)
+    getEvaluationRun.mockResolvedValueOnce({ id: 'current' }).mockResolvedValueOnce(null)
+    const { res, status, json } = responseHarness()
+
+    await controller.compareTurnaroundBriefingEvaluationRun({
+      params: { runId: 'current' }, query: { baselineRunId: 'missing', suiteId: 'suite' }
+    }, res, jest.fn())
+
+    expect(status).toHaveBeenCalledWith(404)
+    expect(json).toHaveBeenCalledWith({ message: 'The requested evaluation run was not found.' })
+    expect(compareEvaluationRuns).not.toHaveBeenCalled()
+  })
+})

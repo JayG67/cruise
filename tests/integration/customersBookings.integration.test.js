@@ -1041,13 +1041,14 @@ describe('Customer and booking API integration tests', () => {
   })
 
   it('POST and DELETE /cruise/itinerary-favorites persists passenger itinerary interests', async () => {
-    const contextRes = await request(app).get('/cruise/demo-users/UPASS00001/context')
-    expect(contextRes.statusCode).toBe(200)
-    expect(contextRes.body.customer.id).toEqual(expect.any(String))
-    expect(contextRes.body.bookings.length).toBeGreaterThan(0)
+    const seededBooking = await getSeededBookingWithPassengers(request, app)
+    const primaryPassenger = seededBooking.passengers.find(passenger => passenger.isPrimaryGuest) || seededBooking.passengers[0]
 
-    const customerId = contextRes.body.customer.id
-    const sailingId = contextRes.body.bookings[0].sailing.id
+    expect(primaryPassenger.customerId).toEqual(expect.any(String))
+
+    const customerId = primaryPassenger.customerId
+    const sailingId = seededBooking.sailing?.id || seededBooking.sailingId
+    expect(sailingId).toEqual(expect.any(String))
     const itineraryRes = await request(app).get(`/cruise/sailings/${sailingId}/itinerary?customerId=${customerId}`)
     expect(itineraryRes.statusCode).toBe(200)
     expect(itineraryRes.body[0].activitySchedule.length).toBeGreaterThan(0)

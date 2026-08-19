@@ -204,4 +204,107 @@ describe('turnaroundContinuity.service', () => {
     expect(buildContinuityWatchlist(cappedInputs)).toHaveLength(10)
   })
 
+  it('keeps authoritative zero staffing counts instead of falling back to stale legacy counts', () => {
+    const inputs = buildContinuityInputs({
+      staffing: [{
+        departmentRole: 'engineering-lead',
+        plannedCount: 0,
+        requiredCount: 7,
+        checkedInCount: 0,
+        assignedCount: 2
+      }]
+    })
+
+    expect(inputs.staffingGaps).toHaveLength(0)
+    expect(buildContinuityScenarios(inputs).some(item => item.id === 'staffing-shortfall')).toBe(false)
+  })
+
+  it('normalizes malformed continuity staffing and passenger evidence to finite non-negative counts', () => {
+    const inputs = buildContinuityInputs({
+      passengerCount: Infinity,
+      staffing: [
+        { departmentRole: 'housekeeping-lead', plannedCount: 'bad', checkedInCount: 3 },
+        { departmentRole: 'guest-services-lead', plannedCount: 4.9, checkedInCount: -2 }
+      ]
+    })
+    const scenarios = buildContinuityScenarios(inputs)
+
+    expect(inputs.passengerCount).toBe(0)
+    expect(inputs.staffingGaps).toHaveLength(1)
+    expect(scenarios.find(item => item.id === 'staffing-shortfall')).toEqual(expect.objectContaining({
+      trigger: 'guest-services-lead coverage is 0/4.'
+    }))
+    expect(JSON.stringify({ inputs, scenarios })).not.toMatch(/NaN|Infinity/)
+  })
+
+  it('fails non-finite continuity scores safe instead of promoting malformed evidence', () => {
+    const inputs = buildContinuityInputs({
+      lifecycleState: { completionPercent: Infinity },
+      releasePacket: { releaseScore: 'bad' },
+      commandCenter: { commandScore: -Infinity },
+      closeoutPacket: { closeoutScore: Infinity }
+    })
+
+    expect(inputs).toMatchObject({ lifecycleScore: 0, releaseScore: 0, commandScore: 0, closeoutScore: 0 })
+    expect(buildContinuityScore(inputs)).toBe(0)
+  })
+
+})
+
+describe('turnaroundContinuity terminal and malformed boundary hardening', () => {
+  it('accepts explicit null top-level input and produces conservative continuity evidence', () => {
+    const inputs = buildContinuityInputs(null)
+    const center = buildTurnaroundContinuityCenter(null)
+
+    expect(inputs).toMatchObject({
+      operationId: null,
+      operationTitle: 'Selected turnaround',
+      shipName: 'Selected ship',
+      port: 'Selected port'
+    })
+    expect(center.operationId).toBeNull()
+    expect(center.commandStatus).toBe('CONTINUITY_AT_RISK')
+  })
+
+  it('normalizes padded terminal and blocked statuses before continuity decisions', () => {
+    const inputs = buildContinuityInputs({
+      tasks: [
+        { status: ' completed ', departmentRole: 'engineering-lead' },
+        { status: ' at risk ', departmentRole: 'guest-services-lead' }
+      ],
+      signoffs: [{ status: ' approved ', departmentRole: 'engineering-lead' }],
+      escalations: [{ status: ' closed ', severity: ' critical ' }],
+      dependencies: [{ status: ' resolved ', departmentRole: 'engineering-lead' }],
+      handoffs: [{ status: ' cleared ', departmentRole: 'engineering-lead' }]
+    })
+
+    expect(inputs.incompleteTasks).toHaveLength(1)
+    expect(inputs.blockedTasks).toHaveLength(1)
+    expect(inputs.pendingSignoffs).toHaveLength(0)
+    expect(inputs.openEscalations).toHaveLength(0)
+    expect(inputs.criticalEscalations).toHaveLength(0)
+    expect(inputs.openDependencies).toHaveLength(0)
+    expect(inputs.openHandoffs).toHaveLength(0)
+  })
+
+  it('filters structural owner and department metadata out of continuity narrative', () => {
+    const inputs = buildContinuityInputs({
+      tasks: [{
+        id: 'task-structural',
+        status: 'BLOCKED',
+        departmentRole: { invalid: true },
+        ownerDisplayName: { invalid: true },
+        ownerName: ['invalid'],
+        taskName: 'Recover task'
+      }]
+    })
+    const scenarios = buildContinuityScenarios(inputs)
+    const departments = buildContinuityDepartments(inputs)
+    const watchlist = buildContinuityWatchlist(inputs)
+
+    expect(scenarios[0]).toMatchObject({ owner: 'Command' })
+    expect(departments[0]).toMatchObject({ departmentRole: 'Command' })
+    expect(watchlist[0]).toMatchObject({ owner: 'Command' })
+    expect(JSON.stringify({ scenarios, departments, watchlist })).not.toContain('[object Object]')
+  })
 })

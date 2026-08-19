@@ -157,3 +157,39 @@ describe('turnaroundLifecycle branch coverage', () => {
     expect(rows.every(row => row.ready)).toBe(true)
   })
 })
+
+describe('turnaroundLifecycle numeric evidence hardening', () => {
+  it('preserves explicit zero modern staffing values over stale legacy counts', () => {
+    const rows = buildDepartmentLifecycleRows({
+      staffing: [{ departmentRole: 'Hotel', plannedCount: 0, requiredCount: 7, checkedInCount: 0, assignedCount: 5 }]
+    })
+
+    expect(rows[0]).toEqual(expect.objectContaining({
+      plannedStaff: 0,
+      checkedInStaff: 0,
+      staffingGap: 0,
+      staffingPercent: 0
+    }))
+  })
+
+  it('normalizes malformed staffing and release confidence instead of emitting non-finite lifecycle evidence', () => {
+    const lifecycle = buildTurnaroundLifecycleState({
+      operation: { id: 'malformed-lifecycle', status: 'ACTIVE' },
+      tasks: [{ status: 'COMPLETE' }],
+      staffing: [
+        { departmentRole: 'Hotel', plannedCount: Infinity, checkedInCount: 'bad' },
+        { departmentRole: 'Engineering', plannedCount: 4.9, checkedInCount: 2.8 },
+        { departmentRole: 'Security', plannedCount: -5, checkedInCount: -2 }
+      ],
+      operationalMetrics: { summary: { releaseConfidence: Infinity } }
+    })
+
+    expect(lifecycle.summary).toEqual(expect.objectContaining({
+      staffingGap: 2,
+      staffingCoveragePercent: 50,
+      releaseConfidence: 0
+    }))
+    expect(lifecycle.departmentReadiness.every(row => Number.isFinite(row.riskScore) && Number.isFinite(row.staffingGap))).toBe(true)
+    expect(lifecycle.phases.every(phase => Number.isFinite(phase.percentComplete))).toBe(true)
+  })
+})

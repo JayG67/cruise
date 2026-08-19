@@ -1,7 +1,8 @@
 const {
   buildTurnaroundExecutiveBrief,
   buildExecutiveDecision,
-  buildExecutiveDepartments
+  buildExecutiveDepartments,
+  buildExecutiveActions
 } = require('../../services/turnaroundExecutiveBrief.service')
 
 describe('turnaroundExecutiveBrief.service', () => {
@@ -166,4 +167,125 @@ it('floors positive fractional evidence counts and rejects negative counts', () 
 
   expect(fractional.openActionCount).toBe(2)
   expect(negative.openActionCount).toBe(0)
+})
+
+it('normalizes malformed department lesson and variance evidence before returning executive artifacts', () => {
+  const departments = buildExecutiveDepartments({
+    afterActionReview: {
+      departmentLessons: [{ departmentRole: 'guest-services-lead', lessonScore: Infinity, recommendation: 'Review flow.' }]
+    },
+    playbookVariance: {
+      departments: [{ departmentRole: 'housekeeping-lead', varianceScore: 'not-a-number', recommendation: 'Rehearse.' }]
+    }
+  })
+
+  expect(departments.find(row => row.departmentRole === 'guest-services-lead').lessonScore).toBe(0)
+  expect(departments.find(row => row.departmentRole === 'housekeeping-lead').varianceScore).toBe(0)
+  expect(JSON.stringify(departments)).not.toContain('null')
+  expect(departments.every(row => Number.isFinite(row.riskScore))).toBe(true)
+})
+
+it('fails non-finite executive scores safe instead of promoting malformed evidence to 100 percent', () => {
+  const decision = buildExecutiveDecision({
+    operationalMetrics: { summary: { releaseConfidence: Infinity } },
+    incidentCommand: { incidentScore: -Infinity },
+    afterActionReview: { summary: { reviewScore: NaN, actionCount: 0 } },
+    playbookVariance: { summary: { rehearsalScore: Infinity } }
+  })
+
+  expect(decision).toMatchObject({ releaseConfidence: 0, incidentScore: 0, reviewScore: 0, rehearsalScore: 0 })
+  expect(decision.decisionStatus).toBe('NOT_READY')
+})
+
+it('degrades malformed executive collections instead of throwing during brief composition', () => {
+  const brief = buildTurnaroundExecutiveBrief({
+    operationalMetrics: { summary: { releaseConfidence: 80 }, signals: { bad: true }, departmentRisks: { bad: true } },
+    incidentCommand: { incidentScore: 20, commandActions: 'not-an-array', incidentDepartments: { bad: true } },
+    afterActionReview: { summary: { reviewScore: 80 }, followUpActions: {}, departmentLessons: 'bad' },
+    playbookVariance: { summary: { rehearsalScore: 80 }, rehearsalActions: 12, departments: { bad: true } }
+  })
+
+  expect(brief.departmentBriefs).toEqual([])
+  expect(brief.executiveActions).toHaveLength(1)
+  expect(brief.executiveActions[0]).toContain('Publish with watch items')
+})
+
+it('caps department evidence to the five highest-risk executive rows', () => {
+  const departments = buildExecutiveDepartments({
+    operationalMetrics: {
+      departmentRisks: Array.from({ length: 7 }, (_, index) => ({
+        departmentRole: `department-${index}`,
+        riskScore: index * 10,
+        status: 'WATCH'
+      }))
+    }
+  })
+
+  expect(departments).toHaveLength(5)
+  expect(departments[0].riskScore).toBe(60)
+  expect(departments.at(-1).riskScore).toBe(20)
+})
+
+
+it('treats lowercase metric watch statuses as actionable executive evidence', () => {
+  const brief = buildTurnaroundExecutiveBrief({
+    operationalMetrics: {
+      summary: { releaseConfidence: 82, releaseStatus: 'WATCH' },
+      signals: [{ status: ' watch ', label: 'Staffing', detail: 'One staffing watch item remains.' }]
+    },
+    incidentCommand: { incidentScore: 10 },
+    afterActionReview: { summary: { reviewScore: 85, actionCount: 0 } },
+    playbookVariance: { summary: { rehearsalScore: 85 } }
+  })
+
+  expect(brief.highlights[0].detail).toBe('One staffing watch item remains.')
+  expect(brief.executiveActions).toContain('Metric watch: Staffing - One staffing watch item remains.')
+})
+
+it('does not publish object values or string-index artifacts from malformed narrative collections', () => {
+  const brief = buildTurnaroundExecutiveBrief({
+    operation: { title: 'Safe narrative' },
+    releasePacket: { summary: { malformed: true } },
+    operationalMetrics: { summary: { releaseConfidence: 80 }, signals: [] },
+    incidentCommand: { incidentScore: 10, incidentSignals: 'not-an-array', commandActions: 'BAD' },
+    afterActionReview: { summary: { reviewScore: 80, actionCount: 0 }, findings: { bad: true } },
+    playbookTemplate: { recommendations: 'BAD' },
+    playbookVariance: { summary: { rehearsalScore: 80 }, rehearsalActions: 'BAD' }
+  })
+
+  expect(brief.highlights[0].detail).toBe('Release confidence 80%.')
+  expect(brief.highlights[1].detail).toBe('No critical exception bridge is required for the current operation.')
+  expect(brief.highlights[2].detail).toBe('Compare final variance before promoting this operation as a reusable baseline.')
+  expect(brief.highlights.every(highlight => typeof highlight.detail === 'string')).toBe(true)
+})
+
+
+it('drops malformed executive action values instead of stringifying objects into leadership evidence', () => {
+  const actions = buildExecutiveActions({
+    decision: { decisionStatus: 'NOT_READY' },
+    incidentCommand: { commandActions: [{ bad: true }, '  Review bridge staffing.  '] },
+    afterActionReview: { followUpActions: [null, { action: 'bad' }, 42] },
+    playbookVariance: { rehearsalActions: [undefined, 'Run rehearsal.'] },
+    operationalMetrics: {
+      signals: [
+        { status: 'WATCH', label: { bad: true }, detail: { bad: true } },
+        { status: 'ACTION', label: 'Crew flow', detail: 'Reassign one checkpoint.' },
+        { status: 'WATCH', label: '', detail: 'Monitor gangway queue.' }
+      ]
+    }
+  })
+
+  expect(actions).toEqual(expect.arrayContaining([
+    'Exception bridge: Review bridge staffing.',
+    'After-action: 42',
+    'Playbook: Run rehearsal.',
+    'Metric watch: Crew flow - Reassign one checkpoint.',
+    'Metric watch: Operational signal - Monitor gangway queue.'
+  ]))
+  expect(actions.join(' ')).not.toContain('[object Object]')
+})
+
+it('covers executive action guidance for ready and watch decisions', () => {
+  expect(buildExecutiveActions({ decision: { decisionStatus: 'EXECUTIVE_READY' } })[0]).toContain('Publish the executive turnaround brief')
+  expect(buildExecutiveActions({ decision: { decisionStatus: 'READY_WITH_WATCH_ITEMS' } })[0]).toContain('Publish with watch items')
 })

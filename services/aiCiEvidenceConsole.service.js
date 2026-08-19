@@ -5,7 +5,9 @@ const DEFAULT_EVIDENCE_DIR = path.resolve(__dirname, '..', 'ai-quality-evidence'
 
 function readJson(filePath) {
   try {
-    return { state: 'AVAILABLE', data: JSON.parse(fs.readFileSync(filePath, 'utf8')) }
+    const data = JSON.parse(fs.readFileSync(filePath, 'utf8'))
+    if (!data || typeof data !== 'object' || Array.isArray(data)) return { state: 'INVALID', data: null, error: 'Evidence JSON must contain an object.' }
+    return { state: 'AVAILABLE', data }
   } catch (error) {
     if (error.code === 'ENOENT') return { state: 'NO_DATA', data: null }
     return { state: 'INVALID', data: null, error: error.message }
@@ -15,20 +17,23 @@ function readJson(filePath) {
 function buildAiCiEvidenceConsoleSummary({ evidenceDir = DEFAULT_EVIDENCE_DIR } = {}) {
   const evidence = readJson(path.join(evidenceDir, 'phase6-ci-evidence.json'))
   const comparison = readJson(path.join(evidenceDir, 'phase6-ci-comparison.json'))
-  const releaseDecision = evidence.data?.releaseDecision || 'NO_DATA'
-  const checks = Array.isArray(evidence.data?.checks) ? evidence.data.checks : []
+  const releaseDecision = typeof evidence.data?.releaseDecision === 'string' && evidence.data.releaseDecision.trim() ? evidence.data.releaseDecision.trim() : 'NO_DATA'
+  const checks = Array.isArray(evidence.data?.checks) ? evidence.data.checks.filter(item => item && typeof item === 'object' && !Array.isArray(item)) : []
+  const passed = checks.filter(item => item.status === 'PASSED').length
   return {
     state: evidence.state,
     releaseDecision,
-    generatedAt: evidence.data?.generatedAt || null,
-    totals: evidence.data?.totals || { checks: checks.length, passed: checks.filter(item => item.status === 'PASSED').length, failed: checks.filter(item => item.status !== 'PASSED').length },
+    generatedAt: typeof evidence.data?.generatedAt === 'string' && evidence.data.generatedAt.trim() ? evidence.data.generatedAt : null,
+    totals: { checks: checks.length, passed, failed: checks.length - passed },
     checks,
     comparison: {
       state: comparison.state,
-      outcome: comparison.data?.outcome || (comparison.state === 'NO_DATA' ? 'NO_BASELINE' : 'INVALID'),
-      newFailures: comparison.data?.newFailures || [],
-      resolvedFailures: comparison.data?.resolvedFailures || [],
-      unchangedFailures: comparison.data?.unchangedFailures || []
+      outcome: typeof comparison.data?.outcome === 'string' && comparison.data.outcome.trim()
+        ? comparison.data.outcome.trim()
+        : comparison.state === 'NO_DATA' ? 'NO_BASELINE' : 'INVALID',
+      newFailures: Array.isArray(comparison.data?.newFailures) ? comparison.data.newFailures : [],
+      resolvedFailures: Array.isArray(comparison.data?.resolvedFailures) ? comparison.data.resolvedFailures : [],
+      unchangedFailures: Array.isArray(comparison.data?.unchangedFailures) ? comparison.data.unchangedFailures : []
     },
     message: evidence.state === 'AVAILABLE'
       ? 'Current CI evidence is available.'

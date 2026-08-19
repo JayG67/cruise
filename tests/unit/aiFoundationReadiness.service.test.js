@@ -69,4 +69,41 @@ describe('AI Phase 1 foundation readiness', () => {
       code: 'AI_PROVIDER_UNSUPPORTED'
     }))
   })
+
+  it('reports invalid pricing as a blocking deployment issue', () => {
+    const readiness = assessAiFoundationReadiness({
+      env: { OPENAI_OUTPUT_USD_PER_MILLION_TOKENS: 'Infinity' }
+    })
+
+    expect(readiness.foundationReady).toBe(false)
+    expect(readiness.deploymentSafe).toBe(false)
+    expect(readiness.pricingConfigValid).toBe(false)
+    expect(readiness.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'AI_RUNTIME_CONFIG_INVALID', severity: 'blocking' })
+    ]))
+  })
+
+  it('returns a successful deployment assertion for the default disabled provider', () => {
+    expect(assertAiFoundationDeploymentSafe({ env: {} })).toEqual(expect.objectContaining({
+      deploymentSafe: true,
+      generationReady: false
+    }))
+  })
+
+  it('reports configured OpenAI generation as ready when credentials are present', () => {
+    const readiness = assessAiFoundationReadiness({
+      env: { AI_PROVIDER: 'openai', OPENAI_API_KEY: 'test-key' },
+      fetchImpl: jest.fn()
+    })
+
+    expect(readiness.deploymentSafe).toBe(true)
+    expect(readiness.generationReady).toBe(true)
+    expect(readiness.provider).toEqual(expect.objectContaining({
+      name: 'openai',
+      generationEnabled: true,
+      credentialConfigured: true
+    }))
+    expect(readiness.guidance).toContain('ready for provider calls')
+  })
+
 })

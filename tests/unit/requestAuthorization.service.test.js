@@ -191,6 +191,21 @@ describe('requestAuthorization service', () => {
     expect(json).not.toHaveBeenCalled()
   })
 
+  it('covers default actor builders and request shapes without weakening fail-closed identity behavior', async () => {
+    expect(service.buildActorIdentity()).toEqual({
+      actorUserId: null,
+      actorDisplayName: null,
+      actorRole: null,
+      identitySource: service.ACTOR_IDENTITY_SOURCES.ANONYMOUS
+    })
+    expect(service.getProductionPrincipal()).toBeNull()
+    await expect(service.resolveDemoUserForRequest()).resolves.toBeNull()
+    await expect(service.resolveRequestActor()).resolves.toEqual(expect.objectContaining({
+      identitySource: service.ACTOR_IDENTITY_SOURCES.ANONYMOUS
+    }))
+  })
+
+
 })
 
 describe('requestAuthorization actor identity bridge', () => {

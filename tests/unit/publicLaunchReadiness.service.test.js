@@ -106,7 +106,7 @@ describe('publicLaunchReadiness service', () => {
     expect(readiness.projectStatus.featureCompleteEstimate).toBe(75)
   })
 
-  it('uses the operations portfolio default only when no operations score is supplied', () => {
+  it('does not invent operations project-status evidence when no operations score is supplied', () => {
     const readiness = buildPublicLaunchReadiness({
       dataArchitecture: { overallScore: 100, gates: [] },
       productionHardening: { overallScore: 100, gates: [] },
@@ -115,8 +115,8 @@ describe('publicLaunchReadiness service', () => {
     })
 
     const operationsTrack = readiness.projectStatus.tracks.find(track => track.area === 'Turnaround operations')
-    expect(operationsTrack.percent).toBe(95)
-    expect(readiness.projectStatus.featureCompleteEstimate).toBe(99)
+    expect(operationsTrack).toBeUndefined()
+    expect(readiness.projectStatus.featureCompleteEstimate).toBe(100)
   })
 
   it('clamps malformed and out-of-range readiness scores without inflating launch status', () => {
@@ -265,4 +265,141 @@ describe('publicLaunchReadiness service', () => {
     expect(readiness.status).toBe('blocked')
   })
 
+  it('computes project completion only from authoritative scores when operations evidence is absent', () => {
+    const readiness = buildPublicLaunchReadiness({
+      dataArchitecture: { overallScore: 90, gates: [] },
+      productionHardening: { overallScore: 80, gates: [] },
+      deployment: { overallScore: 70, gates: [] },
+      operationsControlBoard: { summary: 'Score not yet published.' }
+    })
+
+    expect(readiness.projectStatus.featureCompleteEstimate).toBe(80)
+    expect(readiness.projectStatus.tracks.map(track => track.area)).toEqual([
+      'Data governance assurance',
+      'Production assurance',
+      'Production deployment'
+    ])
+  })
+
+
+  it('caps published critical gate evidence at six items with stable generated ids', () => {
+    const gates = Array.from({ length: 8 }, (_, index) => ({
+      label: `Gate ${index + 1}`,
+      score: 10 + index,
+      status: 'watch'
+    }))
+    const items = buildCriticalLaunchItems([], [{ source: 'Release / Evidence', payload: { gates } }])
+
+    expect(items).toHaveLength(6)
+    expect(items[0]).toMatchObject({ id: 'release-evidence-0', sequence: 1, score: 10 })
+    expect(items[5]).toMatchObject({ sequence: 6, score: 15 })
+  })
+
+  it('uses default track summaries and actions for sparse authoritative readiness payloads', () => {
+    const tracks = buildLaunchReadinessTracks({
+      dataArchitecture: { overallScore: 90 },
+      productionHardening: { overallScore: 90 },
+      deployment: { overallScore: 90 },
+      operationsControlBoard: { overallScore: 90 }
+    })
+
+    expect(tracks[0].summary).toContain('identity, status, audit, and tenant-boundary controls')
+    expect(tracks[0].action).toContain('highest-priority data-governance action')
+    expect(tracks[1].action).toContain('lowest-scoring production-assurance control')
+    expect(tracks[2].action).toContain('deployment readiness sequence')
+    expect(tracks[3].action).toContain('turnaround operations readiness gap')
+  })
+
+  it('keeps fallback critical track evidence capped at four and ordered by score', () => {
+    const tracks = [
+      { id: 'a', label: 'A', source: 'A', score: 99, status: 'ready', summary: 'A', action: 'A' },
+      { id: 'b', label: 'B', source: 'B', score: 40, status: 'blocked', summary: 'B', action: 'B' },
+      { id: 'c', label: 'C', source: 'C', score: 60, status: 'watch', summary: 'C', action: 'C' },
+      { id: 'd', label: 'D', source: 'D', score: 70, status: 'watch', summary: 'D', action: 'D' },
+      { id: 'e', label: 'E', source: 'E', score: 80, status: 'watch', summary: 'E', action: 'E' }
+    ]
+
+    expect(buildCriticalLaunchItems(tracks, []).map(item => item.id)).toEqual(['b', 'c', 'd', 'e'])
+  })
+
+})
+
+describe('publicLaunchReadiness null-input hardening', () => {
+  it('fails closed on an explicitly null readiness payload instead of throwing', () => {
+    const result = buildPublicLaunchReadiness(null)
+
+    expect(result.overallScore).toBe(0)
+    expect(result.status).toBe('blocked')
+    expect(result.tracks).toHaveLength(3)
+    expect(result.projectStatus.featureCompleteEstimate).toBe(0)
+    expect(result.criticalItems).toHaveLength(3)
+  })
+})
+
+
+it('keeps malformed launch narrative values out of release artifacts', () => {
+  const readiness = buildPublicLaunchReadiness({
+    dataArchitecture: {
+      overallScore: 65,
+      summary: { invalid: true },
+      migrationBacklog: [{ action: { invalid: true } }],
+      gates: [{ id: 'bad-copy', label: { invalid: true }, status: 'blocked', score: 20, summary: { invalid: true }, recommendations: [{ invalid: true }] }]
+    },
+    productionHardening: { overallScore: 95, gates: [] },
+    deployment: { overallScore: 95, gates: [] }
+  })
+
+  expect(readiness.tracks[0].summary).toBe('')
+  expect(readiness.tracks[0].action).toBe('')
+  expect(readiness.criticalItems[0]).toMatchObject({
+    title: 'Release readiness control',
+    summary: 'Review this release-readiness control.',
+    action: 'Resolve this item before production release.'
+  })
+  expect(JSON.stringify(readiness)).not.toContain('[object Object]')
+})
+
+it('normalizes numeric launch narrative evidence to stable strings', () => {
+  const readiness = buildPublicLaunchReadiness({
+    dataArchitecture: { overallScore: 90, summary: 7, migrationBacklog: [{ action: 8 }], gates: [] },
+    productionHardening: { overallScore: 90, gates: [] },
+    deployment: { overallScore: 90, gates: [] }
+  })
+
+  expect(readiness.tracks[0]).toMatchObject({ summary: '7', action: '8' })
+})
+
+describe('public launch authoritative operational-score hardening', () => {
+  it('does not create an operational track from blank or non-finite score evidence', () => {
+    for (const operationsControlBoard of [
+      { overallScore: '   ', summary: 'Blank score' },
+      { score: 'not-a-number', summary: 'Malformed score' },
+      { score: Infinity, summary: 'Infinite score' }
+    ]) {
+      const readiness = buildPublicLaunchReadiness({
+        dataArchitecture: { overallScore: 90 },
+        productionHardening: { overallScore: 90 },
+        deployment: { overallScore: 90 },
+        operationsControlBoard
+      })
+
+      expect(readiness.tracks.some(track => track.id === 'turnaround-operations')).toBe(false)
+      expect(readiness.projectStatus.tracks.some(track => track.area === 'Turnaround operations')).toBe(false)
+      expect(readiness.projectStatus.featureCompleteEstimate).toBe(90)
+    }
+  })
+})
+
+describe('public launch exported-helper malformed-input hardening', () => {
+  it('returns conservative default tracks for an explicit null track input', () => {
+    const tracks = buildLaunchReadinessTracks(null)
+    expect(tracks).toHaveLength(3)
+    expect(tracks.map(track => track.score)).toEqual([0, 0, 0])
+    expect(tracks.every(track => track.status === 'blocked')).toBe(true)
+  })
+
+  it('fails soft when critical-item helper inputs are not arrays', () => {
+    expect(buildCriticalLaunchItems(null, null)).toEqual([])
+    expect(buildCriticalLaunchItems('bad-tracks', { payload: {} })).toEqual([])
+  })
 })

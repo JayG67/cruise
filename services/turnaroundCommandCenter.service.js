@@ -3,7 +3,9 @@ function asArray(value) {
 }
 
 function clampScore(value) {
-  return Math.max(0, Math.min(100, Math.round(Number(value) || 0)))
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) return 0
+  return Math.max(0, Math.min(100, Math.round(numericValue)))
 }
 
 function normalizeCount(value) {
@@ -15,17 +17,21 @@ function normalizeStatus(value, fallback = 'REVIEW') {
   return String(value || fallback).replace(/_/g, ' ').trim()
 }
 
+function normalizeStatusToken(value) {
+  return String(value || '').trim().toUpperCase()
+}
+
 function isCompleteStatus(value) {
-  return ['COMPLETE', 'COMPLETED', 'DONE', 'APPROVED', 'RESOLVED', 'CLEARED', 'CLOSED'].includes(String(value || '').toUpperCase())
+  return ['COMPLETE', 'COMPLETED', 'DONE', 'APPROVED', 'RESOLVED', 'CLEARED', 'CLOSED'].includes(normalizeStatusToken(value))
 }
 
 function isBlockedTask(task = {}) {
-  const status = String(task.status || '').toUpperCase()
+  const status = normalizeStatusToken(task.status)
   return status === 'BLOCKED' || status === 'AT_RISK' || Boolean(task.blockerReason)
 }
 
 function isOpenEscalation(escalation = {}) {
-  return !['RESOLVED', 'CLOSED'].includes(String(escalation.status || '').toUpperCase())
+  return !['RESOLVED', 'CLOSED'].includes(normalizeStatusToken(escalation.status))
 }
 
 function getDepartmentRole(row = {}) {
@@ -33,8 +39,10 @@ function getDepartmentRole(row = {}) {
 }
 
 function getPercent(part, total) {
-  if (!Number(total || 0)) return 0
-  return clampScore((Number(part || 0) / Number(total || 1)) * 100)
+  const normalizedTotal = Number(total)
+  const normalizedPart = Number(part)
+  if (!Number.isFinite(normalizedTotal) || normalizedTotal <= 0 || !Number.isFinite(normalizedPart)) return 0
+  return clampScore((normalizedPart / normalizedTotal) * 100)
 }
 
 function buildTurnaroundCommandInputs({
@@ -66,10 +74,10 @@ function buildTurnaroundCommandInputs({
   const blockedTasks = taskRows.filter(isBlockedTask)
   const activeDependencies = dependencyRows.filter(dependency => !isCompleteStatus(dependency.status))
   const openEscalations = escalationRows.filter(isOpenEscalation)
-  const criticalEscalations = openEscalations.filter(escalation => String(escalation.severity || '').toUpperCase() === 'CRITICAL')
+  const criticalEscalations = openEscalations.filter(escalation => normalizeStatusToken(escalation.severity) === 'CRITICAL')
   const completedHandoffs = handoffRows.filter(handoff => isCompleteStatus(handoff.status)).length
-  const approvedSignoffs = signoffRows.filter(signoff => String(signoff.status || '').toUpperCase() === 'APPROVED').length
-  const blockedSignoffs = signoffRows.filter(signoff => String(signoff.status || '').toUpperCase() === 'BLOCKED')
+  const approvedSignoffs = signoffRows.filter(signoff => normalizeStatusToken(signoff.status) === 'APPROVED').length
+  const blockedSignoffs = signoffRows.filter(signoff => normalizeStatusToken(signoff.status) === 'BLOCKED')
   const staffingGaps = staffingRows.filter(row => normalizeCount(row.plannedCount ?? row.requiredCount ?? row.required) > normalizeCount(row.checkedInCount ?? row.assignedCount ?? row.assigned))
 
   return {
@@ -160,7 +168,7 @@ function buildCommandDecisionQueue(inputs = {}) {
 
   inputs.blockedTasks.slice(0, 4).forEach(task => decisions.push({
     id: `task-${task.id || task.taskName}`,
-    severity: String(task.status || '').toUpperCase() === 'BLOCKED' ? 'HIGH' : 'MEDIUM',
+    severity: normalizeStatusToken(task.status) === 'BLOCKED' ? 'HIGH' : 'MEDIUM',
     owner: task.ownerDisplayName || task.ownerUserId || getDepartmentRole(task),
     decision: `Resolve task blocker: ${task.taskName || 'Unnamed turnaround task'}`,
     action: task.blockerReason || task.notes || 'Confirm owner, next update, and unblock path.'
@@ -176,7 +184,7 @@ function buildCommandDecisionQueue(inputs = {}) {
 
   inputs.activeDependencies.slice(0, 4).forEach(dependency => decisions.push({
     id: `dependency-${dependency.id || dependency.taskId}`,
-    severity: String(dependency.status || '').toUpperCase() === 'BLOCKED' ? 'HIGH' : 'MEDIUM',
+    severity: normalizeStatusToken(dependency.status) === 'BLOCKED' ? 'HIGH' : 'MEDIUM',
     owner: getDepartmentRole(dependency),
     decision: `Clear dependency gate for ${dependency.taskName || 'turnaround task'}`,
     action: dependency.dependsOnTaskName ? `Confirm prerequisite: ${dependency.dependsOnTaskName}.` : 'Confirm prerequisite owner and completion evidence.'
@@ -298,7 +306,7 @@ function buildDepartmentCommandBoard(inputs = {}) {
         department.staffing.reduce((sum, row) => sum + normalizeCount(row.plannedCount ?? row.requiredCount ?? row.required), 0)
       )
       : 100
-    const signoffCompletion = getPercent(department.signoffs.filter(signoff => String(signoff.status || '').toUpperCase() === 'APPROVED').length, department.signoffs.length)
+    const signoffCompletion = getPercent(department.signoffs.filter(signoff => normalizeStatusToken(signoff.status) === 'APPROVED').length, department.signoffs.length)
     const openEscalations = department.escalations.filter(isOpenEscalation).length
     const blockedTasks = department.tasks.filter(isBlockedTask).length
     const readinessScore = clampScore((taskCompletion * 0.35) + (staffingCoverage * 0.25) + (signoffCompletion * 0.25) + (clampScore(100 - (openEscalations * 18) - (blockedTasks * 14)) * 0.15))

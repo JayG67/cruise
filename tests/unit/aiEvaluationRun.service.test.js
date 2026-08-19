@@ -45,3 +45,29 @@ describe('AI evaluation run persistence', () => {
   })
 
 })
+
+describe('AI evaluation run evidence hardening', () => {
+  test('fails closed on blank run identifiers', async () => {
+    await expect(recordEvaluationRun({
+      run: { runId: '   ', suiteId: 'suite-1' },
+      auditRecorder: jest.fn()
+    })).rejects.toThrow(TypeError)
+    await expect(recordEvaluationRun({
+      run: { runId: 'run-1', suiteId: '\t' },
+      auditRecorder: jest.fn()
+    })).rejects.toThrow(TypeError)
+  })
+
+  test('ignores malformed persisted payload shapes instead of spreading them into run evidence', () => {
+    const { mapEvaluationRunEvent } = require('../../services/aiEvaluationRun.service')
+    expect(mapEvaluationRunEvent({ id: 'event-1', eventPayload: 'not-an-object' })).toEqual({
+      auditEventId: 'event-1',
+      recordedAt: null
+    })
+    expect(mapEvaluationRunEvent({ id: 'event-2', eventPayload: ['bad'] })).toEqual({
+      auditEventId: 'event-2',
+      recordedAt: null
+    })
+    expect(mapEvaluationRunEvent(null)).toEqual({ auditEventId: null, recordedAt: null })
+  })
+})

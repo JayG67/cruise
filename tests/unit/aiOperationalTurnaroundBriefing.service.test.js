@@ -73,3 +73,53 @@ describe('Phase 2 operational briefing fail-closed behavior', () => {
     expect(call.input).not.toHaveProperty('requestedAt')
   })
 })
+
+describe('Phase 2 operational briefing input hardening', () => {
+  it('rejects blank operation identifiers before loading evidence or generating', async () => {
+    const evidenceLoader = jest.fn()
+    const briefingGenerator = jest.fn()
+
+    await expect(generateOperationalTurnaroundBriefing({ operationId: '   ', evidenceLoader, briefingGenerator }))
+      .rejects.toMatchObject({ code: 'TURNAROUND_OPERATION_ID_REQUIRED' })
+    expect(evidenceLoader).not.toHaveBeenCalled()
+    expect(briefingGenerator).not.toHaveBeenCalled()
+  })
+
+  it('trims operation/question/timestamp inputs and normalizes missing evidence collections', async () => {
+    const evidenceLoader = jest.fn().mockResolvedValue({
+      operation: { id: 'op-trim', title: 'Trimmed', status: 'PLANNED', readinessLevel: 'PLANNING' },
+      evidence: null,
+      evidenceSummary: { included: 0 }
+    })
+    const briefingGenerator = jest.fn().mockResolvedValue({ briefing: { riskLevel: 'low' } })
+
+    await generateOperationalTurnaroundBriefing({
+      operationId: '  op-trim  ', question: '  What is next?  ', requestedAt: '  2026-08-17T20:00:00.000Z  ', evidenceLoader, briefingGenerator
+    })
+
+    expect(evidenceLoader).toHaveBeenCalledWith('op-trim')
+    expect(briefingGenerator).toHaveBeenCalledWith(expect.objectContaining({
+      input: expect.objectContaining({
+        operationId: 'op-trim', question: 'What is next?', requestedAt: '2026-08-17T20:00:00.000Z', evidence: []
+      })
+    }))
+  })
+
+  it('uses the default question for whitespace-only input and omits a whitespace timestamp', async () => {
+    const evidenceLoader = jest.fn().mockResolvedValue({ operation: { id: 'op-default' }, evidence: [], evidenceSummary: {} })
+    const briefingGenerator = jest.fn().mockResolvedValue({ briefing: {} })
+
+    await generateOperationalTurnaroundBriefing({ operationId: 'op-default', question: '  ', requestedAt: '  ', evidenceLoader, briefingGenerator })
+
+    const input = briefingGenerator.mock.calls[0][0].input
+    expect(input.question).toBe('Summarize current turnaround readiness and the most important next actions.')
+    expect(input).not.toHaveProperty('requestedAt')
+  })
+})
+
+describe('Phase 2 operational briefing null-options hardening', () => {
+  it('returns the coded operation-id failure for an explicit null options object', async () => {
+    await expect(generateOperationalTurnaroundBriefing(null))
+      .rejects.toMatchObject({ code: 'TURNAROUND_OPERATION_ID_REQUIRED' })
+  })
+})

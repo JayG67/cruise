@@ -81,8 +81,8 @@ exports.updateItineraryDay = async (req, res, next) => {
     if (!existingItineraryDay) return res.status(404).json({ message: 'Itinerary day not found' })
 
     const itineraryDayUpdates = { day, title, port, ...buildTimestampUpdateValues() }
-    await db.update(itineraryDayTable).set(itineraryDayUpdates).where(eq(itineraryDayTable.id, id))
-
+    const updatedRows = await db.update(itineraryDayTable).set(itineraryDayUpdates).where(eq(itineraryDayTable.id, id)).returning({ id: itineraryDayTable.id })
+    if (!updatedRows[0]?.id) return res.status(404).json({ message: 'Itinerary day not found' })
     const itineraryScope = await getItineraryDayAuditScope(existingItineraryDay)
     await recordPlatformAuditEvent(req, {
       eventType: 'ITINERARY_DAY_UPDATED',
@@ -97,7 +97,6 @@ exports.updateItineraryDay = async (req, res, next) => {
     next(error)
   }
 }
-
 exports.deleteItineraryDay = async (req, res, next) => {
   try {
     const { id } = req.params
@@ -107,8 +106,8 @@ exports.deleteItineraryDay = async (req, res, next) => {
 
     const deletedActivities = await db.select().from(activityScheduleTable).where(eq(activityScheduleTable.itineraryDayId, id))
     await deleteActivitiesForItineraryDayIds([id])
-    await db.delete(itineraryDayTable).where(eq(itineraryDayTable.id, id))
-
+    const deletedRows = await db.delete(itineraryDayTable).where(eq(itineraryDayTable.id, id)).returning({ id: itineraryDayTable.id })
+    if (!deletedRows[0]?.id) return res.status(404).json({ message: 'Itinerary day not found' })
     const itineraryScope = await getItineraryDayAuditScope(existingItineraryDay)
     await recordPlatformAuditEvent(req, {
       eventType: 'ITINERARY_DAY_DELETED',
@@ -159,7 +158,8 @@ exports.updateActivitySchedule = async (req, res, next) => {
     if (!existingActivity) return res.status(404).json({ message: 'Activity not found' })
 
     const activityUpdates = { time, activity, ...buildTimestampUpdateValues() }
-    await db.update(activityScheduleTable).set(activityUpdates).where(eq(activityScheduleTable.id, id))
+    const updatedRows = await db.update(activityScheduleTable).set(activityUpdates).where(eq(activityScheduleTable.id, id)).returning({ id: activityScheduleTable.id })
+    if (!updatedRows[0]?.id) return res.status(404).json({ message: 'Activity not found' })
     const activityScope = await getActivityAuditScope(id)
 
     await recordPlatformAuditEvent(req, {
@@ -175,7 +175,6 @@ exports.updateActivitySchedule = async (req, res, next) => {
     next(error)
   }
 }
-
 exports.deleteActivitySchedule = async (req, res, next) => {
   try {
     const { id } = req.params
@@ -184,7 +183,8 @@ exports.deleteActivitySchedule = async (req, res, next) => {
     if (!existingActivity) return res.status(404).json({ message: 'Activity not found' })
 
     const activityScope = await getActivityAuditScope(id)
-    await db.delete(activityScheduleTable).where(eq(activityScheduleTable.id, id))
+    const deletedRows = await db.delete(activityScheduleTable).where(eq(activityScheduleTable.id, id)).returning({ id: activityScheduleTable.id })
+    if (!deletedRows[0]?.id) return res.status(404).json({ message: 'Activity not found' })
     await recordPlatformAuditEvent(req, {
       eventType: 'ITINERARY_ACTIVITY_DELETED',
       entityType: 'ITINERARY_ACTIVITY',

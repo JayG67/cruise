@@ -1,5 +1,11 @@
+function asArray(value) {
+  return Array.isArray(value) ? value : []
+}
+
 function clampScore(value) {
-  return Math.max(0, Math.min(100, Math.round(Number(value) || 0)))
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) return 0
+  return Math.max(0, Math.min(100, Math.round(numericValue)))
 }
 
 function normalizeCount(value) {
@@ -22,7 +28,19 @@ function getBriefTone(status) {
 }
 
 function firstNonEmpty(...values) {
-  return values.find(value => String(value || '').trim().length > 0) || ''
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) return value.trim()
+    if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+  }
+  return ''
+}
+
+function normalizeStatus(value) {
+  return String(value || '').trim().toUpperCase()
+}
+
+function normalizeNarrative(value) {
+  return firstNonEmpty(value)
 }
 
 function buildExecutiveDecision({ operationalMetrics = null, incidentCommand = null, afterActionReview = null, releasePacket = null, playbookVariance = null } = {}) {
@@ -47,11 +65,12 @@ function buildExecutiveDecision({ operationalMetrics = null, incidentCommand = n
 }
 
 function buildExecutiveHighlights({ operation = {}, operationalMetrics = null, incidentCommand = null, afterActionReview = null, playbookTemplate = null, playbookVariance = null, releasePacket = null } = {}) {
-  const signals = operationalMetrics?.signals || []
-  const highRiskSignal = signals.find(signal => ['ACTION', 'WATCH'].includes(signal.status))
-  const topIncident = incidentCommand?.incidentSignals?.[0]
+  const signals = asArray(operationalMetrics?.signals)
+  const highRiskSignal = signals.find(signal => ['ACTION', 'WATCH'].includes(normalizeStatus(signal.status)))
+  const topIncident = asArray(incidentCommand?.incidentSignals)[0]
   const topLesson = afterActionReview?.departmentLessons?.[0]
-  const topFinding = afterActionReview?.findings?.find(finding => ['ACTION', 'WATCH'].includes(finding.status)) || afterActionReview?.findings?.[0]
+  const findings = asArray(afterActionReview?.findings)
+  const topFinding = findings.find(finding => ['ACTION', 'WATCH'].includes(normalizeStatus(finding.status))) || findings[0]
 
   return [
     {
@@ -64,13 +83,13 @@ function buildExecutiveHighlights({ operation = {}, operationalMetrics = null, i
       id: 'incident-bridge',
       label: 'Exception bridge',
       status: incidentCommand?.incidentSeverity || 'LOW',
-      detail: firstNonEmpty(topIncident?.detail, incidentCommand?.commandActions?.[0], 'No critical exception bridge is required for the current operation.')
+      detail: firstNonEmpty(topIncident?.detail, asArray(incidentCommand?.commandActions)[0], 'No critical exception bridge is required for the current operation.')
     },
     {
       id: 'playbook-readiness',
       label: 'Playbook promotion',
       status: playbookVariance?.status || playbookTemplate?.status || 'WATCH',
-      detail: firstNonEmpty(playbookVariance?.rehearsalActions?.[0], playbookTemplate?.recommendations?.[0], 'Compare final variance before promoting this operation as a reusable baseline.')
+      detail: firstNonEmpty(asArray(playbookVariance?.rehearsalActions)[0], asArray(playbookTemplate?.recommendations)[0], 'Compare final variance before promoting this operation as a reusable baseline.')
     },
     {
       id: 'debrief-followup',
@@ -84,7 +103,7 @@ function buildExecutiveHighlights({ operation = {}, operationalMetrics = null, i
 function buildExecutiveDepartments({ operationalMetrics = null, incidentCommand = null, afterActionReview = null, playbookVariance = null } = {}) {
   const rowsByRole = new Map()
 
-  for (const row of operationalMetrics?.departmentRisks || []) {
+  for (const row of asArray(operationalMetrics?.departmentRisks)) {
     const key = row.departmentRole || row.role || 'department'
     rowsByRole.set(key, {
       departmentRole: key,
@@ -94,7 +113,7 @@ function buildExecutiveDepartments({ operationalMetrics = null, incidentCommand 
     })
   }
 
-  for (const row of incidentCommand?.incidentDepartments || []) {
+  for (const row of asArray(incidentCommand?.incidentDepartments)) {
     const key = row.departmentRole || row.role || 'department'
     const current = rowsByRole.get(key) || { departmentRole: key, riskScore: 0, status: 'WATCH', driver: 'Incident signal' }
     current.riskScore = Math.max(current.riskScore, clampScore(row.score ?? row.riskScore ?? 0))
@@ -103,19 +122,19 @@ function buildExecutiveDepartments({ operationalMetrics = null, incidentCommand 
     rowsByRole.set(key, current)
   }
 
-  for (const row of afterActionReview?.departmentLessons || []) {
+  for (const row of asArray(afterActionReview?.departmentLessons)) {
     const key = row.departmentRole || 'department'
     const current = rowsByRole.get(key) || { departmentRole: key, riskScore: 0, status: 'WATCH', driver: 'After-action lesson' }
-    current.lessonScore = row.lessonScore
+    current.lessonScore = clampScore(row.lessonScore ?? 0)
     current.recommendation = row.recommendation
     rowsByRole.set(key, current)
   }
 
-  for (const row of playbookVariance?.departments || []) {
+  for (const row of asArray(playbookVariance?.departments)) {
     const key = row.departmentRole || 'department'
     const current = rowsByRole.get(key) || { departmentRole: key, riskScore: 0, status: 'WATCH', driver: 'Playbook variance' }
-    current.varianceScore = row.varianceScore
-    current.riskScore = Math.max(current.riskScore, clampScore(row.varianceScore ?? 0))
+    current.varianceScore = clampScore(row.varianceScore ?? 0)
+    current.riskScore = Math.max(current.riskScore, current.varianceScore)
     current.recommendation = current.recommendation || row.recommendation
     rowsByRole.set(key, current)
   }
@@ -136,11 +155,24 @@ function buildExecutiveActions({ decision = {}, incidentCommand = null, afterAct
     actions.push('Hold executive promotion until command review clears the top readiness and exception risks.')
   }
 
-  for (const action of incidentCommand?.commandActions || []) actions.push(`Exception bridge: ${action}`)
-  for (const action of afterActionReview?.followUpActions || []) actions.push(`After-action: ${action}`)
-  for (const action of playbookVariance?.rehearsalActions || []) actions.push(`Playbook: ${action}`)
-  for (const signal of operationalMetrics?.signals || []) {
-    if (['ACTION', 'WATCH'].includes(signal.status)) actions.push(`Metric watch: ${signal.label} - ${signal.detail}`)
+  for (const action of asArray(incidentCommand?.commandActions)) {
+    const narrative = normalizeNarrative(action)
+    if (narrative) actions.push(`Exception bridge: ${narrative}`)
+  }
+  for (const action of asArray(afterActionReview?.followUpActions)) {
+    const narrative = normalizeNarrative(action)
+    if (narrative) actions.push(`After-action: ${narrative}`)
+  }
+  for (const action of asArray(playbookVariance?.rehearsalActions)) {
+    const narrative = normalizeNarrative(action)
+    if (narrative) actions.push(`Playbook: ${narrative}`)
+  }
+  for (const signal of asArray(operationalMetrics?.signals)) {
+    const label = normalizeNarrative(signal?.label)
+    const detail = normalizeNarrative(signal?.detail)
+    if (['ACTION', 'WATCH'].includes(normalizeStatus(signal?.status)) && (label || detail)) {
+      actions.push(`Metric watch: ${label || 'Operational signal'}${detail ? ` - ${detail}` : ''}`)
+    }
   }
 
   return [...new Set(actions)].slice(0, 7)

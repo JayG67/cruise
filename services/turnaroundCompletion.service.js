@@ -1,5 +1,7 @@
 function clampScore(value) {
-  return Math.max(0, Math.min(100, Math.round(Number(value) || 0)))
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) return 0
+  return Math.max(0, Math.min(100, Math.round(numericValue)))
 }
 
 function normalizeStatus(value, fallback = 'REVIEW') {
@@ -8,6 +10,19 @@ function normalizeStatus(value, fallback = 'REVIEW') {
 
 function asArray(value) {
   return Array.isArray(value) ? value : []
+}
+
+function normalizeStatusToken(value) {
+  return String(value || '').trim().toUpperCase()
+}
+
+function isCompleteStatus(value) {
+  return ['DONE', 'COMPLETE', 'COMPLETED', 'APPROVED', 'RESOLVED', 'CLEARED', 'CLOSED'].includes(normalizeStatusToken(value))
+}
+
+function normalizeCount(value) {
+  const numericValue = Number(value)
+  return Number.isFinite(numericValue) && numericValue > 0 ? Math.floor(numericValue) : 0
 }
 
 function getPercent(part, total) {
@@ -58,22 +73,22 @@ function buildTurnaroundCapabilityMap({
   const dependencyRows = asArray(dependencies)
   const handoffRows = asArray(handoffs)
   const auditRows = asArray(auditEvents)
-  const completedTasks = taskRows.filter(task => ['DONE', 'COMPLETE', 'COMPLETED', 'APPROVED'].includes(String(task.status || '').toUpperCase())).length
+  const completedTasks = taskRows.filter(task => isCompleteStatus(task.status)).length
   const taskCompletion = getPercent(completedTasks, taskRows.length)
-  const approvedSignoffs = signoffRows.filter(signoff => String(signoff.status || '').toUpperCase() === 'APPROVED').length
+  const approvedSignoffs = signoffRows.filter(signoff => normalizeStatusToken(signoff.status) === 'APPROVED').length
   const signoffCompletion = getPercent(approvedSignoffs, signoffRows.length)
-  const closedDependencies = dependencyRows.filter(dependency => String(dependency.status || '').toUpperCase() === 'COMPLETE').length
+  const closedDependencies = dependencyRows.filter(dependency => isCompleteStatus(dependency.status)).length
   const dependencyCompletion = getPercent(closedDependencies, dependencyRows.length)
-  const closedHandoffs = handoffRows.filter(handoff => String(handoff.status || '').toUpperCase() === 'COMPLETE').length
+  const closedHandoffs = handoffRows.filter(handoff => isCompleteStatus(handoff.status)).length
   const handoffCompletion = getPercent(closedHandoffs, handoffRows.length)
   const staffingCoverage = clampScore(operationalMetrics?.summary?.staffingCoverage ?? operationalMetrics?.staffingCoverage ?? 0)
   const releaseScore = clampScore(releasePacket?.releaseScore ?? operationalMetrics?.summary?.releaseConfidence ?? executiveBrief?.summary?.releaseConfidence ?? 0)
-  const incidentSafety = clampScore(100 - Number(incidentCommand?.incidentScore ?? executiveBrief?.summary?.incidentScore ?? 0))
+  const incidentSafety = 100 - clampScore(incidentCommand?.incidentScore ?? executiveBrief?.summary?.incidentScore ?? 0)
   const playbookScore = clampScore(playbookVariance?.summary?.rehearsalScore ?? playbookTemplate?.readinessScore ?? 0)
   const reviewScore = clampScore(afterActionReview?.summary?.reviewScore ?? executiveBrief?.summary?.reviewScore ?? 0)
   const reviewerScore = clampScore(reviewerPacket?.readiness?.readinessScore ?? 0)
   const outreachScore = clampScore(outreachBoard?.readiness?.readinessScore ?? 0)
-  const timelineEvents = Number(operationalTimeline?.summary?.totalEvents ?? operationalTimeline?.items?.length ?? 0)
+  const timelineEvents = normalizeCount(operationalTimeline?.summary?.totalEvents ?? operationalTimeline?.items?.length ?? 0)
 
   return [
     buildCapabilityStatus({
@@ -137,7 +152,7 @@ function buildTurnaroundRemainingWork({ capabilities = [], incidentCommand = nul
     detail: capability.detail
   }))
 
-  const incidentScore = Number(incidentCommand?.incidentScore || 0)
+  const incidentScore = clampScore(incidentCommand?.incidentScore ?? 0)
   if (incidentScore >= 45) {
     work.unshift({
       id: 'reduce-incident-risk',
@@ -147,7 +162,7 @@ function buildTurnaroundRemainingWork({ capabilities = [], incidentCommand = nul
     })
   }
 
-  const dataQualityRisk = Number(outreachBoard?.readiness?.dataQualityRisk || reviewerPacket?.dataQuality?.blockerCount || 0)
+  const dataQualityRisk = normalizeCount(outreachBoard?.readiness?.dataQualityRisk ?? reviewerPacket?.dataQuality?.blockerCount ?? 0)
   if (dataQualityRisk > 0) {
     work.unshift({
       id: 'clean-data-quality-watch-items',

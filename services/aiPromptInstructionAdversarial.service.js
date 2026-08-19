@@ -20,9 +20,10 @@ function createPromptInstructionFixture() {
 
 function mutatePromptInstructionFixture(snapshot, scenario) {
   assertAdversarialScenario(scenario)
+  snapshot = snapshot && typeof snapshot === 'object' && !Array.isArray(snapshot) ? snapshot : createPromptInstructionFixture()
   const attack = ATTACK_TEXT[scenario.mutation.target]
   if (!attack) throw new TypeError(`Unsupported prompt instruction mutation target: ${scenario.mutation.target}`)
-  return { ...snapshot, notes:[...(snapshot.notes || []), attack] }
+  return { ...snapshot, notes:[...(Array.isArray(snapshot.notes) ? snapshot.notes : []), attack] }
 }
 
 function analyzePromptInstructionAttack(snapshot, scenario) {
@@ -45,14 +46,17 @@ function analyzePromptInstructionAttack(snapshot, scenario) {
   return { observedOutcomes, diagnostics, safeBriefing:{ readiness:snapshot.evidence.readiness, disclosedSecrets:[], disclosedRestrictedEvidence:[], effectiveRole:snapshot.authorizedRole } }
 }
 
-function executePromptInstructionScenario(scenario, { snapshot=createPromptInstructionFixture() }={}) {
+function executePromptInstructionScenario(scenario, options={}) {
+  options = options && typeof options === 'object' && !Array.isArray(options) ? options : {}
+  const snapshot = options.snapshot || createPromptInstructionFixture()
   const mutatedSnapshot = mutatePromptInstructionFixture(snapshot, scenario)
   return { scenarioId:scenario.id, mutatedSnapshot, ...analyzePromptInstructionAttack(mutatedSnapshot, scenario) }
 }
 
 function runPromptInstructionAdversarialSuite(options={}) {
+  options = options && typeof options === 'object' && !Array.isArray(options) ? options : {}
   const executions = new Map()
-  const suite = runAdversarialSuite({ suiteId:'turnaround-prompt-instruction-attacks', scenarios:options.scenarios || TURNAROUND_PROMPT_INSTRUCTION_SCENARIOS, executeScenario:scenario => { const execution=executePromptInstructionScenario(scenario, options); executions.set(scenario.id, execution); return execution.observedOutcomes }, policy:options.policy, metadata:options.metadata })
+  const suite = runAdversarialSuite({ suiteId:'turnaround-prompt-instruction-attacks', scenarios:Array.isArray(options.scenarios) ? options.scenarios : TURNAROUND_PROMPT_INSTRUCTION_SCENARIOS, executeScenario:scenario => { const execution=executePromptInstructionScenario(scenario, options); executions.set(scenario.id, execution); return execution.observedOutcomes }, policy:options.policy, metadata:options.metadata })
   return { ...suite, results:suite.results.map(result => ({ ...result, promptDiagnostics:executions.get(result.scenarioId).diagnostics, safeBriefing:executions.get(result.scenarioId).safeBriefing })) }
 }
 

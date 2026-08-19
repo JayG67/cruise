@@ -197,3 +197,72 @@ describe('turnaround go-live authoritative evidence hardening', () => {
     expect(packet.headline).toContain('Ship pending')
   })
 })
+
+describe('turnaround go-live malformed evidence and terminal-state hardening', () => {
+  const { buildGoLiveReadinessInputs } = require('../../services/turnaroundGoLive.service')
+
+  it('treats equivalent terminal workflow statuses as closed evidence', () => {
+    const inputs = buildGoLiveReadinessInputs({
+      tasks: [{ status: ' completed ' }, { status: 'RESOLVED' }, { status: 'done' }],
+      signoffs: [{ status: 'APPROVED' }],
+      escalations: [{ status: ' closed ' }],
+      dependencies: [{ status: 'completed' }, { status: 'CLEARED' }],
+      handoffs: [{ status: ' resolved ' }]
+    })
+
+    expect(inputs).toMatchObject({
+      completedTasks: 3,
+      taskCompletion: 100,
+      signoffCompletion: 100,
+      openEscalations: 0,
+      activeDependencies: 0,
+      openHandoffs: 0
+    })
+  })
+
+  it('fails non-finite scores and malformed staffing counts safe instead of inflating go-live readiness', () => {
+    const inputs = buildGoLiveReadinessInputs({
+      commandCenter: { summary: { commandScore: Infinity } },
+      continuityCenter: { continuityScore: -Infinity },
+      shiftBriefing: { summary: { briefingScore: 'bad' } },
+      closeoutPacket: { closeoutScore: Infinity },
+      productionReadiness: { readinessScore: Infinity },
+      launchPlan: { launchScore: Infinity },
+      applicationDossier: { dossierScore: Infinity },
+      releasePacket: { summary: { releaseScore: Infinity } },
+      lifecycleState: { completionPercent: Infinity },
+      staffing: [
+        { plannedCount: Infinity, checkedInCount: 1 },
+        { plannedCount: 3.9, checkedInCount: -4 },
+        { plannedCount: 'bad', checkedInCount: 5 }
+      ]
+    })
+
+    expect(inputs).toMatchObject({
+      commandScore: 0,
+      continuityScore: 0,
+      shiftScore: 0,
+      closeoutScore: 0,
+      productionScore: 0,
+      launchScore: 0,
+      dossierScore: 0,
+      releaseScore: 0,
+      lifecycleScore: 0,
+      staffingGaps: 1
+    })
+    expect(JSON.stringify(inputs)).not.toMatch(/NaN|Infinity/)
+  })
+
+  it('keeps exported helpers and center safe for explicit null inputs', () => {
+    expect(buildGoLiveGates(null)).toHaveLength(6)
+    expect(buildGoLiveActions(null, null)).toEqual([
+      expect.objectContaining({ id: 'launch-freeze', priority: 'LOW' })
+    ])
+    expect(buildGoLiveEvidence(null, null)).toHaveLength(5)
+
+    const packet = buildTurnaroundGoLiveCenter(null)
+    expect(packet.operationId).toBeNull()
+    expect(packet.summary.goLiveStatus).toBe('NO_GO')
+    expect(packet.headline).toContain('Ship pending')
+  })
+})

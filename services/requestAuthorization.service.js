@@ -13,12 +13,6 @@ const ACTOR_IDENTITY_SOURCES = Object.freeze({
   JWT: 'jwt'
 })
 
-function compactObject(value = {}) {
-  return Object.fromEntries(
-    Object.entries(value).filter(([, entryValue]) => entryValue !== undefined && entryValue !== null && entryValue !== '')
-  )
-}
-
 function normalizeRole(role = '') {
   return String(role || '').trim().toUpperCase().replace(/[\s-]+/g, '_')
 }

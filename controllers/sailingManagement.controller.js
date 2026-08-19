@@ -84,8 +84,8 @@ exports.updateSailing = async (req, res, next) => {
       isRepositioning: Boolean(isRepositioning),
       ...buildEntityUpdateTimestamp()
     }
-    await db.update(sailingTable).set(sailingUpdates).where(eq(sailingTable.id, id))
-
+    const updatedRows = await db.update(sailingTable).set(sailingUpdates).where(eq(sailingTable.id, id)).returning({ id: sailingTable.id })
+    if (!updatedRows[0]) return res.status(404).json({ message: 'Sailing not found' })
     const sailingScope = await getSailingAuditScope(existingSailing)
     await recordPlatformAuditEvent(req, {
       eventType: 'SAILING_UPDATED',
@@ -114,8 +114,8 @@ exports.deleteSailing = async (req, res, next) => {
     if (!existingSailing) return res.status(404).json({ message: 'Sailing not found' })
 
     await deleteItineraryForSailingIds([id])
-    await db.delete(sailingTable).where(eq(sailingTable.id, id))
-
+    const deletedRows = await db.delete(sailingTable).where(eq(sailingTable.id, id)).returning({ id: sailingTable.id })
+    if (!deletedRows[0]) return res.status(404).json({ message: 'Sailing not found' })
     const sailingScope = await getSailingAuditScope(existingSailing)
     await recordPlatformAuditEvent(req, {
       eventType: 'SAILING_DELETED',

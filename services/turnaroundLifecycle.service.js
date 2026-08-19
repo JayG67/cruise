@@ -64,7 +64,15 @@ const TURNAROUND_LIFECYCLE_PHASES = [
 ]
 
 function clampPercent(value) {
-  return Math.max(0, Math.min(100, Math.round(Number(value) || 0)))
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) return 0
+  return Math.max(0, Math.min(100, Math.round(numericValue)))
+}
+
+function normalizeCount(value) {
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue) || numericValue <= 0) return 0
+  return Math.floor(numericValue)
 }
 
 function asArray(value) {
@@ -169,8 +177,8 @@ function buildDepartmentLifecycleRows({ tasks = [], staffing = [], signoffs = []
 
   for (const staff of staffing || []) {
     const row = ensure(getDepartmentRole(staff))
-    row.plannedStaff += Number(staff.plannedCount || staff.requiredCount || staff.assignedCount || 0)
-    row.checkedInStaff += Number(staff.checkedInCount || staff.assignedCount || 0)
+    row.plannedStaff += normalizeCount(staff.plannedCount ?? staff.requiredCount ?? staff.assignedCount ?? 0)
+    row.checkedInStaff += normalizeCount(staff.checkedInCount ?? staff.assignedCount ?? 0)
   }
 
   return [...departments.values()]
@@ -283,8 +291,8 @@ function buildTurnaroundLifecycleState({ operation = {}, tasks = [], staffing = 
   const openHandoffs = handoffs.filter(handoff => !isHandoffComplete(handoff)).length
   const totalSignoffs = signoffs.length
   const approvedSignoffs = signoffs.filter(isSignoffApproved).length
-  const plannedStaff = staffing.reduce((sum, row) => sum + Number(row.plannedCount || row.requiredCount || row.assignedCount || 0), 0)
-  const checkedInStaff = staffing.reduce((sum, row) => sum + Number(row.checkedInCount || row.assignedCount || 0), 0)
+  const plannedStaff = staffing.reduce((sum, row) => sum + normalizeCount(row.plannedCount ?? row.requiredCount ?? row.assignedCount ?? 0), 0)
+  const checkedInStaff = staffing.reduce((sum, row) => sum + normalizeCount(row.checkedInCount ?? row.assignedCount ?? 0), 0)
   const staffingGap = Math.max(plannedStaff - checkedInStaff, 0)
   const staffingCoveragePercent = percent(checkedInStaff, plannedStaff)
   const releaseConfidence = clampPercent(operationalMetrics?.summary?.releaseConfidence ?? releasePacket?.releaseConfidence ?? releasePacket?.readinessScore ?? 0)

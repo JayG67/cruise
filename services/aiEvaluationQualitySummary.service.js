@@ -1,6 +1,9 @@
 const { listEvaluationRuns } = require('./aiEvaluationRun.service')
 const { describeQualityConsoleReleasePolicy } = require('./aiQualityConsoleReleasePolicy.service')
 
+const asArray = value => Array.isArray(value) ? value : []
+const textValue = (value, fallback = null) => typeof value === 'string' && value.trim() ? value.trim() : fallback
+
 function numeric(value) {
   const parsed = Number(value)
   return Number.isFinite(parsed) ? parsed : 0
@@ -15,8 +18,8 @@ function summarizeFailedCase(result = {}) {
     .map(item => ({ dimension: item.dimension, score: numeric(item.score) }))
 
   return {
-    evaluationCaseId: result.evaluationCaseId || null,
-    evaluationCaseName: result.evaluationCaseName || result.evaluationCaseId || 'Unnamed evaluation case',
+    evaluationCaseId: textValue(result.evaluationCaseId),
+    evaluationCaseName: textValue(result.evaluationCaseName) || textValue(result.evaluationCaseId) || 'Unnamed evaluation case',
     score: numeric(result.score),
     passThreshold: numeric(result.passThreshold),
     weakestDimensions,
@@ -34,17 +37,17 @@ function summarizeRun(run = {}) {
   const results = Array.isArray(run.results) ? run.results : []
   const failedCases = results.filter(result => result.passed !== true).map(summarizeFailedCase)
   return {
-    runId: run.runId || null,
-    suiteId: run.suiteId || null,
+    runId: textValue(run.runId),
+    suiteId: textValue(run.suiteId),
     completedAt: run.completedAt || run.recordedAt || null,
     passRate: numeric(run.passRate),
     averageScore: numeric(run.averageScore),
     passed: run.passed === true,
     durationMs: numeric(run.durationMs),
-    provider: metadata.provider || run.provider || 'unknown',
-    model: metadata.model || run.model || 'unknown',
-    promptVersion: metadata.promptVersion || run.promptVersion || 'unknown',
-    variantId: metadata.variantId || run.variantId || null,
+    provider: textValue(metadata.provider) || textValue(run.provider) || 'unknown',
+    model: textValue(metadata.model) || textValue(run.model) || 'unknown',
+    promptVersion: textValue(metadata.promptVersion) || textValue(run.promptVersion) || 'unknown',
+    variantId: textValue(metadata.variantId) || textValue(run.variantId),
     caseCount: results.length || numeric(run.caseCount),
     failedCaseIds: failedCases.map(result => result.evaluationCaseId),
     failedCases
@@ -53,8 +56,8 @@ function summarizeRun(run = {}) {
 
 function buildFailureSummary(runs = []) {
   const failuresByCase = new Map()
-  runs.forEach(run => {
-    const failedCases = Array.isArray(run.failedCases) ? run.failedCases : []
+  asArray(runs).forEach(run => {
+    const failedCases = asArray(run?.failedCases)
     failedCases.forEach(failedCase => {
       const current = failuresByCase.get(failedCase.evaluationCaseId) || {
         evaluationCaseId: failedCase.evaluationCaseId,
@@ -74,6 +77,7 @@ function round(value) {
 }
 
 function buildTrend(runs = []) {
+  runs = asArray(runs)
   if (!runs.length) {
     return {
       direction: 'NO_DATA',
@@ -107,7 +111,7 @@ function buildTrend(runs = []) {
 
 async function buildAiEvaluationQualitySummary({ suiteId = 'turnaround-briefing-phase3', limit = 20, runLister = listEvaluationRuns } = {}) {
   const history = await runLister({ suiteId, limit })
-  const runs = (history.runs || []).map(summarizeRun)
+  const runs = asArray(history?.runs).map(summarizeRun)
   const latestRun = runs[0] || null
   const passingRuns = runs.filter(run => run.passed).length
 

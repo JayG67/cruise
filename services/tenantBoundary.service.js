@@ -1,11 +1,18 @@
 function compactObject(value = {}) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
   return Object.fromEntries(
     Object.entries(value).filter(([, entryValue]) => entryValue !== undefined && entryValue !== null && entryValue !== '')
   )
 }
 
 function normalizeTenantId(value) {
-  return String(value || '').trim() || null
+  if (typeof value === 'string') return value.trim() || null
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+  return null
+}
+
+function firstTenantId(...values) {
+  return values.map(normalizeTenantId).find(Boolean) || null
 }
 
 function buildTenantBoundary({ cruiseLineId, shipId, sailingId, operationId, customerId, bookingId } = {}) {
@@ -26,23 +33,23 @@ function tenantBoundaryFromEntity(entity = {}) {
   const apiRelationships = entity.apiIdentity?.relationships || {}
 
   return buildTenantBoundary({
-    cruiseLineId: entity.cruiseLineId || apiTenantScope.cruiseLineId || apiRelationships.cruiseLineId,
-    shipId: entity.shipId || apiTenantScope.shipId || apiRelationships.shipId,
-    sailingId: entity.sailingId || apiTenantScope.sailingId || apiRelationships.sailingId,
-    operationId: entity.operationId || entity.turnaroundOperationId || apiTenantScope.operationId || apiRelationships.operationId || apiRelationships.turnaroundOperationId,
-    customerId: entity.customerId || entity.createdByCustomerId || apiRelationships.customerId || apiRelationships.createdByCustomerId,
-    bookingId: entity.bookingId || apiTenantScope.bookingId || apiRelationships.bookingId
+    cruiseLineId: firstTenantId(entity.cruiseLineId, apiTenantScope.cruiseLineId, apiRelationships.cruiseLineId),
+    shipId: firstTenantId(entity.shipId, apiTenantScope.shipId, apiRelationships.shipId),
+    sailingId: firstTenantId(entity.sailingId, apiTenantScope.sailingId, apiRelationships.sailingId),
+    operationId: firstTenantId(entity.operationId, entity.turnaroundOperationId, apiTenantScope.operationId, apiRelationships.operationId, apiRelationships.turnaroundOperationId),
+    customerId: firstTenantId(entity.customerId, entity.createdByCustomerId, apiRelationships.customerId, apiRelationships.createdByCustomerId),
+    bookingId: firstTenantId(entity.bookingId, apiTenantScope.bookingId, apiRelationships.bookingId)
   })
 }
 
 function tenantBoundaryFromRequest(req = {}) {
   return buildTenantBoundary({
-    cruiseLineId: req.params?.cruiseLineId || req.query?.cruiseLineId || req.headers?.['x-cruise-tenant-id'] || req.headers?.['X-Cruise-Tenant-Id'],
-    shipId: req.params?.shipId || req.query?.shipId,
-    sailingId: req.params?.sailingId || req.query?.sailingId,
-    operationId: req.params?.operationId || req.query?.operationId,
-    customerId: req.params?.customerId || req.params?.id || req.query?.customerId,
-    bookingId: req.params?.bookingId || req.query?.bookingId
+    cruiseLineId: firstTenantId(req.params?.cruiseLineId, req.query?.cruiseLineId, req.headers?.['x-cruise-tenant-id'], req.headers?.['X-Cruise-Tenant-Id']),
+    shipId: firstTenantId(req.params?.shipId, req.query?.shipId),
+    sailingId: firstTenantId(req.params?.sailingId, req.query?.sailingId),
+    operationId: firstTenantId(req.params?.operationId, req.query?.operationId),
+    customerId: firstTenantId(req.params?.customerId, req.query?.customerId),
+    bookingId: firstTenantId(req.params?.bookingId, req.query?.bookingId)
   })
 }
 

@@ -162,3 +162,72 @@ describe('tenant access service', () => {
     expect(constrainAuditFiltersToTenant({}, { isGlobalAdmin: false, cruiseLineId: null })).toBeNull()
   })
 })
+
+describe('tenant access identifier normalization hardening', () => {
+  beforeEach(() => db.select.mockReset())
+
+  it('falls back from blank assignment identifiers to authoritative app-user scope', async () => {
+    queueSelectRows(
+      [{ id: 'admin-1', status: 'ACTIVE', cruiseLineId: ' CL-1 ', assignedShipId: ' SHIP-1 ' }],
+      [{ roleId: 'admin', status: 'ACTIVE', assignmentScope: 'CRUISE_LINE', cruiseLineId: '   ', assignedShipId: '\t' }]
+    )
+
+    await expect(resolvePrincipalTenantScope(requestFor('admin-1', 'ADMIN', ' CL-1 '))).resolves.toEqual(expect.objectContaining({
+      cruiseLineId: 'CL-1',
+      assignedShipId: 'SHIP-1',
+      isGlobalAdmin: false
+    }))
+  })
+
+  it('normalizes resource tenant identifiers before equality checks', async () => {
+    queueSelectRows(
+      [{ id: 'admin-1', status: 'ACTIVE', cruiseLineId: 'CL-1' }],
+      [{ roleId: 'admin', status: 'ACTIVE', assignmentScope: 'CRUISE_LINE', cruiseLineId: 'CL-1' }]
+    )
+    await expect(canAccessCruiseLineTenant(requestFor('admin-1'), '  CL-1  ')).resolves.toBe(true)
+  })
+
+  it('keeps blank assignment scope out of global-admin classification', async () => {
+    queueSelectRows(
+      [{ id: 'admin-1', status: 'ACTIVE' }],
+      [{ roleId: 'admin', status: 'ACTIVE', assignmentScope: '   ' }]
+    )
+    await expect(resolvePrincipalTenantScope(requestFor('admin-1'))).resolves.toEqual(expect.objectContaining({
+      assignmentScope: '',
+      isGlobalAdmin: false
+    }))
+  })
+})
+
+describe('tenant access malformed identity evidence hardening', () => {
+  beforeEach(() => db.select.mockReset())
+
+  it('accepts padded ACTIVE server status but rejects malformed role collection responses', async () => {
+    queueSelectRows([{ id: 'admin-1', status: ' ACTIVE ', cruiseLineId: 'CL-1' }], { malformed: true })
+    await expect(resolvePrincipalTenantScope(requestFor('admin-1'))).resolves.toBeNull()
+  })
+
+  it('rejects structural tenant identifiers instead of manufacturing object or array ids', async () => {
+    queueSelectRows(
+      [{ id: 'admin-1', status: 'ACTIVE', cruiseLineId: { malformed: true } }],
+      [{ roleId: 'admin', status: 'ACTIVE', assignmentScope: 'CRUISE_LINE', cruiseLineId: ['CL-1'] }]
+    )
+
+    await expect(resolvePrincipalTenantScope(requestFor('admin-1'))).resolves.toEqual(expect.objectContaining({
+      cruiseLineId: null,
+      isGlobalAdmin: false
+    }))
+  })
+
+  it('normalizes audit tenant filters and fails soft for malformed filter containers', () => {
+    expect(constrainAuditFiltersToTenant({ cruiseLineId: ' CL-1 ', eventType: 'SHIP_UPDATED' }, { isGlobalAdmin: false, cruiseLineId: ' CL-1 ' }))
+      .toEqual({ cruiseLineId: 'CL-1', eventType: 'SHIP_UPDATED' })
+    expect(constrainAuditFiltersToTenant('malformed', { isGlobalAdmin: false, cruiseLineId: 'CL-1' }))
+      .toEqual({ cruiseLineId: 'CL-1' })
+  })
+
+  it('fails soft when hierarchy select-first responses are malformed', async () => {
+    queueSelectRows({ malformed: true })
+    await expect(resolveShipTenant('SHIP-1')).resolves.toBeNull()
+  })
+})

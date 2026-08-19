@@ -149,3 +149,60 @@ describe('OpenAI Responses provider adapter', () => {
     expect(buildOpenAiRequest({ model: 'gpt-test', prompt, metadata: {} }).model).toBe('gpt-test')
   })
 })
+
+describe('OpenAI Responses provider usage evidence hardening', () => {
+  it('normalizes malformed, non-finite, negative, and fractional token counts', () => {
+    expect(normalizeOpenAiUsage({
+      input_tokens: 'bad',
+      output_tokens: Infinity,
+      total_tokens: -10
+    }, { inputUsdPerMillionTokens: 2, outputUsdPerMillionTokens: 8 })).toEqual({
+      inputTokens: 0,
+      outputTokens: 0,
+      totalTokens: 0,
+      estimatedCostUsd: 0
+    })
+
+    expect(normalizeOpenAiUsage({
+      input_tokens: 10.9,
+      output_tokens: 4.2,
+      total_tokens: 'bad'
+    }, { inputUsdPerMillionTokens: 2, outputUsdPerMillionTokens: 8 })).toEqual({
+      inputTokens: 10,
+      outputTokens: 4,
+      totalTokens: 14,
+      estimatedCostUsd: 0.000052
+    })
+  })
+
+  it('falls back to normalized input plus output when the provider total is unusable', () => {
+    expect(normalizeOpenAiUsage({ input_tokens: 7, output_tokens: 3, total_tokens: 0 })).toEqual(expect.objectContaining({
+      inputTokens: 7,
+      outputTokens: 3,
+      totalTokens: 10
+    }))
+    expect(normalizeOpenAiUsage()).toEqual({ inputTokens: 0, outputTokens: 0, totalTokens: 0, estimatedCostUsd: 0 })
+  })
+
+  it('rejects missing fetch support and unreadable JSON responses', async () => {
+    const missingFetch = createOpenAiResponsesProvider({ apiKey: 'key', fetchImpl: null })
+    await expect(missingFetch.generateStructured({ prompt })).rejects.toMatchObject({ code: 'AI_PROVIDER_INVALID' })
+
+    const unreadable = createOpenAiResponsesProvider({
+      apiKey: 'key',
+      fetchImpl: jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: { get: () => null },
+        json: jest.fn().mockRejectedValue(new SyntaxError('bad json'))
+      })
+    })
+    await expect(unreadable.generateStructured({ prompt })).rejects.toMatchObject({ code: 'AI_PROVIDER_RESPONSE_INVALID' })
+  })
+
+  it('extracts nested text content and ignores unusable nested entries', () => {
+    expect(extractResponseText({ output: [null, { content: [null, { type: 'text', text: '{"nested":true}' }] }] }))
+      .toBe('{"nested":true}')
+    expect(extractResponseText()).toBe('')
+  })
+})

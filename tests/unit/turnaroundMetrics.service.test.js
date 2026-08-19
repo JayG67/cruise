@@ -173,4 +173,63 @@ describe('turnaround operational metrics behavior', () => {
     expect(buildTurnaroundOperationalMetrics({ releasePacket: { readinessScore: -10 } }).summary.readinessScore).toBe(0)
   })
 
+  it('treats semantically closed operational statuses case-insensitively', () => {
+    const metrics = buildTurnaroundOperationalMetrics({
+      tasks: [{ departmentRole: 'Engineering', status: 'complete' }],
+      signoffs: [{ departmentRole: 'Engineering', status: 'approved' }],
+      escalations: [{ departmentRole: 'Engineering', status: ' resolved ', severity: 'critical' }],
+      dependencies: [{ departmentRole: 'Engineering', status: 'cleared' }],
+      handoffs: [{ departmentRole: 'Engineering', status: 'complete' }],
+      staffing: [{ departmentRole: 'Engineering', plannedCount: 1, checkedInCount: 1 }]
+    })
+
+    expect(metrics.counts).toEqual(expect.objectContaining({
+      completedTasks: 1,
+      approvedSignoffs: 1,
+      openEscalations: 0,
+      criticalEscalations: 0,
+      activeDependencies: 0,
+      openHandoffs: 0
+    }))
+    expect(metrics.summary).toEqual(expect.objectContaining({ riskIndex: 0, releaseConfidence: 100 }))
+    expect(metrics.departmentMetrics[0]).toEqual(expect.objectContaining({
+      completeTaskCount: 1,
+      signoffStatus: 'APPROVED',
+      openEscalationCount: 0,
+      criticalEscalationCount: 0,
+      activeDependencyCount: 0,
+      openHandoffCount: 0
+    }))
+  })
+
+  it('degrades malformed collection shapes to empty evidence instead of throwing', () => {
+    const metrics = buildTurnaroundOperationalMetrics({
+      tasks: { bad: true },
+      staffing: 'bad',
+      signoffs: 7,
+      escalations: {},
+      dependencies: null,
+      handoffs: 'bad',
+      auditEvents: { length: 999 }
+    })
+
+    expect(metrics.counts).toEqual(expect.objectContaining({
+      totalTasks: 0,
+      totalSignoffs: 0,
+      openEscalations: 0,
+      activeDependencies: 0,
+      openHandoffs: 0,
+      plannedStaff: 0,
+      checkedInStaff: 0
+    }))
+    expect(metrics.summary.eventVelocity).toBe(0)
+    expect(metrics.departmentMetrics).toEqual([])
+  })
+
+  it('normalizes blank statuses to UNKNOWN without creating false completed evidence', () => {
+    const metrics = buildTurnaroundOperationalMetrics({ tasks: [{ status: '   ' }] })
+    expect(metrics.counts.taskStatusCounts.UNKNOWN).toBe(1)
+    expect(metrics.counts.completedTasks).toBe(0)
+  })
+
 })

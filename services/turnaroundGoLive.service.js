@@ -1,5 +1,7 @@
 function clampScore(value) {
-  return Math.max(0, Math.min(100, Math.round(Number(value) || 0)))
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) return 0
+  return Math.max(0, Math.min(100, Math.round(numericValue)))
 }
 
 function normalizeStatus(value = '') {
@@ -10,11 +12,25 @@ function asArray(value) {
   return Array.isArray(value) ? value : []
 }
 
+function asObject(value) {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : {}
+}
+
+function normalizeCount(value) {
+  const numericValue = Number(value)
+  return Number.isFinite(numericValue) && numericValue > 0 ? Math.floor(numericValue) : 0
+}
+
+function isCompleteStatus(value) {
+  return ['COMPLETE', 'COMPLETED', 'DONE', 'APPROVED', 'RESOLVED', 'CLEARED', 'CLOSED'].includes(normalizeStatus(value))
+}
+
 function scoreFrom(value, fallback = 0) {
   return clampScore(value === undefined || value === null ? fallback : value)
 }
 
 function buildGoLiveReadinessInputs(input = {}) {
+  input = asObject(input)
   const tasks = asArray(input.tasks)
   const signoffs = asArray(input.signoffs)
   const escalations = asArray(input.escalations)
@@ -23,13 +39,13 @@ function buildGoLiveReadinessInputs(input = {}) {
   const staffing = asArray(input.staffing)
 
   const totalTasks = tasks.length
-  const completedTasks = tasks.filter(task => normalizeStatus(task.status) === 'COMPLETE').length
+  const completedTasks = tasks.filter(task => isCompleteStatus(task.status)).length
   const blockedTasks = tasks.filter(task => ['BLOCKED', 'AT RISK', 'AT_RISK'].includes(normalizeStatus(task.status))).length
   const approvedSignoffs = signoffs.filter(signoff => normalizeStatus(signoff.status) === 'APPROVED').length
-  const openEscalations = escalations.filter(escalation => normalizeStatus(escalation.status) !== 'RESOLVED').length
-  const activeDependencies = dependencies.filter(dependency => normalizeStatus(dependency.status) !== 'CLEARED').length
-  const openHandoffs = handoffs.filter(handoff => normalizeStatus(handoff.status) !== 'COMPLETE').length
-  const staffingGaps = staffing.filter(row => Number(row.checkedInCount || 0) < Number(row.plannedCount || 0)).length
+  const openEscalations = escalations.filter(escalation => !isCompleteStatus(escalation.status)).length
+  const activeDependencies = dependencies.filter(dependency => !isCompleteStatus(dependency.status)).length
+  const openHandoffs = handoffs.filter(handoff => !isCompleteStatus(handoff.status)).length
+  const staffingGaps = staffing.filter(row => normalizeCount(row.checkedInCount) < normalizeCount(row.plannedCount)).length
 
   return {
     operationId: input.operation?.id || null,
@@ -59,6 +75,7 @@ function buildGoLiveReadinessInputs(input = {}) {
 }
 
 function buildGoLiveGates(inputs = {}) {
+  inputs = asObject(inputs)
   const gates = [
     {
       id: 'workflow-complete',
@@ -115,6 +132,8 @@ function buildGoLiveGates(inputs = {}) {
 }
 
 function buildGoLiveActions(inputs = {}, gates = []) {
+  inputs = asObject(inputs)
+  gates = asArray(gates)
   const actions = []
 
   gates.filter(gate => gate.status !== 'GO').forEach(gate => {
@@ -141,6 +160,8 @@ function buildGoLiveActions(inputs = {}, gates = []) {
 }
 
 function buildGoLiveEvidence(inputs = {}, gates = []) {
+  inputs = asObject(inputs)
+  gates = asArray(gates)
   return [
     { id: 'workflow-evidence', label: 'Workflow evidence', status: gates.find(gate => gate.id === 'workflow-complete')?.status || 'WATCH', detail: `${inputs.taskCompletion}% task completion and ${inputs.signoffCompletion}% signoff completion.` },
     { id: 'risk-evidence', label: 'Risk evidence', status: gates.find(gate => gate.id === 'risk-controlled')?.status || 'WATCH', detail: `${inputs.openEscalations} open escalations and ${inputs.activeDependencies} active dependencies visible.` },

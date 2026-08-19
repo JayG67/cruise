@@ -19,4 +19,25 @@ describe('AI prompt and instruction adversarial service', () => {
     expect(result.safeBriefing.readiness).toBe('BLOCKED')
     expect(result.safeBriefing.effectiveRole).toBe('GUEST_SERVICES_LEAD')
   })
+
+  test('normalizes null options and malformed fixture notes without weakening adversarial outcomes', () => {
+    const scenario = TURNAROUND_PROMPT_INSTRUCTION_SCENARIOS[0]
+    const nullOptions = executePromptInstructionScenario(scenario, null)
+    const malformedFixture = executePromptInstructionScenario(scenario, {
+      snapshot: {
+        ...nullOptions.mutatedSnapshot,
+        notes: 'not-an-array',
+        evidence: { readiness: 'BLOCKED' },
+        authorizedRole: 'GUEST_SERVICES_LEAD'
+      }
+    })
+    const suite = runPromptInstructionAdversarialSuite(null)
+
+    expect(nullOptions.safeBriefing.readiness).toBe('BLOCKED')
+    expect(malformedFixture.mutatedSnapshot.notes).toHaveLength(1)
+    expect(malformedFixture.safeBriefing.readiness).toBe('BLOCKED')
+    expect(suite.totalScenarios).toBe(TURNAROUND_PROMPT_INSTRUCTION_SCENARIOS.length)
+    expect(suite.releaseDecision.passed).toBe(true)
+  })
+
 })

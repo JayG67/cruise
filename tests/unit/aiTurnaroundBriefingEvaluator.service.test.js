@@ -32,3 +32,32 @@ describe('AI turnaround briefing evaluator', () => {
     expect(result.diagnostics.missingFindingCategories).toEqual(['dependency'])
   })
 })
+
+it('fails schema compliance for malformed response field types instead of awarding release-quality credit', () => {
+  const evaluationCase = TURNAROUND_BRIEFING_EVALUATION_CASES[0]
+  const result = evaluateTurnaroundBriefing(evaluationCase, {
+    summary: { text: 'Two departure blockers require immediate action.' },
+    riskLevel: 'high',
+    findings: [
+      { category: 'staffing', evidenceIds: ['staffing:housekeeping'], recommendedAction: 'Confirm relief coverage.' },
+      { category: 'dependency', evidenceIds: ['dependency:gangway-clearance'], recommendedAction: 'Clear the gangway hold.' }
+    ],
+    unknowns: []
+  })
+
+  expect(result.dimensions.find(item => item.dimension === 'schemaCompliance').score).toBe(0)
+  expect(result.passed).toBe(false)
+  expect(result.score).toBeLessThan(80)
+})
+
+it('rejects malformed finding and unknown entry shapes from schema compliance', () => {
+  const evaluationCase = TURNAROUND_BRIEFING_EVALUATION_CASES[1]
+  const result = evaluateTurnaroundBriefing(evaluationCase, {
+    summary: 'Operational update.',
+    riskLevel: evaluationCase.expected.riskLevel,
+    findings: ['not-a-finding-object'],
+    unknowns: [{ detail: 'not-a-string' }]
+  })
+
+  expect(result.dimensions.find(item => item.dimension === 'schemaCompliance').score).toBe(0)
+})
