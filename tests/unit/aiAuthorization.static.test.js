@@ -26,7 +26,7 @@ describe('AI production authorization contracts', () => {
     expect(routes).toContain("router.get('/turnaround-operations/:operationId/briefings', requireTurnaroundOperationReadAccess('operationId')")
     expect(routes).toContain("router.post('/turnaround-operations/:operationId/briefings/:briefingId/review', requireTurnaroundOperationReadAccess('operationId')")
     expect(routes).toContain("router.post('/turnaround-operations/:operationId/briefing', requireTurnaroundOperationReadAccess('operationId')")
-    expect(turnaroundScope).toContain('if (getAuthenticationMode() === AUTH_MODES.JWT)')
+    expect(turnaroundScope).toContain('if (getAuthenticationMode() === AUTH_MODES.JWT && !isPublicDemoReadRequest(req))')
     expect(turnaroundScope).toContain('return canAccessOperationScope(req, operation.id)')
   })
 

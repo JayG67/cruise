@@ -4,7 +4,8 @@ const {
   bootstrapProductionDemoData,
   getProductionDemoBootstrapState,
   hasAnyBusinessData,
-  hasCanonicalCruiseLineReferenceSet
+  hasCanonicalCruiseLineReferenceSet,
+  hasCompletePortfolioAnchorData
 } = require('../../services/productionDemoBootstrap.service')
 
 function createDb(rowSets) {
@@ -23,8 +24,8 @@ function canonicalCruiseLineRows() {
   return CANONICAL_CRUISE_LINE_NAMES.map(name => ({ name }))
 }
 
-function emptyPortfolioAnchorRowSets() {
-  return PORTFOLIO_ANCHOR_TABLES.map(() => [])
+function completePortfolioAnchorRowSets() {
+  return PORTFOLIO_ANCHOR_TABLES.map((table, index) => [{ id: `anchor-${index}-${String(table)}` }])
 }
 
 describe('production demo bootstrap', () => {
@@ -48,6 +49,7 @@ describe('production demo bootstrap', () => {
       .resolves.toEqual({
         seeded: true,
         reason: 'empty-database-bootstrap',
+        state: 'empty',
         counts: { cruiseLineCount: 8, customerCount: 12 }
       })
 
@@ -55,12 +57,12 @@ describe('production demo bootstrap', () => {
     expect(seed).toHaveBeenCalledTimes(1)
   })
 
-  it('repairs the Render state where only the canonical eight cruise lines exist', async () => {
+  it('repairs canonical reference data when required portfolio content anchors are missing', async () => {
     const initialize = jest.fn().mockResolvedValue(undefined)
     const seed = jest.fn().mockResolvedValue({ cruiseLineCount: 8, customerCount: 12 })
     const dbClient = createDb([
       [{ id: 'existing-line' }],
-      ...emptyPortfolioAnchorRowSets(),
+      [],
       canonicalCruiseLineRows()
     ])
 
@@ -68,22 +70,34 @@ describe('production demo bootstrap', () => {
       .resolves.toEqual({
         seeded: true,
         reason: 'incomplete-demo-repair',
+        state: 'incomplete-demo-dataset',
         counts: { cruiseLineCount: 8, customerCount: 12 }
       })
 
     expect(seed).toHaveBeenCalledTimes(1)
   })
 
-  it('never resets a database when portfolio anchor data exists', async () => {
+  it('does not let derived identity rows hide a missing customer/booking/demo-user dataset', async () => {
+    const dbClient = createDb([
+      [{ id: 'existing-line' }],
+      [],
+      canonicalCruiseLineRows()
+    ])
+
+    await expect(getProductionDemoBootstrapState(dbClient)).resolves.toBe('incomplete-demo-dataset')
+    expect(PORTFOLIO_ANCHOR_TABLES).toHaveLength(3)
+  })
+
+  it('never resets a database when all required portfolio content anchors exist', async () => {
     const initialize = jest.fn().mockResolvedValue(undefined)
     const seed = jest.fn()
     const dbClient = createDb([
       [{ id: 'existing-line' }],
-      [{ id: 'C000000001' }]
+      ...completePortfolioAnchorRowSets()
     ])
 
     await expect(bootstrapProductionDemoData({ confirmed: true, initialize, seed, dbClient }))
-      .resolves.toEqual({ seeded: false, reason: 'database-not-empty' })
+      .resolves.toEqual({ seeded: false, reason: 'database-not-empty', state: 'populated' })
 
     expect(seed).not.toHaveBeenCalled()
   })
@@ -91,7 +105,7 @@ describe('production demo bootstrap', () => {
   it('does not repair arbitrary reference-only production data', async () => {
     const dbClient = createDb([
       [{ id: 'existing-line' }],
-      ...emptyPortfolioAnchorRowSets(),
+      [],
       [{ name: 'Private Cruise Line' }]
     ])
 
@@ -103,8 +117,9 @@ describe('production demo bootstrap', () => {
     await expect(hasCanonicalCruiseLineReferenceSet(dbClient)).resolves.toBe(true)
   })
 
-  it('treats malformed empty query results conservatively and keeps checking', async () => {
-    const dbClient = createDb([null, {}, [], [], [], []])
-    await expect(hasAnyBusinessData(dbClient)).resolves.toBe(false)
+  it('requires every portfolio anchor and treats malformed empty query results conservatively', async () => {
+    await expect(hasCompletePortfolioAnchorData(createDb([[{ id: 'customer' }], [{ id: 'booking' }], []]))).resolves.toBe(false)
+    await expect(hasCompletePortfolioAnchorData(createDb(completePortfolioAnchorRowSets()))).resolves.toBe(true)
+    await expect(hasAnyBusinessData(createDb([null, {}, [], [], [], []]))).resolves.toBe(false)
   })
 })

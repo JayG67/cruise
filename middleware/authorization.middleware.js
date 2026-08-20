@@ -1,4 +1,5 @@
 const { AUTH_MODES, getAuthenticationMode } = require('../services/authentication.service')
+const { isPublicDemoReadRequest } = require('../services/publicDemoReadPolicy.service')
 const { isAdminRole, requireAdminRequest } = require('../services/requestAuthorization.service')
 const {
   BOOKING_ACCESS_FORBIDDEN_MESSAGE,
@@ -37,8 +38,12 @@ const {
   canManageTask
 } = require('../services/turnaroundAccess.service')
 
+function canUseDemoReadSurface(req) {
+  return getAuthenticationMode() === AUTH_MODES.DEMO || isPublicDemoReadRequest(req)
+}
+
 async function requireAdminAccess(req, res, next) {
-  if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+  if (canUseDemoReadSurface(req)) return next()
   if (!(await requireAdminRequest(req, res))) return undefined
   return next()
 }
@@ -49,7 +54,7 @@ async function requireAdminMutation(req, res, next) {
 
 function requireCustomerAccess(paramName = 'id') {
   return async function customerAccessMiddleware(req, res, next) {
-    if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+    if (canUseDemoReadSurface(req)) return next()
     if (!(await canAccessCustomer(req, req.params?.[paramName]))) {
       return res.status(403).json({ message: CUSTOMER_ACCESS_FORBIDDEN_MESSAGE })
     }
@@ -59,7 +64,7 @@ function requireCustomerAccess(paramName = 'id') {
 
 function requireBookingAccess(paramName = 'id') {
   return async function bookingAccessMiddleware(req, res, next) {
-    if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+    if (canUseDemoReadSurface(req)) return next()
     if (!(await canAccessBooking(req, req.params?.[paramName]))) {
       return res.status(403).json({ message: BOOKING_ACCESS_FORBIDDEN_MESSAGE })
     }
@@ -102,7 +107,7 @@ async function requireBookingCreationAccess(req, res, next) {
 
 
 async function requireDemoReadAccess(req, res, next) {
-  if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+  if (canUseDemoReadSurface(req)) return next()
   return res.status(404).json({ message: 'Not found' })
 }
 
@@ -148,7 +153,7 @@ function requireBookingTenantAdminAccess(paramName = 'id') {
 }
 
 async function requireTurnaroundReadAccess(req, res, next) {
-  if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+  if (canUseDemoReadSurface(req)) return next()
   if (!(await canReadTurnaroundOperations(req))) {
     return res.status(403).json({ message: TURNAROUND_ACCESS_FORBIDDEN_MESSAGE })
   }
@@ -157,7 +162,7 @@ async function requireTurnaroundReadAccess(req, res, next) {
 
 function requireTurnaroundOperationReadAccess(paramName = 'id') {
   return async function turnaroundOperationReadAccessMiddleware(req, res, next) {
-    if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+    if (canUseDemoReadSurface(req)) return next()
     if (!(await canAccessOperationScope(req, req.params?.[paramName]))) {
       return res.status(403).json({ message: TURNAROUND_ACCESS_FORBIDDEN_MESSAGE })
     }
@@ -221,7 +226,7 @@ async function requireTenantAuditAccess(req, res, next) {
 }
 
 async function requireGlobalAdminAccess(req, res, next) {
-  if (getAuthenticationMode() === AUTH_MODES.DEMO) return next()
+  if (canUseDemoReadSurface(req)) return next()
   if (!(await requireAdminRequest(req, res))) return undefined
   if (!(await canCreateCruiseLineTenant(req))) {
     return res.status(403).json({ message: GLOBAL_ADMIN_REQUIRED_MESSAGE })

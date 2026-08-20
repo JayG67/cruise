@@ -18,6 +18,8 @@ services:
         value: jwt
       - key: CRUISE_DEMO_DATA_MODE
         value: disabled
+      - key: CRUISE_PUBLIC_DEMO_READ_MODE
+        value: enabled
       - key: CRUISE_RATE_LIMIT_MODE
         value: enabled
       - key: CRUISE_API_RATE_LIMIT

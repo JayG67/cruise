@@ -32,7 +32,7 @@ function main() {
 
   assert(packageJson.engines?.node === '>=22 <23', 'package.json must pin production to Node.js 22 with engines.node ">=22 <23".')
   assert(packageLock.packages?.['']?.engines?.node === '>=22 <23', 'package-lock.json root metadata must match the Node.js 22 production runtime.')
-  assert(packageJson.scripts?.['start:prod'] === 'npm run db:bootstrap:render-demo && node index.js', 'start:prod must safely bootstrap an empty Render database before launching the prebuilt application.')
+  assert(packageJson.scripts?.['start:prod'] === 'npm run db:bootstrap:render-demo && CRUISE_PUBLIC_DEMO_READ_MODE=enabled node index.js', 'start:prod must safely bootstrap an empty Render database before launching the prebuilt application.')
   assert(packageJson.devDependencies?.vite === '8.1.5', 'Vite must remain a development/build dependency, not a production runtime dependency.')
   assert(packageJson.devDependencies?.['@vitejs/plugin-react'], '@vitejs/plugin-react must remain a development/build dependency, not a production runtime dependency.')
   assert(!packageJson.dependencies?.vite, 'Vite must not be installed as a production runtime dependency.')
@@ -57,6 +57,8 @@ function main() {
     'key: DATABASE_URL',
     'key: CRUISE_DEMO_DATA_MODE',
     'value: disabled',
+    'key: CRUISE_PUBLIC_DEMO_READ_MODE',
+    'value: enabled',
     'key: CRUISE_RATE_LIMIT_MODE',
     'key: CRUISE_API_RATE_LIMIT',
     'key: CRUISE_MUTATION_RATE_LIMIT',
@@ -89,10 +91,13 @@ function main() {
   assertIncludes(app, 'app.use(errorHandler)', 'app.js')
 
   const authenticationService = read('services/authentication.service.js')
+  const publicDemoReadPolicy = read('services/publicDemoReadPolicy.service.js')
   assertIncludes(authenticationService, 'validateJwtConfiguration', 'services/authentication.service.js')
   assertIncludes(authenticationService, 'Production JWT authentication requires CRUISE_JWT_ISSUER.', 'services/authentication.service.js')
   assertIncludes(authenticationService, 'Production JWT authentication requires CRUISE_JWT_AUDIENCE.', 'services/authentication.service.js')
   assertIncludes(index, 'validateJwtConfiguration(process.env)', 'index.js')
+  assertIncludes(publicDemoReadPolicy, "SAFE_READ_METHODS = new Set(['GET', 'HEAD'])", 'services/publicDemoReadPolicy.service.js')
+  assertIncludes(publicDemoReadPolicy, 'CRUISE_PUBLIC_DEMO_READ_MODE', 'services/publicDemoReadPolicy.service.js')
 
   const securityMiddleware = read('middleware/security.middleware.js')
   assertIncludes(securityMiddleware, "if (isProduction()) return true", 'middleware/security.middleware.js')

@@ -140,6 +140,25 @@ describe('requestAuthorization service', () => {
     }
   })
 
+  it('allows explicitly enabled production GET reads without treating writes as admin requests', async () => {
+    const previousNodeEnv = process.env.NODE_ENV
+    const previousPublicReadMode = process.env.CRUISE_PUBLIC_DEMO_READ_MODE
+    process.env.NODE_ENV = 'production'
+    process.env.CRUISE_PUBLIC_DEMO_READ_MODE = 'enabled'
+    const res = { status: jest.fn(() => ({ json: jest.fn() })) }
+
+    try {
+      await expect(service.requireAdminRequest({ method: 'GET', requestIdentity: {}, query: {} }, res)).resolves.toBe(true)
+      await expect(service.requireAdminRequest({ method: 'POST', requestIdentity: {}, query: {} }, res)).resolves.toBe(false)
+      expect(res.status).toHaveBeenCalledWith(403)
+    } finally {
+      if (previousNodeEnv === undefined) delete process.env.NODE_ENV
+      else process.env.NODE_ENV = previousNodeEnv
+      if (previousPublicReadMode === undefined) delete process.env.CRUISE_PUBLIC_DEMO_READ_MODE
+      else process.env.CRUISE_PUBLIC_DEMO_READ_MODE = previousPublicReadMode
+    }
+  })
+
   it('writes a structured forbidden response for non-admin audit review requests', async () => {
     const status = jest.fn(() => ({ json }))
     const json = jest.fn()

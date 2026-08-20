@@ -3,6 +3,7 @@ const { eq } = require('drizzle-orm')
 const db = require('../db')
 const demoUserTable = require('../models/demoUser.model')
 const { AUTH_MODES, getAuthenticationMode } = require('./authentication.service')
+const { isPublicDemoReadRequest } = require('./publicDemoReadPolicy.service')
 
 const ADMIN_FORBIDDEN_MESSAGE = 'Admin access requires an admin request identity.'
 const DEMO_AUDIT_ACTOR_DISPLAY_NAME = 'Cruise Explorer Demo Session'
@@ -143,6 +144,7 @@ async function isAdminRequest(req = {}) {
 }
 
 async function requireAdminRequest(req, res) {
+  if (isPublicDemoReadRequest(req)) return true
   if (await isAdminRequest(req)) return true
   res.status(403).json({ message: ADMIN_FORBIDDEN_MESSAGE })
   return false

@@ -4,6 +4,7 @@ const bookingPassengerTable = require('../models/bookingPassenger.model')
 const customerPreCruiseChecklistTable = require('../models/customerPreCruiseChecklist.model')
 const db = require('../db')
 const { AUTH_MODES, getAuthenticationMode } = require('../services/authentication.service')
+const { isPublicDemoReadRequest } = require('../services/publicDemoReadPolicy.service')
 const { recordPlatformAuditEvent } = require('../services/platformAudit.service')
 const { buildEntityHistoryPayload, buildEntityLifecycleTimestamps, buildEntityUpdateTimestamp } = require('../services/entityHistory.service')
 const { withCustomerApiIdentity, withPreCruiseChecklistApiIdentity } = require('../services/apiIdentityBridge.service')
@@ -55,7 +56,7 @@ async function getCustomerPreCruiseChecklistMap(customerIds = []) {
 exports.getCustomers = async (req, res, next) => {
   try {
     const allCustomers = await db.select().from(customerTable)
-    const customers = getAuthenticationMode() === AUTH_MODES.DEMO
+    const customers = getAuthenticationMode() === AUTH_MODES.DEMO || isPublicDemoReadRequest(req)
       ? allCustomers
       : await filterCustomersForAdminTenant(req, allCustomers)
 

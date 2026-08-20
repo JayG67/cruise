@@ -4,6 +4,7 @@ const {
   getAuthenticationMode,
   isDemoAuthenticationEnabled
 } = require('../services/authentication.service')
+const { isPublicDemoReadRequest } = require('../services/publicDemoReadPolicy.service')
 
 function readHeader(req, name) {
   if (!req || !req.headers) return ''
@@ -12,7 +13,7 @@ function readHeader(req, name) {
 }
 
 function getScopedDemoUserId(req) {
-  if (!isDemoAuthenticationEnabled()) return ''
+  if (!isDemoAuthenticationEnabled() && !isPublicDemoReadRequest(req)) return ''
   const attachedDemoUserId = String(req?.requestIdentity?.demoUserId || '').trim()
   const headerDemoUserId = String(readHeader(req, 'X-Cruise-Demo-User-Id') || '').trim()
   const queryDemoUserId = String(req?.query?.demoUserId || '').trim()
@@ -44,7 +45,7 @@ function buildProductionPrincipal(req = {}) {
 
 function buildRequestIdentity(req = {}) {
   const authMode = getAuthenticationMode()
-  const demoEnabled = authMode === AUTH_MODES.DEMO
+  const demoEnabled = authMode === AUTH_MODES.DEMO || isPublicDemoReadRequest(req)
   const headerDemoUserId = demoEnabled ? String(readHeader(req, 'X-Cruise-Demo-User-Id') || '').trim() : ''
   const queryDemoUserId = demoEnabled ? String(req?.query?.demoUserId || '').trim() : ''
   const demoUserId = headerDemoUserId || queryDemoUserId || null
