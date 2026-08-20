@@ -25,12 +25,14 @@ services:
         value: 180
       - key: CRUISE_AI_RATE_LIMIT
         value: 30
+      # Render generates this once when the variable does not already exist.
+      # This keeps production fail-closed JWT validation deployable without committing a secret.
       - key: CRUISE_JWT_SECRET
-        sync: false
+        generateValue: true
       - key: CRUISE_JWT_ISSUER
-        sync: false
+        value: cruise-explorer-render
       - key: CRUISE_JWT_AUDIENCE
-        sync: false
+        value: cruise-explorer-api
       - key: DATABASE_URL
         fromDatabase:
           name: cruise-db
