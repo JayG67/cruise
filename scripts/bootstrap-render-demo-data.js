@@ -6,7 +6,9 @@ async function main() {
   const result = await bootstrapProductionDemoData({ confirmed })
 
   if (result.seeded) {
-    console.log('Render demo bootstrap completed for an empty database.')
+    console.log(result.reason === 'incomplete-demo-repair'
+      ? 'Render demo bootstrap repaired an incomplete canonical portfolio dataset.'
+      : 'Render demo bootstrap completed for an empty database.')
     console.log(JSON.stringify(result.counts, null, 2))
     return
   }

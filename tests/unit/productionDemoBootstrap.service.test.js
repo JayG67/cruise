@@ -1,6 +1,9 @@
 const {
+  CANONICAL_CRUISE_LINE_NAMES,
   bootstrapProductionDemoData,
-  hasAnyBusinessData
+  getProductionDemoBootstrapState,
+  hasAnyBusinessData,
+  hasCanonicalCruiseLineReferenceSet
 } = require('../../services/productionDemoBootstrap.service')
 
 function createDb(rowSets) {
@@ -8,10 +11,15 @@ function createDb(rowSets) {
   return {
     select: jest.fn(() => ({
       from: jest.fn(() => ({
-        limit: jest.fn(async () => queue.shift() ?? [])
+        limit: jest.fn(async () => queue.shift() ?? []),
+        then: (resolve, reject) => Promise.resolve(queue.shift() ?? []).then(resolve, reject)
       }))
     }))
   }
+}
+
+function canonicalCruiseLineRows() {
+  return CANONICAL_CRUISE_LINE_NAMES.map(name => ({ name }))
 }
 
 describe('production demo bootstrap', () => {
@@ -26,7 +34,7 @@ describe('production demo bootstrap', () => {
     expect(seed).not.toHaveBeenCalled()
   })
 
-  it('seeds an initialized database only when all business tables are empty', async () => {
+  it('seeds an initialized database when all business tables are empty', async () => {
     const initialize = jest.fn().mockResolvedValue(undefined)
     const seed = jest.fn().mockResolvedValue({ cruiseLineCount: 8, customerCount: 12 })
     const dbClient = createDb([[], [], [], [], [], []])
@@ -42,21 +50,56 @@ describe('production demo bootstrap', () => {
     expect(seed).toHaveBeenCalledTimes(1)
   })
 
-  it('never resets a database when any business data already exists', async () => {
+  it('repairs the Render state where only the canonical eight cruise lines exist', async () => {
+    const initialize = jest.fn().mockResolvedValue(undefined)
+    const seed = jest.fn().mockResolvedValue({ cruiseLineCount: 8, customerCount: 12 })
+    const dbClient = createDb([
+      [{ id: 'existing-line' }],
+      [], [], [], [], [], // six anchor tables are all empty
+      canonicalCruiseLineRows()
+    ])
+
+    await expect(bootstrapProductionDemoData({ confirmed: true, initialize, seed, dbClient }))
+      .resolves.toEqual({
+        seeded: true,
+        reason: 'incomplete-demo-repair',
+        counts: { cruiseLineCount: 8, customerCount: 12 }
+      })
+
+    expect(seed).toHaveBeenCalledTimes(1)
+  })
+
+  it('never resets a database when portfolio anchor data exists', async () => {
     const initialize = jest.fn().mockResolvedValue(undefined)
     const seed = jest.fn()
-    const dbClient = createDb([[], [{ id: 'existing-ship' }]])
+    const dbClient = createDb([
+      [{ id: 'existing-line' }],
+      [{ id: 'C000000001' }]
+    ])
 
     await expect(bootstrapProductionDemoData({ confirmed: true, initialize, seed, dbClient }))
       .resolves.toEqual({ seeded: false, reason: 'database-not-empty' })
 
     expect(seed).not.toHaveBeenCalled()
-    expect(dbClient.select).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not repair arbitrary reference-only production data', async () => {
+    const dbClient = createDb([
+      [{ id: 'existing-line' }],
+      [], [], [], [], [],
+      [{ name: 'Private Cruise Line' }]
+    ])
+
+    await expect(getProductionDemoBootstrapState(dbClient)).resolves.toBe('populated')
+  })
+
+  it('recognizes the exact canonical cruise-line reference set regardless of ordering', async () => {
+    const dbClient = createDb([canonicalCruiseLineRows().reverse()])
+    await expect(hasCanonicalCruiseLineReferenceSet(dbClient)).resolves.toBe(true)
   })
 
   it('treats malformed empty query results conservatively and keeps checking', async () => {
     const dbClient = createDb([null, {}, [], [], [], []])
-
     await expect(hasAnyBusinessData(dbClient)).resolves.toBe(false)
   })
 })
