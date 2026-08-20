@@ -32,7 +32,7 @@ function main() {
 
   assert(packageJson.engines?.node === '>=22 <23', 'package.json must pin production to Node.js 22 with engines.node ">=22 <23".')
   assert(packageLock.packages?.['']?.engines?.node === '>=22 <23', 'package-lock.json root metadata must match the Node.js 22 production runtime.')
-  assert(packageJson.scripts?.['start:prod'] === 'node index.js', 'start:prod must launch the prebuilt application without production build-tool dependencies.')
+  assert(packageJson.scripts?.['start:prod'] === 'npm run db:bootstrap:render-demo && node index.js', 'start:prod must safely bootstrap an empty Render database before launching the prebuilt application.')
   assert(packageJson.devDependencies?.vite === '8.1.5', 'Vite must remain a development/build dependency, not a production runtime dependency.')
   assert(packageJson.devDependencies?.['@vitejs/plugin-react'], '@vitejs/plugin-react must remain a development/build dependency, not a production runtime dependency.')
   assert(!packageJson.dependencies?.vite, 'Vite must not be installed as a production runtime dependency.')
