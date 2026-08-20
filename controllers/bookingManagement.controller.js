@@ -4,6 +4,7 @@ const bookingTable = require('../models/booking.model')
 const bookingPassengerTable = require('../models/bookingPassenger.model')
 const db = require('../db')
 const { AUTH_MODES, getAuthenticationMode } = require('../services/authentication.service')
+const { isPublicDemoReadRequest } = require('../services/publicDemoReadPolicy.service')
 const { eq } = require('drizzle-orm')
 const {
   getBookingAuditScope,
@@ -35,7 +36,7 @@ async function recordCruiseManagementAuditEvent(req, event) {
 exports.getBookings = async (req, res, next) => {
   try {
     const allBookings = await db.select().from(bookingTable)
-    const bookings = getAuthenticationMode() === AUTH_MODES.DEMO
+    const bookings = getAuthenticationMode() === AUTH_MODES.DEMO || isPublicDemoReadRequest(req)
       ? allBookings
       : await filterBookingsForAdminTenant(req, allBookings)
 

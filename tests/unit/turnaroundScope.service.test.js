@@ -100,6 +100,24 @@ describe('turnaroundScope service', () => {
     await expect(service.getSailingIdsForOperationalAssignment(null)).resolves.toBeNull()
   })
 
+  it('serves read-only turnaround data in explicitly enabled production public demo mode', async () => {
+    const previousNodeEnv = process.env.NODE_ENV
+    const previousPublicReadMode = process.env.CRUISE_PUBLIC_DEMO_READ_MODE
+    try {
+      process.env.NODE_ENV = 'production'
+      process.env.CRUISE_PUBLIC_DEMO_READ_MODE = 'enabled'
+      queueSelectRows([{ id: 'operation-public', sailingId: 'sailing-1' }])
+
+      await expect(service.getTurnaroundOperationsForRequest({ method: 'GET', requestIdentity: {}, query: {}, headers: {} }))
+        .resolves.toEqual([{ id: 'operation-public', sailingId: 'sailing-1' }])
+    } finally {
+      if (previousNodeEnv === undefined) delete process.env.NODE_ENV
+      else process.env.NODE_ENV = previousNodeEnv
+      if (previousPublicReadMode === undefined) delete process.env.CRUISE_PUBLIC_DEMO_READ_MODE
+      else process.env.CRUISE_PUBLIC_DEMO_READ_MODE = previousPublicReadMode
+    }
+  })
+
   it('returns all operations when no demo user is selected or when the selected role is not operational', async () => {
     queueSelectRows([{ id: 'operation-1' }])
     await expect(service.getTurnaroundOperationsForRequest({ requestIdentity: {}, query: {} })).resolves.toEqual([{ id: 'operation-1' }])

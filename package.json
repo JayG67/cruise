@@ -7,7 +7,7 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "start:prod": "npm run db:bootstrap:render-demo && node index.js",
+    "start:prod": "npm run db:bootstrap:render-demo && CRUISE_PUBLIC_DEMO_READ_MODE=enabled node index.js",
     "start": "npm run react:build && docker compose up -d && SUPPRESS_DB_LOGS=true DATABASE_URL=postgres://postgres:password@127.0.0.1:5433/cruise node index.js",
     "start:ci": "SUPPRESS_DB_LOGS=true node index.js",
     "unitTests": "NODE_NO_WARNINGS=1 jest tests/unit",

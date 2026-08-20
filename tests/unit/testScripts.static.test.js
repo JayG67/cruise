@@ -114,7 +114,7 @@ describe('local test database script guardrails', () => {
   it('keeps Render production startup resilient when dashboard build settings are stale', () => {
     const renderYaml = fs.readFileSync(path.join(projectRoot, 'render.yaml'), 'utf8')
 
-    expect(packageJson.scripts['start:prod']).toBe('npm run db:bootstrap:render-demo && node index.js')
+    expect(packageJson.scripts['start:prod']).toBe('npm run db:bootstrap:render-demo && CRUISE_PUBLIC_DEMO_READ_MODE=enabled node index.js')
     expect(packageJson.dependencies.vite).toBeUndefined()
     expect(packageJson.dependencies['@vitejs/plugin-react']).toBeUndefined()
     expect(packageJson.devDependencies.vite).toBe('8.1.5')

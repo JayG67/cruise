@@ -9,9 +9,6 @@ const sailingTable = require('../models/sailing.model')
 const customerTable = require('../models/customer.model')
 const bookingTable = require('../models/booking.model')
 const demoUserTable = require('../models/demoUser.model')
-const appUserTable = require('../models/appUser.model')
-const appRoleTable = require('../models/appRole.model')
-const appUserRoleTable = require('../models/appUserRole.model')
 const turnaroundOperationTable = require('../models/turnaroundOperation.model')
 
 const BUSINESS_TABLES = Object.freeze([
@@ -23,13 +20,13 @@ const BUSINESS_TABLES = Object.freeze([
   turnaroundOperationTable
 ])
 
+// These are the canonical portfolio content anchors. Identity migration tables are
+// intentionally excluded because app_roles/app_users can exist as derived migration
+// artifacts even when the customer/booking/demo-person dataset is incomplete.
 const PORTFOLIO_ANCHOR_TABLES = Object.freeze([
   customerTable,
   bookingTable,
-  demoUserTable,
-  appUserTable,
-  appRoleTable,
-  appUserRoleTable
+  demoUserTable
 ])
 
 const SEED_FILE_PATH = path.join(__dirname, '..', 'data', 'cruise.json')
@@ -57,12 +54,12 @@ async function hasAnyBusinessData(dbClient = db) {
   return false
 }
 
-async function hasAnyPortfolioAnchorData(dbClient = db) {
+async function hasCompletePortfolioAnchorData(dbClient = db) {
   for (const table of PORTFOLIO_ANCHOR_TABLES) {
-    if (await readFirstRow(dbClient, table)) return true
+    if (!(await readFirstRow(dbClient, table))) return false
   }
 
-  return false
+  return true
 }
 
 async function hasCanonicalCruiseLineReferenceSet(dbClient = db) {
@@ -82,9 +79,9 @@ async function getProductionDemoBootstrapState(dbClient = db) {
   const hasBusinessData = await hasAnyBusinessData(dbClient)
   if (!hasBusinessData) return 'empty'
 
-  if (await hasAnyPortfolioAnchorData(dbClient)) return 'populated'
+  if (await hasCompletePortfolioAnchorData(dbClient)) return 'populated'
 
-  if (await hasCanonicalCruiseLineReferenceSet(dbClient)) return 'incomplete-demo-reference-only'
+  if (await hasCanonicalCruiseLineReferenceSet(dbClient)) return 'incomplete-demo-dataset'
 
   return 'populated'
 }
@@ -107,7 +104,8 @@ async function bootstrapProductionDemoData({
   if (state === 'populated') {
     return {
       seeded: false,
-      reason: 'database-not-empty'
+      reason: 'database-not-empty',
+      state
     }
   }
 
@@ -116,6 +114,7 @@ async function bootstrapProductionDemoData({
   return {
     seeded: true,
     reason: state === 'empty' ? 'empty-database-bootstrap' : 'incomplete-demo-repair',
+    state,
     counts
   }
 }
@@ -127,6 +126,6 @@ module.exports = {
   bootstrapProductionDemoData,
   getProductionDemoBootstrapState,
   hasAnyBusinessData,
-  hasAnyPortfolioAnchorData,
-  hasCanonicalCruiseLineReferenceSet
+  hasCanonicalCruiseLineReferenceSet,
+  hasCompletePortfolioAnchorData
 }

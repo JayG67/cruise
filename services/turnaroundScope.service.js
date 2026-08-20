@@ -8,6 +8,7 @@ const turnaroundOperationTable = require('../models/turnaroundOperation.model')
 const { getScopedDemoUserId } = require('../middleware/requestIdentity.middleware')
 const { resolveRequestAuditActor } = require('./requestAuthorization.service')
 const { AUTH_MODES, getAuthenticationMode } = require('./authentication.service')
+const { isPublicDemoReadRequest } = require('./publicDemoReadPolicy.service')
 const { canAccessOperationScope, resolvePrincipalOperationalScope } = require('./turnaroundAccess.service')
 
 const TURNAROUND_OPERATION_FORBIDDEN_MESSAGE = 'Selected person is not assigned to this turnaround operation'
@@ -76,7 +77,7 @@ async function getSailingIdsForOperationalAssignment(demoUser) {
 }
 
 async function getTurnaroundOperationsForRequest(req) {
-  if (getAuthenticationMode() === AUTH_MODES.JWT) {
+  if (getAuthenticationMode() === AUTH_MODES.JWT && !isPublicDemoReadRequest(req)) {
     const scope = await resolvePrincipalOperationalScope(req)
     if (!scope) return []
     if (scope.isGlobalAdmin) return db.select().from(turnaroundOperationTable)
@@ -118,7 +119,7 @@ async function getTurnaroundOperationsForRequest(req) {
 
 async function canAccessTurnaroundOperationForRequest(req, operation) {
   if (!operation) return false
-  if (getAuthenticationMode() === AUTH_MODES.JWT) {
+  if (getAuthenticationMode() === AUTH_MODES.JWT && !isPublicDemoReadRequest(req)) {
     return canAccessOperationScope(req, operation.id)
   }
   if (!getScopedDemoUserId(req)) return true

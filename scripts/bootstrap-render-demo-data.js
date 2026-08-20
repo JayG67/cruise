@@ -9,11 +9,11 @@ async function main() {
     console.log(result.reason === 'incomplete-demo-repair'
       ? 'Render demo bootstrap repaired an incomplete canonical portfolio dataset.'
       : 'Render demo bootstrap completed for an empty database.')
-    console.log(JSON.stringify(result.counts, null, 2))
+    console.log(JSON.stringify({ state: result.state, ...result.counts }, null, 2))
     return
   }
 
-  console.log('Render demo bootstrap skipped because business data already exists.')
+  console.log(`Render demo bootstrap skipped because the portfolio content anchors are already populated (state: ${result.state}).`)
 }
 
 main()

@@ -3,6 +3,10 @@ jest.mock('../../services/authentication.service', () => ({
   getAuthenticationMode: jest.fn()
 }))
 
+jest.mock('../../services/publicDemoReadPolicy.service', () => ({
+  isPublicDemoReadRequest: jest.fn(() => false)
+}))
+
 jest.mock('../../services/requestAuthorization.service', () => ({
   isAdminRole: jest.fn(role => String(role || '').toUpperCase() === 'ADMIN'),
   requireAdminRequest: jest.fn()
@@ -51,6 +55,7 @@ jest.mock('../../services/turnaroundAccess.service', () => ({
 }))
 
 const { getAuthenticationMode } = require('../../services/authentication.service')
+const { isPublicDemoReadRequest } = require('../../services/publicDemoReadPolicy.service')
 const {
   canAccessActivityTenant,
   canAccessCruiseLineTenant,
@@ -112,6 +117,7 @@ function responseDouble() {
 describe('authorization middleware', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    isPublicDemoReadRequest.mockReturnValue(false)
   })
 
   it('preserves demo-mode portfolio workflows without invoking production authorization', async () => {
@@ -285,6 +291,28 @@ describe('authorization middleware', () => {
 
     expect(customerRes.status).toHaveBeenCalledWith(403)
     expect(bookingRes.status).toHaveBeenCalledWith(403)
+  })
+
+  it('allows explicitly enabled public portfolio reads without weakening JWT mutation authorization', async () => {
+    getAuthenticationMode.mockReturnValue('jwt')
+    isPublicDemoReadRequest.mockImplementation(req => req?.method === 'GET')
+    requireAdminRequest.mockResolvedValue(false)
+    const readNext = jest.fn()
+    const demoNext = jest.fn()
+    const turnaroundNext = jest.fn()
+    const mutationNext = jest.fn()
+    const mutationRes = responseDouble()
+
+    await requireAdminAccess({ method: 'GET' }, responseDouble(), readNext)
+    await requireDemoReadAccess({ method: 'GET' }, responseDouble(), demoNext)
+    await requireTurnaroundReadAccess({ method: 'GET' }, responseDouble(), turnaroundNext)
+    await requireAdminMutation({ method: 'POST' }, mutationRes, mutationNext)
+
+    expect(readNext).toHaveBeenCalledTimes(1)
+    expect(demoNext).toHaveBeenCalledTimes(1)
+    expect(turnaroundNext).toHaveBeenCalledTimes(1)
+    expect(mutationNext).not.toHaveBeenCalled()
+    expect(requireAdminRequest).toHaveBeenCalledWith(expect.objectContaining({ method: 'POST' }), mutationRes)
   })
 
   it('returns not-found for demo identity read surfaces outside demo mode', async () => {

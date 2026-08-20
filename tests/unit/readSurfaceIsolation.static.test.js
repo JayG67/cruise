@@ -70,7 +70,7 @@ describe('Slice 9 customer tenant and read-surface isolation contracts', () => {
     }
   })
 
-  it('keeps demo identity/context reads unavailable outside demo authentication mode', () => {
+  it('keeps demo identity/context reads behind the dedicated read authorization boundary', () => {
     expect(routeBlock('get', '/demo-users')).toContain('requireDemoReadAccess')
     expect(routeBlock('get', '/demo-users/:id/context')).toContain('requireDemoReadAccess')
   })
