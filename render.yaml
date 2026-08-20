@@ -7,6 +7,7 @@ services:
     region: virginia
     branch: main
     buildCommand: npm ci --include=dev && npm run react:build
+    preDeployCommand: npm run db:bootstrap:render-demo
     startCommand: npm run start:prod
     healthCheckPath: /health
     autoDeployTrigger: checksPass
