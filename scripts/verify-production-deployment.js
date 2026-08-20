@@ -38,12 +38,14 @@ function main() {
   assert(!packageJson.dependencies?.vite, 'Vite must not be installed as a production runtime dependency.')
   assert(!packageJson.dependencies?.['@vitejs/plugin-react'], '@vitejs/plugin-react must not be installed as a production runtime dependency.')
   assert(packageJson.scripts?.['production:deployment:audit'] === 'node scripts/verify-production-deployment.js', 'package.json must expose production:deployment:audit.')
+  assert(packageJson.scripts?.['db:bootstrap:render-demo'] === 'node scripts/bootstrap-render-demo-data.js --demo-if-empty', 'Render demo bootstrap must require explicit demo-if-empty confirmation.')
   assert(packageJson.scripts?.['test:all']?.includes('npm run production:deployment:audit'), 'test:all must run the production deployment audit.')
 
   for (const expected of [
     'runtime: node',
     'numInstances: 1',
     'buildCommand: npm ci --include=dev && npm run react:build',
+    'preDeployCommand: npm run db:bootstrap:render-demo',
     'startCommand: npm run start:prod',
     'healthCheckPath: /health',
     'autoDeployTrigger: checksPass',

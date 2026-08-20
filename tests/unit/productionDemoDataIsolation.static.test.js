@@ -33,6 +33,7 @@ describe('production demo-data isolation contracts', () => {
 
     expect(renderConfig).toContain('key: CRUISE_DEMO_DATA_MODE')
     expect(renderConfig).toContain('value: disabled')
+    expect(renderConfig).toContain('preDeployCommand: npm run db:bootstrap:render-demo')
     expect(envExample).toContain('CRUISE_DEMO_DATA_MODE=enabled')
     expect(envExample).toContain('Production always disables demo data')
   })
