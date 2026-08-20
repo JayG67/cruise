@@ -1,5 +1,6 @@
 const {
   CANONICAL_CRUISE_LINE_NAMES,
+  PORTFOLIO_ANCHOR_TABLES,
   bootstrapProductionDemoData,
   getProductionDemoBootstrapState,
   hasAnyBusinessData,
@@ -20,6 +21,10 @@ function createDb(rowSets) {
 
 function canonicalCruiseLineRows() {
   return CANONICAL_CRUISE_LINE_NAMES.map(name => ({ name }))
+}
+
+function emptyPortfolioAnchorRowSets() {
+  return PORTFOLIO_ANCHOR_TABLES.map(() => [])
 }
 
 describe('production demo bootstrap', () => {
@@ -55,7 +60,7 @@ describe('production demo bootstrap', () => {
     const seed = jest.fn().mockResolvedValue({ cruiseLineCount: 8, customerCount: 12 })
     const dbClient = createDb([
       [{ id: 'existing-line' }],
-      [], [], [], [], [], // six anchor tables are all empty
+      ...emptyPortfolioAnchorRowSets(),
       canonicalCruiseLineRows()
     ])
 
@@ -86,7 +91,7 @@ describe('production demo bootstrap', () => {
   it('does not repair arbitrary reference-only production data', async () => {
     const dbClient = createDb([
       [{ id: 'existing-line' }],
-      [], [], [], [], [],
+      ...emptyPortfolioAnchorRowSets(),
       [{ name: 'Private Cruise Line' }]
     ])
 
