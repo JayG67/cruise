@@ -63,6 +63,11 @@ function main() {
     assertIncludes(renderConfig, expected, 'render.yaml')
   }
 
+  assert(/key: CRUISE_JWT_SECRET\s+generateValue: true/.test(renderConfig), 'render.yaml must provision CRUISE_JWT_SECRET with a generated secret.')
+  assert(/key: CRUISE_JWT_ISSUER\s+value: cruise-explorer-render/.test(renderConfig), 'render.yaml must provision the production JWT issuer.')
+  assert(/key: CRUISE_JWT_AUDIENCE\s+value: cruise-explorer-api/.test(renderConfig), 'render.yaml must provision the production JWT audience.')
+  assert(!/key: CRUISE_JWT_SECRET\s+sync: false/.test(renderConfig), 'render.yaml must not leave CRUISE_JWT_SECRET as an unpopulated sync:false placeholder.')
+
   assertIncludes(workflow, 'node-version: 22', '.github/workflows/ci.yml')
   assertIncludes(workflow, 'run: npm run production:deployment:audit', '.github/workflows/ci.yml')
 

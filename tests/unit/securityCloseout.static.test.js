@@ -7,9 +7,10 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8')
 describe('security remediation closeout contracts', () => {
   it('requires managed production JWT secret, issuer, and audience settings', () => {
     const render = read('render.yaml')
-    for (const key of ['CRUISE_JWT_SECRET', 'CRUISE_JWT_ISSUER', 'CRUISE_JWT_AUDIENCE']) {
-      expect(render).toContain(`key: ${key}`)
-    }
+    expect(render).toMatch(/key: CRUISE_JWT_SECRET\s+generateValue: true/)
+    expect(render).toMatch(/key: CRUISE_JWT_ISSUER\s+value: cruise-explorer-render/)
+    expect(render).toMatch(/key: CRUISE_JWT_AUDIENCE\s+value: cruise-explorer-api/)
+    expect(render).not.toMatch(/key: CRUISE_JWT_SECRET\s+sync: false/)
     expect(read('index.js')).toContain('validateJwtConfiguration(process.env)')
   })
 

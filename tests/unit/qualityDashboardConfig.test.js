@@ -74,6 +74,16 @@ describe('quality dashboard and CI reporting configuration', () => {
     expect(mobileJob).not.toContain('playwright install --with-deps')
   })
 
+  it('uses the correct PostgreSQL hostname for runner and container jobs', () => {
+    const workflow = read('.github/workflows/ci.yml')
+    const integrationJob = workflow.slice(workflow.indexOf('  integration-tests:'), workflow.indexOf('  ui-tests:'))
+    const mobileJob = workflow.slice(workflow.indexOf('  playwright-mobile-tests:'), workflow.indexOf('  performance-smoke:'))
+
+    expect(integrationJob).toContain('postgres://postgres:password@localhost:5432/cruise')
+    expect(integrationJob).not.toContain('postgres://postgres:password@postgres:5432/cruise')
+    expect(mobileJob).toContain('postgres://postgres:password@postgres:5432/cruise')
+  })
+
   it('keeps broad Mobile Quality & UX wording in GitHub Actions reporting', () => {
     const workflow = read('.github/workflows/ci.yml')
 
