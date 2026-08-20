@@ -63,6 +63,17 @@ describe('quality dashboard and CI reporting configuration', () => {
     expect(workflow).toContain('security-quality-evidence/release-matrix.json')
   })
 
+
+  it('uses the pinned Playwright image instead of reinstalling browser OS dependencies in CI', () => {
+    const workflow = read('.github/workflows/ci.yml')
+    const mobileJob = workflow.slice(workflow.indexOf('  playwright-mobile-tests:'), workflow.indexOf('  performance-smoke:'))
+
+    expect(mobileJob).toContain('image: mcr.microsoft.com/playwright:v1.60.0-noble')
+    expect(mobileJob).toContain('timeout-minutes: 30')
+    expect(mobileJob).toContain('postgres://postgres:password@postgres:5432/cruise')
+    expect(mobileJob).not.toContain('playwright install --with-deps')
+  })
+
   it('keeps broad Mobile Quality & UX wording in GitHub Actions reporting', () => {
     const workflow = read('.github/workflows/ci.yml')
 
